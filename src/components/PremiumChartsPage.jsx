@@ -1,4 +1,6 @@
-﻿const ARTIST_COUNTRY_FALLBACK = {
+﻿import { useEffect, useState } from "react";
+
+const ARTIST_COUNTRY_FALLBACK = {
   "Joel Lwaga": { country: "Tanzania", code: "TZ" },
   "Kifo Cha Mende": { country: "Kenya", code: "KE" },
   Iyanii: { country: "Kenya", code: "KE" },
@@ -54,6 +56,31 @@
   "Minister Danybless": { country: "United States", code: "US" },
   prodbycpkshawn: { country: "Guyana", code: "GY" },
 };
+
+function useRealMobile(isMobileFromParent) {
+  const [realMobile, setRealMobile] = useState(() => {
+    if (typeof window === "undefined") return Boolean(isMobileFromParent);
+    return window.innerWidth <= 768;
+  });
+
+  useEffect(() => {
+    function checkMobile() {
+      setRealMobile(window.innerWidth <= 768);
+    }
+
+    checkMobile();
+
+    window.addEventListener("resize", checkMobile);
+    window.addEventListener("orientationchange", checkMobile);
+
+    return () => {
+      window.removeEventListener("resize", checkMobile);
+      window.removeEventListener("orientationchange", checkMobile);
+    };
+  }, []);
+
+  return realMobile || Boolean(isMobileFromParent);
+}
 
 function countryCodeToFlag(countryCode) {
   const code = String(countryCode || "").trim().toUpperCase();
@@ -127,6 +154,8 @@ export default function PremiumChartsPage({
   liveChartMeta,
   liveStatus,
 }) {
+  const mobile = useRealMobile(isMobile);
+
   const chartTitle = isSingles ? "Ngoma Top 50" : "Ngoma Top Albums";
   const chartLabel = isSingles ? "Singles" : "Albums";
   const platformLabel =
@@ -262,7 +291,7 @@ export default function PremiumChartsPage({
                 background: active ? GOLD : "#ffffff",
                 color: active ? "#090909" : "#111111",
                 borderColor: active ? GOLD : "rgba(0,0,0,0.14)",
-                flex: isMobile ? 1 : "initial",
+                flex: mobile ? 1 : "initial",
               }}
             >
               {item}
@@ -297,7 +326,7 @@ export default function PremiumChartsPage({
       <section
         style={{
           ...styles.hero,
-          padding: isMobile ? "28px 16px 24px" : "46px 44px 40px",
+          padding: mobile ? "28px 16px 24px" : "46px 44px 40px",
           opacity: loaded ? 1 : 0,
           transform: loaded ? "none" : "translateY(8px)",
         }}
@@ -307,8 +336,8 @@ export default function PremiumChartsPage({
         <div
           style={{
             ...styles.eyebrowRow,
-            fontSize: isMobile ? "10px" : "11px",
-            marginBottom: isMobile ? "22px" : "32px",
+            fontSize: mobile ? "10px" : "11px",
+            marginBottom: mobile ? "22px" : "32px",
           }}
         >
           <span style={{ opacity: 0.65, letterSpacing: "0.5px" }}>{sourceLabel}</span>
@@ -325,15 +354,15 @@ export default function PremiumChartsPage({
         <div
           style={{
             ...styles.heroMain,
-            gridTemplateColumns: isMobile ? "1fr" : "minmax(0, 1fr) minmax(260px, 360px)",
-            gap: isMobile ? "20px" : "28px",
+            gridTemplateColumns: mobile ? "1fr" : "minmax(0, 1fr) minmax(260px, 360px)",
+            gap: mobile ? "20px" : "28px",
           }}
         >
           <div style={styles.heroLeft}>
             <div
               style={{
                 ...styles.logoRow,
-                marginBottom: isMobile ? "22px" : "30px",
+                marginBottom: mobile ? "22px" : "30px",
               }}
             >
               <MiniBars GOLD={GOLD} />
@@ -341,8 +370,8 @@ export default function PremiumChartsPage({
                 <div
                   style={{
                     ...styles.logoText,
-                    fontSize: isMobile ? "19px" : "24px",
-                    letterSpacing: isMobile ? "2.5px" : "4px",
+                    fontSize: mobile ? "19px" : "24px",
+                    letterSpacing: mobile ? "2.5px" : "4px",
                   }}
                 >
                   NGOMA <span style={{ color: GOLD }}>CHARTS</span>
@@ -354,8 +383,8 @@ export default function PremiumChartsPage({
             <h1
               style={{
                 ...styles.heroTitle,
-                fontSize: isMobile ? "42px" : "76px",
-                letterSpacing: isMobile ? "-1.5px" : "-3px",
+                fontSize: mobile ? "42px" : "76px",
+                letterSpacing: mobile ? "-1.5px" : "-3px",
               }}
             >
               {chartTitle}
@@ -371,7 +400,7 @@ export default function PremiumChartsPage({
             >
               <span
                 style={{
-                  fontSize: isMobile ? "19px" : "22px",
+                  fontSize: mobile ? "19px" : "22px",
                   fontWeight: 800,
                   letterSpacing: "-0.5px",
                   color: "#050505",
@@ -387,8 +416,8 @@ export default function PremiumChartsPage({
           <div
             style={{
               ...styles.numberOneCard,
-              borderRadius: isMobile ? "22px" : "28px",
-              padding: isMobile ? "20px" : "24px",
+              borderRadius: mobile ? "22px" : "28px",
+              padding: mobile ? "20px" : "24px",
             }}
           >
             <div style={styles.numberOneLabel}>#1 this month</div>
@@ -396,7 +425,7 @@ export default function PremiumChartsPage({
             <div
               style={{
                 ...styles.numberOneRank,
-                fontSize: isMobile ? "76px" : "96px",
+                fontSize: mobile ? "76px" : "96px",
               }}
             >
               1
@@ -406,7 +435,7 @@ export default function PremiumChartsPage({
               onClick={() => top && openRelease(top)}
               style={{
                 ...styles.numberOneTitle,
-                fontSize: isMobile ? "23px" : "28px",
+                fontSize: mobile ? "23px" : "28px",
               }}
             >
               {top?.title || "—"}
@@ -424,7 +453,7 @@ export default function PremiumChartsPage({
       <section
         style={{
           ...styles.statsBand,
-          gridTemplateColumns: isMobile ? "repeat(2, minmax(0, 1fr))" : "repeat(4, minmax(0, 1fr))",
+          gridTemplateColumns: mobile ? "repeat(2, minmax(0, 1fr))" : "repeat(4, minmax(0, 1fr))",
         }}
       >
         {[
@@ -454,14 +483,14 @@ export default function PremiumChartsPage({
             key={item.label}
             style={{
               ...styles.statItem,
-              padding: isMobile ? "15px 16px" : "18px 24px",
+              padding: mobile ? "15px 16px" : "18px 24px",
             }}
           >
             <div style={styles.statLabel}>{item.label}</div>
             <div
               style={{
                 ...styles.statValue,
-                fontSize: item.compact ? (isMobile ? "15px" : "18px") : isMobile ? "25px" : "30px",
+                fontSize: item.compact ? (mobile ? "15px" : "18px") : mobile ? "25px" : "30px",
                 color: index === 3 ? GOLD : "#050505",
               }}
             >
@@ -475,9 +504,9 @@ export default function PremiumChartsPage({
       <section
         style={{
           ...styles.controls,
-          flexDirection: isMobile ? "column" : "row",
-          alignItems: isMobile ? "stretch" : "center",
-          padding: isMobile ? "14px 16px" : "16px 28px",
+          flexDirection: mobile ? "column" : "row",
+          alignItems: mobile ? "stretch" : "center",
+          padding: mobile ? "14px 16px" : "16px 28px",
         }}
       >
         <ChartToggle />
@@ -487,7 +516,7 @@ export default function PremiumChartsPage({
           onChange={(event) => setMonth(event.target.value)}
           style={{
             ...styles.select,
-            width: isMobile ? "100%" : "auto",
+            width: mobile ? "100%" : "auto",
           }}
         >
           {MONTHS.map((item) => (
@@ -500,9 +529,9 @@ export default function PremiumChartsPage({
         <div
           style={{
             ...styles.platforms,
-            flexWrap: isMobile ? "nowrap" : "wrap",
-            overflowX: isMobile ? "auto" : "visible",
-            paddingBottom: isMobile ? "4px" : 0,
+            flexWrap: mobile ? "nowrap" : "wrap",
+            overflowX: mobile ? "auto" : "visible",
+            paddingBottom: mobile ? "4px" : 0,
           }}
         >
           {platList.map((item) => {
@@ -531,8 +560,8 @@ export default function PremiumChartsPage({
         <div
           style={{
             ...styles.viewOptions,
-            marginLeft: isMobile ? 0 : "auto",
-            width: isMobile ? "100%" : "auto",
+            marginLeft: mobile ? 0 : "auto",
+            width: mobile ? "100%" : "auto",
           }}
         >
           {VO.map((item) => {
@@ -550,7 +579,7 @@ export default function PremiumChartsPage({
                   color: active ? "#050505" : "#6b7280",
                   borderColor: active ? GOLD : "#e5e7eb",
                   opacity: disabled ? 0.45 : 1,
-                  flex: isMobile ? 1 : "initial",
+                  flex: mobile ? 1 : "initial",
                 }}
               >
                 {item.l}
@@ -563,23 +592,23 @@ export default function PremiumChartsPage({
       <section
         style={{
           ...styles.tableShell,
-          margin: isMobile ? "16px 12px 28px" : "24px 28px 34px",
-          borderRadius: isMobile ? "20px" : "26px",
+          margin: mobile ? "16px 12px 28px" : "24px 28px 34px",
+          borderRadius: mobile ? "20px" : "26px",
         }}
       >
         <div
           style={{
             ...styles.tableTop,
-            flexDirection: isMobile ? "column" : "row",
-            alignItems: isMobile ? "flex-start" : "center",
-            padding: isMobile ? "20px 18px" : "24px 26px",
+            flexDirection: mobile ? "column" : "row",
+            alignItems: mobile ? "flex-start" : "center",
+            padding: mobile ? "20px 18px" : "24px 26px",
           }}
         >
           <div>
             <div
               style={{
                 ...styles.tableTitle,
-                fontSize: isMobile ? "21px" : "24px",
+                fontSize: mobile ? "21px" : "24px",
               }}
             >
               {chartTitle}
@@ -592,7 +621,7 @@ export default function PremiumChartsPage({
           <div style={styles.tableRange}>Top {Math.min(vc, data.length)}</div>
         </div>
 
-        {!isMobile && (
+        {!mobile && (
           <div style={styles.tableHeader}>
             <span>#</span>
             <span>Move</span>
@@ -612,7 +641,7 @@ export default function PremiumChartsPage({
             const medalColor = item.rank <= 3 ? MEDALS[item.rank - 1] : "#050505";
             const artistCountry = getArtistCountry(item);
 
-            if (isMobile) {
+            if (mobile) {
               return (
                 <div
                   key={`${item.title}-${item.artist}-${item.rank}-${index}`}
