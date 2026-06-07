@@ -152,7 +152,7 @@ const styles = {
   floatingButton: {
     position: "fixed",
     right: "24px",
-    top: "96px",
+    top: "72px",
     zIndex: 9999,
     width: "58px",
     height: "58px",
