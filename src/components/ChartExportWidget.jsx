@@ -5,6 +5,22 @@ import ChartExportCard from "./ChartExportCard";
 const API_BASE =
   import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000/api/v1";
 
+const months = [
+  { value: "", label: "Latest available" },
+  { value: "1", label: "January" },
+  { value: "2", label: "February" },
+  { value: "3", label: "March" },
+  { value: "4", label: "April" },
+  { value: "5", label: "May" },
+  { value: "6", label: "June" },
+  { value: "7", label: "July" },
+  { value: "8", label: "August" },
+  { value: "9", label: "September" },
+  { value: "10", label: "October" },
+  { value: "11", label: "November" },
+  { value: "12", label: "December" },
+];
+
 const ranges = {
   top10: { label: "Top 10", end: 10 },
   upTo20: { label: "Up to 20", end: 20 },
@@ -14,22 +30,28 @@ const ranges = {
 };
 
 const exportBlocks = [
-  { key: "top10", label: "Top 10", start: 0, end: 10, startRank: 1, fileLabel: "top-10" },
-  { key: "11_20", label: "11–20", start: 10, end: 20, startRank: 11, fileLabel: "11-20" },
-  { key: "21_30", label: "21–30", start: 20, end: 30, startRank: 21, fileLabel: "21-30" },
-  { key: "31_40", label: "31–40", start: 30, end: 40, startRank: 31, fileLabel: "31-40" },
-  { key: "41_50", label: "41–50", start: 40, end: 50, startRank: 41, fileLabel: "41-50" },
+  { key: "top10", label: "Top 10", start: 0, end: 10, fileLabel: "top-10" },
+  { key: "11_20", label: "11–20", start: 10, end: 20, fileLabel: "11-20" },
+  { key: "21_30", label: "21–30", start: 20, end: 30, fileLabel: "21-30" },
+  { key: "31_40", label: "31–40", start: 30, end: 40, fileLabel: "31-40" },
+  { key: "41_50", label: "41–50", start: 40, end: 50, fileLabel: "41-50" },
 ];
 
 export default function ChartExportWidget() {
   const cardRefs = useRef({});
 
+  const currentYear = new Date().getFullYear();
+
   const [open, setOpen] = useState(false);
+  const [chartType, setChartType] = useState("singles");
+  const [year, setYear] = useState(String(currentYear));
+  const [month, setMonth] = useState("");
+  const [platform, setPlatform] = useState("combined");
   const [range, setRange] = useState("top10");
   const [format, setFormat] = useState("png");
+
+  const [chartData, setChartData] = useState(null);
   const [entries, setEntries] = useState([]);
-  const [monthLabel, setMonthLabel] = useState("Current Chart");
-  const [chartType, setChartType] = useState("Singles");
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState("");
@@ -51,199 +73,63 @@ export default function ChartExportWidget() {
     if (open) {
       fetchChartData();
     }
-  }, [open]);
+  }, [open, chartType, year, month, platform]);
 
   async function fetchChartData() {
     setLoading(true);
     setError("");
 
     try {
-      const response = await fetch(`${API_BASE}/charts/`);
+      const params = new URLSearchParams();
+
+      params.set("type", chartType);
+
+      if (year) params.set("year", year);
+      if (month) params.set("month", month);
+      if (platform) params.set("platform", platform);
+
+      const response = await fetch(
+        `${API_BASE}/export/chart-image-data/?${params.toString()}`
+      );
+
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error("Could not load chart data.");
+        throw new Error(data.error || "Could not load chart export data.");
       }
 
-      const normalized = normalizeChartData(data);
-
-      setEntries(normalized.entries);
-      setMonthLabel(normalized.monthLabel);
-      setChartType(normalized.chartType);
+      setChartData(data);
+      setEntries(data.entries || []);
     } catch (err) {
-      setError("Could not load chart data for export.");
+      setChartData(null);
+      setEntries([]);
+      setError(err.message || "Could not load chart data for export.");
     } finally {
       setLoading(false);
     }
   }
 
-  function normalizeChartData(data) {
-    let source = data;
-
-    if (Array.isArray(data?.results)) {
-      source = data.results;
-    }
-
-    if (Array.isArray(source)) {
-      const latest = source[0] || {};
-
-      const possibleEntries =
-        latest.entries ||
-        latest.chart_entries ||
-        latest.items ||
-        latest.songs ||
-        latest.releases ||
-        latest.data ||
-        source;
-
-      const month =
-        latest.month ||
-        latest.month_name ||
-        latest.period ||
-        latest.title ||
-        latest.name ||
-        "Current Chart";
-
-      const year = latest.year || "";
-
-      const type =
-        latest.chart_type ||
-        latest.type ||
-        latest.category ||
-        latest.chart_category ||
-        "Singles";
-
-      return {
-        entries: normalizeEntries(possibleEntries),
-        monthLabel: `${month} ${year}`.trim(),
-        chartType: formatChartType(type),
-      };
-    }
-
-    const possibleEntries =
-      source?.entries ||
-      source?.chart_entries ||
-      source?.items ||
-      source?.songs ||
-      source?.releases ||
-      source?.data ||
-      [];
-
-    const month =
-      source?.month ||
-      source?.month_name ||
-      source?.period ||
-      source?.title ||
-      source?.name ||
-      "Current Chart";
-
-    const year = source?.year || "";
-
-    const type =
-      source?.chart_type ||
-      source?.type ||
-      source?.category ||
-      source?.chart_category ||
-      "Singles";
-
-    return {
-      entries: normalizeEntries(possibleEntries),
-      monthLabel: `${month} ${year}`.trim(),
-      chartType: formatChartType(type),
-    };
-  }
-
-  function normalizeEntries(rawEntries) {
-    if (!Array.isArray(rawEntries)) return [];
-
-    return rawEntries
-      .map((item, index) => {
-        const release = item.release || item.song || item.track || item.album || {};
-        const artistObject = item.artist || release.artist || {};
-
-        const realRank =
-          item.rank ||
-          item.position ||
-          item.chart_position ||
-          item.current_rank ||
-          item.current_position ||
-          index + 1;
-
-        const title =
-          item.title ||
-          item.song_title ||
-          item.release_title ||
-          item.name ||
-          release.title ||
-          release.name ||
-          "Untitled";
-
-        const artist =
-          item.artist_name ||
-          item.primary_artist ||
-          item.artistName ||
-          item.artists ||
-          release.artist_name ||
-          release.primary_artist ||
-          release.artistName ||
-          artistObject.name ||
-          artistObject.title ||
-          "Unknown artist";
-
-        const lastMonth =
-          item.last_month ||
-          item.last_month_position ||
-          item.previous_rank ||
-          item.previous_position ||
-          item.prev_rank ||
-          item.previous_month_rank ||
-          item.previous_month_position ||
-          "";
-
-        const movement =
-          item.movement ||
-          item.move ||
-          item.change ||
-          item.position_change ||
-          item.rank_change ||
-          "";
-
-        return {
-          id: item.id || release.id || index,
-          realRank,
-          title,
-          artist,
-          movement,
-          last_month: lastMonth,
-          is_new: item.is_new || item.new || item.status === "new",
-          re_entry:
-            item.re_entry || item.reentry || item.status === "re-entry",
-          status: item.status || "",
-        };
-      })
-      .sort((a, b) => Number(a.realRank) - Number(b.realRank));
-  }
-
-  function formatChartType(type) {
-    const cleanType = String(type || "Singles").trim();
-
-    if (!cleanType) return "Singles";
-
-    return cleanType.charAt(0).toUpperCase() + cleanType.slice(1);
-  }
-
   function makeFileName(block) {
-    const safeMonth = monthLabel
+    const label = chartData?.label || "latest-chart";
+    const typeLabel = chartData?.chart_type_label || chartType;
+    const platformLabel = chartData?.platform || platform;
+
+    const safeLabel = String(label)
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "");
 
-    const safeType = chartType
+    const safeType = String(typeLabel)
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "");
 
-    return `ngoma-charts-${safeMonth}-${safeType}-${block.fileLabel}.${format}`;
+    const safePlatform = String(platformLabel)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+
+    return `ngoma-charts-${safeLabel}-${safeType}-${safePlatform}-${block.fileLabel}.${format}`;
   }
 
   async function downloadImageForBlock(block) {
@@ -307,8 +193,7 @@ export default function ChartExportWidget() {
               <div>
                 <div style={styles.title}>Download Chart Pack</div>
                 <div style={styles.subtitle}>
-                  Choose a final range. The download includes all prior ranges
-                  automatically.
+                  Export real chart data by type, month, year, platform and range.
                 </div>
               </div>
 
@@ -318,6 +203,60 @@ export default function ChartExportWidget() {
             </div>
 
             <div style={styles.controls}>
+              <label style={styles.label}>
+                Chart
+                <select
+                  value={chartType}
+                  onChange={(e) => setChartType(e.target.value)}
+                  style={styles.select}
+                >
+                  <option value="singles">Singles</option>
+                  <option value="albums">Albums</option>
+                </select>
+              </label>
+
+              <label style={styles.label}>
+                Year
+                <input
+                  value={year}
+                  onChange={(e) => setYear(e.target.value)}
+                  style={styles.input}
+                  placeholder="2024"
+                />
+              </label>
+
+              <label style={styles.label}>
+                Month
+                <select
+                  value={month}
+                  onChange={(e) => setMonth(e.target.value)}
+                  style={styles.select}
+                >
+                  {months.map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label style={styles.label}>
+                Platform
+                <select
+                  value={platform}
+                  onChange={(e) => setPlatform(e.target.value)}
+                  style={styles.select}
+                >
+                  <option value="combined">Combined</option>
+                  <option value="apple-music">Apple Music</option>
+                  <option value="audiomack">Audiomack</option>
+                  <option value="boomplay">Boomplay</option>
+                  <option value="spotify">Spotify</option>
+                  <option value="youtube">YouTube</option>
+                  <option value="shazam">Shazam</option>
+                </select>
+              </label>
+
               <label style={styles.label}>
                 Final range
                 <select
@@ -358,19 +297,14 @@ export default function ChartExportWidget() {
               </button>
             </div>
 
-            {loading && <div style={styles.notice}>Loading chart data...</div>}
+            {loading && <div style={styles.notice}>Loading real chart data...</div>}
 
             {error && <div style={styles.error}>{error}</div>}
 
-            {!loading && !error && entries.length === 0 && (
+            {!loading && !error && chartData && (
               <div style={styles.notice}>
-                No entries found. Confirm chart data is available.
-              </div>
-            )}
-
-            {!loading && !error && entries.length > 0 && (
-              <div style={styles.notice}>
-                Selected: {selectedRange.label}. This will download{" "}
+                Selected: {chartData.chart_type_label} · {chartData.label} ·{" "}
+                {chartData.platform}. This will download{" "}
                 {blocksToDownload.map((block) => block.label).join(", ")}.
               </div>
             )}
@@ -379,10 +313,10 @@ export default function ChartExportWidget() {
               <div style={styles.previewScale}>
                 <ChartExportCard
                   rangeLabel={previewBlock?.label || "Top 10"}
-                  monthLabel={monthLabel}
-                  chartType={chartType}
+                  monthLabel={chartData?.label || "Current Chart"}
+                  chartType={chartData?.chart_type_label || "Singles"}
+                  platformLabel={chartData?.platform || "Combined"}
                   entries={previewEntries}
-                  startRank={previewBlock?.startRank || 1}
                 />
               </div>
             </div>
@@ -400,10 +334,10 @@ export default function ChartExportWidget() {
                   >
                     <ChartExportCard
                       rangeLabel={block.label}
-                      monthLabel={monthLabel}
-                      chartType={chartType}
+                      monthLabel={chartData?.label || "Current Chart"}
+                      chartType={chartData?.chart_type_label || "Singles"}
+                      platformLabel={chartData?.platform || "Combined"}
                       entries={blockEntries}
-                      startRank={block.startRank}
                     />
                   </div>
                 );
@@ -445,7 +379,7 @@ const styles = {
   },
 
   modal: {
-    width: "min(1100px, 96vw)",
+    width: "min(1180px, 96vw)",
     maxHeight: "94vh",
     overflow: "auto",
     background: "#ffffff",
@@ -500,7 +434,15 @@ const styles = {
   },
 
   select: {
-    minWidth: "150px",
+    minWidth: "140px",
+    padding: "10px 12px",
+    borderRadius: "12px",
+    border: "1px solid #d1d5db",
+    fontSize: "14px",
+  },
+
+  input: {
+    width: "100px",
     padding: "10px 12px",
     borderRadius: "12px",
     border: "1px solid #d1d5db",

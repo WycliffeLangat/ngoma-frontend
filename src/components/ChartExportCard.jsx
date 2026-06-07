@@ -3,8 +3,8 @@ export default function ChartExportCard({
   rangeLabel = "Top 10",
   monthLabel = "December 2024",
   chartType = "Singles",
+  platformLabel = "Combined",
   entries = [],
-  startRank = 1,
 }) {
   return (
     <div style={styles.card}>
@@ -23,6 +23,7 @@ export default function ChartExportCard({
 
         <div style={styles.headerRight}>
           <div style={styles.chartType}>{chartType}</div>
+          <div style={styles.platform}>{platformLabel}</div>
           <div style={styles.rangeBadge}>{rangeLabel}</div>
         </div>
       </div>
@@ -36,38 +37,18 @@ export default function ChartExportCard({
 
       <div style={styles.list}>
         {entries.map((item, index) => {
-          const rank = startRank + index;
-
-          const titleText =
-            item.title ||
-            item.song_title ||
-            item.release_title ||
-            item.name ||
-            "Untitled";
-
-          const artistText =
-            item.artist ||
-            item.artist_name ||
-            item.primary_artist ||
-            item.artistName ||
-            item.artists ||
-            "Unknown artist";
-
-          const movement = formatMovement(item, rank);
-          const lastMonth = formatLastMonth(item);
-
           return (
-            <div key={item.id || `${rank}-${titleText}`} style={styles.row}>
-              <div style={styles.rank}>{rank}</div>
+            <div key={item.id || index} style={styles.row}>
+              <div style={styles.rank}>{item.rank}</div>
 
               <div style={styles.songBlock}>
-                <div style={styles.songTitle}>{titleText}</div>
-                <div style={styles.artist}>{artistText}</div>
+                <div style={styles.songTitle}>{item.title}</div>
+                <div style={styles.artist}>{item.artist}</div>
               </div>
 
-              <div style={styles.movement}>{movement}</div>
+              <div style={styles.movement}>{item.movement || "—"}</div>
 
-              <div style={styles.lastMonth}>{lastMonth}</div>
+              <div style={styles.lastMonth}>{item.last_month || "—"}</div>
             </div>
           );
         })}
@@ -79,73 +60,6 @@ export default function ChartExportCard({
       </div>
     </div>
   );
-}
-
-function formatMovement(item, currentRank) {
-  const rawMovement =
-    item.movement ||
-    item.move ||
-    item.change ||
-    item.position_change ||
-    item.rank_change ||
-    "";
-
-  if (rawMovement !== "" && rawMovement !== null && rawMovement !== undefined) {
-    const movementText = String(rawMovement).trim();
-
-    if (movementText.toLowerCase() === "new") return "NEW";
-    if (movementText.toLowerCase() === "re") return "RE";
-    if (movementText.toLowerCase() === "re-entry") return "RE";
-
-    const movementNumber = Number(movementText);
-
-    if (!Number.isNaN(movementNumber)) {
-      if (movementNumber > 0) return `▲ ${movementNumber}`;
-      if (movementNumber < 0) return `▼ ${Math.abs(movementNumber)}`;
-      return "—";
-    }
-
-    return movementText;
-  }
-
-  const previousRank = Number(
-    item.last_month ||
-      item.last_month_position ||
-      item.previous_rank ||
-      item.previous_position ||
-      item.prev_rank
-  );
-
-  if (!Number.isNaN(currentRank) && !Number.isNaN(previousRank)) {
-    const difference = previousRank - currentRank;
-
-    if (difference > 0) return `▲ ${difference}`;
-    if (difference < 0) return `▼ ${Math.abs(difference)}`;
-    return "—";
-  }
-
-  if (item.is_new || item.new || item.status === "new") return "NEW";
-  if (item.re_entry || item.reentry || item.status === "re-entry") return "RE";
-
-  return "—";
-}
-
-function formatLastMonth(item) {
-  const lastMonth =
-    item.last_month ||
-    item.last_month_position ||
-    item.previous_rank ||
-    item.previous_position ||
-    item.prev_rank ||
-    "";
-
-  if (!lastMonth) {
-    if (item.is_new || item.new || item.status === "new") return "—";
-    if (item.re_entry || item.reentry || item.status === "re-entry") return "RE";
-    return "—";
-  }
-
-  return lastMonth;
 }
 
 const styles = {
@@ -213,7 +127,7 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     alignItems: "flex-end",
-    gap: "12px",
+    gap: "10px",
   },
 
   chartType: {
@@ -221,6 +135,14 @@ const styles = {
     fontWeight: 800,
     letterSpacing: "3px",
     color: "#d6a21c",
+    textTransform: "uppercase",
+  },
+
+  platform: {
+    fontSize: "15px",
+    fontWeight: 800,
+    letterSpacing: "2px",
+    color: "#ffffff",
     textTransform: "uppercase",
   },
 
