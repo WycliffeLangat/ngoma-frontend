@@ -14,6 +14,58 @@
   --ngoma-soft: rgba(255, 255, 255, 0.08);
   --ngoma-line: rgba(255, 255, 255, 0.1);
   --ngoma-cream: #fbfaf7;
+
+  /* ── Type scale ── */
+  --font-xs:   0.6875rem;   /* 11px — micro labels, tags          */
+  --font-sm:   0.8125rem;   /* 13px — nav links, captions         */
+  --font-base: 0.9375rem;   /* 15px — body copy, table rows       */
+  --font-md:   1rem;        /* 16px — default                     */
+  --font-lg:   1.125rem;    /* 18px — card titles                 */
+  --font-xl:   1.375rem;    /* 22px — sub-headings                */
+  --font-2xl:  1.75rem;     /* 28px — section headings            */
+  --font-3xl:  2.5rem;      /* 40px — page headings               */
+  --font-hero: clamp(2.75rem, 7vw, 5rem); /* responsive hero      */
+
+  /* ── Weights ── */
+  --weight-light:    300;
+  --weight-normal:   400;
+  --weight-medium:   500;
+  --weight-semibold: 600;
+  --weight-bold:     700;
+  --weight-black:    900;
+
+  /* ── Letter-spacing ── */
+  --tracking-tight:   -0.02em;
+  --tracking-normal:   0;
+  --tracking-wide:     0.05em;
+  --tracking-wider:    0.1em;
+  --tracking-widest:   0.18em;
+
+  /* ── Line-height ── */
+  --leading-tight:  1.15;
+  --leading-snug:   1.35;
+  --leading-normal: 1.6;
+
+  /* ── Font stack — single source of truth ── */
+  --font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI',
+                 Helvetica, Arial, sans-serif;
+}
+
+/* ─────────────────────────────────────────────
+   Global font propagation
+   Sets ONE font family for the entire app.
+   Every element inherits it so no page falls
+   back to a different browser default.
+───────────────────────────────────────────── */
+html {
+  font-family: var(--font-family);
+}
+
+*,
+*::before,
+*::after {
+  font-family: inherit;
+  box-sizing: border-box;
 }
 
 html,
@@ -25,6 +77,12 @@ body,
 
 body {
   margin: 0;
+  font-size: var(--font-base);
+  font-weight: var(--weight-normal);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
   color: var(--ngoma-text);
 }
 
@@ -36,23 +94,27 @@ body {
   color: var(--ngoma-text) !important;
 }
 
-/* Top header */
+/* ─────────────────────────────────────────────
+   Header
+   Top strip stays black; logo + nav row is white.
+───────────────────────────────────────────── */
 header {
   background: var(--ngoma-black) !important;
-  border-bottom: 1px solid var(--ngoma-line) !important;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
 }
 
+/* Thin top strip — black, white text */
 header > div:first-child {
   background: var(--ngoma-black) !important;
   color: rgba(255, 255, 255, 0.72) !important;
-  border-bottom: 1px solid var(--ngoma-line) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 
+/* Logo + nav row — white */
 header > div:nth-child(2) {
-  background:
-    radial-gradient(circle at top right, rgba(184, 134, 11, 0.12), transparent 36%),
-    var(--ngoma-black) !important;
+  background: #ffffff !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
 }
 
 /* Header text and logo */
@@ -61,28 +123,40 @@ header div {
   color: inherit;
 }
 
+/* Logo "NGOMA" — dark on white. Gold elements excluded so "CHARTS" stays gold. */
+header > div:nth-child(2) span:not(nav span):not([style*="gradient"]):not([style*="184, 134, 11"]):not([style*="#b8860b"]):not([style*="#d6a21c"]):not([style*="goldenrod"]) {
+  color: #111111 !important;
+}
+
+/* Nav links — dark grey on white */
 header nav span {
-  color: rgba(255, 255, 255, 0.55) !important;
+  font-size: var(--font-sm) !important;
+  font-weight: var(--weight-medium) !important;
+  letter-spacing: var(--tracking-wider) !important;
+  text-transform: uppercase !important;
+  color: rgba(0, 0, 0, 0.5) !important;
 }
 
 header nav span:hover {
-  color: #ffffff !important;
+  color: #000000 !important;
 }
 
+/* Active nav pill — gold border + gold text on white */
 header nav span[style*="linear-gradient"] {
-  background: rgba(184, 134, 11, 0.16) !important;
-  color: var(--ngoma-gold-2) !important;
-  border-color: rgba(184, 134, 11, 0.35) !important;
+  background: transparent !important;
+  color: var(--ngoma-gold) !important;
+  border: 1px solid var(--ngoma-gold) !important;
+  border-radius: 999px !important;
 }
 
-/* Section/page containers that were white before */
+/* Section/page containers */
 main,
 section,
 footer {
   color: inherit;
 }
 
-/* Make major white content sections match the premium dark look */
+/* Make major white content sections match the dark look */
 div[style*='background: "#FFF"'],
 div[style*="background:#FFF"],
 div[style*="background: #FFF"],
@@ -103,22 +177,72 @@ div[style*="box-shadow"] {
   box-shadow: 0 22px 70px rgba(0, 0, 0, 0.24) !important;
 }
 
-/* Text hierarchy */
-h1,
-h2,
-h3,
-h4 {
+/* ─────────────────────────────────────────────
+   Text hierarchy
+   Only semantic elements are sized here.
+   Inline-styled divs keep their own sizes —
+   the font-family propagation above is what
+   makes them consistent across pages.
+───────────────────────────────────────────── */
+
+h1 {
+  font-size: var(--font-hero) !important;
+  font-weight: var(--weight-black) !important;
+  letter-spacing: var(--tracking-tight) !important;
+  line-height: var(--leading-tight) !important;
   color: #ffffff !important;
+  margin: 0;
+}
+
+h2 {
+  font-size: var(--font-3xl) !important;
+  font-weight: var(--weight-bold) !important;
+  letter-spacing: var(--tracking-tight) !important;
+  line-height: var(--leading-tight) !important;
+  color: #ffffff !important;
+  margin: 0;
+}
+
+h3 {
+  font-size: var(--font-2xl) !important;
+  font-weight: var(--weight-semibold) !important;
+  letter-spacing: var(--tracking-tight) !important;
+  line-height: var(--leading-snug) !important;
+  color: #ffffff !important;
+  margin: 0;
+}
+
+h4 {
+  font-size: var(--font-xl) !important;
+  font-weight: var(--weight-semibold) !important;
+  letter-spacing: var(--tracking-normal) !important;
+  line-height: var(--leading-snug) !important;
+  color: #ffffff !important;
+  margin: 0;
+}
+
+h5,
+h6 {
+  font-size: var(--font-lg) !important;
+  font-weight: var(--weight-medium) !important;
+  color: #ffffff !important;
+  margin: 0;
 }
 
 p {
+  font-size: var(--font-base) !important;
+  font-weight: var(--weight-normal) !important;
+  line-height: var(--leading-normal) !important;
   color: rgba(255, 255, 255, 0.62) !important;
+  margin: 0;
 }
 
 /* Inputs, selects, textareas */
 input,
 select,
 textarea {
+  font-size: var(--font-base) !important;
+  font-weight: var(--weight-normal) !important;
   background: #0f0f0f !important;
   color: #ffffff !important;
   border: 1px solid rgba(255, 255, 255, 0.14) !important;
@@ -136,6 +260,9 @@ option {
 
 /* Buttons */
 button {
+  font-size: var(--font-sm) !important;
+  font-weight: var(--weight-semibold) !important;
+  letter-spacing: var(--tracking-wide) !important;
   transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 
@@ -143,7 +270,7 @@ button:hover {
   transform: translateY(-1px);
 }
 
-/* Default light buttons become dark/gold friendly */
+/* Default light buttons */
 button[style*='background: "#FFF"'],
 button[style*="background:#FFF"],
 button[style*="background: #FFF"],

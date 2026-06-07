@@ -131,6 +131,45 @@ export default function PremiumChartsPage({
     return weeks || "—";
   }
 
+  function getCountryDisplay(item) {
+    const code =
+      item.artist_country_code ||
+      item.country_code ||
+      item.artistCountryCode ||
+      "";
+
+    const country =
+      item.artist_country ||
+      item.country ||
+      item.artistCountry ||
+      "";
+
+    if (code) return String(code).toUpperCase();
+    if (country) return String(country).slice(0, 3).toUpperCase();
+
+    return "—";
+  }
+
+  function getCountryTitle(item) {
+    const code =
+      item.artist_country_code ||
+      item.country_code ||
+      item.artistCountryCode ||
+      "";
+
+    const country =
+      item.artist_country ||
+      item.country ||
+      item.artistCountry ||
+      "";
+
+    if (country && code) return `${country} (${String(code).toUpperCase()})`;
+    if (country) return country;
+    if (code) return String(code).toUpperCase();
+
+    return "Artist country not added";
+  }
+
   function openArtist(name) {
     const artist = artists.find((item) => item.n === name);
     if (artist) setSelA(artist);
@@ -382,6 +421,8 @@ export default function PremiumChartsPage({
             const move = movement(item);
             const moveStyle = movementStyle(item);
             const medalColor = item.rank <= 3 ? MEDALS[item.rank - 1] : "#ffffff";
+            const countryDisplay = getCountryDisplay(item);
+            const countryTitle = getCountryTitle(item);
 
             return (
               <div
@@ -404,8 +445,8 @@ export default function PremiumChartsPage({
                 </div>
 
                 <div style={styles.entryCell}>
-                  <div style={styles.coverBox}>
-                    <span>{item.title?.[0] || "N"}</span>
+                  <div style={styles.countryBox} title={countryTitle}>
+                    <span>{countryDisplay}</span>
                   </div>
 
                   <div style={styles.entryText}>
@@ -812,7 +853,7 @@ const styles = {
     minWidth: 0,
   },
 
-  coverBox: {
+  countryBox: {
     width: "50px",
     height: "50px",
     borderRadius: "12px",
@@ -823,9 +864,10 @@ const styles = {
     background:
       "linear-gradient(135deg, rgba(184,134,11,0.95), rgba(255,255,255,0.08))",
     color: "#111111",
-    fontSize: "22px",
+    fontSize: "14px",
     fontWeight: 950,
     textTransform: "uppercase",
+    letterSpacing: "0.5px",
   },
 
   entryText: {
