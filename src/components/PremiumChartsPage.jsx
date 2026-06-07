@@ -1,31 +1,31 @@
 ﻿const ARTIST_COUNTRY_FALLBACK = {
   "Joel Lwaga": { country: "Tanzania", code: "TZ" },
   "Kifo Cha Mende": { country: "Kenya", code: "KE" },
-  "Iyanii": { country: "Kenya", code: "KE" },
-  "Bensoul": { country: "Kenya", code: "KE" },
+  Iyanii: { country: "Kenya", code: "KE" },
+  Bensoul: { country: "Kenya", code: "KE" },
   "Dyana Cods": { country: "Kenya", code: "KE" },
-  "Ruger": { country: "Nigeria", code: "NG" },
-  "Charisma": { country: "Kenya", code: "KE" },
-  "Zuchu": { country: "Tanzania", code: "TZ" },
+  Ruger: { country: "Nigeria", code: "NG" },
+  Charisma: { country: "Kenya", code: "KE" },
+  Zuchu: { country: "Tanzania", code: "TZ" },
   "D Voice": { country: "Tanzania", code: "TZ" },
-  "Jux": { country: "Tanzania", code: "TZ" },
+  Jux: { country: "Tanzania", code: "TZ" },
   "Ayra Starr": { country: "Nigeria", code: "NG" },
   "Kendrick Lamar": { country: "United States", code: "US" },
-  "Asake": { country: "Nigeria", code: "NG" },
-  "Nyashinski": { country: "Kenya", code: "KE" },
-  "Marioo": { country: "Tanzania", code: "TZ" },
-  "Bien": { country: "Kenya", code: "KE" },
+  Asake: { country: "Nigeria", code: "NG" },
+  Nyashinski: { country: "Kenya", code: "KE" },
+  Marioo: { country: "Tanzania", code: "TZ" },
+  Bien: { country: "Kenya", code: "KE" },
   "Sauti Sol": { country: "Kenya", code: "KE" },
-  "Wakadinali": { country: "Kenya", code: "KE" },
+  Wakadinali: { country: "Kenya", code: "KE" },
   "Nikita Kering": { country: "Kenya", code: "KE" },
   "Diamond Platnumz": { country: "Tanzania", code: "TZ" },
-  "Harmonize": { country: "Tanzania", code: "TZ" },
-  "Simi": { country: "Nigeria", code: "NG" },
+  Harmonize: { country: "Tanzania", code: "TZ" },
+  Simi: { country: "Nigeria", code: "NG" },
   "Burna Boy": { country: "Nigeria", code: "NG" },
-  "Rema": { country: "Nigeria", code: "NG" },
-  "Davido": { country: "Nigeria", code: "NG" },
-  "Wizkid": { country: "Nigeria", code: "NG" },
-  "Tyla": { country: "South Africa", code: "ZA" },
+  Rema: { country: "Nigeria", code: "NG" },
+  Davido: { country: "Nigeria", code: "NG" },
+  Wizkid: { country: "Nigeria", code: "NG" },
+  Tyla: { country: "South Africa", code: "ZA" },
   "Chris Brown": { country: "United States", code: "US" },
   "Amiso thwango": { country: "Kenya", code: "KE" },
   "Amiso Thwango": { country: "Kenya", code: "KE" },
@@ -35,24 +35,24 @@
   "From The Hood Music": { country: "Kenya", code: "KE" },
   "HOOD BOYZ": { country: "Kenya", code: "KE" },
   "Kaka Talanta": { country: "Kenya", code: "KE" },
-  "Keemlyf": { country: "Kenya", code: "KE" },
-  "KODONGKLAN": { country: "Kenya", code: "KE" },
+  Keemlyf: { country: "Kenya", code: "KE" },
+  KODONGKLAN: { country: "Kenya", code: "KE" },
   "Koppa Gekon": { country: "Kenya", code: "KE" },
   "Mad Clan": { country: "Kenya", code: "KE" },
   "Mr Right": { country: "Kenya", code: "KE" },
   "Sosa The Prodigy": { country: "Kenya", code: "KE" },
-  "Soundkraft": { country: "Kenya", code: "KE" },
-  "Spoiler": { country: "Kenya", code: "KE" },
+  Soundkraft: { country: "Kenya", code: "KE" },
+  Spoiler: { country: "Kenya", code: "KE" },
   "Toby Mr Romantic": { country: "Kenya", code: "KE" },
   "Tonny Young": { country: "Kenya", code: "KE" },
   "Uncle Eddy": { country: "Kenya", code: "KE" },
   "ZIGGY MADUDU": { country: "Kenya", code: "KE" },
   "Geniusjini x66": { country: "Tanzania", code: "TZ" },
-  "Anni3": { country: "Nigeria", code: "NG" },
+  Anni3: { country: "Nigeria", code: "NG" },
   "Excess Van": { country: "Nigeria", code: "NG" },
   "Justin Vibes": { country: "South Africa", code: "ZA" },
   "Minister Danybless": { country: "United States", code: "US" },
-  "prodbycpkshawn": { country: "Guyana", code: "GY" },
+  prodbycpkshawn: { country: "Guyana", code: "GY" },
 };
 
 function countryCodeToFlag(countryCode) {
@@ -262,12 +262,22 @@ export default function PremiumChartsPage({
                 background: active ? GOLD : "#ffffff",
                 color: active ? "#090909" : "#111111",
                 borderColor: active ? GOLD : "rgba(0,0,0,0.14)",
+                flex: isMobile ? 1 : "initial",
               }}
             >
               {item}
             </button>
           );
         })}
+      </div>
+    );
+  }
+
+  function MobileStat({ label, value }) {
+    return (
+      <div style={styles.mobileMiniStat}>
+        <span style={styles.mobileMiniStatLabel}>{label}</span>
+        <span style={styles.mobileMiniStatValue}>{value}</span>
       </div>
     );
   }
@@ -287,14 +297,20 @@ export default function PremiumChartsPage({
       <section
         style={{
           ...styles.hero,
-          padding: isMobile ? "28px 18px 24px" : "46px 44px 40px",
+          padding: isMobile ? "28px 16px 24px" : "46px 44px 40px",
           opacity: loaded ? 1 : 0,
           transform: loaded ? "none" : "translateY(8px)",
         }}
       >
         <div style={styles.heroGlow} />
 
-        <div style={styles.eyebrowRow}>
+        <div
+          style={{
+            ...styles.eyebrowRow,
+            fontSize: isMobile ? "10px" : "11px",
+            marginBottom: isMobile ? "22px" : "32px",
+          }}
+        >
           <span style={{ opacity: 0.65, letterSpacing: "0.5px" }}>{sourceLabel}</span>
           <span style={styles.eyebrowDivider}>/</span>
           <span>{platformLabel}</span>
@@ -310,27 +326,52 @@ export default function PremiumChartsPage({
           style={{
             ...styles.heroMain,
             gridTemplateColumns: isMobile ? "1fr" : "minmax(0, 1fr) minmax(260px, 360px)",
+            gap: isMobile ? "20px" : "28px",
           }}
         >
           <div style={styles.heroLeft}>
-            <div style={styles.logoRow}>
+            <div
+              style={{
+                ...styles.logoRow,
+                marginBottom: isMobile ? "22px" : "30px",
+              }}
+            >
               <MiniBars GOLD={GOLD} />
               <div>
-                <div style={styles.logoText}>
+                <div
+                  style={{
+                    ...styles.logoText,
+                    fontSize: isMobile ? "19px" : "24px",
+                    letterSpacing: isMobile ? "2.5px" : "4px",
+                  }}
+                >
                   NGOMA <span style={{ color: GOLD }}>CHARTS</span>
                 </div>
                 <div style={styles.logoSub}>Music ranking intelligence</div>
               </div>
             </div>
 
-            <h1 style={{ ...styles.heroTitle, fontSize: isMobile ? "40px" : "76px" }}>
+            <h1
+              style={{
+                ...styles.heroTitle,
+                fontSize: isMobile ? "42px" : "76px",
+                letterSpacing: isMobile ? "-1.5px" : "-3px",
+              }}
+            >
               {chartTitle}
             </h1>
 
-            <div style={{ ...styles.heroMeta, marginTop: "18px", alignItems: "baseline", gap: "14px" }}>
+            <div
+              style={{
+                ...styles.heroMeta,
+                marginTop: "16px",
+                alignItems: "baseline",
+                gap: "12px",
+              }}
+            >
               <span
                 style={{
-                  fontSize: "22px",
+                  fontSize: isMobile ? "19px" : "22px",
                   fontWeight: 800,
                   letterSpacing: "-0.5px",
                   color: "#050505",
@@ -338,35 +379,36 @@ export default function PremiumChartsPage({
               >
                 {month}
               </span>
-              <span
-                style={{
-                  fontSize: "12px",
-                  color: "#777777",
-                  letterSpacing: "1.5px",
-                  textTransform: "uppercase",
-                }}
-              >
-                {chartLabel}
-              </span>
-              <span
-                style={{
-                  fontSize: "12px",
-                  color: "#777777",
-                  letterSpacing: "1.5px",
-                  textTransform: "uppercase",
-                }}
-              >
-                {platformLabel}
-              </span>
+              <span style={styles.heroMetaSmall}>{chartLabel}</span>
+              <span style={styles.heroMetaSmall}>{platformLabel}</span>
             </div>
           </div>
 
-          <div style={styles.numberOneCard}>
+          <div
+            style={{
+              ...styles.numberOneCard,
+              borderRadius: isMobile ? "22px" : "28px",
+              padding: isMobile ? "20px" : "24px",
+            }}
+          >
             <div style={styles.numberOneLabel}>#1 this month</div>
 
-            <div style={styles.numberOneRank}>1</div>
+            <div
+              style={{
+                ...styles.numberOneRank,
+                fontSize: isMobile ? "76px" : "96px",
+              }}
+            >
+              1
+            </div>
 
-            <button onClick={() => top && openRelease(top)} style={styles.numberOneTitle}>
+            <button
+              onClick={() => top && openRelease(top)}
+              style={{
+                ...styles.numberOneTitle,
+                fontSize: isMobile ? "23px" : "28px",
+              }}
+            >
               {top?.title || "—"}
             </button>
 
@@ -408,12 +450,18 @@ export default function PremiumChartsPage({
             compact: true,
           },
         ].map((item, index) => (
-          <div key={item.label} style={styles.statItem}>
+          <div
+            key={item.label}
+            style={{
+              ...styles.statItem,
+              padding: isMobile ? "15px 16px" : "18px 24px",
+            }}
+          >
             <div style={styles.statLabel}>{item.label}</div>
             <div
               style={{
                 ...styles.statValue,
-                fontSize: item.compact ? "18px" : "30px",
+                fontSize: item.compact ? (isMobile ? "15px" : "18px") : isMobile ? "25px" : "30px",
                 color: index === 3 ? GOLD : "#050505",
               }}
             >
@@ -424,13 +472,23 @@ export default function PremiumChartsPage({
         ))}
       </section>
 
-      <section style={styles.controls}>
+      <section
+        style={{
+          ...styles.controls,
+          flexDirection: isMobile ? "column" : "row",
+          alignItems: isMobile ? "stretch" : "center",
+          padding: isMobile ? "14px 16px" : "16px 28px",
+        }}
+      >
         <ChartToggle />
 
         <select
           value={month}
           onChange={(event) => setMonth(event.target.value)}
-          style={styles.select}
+          style={{
+            ...styles.select,
+            width: isMobile ? "100%" : "auto",
+          }}
         >
           {MONTHS.map((item) => (
             <option key={item} value={item}>
@@ -439,7 +497,14 @@ export default function PremiumChartsPage({
           ))}
         </select>
 
-        <div style={styles.platforms}>
+        <div
+          style={{
+            ...styles.platforms,
+            flexWrap: isMobile ? "nowrap" : "wrap",
+            overflowX: isMobile ? "auto" : "visible",
+            paddingBottom: isMobile ? "4px" : 0,
+          }}
+        >
           {platList.map((item) => {
             const active = plat === item;
             const color = item === "Combined" ? GOLD : PC[item] || GOLD;
@@ -454,6 +519,7 @@ export default function PremiumChartsPage({
                   borderColor: active ? color : "rgba(0,0,0,0.12)",
                   background: active ? `${color}18` : "#ffffff",
                   color: active ? color : "#6b7280",
+                  flexShrink: 0,
                 }}
               >
                 {label}
@@ -462,7 +528,13 @@ export default function PremiumChartsPage({
           })}
         </div>
 
-        <div style={styles.viewOptions}>
+        <div
+          style={{
+            ...styles.viewOptions,
+            marginLeft: isMobile ? 0 : "auto",
+            width: isMobile ? "100%" : "auto",
+          }}
+        >
           {VO.map((item) => {
             const active = vc === item.c;
             const disabled = item.c > data.length;
@@ -478,6 +550,7 @@ export default function PremiumChartsPage({
                   color: active ? "#050505" : "#6b7280",
                   borderColor: active ? GOLD : "#e5e7eb",
                   opacity: disabled ? 0.45 : 1,
+                  flex: isMobile ? 1 : "initial",
                 }}
               >
                 {item.l}
@@ -487,10 +560,30 @@ export default function PremiumChartsPage({
         </div>
       </section>
 
-      <section style={styles.tableShell}>
-        <div style={styles.tableTop}>
+      <section
+        style={{
+          ...styles.tableShell,
+          margin: isMobile ? "16px 12px 28px" : "24px 28px 34px",
+          borderRadius: isMobile ? "20px" : "26px",
+        }}
+      >
+        <div
+          style={{
+            ...styles.tableTop,
+            flexDirection: isMobile ? "column" : "row",
+            alignItems: isMobile ? "flex-start" : "center",
+            padding: isMobile ? "20px 18px" : "24px 26px",
+          }}
+        >
           <div>
-            <div style={styles.tableTitle}>{chartTitle}</div>
+            <div
+              style={{
+                ...styles.tableTitle,
+                fontSize: isMobile ? "21px" : "24px",
+              }}
+            >
+              {chartTitle}
+            </div>
             <div style={styles.tableSub}>
               {chartLabel} · {platformLabel} · {month}
             </div>
@@ -499,15 +592,17 @@ export default function PremiumChartsPage({
           <div style={styles.tableRange}>Top {Math.min(vc, data.length)}</div>
         </div>
 
-        <div style={styles.tableHeader}>
-          <span>#</span>
-          <span>Move</span>
-          <span>Entry</span>
-          <span>Last</span>
-          <span>Peak</span>
-          <span>Wks</span>
-          <span>Plat.</span>
-        </div>
+        {!isMobile && (
+          <div style={styles.tableHeader}>
+            <span>#</span>
+            <span>Move</span>
+            <span>Entry</span>
+            <span>Last</span>
+            <span>Peak</span>
+            <span>Wks</span>
+            <span>Plat.</span>
+          </div>
+        )}
 
         <div style={styles.rows}>
           {display.map((item, index) => {
@@ -516,6 +611,76 @@ export default function PremiumChartsPage({
             const moveStyle = movementStyle(item);
             const medalColor = item.rank <= 3 ? MEDALS[item.rank - 1] : "#050505";
             const artistCountry = getArtistCountry(item);
+
+            if (isMobile) {
+              return (
+                <div
+                  key={`${item.title}-${item.artist}-${item.rank}-${index}`}
+                  style={{
+                    ...styles.mobileRow,
+                    animationDelay: `${Math.min(index * 20, 400)}ms`,
+                  }}
+                  onMouseEnter={(event) => {
+                    event.currentTarget.style.background = "#fff7e6";
+                    event.currentTarget.style.boxShadow = "inset 4px 0 0 #c89116";
+                  }}
+                  onMouseLeave={(event) => {
+                    event.currentTarget.style.background = "#ffffff";
+                    event.currentTarget.style.boxShadow = "none";
+                  }}
+                >
+                  <div style={styles.mobileRowTop}>
+                    <div style={{ ...styles.mobileRank, color: medalColor }}>{item.rank}</div>
+
+                    <div style={styles.mobileEntryMain}>
+                      <div style={styles.entryCell}>
+                        <div
+                          style={{
+                            ...styles.flagBox,
+                            width: "42px",
+                            height: "42px",
+                            borderRadius: "12px",
+                          }}
+                          title={`${artistCountry.country}${
+                            artistCountry.code ? ` (${artistCountry.code})` : ""
+                          }`}
+                        >
+                          <span style={styles.flagText}>{artistCountry.code || "—"}</span>
+                        </div>
+
+                        <div style={styles.entryText}>
+                          <button onClick={() => openRelease(item)} style={styles.titleButton}>
+                            {item.title}
+                          </button>
+
+                          <button onClick={() => openArtist(item.artist)} style={styles.artistButton}>
+                            {item.artist}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        ...styles.moveBadge,
+                        color: moveStyle.color,
+                        background: moveStyle.background,
+                        minWidth: "48px",
+                      }}
+                    >
+                      {move.label || "—"}
+                    </div>
+                  </div>
+
+                  <div style={styles.mobileStatsRow}>
+                    <MobileStat label="Last" value={profile.lastMonth} />
+                    <MobileStat label="Peak" value={profile.peak} />
+                    <MobileStat label="Wks" value={profile.weeks} />
+                    <MobileStat label="Plat." value={plat === "Combined" && item.plat ? item.plat : "—"} />
+                  </div>
+                </div>
+              );
+            }
 
             return (
               <div
@@ -548,7 +713,9 @@ export default function PremiumChartsPage({
                 <div style={styles.entryCell}>
                   <div
                     style={styles.flagBox}
-                    title={`${artistCountry.country}${artistCountry.code ? ` (${artistCountry.code})` : ""}`}
+                    title={`${artistCountry.country}${
+                      artistCountry.code ? ` (${artistCountry.code})` : ""
+                    }`}
                   >
                     <span style={styles.flagText}>{artistCountry.code || "—"}</span>
                   </div>
@@ -623,18 +790,10 @@ const styles = {
     alignItems: "center",
     gap: "10px",
     flexWrap: "wrap",
-    fontSize: "11px",
     fontWeight: 800,
     letterSpacing: "2.6px",
     textTransform: "uppercase",
     color: "#777777",
-    marginBottom: "32px",
-  },
-
-  liveDot: {
-    width: "8px",
-    height: "8px",
-    borderRadius: "50%",
   },
 
   eyebrowDivider: {
@@ -644,8 +803,6 @@ const styles = {
   heroMain: {
     position: "relative",
     display: "grid",
-    gridTemplateColumns: "minmax(0, 1fr) minmax(260px, 360px)",
-    gap: "28px",
     alignItems: "end",
   },
 
@@ -657,13 +814,10 @@ const styles = {
     display: "flex",
     gap: "16px",
     alignItems: "center",
-    marginBottom: "30px",
   },
 
   logoText: {
-    fontSize: "24px",
     fontWeight: 900,
-    letterSpacing: "4px",
     color: "#050505",
   },
 
@@ -679,24 +833,26 @@ const styles = {
     margin: 0,
     lineHeight: 0.92,
     fontWeight: 950,
-    letterSpacing: "-3px",
     textTransform: "uppercase",
     color: "#050505",
   },
 
   heroMeta: {
     display: "flex",
-    gap: "10px",
     flexWrap: "wrap",
-    marginTop: "22px",
     color: "#777777",
+  },
+
+  heroMetaSmall: {
+    fontSize: "12px",
+    color: "#777777",
+    letterSpacing: "1.5px",
+    textTransform: "uppercase",
   },
 
   numberOneCard: {
     background: "#ffffff",
     border: "1px solid rgba(0,0,0,0.08)",
-    borderRadius: "28px",
-    padding: "24px",
     boxShadow: "0 14px 40px rgba(0,0,0,0.08)",
   },
 
@@ -710,7 +866,6 @@ const styles = {
 
   numberOneRank: {
     marginTop: "12px",
-    fontSize: "96px",
     lineHeight: 0.85,
     fontWeight: 950,
     color: "#c89116",
@@ -724,7 +879,6 @@ const styles = {
     marginTop: "18px",
     textAlign: "left",
     color: "#050505",
-    fontSize: "28px",
     fontWeight: 900,
     lineHeight: 1.05,
     cursor: "pointer",
@@ -754,14 +908,12 @@ const styles = {
 
   statsBand: {
     display: "grid",
-    gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
     background: "#ffffff",
     borderTop: "1px solid rgba(0,0,0,0.08)",
     borderBottom: "1px solid rgba(0,0,0,0.08)",
   },
 
   statItem: {
-    padding: "18px 24px",
     borderRight: "1px solid rgba(0,0,0,0.08)",
     minWidth: 0,
   },
@@ -792,10 +944,8 @@ const styles = {
 
   controls: {
     display: "flex",
-    alignItems: "center",
     gap: "10px",
     flexWrap: "wrap",
-    padding: "16px 28px",
     background: "#ffffff",
     color: "#111111",
     borderBottom: "1px solid #EAEAE6",
@@ -835,7 +985,7 @@ const styles = {
   platforms: {
     display: "flex",
     gap: "6px",
-    flexWrap: "wrap",
+    scrollbarWidth: "thin",
   },
 
   platformButton: {
@@ -846,10 +996,10 @@ const styles = {
     fontSize: "12px",
     fontWeight: 800,
     cursor: "pointer",
+    whiteSpace: "nowrap",
   },
 
   viewOptions: {
-    marginLeft: "auto",
     display: "flex",
     gap: "6px",
   },
@@ -864,11 +1014,9 @@ const styles = {
   },
 
   tableShell: {
-    margin: "24px 28px 34px",
     background: "#ffffff",
     color: "#050505",
     border: "1px solid rgba(0,0,0,0.08)",
-    borderRadius: "26px",
     overflow: "hidden",
     boxShadow: "0 14px 40px rgba(0,0,0,0.08)",
   },
@@ -877,15 +1025,12 @@ const styles = {
     display: "flex",
     justifyContent: "space-between",
     gap: "20px",
-    alignItems: "center",
-    padding: "24px 26px",
     borderBottom: "1px solid rgba(0,0,0,0.08)",
     background: "#ffffff",
     color: "#050505",
   },
 
   tableTitle: {
-    fontSize: "24px",
     fontWeight: 950,
     letterSpacing: "-0.5px",
     color: "#050505",
@@ -942,6 +1087,70 @@ const styles = {
     background: "#ffffff",
     color: "#050505",
     animation: "fadeUp 0.35s ease both",
+    transition: "background 180ms ease, box-shadow 180ms ease",
+  },
+
+  mobileRow: {
+    padding: "15px 14px",
+    borderBottom: "1px solid rgba(0,0,0,0.08)",
+    background: "#ffffff",
+    color: "#050505",
+    animation: "fadeUp 0.35s ease both",
+    transition: "background 180ms ease, box-shadow 180ms ease",
+  },
+
+  mobileRowTop: {
+    display: "grid",
+    gridTemplateColumns: "42px minmax(0, 1fr) 54px",
+    gap: "10px",
+    alignItems: "center",
+  },
+
+  mobileRank: {
+    fontSize: "28px",
+    fontWeight: 950,
+    lineHeight: 1,
+  },
+
+  mobileEntryMain: {
+    minWidth: 0,
+  },
+
+  mobileStatsRow: {
+    display: "grid",
+    gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+    gap: "7px",
+    marginTop: "12px",
+  },
+
+  mobileMiniStat: {
+    background: "#f7f7f7",
+    border: "1px solid rgba(0,0,0,0.06)",
+    borderRadius: "12px",
+    padding: "8px 6px",
+    minWidth: 0,
+  },
+
+  mobileMiniStatLabel: {
+    display: "block",
+    fontSize: "9px",
+    color: "#777777",
+    fontWeight: 900,
+    letterSpacing: "1px",
+    textTransform: "uppercase",
+    textAlign: "center",
+  },
+
+  mobileMiniStatValue: {
+    display: "block",
+    marginTop: "4px",
+    color: "#050505",
+    fontSize: "12px",
+    fontWeight: 900,
+    textAlign: "center",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
   },
 
   rank: {
@@ -963,7 +1172,7 @@ const styles = {
 
   entryCell: {
     display: "flex",
-    gap: "14px",
+    gap: "12px",
     alignItems: "center",
     minWidth: 0,
   },
@@ -1002,7 +1211,7 @@ const styles = {
     color: "#050505",
     padding: 0,
     textAlign: "left",
-    fontSize: "17px",
+    fontSize: "16px",
     fontWeight: 950,
     lineHeight: 1.15,
     cursor: "pointer",
