@@ -1,6 +1,21 @@
 import { useState, useEffect, useMemo } from "react";
-import { BarChart,Bar,XAxis,YAxis,Tooltip,ResponsiveContainer,Cell,LineChart,Line,Legend,PieChart,Pie,CartesianGrid } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+  LineChart,
+  Line,
+  Legend,
+  PieChart,
+  Pie,
+  CartesianGrid,
+} from "recharts";
 import { FULL, ANL, MOM } from "./data/chartData";
+import PremiumChartsPage from "./components/PremiumChartsPage";
 
 // ===== FULL Top-50 dataset across all months and platforms =====
 const MONTHS = ["October 2024","November 2024","December 2024"];
@@ -491,120 +506,38 @@ export default function NgomaCharts(){
       )}
 
       {/* CHARTS PAGE */}
-      {page==="charts"&&!selA&&!selR&&(<>
-        <div style={{background:"linear-gradient(135deg,#FFFFFF 0%,#FFFDF8 100%)",padding:isMobile?"22px 16px 20px":"30px 28px 26px",borderBottom:"1px solid #EAEAE6",position:"relative",overflow:"hidden",opacity:loaded?1:0,transform:loaded?"none":"translateY(8px)",transition:"all 0.5s ease-out"}}>
-          <div style={{position:"absolute",top:0,right:0,width:"200px",height:"100%",background:"radial-gradient(circle at top right,rgba(184,134,11,0.06),transparent 70%)",pointerEvents:"none"}}/>
-          <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"14px"}}>
-            <span style={{display:"inline-block",width:"6px",height:"6px",borderRadius:"50%",background:"#2DB04A",boxShadow:"0 0 0 3px rgba(45,176,74,0.15)"}}/>
-            <span style={{...secLbl(),margin:0}}>{(isSingles?"Ngoma Top 50":"Ngoma Top Albums")+" · #1 THIS MONTH"}</span>
-            <span style={{fontFamily:F,fontSize:"9.5px",color:"#BBB",letterSpacing:"0.5px"}}>{month.toUpperCase()}{plat!=="Combined"?" · "+(PLAT_LABEL[plat]||plat).toUpperCase():""}</span>
-          </div>
-          <div style={{display:"flex",alignItems:"flex-end",gap:"18px",position:"relative"}}>
-            <div style={{display:"flex",alignItems:"flex-end",gap:"3px",height:"72px",paddingBottom:"6px"}}>
-              {[0.45,0.65,1,0.8].map((h,i)=><div key={i} style={{width:"7px",height:loaded?(h*72)+"px":"4px",background:i===2?GOLD:"#E8E2D5",borderRadius:"2px",transition:"height 0.6s cubic-bezier(0.34,1.56,0.64,1) "+(i*0.08)+"s"}}/>)}
-            </div>
-            <div style={{flex:1,paddingBottom:"4px"}}>
-              <h1 style={{fontSize:isMobile?"24px":"36px",fontWeight:800,margin:0,lineHeight:1.05,cursor:"pointer",letterSpacing:"-0.5px"}} onClick={()=>top&&setSelR({...top,type:isSingles?"single":"album"})}>{top?top.title:"—"}</h1>
-              <p style={{fontSize:"16px",margin:"5px 0 0",color:"#888",fontFamily:F,cursor:"pointer",fontWeight:500}} onClick={()=>{if(top){const a=artists.find(x=>x.n===top.artist);if(a)setSelA(a);}}}>{top?top.artist:""}</p>
-            </div>
-            <div style={{textAlign:"right",paddingBottom:"4px",fontFamily:F}}>
-              <div style={{fontSize:isMobile?"22px":"32px",fontWeight:800,color:GOLD,letterSpacing:"-1px"}}>{top?(top.pts||0).toLocaleString():"—"}</div>
-              <div style={{fontSize:"9px",letterSpacing:"2px",textTransform:"uppercase",color:"#CCC",fontWeight:600}}>POINTS</div>
-              {top&&top.plat&&<div style={{marginTop:"5px",background:top.plat===tp+"/"+tp?"linear-gradient(135deg,#FAF5EA,#F5EAD0)":"#F5F5F3",color:top.plat===tp+"/"+tp?GOLD:"#AAA",padding:"3px 10px",borderRadius:"10px",fontSize:"10px",fontWeight:700,display:"inline-block",border:top.plat===tp+"/"+tp?"1px solid "+GOLD+"33":"none"}}>{top.plat} platforms</div>}
-            </div>
-          </div>
-        </div>
-        <div style={{display:"flex",gap:"0",background:"#1A1A1A",overflowX:"auto"}}>
-          {(()=>{
-            const cd=getCombined(ct,month);
-            const sixers=cd.filter(e=>e.plat===tp+"/"+tp).length;
-            const top1=cd[0];
-            const stats=[
-              {l:"Chart Entries",v:cd.length,sub:isSingles?"songs":"albums"},
-              {l:"Perfect Coverage",v:sixers,sub:tp+"/"+tp+" platforms"},
-              {l:"New This Month",v:mvData.new||"—",sub:"fresh entries"},
-              {l:"Leader Points",v:top1?(top1.pts||0).toLocaleString():"—",sub:top1?top1.title.slice(0,16):""},
-            ];
-            return stats.map((s,i)=>(
-              <div key={i} style={{flex:"1 1 0",minWidth:isMobile?"50%":"130px",padding:isMobile?"12px 16px":"14px 20px",borderRight:i<3?"1px solid rgba(255,255,255,0.08)":"none",borderBottom:isMobile&&i<2?"1px solid rgba(255,255,255,0.08)":"none"}}>
-                <div style={{fontFamily:F,fontSize:"8.5px",letterSpacing:"2px",textTransform:"uppercase",color:"rgba(255,255,255,0.4)",marginBottom:"4px"}}>{s.l}</div>
-                <div style={{fontFamily:F,fontSize:"22px",fontWeight:800,color:i===3?GOLD:"#FFF",lineHeight:1}}>{s.v}</div>
-                <div style={{fontFamily:F,fontSize:"9px",color:"rgba(255,255,255,0.35)",marginTop:"3px"}}>{s.sub}</div>
-              </div>
-            ));
-          })()}
-        </div>
-        <div style={{padding:isMobile?"12px 16px":"12px 28px",background:"#FFF",display:"flex",flexWrap:"wrap",gap:"8px",alignItems:"center",borderBottom:"1px solid #EAEAE6",fontFamily:F}}>
-          <Tog/>
-          <select value={month} onChange={e=>setMonth(e.target.value)} style={{padding:"5px 10px",border:"1.5px solid #DDD",borderRadius:"5px",background:"#FFF",fontSize:"10px",fontFamily:F,fontWeight:600,cursor:"pointer",outline:"none"}}>
-            {MONTHS.map(m=><option key={m} value={m}>{m}</option>)}
-          </select>
-          <div style={{display:"flex",gap:"3px",flexWrap:"wrap"}}>
-            {platList.map(p=>{const ac=plat===p,c=p==="Combined"?"#1A1A1A":(PC[p]||"#888");const lbl=p==="Combined"?p:(PLAT_LABEL[p]||p);return(
-              <button key={p} onClick={()=>setPlat(p)} style={{padding:"4px 12px",background:ac?(p==="Combined"?"#1A1A1A":c+"22"):"#FFF",border:"1.5px solid "+(ac?c:"#E0E0DC"),borderRadius:"18px",color:ac?(p==="Combined"?"#FFF":c):"#BBB",cursor:"pointer",fontSize:"9.5px",fontFamily:F,fontWeight:ac?700:500,transition:"all 0.15s"}}>{lbl}</button>
-            );})}
-          </div>
-          <div style={{marginLeft:"auto",display:"flex",gap:"3px"}}>
-            {VO.map(o=>{const dis=o.c>data.length,act=vc===o.c;return(
-              <button key={o.c} onClick={()=>!dis&&setVc(o.c)} style={{padding:"4px 10px",background:act?GOLD:dis?"#F7F7F5":"#FFF",border:"1.5px solid "+(act?GOLD:dis?"#EAEAE6":"#E0E0DC"),borderRadius:"4px",color:act?"#FFF":dis?"#CCC":"#999",cursor:dis?"default":"pointer",fontSize:"9.5px",fontFamily:F,fontWeight:600}}>
-                {o.l}
-              </button>
-            );})}
-          </div>
-        </div>
-        <div style={{background:"#FFF",padding:isMobile?"0 16px 12px":"0 28px 12px"}}>
-          <div style={{display:"grid",gridTemplateColumns:"48px 34px 1fr 110px 65px",padding:"10px 0",borderBottom:"2px solid #1A1A1A",fontFamily:F,fontSize:"8.5px",fontWeight:700,letterSpacing:"2px",textTransform:"uppercase",color:"#CCC"}}>
-            <span style={{textAlign:"center"}}>#</span><span/><span>{isSingles?"TITLE":"ALBUM"}</span><span style={{textAlign:"right"}}>PTS</span><span style={{textAlign:"center"}}>{plat==="Combined"?"PLAT.":"WKS"}</span>
-          </div>
-          {(()=>{const maxP=display.length?Math.max(...display.map(x=>x.pts||0)):1;return display.map((item,idx)=>{
-            const t3=item.rank<=3;
-            const barW=Math.round(((item.pts||0)/maxP)*100);
-            return(<div key={item.title+item.rank} onMouseEnter={()=>setHr(item.rank)} onMouseLeave={()=>setHr(null)}
-              style={{display:"grid",gridTemplateColumns:"48px 34px 1fr 110px 65px",padding:t3?"13px 0":"10px 0",borderBottom:"1px solid #F2F2EE",alignItems:"center",background:hr===item.rank?"linear-gradient(90deg,#FAF8F2,transparent)":"transparent",transition:"background 0.15s",opacity:loaded?1:0,transform:loaded?"none":"translateX(-6px)",transitionDelay:Math.min(idx*15,400)+"ms",transitionDuration:"0.35s"}}>
-              <div style={{textAlign:"center",fontSize:t3?"22px":"14px",fontWeight:800,color:t3?MEDALS[item.rank-1]:"#D8D8D4"}}>{item.rank}</div>
-              <div style={{textAlign:"center"}}>{plat==="Combined"&&<MvBadge e={item}/>}</div>
-              <div>
-                <div style={{fontSize:t3?"13.5px":"12px",fontWeight:700,marginBottom:"1px",cursor:"pointer"}} onClick={()=>setSelR({...item,type:isSingles?"single":"album"})}>{item.title}</div>
-                <div style={{fontSize:"10px",color:"#AAA",fontFamily:F,cursor:"pointer"}} onClick={()=>{const a=artists.find(x=>x.n===item.artist);if(a)setSelA(a);}}>{item.artist}</div>
-              </div>
-              <div style={{display:"flex",alignItems:"center",gap:"8px",justifyContent:"flex-end"}}>
-                <div style={{flex:1,height:"4px",background:"#F2F0EA",borderRadius:"2px",overflow:"hidden",maxWidth:"50px"}}><div style={{width:barW+"%",height:"100%",background:t3?GOLD:"#D8D2C4",borderRadius:"2px"}}/></div>
-                <span style={{fontFamily:F,fontSize:t3?"14px":"11.5px",fontWeight:700,color:t3?GOLD:"#999",minWidth:"42px",textAlign:"right"}}>{(item.pts||0).toLocaleString()}</span>
-              </div>
-              <div style={{textAlign:"center",fontFamily:F}}>
-                {plat==="Combined"&&item.plat?<span style={{background:item.plat===tp+"/"+tp?"#FAF5EA":"#F7F7F5",color:item.plat===tp+"/"+tp?GOLD:"#BBB",padding:"2px 7px",borderRadius:"8px",fontSize:"9px",fontWeight:600}}>{item.plat}</span>:<span style={{fontSize:"9.5px",color:"#BBB"}}>—</span>}
-              </div>
-            </div>);
-          });})()}
-          <div style={{padding:"10px 0",textAlign:"center",fontFamily:F,fontSize:"10px",color:"#CCC"}}>Showing {display.length} of {data.length} · {month}{plat!=="Combined"?" · "+(PLAT_LABEL[plat]||plat):""}</div>
-        </div>
-        {/* #1 Reign tracker */}
-        {plat==="Combined"&&(
-          <div style={{margin:"4px 28px 24px"}}>
-            <div style={{...card()}}>
-              <div style={secLbl()}><SecMark/>The Race for #1 — Q4 2024</div>
-              <div style={{display:"flex",gap:"10px",flexWrap:"wrap"}}>
-                {MONTHS.map((m,i)=>{
-                  const leader=getCombined(ct,m)[0];
-                  const isCur=m===month;
-                  return(
-                    <div key={m} onClick={()=>setMonth(m)} style={{flex:"1 1 0",minWidth:"150px",padding:"16px",borderRadius:"12px",cursor:"pointer",background:isCur?"linear-gradient(135deg,#1A1A1A,#2C2C2C)":"#FAFAF8",border:"1px solid "+(isCur?"#1A1A1A":"#EFEDE7"),transition:"all 0.2s"}}>
-                      <div style={{display:"flex",alignItems:"center",gap:"7px",marginBottom:"10px"}}>
-                        <span style={{fontFamily:F,fontSize:"9px",letterSpacing:"1.5px",textTransform:"uppercase",color:isCur?"rgba(255,255,255,0.5)":"#BBB",fontWeight:600}}>{m.split(" ")[0]}</span>
-                        {i<MONTHS.length-1&&<span style={{color:isCur?"rgba(255,255,255,0.3)":"#DDD",fontSize:"11px"}}>→</span>}
-                      </div>
-                      <div style={{fontSize:"36px",fontWeight:900,color:GOLD,lineHeight:0.9,marginBottom:"6px"}}>1</div>
-                      <div style={{fontFamily:SF,fontSize:"14px",fontWeight:700,color:isCur?"#FFF":"#1A1A1A",lineHeight:1.15,marginBottom:"2px"}}>{leader?leader.title:"—"}</div>
-                      <div style={{fontFamily:F,fontSize:"11px",color:isCur?"rgba(255,255,255,0.5)":"#999"}}>{leader?leader.artist:""}</div>
-                      <div style={{fontFamily:F,fontSize:"11px",color:GOLD,fontWeight:700,marginTop:"8px"}}>{leader?(leader.pts||0).toLocaleString()+" pts":""}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        )}
-      </>)}
+      {page === "charts" && !selA && !selR && (
+  <PremiumChartsPage
+    isMobile={isMobile}
+    loaded={loaded}
+    F={F}
+    SF={SF}
+    GOLD={GOLD}
+    MEDALS={MEDALS}
+    MONTHS={MONTHS}
+    VO={VO}
+    PC={PC}
+    PLAT_LABEL={PLAT_LABEL}
+    ct={ct}
+    setCt={setCt}
+    month={month}
+    setMonth={setMonth}
+    plat={plat}
+    setPlat={setPlat}
+    platList={platList}
+    vc={vc}
+    setVc={setVc}
+    data={data}
+    display={display}
+    top={top}
+    tp={tp}
+    isSingles={isSingles}
+    artists={artists}
+    setSelA={setSelA}
+    setSelR={setSelR}
+    getCombined={getCombined}
+  />
+)}
 
       {/* ARTISTS PAGE */}
       {page==="artists"&&!selA&&!selR&&(
