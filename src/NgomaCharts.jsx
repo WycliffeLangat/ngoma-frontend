@@ -444,9 +444,9 @@ const top = data[0];
         <div style={{display:"flex",justifyContent:"space-between",padding:"5px 28px",background:"#1A1A1A",fontFamily:F,fontSize:"9.5px",letterSpacing:"2px",textTransform:"uppercase",color:"#FFF"}}>
           <span>Kenya's Official Music Charts</span>
           <div style={{display:"flex",gap:"16px",alignItems:"center"}}>
-            <span style={{display:"flex",alignItems:"center",gap:"5px",color:"rgba(255,255,255,0.35)"}} title={liveStatus==="live"?"Connected to live data":"Showing Q4 2024 dataset"}>
+            <span style={{display:"flex",alignItems:"center",gap:"5px",color:"rgba(255,255,255,0.35)"}} title={liveStatus==="live"?"Connected to live data":"Not connected to live data"}>
               <span style={{width:"5px",height:"5px",borderRadius:"50%",background:liveStatus==="live"?"#2DB04A":"#888"}}/>
-              {liveStatus==="live"?"LIVE":"Q4 2024"}
+              {liveStatus==="live"&&<span style={{color:"rgba(255,255,255,0.55)",fontSize:"9px",letterSpacing:"1.5px",fontFamily:"inherit"}}>LIVE</span>}
             </span>
             <span style={{color:"rgba(255,255,255,0.4)",cursor:"pointer"}} onClick={()=>setSOpen(true)}>⌕ Search</span>
           </div>

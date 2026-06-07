@@ -273,7 +273,7 @@ export default function PremiumChartsPage({
     );
   }
 
-  const sourceLabel = liveStatus === "live" ? "Live database" : "Static preview";
+  const sourceLabel = liveStatus === "live" ? "LIVE" : "";
   const perfectCoverageCount = data.filter((item) => item.plat === `${tp}/${tp}`).length;
   const newEntriesCount = data.filter((item) => movement(item).type === "new").length;
 
@@ -290,17 +290,27 @@ export default function PremiumChartsPage({
         <div style={styles.heroGlow} />
 
         <div style={styles.eyebrowRow}>
-          <span
-            style={{
-              ...styles.liveDot,
-              background: liveStatus === "live" ? "#22C55E" : "#9CA3AF",
-              boxShadow:
-                liveStatus === "live"
-                  ? "0 0 0 4px rgba(34,197,94,0.14)"
-                  : "0 0 0 4px rgba(156,163,175,0.12)",
-            }}
-          />
-          <span>{sourceLabel}</span>
+          {liveStatus === "live" && (
+            <>
+              <span
+                style={{
+                  ...styles.liveDot,
+                  background: "#22C55E",
+                  boxShadow: "0 0 0 4px rgba(34,197,94,0.14)",
+                }}
+              />
+              <span>{sourceLabel}</span>
+            </>
+          )}
+          {liveStatus !== "live" && (
+            <span
+              style={{
+                ...styles.liveDot,
+                background: "#9CA3AF",
+                boxShadow: "0 0 0 4px rgba(156,163,175,0.12)",
+              }}
+            />
+          )}
           <span style={styles.eyebrowDivider}>/</span>
           <span>{month}</span>
           <span style={styles.eyebrowDivider}>/</span>
