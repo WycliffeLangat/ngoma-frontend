@@ -134,23 +134,7 @@ export default function PremiumChartsPage({
     liveChartMeta?.platform || (plat === "Combined" ? "Combined" : PLAT_LABEL[plat] || plat);
 
   function movement(item) {
-    if (item.movement) {
-      const text = String(item.movement).trim();
-
-      if (text.toLowerCase() === "new") return { type: "new", label: "NEW" };
-      if (text.toLowerCase() === "re") return { type: "re", label: "RE" };
-      if (text === "=" || text === "â€”") return { type: "same", label: "â€”" };
-      if (text.startsWith("â–²") || text.startsWith("+")) {
-        return { type: "up", label: text.replace("+", "â–² ") };
-      }
-      if (text.startsWith("â–¼") || text.startsWith("-")) {
-        return { type: "down", label: text.replace("-", "â–¼ ") };
-      }
-
-      return { type: "same", label: text };
-    }
-
-    if (item.first) return { type: "new", label: "NEW" };
+    if (item.first) return { type: "none", label: "" };
 
     if (item.prev === null || item.prev === undefined || item.prev === "") {
       return { type: "new", label: "NEW" };
@@ -158,21 +142,40 @@ export default function PremiumChartsPage({
 
     const diff = Number(item.prev) - Number(item.rank);
 
-    if (diff > 0) return { type: "up", label: `â–² ${diff}` };
-    if (diff < 0) return { type: "down", label: `â–¼ ${Math.abs(diff)}` };
+    if (diff > 0) return { type: "up", label: `▲ ${diff}` };
+    if (diff < 0) return { type: "down", label: `▼ ${Math.abs(diff)}` };
 
-    return { type: "same", label: "â€”" };
+    return { type: "same", label: "—" };
   }
 
   function movementStyle(item) {
     const m = movement(item);
 
-    if (m.type === "up") return { color: "#21C45D", background: "rgba(33,196,93,0.12)" };
-    if (m.type === "down") return { color: "#EF4444", background: "rgba(239,68,68,0.12)" };
-    if (m.type === "new") return { color: GOLD, background: "rgba(184,134,11,0.18)" };
-    if (m.type === "re") return { color: "#60A5FA", background: "rgba(96,165,250,0.14)" };
+    if (m.type === "up") {
+      return {
+        color: "#2DB04A",
+        background: "rgba(45,176,74,0.16)",
+      };
+    }
 
-    return { color: "rgba(255,255,255,0.55)", background: "rgba(255,255,255,0.07)" };
+    if (m.type === "down") {
+      return {
+        color: "#E53935",
+        background: "rgba(229,57,53,0.16)",
+      };
+    }
+
+    if (m.type === "new") {
+      return {
+        color: GOLD,
+        background: "rgba(184,134,11,0.16)",
+      };
+    }
+
+    return {
+      color: "rgba(255,255,255,0.45)",
+      background: "rgba(255,255,255,0.06)",
+    };
   }
 
   function getReleaseProfile(item) {
@@ -1001,4 +1004,5 @@ const styles = {
     fontWeight: 700,
   },
 };
+
 
