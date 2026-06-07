@@ -152,18 +152,17 @@ const styles = {
   floatingButton: {
     position: "fixed",
     right: "24px",
-    top: "72px",
+    top: "68px",
     zIndex: 9999,
-    width: "58px",
-    height: "58px",
+    width: "50px",
+    height: "50px",
     borderRadius: "50%",
-    border: "none",
-    background: "radial-gradient(circle at 35% 35%, #fde68a, #f59e0b)",
+    border: "1px solid #e5e7eb",
+    background: "#ffffff",
     color: "#111827",
-    fontSize: "28px",
+    fontSize: "26px",
     cursor: "pointer",
-    boxShadow:
-      "0 0 12px rgba(245, 158, 11, 0.55), 0 0 26px rgba(250, 204, 21, 0.45), 0 12px 30px rgba(0, 0, 0, 0.25)",
+    boxShadow: "0 8px 20px rgba(0, 0, 0, 0.12)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -171,8 +170,6 @@ const styles = {
 
   bulbIcon: {
     display: "inline-block",
-    filter:
-      "drop-shadow(0 0 3px rgba(255, 255, 150, 0.9)) drop-shadow(0 0 8px rgba(250, 204, 21, 0.9))",
   },
 
   panel: {
