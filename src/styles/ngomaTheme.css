@@ -1,0 +1,224 @@
+/* Ngoma Charts global dark/gold theme
+   This file applies the premium Charts page colour direction across the wider site.
+   It is intentionally broad so it improves existing inline-heavy pages without rewriting every section. */
+
+:root {
+  --ngoma-black: #070707;
+  --ngoma-black-2: #101010;
+  --ngoma-black-3: #161616;
+  --ngoma-card: #121212;
+  --ngoma-gold: #b8860b;
+  --ngoma-gold-2: #d6a21c;
+  --ngoma-text: #ffffff;
+  --ngoma-muted: rgba(255, 255, 255, 0.58);
+  --ngoma-soft: rgba(255, 255, 255, 0.08);
+  --ngoma-line: rgba(255, 255, 255, 0.1);
+  --ngoma-cream: #fbfaf7;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  background: var(--ngoma-black) !important;
+}
+
+body {
+  margin: 0;
+  color: var(--ngoma-text);
+}
+
+/* Main application surface */
+#root > div {
+  background:
+    radial-gradient(circle at 85% 0%, rgba(184, 134, 11, 0.12), transparent 30%),
+    linear-gradient(180deg, #070707 0%, #101010 48%, #070707 100%) !important;
+  color: var(--ngoma-text) !important;
+}
+
+/* Top header */
+header {
+  background: var(--ngoma-black) !important;
+  border-bottom: 1px solid var(--ngoma-line) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+}
+
+header > div:first-child {
+  background: var(--ngoma-black) !important;
+  color: rgba(255, 255, 255, 0.72) !important;
+  border-bottom: 1px solid var(--ngoma-line) !important;
+}
+
+header > div:nth-child(2) {
+  background:
+    radial-gradient(circle at top right, rgba(184, 134, 11, 0.12), transparent 36%),
+    var(--ngoma-black) !important;
+}
+
+/* Header text and logo */
+header span,
+header div {
+  color: inherit;
+}
+
+header nav span {
+  color: rgba(255, 255, 255, 0.55) !important;
+}
+
+header nav span:hover {
+  color: #ffffff !important;
+}
+
+header nav span[style*="linear-gradient"] {
+  background: rgba(184, 134, 11, 0.16) !important;
+  color: var(--ngoma-gold-2) !important;
+  border-color: rgba(184, 134, 11, 0.35) !important;
+}
+
+/* Section/page containers that were white before */
+main,
+section,
+footer {
+  color: inherit;
+}
+
+/* Make major white content sections match the premium dark look */
+div[style*='background: "#FFF"'],
+div[style*="background:#FFF"],
+div[style*="background: #FFF"],
+div[style*="background: rgb(255, 255, 255)"] {
+  background: var(--ngoma-black-2) !important;
+  color: var(--ngoma-text) !important;
+  border-color: var(--ngoma-line) !important;
+}
+
+/* Cards */
+div[style*="borderRadius"],
+div[style*="border-radius"] {
+  border-color: var(--ngoma-line) !important;
+}
+
+div[style*="boxShadow"],
+div[style*="box-shadow"] {
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.24) !important;
+}
+
+/* Text hierarchy */
+h1,
+h2,
+h3,
+h4 {
+  color: #ffffff !important;
+}
+
+p {
+  color: rgba(255, 255, 255, 0.62) !important;
+}
+
+/* Inputs, selects, textareas */
+input,
+select,
+textarea {
+  background: #0f0f0f !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(255, 255, 255, 0.38) !important;
+}
+
+option {
+  background: #111111;
+  color: #ffffff;
+}
+
+/* Buttons */
+button {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+/* Default light buttons become dark/gold friendly */
+button[style*='background: "#FFF"'],
+button[style*="background:#FFF"],
+button[style*="background: #FFF"],
+button[style*="background: rgb(255, 255, 255)"] {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: rgba(255, 255, 255, 0.74) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+/* Tables / lists */
+div[style*="borderBottom"],
+div[style*="border-bottom"] {
+  border-color: rgba(255, 255, 255, 0.09) !important;
+}
+
+/* Search modal and detail modals */
+div[style*="rgba(0,0,0,0.5)"],
+div[style*="rgba(20,18,15,0.82)"] {
+  backdrop-filter: blur(6px);
+}
+
+/* Footer */
+footer {
+  background: var(--ngoma-black) !important;
+  border-top: 1px solid var(--ngoma-line) !important;
+  color: rgba(255, 255, 255, 0.58) !important;
+}
+
+/* Recharts surfaces */
+.recharts-wrapper text {
+  fill: rgba(255, 255, 255, 0.64) !important;
+}
+
+.recharts-cartesian-grid line {
+  stroke: rgba(255, 255, 255, 0.08) !important;
+}
+
+.recharts-tooltip-wrapper {
+  color: #111111;
+}
+
+/* Utility polish */
+::selection {
+  background: rgba(184, 134, 11, 0.45);
+  color: #ffffff;
+}
+
+::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(184, 134, 11, 0.55);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Mobile refinements */
+@media (max-width: 760px) {
+  header > div:nth-child(2) {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  section {
+    overflow-x: hidden;
+  }
+
+  button,
+  select,
+  input {
+    max-width: 100%;
+  }
+}

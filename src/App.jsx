@@ -1,3 +1,5 @@
+import "./styles/ngomaTheme.css";
+
 import NgomaCharts from "./NgomaCharts";
 import NgomaAIWidget from "./components/NgomaAIWidget";
 import ChartExportWidget from "./components/ChartExportWidget";
