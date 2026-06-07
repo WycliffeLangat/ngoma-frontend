@@ -1,8 +1,6 @@
 export default function PremiumChartsPage({
   isMobile,
   loaded,
-  F,
-  SF,
   GOLD,
   MEDALS,
   MONTHS,
@@ -27,19 +25,39 @@ export default function PremiumChartsPage({
   setSelA,
   setSelR,
   getCombined,
+  liveChartLoading,
+  liveChartMeta,
+  liveStatus,
 }) {
   const chartTitle = isSingles ? "Ngoma Top 50" : "Ngoma Top Albums";
   const chartLabel = isSingles ? "Singles" : "Albums";
-  const platformLabel = plat === "Combined" ? "Combined" : PLAT_LABEL[plat] || plat;
+  const platformLabel =
+    liveChartMeta?.platform || (plat === "Combined" ? "Combined" : PLAT_LABEL[plat] || plat);
 
   function movement(item) {
-    if (item.first) return { type: "none", label: "" };
+    if (item.movement) {
+      const text = String(item.movement).trim();
 
-    if (item.prev === null || item.prev === undefined) {
+      if (text.toLowerCase() === "new") return { type: "new", label: "NEW" };
+      if (text.toLowerCase() === "re") return { type: "re", label: "RE" };
+      if (text === "=" || text === "—") return { type: "same", label: "—" };
+      if (text.startsWith("▲") || text.startsWith("+")) {
+        return { type: "up", label: text.replace("+", "▲ ") };
+      }
+      if (text.startsWith("▼") || text.startsWith("-")) {
+        return { type: "down", label: text.replace("-", "▼ ") };
+      }
+
+      return { type: "same", label: text };
+    }
+
+    if (item.first) return { type: "new", label: "NEW" };
+
+    if (item.prev === null || item.prev === undefined || item.prev === "") {
       return { type: "new", label: "NEW" };
     }
 
-    const diff = item.prev - item.rank;
+    const diff = Number(item.prev) - Number(item.rank);
 
     if (diff > 0) return { type: "up", label: `▲ ${diff}` };
     if (diff < 0) return { type: "down", label: `▼ ${Math.abs(diff)}` };
@@ -50,30 +68,31 @@ export default function PremiumChartsPage({
   function movementStyle(item) {
     const m = movement(item);
 
-    if (m.type === "up") return { color: "#21C45D", background: "rgba(33,196,93,0.10)" };
-    if (m.type === "down") return { color: "#EF4444", background: "rgba(239,68,68,0.10)" };
-    if (m.type === "new") return { color: GOLD, background: "rgba(184,134,11,0.16)" };
+    if (m.type === "up") return { color: "#21C45D", background: "rgba(33,196,93,0.12)" };
+    if (m.type === "down") return { color: "#EF4444", background: "rgba(239,68,68,0.12)" };
+    if (m.type === "new") return { color: GOLD, background: "rgba(184,134,11,0.18)" };
+    if (m.type === "re") return { color: "#60A5FA", background: "rgba(96,165,250,0.14)" };
 
-    return { color: "rgba(255,255,255,0.45)", background: "rgba(255,255,255,0.06)" };
+    return { color: "rgba(255,255,255,0.55)", background: "rgba(255,255,255,0.07)" };
   }
 
   function getReleaseProfile(item) {
-    let peak = item.rank || "—";
-    let weeks = 0;
-    let lastMonth = item.prev ?? "—";
+    const lastMonth =
+      item.last_month !== undefined && item.last_month !== null && item.last_month !== ""
+        ? item.last_month
+        : item.prev ?? "—";
 
-    MONTHS.forEach((m) => {
-      const found = getCombined(ct, m).find(
-        (entry) => entry.title === item.title && entry.artist === item.artist
-      );
+    const peak =
+      item.peak_rank !== undefined && item.peak_rank !== null && item.peak_rank !== ""
+        ? item.peak_rank
+        : calculateStaticPeak(item);
 
-      if (found) {
-        weeks += 1;
-        if (typeof found.rank === "number" && found.rank < peak) {
-          peak = found.rank;
-        }
-      }
-    });
+    const weeks =
+      item.weeks_on_chart !== undefined &&
+      item.weeks_on_chart !== null &&
+      item.weeks_on_chart !== ""
+        ? item.weeks_on_chart
+        : calculateStaticWeeks(item);
 
     return {
       lastMonth,
@@ -82,9 +101,46 @@ export default function PremiumChartsPage({
     };
   }
 
+  function calculateStaticPeak(item) {
+    let peak = item.rank || "—";
+
+    MONTHS.forEach((m) => {
+      const found = getCombined(ct, m).find(
+        (entry) => entry.title === item.title && entry.artist === item.artist
+      );
+
+      if (found && typeof found.rank === "number" && found.rank < peak) {
+        peak = found.rank;
+      }
+    });
+
+    return peak;
+  }
+
+  function calculateStaticWeeks(item) {
+    let weeks = 0;
+
+    MONTHS.forEach((m) => {
+      const found = getCombined(ct, m).find(
+        (entry) => entry.title === item.title && entry.artist === item.artist
+      );
+
+      if (found) weeks += 1;
+    });
+
+    return weeks || "—";
+  }
+
   function openArtist(name) {
     const artist = artists.find((item) => item.n === name);
     if (artist) setSelA(artist);
+  }
+
+  function openRelease(item) {
+    setSelR({
+      ...item,
+      type: isSingles ? "single" : "album",
+    });
   }
 
   function ChartToggle() {
@@ -115,6 +171,10 @@ export default function PremiumChartsPage({
     );
   }
 
+  const sourceLabel = liveStatus === "live" ? "Live database" : "Static preview";
+  const perfectCoverageCount = data.filter((item) => item.plat === `${tp}/${tp}`).length;
+  const newEntriesCount = data.filter((item) => movement(item).type === "new").length;
+
   return (
     <div style={styles.page}>
       <section
@@ -128,12 +188,27 @@ export default function PremiumChartsPage({
         <div style={styles.heroGlow} />
 
         <div style={styles.eyebrowRow}>
-          <span style={styles.liveDot} />
-          <span>Kenya&apos;s official music charts</span>
+          <span
+            style={{
+              ...styles.liveDot,
+              background: liveStatus === "live" ? "#22C55E" : "#9CA3AF",
+              boxShadow:
+                liveStatus === "live"
+                  ? "0 0 0 4px rgba(34,197,94,0.14)"
+                  : "0 0 0 4px rgba(156,163,175,0.12)",
+            }}
+          />
+          <span>{sourceLabel}</span>
           <span style={styles.eyebrowDivider}>/</span>
           <span>{month}</span>
           <span style={styles.eyebrowDivider}>/</span>
           <span>{platformLabel}</span>
+          {liveChartLoading && (
+            <>
+              <span style={styles.eyebrowDivider}>/</span>
+              <span>Loading</span>
+            </>
+          )}
         </div>
 
         <div style={styles.heroMain}>
@@ -164,25 +239,15 @@ export default function PremiumChartsPage({
 
             <div style={styles.numberOneRank}>1</div>
 
-            <button
-              onClick={() => top && setSelR({ ...top, type: isSingles ? "single" : "album" })}
-              style={styles.numberOneTitle}
-            >
+            <button onClick={() => top && openRelease(top)} style={styles.numberOneTitle}>
               {top?.title || "—"}
             </button>
 
-            <button
-              onClick={() => top && openArtist(top.artist)}
-              style={styles.numberOneArtist}
-            >
+            <button onClick={() => top && openArtist(top.artist)} style={styles.numberOneArtist}>
               {top?.artist || ""}
             </button>
 
-            {top?.plat && (
-              <div style={styles.coveragePill}>
-                {top.plat} platforms
-              </div>
-            )}
+            {top?.plat && <div style={styles.coveragePill}>{top.plat} platforms</div>}
           </div>
         </div>
       </section>
@@ -196,12 +261,12 @@ export default function PremiumChartsPage({
           },
           {
             label: "Perfect coverage",
-            value: data.filter((item) => item.plat === `${tp}/${tp}`).length,
+            value: perfectCoverageCount,
             sub: `${tp}/${tp} platforms`,
           },
           {
             label: "New entries",
-            value: data.filter((item) => movement(item).type === "new").length,
+            value: newEntriesCount,
             sub: "this month",
           },
           {
@@ -320,15 +385,13 @@ export default function PremiumChartsPage({
 
             return (
               <div
-                key={`${item.title}-${item.artist}-${item.rank}`}
+                key={`${item.title}-${item.artist}-${item.rank}-${index}`}
                 style={{
                   ...styles.row,
                   animationDelay: `${Math.min(index * 20, 400)}ms`,
                 }}
               >
-                <div style={{ ...styles.rank, color: medalColor }}>
-                  {item.rank}
-                </div>
+                <div style={{ ...styles.rank, color: medalColor }}>{item.rank}</div>
 
                 <div
                   style={{
@@ -346,19 +409,11 @@ export default function PremiumChartsPage({
                   </div>
 
                   <div style={styles.entryText}>
-                    <button
-                      onClick={() =>
-                        setSelR({ ...item, type: isSingles ? "single" : "album" })
-                      }
-                      style={styles.titleButton}
-                    >
+                    <button onClick={() => openRelease(item)} style={styles.titleButton}>
                       {item.title}
                     </button>
 
-                    <button
-                      onClick={() => openArtist(item.artist)}
-                      style={styles.artistButton}
-                    >
+                    <button onClick={() => openArtist(item.artist)} style={styles.artistButton}>
                       {item.artist}
                     </button>
                   </div>
@@ -437,8 +492,6 @@ const styles = {
     width: "8px",
     height: "8px",
     borderRadius: "50%",
-    background: "#22C55E",
-    boxShadow: "0 0 0 4px rgba(34,197,94,0.14)",
   },
 
   eyebrowDivider: {

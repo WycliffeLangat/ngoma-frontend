@@ -29,6 +29,36 @@ const F = "'Instrument Sans',Helvetica,sans-serif";
 const SF = "'Source Serif 4',Georgia,serif";
 const CC = [GOLD,"#E53935","#2DB04A","#1565C0","#7B1FA2","#E65100","#00897B","#37474F","#AD1457","#558B2F"];
 const VO = [{l:"Top 10",c:10},{l:"Top 20",c:20},{l:"Top 50",c:50}];
+const MONTH_NUMBER = {
+  "January": 1,
+  "February": 2,
+  "March": 3,
+  "April": 4,
+  "May": 5,
+  "June": 6,
+  "July": 7,
+  "August": 8,
+  "September": 9,
+  "October": 10,
+  "November": 11,
+  "December": 12,
+};
+
+function getMonthYearParts(label) {
+  const [monthName, year] = label.split(" ");
+  return {
+    monthNumber: MONTH_NUMBER[monthName],
+    year,
+  };
+}
+
+function platformToSlug(platform) {
+  if (!platform || platform === "Combined") return "combined";
+
+  return platform
+    .toLowerCase()
+    .replace(/\s+/g, "-");
+}
 
 // Helpers — return entries from FULL
 const getCombined = (ct,m) => (FULL[ct].combined[m]||[]).map(e=>({rank:e.r,title:e.t,artist:e.a,pts:e.p,plat:e.pl,prev:e.pr,first:e.f===1}));
@@ -87,17 +117,77 @@ export default function NgomaCharts(){
   const [anMonth,setAnMonth]=useState("December 2024");
   const [loaded,setLd]=useState(false);
   // Live backend (optional) — falls back to baked-in data if unreachable
-  const API_BASE=import.meta.env.VITE_API_BASE||""; // set VITE_API_BASE in .env when backend is deployed
-  const [liveStatus,setLiveStatus]=useState("static"); // "static" | "live" | "checking"
-  const [shareImg,setShareImg]=useState(null); // generated share-card data URL
-  useEffect(()=>{
-    if(!API_BASE)return;
+  const API_BASE = import.meta.env.VITE_API_BASE || "";
+  const [liveStatus, setLiveStatus] = useState("static"); // "static" | "live" | "checking"
+  const [shareImg, setShareImg] = useState(null);
+  const [liveChartEntries, setLiveChartEntries] = useState([]);
+  const [liveChartMeta, setLiveChartMeta] = useState(null);
+  const [liveChartLoading, setLiveChartLoading] = useState(false);
+
+  const isSingles = ct === "singles";
+  const platList = isSingles ? S_PLATS : A_PLATS;
+  const tp = isSingles ? 6 : 2;
+
+  useEffect(() => {
+    if (!API_BASE) return;
+
     setLiveStatus("checking");
-    fetch(API_BASE+"/charts/latest/?chart_type=singles&platform=combined")
-      .then(r=>r.ok?r.json():Promise.reject())
-      .then(()=>setLiveStatus("live"))
-      .catch(()=>setLiveStatus("static"));
-  },[]);
+
+    fetch(API_BASE + "/charts/latest/?chart_type=singles&platform=combined")
+      .then((response) => (response.ok ? response.json() : Promise.reject()))
+      .then(() => setLiveStatus("live"))
+      .catch(() => setLiveStatus("static"));
+  }, [API_BASE]);
+
+  useEffect(() => {
+    if (!API_BASE) return;
+
+    const { monthNumber, year } = getMonthYearParts(month);
+
+    if (!monthNumber || !year) return;
+
+    const params = new URLSearchParams();
+    params.set("type", ct);
+    params.set("month", String(monthNumber));
+    params.set("year", String(year));
+    params.set("platform", platformToSlug(plat));
+
+    setLiveChartLoading(true);
+
+    fetch(`${API_BASE}/export/chart-image-data/?${params.toString()}`)
+      .then((response) => {
+        if (!response.ok) throw new Error("Live chart unavailable");
+        return response.json();
+      })
+      .then((chartData) => {
+        const entries = (chartData.entries || []).map((entry) => ({
+          rank: entry.rank,
+          title: entry.title,
+          artist: entry.artist,
+          pts: entry.total_points || 0,
+          plat: entry.platform_count ? `${entry.platform_count}/${tp}` : "",
+          prev: entry.prev_rank,
+          first: entry.prev_rank === null || entry.prev_rank === undefined,
+          movement: entry.movement,
+          last_month: entry.last_month,
+          peak_rank: entry.peak_rank,
+          weeks_on_chart: entry.weeks_on_chart,
+          platform_count: entry.platform_count,
+        }));
+
+        setLiveChartEntries(entries);
+        setLiveChartMeta(chartData);
+        setLiveStatus("live");
+      })
+      .catch(() => {
+        setLiveChartEntries([]);
+        setLiveChartMeta(null);
+        setLiveStatus("static");
+      })
+      .finally(() => {
+        setLiveChartLoading(false);
+      });
+  }, [API_BASE, ct, month, plat, tp]);
   useEffect(()=>{setTimeout(()=>setLd(true),100);},[]);
   const [vw,setVw]=useState(typeof window!=="undefined"?window.innerWidth:1200);
   useEffect(()=>{const h=()=>setVw(window.innerWidth);window.addEventListener("resize",h);return()=>window.removeEventListener("resize",h);},[]);
@@ -105,14 +195,17 @@ export default function NgomaCharts(){
   const PAD=isMobile?"16px":"28px";
   useEffect(()=>{const h=e=>{if(e.key==="Escape"){setSOpen(false);setSrch("");setShareImg(null);}};window.addEventListener("keydown",h);return()=>window.removeEventListener("keydown",h);},[]);
 
-  const isSingles=ct==="singles";
-  const platList=isSingles?S_PLATS:A_PLATS;
-  const tp=isSingles?6:2;
 
-  const getData=()=>plat==="Combined"?getCombined(ct,month):getPlatform(ct,plat,month);
-  const data=getData();
-  const display=data.slice(0,Math.min(vc,data.length));
-  const top=data[0];
+const getData = () =>
+  plat === "Combined" ? getCombined(ct, month) : getPlatform(ct, plat, month);
+
+const staticData = getData();
+
+const data = liveChartEntries.length ? liveChartEntries : staticData;
+
+const display = data.slice(0, Math.min(vc, data.length));
+
+const top = data[0];
 
   // ALL data flattened for search
   const allEntries=useMemo(()=>{
@@ -536,6 +629,9 @@ export default function NgomaCharts(){
     setSelA={setSelA}
     setSelR={setSelR}
     getCombined={getCombined}
+    liveChartLoading={liveChartLoading}
+liveChartMeta={liveChartMeta}
+liveStatus={liveStatus}
   />
 )}
 
