@@ -1,3 +1,102 @@
+const ARTIST_COUNTRY_FALLBACK = {
+  "Joel Lwaga": { country: "Tanzania", code: "TZ" },
+  "Kifo Cha Mende": { country: "Kenya", code: "KE" },
+  "Iyanii": { country: "Kenya", code: "KE" },
+  "Bensoul": { country: "Kenya", code: "KE" },
+  "Dyana Cods": { country: "Kenya", code: "KE" },
+  "Ruger": { country: "Nigeria", code: "NG" },
+  "Charisma": { country: "Kenya", code: "KE" },
+  "Zuchu": { country: "Tanzania", code: "TZ" },
+  "D Voice": { country: "Tanzania", code: "TZ" },
+  "Jux": { country: "Tanzania", code: "TZ" },
+  "Ayra Starr": { country: "Nigeria", code: "NG" },
+  "Kendrick Lamar": { country: "United States", code: "US" },
+  "Asake": { country: "Nigeria", code: "NG" },
+  "Nyashinski": { country: "Kenya", code: "KE" },
+  "Marioo": { country: "Tanzania", code: "TZ" },
+  "Bien": { country: "Kenya", code: "KE" },
+  "Sauti Sol": { country: "Kenya", code: "KE" },
+  "Wakadinali": { country: "Kenya", code: "KE" },
+  "Nikita Kering": { country: "Kenya", code: "KE" },
+  "Diamond Platnumz": { country: "Tanzania", code: "TZ" },
+  "Harmonize": { country: "Tanzania", code: "TZ" },
+  "Simi": { country: "Nigeria", code: "NG" },
+  "Burna Boy": { country: "Nigeria", code: "NG" },
+  "Rema": { country: "Nigeria", code: "NG" },
+  "Davido": { country: "Nigeria", code: "NG" },
+  "Wizkid": { country: "Nigeria", code: "NG" },
+  "Tyla": { country: "South Africa", code: "ZA" },
+  "Chris Brown": { country: "United States", code: "US" },
+  "Amiso thwango": { country: "Kenya", code: "KE" },
+  "Amiso Thwango": { country: "Kenya", code: "KE" },
+  "Big yasa": { country: "Kenya", code: "KE" },
+  "Big Yasa": { country: "Kenya", code: "KE" },
+  "Bruni Star": { country: "Kenya", code: "KE" },
+  "From The Hood Music": { country: "Kenya", code: "KE" },
+  "HOOD BOYZ": { country: "Kenya", code: "KE" },
+  "Kaka Talanta": { country: "Kenya", code: "KE" },
+  "Keemlyf": { country: "Kenya", code: "KE" },
+  "KODONGKLAN": { country: "Kenya", code: "KE" },
+  "Koppa Gekon": { country: "Kenya", code: "KE" },
+  "Mad Clan": { country: "Kenya", code: "KE" },
+  "Mr Right": { country: "Kenya", code: "KE" },
+  "Sosa The Prodigy": { country: "Kenya", code: "KE" },
+  "Soundkraft": { country: "Kenya", code: "KE" },
+  "Spoiler": { country: "Kenya", code: "KE" },
+  "Toby Mr Romantic": { country: "Kenya", code: "KE" },
+  "Tonny Young": { country: "Kenya", code: "KE" },
+  "Uncle Eddy": { country: "Kenya", code: "KE" },
+  "ZIGGY MADUDU": { country: "Kenya", code: "KE" },
+  "Geniusjini x66": { country: "Tanzania", code: "TZ" },
+  "Anni3": { country: "Nigeria", code: "NG" },
+  "Excess Van": { country: "Nigeria", code: "NG" },
+  "Justin Vibes": { country: "South Africa", code: "ZA" },
+  "Minister Danybless": { country: "United States", code: "US" },
+  "prodbycpkshawn": { country: "Guyana", code: "GY" },
+};
+
+
+function countryCodeToFlag(countryCode) {
+  const code = String(countryCode || "").trim().toUpperCase();
+
+  if (code.length !== 2 || !/^[A-Z]{2}$/.test(code)) {
+    return String.fromCodePoint(0x1F30D);
+  }
+
+  return code
+    .split("")
+    .map((letter) => String.fromCodePoint(127397 + letter.charCodeAt(0)))
+    .join("");
+}
+
+function getArtistCountry(item) {
+  const directCode = String(item.artist_country_code || "").trim().toUpperCase();
+
+  if (directCode) {
+    return {
+      flag: countryCodeToFlag(directCode),
+      country: item.artist_country || "",
+      code: directCode,
+    };
+  }
+
+  const fromFallback = ARTIST_COUNTRY_FALLBACK[item.artist];
+
+  if (fromFallback) {
+    return {
+      flag: countryCodeToFlag(fromFallback.code),
+      country: fromFallback.country,
+      code: fromFallback.code,
+    };
+  }
+
+  return {
+    flag: String.fromCodePoint(0x1F30D),
+    country: "Country not set",
+    code: "",
+  };
+}
+
 export default function PremiumChartsPage({
   isMobile,
   loaded,
@@ -129,45 +228,6 @@ export default function PremiumChartsPage({
     });
 
     return weeks || "—";
-  }
-
-  function getCountryDisplay(item) {
-    const code =
-      item.artist_country_code ||
-      item.country_code ||
-      item.artistCountryCode ||
-      "";
-
-    const country =
-      item.artist_country ||
-      item.country ||
-      item.artistCountry ||
-      "";
-
-    if (code) return String(code).toUpperCase();
-    if (country) return String(country).slice(0, 3).toUpperCase();
-
-    return "—";
-  }
-
-  function getCountryTitle(item) {
-    const code =
-      item.artist_country_code ||
-      item.country_code ||
-      item.artistCountryCode ||
-      "";
-
-    const country =
-      item.artist_country ||
-      item.country ||
-      item.artistCountry ||
-      "";
-
-    if (country && code) return `${country} (${String(code).toUpperCase()})`;
-    if (country) return country;
-    if (code) return String(code).toUpperCase();
-
-    return "Artist country not added";
   }
 
   function openArtist(name) {
@@ -421,8 +481,7 @@ export default function PremiumChartsPage({
             const move = movement(item);
             const moveStyle = movementStyle(item);
             const medalColor = item.rank <= 3 ? MEDALS[item.rank - 1] : "#ffffff";
-            const countryDisplay = getCountryDisplay(item);
-            const countryTitle = getCountryTitle(item);
+            const artistCountry = getArtistCountry(item);
 
             return (
               <div
@@ -445,8 +504,11 @@ export default function PremiumChartsPage({
                 </div>
 
                 <div style={styles.entryCell}>
-                  <div style={styles.countryBox} title={countryTitle}>
-                    <span>{countryDisplay}</span>
+                  <div
+                    style={styles.flagBox}
+                    title={`${artistCountry.country}${artistCountry.code ? ` (${artistCountry.code})` : ""}`}
+                  >
+                    <span>{artistCountry.flag}</span>
                   </div>
 
                   <div style={styles.entryText}>
@@ -853,21 +915,19 @@ const styles = {
     minWidth: 0,
   },
 
-  countryBox: {
+  flagBox: {
     width: "50px",
     height: "50px",
-    borderRadius: "12px",
+    borderRadius: "14px",
     flexShrink: 0,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     background:
-      "linear-gradient(135deg, rgba(184,134,11,0.95), rgba(255,255,255,0.08))",
-    color: "#111111",
-    fontSize: "14px",
-    fontWeight: 950,
-    textTransform: "uppercase",
-    letterSpacing: "0.5px",
+      "linear-gradient(135deg, rgba(255,255,255,0.10), rgba(184,134,11,0.18))",
+    border: "1px solid rgba(255,255,255,0.12)",
+    fontSize: "28px",
+    lineHeight: 1,
   },
 
   entryText: {

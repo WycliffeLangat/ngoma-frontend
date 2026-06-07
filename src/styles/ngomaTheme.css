@@ -46,9 +46,12 @@
   --leading-snug:   1.35;
   --leading-normal: 1.6;
 
-  /* ── Font stack — single source of truth ── */
-  --font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI',
-                 Helvetica, Arial, sans-serif;
+  /* ── Font stack — matches the app's own Google Fonts exactly ──
+     F  = Instrument Sans (labels, nav, stats, captions)
+     SF = Source Serif 4  (titles, hero text, body copy)       */
+  --font-sans:  'Instrument Sans', Helvetica, Arial, sans-serif;
+  --font-serif: 'Source Serif 4', Georgia, serif;
+  --font-family: var(--font-sans); /* default propagation base */
 }
 
 /* ─────────────────────────────────────────────
@@ -160,7 +163,18 @@ footer {
 div[style*='background: "#FFF"'],
 div[style*="background:#FFF"],
 div[style*="background: #FFF"],
-div[style*="background: rgb(255, 255, 255)"] {
+div[style*='background: "#fff"'],
+div[style*="background:#fff"],
+div[style*="background: #fff"],
+div[style*='background: "#ffffff"'],
+div[style*="background:#ffffff"],
+div[style*="background: #ffffff"],
+div[style*="background: rgb(255, 255, 255)"],
+div[style*="background:rgb(255,255,255)"],
+div[style*="backgroundColor: rgb(255, 255, 255)"],
+div[style*='backgroundColor: "#FFF"'],
+div[style*='backgroundColor: "#fff"'],
+div[style*='backgroundColor: "#ffffff"'] {
   background: var(--ngoma-black-2) !important;
   color: var(--ngoma-text) !important;
   border-color: var(--ngoma-line) !important;
@@ -179,60 +193,17 @@ div[style*="box-shadow"] {
 
 /* ─────────────────────────────────────────────
    Text hierarchy
-   Only semantic elements are sized here.
-   Inline-styled divs keep their own sizes —
-   the font-family propagation above is what
-   makes them consistent across pages.
+   Font sizes and weights are already set correctly
+   via inline styles in the JSX — DO NOT override
+   them here. Only handle colours for the dark theme.
 ───────────────────────────────────────────── */
 
-h1 {
-  font-size: var(--font-hero) !important;
-  font-weight: var(--weight-black) !important;
-  letter-spacing: var(--tracking-tight) !important;
-  line-height: var(--leading-tight) !important;
-  color: #ffffff !important;
-  margin: 0;
-}
-
-h2 {
-  font-size: var(--font-3xl) !important;
-  font-weight: var(--weight-bold) !important;
-  letter-spacing: var(--tracking-tight) !important;
-  line-height: var(--leading-tight) !important;
-  color: #ffffff !important;
-  margin: 0;
-}
-
-h3 {
-  font-size: var(--font-2xl) !important;
-  font-weight: var(--weight-semibold) !important;
-  letter-spacing: var(--tracking-tight) !important;
-  line-height: var(--leading-snug) !important;
-  color: #ffffff !important;
-  margin: 0;
-}
-
-h4 {
-  font-size: var(--font-xl) !important;
-  font-weight: var(--weight-semibold) !important;
-  letter-spacing: var(--tracking-normal) !important;
-  line-height: var(--leading-snug) !important;
-  color: #ffffff !important;
-  margin: 0;
-}
-
-h5,
-h6 {
-  font-size: var(--font-lg) !important;
-  font-weight: var(--weight-medium) !important;
+h1, h2, h3, h4, h5, h6 {
   color: #ffffff !important;
   margin: 0;
 }
 
 p {
-  font-size: var(--font-base) !important;
-  font-weight: var(--weight-normal) !important;
-  line-height: var(--leading-normal) !important;
   color: rgba(255, 255, 255, 0.62) !important;
   margin: 0;
 }
@@ -241,8 +212,6 @@ p {
 input,
 select,
 textarea {
-  font-size: var(--font-base) !important;
-  font-weight: var(--weight-normal) !important;
   background: #0f0f0f !important;
   color: #ffffff !important;
   border: 1px solid rgba(255, 255, 255, 0.14) !important;
@@ -258,11 +227,9 @@ option {
   color: #ffffff;
 }
 
-/* Buttons */
+/* Buttons — only transition; font size/weight left to inline styles
+   so each button (SINGLES, platform pills, dropdowns) keeps its own sizing */
 button {
-  font-size: var(--font-sm) !important;
-  font-weight: var(--weight-semibold) !important;
-  letter-spacing: var(--tracking-wide) !important;
   transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 
@@ -278,6 +245,50 @@ button[style*="background: rgb(255, 255, 255)"] {
   background: rgba(255, 255, 255, 0.06) !important;
   color: rgba(255, 255, 255, 0.74) !important;
   border-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+/* ─── Platform / source filter pills ───────────────────────────
+   Targets the compact pill row: Combined, Apple Music, Audiomack,
+   Boomplay, Spotify, YouTube, Shazam, Top 10 / 25 / 50.
+   Matched by border-radius: 999px which pills exclusively use.
+─────────────────────────────────────────────────────────────── */
+
+/* All pill-shaped buttons — solid dark base so they read on any bg */
+button[style*="borderRadius: 999"],
+button[style*="border-radius: 999"],
+button[style*="borderRadius:999"],
+button[style*="border-radius:999"] {
+  font-size: 11px !important;
+  font-weight: var(--weight-medium) !important;
+  letter-spacing: 0.02em !important;
+  padding: 4px 13px !important;
+  line-height: 1.5 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  border-radius: 999px !important;
+  background: #1c1a14 !important;
+  color: rgba(255, 255, 255, 0.78) !important;
+  border: 1px solid rgba(184, 134, 11, 0.28) !important;
+}
+
+button[style*="borderRadius: 999"]:hover,
+button[style*="border-radius: 999"]:hover {
+  background: #2a2618 !important;
+  color: #ffffff !important;
+  border-color: rgba(184, 134, 11, 0.55) !important;
+}
+
+/* Active / gold pill — bright gold so it stands out clearly */
+button[style*="borderRadius: 999"][style*="#b8860b"],
+button[style*="borderRadius: 999"][style*="184, 134, 11"],
+button[style*="borderRadius: 999"][style*="#d6a21c"],
+button[style*="border-radius: 999"][style*="#b8860b"],
+button[style*="border-radius: 999"][style*="184, 134, 11"],
+button[style*="border-radius: 999"][style*="#d6a21c"] {
+  background: rgba(184, 134, 11, 0.18) !important;
+  color: var(--ngoma-gold-2) !important;
+  border: 1.5px solid var(--ngoma-gold) !important;
+  font-weight: var(--weight-semibold) !important;
 }
 
 /* Tables / lists */
