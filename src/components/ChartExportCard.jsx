@@ -1,8 +1,8 @@
 export default function ChartExportCard({
-  title = "NGOMA CHARTS",
   subtitle = "Kenya's Official Music Charts",
   rangeLabel = "Top 10",
   monthLabel = "December 2024",
+  chartType = "Singles",
   entries = [],
 }) {
   return (
@@ -20,19 +20,28 @@ export default function ChartExportCard({
           <div style={styles.subtitle}>{subtitle}</div>
         </div>
 
-        <div style={styles.rangeBadge}>{rangeLabel}</div>
+        <div style={styles.headerRight}>
+          <div style={styles.chartType}>{chartType}</div>
+          <div style={styles.rangeBadge}>{rangeLabel}</div>
+        </div>
       </div>
 
-      <div style={styles.divider} />
+      <div style={styles.tableHeader}>
+        <div>#</div>
+        <div>TITLE / ARTIST</div>
+        <div style={styles.centerText}>MOVE</div>
+        <div style={styles.centerText}>LAST MONTH</div>
+      </div>
 
       <div style={styles.list}>
         {entries.map((item, index) => {
           const rank = item.rank || item.position || index + 1;
+
           const titleText =
             item.title ||
             item.song_title ||
-            item.name ||
             item.release_title ||
+            item.name ||
             "Untitled";
 
           const artistText =
@@ -43,22 +52,11 @@ export default function ChartExportCard({
             item.artists ||
             "Unknown artist";
 
-          const points =
-            item.points ||
-            item.total_points ||
-            item.score ||
-            item.value ||
-            "";
-
-          const lastWeek =
-            item.last_week ||
-            item.previous_rank ||
-            item.previousPosition ||
-            item.prev_rank ||
-            "";
+          const movement = formatMovement(item);
+          const lastMonth = formatLastMonth(item);
 
           return (
-            <div key={index} style={styles.row}>
+            <div key={item.id || index} style={styles.row}>
               <div style={styles.rank}>{rank}</div>
 
               <div style={styles.songBlock}>
@@ -66,21 +64,88 @@ export default function ChartExportCard({
                 <div style={styles.artist}>{artistText}</div>
               </div>
 
-              <div style={styles.metaBlock}>
-                {points && <div style={styles.points}>{points}</div>}
-                {lastWeek && <div style={styles.lastWeek}>LW {lastWeek}</div>}
-              </div>
+              <div style={styles.movement}>{movement}</div>
+
+              <div style={styles.lastMonth}>{lastMonth}</div>
             </div>
           );
         })}
       </div>
 
       <div style={styles.footer}>
-        <div>ngomacharts.com</div>
+        <div>NGOMA CHARTS</div>
         <div>Powered by Ngoma Charts Data</div>
       </div>
     </div>
   );
+}
+
+function formatMovement(item) {
+  const rawMovement =
+    item.movement ||
+    item.move ||
+    item.change ||
+    item.position_change ||
+    item.rank_change ||
+    "";
+
+  if (rawMovement !== "" && rawMovement !== null && rawMovement !== undefined) {
+    const movementText = String(rawMovement).trim();
+
+    if (movementText.toLowerCase() === "new") return "NEW";
+    if (movementText.toLowerCase() === "re") return "RE";
+    if (movementText.toLowerCase() === "re-entry") return "RE";
+
+    const movementNumber = Number(movementText);
+
+    if (!Number.isNaN(movementNumber)) {
+      if (movementNumber > 0) return `▲ ${movementNumber}`;
+      if (movementNumber < 0) return `▼ ${Math.abs(movementNumber)}`;
+      return "—";
+    }
+
+    return movementText;
+  }
+
+  const currentRank = Number(item.rank || item.position);
+  const previousRank = Number(
+    item.last_month ||
+      item.last_month_position ||
+      item.previous_rank ||
+      item.previous_position ||
+      item.prev_rank
+  );
+
+  if (!Number.isNaN(currentRank) && !Number.isNaN(previousRank)) {
+    const difference = previousRank - currentRank;
+
+    if (difference > 0) return `▲ ${difference}`;
+    if (difference < 0) return `▼ ${Math.abs(difference)}`;
+    return "—";
+  }
+
+  if (item.is_new || item.new || item.status === "new") return "NEW";
+  if (item.re_entry || item.reentry || item.status === "re-entry") return "RE";
+
+  return "—";
+}
+
+function formatLastMonth(item) {
+  const lastMonth =
+    item.last_month ||
+    item.last_month_position ||
+    item.previous_rank ||
+    item.previous_position ||
+    item.prev_rank ||
+    "";
+
+  if (!lastMonth) {
+    if (item.is_new || item.new || item.status === "new") return "NEW";
+    if (item.re_entry || item.reentry || item.status === "re-entry") return "RE";
+    return "—";
+  }
+
+  return lastMonth;
 }
 
 const styles = {
@@ -122,7 +187,7 @@ const styles = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "flex-end",
-    marginBottom: "38px",
+    marginBottom: "34px",
   },
 
   logoText: {
@@ -144,6 +209,21 @@ const styles = {
     textTransform: "uppercase",
   },
 
+  headerRight: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-end",
+    gap: "12px",
+  },
+
+  chartType: {
+    fontSize: "18px",
+    fontWeight: 800,
+    letterSpacing: "3px",
+    color: "#d6a21c",
+    textTransform: "uppercase",
+  },
+
   rangeBadge: {
     background: "#d6a21c",
     color: "#080808",
@@ -155,10 +235,23 @@ const styles = {
     letterSpacing: "2px",
   },
 
-  divider: {
-    height: "2px",
-    background: "#d6a21c",
-    marginBottom: "24px",
+  tableHeader: {
+    display: "grid",
+    gridTemplateColumns: "82px 1fr 120px 150px",
+    columnGap: "22px",
+    alignItems: "center",
+    height: "54px",
+    borderTop: "2px solid #d6a21c",
+    borderBottom: "2px solid #d6a21c",
+    color: "#d6a21c",
+    fontSize: "16px",
+    fontWeight: 900,
+    letterSpacing: "3px",
+    textTransform: "uppercase",
+  },
+
+  centerText: {
+    textAlign: "center",
   },
 
   list: {
@@ -168,7 +261,7 @@ const styles = {
 
   row: {
     display: "grid",
-    gridTemplateColumns: "82px 1fr 150px",
+    gridTemplateColumns: "82px 1fr 120px 150px",
     alignItems: "center",
     minHeight: "94px",
     borderBottom: "1px solid rgba(214, 162, 28, 0.45)",
@@ -186,7 +279,7 @@ const styles = {
   },
 
   songTitle: {
-    fontSize: "32px",
+    fontSize: "31px",
     lineHeight: 1.1,
     fontWeight: 900,
     textTransform: "uppercase",
@@ -204,22 +297,18 @@ const styles = {
     textOverflow: "ellipsis",
   },
 
-  metaBlock: {
-    textAlign: "right",
-  },
-
-  points: {
-    fontSize: "30px",
+  movement: {
+    textAlign: "center",
+    fontSize: "24px",
     fontWeight: 900,
     color: "#d6a21c",
   },
 
-  lastWeek: {
-    marginTop: "8px",
-    fontSize: "17px",
-    fontWeight: 700,
-    color: "#d6a21c",
-    letterSpacing: "1px",
+  lastMonth: {
+    textAlign: "center",
+    fontSize: "24px",
+    fontWeight: 900,
+    color: "#ffffff",
   },
 
   footer: {

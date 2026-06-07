@@ -7,29 +7,46 @@ const API_BASE =
 
 const ranges = {
   top10: { label: "Top 10", start: 0, end: 10 },
-  "11_20": { label: "11–20", start: 10, end: 20 },
-  "21_30": { label: "21–30", start: 20, end: 30 },
-  "31_40": { label: "31–40", start: 30, end: 40 },
-  "41_50": { label: "41–50", start: 40, end: 50 },
+  upTo20: { label: "Up to 20", start: 0, end: 20 },
+  upTo30: { label: "Up to 30", start: 0, end: 30 },
+  upTo40: { label: "Up to 40", start: 0, end: 40 },
+  upTo50: { label: "Up to 50", start: 0, end: 50 },
 };
 
+const exportBlocks = [
+  { key: "top10", label: "Top 10", start: 0, end: 10, fileLabel: "top-10" },
+  { key: "11_20", label: "11–20", start: 10, end: 20, fileLabel: "11-20" },
+  { key: "21_30", label: "21–30", start: 20, end: 30, fileLabel: "21-30" },
+  { key: "31_40", label: "31–40", start: 30, end: 40, fileLabel: "31-40" },
+  { key: "41_50", label: "41–50", start: 40, end: 50, fileLabel: "41-50" },
+];
+
 export default function ChartExportWidget() {
-  const cardRef = useRef(null);
+  const cardRefs = useRef({});
 
   const [open, setOpen] = useState(false);
   const [range, setRange] = useState("top10");
   const [format, setFormat] = useState("png");
   const [entries, setEntries] = useState([]);
   const [monthLabel, setMonthLabel] = useState("Current Chart");
+  const [chartType, setChartType] = useState("Singles");
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState("");
 
   const selectedRange = ranges[range];
 
-  const selectedEntries = useMemo(() => {
-    return entries.slice(selectedRange.start, selectedRange.end);
-  }, [entries, selectedRange]);
+  const blocksToDownload = useMemo(() => {
+    const finalEnd = selectedRange.end;
+    return exportBlocks.filter((block) => block.end <= finalEnd);
+  }, [selectedRange]);
+
+  const previewBlock = blocksToDownload[blocksToDownload.length - 1];
+
+  const previewEntries = useMemo(() => {
+    if (!previewBlock) return [];
+    return entries.slice(previewBlock.start, previewBlock.end);
+  }, [entries, previewBlock]);
 
   useEffect(() => {
     if (open) {
@@ -53,6 +70,7 @@ export default function ChartExportWidget() {
 
       setEntries(normalized.entries);
       setMonthLabel(normalized.monthLabel);
+      setChartType(normalized.chartType);
     } catch (err) {
       setError("Could not load chart data for export.");
     } finally {
@@ -68,30 +86,38 @@ export default function ChartExportWidget() {
     }
 
     if (Array.isArray(source)) {
-      const latest = source[0];
+      const latest = source[0] || {};
 
       const possibleEntries =
-        latest?.entries ||
-        latest?.chart_entries ||
-        latest?.items ||
-        latest?.songs ||
-        latest?.releases ||
-        latest?.data ||
+        latest.entries ||
+        latest.chart_entries ||
+        latest.items ||
+        latest.songs ||
+        latest.releases ||
+        latest.data ||
         source;
 
       const month =
-        latest?.month ||
-        latest?.month_name ||
-        latest?.period ||
-        latest?.title ||
-        latest?.name ||
+        latest.month ||
+        latest.month_name ||
+        latest.period ||
+        latest.title ||
+        latest.name ||
         "Current Chart";
 
-      const year = latest?.year || "";
+      const year = latest.year || "";
+
+      const type =
+        latest.chart_type ||
+        latest.type ||
+        latest.category ||
+        latest.chart_category ||
+        "Singles";
 
       return {
         entries: normalizeEntries(possibleEntries),
         monthLabel: `${month} ${year}`.trim(),
+        chartType: formatChartType(type),
       };
     }
 
@@ -114,9 +140,17 @@ export default function ChartExportWidget() {
 
     const year = source?.year || "";
 
+    const type =
+      source?.chart_type ||
+      source?.type ||
+      source?.category ||
+      source?.chart_category ||
+      "Singles";
+
     return {
       entries: normalizeEntries(possibleEntries),
       monthLabel: `${month} ${year}`.trim(),
+      chartType: formatChartType(type),
     };
   }
 
@@ -126,79 +160,132 @@ export default function ChartExportWidget() {
     return rawEntries
       .map((item, index) => {
         const release = item.release || item.song || item.track || item.album || {};
+        const artistObject = item.artist || release.artist || {};
+
+        const rank =
+          item.rank ||
+          item.position ||
+          item.chart_position ||
+          item.current_rank ||
+          item.current_position ||
+          index + 1;
+
+        const title =
+          item.title ||
+          item.song_title ||
+          item.release_title ||
+          item.name ||
+          release.title ||
+          release.name ||
+          "Untitled";
+
+        const artist =
+          item.artist_name ||
+          item.primary_artist ||
+          item.artistName ||
+          item.artists ||
+          release.artist_name ||
+          release.primary_artist ||
+          release.artistName ||
+          artistObject.name ||
+          artistObject.title ||
+          "Unknown artist";
+
+        const lastMonth =
+          item.last_month ||
+          item.last_month_position ||
+          item.previous_rank ||
+          item.previous_position ||
+          item.prev_rank ||
+          item.previous_month_rank ||
+          item.previous_month_position ||
+          "";
+
+        const movement =
+          item.movement ||
+          item.move ||
+          item.change ||
+          item.position_change ||
+          item.rank_change ||
+          "";
 
         return {
           id: item.id || release.id || index,
-          rank: item.rank || item.position || item.chart_position || index + 1,
-          title:
-            item.title ||
-            item.song_title ||
-            item.release_title ||
-            item.name ||
-            release.title ||
-            release.name ||
-            "Untitled",
-          artist:
-            item.artist ||
-            item.artist_name ||
-            item.primary_artist ||
-            item.artistName ||
-            release.artist ||
-            release.artist_name ||
-            release.primary_artist ||
-            "Unknown artist",
-          points:
-            item.points ||
-            item.total_points ||
-            item.score ||
-            item.value ||
-            item.monthly_points ||
-            "",
-          last_week:
-            item.last_week ||
-            item.previous_rank ||
-            item.previous_position ||
-            item.prev_rank ||
-            "",
+          rank,
+          title,
+          artist,
+          movement,
+          last_month: lastMonth,
+          is_new: item.is_new || item.new || item.status === "new",
+          re_entry:
+            item.re_entry || item.reentry || item.status === "re-entry",
+          status: item.status || "",
         };
       })
       .sort((a, b) => Number(a.rank) - Number(b.rank));
   }
 
-  async function downloadImage() {
-    if (!cardRef.current || selectedEntries.length === 0) return;
+  function formatChartType(type) {
+    const cleanType = String(type || "Singles").trim();
+
+    if (!cleanType) return "Singles";
+
+    return cleanType.charAt(0).toUpperCase() + cleanType.slice(1);
+  }
+
+  function makeFileName(block) {
+    const safeMonth = monthLabel
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+
+    const safeType = chartType
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+
+    return `ngoma-charts-${safeMonth}-${safeType}-${block.fileLabel}.${format}`;
+  }
+
+  async function downloadImageForBlock(block) {
+    const node = cardRefs.current[block.key];
+
+    if (!node) return;
+
+    let dataUrl;
+
+    if (format === "png") {
+      dataUrl = await toPng(node, {
+        cacheBust: true,
+        pixelRatio: 2,
+        backgroundColor: "#111111",
+      });
+    } else {
+      dataUrl = await toJpeg(node, {
+        cacheBust: true,
+        pixelRatio: 2,
+        quality: 0.95,
+        backgroundColor: "#111111",
+      });
+    }
+
+    const link = document.createElement("a");
+    link.download = makeFileName(block);
+    link.href = dataUrl;
+    link.click();
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+
+  async function downloadImagePack() {
+    if (entries.length === 0 || blocksToDownload.length === 0) return;
 
     setDownloading(true);
 
     try {
-      const fileSafeRange = selectedRange.label
-        .toLowerCase()
-        .replace("–", "-")
-        .replace(/\s+/g, "-");
-
-      const fileName = `ngoma-charts-${fileSafeRange}.${format}`;
-
-      let dataUrl;
-
-      if (format === "png") {
-        dataUrl = await toPng(cardRef.current, {
-          cacheBust: true,
-          pixelRatio: 2,
-          backgroundColor: "#111111",
-        });
-      } else {
-        dataUrl = await toJpeg(cardRef.current, {
-          cacheBust: true,
-          pixelRatio: 2,
-          quality: 0.95,
-          backgroundColor: "#111111",
-        });
+      for (const block of blocksToDownload) {
+        await downloadImageForBlock(block);
       }
-
-      const link = document.createElement("a");
-      link.download = fileName;
-      link.href = dataUrl;
-      link.click();
     } finally {
       setDownloading(false);
     }
@@ -219,9 +306,10 @@ export default function ChartExportWidget() {
           <div style={styles.modal}>
             <div style={styles.modalHeader}>
               <div>
-                <div style={styles.title}>Download Chart Image</div>
+                <div style={styles.title}>Download Chart Pack</div>
                 <div style={styles.subtitle}>
-                  Export Top 10, 11–20, 21–30, 31–40 or 41–50 for socials.
+                  Choose a final range. The download includes all prior ranges
+                  automatically.
                 </div>
               </div>
 
@@ -232,17 +320,17 @@ export default function ChartExportWidget() {
 
             <div style={styles.controls}>
               <label style={styles.label}>
-                Range
+                Final range
                 <select
                   value={range}
                   onChange={(e) => setRange(e.target.value)}
                   style={styles.select}
                 >
-                  <option value="top10">Top 10</option>
-                  <option value="11_20">11–20</option>
-                  <option value="21_30">21–30</option>
-                  <option value="31_40">31–40</option>
-                  <option value="41_50">41–50</option>
+                  <option value="top10">Top 10 only</option>
+                  <option value="upTo20">Up to 20</option>
+                  <option value="upTo30">Up to 30</option>
+                  <option value="upTo40">Up to 40</option>
+                  <option value="upTo50">Up to 50</option>
                 </select>
               </label>
 
@@ -259,11 +347,15 @@ export default function ChartExportWidget() {
               </label>
 
               <button
-                onClick={downloadImage}
-                disabled={loading || downloading || selectedEntries.length === 0}
+                onClick={downloadImagePack}
+                disabled={loading || downloading || entries.length === 0}
                 style={styles.downloadButton}
               >
-                {downloading ? "Preparing..." : "Download Image"}
+                {downloading
+                  ? "Preparing..."
+                  : `Download ${blocksToDownload.length} Image${
+                      blocksToDownload.length > 1 ? "s" : ""
+                    }`}
               </button>
             </div>
 
@@ -271,22 +363,50 @@ export default function ChartExportWidget() {
 
             {error && <div style={styles.error}>{error}</div>}
 
-            {!loading && !error && selectedEntries.length === 0 && (
+            {!loading && !error && entries.length === 0 && (
               <div style={styles.notice}>
-                No entries found for this range. Confirm chart data is available.
+                No entries found. Confirm chart data is available.
+              </div>
+            )}
+
+            {!loading && !error && entries.length > 0 && (
+              <div style={styles.notice}>
+                Selected: {selectedRange.label}. This will download{" "}
+                {blocksToDownload.map((block) => block.label).join(", ")}.
               </div>
             )}
 
             <div style={styles.previewWrapper}>
               <div style={styles.previewScale}>
-                <div ref={cardRef}>
-                  <ChartExportCard
-                    rangeLabel={selectedRange.label}
-                    monthLabel={monthLabel}
-                    entries={selectedEntries}
-                  />
-                </div>
+                <ChartExportCard
+                  rangeLabel={previewBlock?.label || "Top 10"}
+                  monthLabel={monthLabel}
+                  chartType={chartType}
+                  entries={previewEntries}
+                />
               </div>
+            </div>
+
+            <div style={styles.hiddenExportArea}>
+              {blocksToDownload.map((block) => {
+                const blockEntries = entries.slice(block.start, block.end);
+
+                return (
+                  <div
+                    key={block.key}
+                    ref={(element) => {
+                      cardRefs.current[block.key] = element;
+                    }}
+                  >
+                    <ChartExportCard
+                      rangeLabel={block.label}
+                      monthLabel={monthLabel}
+                      chartType={chartType}
+                      entries={blockEntries}
+                    />
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -425,5 +545,16 @@ const styles = {
     transformOrigin: "top left",
     width: "1080px",
     height: "1350px",
+  },
+
+  hiddenExportArea: {
+    position: "fixed",
+    left: "-99999px",
+    top: 0,
+    width: "1080px",
+    height: "1350px",
+    overflow: "hidden",
+    pointerEvents: "none",
+    opacity: 0,
   },
 };
