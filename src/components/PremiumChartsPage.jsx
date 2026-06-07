@@ -55,12 +55,11 @@
   "prodbycpkshawn": { country: "Guyana", code: "GY" },
 };
 
-
 function countryCodeToFlag(countryCode) {
   const code = String(countryCode || "").trim().toUpperCase();
 
   if (code.length !== 2 || !/^[A-Z]{2}$/.test(code)) {
-    return String.fromCodePoint(0x1F30D);
+    return String.fromCodePoint(0x1f30d);
   }
 
   return code
@@ -91,7 +90,7 @@ function getArtistCountry(item) {
   }
 
   return {
-    flag: String.fromCodePoint(0x1F30D),
+    flag: String.fromCodePoint(0x1f30d),
     country: "Country not set",
     code: "",
   };
@@ -154,27 +153,27 @@ export default function PremiumChartsPage({
     if (m.type === "up") {
       return {
         color: "#2DB04A",
-        background: "rgba(45,176,74,0.16)",
+        background: "rgba(45,176,74,0.12)",
       };
     }
 
     if (m.type === "down") {
       return {
         color: "#E53935",
-        background: "rgba(229,57,53,0.16)",
+        background: "rgba(229,57,53,0.12)",
       };
     }
 
     if (m.type === "new") {
       return {
         color: GOLD,
-        background: "rgba(184,134,11,0.16)",
+        background: "rgba(184,134,11,0.14)",
       };
     }
 
     return {
-      color: "rgba(255,255,255,0.45)",
-      background: "rgba(255,255,255,0.06)",
+      color: "#777777",
+      background: "#f2f2f2",
     };
   }
 
@@ -182,7 +181,7 @@ export default function PremiumChartsPage({
     const lastMonth =
       item.last_month !== undefined && item.last_month !== null && item.last_month !== ""
         ? item.last_month
-        : item.prev ?? "â€”";
+        : item.prev ?? "—";
 
     const peak =
       item.peak_rank !== undefined && item.peak_rank !== null && item.peak_rank !== ""
@@ -204,7 +203,7 @@ export default function PremiumChartsPage({
   }
 
   function calculateStaticPeak(item) {
-    let peak = item.rank || "â€”";
+    let peak = item.rank || "—";
 
     MONTHS.forEach((m) => {
       const found = getCombined(ct, m).find(
@@ -230,7 +229,7 @@ export default function PremiumChartsPage({
       if (found) weeks += 1;
     });
 
-    return weeks || "â€”";
+    return weeks || "—";
   }
 
   function openArtist(name) {
@@ -260,9 +259,9 @@ export default function PremiumChartsPage({
               }}
               style={{
                 ...styles.toggleButton,
-                background: active ? GOLD : "rgba(255,255,255,0.08)",
-                color: active ? "#090909" : "#ffffff",
-                borderColor: active ? GOLD : "rgba(255,255,255,0.14)",
+                background: active ? GOLD : "#ffffff",
+                color: active ? "#090909" : "#111111",
+                borderColor: active ? GOLD : "rgba(0,0,0,0.14)",
               }}
             >
               {item}
@@ -273,7 +272,13 @@ export default function PremiumChartsPage({
     );
   }
 
-  const sourceLabel = new Date().toLocaleDateString(undefined, {weekday:"short",day:"numeric",month:"short",year:"numeric"});
+  const sourceLabel = new Date().toLocaleDateString(undefined, {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+
   const perfectCoverageCount = data.filter((item) => item.plat === `${tp}/${tp}`).length;
   const newEntriesCount = data.filter((item) => movement(item).type === "new").length;
 
@@ -290,7 +295,7 @@ export default function PremiumChartsPage({
         <div style={styles.heroGlow} />
 
         <div style={styles.eyebrowRow}>
-          <span style={{opacity:0.55,letterSpacing:"0.5px"}}>{sourceLabel}</span>
+          <span style={{ opacity: 0.65, letterSpacing: "0.5px" }}>{sourceLabel}</span>
           <span style={styles.eyebrowDivider}>/</span>
           <span>{platformLabel}</span>
           {liveChartLoading && (
@@ -301,7 +306,12 @@ export default function PremiumChartsPage({
           )}
         </div>
 
-        <div style={styles.heroMain}>
+        <div
+          style={{
+            ...styles.heroMain,
+            gridTemplateColumns: isMobile ? "1fr" : "minmax(0, 1fr) minmax(260px, 360px)",
+          }}
+        >
           <div style={styles.heroLeft}>
             <div style={styles.logoRow}>
               <MiniBars GOLD={GOLD} />
@@ -317,10 +327,37 @@ export default function PremiumChartsPage({
               {chartTitle}
             </h1>
 
-            <div style={{...styles.heroMeta, marginTop:"18px", alignItems:"baseline", gap:"14px"}}>
-              <span style={{fontSize: "22px", fontWeight:800, letterSpacing:"-0.5px", color:"rgba(255,255,255,0.95)"}}>{month}</span>
-              <span style={{fontSize:"12px", color:"rgba(255,255,255,0.45)", letterSpacing:"1.5px", textTransform:"uppercase"}}>{chartLabel}</span>
-              <span style={{fontSize:"12px", color:"rgba(255,255,255,0.45)", letterSpacing:"1.5px", textTransform:"uppercase"}}>{platformLabel}</span>
+            <div style={{ ...styles.heroMeta, marginTop: "18px", alignItems: "baseline", gap: "14px" }}>
+              <span
+                style={{
+                  fontSize: "22px",
+                  fontWeight: 800,
+                  letterSpacing: "-0.5px",
+                  color: "#050505",
+                }}
+              >
+                {month}
+              </span>
+              <span
+                style={{
+                  fontSize: "12px",
+                  color: "#777777",
+                  letterSpacing: "1.5px",
+                  textTransform: "uppercase",
+                }}
+              >
+                {chartLabel}
+              </span>
+              <span
+                style={{
+                  fontSize: "12px",
+                  color: "#777777",
+                  letterSpacing: "1.5px",
+                  textTransform: "uppercase",
+                }}
+              >
+                {platformLabel}
+              </span>
             </div>
           </div>
 
@@ -330,7 +367,7 @@ export default function PremiumChartsPage({
             <div style={styles.numberOneRank}>1</div>
 
             <button onClick={() => top && openRelease(top)} style={styles.numberOneTitle}>
-              {top?.title || "â€”"}
+              {top?.title || "—"}
             </button>
 
             <button onClick={() => top && openArtist(top.artist)} style={styles.numberOneArtist}>
@@ -342,7 +379,12 @@ export default function PremiumChartsPage({
         </div>
       </section>
 
-      <section style={styles.statsBand}>
+      <section
+        style={{
+          ...styles.statsBand,
+          gridTemplateColumns: isMobile ? "repeat(2, minmax(0, 1fr))" : "repeat(4, minmax(0, 1fr))",
+        }}
+      >
         {[
           {
             label: "Entries",
@@ -361,7 +403,7 @@ export default function PremiumChartsPage({
           },
           {
             label: "Chart leader",
-            value: top?.title || "â€”",
+            value: top?.title || "—",
             sub: top?.artist || "",
             compact: true,
           },
@@ -372,7 +414,7 @@ export default function PremiumChartsPage({
               style={{
                 ...styles.statValue,
                 fontSize: item.compact ? "18px" : "30px",
-                color: index === 3 ? GOLD : "#ffffff",
+                color: index === 3 ? GOLD : "#050505",
               }}
             >
               {item.value}
@@ -432,8 +474,9 @@ export default function PremiumChartsPage({
                 disabled={disabled}
                 style={{
                   ...styles.viewButton,
-                  background: active ? "#111111" : "#ffffff",
-                  color: active ? "#ffffff" : "#6b7280",
+                  background: active ? GOLD : "#ffffff",
+                  color: active ? "#050505" : "#6b7280",
+                  borderColor: active ? GOLD : "#e5e7eb",
                   opacity: disabled ? 0.45 : 1,
                 }}
               >
@@ -449,7 +492,7 @@ export default function PremiumChartsPage({
           <div>
             <div style={styles.tableTitle}>{chartTitle}</div>
             <div style={styles.tableSub}>
-              {chartLabel} Â· {platformLabel} Â· {month}
+              {chartLabel} · {platformLabel} · {month}
             </div>
           </div>
 
@@ -471,7 +514,7 @@ export default function PremiumChartsPage({
             const profile = getReleaseProfile(item);
             const move = movement(item);
             const moveStyle = movementStyle(item);
-            const medalColor = item.rank <= 3 ? MEDALS[item.rank - 1] : "#ffffff";
+            const medalColor = item.rank <= 3 ? MEDALS[item.rank - 1] : "#050505";
             const artistCountry = getArtistCountry(item);
 
             return (
@@ -480,6 +523,14 @@ export default function PremiumChartsPage({
                 style={{
                   ...styles.row,
                   animationDelay: `${Math.min(index * 20, 400)}ms`,
+                }}
+                onMouseEnter={(event) => {
+                  event.currentTarget.style.background = "#fff7e6";
+                  event.currentTarget.style.boxShadow = "inset 4px 0 0 #c89116";
+                }}
+                onMouseLeave={(event) => {
+                  event.currentTarget.style.background = "#ffffff";
+                  event.currentTarget.style.boxShadow = "none";
                 }}
               >
                 <div style={{ ...styles.rank, color: medalColor }}>{item.rank}</div>
@@ -491,7 +542,7 @@ export default function PremiumChartsPage({
                     background: moveStyle.background,
                   }}
                 >
-                  {move.label || "â€”"}
+                  {move.label || "—"}
                 </div>
 
                 <div style={styles.entryCell}>
@@ -518,7 +569,7 @@ export default function PremiumChartsPage({
                 <div style={styles.metaNumber}>{profile.weeks}</div>
 
                 <div style={styles.platformCell}>
-                  {plat === "Combined" && item.plat ? item.plat : "â€”"}
+                  {plat === "Combined" && item.plat ? item.plat : "—"}
                 </div>
               </div>
             );
@@ -526,7 +577,7 @@ export default function PremiumChartsPage({
         </div>
 
         <div style={styles.tableFooter}>
-          Showing {display.length} of {data.length} Â· {month} Â· {platformLabel}
+          Showing {display.length} of {data.length} · {month} · {platformLabel}
         </div>
       </section>
     </div>
@@ -536,35 +587,33 @@ export default function PremiumChartsPage({
 function MiniBars({ GOLD }) {
   return (
     <svg width="38" height="42" viewBox="0 0 22 24" style={{ flexShrink: 0 }}>
-      <rect x="0" y="15" width="3.5" height="9" fill="#ffffff" rx="0.5" />
-      <rect x="5.5" y="10" width="3.5" height="14" fill="#ffffff" rx="0.5" />
+      <rect x="0" y="15" width="3.5" height="9" fill="#050505" rx="0.5" />
+      <rect x="5.5" y="10" width="3.5" height="14" fill="#050505" rx="0.5" />
       <rect x="11" y="5" width="3.5" height="19" fill={GOLD} rx="0.5" />
-      <rect x="16.5" y="0" width="3.5" height="24" fill="#ffffff" rx="0.5" />
+      <rect x="16.5" y="0" width="3.5" height="24" fill="#050505" rx="0.5" />
     </svg>
   );
 }
 
 const styles = {
   page: {
-    background: "#070707",
-    color: "#ffffff",
+    background: "#f7f5ef",
+    color: "#050505",
     minHeight: "60vh",
   },
 
   hero: {
     position: "relative",
     overflow: "hidden",
-    background:
-      "radial-gradient(circle at 85% 5%, rgba(184,134,11,0.20), transparent 34%), linear-gradient(135deg, #080808 0%, #171717 56%, #0B0B0B 100%)",
-    borderBottom: "1px solid rgba(255,255,255,0.08)",
+    background: "#f7f5ef",
+    borderBottom: "1px solid rgba(0,0,0,0.08)",
     transition: "all 0.5s ease-out",
   },
 
   heroGlow: {
     position: "absolute",
     inset: 0,
-    background:
-      "linear-gradient(90deg, rgba(184,134,11,0.08), transparent 35%, rgba(255,255,255,0.04))",
+    background: "transparent",
     pointerEvents: "none",
   },
 
@@ -578,7 +627,7 @@ const styles = {
     fontWeight: 800,
     letterSpacing: "2.6px",
     textTransform: "uppercase",
-    color: "rgba(255,255,255,0.58)",
+    color: "#777777",
     marginBottom: "32px",
   },
 
@@ -589,7 +638,7 @@ const styles = {
   },
 
   eyebrowDivider: {
-    color: "rgba(184,134,11,0.65)",
+    color: "#c89116",
   },
 
   heroMain: {
@@ -615,6 +664,7 @@ const styles = {
     fontSize: "24px",
     fontWeight: 900,
     letterSpacing: "4px",
+    color: "#050505",
   },
 
   logoSub: {
@@ -622,7 +672,7 @@ const styles = {
     fontSize: "11px",
     letterSpacing: "2px",
     textTransform: "uppercase",
-    color: "rgba(255,255,255,0.45)",
+    color: "#777777",
   },
 
   heroTitle: {
@@ -631,6 +681,7 @@ const styles = {
     fontWeight: 950,
     letterSpacing: "-3px",
     textTransform: "uppercase",
+    color: "#050505",
   },
 
   heroMeta: {
@@ -638,15 +689,15 @@ const styles = {
     gap: "10px",
     flexWrap: "wrap",
     marginTop: "22px",
+    color: "#777777",
   },
 
   numberOneCard: {
-    background: "rgba(255,255,255,0.07)",
-    border: "1px solid rgba(255,255,255,0.12)",
+    background: "#ffffff",
+    border: "1px solid rgba(0,0,0,0.08)",
     borderRadius: "28px",
     padding: "24px",
-    boxShadow: "0 26px 60px rgba(0,0,0,0.35)",
-    backdropFilter: "blur(10px)",
+    boxShadow: "0 14px 40px rgba(0,0,0,0.08)",
   },
 
   numberOneLabel: {
@@ -654,7 +705,7 @@ const styles = {
     fontWeight: 900,
     letterSpacing: "2.5px",
     textTransform: "uppercase",
-    color: "rgba(255,255,255,0.5)",
+    color: "#777777",
   },
 
   numberOneRank: {
@@ -662,7 +713,7 @@ const styles = {
     fontSize: "96px",
     lineHeight: 0.85,
     fontWeight: 950,
-    color: "#B8860B",
+    color: "#c89116",
   },
 
   numberOneTitle: {
@@ -672,7 +723,7 @@ const styles = {
     padding: 0,
     marginTop: "18px",
     textAlign: "left",
-    color: "#ffffff",
+    color: "#050505",
     fontSize: "28px",
     fontWeight: 900,
     lineHeight: 1.05,
@@ -684,7 +735,7 @@ const styles = {
     background: "transparent",
     padding: 0,
     marginTop: "8px",
-    color: "rgba(255,255,255,0.62)",
+    color: "#777777",
     fontSize: "15px",
     fontWeight: 700,
     cursor: "pointer",
@@ -695,8 +746,8 @@ const styles = {
     marginTop: "18px",
     padding: "8px 13px",
     borderRadius: "999px",
-    background: "rgba(184,134,11,0.16)",
-    color: "#D6A21C",
+    background: "rgba(200,145,22,0.14)",
+    color: "#c89116",
     fontSize: "12px",
     fontWeight: 900,
   },
@@ -704,14 +755,14 @@ const styles = {
   statsBand: {
     display: "grid",
     gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-    background: "#121212",
-    borderTop: "1px solid rgba(255,255,255,0.06)",
-    borderBottom: "1px solid rgba(255,255,255,0.08)",
+    background: "#ffffff",
+    borderTop: "1px solid rgba(0,0,0,0.08)",
+    borderBottom: "1px solid rgba(0,0,0,0.08)",
   },
 
   statItem: {
     padding: "18px 24px",
-    borderRight: "1px solid rgba(255,255,255,0.08)",
+    borderRight: "1px solid rgba(0,0,0,0.08)",
     minWidth: 0,
   },
 
@@ -719,7 +770,7 @@ const styles = {
     fontSize: "10px",
     letterSpacing: "2.4px",
     textTransform: "uppercase",
-    color: "rgba(255,255,255,0.38)",
+    color: "#777777",
     fontWeight: 800,
   },
 
@@ -730,12 +781,13 @@ const styles = {
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
+    color: "#050505",
   },
 
   statSub: {
     marginTop: "6px",
     fontSize: "12px",
-    color: "rgba(255,255,255,0.35)",
+    color: "#777777",
   },
 
   controls: {
@@ -754,7 +806,8 @@ const styles = {
     gap: "6px",
     padding: "4px",
     borderRadius: "999px",
-    background: "#111111",
+    background: "#f2f2f2",
+    border: "1px solid rgba(0,0,0,0.08)",
   },
 
   toggleButton: {
@@ -773,6 +826,7 @@ const styles = {
     borderRadius: "12px",
     border: "1px solid #d1d5db",
     background: "#ffffff",
+    color: "#050505",
     fontSize: "13px",
     fontWeight: 700,
     outline: "none",
@@ -811,11 +865,12 @@ const styles = {
 
   tableShell: {
     margin: "24px 28px 34px",
-    background: "#101010",
-    border: "1px solid rgba(255,255,255,0.10)",
+    background: "#ffffff",
+    color: "#050505",
+    border: "1px solid rgba(0,0,0,0.08)",
     borderRadius: "26px",
     overflow: "hidden",
-    boxShadow: "0 30px 80px rgba(0,0,0,0.28)",
+    boxShadow: "0 14px 40px rgba(0,0,0,0.08)",
   },
 
   tableTop: {
@@ -824,19 +879,22 @@ const styles = {
     gap: "20px",
     alignItems: "center",
     padding: "24px 26px",
-    borderBottom: "1px solid rgba(255,255,255,0.08)",
+    borderBottom: "1px solid rgba(0,0,0,0.08)",
+    background: "#ffffff",
+    color: "#050505",
   },
 
   tableTitle: {
     fontSize: "24px",
     fontWeight: 950,
     letterSpacing: "-0.5px",
+    color: "#050505",
   },
 
   tableSub: {
     marginTop: "6px",
     fontSize: "12px",
-    color: "rgba(255,255,255,0.42)",
+    color: "#777777",
     fontWeight: 700,
     letterSpacing: "1.2px",
     textTransform: "uppercase",
@@ -845,8 +903,8 @@ const styles = {
   tableRange: {
     padding: "10px 14px",
     borderRadius: "999px",
-    background: "rgba(184,134,11,0.18)",
-    color: "#D6A21C",
+    background: "rgba(200,145,22,0.14)",
+    color: "#c89116",
     fontSize: "13px",
     fontWeight: 900,
     letterSpacing: "1px",
@@ -859,17 +917,19 @@ const styles = {
     gap: "12px",
     alignItems: "center",
     padding: "14px 22px",
-    background: "#161616",
-    color: "rgba(255,255,255,0.38)",
+    background: "#f7f7f7",
+    color: "#777777",
     fontSize: "10px",
     fontWeight: 900,
     letterSpacing: "2px",
     textTransform: "uppercase",
+    borderBottom: "1px solid rgba(0,0,0,0.08)",
   },
 
   rows: {
     display: "flex",
     flexDirection: "column",
+    background: "#ffffff",
   },
 
   row: {
@@ -878,8 +938,9 @@ const styles = {
     gap: "12px",
     alignItems: "center",
     padding: "16px 22px",
-    borderBottom: "1px solid rgba(255,255,255,0.07)",
-    background: "linear-gradient(90deg, rgba(255,255,255,0.035), transparent)",
+    borderBottom: "1px solid rgba(0,0,0,0.08)",
+    background: "#ffffff",
+    color: "#050505",
     animation: "fadeUp 0.35s ease both",
   },
 
@@ -887,6 +948,7 @@ const styles = {
     fontSize: "34px",
     fontWeight: 950,
     lineHeight: 1,
+    color: "#050505",
   },
 
   moveBadge: {
@@ -914,10 +976,9 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: "linear-gradient(135deg, #d4af37 0%, #8a6a12 100%)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    boxShadow:
-      "inset 0 1px 0 rgba(255,255,255,0.18), 0 6px 18px rgba(0,0,0,0.22)",
+    background: "linear-gradient(135deg, #d4af37 0%, #b88914 100%)",
+    border: "1px solid rgba(0,0,0,0.08)",
+    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 6px 18px rgba(0,0,0,0.12)",
   },
 
   flagText: {
@@ -938,7 +999,7 @@ const styles = {
     maxWidth: "100%",
     border: "none",
     background: "transparent",
-    color: "#ffffff",
+    color: "#050505",
     padding: 0,
     textAlign: "left",
     fontSize: "17px",
@@ -955,7 +1016,7 @@ const styles = {
     maxWidth: "100%",
     border: "none",
     background: "transparent",
-    color: "rgba(255,255,255,0.48)",
+    color: "#777777",
     padding: 0,
     marginTop: "5px",
     textAlign: "left",
@@ -968,7 +1029,7 @@ const styles = {
   },
 
   metaNumber: {
-    color: "rgba(255,255,255,0.74)",
+    color: "#050505",
     fontSize: "15px",
     fontWeight: 900,
     textAlign: "center",
@@ -978,8 +1039,8 @@ const styles = {
     justifySelf: "center",
     padding: "6px 9px",
     borderRadius: "999px",
-    background: "rgba(255,255,255,0.06)",
-    color: "rgba(255,255,255,0.68)",
+    background: "#f2f2f2",
+    color: "#050505",
     fontSize: "12px",
     fontWeight: 900,
   },
@@ -987,10 +1048,9 @@ const styles = {
   tableFooter: {
     padding: "16px 22px",
     textAlign: "center",
-    color: "rgba(255,255,255,0.36)",
+    color: "#777777",
     fontSize: "12px",
     fontWeight: 700,
+    background: "#ffffff",
   },
 };
-
-

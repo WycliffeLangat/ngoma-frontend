@@ -1,362 +1,1596 @@
-/* Ngoma Charts global dark/gold theme
-   This file applies the premium Charts page colour direction across the wider site.
-   It is intentionally broad so it improves existing inline-heavy pages without rewriting every section. */
+/* =========================================================
+   NGOMA CHARTS THEME
+   Full updated version
+
+   Fixes included:
+   1. Main Charts page now uses a clean white background,
+      similar to Trending, Artists, About, etc.
+   2. Charts hero section is now light/white.
+   3. Chart table/container is now light/white.
+   4. Rows no longer turn white and hide text on hover.
+   5. Hover uses a soft gold highlight.
+   6. Footer remains dark.
+   ========================================================= */
 
 :root {
-  --ngoma-black: #070707;
-  --ngoma-black-2: #101010;
-  --ngoma-black-3: #161616;
-  --ngoma-card: #121212;
-  --ngoma-gold: #b8860b;
-  --ngoma-gold-2: #d6a21c;
-  --ngoma-text: #ffffff;
-  --ngoma-muted: rgba(255, 255, 255, 0.58);
-  --ngoma-soft: rgba(255, 255, 255, 0.08);
-  --ngoma-line: rgba(255, 255, 255, 0.1);
-  --ngoma-cream: #fbfaf7;
+  --ngoma-black: #050505;
+  --ngoma-dark: #0b0b0b;
+  --ngoma-dark-soft: #111111;
+  --ngoma-footer-dark: #151515;
 
-  /* ── Type scale ── */
-  --font-xs:   0.6875rem;   /* 11px — micro labels, tags          */
-  --font-sm:   0.8125rem;   /* 13px — nav links, captions         */
-  --font-base: 0.9375rem;   /* 15px — body copy, table rows       */
-  --font-md:   1rem;        /* 16px — default                     */
-  --font-lg:   1.125rem;    /* 18px — card titles                 */
-  --font-xl:   1.375rem;    /* 22px — sub-headings                */
-  --font-2xl:  1.75rem;     /* 28px — section headings            */
-  --font-3xl:  2.5rem;      /* 40px — page headings               */
-  --font-hero: clamp(2.75rem, 7vw, 5rem); /* responsive hero      */
+  --ngoma-white: #ffffff;
+  --ngoma-off-white: #f8f7f3;
+  --ngoma-page-bg: #f7f5ef;
+  --ngoma-card-bg: #ffffff;
+  --ngoma-soft-bg: #fbfaf7;
+  --ngoma-soft-gold-bg: #fff7e6;
 
-  /* ── Weights ── */
-  --weight-light:    300;
-  --weight-normal:   400;
-  --weight-medium:   500;
-  --weight-semibold: 600;
-  --weight-bold:     700;
-  --weight-black:    900;
+  --ngoma-text: #050505;
+  --ngoma-text-soft: #4f4f4f;
+  --ngoma-muted: #777777;
+  --ngoma-muted-light: #b8b8b8;
 
-  /* ── Letter-spacing ── */
-  --tracking-tight:   -0.02em;
-  --tracking-normal:   0;
-  --tracking-wide:     0.05em;
-  --tracking-wider:    0.1em;
-  --tracking-widest:   0.18em;
+  --ngoma-gold: #c89116;
+  --ngoma-gold-bright: #f0b429;
+  --ngoma-gold-soft: rgba(200, 145, 22, 0.14);
+  --ngoma-gold-border: rgba(200, 145, 22, 0.42);
 
-  /* ── Line-height ── */
-  --leading-tight:  1.15;
-  --leading-snug:   1.35;
-  --leading-normal: 1.6;
+  --ngoma-green: #2fb153;
+  --ngoma-blue: #1f6fd1;
+  --ngoma-red: #c94b43;
 
-  /* ── Font stack — matches the app's own Google Fonts exactly ──
-     F  = Instrument Sans (labels, nav, stats, captions)
-     SF = Source Serif 4  (titles, hero text, body copy)       */
-  --font-sans:  'Instrument Sans', Helvetica, Arial, sans-serif;
-  --font-serif: 'Source Serif 4', Georgia, serif;
-  --font-family: var(--font-sans); /* default propagation base */
+  --ngoma-border-light: rgba(0, 0, 0, 0.08);
+  --ngoma-border-medium: rgba(0, 0, 0, 0.14);
+  --ngoma-border-dark: rgba(255, 255, 255, 0.08);
+
+  --ngoma-radius-sm: 8px;
+  --ngoma-radius-md: 14px;
+  --ngoma-radius-lg: 24px;
+  --ngoma-radius-xl: 32px;
+
+  --ngoma-shadow-soft: 0 8px 28px rgba(0, 0, 0, 0.06);
+  --ngoma-shadow-card: 0 14px 40px rgba(0, 0, 0, 0.08);
+
+  --ngoma-transition: 180ms ease;
 }
 
-/* ─────────────────────────────────────────────
-   Global font propagation
-   Sets ONE font family for the entire app.
-   Every element inherits it so no page falls
-   back to a different browser default.
-───────────────────────────────────────────── */
-html {
-  font-family: var(--font-family);
-}
-
-*,
-*::before,
-*::after {
-  font-family: inherit;
-  box-sizing: border-box;
-}
+/* =========================================================
+   GLOBAL BASE
+   ========================================================= */
 
 html,
-body,
-#root {
+body {
+  margin: 0;
+  padding: 0;
   min-height: 100%;
-  background: var(--ngoma-black) !important;
+  background: var(--ngoma-page-bg);
+  color: var(--ngoma-text);
+  font-family: Inter, Arial, Helvetica, sans-serif;
 }
 
 body {
-  margin: 0;
-  font-size: var(--font-base);
-  font-weight: var(--weight-normal);
-  line-height: var(--leading-normal);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-  color: var(--ngoma-text);
+  min-height: 100vh;
 }
 
-/* Main application surface */
-#root > div {
-  background:
-    radial-gradient(circle at 85% 0%, rgba(184, 134, 11, 0.12), transparent 30%),
-    linear-gradient(180deg, #070707 0%, #101010 48%, #070707 100%) !important;
-  color: var(--ngoma-text) !important;
+* {
+  box-sizing: border-box;
 }
 
-/* ─────────────────────────────────────────────
-   Header
-   Top strip stays black; logo + nav row is white.
-───────────────────────────────────────────── */
-header {
-  background: var(--ngoma-black) !important;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
-}
-
-/* Thin top strip — black, white text */
-header > div:first-child {
-  background: var(--ngoma-black) !important;
-  color: rgba(255, 255, 255, 0.72) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-}
-
-/* Logo + nav row — white */
-header > div:nth-child(2) {
-  background: #ffffff !important;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
-}
-
-/* Header text and logo */
-header span,
-header div {
+a {
   color: inherit;
+  text-decoration: none;
 }
 
-/* Logo "NGOMA" — dark on white. Gold elements excluded so "CHARTS" stays gold. */
-header > div:nth-child(2) span:not(nav span):not([style*="gradient"]):not([style*="184, 134, 11"]):not([style*="#b8860b"]):not([style*="#d6a21c"]):not([style*="goldenrod"]) {
-  color: #111111 !important;
-}
-
-/* Nav links — dark grey on white */
-header nav span {
-  font-size: var(--font-sm) !important;
-  font-weight: var(--weight-medium) !important;
-  letter-spacing: var(--tracking-wider) !important;
-  text-transform: uppercase !important;
-  color: rgba(0, 0, 0, 0.5) !important;
-}
-
-header nav span:hover {
-  color: #000000 !important;
-}
-
-/* Active nav pill — gold border + gold text on white */
-header nav span[style*="linear-gradient"] {
-  background: transparent !important;
-  color: var(--ngoma-gold) !important;
-  border: 1px solid var(--ngoma-gold) !important;
-  border-radius: 999px !important;
-}
-
-/* Section/page containers */
-main,
-section,
-footer {
-  color: inherit;
-}
-
-/* Make major white content sections match the dark look */
-div[style*='background: "#FFF"'],
-div[style*="background:#FFF"],
-div[style*="background: #FFF"],
-div[style*='background: "#fff"'],
-div[style*="background:#fff"],
-div[style*="background: #fff"],
-div[style*='background: "#ffffff"'],
-div[style*="background:#ffffff"],
-div[style*="background: #ffffff"],
-div[style*="background: rgb(255, 255, 255)"],
-div[style*="background:rgb(255,255,255)"],
-div[style*="backgroundColor: rgb(255, 255, 255)"],
-div[style*='backgroundColor: "#FFF"'],
-div[style*='backgroundColor: "#fff"'],
-div[style*='backgroundColor: "#ffffff"'] {
-  background: var(--ngoma-black-2) !important;
-  color: var(--ngoma-text) !important;
-  border-color: var(--ngoma-line) !important;
-}
-
-/* Cards */
-div[style*="borderRadius"],
-div[style*="border-radius"] {
-  border-color: var(--ngoma-line) !important;
-}
-
-div[style*="boxShadow"],
-div[style*="box-shadow"] {
-  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.24) !important;
-}
-
-/* ─────────────────────────────────────────────
-   Text hierarchy
-   Font sizes and weights are already set correctly
-   via inline styles in the JSX — DO NOT override
-   them here. Only handle colours for the dark theme.
-───────────────────────────────────────────── */
-
-h1, h2, h3, h4, h5, h6 {
-  color: #ffffff !important;
-  margin: 0;
-}
-
-p {
-  color: rgba(255, 255, 255, 0.62) !important;
-  margin: 0;
-}
-
-/* Inputs, selects, textareas */
+button,
 input,
 select,
 textarea {
-  background: #0f0f0f !important;
-  color: #ffffff !important;
-  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  font-family: inherit;
 }
 
-input::placeholder,
-textarea::placeholder {
-  color: rgba(255, 255, 255, 0.38) !important;
-}
-
-option {
-  background: #111111;
-  color: #ffffff;
-}
-
-/* Buttons — only transition; font size/weight left to inline styles
-   so each button (SINGLES, platform pills, dropdowns) keeps its own sizing */
 button {
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  cursor: pointer;
 }
 
-button:hover {
-  transform: translateY(-1px);
+img {
+  max-width: 100%;
 }
 
-/* Default light buttons */
-button[style*='background: "#FFF"'],
-button[style*="background:#FFF"],
-button[style*="background: #FFF"],
-button[style*="background: rgb(255, 255, 255)"] {
-  background: rgba(255, 255, 255, 0.06) !important;
-  color: rgba(255, 255, 255, 0.74) !important;
-  border-color: rgba(255, 255, 255, 0.14) !important;
+/* =========================================================
+   GENERAL PAGE WRAPPERS
+   ========================================================= */
+
+.app,
+.page,
+.ngoma-page,
+.main,
+.main-content,
+.page-content,
+.content,
+main {
+  background: var(--ngoma-page-bg);
+  color: var(--ngoma-text);
 }
 
-/* ─── Platform / source filter pills ───────────────────────────
-   Targets the compact pill row: Combined, Apple Music, Audiomack,
-   Boomplay, Spotify, YouTube, Shazam, Top 10 / 25 / 50.
-   Matched by border-radius: 999px which pills exclusively use.
-─────────────────────────────────────────────────────────────── */
-
-/* All pill-shaped buttons — solid dark base so they read on any bg */
-button[style*="borderRadius: 999"],
-button[style*="border-radius: 999"],
-button[style*="borderRadius:999"],
-button[style*="border-radius:999"] {
-  font-size: 11px !important;
-  font-weight: var(--weight-medium) !important;
-  letter-spacing: 0.02em !important;
-  padding: 4px 13px !important;
-  line-height: 1.5 !important;
-  white-space: nowrap !important;
-  cursor: pointer !important;
-  border-radius: 999px !important;
-  background: #1c1a14 !important;
-  color: rgba(255, 255, 255, 0.78) !important;
-  border: 1px solid rgba(184, 134, 11, 0.28) !important;
+.ngoma-container,
+.container {
+  width: min(100%, 1440px);
+  margin: 0 auto;
 }
 
-button[style*="borderRadius: 999"]:hover,
-button[style*="border-radius: 999"]:hover {
-  background: #2a2618 !important;
-  color: #ffffff !important;
-  border-color: rgba(184, 134, 11, 0.55) !important;
-}
+/* =========================================================
+   TOP STRIP / HEADER / NAVIGATION
+   ========================================================= */
 
-/* Active / gold pill — bright gold so it stands out clearly */
-button[style*="borderRadius: 999"][style*="#b8860b"],
-button[style*="borderRadius: 999"][style*="184, 134, 11"],
-button[style*="borderRadius: 999"][style*="#d6a21c"],
-button[style*="border-radius: 999"][style*="#b8860b"],
-button[style*="border-radius: 999"][style*="184, 134, 11"],
-button[style*="border-radius: 999"][style*="#d6a21c"] {
-  background: rgba(184, 134, 11, 0.18) !important;
-  color: var(--ngoma-gold-2) !important;
-  border: 1.5px solid var(--ngoma-gold) !important;
-  font-weight: var(--weight-semibold) !important;
-}
-
-/* Tables / lists */
-div[style*="borderBottom"],
-div[style*="border-bottom"] {
-  border-color: rgba(255, 255, 255, 0.09) !important;
-}
-
-/* Search modal and detail modals */
-div[style*="rgba(0,0,0,0.5)"],
-div[style*="rgba(20,18,15,0.82)"] {
-  backdrop-filter: blur(6px);
-}
-
-/* Footer */
-footer {
+.top-strip,
+.ngoma-top-strip {
   background: var(--ngoma-black) !important;
-  border-top: 1px solid var(--ngoma-line) !important;
-  color: rgba(255, 255, 255, 0.58) !important;
+  color: var(--ngoma-muted-light) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
 }
 
-/* Recharts surfaces */
-.recharts-wrapper text {
-  fill: rgba(255, 255, 255, 0.64) !important;
+.site-header,
+.ngoma-header,
+.header {
+  background: var(--ngoma-white) !important;
+  color: var(--ngoma-text) !important;
+  border-bottom: 1px solid var(--ngoma-border-light);
 }
 
-.recharts-cartesian-grid line {
-  stroke: rgba(255, 255, 255, 0.08) !important;
+.logo,
+.ngoma-logo {
+  color: var(--ngoma-text);
 }
 
-.recharts-tooltip-wrapper {
-  color: #111111;
+.logo span,
+.ngoma-logo span,
+.gold-text,
+.text-gold {
+  color: var(--ngoma-gold) !important;
 }
 
-/* Utility polish */
-::selection {
-  background: rgba(184, 134, 11, 0.45);
-  color: #ffffff;
+.nav,
+.ngoma-nav,
+.navbar {
+  background: var(--ngoma-white) !important;
+  color: var(--ngoma-text) !important;
 }
 
-::-webkit-scrollbar {
-  height: 6px;
-  width: 6px;
+.nav a,
+.ngoma-nav a,
+.nav-link {
+  color: #767676;
+  transition:
+    color var(--ngoma-transition),
+    border-color var(--ngoma-transition),
+    background-color var(--ngoma-transition);
 }
 
-::-webkit-scrollbar-thumb {
-  background: rgba(184, 134, 11, 0.55);
+.nav a:hover,
+.ngoma-nav a:hover,
+.nav-link:hover {
+  color: var(--ngoma-gold);
+}
+
+.nav a.active,
+.ngoma-nav a.active,
+.nav-link.active,
+.nav .active,
+.ngoma-nav .active {
+  color: var(--ngoma-text);
+  border-color: var(--ngoma-gold);
+  background: rgba(200, 145, 22, 0.12);
+}
+
+.nav-pill,
+.nav-link-pill,
+.nav a.active,
+.ngoma-nav a.active {
+  border: 1px solid var(--ngoma-gold-border);
   border-radius: 999px;
 }
 
-::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.06);
+/* =========================================================
+   TYPOGRAPHY
+   ========================================================= */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--ngoma-text);
+  margin-top: 0;
 }
 
-/* Mobile refinements */
-@media (max-width: 760px) {
-  header > div:nth-child(2) {
-    padding-left: 16px !important;
-    padding-right: 16px !important;
+p {
+  color: var(--ngoma-muted);
+}
+
+small,
+.muted,
+.text-muted,
+.subtext,
+.meta {
+  color: var(--ngoma-muted);
+}
+
+.title,
+.name,
+.artist-name,
+.song-title,
+.chart-title,
+.record-title,
+.article-title,
+.news-title {
+  color: var(--ngoma-text);
+}
+
+.subtitle,
+.description,
+.artist-meta,
+.song-meta,
+.chart-meta,
+.record-meta,
+.article-meta,
+.news-meta {
+  color: var(--ngoma-muted);
+}
+
+/* =========================================================
+   PAGE BACKGROUNDS
+   ========================================================= */
+
+.home-page,
+.homepage,
+.landing-page,
+.front-page,
+.first-page,
+.charts-page,
+.chart-page,
+.ngoma-charts-page,
+.trending-page,
+.artist-page,
+.artists-page,
+.analytics-page,
+.records-page,
+.year-end-page,
+.certifications-page,
+.news-page,
+.about-page,
+[data-page="home"],
+[data-page="charts"],
+[data-page="trending"],
+[data-page="artists"],
+[data-page="analytics"],
+[data-page="records"],
+[data-page="year-end"],
+[data-page="certifications"],
+[data-page="news"],
+[data-page="about"] {
+  background: var(--ngoma-page-bg) !important;
+  color: var(--ngoma-text) !important;
+}
+
+/* =========================================================
+   CHARTS PAGE WHITE THEME FIX
+   This is the most important section for your current issue.
+   It makes the Charts tab look light like Trending.
+   ========================================================= */
+
+.charts-page,
+.chart-page,
+.ngoma-charts-page,
+[data-page="charts"] {
+  background: var(--ngoma-page-bg) !important;
+  color: var(--ngoma-text) !important;
+}
+
+/* Remove dark hero/background on Charts page */
+.charts-page .hero,
+.chart-page .hero,
+.ngoma-charts-page .hero,
+[data-page="charts"] .hero,
+.charts-page .chart-hero,
+.chart-page .chart-hero,
+.ngoma-charts-page .chart-hero,
+[data-page="charts"] .chart-hero,
+.charts-page .ngoma-hero,
+.chart-page .ngoma-hero,
+.ngoma-charts-page .ngoma-hero,
+[data-page="charts"] .ngoma-hero,
+.charts-page .top-section,
+.chart-page .top-section,
+.ngoma-charts-page .top-section,
+[data-page="charts"] .top-section,
+.charts-page .summary-section,
+.chart-page .summary-section,
+.ngoma-charts-page .summary-section,
+[data-page="charts"] .summary-section,
+.charts-page .chart-summary,
+.chart-page .chart-summary,
+.ngoma-charts-page .chart-summary,
+[data-page="charts"] .chart-summary {
+  background: var(--ngoma-page-bg) !important;
+  color: var(--ngoma-text) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* Generic dark wrappers inside Charts page */
+.charts-page .dark,
+.chart-page .dark,
+.ngoma-charts-page .dark,
+[data-page="charts"] .dark,
+.charts-page .dark-section,
+.chart-page .dark-section,
+.ngoma-charts-page .dark-section,
+[data-page="charts"] .dark-section,
+.charts-page .black-section,
+.chart-page .black-section,
+.ngoma-charts-page .black-section,
+[data-page="charts"] .black-section {
+  background: var(--ngoma-page-bg) !important;
+  color: var(--ngoma-text) !important;
+  background-image: none !important;
+}
+
+/* Charts page text */
+.charts-page h1,
+.charts-page h2,
+.charts-page h3,
+.charts-page h4,
+.charts-page h5,
+.charts-page h6,
+.chart-page h1,
+.chart-page h2,
+.chart-page h3,
+.chart-page h4,
+.chart-page h5,
+.chart-page h6,
+.ngoma-charts-page h1,
+.ngoma-charts-page h2,
+.ngoma-charts-page h3,
+.ngoma-charts-page h4,
+.ngoma-charts-page h5,
+.ngoma-charts-page h6,
+[data-page="charts"] h1,
+[data-page="charts"] h2,
+[data-page="charts"] h3,
+[data-page="charts"] h4,
+[data-page="charts"] h5,
+[data-page="charts"] h6 {
+  color: var(--ngoma-text) !important;
+}
+
+.charts-page p,
+.chart-page p,
+.ngoma-charts-page p,
+[data-page="charts"] p,
+.charts-page small,
+.chart-page small,
+.ngoma-charts-page small,
+[data-page="charts"] small,
+.charts-page .meta,
+.chart-page .meta,
+.ngoma-charts-page .meta,
+[data-page="charts"] .meta,
+.charts-page .subtitle,
+.chart-page .subtitle,
+.ngoma-charts-page .subtitle,
+[data-page="charts"] .subtitle {
+  color: var(--ngoma-muted) !important;
+}
+
+/* =========================================================
+   CARDS / STAT BOXES
+   ========================================================= */
+
+.card,
+.ngoma-card,
+.stat-card,
+.feature-card,
+.news-card,
+.analytics-card,
+.record-card,
+.summary-card,
+.leader-card {
+  background: var(--ngoma-card-bg);
+  color: var(--ngoma-text);
+  border: 1px solid var(--ngoma-border-light);
+  border-radius: var(--ngoma-radius-md);
+  box-shadow: var(--ngoma-shadow-soft);
+}
+
+.card:hover,
+.ngoma-card:hover,
+.stat-card:hover,
+.feature-card:hover,
+.news-card:hover,
+.analytics-card:hover,
+.record-card:hover,
+.summary-card:hover,
+.leader-card:hover {
+  background: var(--ngoma-white);
+  border-color: rgba(200, 145, 22, 0.32);
+}
+
+.card h1,
+.card h2,
+.card h3,
+.card h4,
+.card h5,
+.card h6,
+.ngoma-card h1,
+.ngoma-card h2,
+.ngoma-card h3,
+.ngoma-card h4,
+.ngoma-card h5,
+.ngoma-card h6,
+.stat-card h1,
+.stat-card h2,
+.stat-card h3,
+.stat-card h4,
+.stat-card h5,
+.stat-card h6,
+.feature-card h1,
+.feature-card h2,
+.feature-card h3,
+.feature-card h4,
+.feature-card h5,
+.feature-card h6,
+.news-card h1,
+.news-card h2,
+.news-card h3,
+.news-card h4,
+.news-card h5,
+.news-card h6,
+.analytics-card h1,
+.analytics-card h2,
+.analytics-card h3,
+.analytics-card h4,
+.analytics-card h5,
+.analytics-card h6,
+.record-card h1,
+.record-card h2,
+.record-card h3,
+.record-card h4,
+.record-card h5,
+.record-card h6,
+.summary-card h1,
+.summary-card h2,
+.summary-card h3,
+.summary-card h4,
+.summary-card h5,
+.summary-card h6,
+.leader-card h1,
+.leader-card h2,
+.leader-card h3,
+.leader-card h4,
+.leader-card h5,
+.leader-card h6 {
+  color: var(--ngoma-text);
+}
+
+.card p,
+.ngoma-card p,
+.stat-card p,
+.feature-card p,
+.news-card p,
+.analytics-card p,
+.record-card p,
+.summary-card p,
+.leader-card p {
+  color: var(--ngoma-muted);
+}
+
+/* Charts page cards must be light */
+.charts-page .stat-card,
+.chart-page .stat-card,
+.ngoma-charts-page .stat-card,
+[data-page="charts"] .stat-card,
+.charts-page .summary-card,
+.chart-page .summary-card,
+.ngoma-charts-page .summary-card,
+[data-page="charts"] .summary-card,
+.charts-page .leader-card,
+.chart-page .leader-card,
+.ngoma-charts-page .leader-card,
+[data-page="charts"] .leader-card,
+.charts-page .card,
+.chart-page .card,
+.ngoma-charts-page .card,
+[data-page="charts"] .card {
+  background: var(--ngoma-white) !important;
+  color: var(--ngoma-text) !important;
+  border: 1px solid var(--ngoma-border-light) !important;
+  box-shadow: var(--ngoma-shadow-soft) !important;
+}
+
+/* =========================================================
+   FILTERS / TABS / PILLS
+   ========================================================= */
+
+.tabs,
+.filters,
+.filter-bar,
+.controls,
+.pill-group {
+  background: transparent;
+}
+
+.tab,
+.filter,
+.pill,
+.platform-filter,
+.month-filter {
+  color: #686868;
+  border: 1px solid var(--ngoma-border-medium);
+  background: var(--ngoma-white);
+  border-radius: 999px;
+  transition:
+    background-color var(--ngoma-transition),
+    color var(--ngoma-transition),
+    border-color var(--ngoma-transition);
+}
+
+.tab:hover,
+.filter:hover,
+.pill:hover,
+.platform-filter:hover,
+.month-filter:hover {
+  color: var(--ngoma-gold);
+  border-color: var(--ngoma-gold-border);
+  background: rgba(200, 145, 22, 0.08);
+}
+
+.tab.active,
+.filter.active,
+.pill.active,
+.platform-filter.active,
+.month-filter.active {
+  color: var(--ngoma-text);
+  border-color: var(--ngoma-gold);
+  background: var(--ngoma-gold-soft);
+}
+
+/* Charts page filters should be white like Trending */
+.charts-page .filters,
+.chart-page .filters,
+.ngoma-charts-page .filters,
+[data-page="charts"] .filters,
+.charts-page .filter-bar,
+.chart-page .filter-bar,
+.ngoma-charts-page .filter-bar,
+[data-page="charts"] .filter-bar,
+.charts-page .controls,
+.chart-page .controls,
+.ngoma-charts-page .controls,
+[data-page="charts"] .controls {
+  background: var(--ngoma-page-bg) !important;
+  color: var(--ngoma-text) !important;
+  border-color: var(--ngoma-border-light) !important;
+}
+
+.charts-page .filter,
+.chart-page .filter,
+.ngoma-charts-page .filter,
+[data-page="charts"] .filter,
+.charts-page .pill,
+.chart-page .pill,
+.ngoma-charts-page .pill,
+[data-page="charts"] .pill,
+.charts-page .tab,
+.chart-page .tab,
+.ngoma-charts-page .tab,
+[data-page="charts"] .tab {
+  background: var(--ngoma-white) !important;
+  color: #5f5f5f !important;
+  border: 1px solid var(--ngoma-border-medium) !important;
+}
+
+.charts-page .filter.active,
+.chart-page .filter.active,
+.ngoma-charts-page .filter.active,
+[data-page="charts"] .filter.active,
+.charts-page .pill.active,
+.chart-page .pill.active,
+.ngoma-charts-page .pill.active,
+[data-page="charts"] .pill.active,
+.charts-page .tab.active,
+.chart-page .tab.active,
+.ngoma-charts-page .tab.active,
+[data-page="charts"] .tab.active {
+  background: var(--ngoma-gold) !important;
+  color: var(--ngoma-text) !important;
+  border-color: var(--ngoma-gold) !important;
+}
+
+/* =========================================================
+   CHART / RANKING LISTS AND TABLE CONTAINERS
+   ========================================================= */
+
+.chart-list,
+.ranking-list,
+.artist-list,
+.song-list,
+.album-list,
+.records-list,
+.charts-list,
+.top-chart-list,
+.table-container,
+.chart-table,
+.ranking-table {
+  background: var(--ngoma-white);
+  color: var(--ngoma-text);
+  border: 1px solid var(--ngoma-border-light);
+  box-shadow: var(--ngoma-shadow-soft);
+}
+
+/* Charts page main ranking/table area should be white */
+.charts-page .chart-list,
+.chart-page .chart-list,
+.ngoma-charts-page .chart-list,
+[data-page="charts"] .chart-list,
+.charts-page .ranking-list,
+.chart-page .ranking-list,
+.ngoma-charts-page .ranking-list,
+[data-page="charts"] .ranking-list,
+.charts-page .table-container,
+.chart-page .table-container,
+.ngoma-charts-page .table-container,
+[data-page="charts"] .table-container,
+.charts-page .chart-table,
+.chart-page .chart-table,
+.ngoma-charts-page .chart-table,
+[data-page="charts"] .chart-table,
+.charts-page .ranking-table,
+.chart-page .ranking-table,
+.ngoma-charts-page .ranking-table,
+[data-page="charts"] .ranking-table {
+  background: var(--ngoma-white) !important;
+  color: var(--ngoma-text) !important;
+  border: 1px solid var(--ngoma-border-light) !important;
+  box-shadow: var(--ngoma-shadow-soft) !important;
+}
+
+/* Section titles inside list containers */
+.chart-list h1,
+.chart-list h2,
+.chart-list h3,
+.chart-list h4,
+.chart-list h5,
+.chart-list h6,
+.ranking-list h1,
+.ranking-list h2,
+.ranking-list h3,
+.ranking-list h4,
+.ranking-list h5,
+.ranking-list h6,
+.artist-list h1,
+.artist-list h2,
+.artist-list h3,
+.artist-list h4,
+.artist-list h5,
+.artist-list h6,
+.song-list h1,
+.song-list h2,
+.song-list h3,
+.song-list h4,
+.song-list h5,
+.song-list h6,
+.album-list h1,
+.album-list h2,
+.album-list h3,
+.album-list h4,
+.album-list h5,
+.album-list h6,
+.records-list h1,
+.records-list h2,
+.records-list h3,
+.records-list h4,
+.records-list h5,
+.records-list h6 {
+  color: var(--ngoma-text) !important;
+}
+
+.chart-list p,
+.ranking-list p,
+.artist-list p,
+.song-list p,
+.album-list p,
+.records-list p,
+.chart-list small,
+.ranking-list small,
+.artist-list small,
+.song-list small,
+.album-list small,
+.records-list small,
+.chart-list .meta,
+.ranking-list .meta,
+.artist-list .meta,
+.song-list .meta,
+.album-list .meta,
+.records-list .meta,
+.chart-list .subtitle,
+.ranking-list .subtitle,
+.artist-list .subtitle,
+.song-list .subtitle,
+.album-list .subtitle,
+.records-list .subtitle {
+  color: var(--ngoma-muted) !important;
+}
+
+/* =========================================================
+   TABLES
+   ========================================================= */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--ngoma-white);
+  color: var(--ngoma-text);
+}
+
+thead {
+  background: #f7f7f7;
+  color: var(--ngoma-muted);
+}
+
+th {
+  color: var(--ngoma-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid var(--ngoma-border-light);
+}
+
+td {
+  color: var(--ngoma-text);
+  border-bottom: 1px solid var(--ngoma-border-light);
+}
+
+tbody tr {
+  background: var(--ngoma-white);
+  color: var(--ngoma-text);
+  transition:
+    background-color var(--ngoma-transition),
+    color var(--ngoma-transition),
+    box-shadow var(--ngoma-transition);
+}
+
+tbody tr:hover {
+  background-color: var(--ngoma-soft-gold-bg) !important;
+  color: var(--ngoma-text) !important;
+  box-shadow: inset 4px 0 0 var(--ngoma-gold);
+}
+
+tbody tr:hover td,
+tbody tr:hover th,
+tbody tr:hover * {
+  color: inherit !important;
+}
+
+/* Charts page table */
+.charts-page table,
+.chart-page table,
+.ngoma-charts-page table,
+[data-page="charts"] table {
+  background: var(--ngoma-white) !important;
+  color: var(--ngoma-text) !important;
+}
+
+.charts-page thead,
+.chart-page thead,
+.ngoma-charts-page thead,
+[data-page="charts"] thead {
+  background: #f7f7f7 !important;
+  color: var(--ngoma-muted) !important;
+}
+
+.charts-page th,
+.chart-page th,
+.ngoma-charts-page th,
+[data-page="charts"] th {
+  color: var(--ngoma-muted) !important;
+  border-bottom: 1px solid var(--ngoma-border-light) !important;
+}
+
+.charts-page td,
+.chart-page td,
+.ngoma-charts-page td,
+[data-page="charts"] td {
+  color: var(--ngoma-text) !important;
+  border-bottom: 1px solid var(--ngoma-border-light) !important;
+}
+
+/* =========================================================
+   CHART / RANKING ROWS
+   ========================================================= */
+
+.chart-row,
+.ranking-row,
+.artist-row,
+.song-row,
+.album-row,
+.record-row,
+.table-row,
+.list-row,
+.chart-item,
+.ranking-item,
+.artist-item,
+.song-item,
+.album-item,
+.record-item {
+  background: var(--ngoma-white);
+  color: var(--ngoma-text);
+  border-bottom: 1px solid var(--ngoma-border-light);
+  transition:
+    background-color var(--ngoma-transition),
+    color var(--ngoma-transition),
+    border-color var(--ngoma-transition),
+    box-shadow var(--ngoma-transition),
+    transform var(--ngoma-transition);
+}
+
+/* Row hover: soft gold, readable text */
+.chart-row:hover,
+.ranking-row:hover,
+.artist-row:hover,
+.song-row:hover,
+.album-row:hover,
+.record-row:hover,
+.table-row:hover,
+.list-row:hover,
+.chart-item:hover,
+.ranking-item:hover,
+.artist-item:hover,
+.song-item:hover,
+.album-item:hover,
+.record-item:hover,
+[class*="chart-row"]:hover,
+[class*="ranking-row"]:hover,
+[class*="artist-row"]:hover,
+[class*="song-row"]:hover,
+[class*="album-row"]:hover,
+[class*="record-row"]:hover,
+[class*="ChartRow"]:hover,
+[class*="RankingRow"]:hover,
+[class*="ArtistRow"]:hover,
+[class*="SongRow"]:hover,
+[class*="AlbumRow"]:hover,
+[class*="RecordRow"]:hover {
+  background-color: var(--ngoma-soft-gold-bg) !important;
+  color: var(--ngoma-text) !important;
+  border-color: var(--ngoma-gold-border) !important;
+  box-shadow: inset 4px 0 0 var(--ngoma-gold);
+}
+
+/* Keep all row text readable on hover */
+.chart-row:hover *,
+.ranking-row:hover *,
+.artist-row:hover *,
+.song-row:hover *,
+.album-row:hover *,
+.record-row:hover *,
+.table-row:hover *,
+.list-row:hover *,
+.chart-item:hover *,
+.ranking-item:hover *,
+.artist-item:hover *,
+.song-item:hover *,
+.album-item:hover *,
+.record-item:hover *,
+[class*="chart-row"]:hover *,
+[class*="ranking-row"]:hover *,
+[class*="artist-row"]:hover *,
+[class*="song-row"]:hover *,
+[class*="album-row"]:hover *,
+[class*="record-row"]:hover *,
+[class*="ChartRow"]:hover *,
+[class*="RankingRow"]:hover *,
+[class*="ArtistRow"]:hover *,
+[class*="SongRow"]:hover *,
+[class*="AlbumRow"]:hover *,
+[class*="RecordRow"]:hover * {
+  color: inherit !important;
+}
+
+/* Charts page rows */
+.charts-page .chart-row,
+.chart-page .chart-row,
+.ngoma-charts-page .chart-row,
+[data-page="charts"] .chart-row,
+.charts-page .ranking-row,
+.chart-page .ranking-row,
+.ngoma-charts-page .ranking-row,
+[data-page="charts"] .ranking-row,
+.charts-page .song-row,
+.chart-page .song-row,
+.ngoma-charts-page .song-row,
+[data-page="charts"] .song-row,
+.charts-page tr,
+.chart-page tr,
+.ngoma-charts-page tr,
+[data-page="charts"] tr {
+  background: var(--ngoma-white) !important;
+  color: var(--ngoma-text) !important;
+}
+
+.charts-page .chart-row:hover,
+.chart-page .chart-row:hover,
+.ngoma-charts-page .chart-row:hover,
+[data-page="charts"] .chart-row:hover,
+.charts-page .ranking-row:hover,
+.chart-page .ranking-row:hover,
+.ngoma-charts-page .ranking-row:hover,
+[data-page="charts"] .ranking-row:hover,
+.charts-page .song-row:hover,
+.chart-page .song-row:hover,
+.ngoma-charts-page .song-row:hover,
+[data-page="charts"] .song-row:hover,
+.charts-page tbody tr:hover,
+.chart-page tbody tr:hover,
+.ngoma-charts-page tbody tr:hover,
+[data-page="charts"] tbody tr:hover {
+  background: var(--ngoma-soft-gold-bg) !important;
+  color: var(--ngoma-text) !important;
+  box-shadow: inset 4px 0 0 var(--ngoma-gold) !important;
+}
+
+.charts-page .chart-row *,
+.chart-page .chart-row *,
+.ngoma-charts-page .chart-row *,
+[data-page="charts"] .chart-row *,
+.charts-page .ranking-row *,
+.chart-page .ranking-row *,
+.ngoma-charts-page .ranking-row *,
+[data-page="charts"] .ranking-row *,
+.charts-page .song-row *,
+.chart-page .song-row *,
+.ngoma-charts-page .song-row *,
+[data-page="charts"] .song-row *,
+.charts-page tbody tr *,
+.chart-page tbody tr *,
+.ngoma-charts-page tbody tr *,
+[data-page="charts"] tbody tr * {
+  color: inherit !important;
+}
+
+/* =========================================================
+   ROW TEXT DETAILS
+   ========================================================= */
+
+.chart-row .title,
+.chart-row .name,
+.chart-row .artist-name,
+.chart-row .song-title,
+.chart-row .album-title,
+.ranking-row .title,
+.ranking-row .name,
+.ranking-row .artist-name,
+.ranking-row .song-title,
+.ranking-row .album-title,
+.artist-row .title,
+.artist-row .name,
+.song-row .title,
+.song-row .name,
+.album-row .title,
+.album-row .name,
+.record-row .title,
+.record-row .name,
+.chart-item .title,
+.chart-item .name,
+.artist-item .title,
+.artist-item .name,
+.song-item .title,
+.song-item .name,
+.album-item .title,
+.album-item .name,
+.record-item .title,
+.record-item .name,
+.charts-page .title,
+.chart-page .title,
+.ngoma-charts-page .title,
+[data-page="charts"] .title,
+.charts-page .name,
+.chart-page .name,
+.ngoma-charts-page .name,
+[data-page="charts"] .name,
+.charts-page .song-title,
+.chart-page .song-title,
+.ngoma-charts-page .song-title,
+[data-page="charts"] .song-title,
+.charts-page .artist-name,
+.chart-page .artist-name,
+.ngoma-charts-page .artist-name,
+[data-page="charts"] .artist-name {
+  color: var(--ngoma-text) !important;
+}
+
+.chart-row .meta,
+.chart-row .subtitle,
+.chart-row .description,
+.chart-row .artist-meta,
+.chart-row .song-meta,
+.chart-row .album-meta,
+.ranking-row .meta,
+.ranking-row .subtitle,
+.artist-row .meta,
+.artist-row .subtitle,
+.song-row .meta,
+.song-row .subtitle,
+.album-row .meta,
+.album-row .subtitle,
+.record-row .meta,
+.record-row .subtitle,
+.charts-page .artist,
+.chart-page .artist,
+.ngoma-charts-page .artist,
+[data-page="charts"] .artist,
+.charts-page .song-meta,
+.chart-page .song-meta,
+.ngoma-charts-page .song-meta,
+[data-page="charts"] .song-meta,
+.charts-page .artist-meta,
+.chart-page .artist-meta,
+.ngoma-charts-page .artist-meta,
+[data-page="charts"] .artist-meta,
+.charts-page .chart-meta,
+.chart-page .chart-meta,
+.ngoma-charts-page .chart-meta,
+[data-page="charts"] .chart-meta {
+  color: var(--ngoma-muted) !important;
+}
+
+.rank,
+.position,
+.chart-position,
+.charts-page .rank,
+.chart-page .rank,
+.ngoma-charts-page .rank,
+[data-page="charts"] .rank,
+.charts-page .position,
+.chart-page .position,
+.ngoma-charts-page .position,
+[data-page="charts"] .position {
+  color: var(--ngoma-text) !important;
+  font-weight: 800;
+}
+
+.points,
+.pts,
+.score,
+.total-points,
+.charts-page .points,
+.chart-page .points,
+.ngoma-charts-page .points,
+[data-page="charts"] .points,
+.charts-page .pts,
+.chart-page .pts,
+.ngoma-charts-page .pts,
+[data-page="charts"] .pts,
+.charts-page .score,
+.chart-page .score,
+.ngoma-charts-page .score,
+[data-page="charts"] .score {
+  color: var(--ngoma-gold) !important;
+  font-weight: 800;
+}
+
+.points-label,
+.pts-label,
+.score-label {
+  color: var(--ngoma-muted) !important;
+  font-size: 0.85em;
+  font-weight: 500;
+}
+
+/* =========================================================
+   BADGES / MOVEMENT / COUNTRY / PLATFORM
+   ========================================================= */
+
+.badge,
+.tag,
+.label {
+  background: var(--ngoma-gold-soft);
+  color: var(--ngoma-text);
+  border: 1px solid var(--ngoma-gold-border);
+  border-radius: 999px;
+}
+
+.badge.dark,
+.tag.dark,
+.label.dark {
+  background: #f2f2f2;
+  color: var(--ngoma-text);
+  border-color: var(--ngoma-border-light);
+}
+
+.move,
+.movement {
+  color: inherit;
+}
+
+.move-up,
+.up,
+.positive {
+  color: var(--ngoma-green) !important;
+}
+
+.move-down,
+.down,
+.negative {
+  color: var(--ngoma-red) !important;
+}
+
+.new,
+.new-entry {
+  color: var(--ngoma-gold) !important;
+}
+
+.entry,
+.country,
+.country-code {
+  background: linear-gradient(180deg, #e3c34c, #b88914);
+  color: var(--ngoma-text) !important;
+  border-radius: 12px;
+  font-weight: 800;
+}
+
+.platform,
+.plat,
+.platform-count {
+  background: #f2f2f2 !important;
+  color: var(--ngoma-text) !important;
+  border-radius: 999px;
+}
+
+.charts-page .entry,
+.chart-page .entry,
+.ngoma-charts-page .entry,
+[data-page="charts"] .entry,
+.charts-page .country,
+.chart-page .country,
+.ngoma-charts-page .country,
+[data-page="charts"] .country,
+.charts-page .badge,
+.chart-page .badge,
+.ngoma-charts-page .badge,
+[data-page="charts"] .badge {
+  color: var(--ngoma-text) !important;
+}
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
+button,
+.btn,
+.ngoma-btn {
+  border: none;
+  border-radius: 999px;
+  transition:
+    background-color var(--ngoma-transition),
+    color var(--ngoma-transition),
+    border-color var(--ngoma-transition),
+    box-shadow var(--ngoma-transition);
+}
+
+.btn-primary,
+.ngoma-btn-primary,
+.export-btn,
+.export-socials,
+button.primary {
+  background: var(--ngoma-gold);
+  color: var(--ngoma-text);
+  font-weight: 800;
+}
+
+.btn-primary:hover,
+.ngoma-btn-primary:hover,
+.export-btn:hover,
+.export-socials:hover,
+button.primary:hover {
+  background: var(--ngoma-gold-bright);
+  color: var(--ngoma-text);
+}
+
+.btn-outline,
+.ngoma-btn-outline,
+button.outline {
+  background: var(--ngoma-white);
+  color: var(--ngoma-text);
+  border: 1px solid var(--ngoma-gold-border);
+}
+
+.btn-outline:hover,
+.ngoma-btn-outline:hover,
+button.outline:hover {
+  background: var(--ngoma-gold-soft);
+  color: var(--ngoma-text);
+  border-color: var(--ngoma-gold);
+}
+
+.export-for-socials,
+.export-socials-btn,
+[class*="Export"] {
+  background: #071329;
+  color: var(--ngoma-white);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+}
+
+.export-for-socials:hover,
+.export-socials-btn:hover,
+[class*="Export"]:hover {
+  background: #0b1b3c;
+  color: var(--ngoma-white);
+}
+
+/* =========================================================
+   FORMS / SEARCH
+   ========================================================= */
+
+input,
+select,
+textarea,
+.search-input {
+  background: var(--ngoma-white);
+  color: var(--ngoma-text);
+  border: 1px solid var(--ngoma-border-medium);
+  border-radius: var(--ngoma-radius-sm);
+  outline: none;
+}
+
+input::placeholder,
+textarea::placeholder,
+.search-input::placeholder {
+  color: #999999;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+.search-input:focus {
+  border-color: var(--ngoma-gold);
+  box-shadow: 0 0 0 3px rgba(200, 145, 22, 0.16);
+}
+
+.search-icon,
+.icon-search {
+  color: var(--ngoma-muted);
+}
+
+/* =========================================================
+   NEWS / ARTICLES
+   ========================================================= */
+
+.news-title,
+.article-title {
+  color: var(--ngoma-text);
+}
+
+.news-meta,
+.article-meta,
+.date,
+.author {
+  color: var(--ngoma-muted);
+}
+
+.news-card:hover .news-title,
+.article-card:hover .article-title {
+  color: var(--ngoma-gold);
+}
+
+/* =========================================================
+   ANALYTICS / RECORDS
+   ========================================================= */
+
+.analytics-number,
+.stat-number,
+.record-number {
+  color: var(--ngoma-gold);
+  font-weight: 800;
+}
+
+.analytics-label,
+.stat-label,
+.record-label {
+  color: var(--ngoma-muted);
+}
+
+.progress-bar,
+.ngoma-progress {
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-fill,
+.ngoma-progress-fill {
+  background: var(--ngoma-gold);
+}
+
+/* =========================================================
+   MODALS / DROPDOWNS
+   ========================================================= */
+
+.modal,
+.dropdown,
+.menu,
+.popover {
+  background: var(--ngoma-white);
+  color: var(--ngoma-text);
+  border: 1px solid var(--ngoma-border-light);
+  box-shadow: var(--ngoma-shadow-card);
+}
+
+.dropdown-item,
+.menu-item {
+  color: #686868;
+}
+
+.dropdown-item:hover,
+.menu-item:hover {
+  background: rgba(200, 145, 22, 0.1);
+  color: var(--ngoma-text);
+}
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.footer,
+.site-footer,
+.ngoma-footer {
+  background: var(--ngoma-footer-dark) !important;
+  color: var(--ngoma-off-white) !important;
+}
+
+.footer *,
+.site-footer *,
+.ngoma-footer * {
+  color: inherit;
+}
+
+.footer .text-gold,
+.site-footer .text-gold,
+.ngoma-footer .text-gold,
+.footer .gold-text,
+.site-footer .gold-text,
+.ngoma-footer .gold-text {
+  color: var(--ngoma-gold) !important;
+}
+
+/* =========================================================
+   SCROLLBAR
+   ========================================================= */
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--ngoma-page-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c9c1b2;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ngoma-gold);
+}
+
+/* =========================================================
+   UTILITY CLASSES
+   ========================================================= */
+
+.bg-black {
+  background: var(--ngoma-black) !important;
+}
+
+.bg-dark {
+  background: var(--ngoma-dark) !important;
+}
+
+.bg-dark-soft {
+  background: var(--ngoma-dark-soft) !important;
+}
+
+.bg-white {
+  background: var(--ngoma-white) !important;
+}
+
+.bg-page {
+  background: var(--ngoma-page-bg) !important;
+}
+
+.bg-gold {
+  background: var(--ngoma-gold) !important;
+}
+
+.text-black {
+  color: var(--ngoma-text) !important;
+}
+
+.text-white {
+  color: var(--ngoma-white) !important;
+}
+
+.text-off-white {
+  color: var(--ngoma-off-white) !important;
+}
+
+.text-muted {
+  color: var(--ngoma-muted) !important;
+}
+
+.text-gold {
+  color: var(--ngoma-gold) !important;
+}
+
+.border-gold {
+  border-color: var(--ngoma-gold) !important;
+}
+
+.border-soft {
+  border-color: var(--ngoma-border-light) !important;
+}
+
+/* =========================================================
+   MOBILE RESPONSIVENESS
+   ========================================================= */
+
+@media (max-width: 768px) {
+  .site-header,
+  .ngoma-header,
+  .header {
+    overflow-x: auto;
   }
 
-  section {
-    overflow-x: hidden;
+  .nav,
+  .ngoma-nav,
+  .navbar {
+    overflow-x: auto;
+    white-space: nowrap;
   }
 
-  button,
-  select,
-  input {
-    max-width: 100%;
+  .chart-row,
+  .ranking-row,
+  .artist-row,
+  .song-row,
+  .album-row,
+  .record-row,
+  .chart-item,
+  .ranking-item,
+  .artist-item,
+  .song-item,
+  .album-item,
+  .record-item {
+    gap: 0.75rem;
   }
+
+  .points,
+  .pts,
+  .score,
+  .total-points {
+    font-size: 0.95rem;
+  }
+}
+
+/* =========================================================
+   FINAL SAFETY OVERRIDES
+   Keep this at the very bottom.
+   This protects the Charts page from returning to black.
+   ========================================================= */
+
+/* Force Charts page background light */
+.charts-page,
+.chart-page,
+.ngoma-charts-page,
+[data-page="charts"],
+.charts-page main,
+.chart-page main,
+.ngoma-charts-page main,
+[data-page="charts"] main,
+.charts-page .main,
+.chart-page .main,
+.ngoma-charts-page .main,
+[data-page="charts"] .main,
+.charts-page .main-content,
+.chart-page .main-content,
+.ngoma-charts-page .main-content,
+[data-page="charts"] .main-content {
+  background: var(--ngoma-page-bg) !important;
+  color: var(--ngoma-text) !important;
+}
+
+/* Force Charts page table/card areas light */
+.charts-page .chart-list,
+.chart-page .chart-list,
+.ngoma-charts-page .chart-list,
+[data-page="charts"] .chart-list,
+.charts-page .ranking-list,
+.chart-page .ranking-list,
+.ngoma-charts-page .ranking-list,
+[data-page="charts"] .ranking-list,
+.charts-page .table-container,
+.chart-page .table-container,
+.ngoma-charts-page .table-container,
+[data-page="charts"] .table-container,
+.charts-page .chart-table,
+.chart-page .chart-table,
+.ngoma-charts-page .chart-table,
+[data-page="charts"] .chart-table,
+.charts-page .ranking-table,
+.chart-page .ranking-table,
+.ngoma-charts-page .ranking-table,
+[data-page="charts"] .ranking-table {
+  background: var(--ngoma-white) !important;
+  color: var(--ngoma-text) !important;
+}
+
+/* Prevent chart rows from becoming dark/white-text */
+.charts-page [class*="row"],
+.chart-page [class*="row"],
+.ngoma-charts-page [class*="row"],
+[data-page="charts"] [class*="row"],
+.charts-page [class*="Row"],
+.chart-page [class*="Row"],
+.ngoma-charts-page [class*="Row"],
+[data-page="charts"] [class*="Row"],
+.charts-page [class*="item"],
+.chart-page [class*="item"],
+.ngoma-charts-page [class*="item"],
+[data-page="charts"] [class*="item"],
+.charts-page [class*="Item"],
+.chart-page [class*="Item"],
+.ngoma-charts-page [class*="Item"],
+[data-page="charts"] [class*="Item"] {
+  color: var(--ngoma-text);
+}
+
+/* Safe hover for all rows/items */
+.charts-page [class*="row"]:hover,
+.chart-page [class*="row"]:hover,
+.ngoma-charts-page [class*="row"]:hover,
+[data-page="charts"] [class*="row"]:hover,
+.charts-page [class*="Row"]:hover,
+.chart-page [class*="Row"]:hover,
+.ngoma-charts-page [class*="Row"]:hover,
+[data-page="charts"] [class*="Row"]:hover,
+.charts-page [class*="item"]:hover,
+.chart-page [class*="item"]:hover,
+.ngoma-charts-page [class*="item"]:hover,
+[data-page="charts"] [class*="item"]:hover,
+.charts-page [class*="Item"]:hover,
+.chart-page [class*="Item"]:hover,
+.ngoma-charts-page [class*="Item"]:hover,
+[data-page="charts"] [class*="Item"]:hover {
+  background-color: var(--ngoma-soft-gold-bg) !important;
+  color: var(--ngoma-text) !important;
+}
+
+/* Final protection for Tailwind-style white hover */
+.hover\:bg-white:hover,
+.hover-white:hover,
+.row-hover-white:hover {
+  background-color: var(--ngoma-soft-gold-bg) !important;
+  color: var(--ngoma-text) !important;
+}
+
+/* Keep footer dark even after page-wide overrides */
+.footer,
+.site-footer,
+.ngoma-footer {
+  background: var(--ngoma-footer-dark) !important;
+  color: var(--ngoma-off-white) !important;
 }
