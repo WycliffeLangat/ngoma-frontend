@@ -58,14 +58,32 @@ const ARTIST_COUNTRY_FALLBACK = {
 };
 
 function useRealMobile(isMobileFromParent) {
-  const [realMobile, setRealMobile] = useState(() => {
+  const getIsMobile = () => {
     if (typeof window === "undefined") return Boolean(isMobileFromParent);
-    return window.innerWidth <= 768;
-  });
+
+    const widthCandidates = [
+      window.innerWidth,
+      window.visualViewport?.width,
+      window.screen?.width,
+      document.documentElement?.clientWidth,
+    ].filter(Boolean);
+
+    const smallestWidth = Math.min(...widthCandidates);
+
+    const isSmallScreen = smallestWidth <= 768;
+
+    const isTouchPhone =
+      typeof navigator !== "undefined" &&
+      /Android|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    return isSmallScreen || isTouchPhone || Boolean(isMobileFromParent);
+  };
+
+  const [realMobile, setRealMobile] = useState(getIsMobile);
 
   useEffect(() => {
     function checkMobile() {
-      setRealMobile(window.innerWidth <= 768);
+      setRealMobile(getIsMobile());
     }
 
     checkMobile();
@@ -73,13 +91,23 @@ function useRealMobile(isMobileFromParent) {
     window.addEventListener("resize", checkMobile);
     window.addEventListener("orientationchange", checkMobile);
 
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", checkMobile);
+      window.visualViewport.addEventListener("scroll", checkMobile);
+    }
+
     return () => {
       window.removeEventListener("resize", checkMobile);
       window.removeEventListener("orientationchange", checkMobile);
-    };
-  }, []);
 
-  return realMobile || Boolean(isMobileFromParent);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener("resize", checkMobile);
+        window.visualViewport.removeEventListener("scroll", checkMobile);
+      }
+    };
+  }, [isMobileFromParent]);
+
+  return realMobile;
 }
 
 function countryCodeToFlag(countryCode) {
@@ -705,7 +733,10 @@ export default function PremiumChartsPage({
                     <MobileStat label="Last" value={profile.lastMonth} />
                     <MobileStat label="Peak" value={profile.peak} />
                     <MobileStat label="Wks" value={profile.weeks} />
-                    <MobileStat label="Plat." value={plat === "Combined" && item.plat ? item.plat : "—"} />
+                    <MobileStat
+                      label="Plat."
+                      value={plat === "Combined" && item.plat ? item.plat : "—"}
+                    />
                   </div>
                 </div>
               );
@@ -796,6 +827,9 @@ const styles = {
     background: "#f7f5ef",
     color: "#050505",
     minHeight: "60vh",
+    width: "100%",
+    maxWidth: "100%",
+    overflowX: "hidden",
   },
 
   hero: {
@@ -804,6 +838,8 @@ const styles = {
     background: "#f7f5ef",
     borderBottom: "1px solid rgba(0,0,0,0.08)",
     transition: "all 0.5s ease-out",
+    width: "100%",
+    maxWidth: "100%",
   },
 
   heroGlow: {
@@ -833,10 +869,13 @@ const styles = {
     position: "relative",
     display: "grid",
     alignItems: "end",
+    width: "100%",
+    maxWidth: "100%",
   },
 
   heroLeft: {
     minWidth: 0,
+    maxWidth: "100%",
   },
 
   logoRow: {
@@ -864,6 +903,8 @@ const styles = {
     fontWeight: 950,
     textTransform: "uppercase",
     color: "#050505",
+    maxWidth: "100%",
+    overflowWrap: "break-word",
   },
 
   heroMeta: {
@@ -883,6 +924,7 @@ const styles = {
     background: "#ffffff",
     border: "1px solid rgba(0,0,0,0.08)",
     boxShadow: "0 14px 40px rgba(0,0,0,0.08)",
+    maxWidth: "100%",
   },
 
   numberOneLabel: {
@@ -911,6 +953,8 @@ const styles = {
     fontWeight: 900,
     lineHeight: 1.05,
     cursor: "pointer",
+    maxWidth: "100%",
+    overflowWrap: "break-word",
   },
 
   numberOneArtist: {
@@ -940,6 +984,8 @@ const styles = {
     background: "#ffffff",
     borderTop: "1px solid rgba(0,0,0,0.08)",
     borderBottom: "1px solid rgba(0,0,0,0.08)",
+    width: "100%",
+    maxWidth: "100%",
   },
 
   statItem: {
@@ -978,6 +1024,8 @@ const styles = {
     background: "#ffffff",
     color: "#111111",
     borderBottom: "1px solid #EAEAE6",
+    width: "100%",
+    maxWidth: "100%",
   },
 
   toggleWrap: {
@@ -987,6 +1035,8 @@ const styles = {
     borderRadius: "999px",
     background: "#f2f2f2",
     border: "1px solid rgba(0,0,0,0.08)",
+    width: "100%",
+    maxWidth: "100%",
   },
 
   toggleButton: {
@@ -1015,6 +1065,7 @@ const styles = {
     display: "flex",
     gap: "6px",
     scrollbarWidth: "thin",
+    maxWidth: "100%",
   },
 
   platformButton: {
@@ -1048,6 +1099,7 @@ const styles = {
     border: "1px solid rgba(0,0,0,0.08)",
     overflow: "hidden",
     boxShadow: "0 14px 40px rgba(0,0,0,0.08)",
+    maxWidth: "100%",
   },
 
   tableTop: {
