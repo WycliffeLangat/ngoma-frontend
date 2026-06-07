@@ -1,4 +1,4 @@
-const ARTIST_COUNTRY_FALLBACK = {
+﻿const ARTIST_COUNTRY_FALLBACK = {
   "Joel Lwaga": { country: "Tanzania", code: "TZ" },
   "Kifo Cha Mende": { country: "Kenya", code: "KE" },
   "Iyanii": { country: "Kenya", code: "KE" },
@@ -139,12 +139,12 @@ export default function PremiumChartsPage({
 
       if (text.toLowerCase() === "new") return { type: "new", label: "NEW" };
       if (text.toLowerCase() === "re") return { type: "re", label: "RE" };
-      if (text === "=" || text === "—") return { type: "same", label: "—" };
-      if (text.startsWith("▲") || text.startsWith("+")) {
-        return { type: "up", label: text.replace("+", "▲ ") };
+      if (text === "=" || text === "â€”") return { type: "same", label: "â€”" };
+      if (text.startsWith("â–²") || text.startsWith("+")) {
+        return { type: "up", label: text.replace("+", "â–² ") };
       }
-      if (text.startsWith("▼") || text.startsWith("-")) {
-        return { type: "down", label: text.replace("-", "▼ ") };
+      if (text.startsWith("â–¼") || text.startsWith("-")) {
+        return { type: "down", label: text.replace("-", "â–¼ ") };
       }
 
       return { type: "same", label: text };
@@ -158,10 +158,10 @@ export default function PremiumChartsPage({
 
     const diff = Number(item.prev) - Number(item.rank);
 
-    if (diff > 0) return { type: "up", label: `▲ ${diff}` };
-    if (diff < 0) return { type: "down", label: `▼ ${Math.abs(diff)}` };
+    if (diff > 0) return { type: "up", label: `â–² ${diff}` };
+    if (diff < 0) return { type: "down", label: `â–¼ ${Math.abs(diff)}` };
 
-    return { type: "same", label: "—" };
+    return { type: "same", label: "â€”" };
   }
 
   function movementStyle(item) {
@@ -179,7 +179,7 @@ export default function PremiumChartsPage({
     const lastMonth =
       item.last_month !== undefined && item.last_month !== null && item.last_month !== ""
         ? item.last_month
-        : item.prev ?? "—";
+        : item.prev ?? "â€”";
 
     const peak =
       item.peak_rank !== undefined && item.peak_rank !== null && item.peak_rank !== ""
@@ -201,7 +201,7 @@ export default function PremiumChartsPage({
   }
 
   function calculateStaticPeak(item) {
-    let peak = item.rank || "—";
+    let peak = item.rank || "â€”";
 
     MONTHS.forEach((m) => {
       const found = getCombined(ct, m).find(
@@ -227,7 +227,7 @@ export default function PremiumChartsPage({
       if (found) weeks += 1;
     });
 
-    return weeks || "—";
+    return weeks || "â€”";
   }
 
   function openArtist(name) {
@@ -339,7 +339,7 @@ export default function PremiumChartsPage({
             <div style={styles.numberOneRank}>1</div>
 
             <button onClick={() => top && openRelease(top)} style={styles.numberOneTitle}>
-              {top?.title || "—"}
+              {top?.title || "â€”"}
             </button>
 
             <button onClick={() => top && openArtist(top.artist)} style={styles.numberOneArtist}>
@@ -370,7 +370,7 @@ export default function PremiumChartsPage({
           },
           {
             label: "Chart leader",
-            value: top?.title || "—",
+            value: top?.title || "â€”",
             sub: top?.artist || "",
             compact: true,
           },
@@ -458,7 +458,7 @@ export default function PremiumChartsPage({
           <div>
             <div style={styles.tableTitle}>{chartTitle}</div>
             <div style={styles.tableSub}>
-              {chartLabel} · {platformLabel} · {month}
+              {chartLabel} Â· {platformLabel} Â· {month}
             </div>
           </div>
 
@@ -500,7 +500,7 @@ export default function PremiumChartsPage({
                     background: moveStyle.background,
                   }}
                 >
-                  {move.label || "—"}
+                  {move.label || "â€”"}
                 </div>
 
                 <div style={styles.entryCell}>
@@ -508,7 +508,7 @@ export default function PremiumChartsPage({
                     style={styles.flagBox}
                     title={`${artistCountry.country}${artistCountry.code ? ` (${artistCountry.code})` : ""}`}
                   >
-                    <span>{artistCountry.flag}</span>
+                    <span style={styles.flagText}>{artistCountry.code || "—"}</span>
                   </div>
 
                   <div style={styles.entryText}>
@@ -527,7 +527,7 @@ export default function PremiumChartsPage({
                 <div style={styles.metaNumber}>{profile.weeks}</div>
 
                 <div style={styles.platformCell}>
-                  {plat === "Combined" && item.plat ? item.plat : "—"}
+                  {plat === "Combined" && item.plat ? item.plat : "â€”"}
                 </div>
               </div>
             );
@@ -535,7 +535,7 @@ export default function PremiumChartsPage({
         </div>
 
         <div style={styles.tableFooter}>
-          Showing {display.length} of {data.length} · {month} · {platformLabel}
+          Showing {display.length} of {data.length} Â· {month} Â· {platformLabel}
         </div>
       </section>
     </div>
@@ -923,10 +923,18 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background:
-      "linear-gradient(135deg, rgba(255,255,255,0.10), rgba(184,134,11,0.18))",
-    border: "1px solid rgba(255,255,255,0.12)",
-    fontSize: "28px",
+    background: "linear-gradient(135deg, #d4af37 0%, #8a6a12 100%)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    boxShadow:
+      "inset 0 1px 0 rgba(255,255,255,0.18), 0 6px 18px rgba(0,0,0,0.22)",
+  },
+
+  flagText: {
+    color: "#111111",
+    fontSize: "13px",
+    fontWeight: 900,
+    letterSpacing: "1.2px",
+    textTransform: "uppercase",
     lineHeight: 1,
   },
 
@@ -993,3 +1001,4 @@ const styles = {
     fontWeight: 700,
   },
 };
+
