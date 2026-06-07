@@ -6,19 +6,19 @@ const API_BASE =
   import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000/api/v1";
 
 const ranges = {
-  top10: { label: "Top 10", start: 0, end: 10 },
-  upTo20: { label: "Up to 20", start: 0, end: 20 },
-  upTo30: { label: "Up to 30", start: 0, end: 30 },
-  upTo40: { label: "Up to 40", start: 0, end: 40 },
-  upTo50: { label: "Up to 50", start: 0, end: 50 },
+  top10: { label: "Top 10", end: 10 },
+  upTo20: { label: "Up to 20", end: 20 },
+  upTo30: { label: "Up to 30", end: 30 },
+  upTo40: { label: "Up to 40", end: 40 },
+  upTo50: { label: "Up to 50", end: 50 },
 };
 
 const exportBlocks = [
-  { key: "top10", label: "Top 10", start: 0, end: 10, fileLabel: "top-10" },
-  { key: "11_20", label: "11–20", start: 10, end: 20, fileLabel: "11-20" },
-  { key: "21_30", label: "21–30", start: 20, end: 30, fileLabel: "21-30" },
-  { key: "31_40", label: "31–40", start: 30, end: 40, fileLabel: "31-40" },
-  { key: "41_50", label: "41–50", start: 40, end: 50, fileLabel: "41-50" },
+  { key: "top10", label: "Top 10", start: 0, end: 10, startRank: 1, fileLabel: "top-10" },
+  { key: "11_20", label: "11–20", start: 10, end: 20, startRank: 11, fileLabel: "11-20" },
+  { key: "21_30", label: "21–30", start: 20, end: 30, startRank: 21, fileLabel: "21-30" },
+  { key: "31_40", label: "31–40", start: 30, end: 40, startRank: 31, fileLabel: "31-40" },
+  { key: "41_50", label: "41–50", start: 40, end: 50, startRank: 41, fileLabel: "41-50" },
 ];
 
 export default function ChartExportWidget() {
@@ -37,8 +37,7 @@ export default function ChartExportWidget() {
   const selectedRange = ranges[range];
 
   const blocksToDownload = useMemo(() => {
-    const finalEnd = selectedRange.end;
-    return exportBlocks.filter((block) => block.end <= finalEnd);
+    return exportBlocks.filter((block) => block.end <= selectedRange.end);
   }, [selectedRange]);
 
   const previewBlock = blocksToDownload[blocksToDownload.length - 1];
@@ -162,7 +161,7 @@ export default function ChartExportWidget() {
         const release = item.release || item.song || item.track || item.album || {};
         const artistObject = item.artist || release.artist || {};
 
-        const rank =
+        const realRank =
           item.rank ||
           item.position ||
           item.chart_position ||
@@ -211,7 +210,7 @@ export default function ChartExportWidget() {
 
         return {
           id: item.id || release.id || index,
-          rank,
+          realRank,
           title,
           artist,
           movement,
@@ -222,7 +221,7 @@ export default function ChartExportWidget() {
           status: item.status || "",
         };
       })
-      .sort((a, b) => Number(a.rank) - Number(b.rank));
+      .sort((a, b) => Number(a.realRank) - Number(b.realRank));
   }
 
   function formatChartType(type) {
@@ -383,6 +382,7 @@ export default function ChartExportWidget() {
                   monthLabel={monthLabel}
                   chartType={chartType}
                   entries={previewEntries}
+                  startRank={previewBlock?.startRank || 1}
                 />
               </div>
             </div>
@@ -403,6 +403,7 @@ export default function ChartExportWidget() {
                       monthLabel={monthLabel}
                       chartType={chartType}
                       entries={blockEntries}
+                      startRank={block.startRank}
                     />
                   </div>
                 );

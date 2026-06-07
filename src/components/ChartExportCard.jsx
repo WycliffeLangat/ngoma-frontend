@@ -4,6 +4,7 @@ export default function ChartExportCard({
   monthLabel = "December 2024",
   chartType = "Singles",
   entries = [],
+  startRank = 1,
 }) {
   return (
     <div style={styles.card}>
@@ -35,7 +36,7 @@ export default function ChartExportCard({
 
       <div style={styles.list}>
         {entries.map((item, index) => {
-          const rank = item.rank || item.position || index + 1;
+          const rank = startRank + index;
 
           const titleText =
             item.title ||
@@ -52,11 +53,11 @@ export default function ChartExportCard({
             item.artists ||
             "Unknown artist";
 
-          const movement = formatMovement(item);
+          const movement = formatMovement(item, rank);
           const lastMonth = formatLastMonth(item);
 
           return (
-            <div key={item.id || index} style={styles.row}>
+            <div key={item.id || `${rank}-${titleText}`} style={styles.row}>
               <div style={styles.rank}>{rank}</div>
 
               <div style={styles.songBlock}>
@@ -80,7 +81,7 @@ export default function ChartExportCard({
   );
 }
 
-function formatMovement(item) {
+function formatMovement(item, currentRank) {
   const rawMovement =
     item.movement ||
     item.move ||
@@ -107,7 +108,6 @@ function formatMovement(item) {
     return movementText;
   }
 
-  const currentRank = Number(item.rank || item.position);
   const previousRank = Number(
     item.last_month ||
       item.last_month_position ||
@@ -140,7 +140,7 @@ function formatLastMonth(item) {
     "";
 
   if (!lastMonth) {
-    if (item.is_new || item.new || item.status === "new") return "NEW";
+    if (item.is_new || item.new || item.status === "new") return "—";
     if (item.re_entry || item.reentry || item.status === "re-entry") return "RE";
     return "—";
   }
