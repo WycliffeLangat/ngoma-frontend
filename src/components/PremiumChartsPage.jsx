@@ -273,7 +273,7 @@ export default function PremiumChartsPage({
     );
   }
 
-  const sourceLabel = liveStatus === "live" ? "LIVE" : "";
+  const sourceLabel = new Date().toLocaleDateString(undefined, {weekday:"short",day:"numeric",month:"short",year:"numeric"});
   const perfectCoverageCount = data.filter((item) => item.plat === `${tp}/${tp}`).length;
   const newEntriesCount = data.filter((item) => movement(item).type === "new").length;
 
@@ -290,29 +290,7 @@ export default function PremiumChartsPage({
         <div style={styles.heroGlow} />
 
         <div style={styles.eyebrowRow}>
-          {liveStatus === "live" && (
-            <>
-              <span
-                style={{
-                  ...styles.liveDot,
-                  background: "#22C55E",
-                  boxShadow: "0 0 0 4px rgba(34,197,94,0.14)",
-                }}
-              />
-              <span>{sourceLabel}</span>
-            </>
-          )}
-          {liveStatus !== "live" && (
-            <span
-              style={{
-                ...styles.liveDot,
-                background: "#9CA3AF",
-                boxShadow: "0 0 0 4px rgba(156,163,175,0.12)",
-              }}
-            />
-          )}
-          <span style={styles.eyebrowDivider}>/</span>
-          <span>{month}</span>
+          <span style={{opacity:0.55,letterSpacing:"0.5px"}}>{sourceLabel}</span>
           <span style={styles.eyebrowDivider}>/</span>
           <span>{platformLabel}</span>
           {liveChartLoading && (
@@ -339,10 +317,10 @@ export default function PremiumChartsPage({
               {chartTitle}
             </h1>
 
-            <div style={styles.heroMeta}>
-              <span>{chartLabel}</span>
-              <span>{platformLabel}</span>
-              <span>{month}</span>
+            <div style={{...styles.heroMeta, marginTop:"18px", alignItems:"baseline", gap:"14px"}}>
+              <span style={{fontSize: "22px", fontWeight:800, letterSpacing:"-0.5px", color:"rgba(255,255,255,0.95)"}}>{month}</span>
+              <span style={{fontSize:"12px", color:"rgba(255,255,255,0.45)", letterSpacing:"1.5px", textTransform:"uppercase"}}>{chartLabel}</span>
+              <span style={{fontSize:"12px", color:"rgba(255,255,255,0.45)", letterSpacing:"1.5px", textTransform:"uppercase"}}>{platformLabel}</span>
             </div>
           </div>
 

@@ -444,9 +444,8 @@ const top = data[0];
         <div style={{display:"flex",justifyContent:"space-between",padding:"5px 28px",background:"#1A1A1A",fontFamily:F,fontSize:"9.5px",letterSpacing:"2px",textTransform:"uppercase",color:"#FFF"}}>
           <span>Kenya's Official Music Charts</span>
           <div style={{display:"flex",gap:"16px",alignItems:"center"}}>
-            <span style={{display:"flex",alignItems:"center",gap:"5px",color:"rgba(255,255,255,0.35)"}} title={liveStatus==="live"?"Connected to live data":"Not connected to live data"}>
-              <span style={{width:"5px",height:"5px",borderRadius:"50%",background:liveStatus==="live"?"#2DB04A":"#888"}}/>
-              {liveStatus==="live"&&<span style={{color:"rgba(255,255,255,0.55)",fontSize:"9px",letterSpacing:"1.5px",fontFamily:"inherit"}}>LIVE</span>}
+            <span style={{color:"rgba(255,255,255,0.4)",fontSize:"9.5px",letterSpacing:"1px",fontFamily:"inherit"}}>
+              {new Date().toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short",year:"numeric"})}
             </span>
             <span style={{color:"rgba(255,255,255,0.4)",cursor:"pointer"}} onClick={()=>setSOpen(true)}>⌕ Search</span>
           </div>
@@ -702,7 +701,8 @@ liveStatus={liveStatus}
               <Tog sm/>
             </div>
           </div>
-          {/* AI */}
+          {/* AI Analyst — hidden for now, re-enable by removing the display:none wrapper */}
+          <div style={{display:"none"}}>
           <div style={{...card(),marginBottom:"20px"}}>
             <div style={secLbl()}><SecMark/>Ngoma AI Analyst</div>
             <div style={{display:"flex",gap:"8px",marginBottom:"10px"}}>
@@ -716,6 +716,7 @@ liveStatus={liveStatus}
               ))}
             </div>
           </div>
+          </div>{/* end AI hidden wrapper */}
           {/* SONG / ALBUM COMPARISON */}
           <div style={{...card(),marginBottom:"20px",background:"linear-gradient(135deg,#FAFAF8,#FFFFFF)"}}>
             <div style={secLbl()}><SecMark/>{isSingles?"Song":"Album"} Head-to-Head</div>
