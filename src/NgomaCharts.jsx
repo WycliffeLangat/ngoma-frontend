@@ -60,14 +60,70 @@ function platformToSlug(platform) {
     .replace(/\s+/g, "-");
 }
 
-// Helpers — return entries from FULL
-const getCombined = (ct,m) => (FULL[ct].combined[m]||[]).map(e=>({rank:e.r,title:e.t,artist:e.a,pts:e.p,plat:e.pl,prev:e.pr,first:e.f===1}));
-const getPlatform = (ct,pl,m) => ((FULL[ct].platforms[pl]||{})[m]||[]).map(e=>({rank:e.r,title:e.t,artist:e.a,pts:e.p}));
+// Helpers — return entries from FULL with proper month-to-month chart history
+const entryKey = e => `${String(e.t || e.title || "").trim().toLowerCase()}|||${String(e.a || e.artist || "").trim().toLowerCase()}`;
+const monthIndex = m => MONTHS.indexOf(m);
+
+const rawCombined = (ct, m) => FULL[ct].combined[m] || [];
+const rawPlatform = (ct, pl, m) => ((FULL[ct].platforms[pl] || {})[m] || []);
+
+function enrichChartEntries(entries, getRawEntries, currentMonth, totalPlatforms) {
+  const currentIndex = monthIndex(currentMonth);
+  const previousMonth = currentIndex > 0 ? MONTHS[currentIndex - 1] : null;
+  const previousEntries = previousMonth ? getRawEntries(previousMonth) : [];
+  const earlierEntries = currentIndex > 0
+    ? MONTHS.slice(0, currentIndex).flatMap((m) => getRawEntries(m))
+    : [];
+  const allToCurrentEntries = currentIndex >= 0
+    ? MONTHS.slice(0, currentIndex + 1).flatMap((m) => getRawEntries(m))
+    : entries;
+
+  return entries.map((e) => {
+    const key = entryKey(e);
+    const previousEntry = previousEntries.find((item) => entryKey(item) === key);
+    const appearedBefore = earlierEntries.some((item) => entryKey(item) === key);
+    const sameReleaseHistory = allToCurrentEntries.filter((item) => entryKey(item) === key);
+    const peakRank = sameReleaseHistory.reduce((best, item) => {
+      const rank = Number(item.r);
+      return Number.isFinite(rank) && rank < best ? rank : best;
+    }, Number(e.r) || 999);
+
+    const monthsOnChart = MONTHS.slice(0, currentIndex + 1).reduce((count, m) => {
+      return getRawEntries(m).some((item) => entryKey(item) === key) ? count + 1 : count;
+    }, 0);
+
+    const platformCount = e.pl
+      ? Number(String(e.pl).split("/")[0]) || undefined
+      : undefined;
+
+    return {
+      rank: e.r,
+      title: e.t,
+      artist: e.a,
+      pts: e.p,
+      plat: e.pl || (platformCount ? `${platformCount}/${totalPlatforms}` : ""),
+      prev: previousEntry ? previousEntry.r : null,
+      last_month: previousEntry ? previousEntry.r : "—",
+      first: false,
+      is_new: !appearedBefore,
+      reentry: !previousEntry && appearedBefore,
+      movement: previousEntry ? undefined : appearedBefore ? "reentry" : "new",
+      peak_rank: peakRank === 999 ? e.r : peakRank,
+      weeks_on_chart: monthsOnChart || "—",
+      platform_count: platformCount,
+    };
+  });
+}
+
+const getCombined = (ct, m) => enrichChartEntries(rawCombined(ct, m), (monthLabel) => rawCombined(ct, monthLabel), m, ct === "singles" ? 6 : 2);
+const getPlatform = (ct, pl, m) => enrichChartEntries(rawPlatform(ct, pl, m), (monthLabel) => rawPlatform(ct, pl, monthLabel), m, 1);
 
 // Movement badge
 const mv = e => {
-  if(e.first) return {t:"none"};
-  if(e.prev===null||e.prev===undefined) return {t:"new"};
+  const movementType = String(e.movement || e.movement_type || "").toLowerCase();
+  if(e.reentry || movementType === "reentry" || movementType === "re-entry" || movementType === "re" || movementType === "r.e") return {t:"reentry"};
+  if(e.is_new || movementType === "new") return {t:"new"};
+  if(e.prev===null||e.prev===undefined||e.prev==="") return {t:"new"};
   const d=e.prev-e.rank;
   if(d>0) return {t:"up",v:d};
   if(d<0) return {t:"down",v:Math.abs(d)};
@@ -77,8 +133,8 @@ const mv = e => {
 
 const MvBadge=({e})=>{
   const m=mv(e);
-  if(m.t==="none")return null;
   if(m.t==="new")return <span style={{background:"#1A1A1A",color:"#FFF",padding:"1.5px 4px",borderRadius:"2px",fontSize:"7px",letterSpacing:"1px",fontWeight:800}}>NEW</span>;
+  if(m.t==="reentry")return <span style={{background:"#1565C0",color:"#FFF",padding:"1.5px 4px",borderRadius:"2px",fontSize:"7px",letterSpacing:"1px",fontWeight:800}}>RE</span>;
   if(m.t==="up")return <span style={{color:"#2DB04A",fontSize:"9px",fontWeight:700}}>{"▲"+m.v}</span>;
   if(m.t==="down")return <span style={{color:"#E53935",fontSize:"9px",fontWeight:700}}>{"▼"+m.v}</span>;
   return <span style={{color:"#DEDEDE",fontSize:"9px"}}>{"—"}</span>;
@@ -160,20 +216,29 @@ export default function NgomaCharts(){
         return response.json();
       })
       .then((chartData) => {
-        const entries = (chartData.entries || []).map((entry) => ({
-          rank: entry.rank,
-          title: entry.title,
-          artist: entry.artist,
-          pts: entry.total_points || 0,
-          plat: entry.platform_count ? `${entry.platform_count}/${tp}` : "",
-          prev: entry.prev_rank,
-          first: entry.prev_rank === null || entry.prev_rank === undefined,
-          movement: entry.movement,
-          last_month: entry.last_month,
-          peak_rank: entry.peak_rank,
-          weeks_on_chart: entry.weeks_on_chart,
-          platform_count: entry.platform_count,
-        }));
+        const entries = (chartData.entries || []).map((entry) => {
+          const movementType = String(entry.movement || "").toLowerCase();
+
+          return {
+            rank: entry.rank,
+            title: entry.title,
+            artist: entry.artist,
+            pts: entry.total_points || 0,
+            plat: entry.platform_count ? `${entry.platform_count}/${tp}` : "",
+            prev: entry.prev_rank,
+            first: false,
+            is_new: movementType === "new",
+            reentry: movementType === "reentry" || movementType === "re-entry" || movementType === "re",
+            movement: entry.movement,
+            last_month:
+              entry.last_month !== null && entry.last_month !== undefined && entry.last_month !== ""
+                ? entry.last_month
+                : entry.prev_rank ?? "—",
+            peak_rank: entry.peak_rank,
+            weeks_on_chart: entry.weeks_on_chart,
+            platform_count: entry.platform_count,
+          };
+        });
 
         setLiveChartEntries(entries);
         setLiveChartMeta(chartData);

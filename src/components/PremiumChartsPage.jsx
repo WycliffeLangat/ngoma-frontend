@@ -232,7 +232,19 @@ export default function PremiumChartsPage({
     liveChartMeta?.platform || (plat === "Combined" ? "Combined" : PLAT_LABEL[plat] || plat);
 
   function movement(item) {
-    if (item.first) return { type: "none", label: "" };
+    const movementType = String(item.movement || item.movement_type || "").toLowerCase();
+    const isReEntry =
+      item.reentry ||
+      movementType === "reentry" ||
+      movementType === "re-entry" ||
+      movementType === "re" ||
+      movementType === "r.e";
+
+    if (isReEntry) return { type: "reentry", label: "RE" };
+
+    if (item.is_new || movementType === "new") {
+      return { type: "new", label: "NEW" };
+    }
 
     if (item.prev === null || item.prev === undefined || item.prev === "") {
       return { type: "new", label: "NEW" };
@@ -267,6 +279,13 @@ export default function PremiumChartsPage({
       return {
         color: GOLD,
         background: "rgba(184,134,11,0.14)",
+      };
+    }
+
+    if (m.type === "reentry") {
+      return {
+        color: "#1565C0",
+        background: "rgba(21,101,192,0.12)",
       };
     }
 
@@ -696,7 +715,7 @@ export default function PremiumChartsPage({
             <span style={styles.headerCell}>#</span>
             <span style={styles.headerCell}>Move</span>
             <span style={styles.headerEntryCell}>Entry</span>
-            <span style={styles.headerCell}>Last Week</span>
+            <span style={styles.headerCell}>Last Month</span>
             <span style={styles.headerCell}>Peak</span>
             <span style={styles.headerCell}>Weeks</span>
             <span style={styles.headerCell}>Platforms</span>
@@ -795,7 +814,7 @@ export default function PremiumChartsPage({
                       </div>
 
                       <div style={styles.mobileStatsRow}>
-                        <MobileStat label="LW" value={profile.lastMonth} />
+                        <MobileStat label="L.M" value={profile.lastMonth} />
                         <MobileStat label="Peak" value={profile.peak} />
                         <MobileStat label="Wks" value={profile.weeks} />
                         <MobileStat
