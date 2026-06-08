@@ -387,27 +387,6 @@ export default function PremiumChartsPage({
           }}
         >
           <div style={styles.heroLeft}>
-            <div
-              style={{
-                ...styles.logoRow,
-                marginBottom: mobile ? "22px" : "30px",
-              }}
-            >
-              <MiniBars GOLD={GOLD} />
-              <div>
-                <div
-                  style={{
-                    ...styles.logoText,
-                    fontSize: mobile ? "19px" : "24px",
-                    letterSpacing: mobile ? "2.5px" : "4px",
-                  }}
-                >
-                  NGOMA <span style={{ color: GOLD }}>CHARTS</span>
-                </div>
-                <div style={styles.logoSub}>Music ranking intelligence</div>
-              </div>
-            </div>
-
             <h1
               style={{
                 ...styles.heroTitle,
@@ -511,15 +490,21 @@ export default function PremiumChartsPage({
             key={item.label}
             style={{
               ...styles.statItem,
-              padding: mobile ? "15px 16px" : "18px 24px",
+              padding: mobile ? "18px 14px" : "18px 24px",
+              minHeight: mobile ? "92px" : "auto",
+              borderRight: mobile ? (index % 2 === 0 ? "1px solid rgba(0,0,0,0.08)" : "none") : "1px solid rgba(0,0,0,0.08)",
+              borderBottom: mobile && index < 2 ? "1px solid rgba(0,0,0,0.08)" : "none",
             }}
           >
             <div style={styles.statLabel}>{item.label}</div>
             <div
               style={{
                 ...styles.statValue,
-                fontSize: item.compact ? (mobile ? "15px" : "18px") : mobile ? "25px" : "30px",
+                fontSize: item.compact ? (mobile ? "14px" : "18px") : mobile ? "26px" : "30px",
                 color: index === 3 ? GOLD : "#050505",
+                whiteSpace: item.compact ? "nowrap" : "normal",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
               }}
             >
               {item.value}
@@ -981,7 +966,7 @@ const styles = {
 
   statsBand: {
     display: "grid",
-    background: "#ffffff",
+    background: "linear-gradient(180deg, #faf7f0, #f4efe4)",
     borderTop: "1px solid rgba(0,0,0,0.08)",
     borderBottom: "1px solid rgba(0,0,0,0.08)",
     width: "100%",
@@ -994,11 +979,12 @@ const styles = {
   },
 
   statLabel: {
-    fontSize: "10px",
-    letterSpacing: "2.4px",
+    fontSize: "9.5px",
+    letterSpacing: "1.6px",
     textTransform: "uppercase",
     color: "#777777",
     fontWeight: 800,
+    lineHeight: 1.3,
   },
 
   statValue: {
