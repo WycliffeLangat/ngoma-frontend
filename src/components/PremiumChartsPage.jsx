@@ -224,6 +224,7 @@ export default function PremiumChartsPage({
   liveStatus,
 }) {
   const mobile = useRealMobile(isMobile);
+  const [expandedMobileRows, setExpandedMobileRows] = useState({});
 
   const chartTitle = "Ngoma Top 50";
   const chartLabel = isSingles ? "Singles" : "Albums";
@@ -341,6 +342,21 @@ export default function PremiumChartsPage({
       type: isSingles ? "single" : "album",
     });
   }
+
+  function getMobileRowKey(item, index) {
+    return `${item.title}-${item.artist}-${item.rank}-${index}`;
+  }
+
+  function toggleMobileRow(rowKey) {
+    setExpandedMobileRows((current) => ({
+      ...current,
+      [rowKey]: !current[rowKey],
+    }));
+  }
+
+  useEffect(() => {
+    setExpandedMobileRows({});
+  }, [ct, month, plat, vc]);
 
   function ChartToggle() {
     return (
@@ -696,9 +712,12 @@ export default function PremiumChartsPage({
             const artistCountry = getArtistCountry(item);
 
             if (mobile) {
+              const rowKey = getMobileRowKey(item, index);
+              const expanded = Boolean(expandedMobileRows[rowKey]);
+
               return (
                 <div
-                  key={`${item.title}-${item.artist}-${item.rank}-${index}`}
+                  key={rowKey}
                   style={{
                     ...styles.mobileRow,
                     animationDelay: `${Math.min(index * 20, 400)}ms`,
@@ -712,16 +731,51 @@ export default function PremiumChartsPage({
                     event.currentTarget.style.boxShadow = "none";
                   }}
                 >
-                  <div style={styles.mobileRowTop}>
+                  <div style={styles.mobileCompactRow}>
                     <div style={{ ...styles.mobileRank, color: medalColor }}>{item.rank}</div>
 
                     <div style={styles.mobileEntryMain}>
-                      <div style={styles.entryCell}>
+                      <button onClick={() => openRelease(item)} style={styles.titleButton}>
+                        {item.title}
+                      </button>
+
+                      <button onClick={() => openArtist(item.artist)} style={styles.artistButton}>
+                        {item.artist}
+                      </button>
+                    </div>
+
+                    <div style={styles.mobileMovementWrap}>
+                      <div
+                        style={{
+                          ...styles.moveBadge,
+                          color: moveStyle.color,
+                          background: moveStyle.background,
+                          minWidth: "46px",
+                        }}
+                      >
+                        {move.label || "—"}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => toggleMobileRow(rowKey)}
+                        style={styles.mobileDetailsToggle}
+                        aria-label={expanded ? "Hide chart details" : "Show chart details"}
+                        aria-expanded={expanded}
+                      >
+                        {expanded ? "⌃" : "⌄"}
+                      </button>
+                    </div>
+                  </div>
+
+                  {expanded && (
+                    <div style={styles.mobileExpandedDetails}>
+                      <div style={styles.mobileCountryRow}>
                         <div
                           style={{
                             ...styles.flagBox,
-                            width: "42px",
-                            height: "42px",
+                            width: "38px",
+                            height: "38px",
                             borderRadius: "12px",
                           }}
                           title={`${artistCountry.country}${
@@ -731,39 +785,26 @@ export default function PremiumChartsPage({
                           <span style={styles.flagText}>{artistCountry.code || "—"}</span>
                         </div>
 
-                        <div style={styles.entryText}>
-                          <button onClick={() => openRelease(item)} style={styles.titleButton}>
-                            {item.title}
-                          </button>
-
-                          <button onClick={() => openArtist(item.artist)} style={styles.artistButton}>
-                            {item.artist}
-                          </button>
+                        <div>
+                          <div style={styles.mobileDetailLabel}>Country</div>
+                          <div style={styles.mobileDetailValue}>
+                            {artistCountry.country || "Country not set"}
+                            {artistCountry.code ? ` (${artistCountry.code})` : ""}
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div
-                      style={{
-                        ...styles.moveBadge,
-                        color: moveStyle.color,
-                        background: moveStyle.background,
-                        minWidth: "48px",
-                      }}
-                    >
-                      {move.label || "—"}
+                      <div style={styles.mobileStatsRow}>
+                        <MobileStat label="LW" value={profile.lastMonth} />
+                        <MobileStat label="Peak" value={profile.peak} />
+                        <MobileStat label="Wks" value={profile.weeks} />
+                        <MobileStat
+                          label="Plat."
+                          value={plat === "Combined" && item.plat ? item.plat : "—"}
+                        />
+                      </div>
                     </div>
-                  </div>
-
-                  <div style={styles.mobileStatsRow}>
-                    <MobileStat label="LW" value={profile.lastMonth} />
-                    <MobileStat label="Peak" value={profile.peak} />
-                    <MobileStat label="Wks" value={profile.weeks} />
-                    <MobileStat
-                      label="Plat."
-                      value={plat === "Combined" && item.plat ? item.plat : "—"}
-                    />
-                  </div>
+                  )}
                 </div>
               );
             }
@@ -1225,6 +1266,61 @@ const styles = {
     gridTemplateColumns: "42px minmax(0, 1fr) 54px",
     gap: "10px",
     alignItems: "center",
+  },
+
+  mobileCompactRow: {
+    display: "grid",
+    gridTemplateColumns: "42px minmax(0, 1fr) auto",
+    gap: "10px",
+    alignItems: "center",
+  },
+
+  mobileMovementWrap: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    gap: "6px",
+  },
+
+  mobileDetailsToggle: {
+    width: "30px",
+    height: "30px",
+    border: "1px solid rgba(0,0,0,0.08)",
+    borderRadius: "999px",
+    background: "#f7f7f7",
+    color: "#050505",
+    fontSize: "17px",
+    fontWeight: 950,
+    lineHeight: 1,
+    cursor: "pointer",
+  },
+
+  mobileExpandedDetails: {
+    marginTop: "12px",
+    paddingTop: "12px",
+    borderTop: "1px solid rgba(0,0,0,0.07)",
+  },
+
+  mobileCountryRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    marginBottom: "11px",
+  },
+
+  mobileDetailLabel: {
+    fontSize: "9px",
+    color: "#777777",
+    fontWeight: 900,
+    letterSpacing: "1px",
+    textTransform: "uppercase",
+  },
+
+  mobileDetailValue: {
+    marginTop: "3px",
+    fontSize: "12px",
+    color: "#050505",
+    fontWeight: 900,
   },
 
   mobileRank: {
