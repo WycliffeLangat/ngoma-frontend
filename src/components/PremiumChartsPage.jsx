@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 const ARTIST_COUNTRY_FALLBACK = {
   "Joel Lwaga": { country: "Tanzania", code: "TZ" },
@@ -387,6 +387,38 @@ export default function PremiumChartsPage({
           }}
         >
           <div style={styles.heroLeft}>
+            <div
+              style={{
+                ...styles.logoRow,
+                marginBottom: mobile ? "20px" : "34px",
+              }}
+            >
+              <MiniBars GOLD={GOLD} />
+
+              <div>
+                <div
+                  style={{
+                    ...styles.logoText,
+                    fontSize: mobile ? "17px" : "26px",
+                    letterSpacing: mobile ? "5px" : "7px",
+                    lineHeight: 1,
+                  }}
+                >
+                  NGOMA <span style={{ color: GOLD }}>CHARTS</span>
+                </div>
+
+                <div
+                  style={{
+                    ...styles.logoSub,
+                    fontSize: mobile ? "8px" : "11px",
+                    letterSpacing: mobile ? "2px" : "2.5px",
+                  }}
+                >
+                  Music Ranking Intelligence
+                </div>
+              </div>
+            </div>
+
             <h1
               style={{
                 ...styles.heroTitle,
