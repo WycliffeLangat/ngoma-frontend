@@ -11,6 +11,7 @@ const ARTIST_COUNTRY_FALLBACK = {
   Zuchu: { country: "Tanzania", code: "TZ" },
   "D Voice": { country: "Tanzania", code: "TZ" },
   Jux: { country: "Tanzania", code: "TZ" },
+  Tux: { country: "Tanzania", code: "TZ" },
   "Ayra Starr": { country: "Nigeria", code: "NG" },
   "Kendrick Lamar": { country: "United States", code: "US" },
   Asake: { country: "Nigeria", code: "NG" },
@@ -56,6 +57,43 @@ const ARTIST_COUNTRY_FALLBACK = {
   "Minister Danybless": { country: "United States", code: "US" },
   prodbycpkshawn: { country: "Guyana", code: "GY" },
 };
+
+function normalizeArtistName(name) {
+  return String(name || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+}
+
+function findArtistCountryFallback(name) {
+  const cleanName = String(name || "").trim();
+
+  if (!cleanName) return null;
+
+  if (ARTIST_COUNTRY_FALLBACK[cleanName]) {
+    return ARTIST_COUNTRY_FALLBACK[cleanName];
+  }
+
+  const normalizedName = normalizeArtistName(cleanName);
+
+  const exactMatchKey = Object.keys(ARTIST_COUNTRY_FALLBACK).find(
+    (key) => normalizeArtistName(key) === normalizedName
+  );
+
+  if (exactMatchKey) {
+    return ARTIST_COUNTRY_FALLBACK[exactMatchKey];
+  }
+
+  const primaryArtist = cleanName
+    .split(/,|&| x | X | feat\.|ft\.|featuring/i)[0]
+    ?.trim();
+
+  if (primaryArtist && primaryArtist !== cleanName) {
+    return findArtistCountryFallback(primaryArtist);
+  }
+
+  return null;
+}
 
 function useRealMobile(isMobileFromParent) {
   const getIsMobile = () => {
@@ -124,23 +162,26 @@ function countryCodeToFlag(countryCode) {
 }
 
 function getArtistCountry(item) {
-  const directCode = String(item.artist_country_code || "").trim().toUpperCase();
+  const directCode = String(item.artist_country_code || item.country_code || "").trim().toUpperCase();
 
   if (directCode) {
     return {
       flag: countryCodeToFlag(directCode),
-      country: item.artist_country || "",
+      country: item.artist_country || item.country || "",
       code: directCode,
     };
   }
 
-  const fromFallback = ARTIST_COUNTRY_FALLBACK[item.artist];
+  const fallback =
+    findArtistCountryFallback(item.artist) ||
+    findArtistCountryFallback(item.artist_name) ||
+    findArtistCountryFallback(item.primary_artist);
 
-  if (fromFallback) {
+  if (fallback) {
     return {
-      flag: countryCodeToFlag(fromFallback.code),
-      country: fromFallback.country,
-      code: fromFallback.code,
+      flag: countryCodeToFlag(fallback.code),
+      country: fallback.country,
+      code: fallback.code,
     };
   }
 
@@ -184,7 +225,7 @@ export default function PremiumChartsPage({
 }) {
   const mobile = useRealMobile(isMobile);
 
-  const chartTitle = isSingles ? "Ngoma Top 50" : "Ngoma Top Albums";
+  const chartTitle = "Ngoma Top 50";
   const chartLabel = isSingles ? "Singles" : "Albums";
   const platformLabel =
     liveChartMeta?.platform || (plat === "Combined" ? "Combined" : PLAT_LABEL[plat] || plat);
@@ -346,7 +387,8 @@ export default function PremiumChartsPage({
     year: "numeric",
   });
 
-  const perfectCoverageCount = data.filter((item) => item.plat === `${tp}/${tp}`).length;
+  const isCombinedChart = plat === "Combined";
+  const crossPlatformHitsCount = data.filter((item) => item.plat === `${tp}/${tp}`).length;
   const newEntriesCount = data.filter((item) => movement(item).type === "new").length;
 
   return (
@@ -365,7 +407,7 @@ export default function PremiumChartsPage({
           style={{
             ...styles.eyebrowRow,
             fontSize: mobile ? "10px" : "11px",
-            marginBottom: mobile ? "22px" : "32px",
+            marginBottom: 0,
           }}
         >
           <span style={{ opacity: 0.65, letterSpacing: "0.5px" }}>{sourceLabel}</span>
@@ -386,44 +428,19 @@ export default function PremiumChartsPage({
             gap: mobile ? "20px" : "28px",
           }}
         >
-          <div style={styles.heroLeft}>
-            <div
-              style={{
-                ...styles.logoRow,
-                marginBottom: mobile ? "20px" : "34px",
-              }}
-            >
-              <MiniBars GOLD={GOLD} />
-
-              <div>
-                <div
-                  style={{
-                    ...styles.logoText,
-                    fontSize: mobile ? "17px" : "26px",
-                    letterSpacing: mobile ? "5px" : "7px",
-                    lineHeight: 1,
-                  }}
-                >
-                  NGOMA <span style={{ color: GOLD }}>CHARTS</span>
-                </div>
-
-                <div
-                  style={{
-                    ...styles.logoSub,
-                    fontSize: mobile ? "8px" : "11px",
-                    letterSpacing: mobile ? "2px" : "2.5px",
-                  }}
-                >
-                  Music Ranking Intelligence
-                </div>
-              </div>
-            </div>
-
+          <div
+            style={{
+              ...styles.heroLeft,
+              paddingTop: 0,
+              paddingBottom: 0,
+            }}
+          >
             <h1
               style={{
                 ...styles.heroTitle,
                 fontSize: mobile ? "42px" : "76px",
                 letterSpacing: mobile ? "-1.5px" : "-3px",
+                margin: mobile ? "-2px 0 54px" : "-10px 0 84px",
               }}
             >
               {chartTitle}
@@ -432,23 +449,19 @@ export default function PremiumChartsPage({
             <div
               style={{
                 ...styles.heroMeta,
-                marginTop: "16px",
                 alignItems: "baseline",
-                gap: "12px",
               }}
             >
               <span
                 style={{
-                  fontSize: mobile ? "19px" : "22px",
-                  fontWeight: 800,
+                  fontSize: mobile ? "20px" : "24px",
+                  fontWeight: 850,
                   letterSpacing: "-0.5px",
                   color: "#050505",
                 }}
               >
                 {month}
               </span>
-              <span style={styles.heroMetaSmall}>{chartLabel}</span>
-              <span style={styles.heroMetaSmall}>{platformLabel}</span>
             </div>
           </div>
 
@@ -502,17 +515,19 @@ export default function PremiumChartsPage({
             sub: isSingles ? "songs" : "albums",
           },
           {
-            label: "Perfect coverage",
-            value: perfectCoverageCount,
-            sub: `${tp}/${tp} platforms`,
+            label: isCombinedChart ? "Cross-Platform Hits" : "Platform Entries",
+            value: isCombinedChart ? crossPlatformHitsCount : data.length,
+            sub: isCombinedChart
+              ? `on all ${tp} platforms`
+              : `${isSingles ? "songs" : "albums"} on ${platformLabel}`,
           },
           {
-            label: "New entries",
+            label: "New Entries",
             value: newEntriesCount,
             sub: "this month",
           },
           {
-            label: "Chart leader",
+            label: "Chart Leader",
             value: top?.title || "—",
             sub: top?.artist || "",
             compact: true,
@@ -522,21 +537,15 @@ export default function PremiumChartsPage({
             key={item.label}
             style={{
               ...styles.statItem,
-              padding: mobile ? "18px 14px" : "18px 24px",
-              minHeight: mobile ? "92px" : "auto",
-              borderRight: mobile ? (index % 2 === 0 ? "1px solid rgba(0,0,0,0.08)" : "none") : "1px solid rgba(0,0,0,0.08)",
-              borderBottom: mobile && index < 2 ? "1px solid rgba(0,0,0,0.08)" : "none",
+              padding: mobile ? "15px 16px" : "18px 24px",
             }}
           >
             <div style={styles.statLabel}>{item.label}</div>
             <div
               style={{
                 ...styles.statValue,
-                fontSize: item.compact ? (mobile ? "14px" : "18px") : mobile ? "26px" : "30px",
+                fontSize: item.compact ? (mobile ? "15px" : "18px") : mobile ? "25px" : "30px",
                 color: index === 3 ? GOLD : "#050505",
-                whiteSpace: item.compact ? "nowrap" : "normal",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
               }}
             >
               {item.value}
@@ -668,13 +677,13 @@ export default function PremiumChartsPage({
 
         {!mobile && (
           <div style={styles.tableHeader}>
-            <span>#</span>
-            <span>Move</span>
-            <span>Entry</span>
-            <span>Last</span>
-            <span>Peak</span>
-            <span>Wks</span>
-            <span>Plat.</span>
+            <span style={styles.headerCell}>#</span>
+            <span style={styles.headerCell}>Move</span>
+            <span style={styles.headerEntryCell}>Entry</span>
+            <span style={styles.headerCell}>Last Week</span>
+            <span style={styles.headerCell}>Peak</span>
+            <span style={styles.headerCell}>Weeks</span>
+            <span style={styles.headerCell}>Platforms</span>
           </div>
         )}
 
@@ -747,7 +756,7 @@ export default function PremiumChartsPage({
                   </div>
 
                   <div style={styles.mobileStatsRow}>
-                    <MobileStat label="Last" value={profile.lastMonth} />
+                    <MobileStat label="LW" value={profile.lastMonth} />
                     <MobileStat label="Peak" value={profile.peak} />
                     <MobileStat label="Wks" value={profile.weeks} />
                     <MobileStat
@@ -998,7 +1007,7 @@ const styles = {
 
   statsBand: {
     display: "grid",
-    background: "linear-gradient(180deg, #faf7f0, #f4efe4)",
+    background: "#ffffff",
     borderTop: "1px solid rgba(0,0,0,0.08)",
     borderBottom: "1px solid rgba(0,0,0,0.08)",
     width: "100%",
@@ -1011,12 +1020,11 @@ const styles = {
   },
 
   statLabel: {
-    fontSize: "9.5px",
-    letterSpacing: "1.6px",
+    fontSize: "10px",
+    letterSpacing: "2.4px",
     textTransform: "uppercase",
     color: "#777777",
     fontWeight: 800,
-    lineHeight: 1.3,
   },
 
   statValue: {
@@ -1157,17 +1165,31 @@ const styles = {
 
   tableHeader: {
     display: "grid",
-    gridTemplateColumns: "64px 78px minmax(0, 1fr) 70px 70px 70px 80px",
+    gridTemplateColumns: "64px 78px minmax(0, 1fr) 96px 70px 76px 96px",
     gap: "12px",
     alignItems: "center",
+    justifyItems: "center",
     padding: "14px 22px",
     background: "#f7f7f7",
     color: "#777777",
     fontSize: "10px",
     fontWeight: 900,
-    letterSpacing: "2px",
+    letterSpacing: "1.7px",
     textTransform: "uppercase",
     borderBottom: "1px solid rgba(0,0,0,0.08)",
+  },
+
+  headerCell: {
+    width: "100%",
+    textAlign: "center",
+    justifySelf: "center",
+  },
+
+  headerEntryCell: {
+    width: "100%",
+    textAlign: "left",
+    justifySelf: "start",
+    paddingLeft: "62px",
   },
 
   rows: {
@@ -1178,7 +1200,7 @@ const styles = {
 
   row: {
     display: "grid",
-    gridTemplateColumns: "64px 78px minmax(0, 1fr) 70px 70px 70px 80px",
+    gridTemplateColumns: "64px 78px minmax(0, 1fr) 96px 70px 76px 96px",
     gap: "12px",
     alignItems: "center",
     padding: "16px 22px",

@@ -458,7 +458,34 @@ const top = data[0];
               <rect x="11" y="5" width="3.5" height="19" fill="#B8860B" rx="0.5"/>
               <rect x="16.5" y="0" width="3.5" height="24" fill="#1A1A1A" rx="0.5"/>
             </svg>
-            <span style={{fontFamily:F,fontSize:isMobile?"16px":"21px",fontWeight:800,letterSpacing:isMobile?"1.5px":"3px",color:"#1A1A1A",textTransform:"uppercase"}}>Ngoma <span style={{color:"#B8860B"}}>Charts</span></span>
+            <div style={{display:"flex",flexDirection:"column",lineHeight:1,cursor:"pointer"}}>
+              <span
+                style={{
+                  fontFamily:F,
+                  fontSize:isMobile?"20px":"28px",
+                  fontWeight:950,
+                  letterSpacing:isMobile?"2px":"4px",
+                  color:"#1A1A1A",
+                  textTransform:"uppercase",
+                }}
+              >
+                NGOMA <span style={{color:"#B8860B",fontWeight:950}}>CHARTS</span>
+              </span>
+              <span
+                style={{
+                  marginTop:"4px",
+                  fontFamily:F,
+                  fontSize:isMobile?"9.5px":"13px",
+                  fontWeight:900,
+                  letterSpacing:isMobile?"1.4px":"2.2px",
+                  color:"#777777",
+                  textTransform:"uppercase",
+                  whiteSpace:"nowrap",
+                }}
+              >
+                Music ranking intelligence
+              </span>
+            </div>
           </div>
           <nav style={{display:"flex",gap:isMobile?"6px":"22px",fontFamily:F,fontSize:isMobile?"10px":"11px",fontWeight:600,letterSpacing:isMobile?"0.5px":"1.5px",textTransform:"uppercase",alignItems:"center",flexShrink:0,overflowX:isMobile?"auto":"visible",maxWidth:isMobile?"100%":"none",width:isMobile?"100%":"auto",WebkitOverflowScrolling:"touch",paddingBottom:isMobile?"2px":0}}>
             {["charts","trending","artists","analytics","records","year-end","certifications","news","about"].map(t=>(
@@ -1349,7 +1376,21 @@ liveStatus={liveStatus}
             {["charts","trending","artists","analytics","records","year-end","certifications","news","about"].map(t=><span key={t} onClick={()=>navTo(t)} style={{cursor:"pointer",textTransform:"capitalize"}}>{t==="year-end"?"Year End":t}</span>)}
           </div>
         </div>
-        <div style={{marginTop:"8px",fontSize:"8px",color:"rgba(255,255,255,0.15)",letterSpacing:"1px",textTransform:"uppercase"}}>© 2024–2026 Ngoma Charts · All visualizations from full Top 50 dataset · Backend: Django + PostgreSQL</div>
+        <div
+          style={{
+            marginTop: "8px",
+            display: "flex",
+            flexDirection: isMobile ? "column" : "row",
+            gap: isMobile ? "4px" : "10px",
+            alignItems: isMobile ? "flex-start" : "center",
+            fontSize: "8px",
+            color: "rgba(255,255,255,0.22)",
+            letterSpacing: "1px",
+            textTransform: "uppercase",
+          }}
+        >
+          <span>© {new Date().getFullYear()} Ngoma Media</span>
+        </div>
       </footer>
     </div>
   );
