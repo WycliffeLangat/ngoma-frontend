@@ -763,7 +763,7 @@ export default function PremiumChartsPage({
                         aria-label={expanded ? "Hide chart details" : "Show chart details"}
                         aria-expanded={expanded}
                       >
-                        {expanded ? "⌃" : "⌄"}
+                        {expanded ? "▴" : "▾"}
                       </button>
                     </div>
                   </div>
@@ -1283,22 +1283,30 @@ const styles = {
   },
 
   mobileDetailsToggle: {
-    width: "30px",
-    height: "30px",
+    width: "38px",
+    height: "34px",
     border: "1px solid rgba(0,0,0,0.08)",
-    borderRadius: "999px",
-    background: "#f7f7f7",
-    color: "#050505",
-    fontSize: "17px",
-    fontWeight: 950,
+    borderRadius: "14px",
+    background: "#fbfaf7",
+    color: "#555555",
+    fontSize: "18px",
+    fontWeight: 900,
     lineHeight: 1,
     cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "0 0 2px",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+    transition: "background 160ms ease, transform 160ms ease, box-shadow 160ms ease",
   },
 
   mobileExpandedDetails: {
-    marginTop: "12px",
-    paddingTop: "12px",
-    borderTop: "1px solid rgba(0,0,0,0.07)",
+    marginTop: "14px",
+    padding: "14px 12px 12px",
+    border: "1px solid rgba(0,0,0,0.06)",
+    borderRadius: "16px",
+    background: "#fbfaf7",
   },
 
   mobileCountryRow: {
