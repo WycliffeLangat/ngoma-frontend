@@ -181,9 +181,9 @@ export default function ChartExportWidget() {
       <button
         onClick={() => setOpen(true)}
         style={styles.shareButton}
-        title="Export chart image for socials"
+        title="Share chart card image"
       >
-        Export for Socials
+        Share Card
       </button>
 
       {open && (

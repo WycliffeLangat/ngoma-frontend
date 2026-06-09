@@ -1437,8 +1437,22 @@ liveStatus={liveStatus}
             </svg>
             <span style={{fontFamily:F,fontSize:"11px",fontWeight:800,letterSpacing:"2.5px",color:"#FFF",textTransform:"uppercase"}}>Ngoma <span style={{color:"#B8860B"}}>Charts</span></span>
           </div>
-          <div style={{display:"flex",gap:"16px",fontFamily:F,fontSize:"10px",color:"rgba(255,255,255,0.35)"}}>
-            {["charts","trending","artists","analytics","records","year-end","certifications","news","about"].map(t=><span key={t} onClick={()=>navTo(t)} style={{cursor:"pointer",textTransform:"capitalize"}}>{t==="year-end"?"Year End":t}</span>)}
+          <div style={{display:"flex",gap:"18px",alignItems:"center"}}>
+            {[
+              {label:"Facebook", href:"https://www.facebook.com/ngomacharts",
+               path:"M14 8.5h2V5.8h-2.4C11.5 5.8 10.5 7 10.5 9v1.5H8.7V13h1.8v6h2.6v-6h2l.3-2.5h-2.3V9.1c0-.4.2-.6.7-.6Z"},
+              {label:"X", href:"https://x.com/Ngoma_Charts",
+               path:"M16.8 5h2.2l-4.8 5.5L20 19h-4.4l-3.5-4.6L8 19H5.8l5.1-5.9L5 5h4.5l3.1 4.2L16.8 5Zm-.8 12.6h1.2L9.1 6.3H7.8L16 17.6Z"},
+              {label:"Instagram", href:"https://www.instagram.com/ngoma_charts/",
+               path:"M12 7.3A4.7 4.7 0 1012 16.7 4.7 4.7 0 0012 7.3Zm0 7.7a3 3 0 110-6 3 3 0 010 6Zm4.9-7.9a1.1 1.1 0 11-2.2 0 1.1 1.1 0 012.2 0ZM16.5 5h-9A2.5 2.5 0 005 7.5v9A2.5 2.5 0 007.5 19h9a2.5 2.5 0 002.5-2.5v-9A2.5 2.5 0 0016.5 5Z"},
+            ].map(s=>(
+              <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label}
+                 style={{display:"flex",color:"rgba(255,255,255,0.35)",transition:"color .2s"}}
+                 onMouseEnter={e=>e.currentTarget.style.color="#B8860B"}
+                 onMouseLeave={e=>e.currentTarget.style.color="rgba(255,255,255,0.35)"}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d={s.path}/></svg>
+              </a>
+            ))}
           </div>
         </div>
         <div
