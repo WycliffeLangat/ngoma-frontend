@@ -1496,7 +1496,7 @@ liveStatus={liveStatus}
             textTransform: "uppercase",
           }}
         >
-          <span>© 2026 Ngoma Charts · A Ngoma Media platform</span>
+          <span>© 2026 Ngoma Charts · A Ngoma Media Product</span>
         </div>
       </footer>
     </div>
