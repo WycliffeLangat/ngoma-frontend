@@ -1,4 +1,27 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+// Region-based colour-coding for country badges. Lets a user scan the chart
+// and instantly gauge domestic (KE) vs cross-border market penetration.
+const REGION_BADGE = {
+  KE: { from: "#d4af37", to: "#b88914", text: "#111111" }, // Kenya — gold (home market)
+  TZ: { from: "#2f7bd6", to: "#1d579e", text: "#ffffff" }, // Tanzania — blue
+  UG: { from: "#15909e", to: "#0e6770", text: "#ffffff" }, // Uganda — teal
+  RW: { from: "#4f5bd5", to: "#3a44a6", text: "#ffffff" }, // Rwanda — indigo
+  CD: { from: "#b07a2b", to: "#825a1d", text: "#ffffff" }, // DR Congo — bronze
+  NG: { from: "#7a5bd0", to: "#5a3fa6", text: "#ffffff" }, // Nigeria — violet
+  GH: { from: "#c0463b", to: "#902f27", text: "#ffffff" }, // Ghana — red
+  ZA: { from: "#e07b1f", to: "#b35f13", text: "#ffffff" }, // South Africa — orange
+  US: { from: "#4a5568", to: "#2d3340", text: "#ffffff" }, // USA / intl — slate
+  GB: { from: "#5b6b8c", to: "#3c4a66", text: "#ffffff" }, // UK — slate-blue
+};
+const DEFAULT_BADGE = { from: "#9aa0a6", to: "#6b7077", text: "#ffffff" }; // other / unknown — grey
+
+function regionBadge(code) {
+  const key = String(code || "").trim().toUpperCase();
+  if (REGION_BADGE[key]) return REGION_BADGE[key];
+  // East-African neighbours not explicitly listed lean gold; everything else slate-ish
+  return DEFAULT_BADGE;
+}
 
 // Complete artist -> country map (generated from the full roster).
 // The chart uses the API's country_code first; this is the fallback when
@@ -597,6 +620,125 @@ export default function PremiumChartsPage({
     });
   }
 
+  // ----- Sortable columns -------------------------------------------------
+  // Default ("rank"/"asc") preserves the chart's natural order.
+  const [sort, setSort] = useState({ key: "rank", dir: "asc" });
+
+  function sortValue(item, key) {
+    const profile = getReleaseProfile(item);
+    const num = (v) => {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : Number.POSITIVE_INFINITY;
+    };
+    switch (key) {
+      case "rank":
+        return num(item.rank);
+      case "lastMonth":
+        return num(profile.lastMonth);
+      case "peak":
+        return num(profile.peak);
+      case "months":
+        return num(profile.weeks);
+      case "platforms": {
+        const m = String(item.plat || "").match(/^(\d+)/);
+        return m ? Number(m[1]) : -1;
+      }
+      default:
+        return num(item.rank);
+    }
+  }
+
+  const sortedData = useMemo(() => {
+    const copy = [...data];
+    copy.sort((a, b) => {
+      const av = sortValue(a, sort.key);
+      const bv = sortValue(b, sort.key);
+      if (av === bv) return Number(a.rank) - Number(b.rank); // stable tie-break
+      return sort.dir === "asc" ? av - bv : bv - av;
+    });
+    return copy;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, sort, ct, month]);
+
+  const shown = sortedData.slice(0, vc);
+
+  function handleSort(key) {
+    setSort((current) => {
+      if (current.key !== key) {
+        // Rank/Last Month/Peak read best-first (asc); Months/Platforms read
+        // most-first (desc) on first click — that's what people expect.
+        const firstDir = key === "months" || key === "platforms" ? "desc" : "asc";
+        return { key, dir: firstDir };
+      }
+      return { key, dir: current.dir === "asc" ? "desc" : "asc" };
+    });
+  }
+
+  function sortArrow(key) {
+    if (sort.key !== key) return "";
+    return sort.dir === "asc" ? " ▲" : " ▼";
+  }
+
+  // ----- Trend sparkline data --------------------------------------------
+  function getTrendPositions(item) {
+    const idx = MONTHS.indexOf(month);
+    if (idx < 0) return [];
+    const windowMonths = MONTHS.slice(Math.max(0, idx - 5), idx + 1);
+    return windowMonths.map((m) => {
+      const found = getCombined(ct, m).find(
+        (entry) => entry.title === item.title && entry.artist === item.artist
+      );
+      return found && typeof found.rank === "number" ? found.rank : null;
+    });
+  }
+
+  // ----- CSV / report export ---------------------------------------------
+  function exportCsv() {
+    const header = [
+      "Rank",
+      isSingles ? "Song" : "Album",
+      "Artist",
+      "Country",
+      "Country Code",
+      "Last Month",
+      "Peak",
+      "Months on Chart",
+      "Platforms",
+    ];
+    const escape = (value) => {
+      const s = String(value ?? "");
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const rows = shown.map((item) => {
+      const profile = getReleaseProfile(item);
+      const country = getArtistCountry(item);
+      return [
+        item.rank,
+        item.title,
+        item.artist,
+        country.country,
+        country.code,
+        profile.lastMonth,
+        profile.peak,
+        profile.weeks,
+        plat === "Combined" && item.plat ? item.plat : "—",
+      ]
+        .map(escape)
+        .join(",");
+    });
+    const csv = [header.join(","), ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    link.href = url;
+    link.download = `ngoma-top-${shown.length}-${slug(month)}-${slug(platformLabel)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
   function getMobileRowKey(item, index) {
     return `${item.title}-${item.artist}-${item.rank}-${index}`;
   }
@@ -850,35 +992,41 @@ export default function PremiumChartsPage({
           ))}
         </select>
 
-        <div
-          style={{
-            ...styles.platforms,
-            flexWrap: mobile ? "nowrap" : "wrap",
-            overflowX: mobile ? "auto" : "visible",
-            paddingBottom: mobile ? "4px" : 0,
-          }}
-        >
-          {platList.map((item) => {
-            const active = plat === item;
-            const color = item === "Combined" ? GOLD : PC[item] || GOLD;
-            const label = item === "Combined" ? item : PLAT_LABEL[item] || item;
+        <div style={mobile ? { position: "relative", width: "100%", minWidth: 0 } : { display: "contents" }}>
+          <div
+            style={{
+              ...styles.platforms,
+              gap: mobile ? "9px" : "6px",
+              flexWrap: mobile ? "nowrap" : "wrap",
+              overflowX: mobile ? "auto" : "visible",
+              paddingBottom: mobile ? "6px" : 0,
+              paddingRight: mobile ? "30px" : 0,
+            }}
+          >
+            {platList.map((item) => {
+              const active = plat === item;
+              const color = item === "Combined" ? GOLD : PC[item] || GOLD;
+              const label = item === "Combined" ? item : PLAT_LABEL[item] || item;
 
-            return (
-              <button
-                key={item}
-                onClick={() => setPlat(item)}
-                style={{
-                  ...styles.platformButton,
-                  borderColor: active ? color : "rgba(0,0,0,0.12)",
-                  background: active ? `${color}18` : "#ffffff",
-                  color: active ? color : "#6b7280",
-                  flexShrink: 0,
-                }}
-              >
-                {label}
-              </button>
-            );
-          })}
+              return (
+                <button
+                  key={item}
+                  onClick={() => setPlat(item)}
+                  style={{
+                    ...styles.platformButton,
+                    padding: mobile ? "9px 15px" : "8px 12px",
+                    borderColor: active ? color : "rgba(0,0,0,0.12)",
+                    background: active ? `${color}18` : "#ffffff",
+                    color: active ? color : "#6b7280",
+                    flexShrink: 0,
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+          {mobile && <div style={styles.pillFade} />}
         </div>
 
         <div
@@ -899,10 +1047,12 @@ export default function PremiumChartsPage({
                 disabled={disabled}
                 style={{
                   ...styles.viewButton,
-                  background: active ? GOLD : "#ffffff",
-                  color: active ? "#050505" : "#6b7280",
-                  borderColor: active ? GOLD : "#e5e7eb",
-                  opacity: disabled ? 0.45 : 1,
+                  padding: mobile ? "11px 12px" : "8px 12px",
+                  background: active ? "#ffffff" : "#f6f6f3",
+                  color: active ? GOLD : "#4b5563",
+                  border: active ? `2px solid ${GOLD}` : "1px solid #e5e7eb",
+                  fontWeight: active ? 900 : 800,
+                  opacity: disabled ? 0.4 : 1,
                   flex: mobile ? 1 : "initial",
                 }}
               >
@@ -942,28 +1092,70 @@ export default function PremiumChartsPage({
             </div>
           </div>
 
-          <div style={styles.tableRange}>Top {Math.min(vc, data.length)}</div>
+          <div style={styles.tableTopActions}>
+            <button
+              type="button"
+              onClick={exportCsv}
+              style={styles.exportButton}
+              title="Download this chart as a CSV report"
+            >
+              ↓ Export CSV
+            </button>
+            <div style={styles.tableRange}>Top {Math.min(vc, data.length)}</div>
+          </div>
         </div>
 
         {!mobile && (
           <div style={styles.tableHeader}>
-            <span style={styles.headerCell}>#</span>
+            <span
+              style={{ ...styles.headerCell, cursor: "pointer" }}
+              onClick={() => handleSort("rank")}
+              title="Sort by position"
+            >
+              #{sortArrow("rank")}
+            </span>
             <span style={styles.headerCell}>Move</span>
-            <span style={styles.headerEntryCell}>Entry</span>
-            <span style={styles.headerCell}>Last Month</span>
-            <span style={styles.headerCell}>Peak</span>
-            <span style={styles.headerCell}>Weeks</span>
-            <span style={styles.headerCell}>Platforms</span>
+            <span style={styles.headerEntryCell}>{isSingles ? "Song" : "Album"}</span>
+            <span style={styles.headerCell}>Trend</span>
+            <span
+              style={{ ...styles.headerCell, cursor: "pointer" }}
+              onClick={() => handleSort("lastMonth")}
+              title="Sort by last month"
+            >
+              Last Month{sortArrow("lastMonth")}
+            </span>
+            <span
+              style={{ ...styles.headerCell, cursor: "pointer" }}
+              onClick={() => handleSort("peak")}
+              title="Sort by peak position"
+            >
+              Peak{sortArrow("peak")}
+            </span>
+            <span
+              style={{ ...styles.headerCell, cursor: "pointer" }}
+              onClick={() => handleSort("months")}
+              title="Sort by months on chart"
+            >
+              Months{sortArrow("months")}
+            </span>
+            <span
+              style={{ ...styles.headerCell, cursor: "pointer" }}
+              onClick={() => handleSort("platforms")}
+              title="Sort by platform coverage"
+            >
+              Platforms{sortArrow("platforms")}
+            </span>
           </div>
         )}
 
         <div style={styles.rows}>
-          {display.map((item, index) => {
+          {shown.map((item, index) => {
             const profile = getReleaseProfile(item);
             const move = movement(item);
             const moveStyle = movementStyle(item);
             const medalColor = item.rank <= 3 ? MEDALS[item.rank - 1] : "#050505";
             const artistCountry = getArtistCountry(item);
+            const badge = regionBadge(artistCountry.code);
 
             if (mobile) {
               const rowKey = getMobileRowKey(item, index);
@@ -985,15 +1177,34 @@ export default function PremiumChartsPage({
                     event.currentTarget.style.boxShadow = "none";
                   }}
                 >
-                  <div style={styles.mobileCompactRow}>
+                  <div
+                    style={{ ...styles.mobileCompactRow, cursor: "pointer" }}
+                    onClick={() => toggleMobileRow(rowKey)}
+                    role="button"
+                    aria-expanded={expanded}
+                  >
                     <div style={{ ...styles.mobileRank, color: medalColor }}>{item.rank}</div>
 
                     <div style={styles.mobileEntryMain}>
-                      <button onClick={() => openRelease(item)} style={styles.titleButton}>
+                      <button
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openRelease(item);
+                        }}
+                        className="ngoma-title-link"
+                        style={styles.titleButton}
+                      >
                         {item.title}
                       </button>
 
-                      <button onClick={() => openArtist(item.artist)} style={styles.artistButton}>
+                      <button
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openArtist(item.artist);
+                        }}
+                        className="ngoma-artist-link"
+                        style={styles.artistButton}
+                      >
                         {item.artist}
                       </button>
                     </div>
@@ -1012,7 +1223,10 @@ export default function PremiumChartsPage({
 
                       <button
                         type="button"
-                        onClick={() => toggleMobileRow(rowKey)}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          toggleMobileRow(rowKey);
+                        }}
                         style={styles.mobileDetailsToggle}
                         aria-label={expanded ? "Hide chart details" : "Show chart details"}
                         aria-expanded={expanded}
@@ -1031,12 +1245,15 @@ export default function PremiumChartsPage({
                             width: "38px",
                             height: "38px",
                             borderRadius: "12px",
+                            background: `linear-gradient(135deg, ${badge.from} 0%, ${badge.to} 100%)`,
                           }}
                           title={`${artistCountry.country}${
                             artistCountry.code ? ` (${artistCountry.code})` : ""
                           }`}
                         >
-                          <span style={styles.flagText}>{artistCountry.code || "—"}</span>
+                          <span style={{ ...styles.flagText, color: badge.text }}>
+                            {artistCountry.code || "—"}
+                          </span>
                         </div>
 
                         <div>
@@ -1048,10 +1265,15 @@ export default function PremiumChartsPage({
                         </div>
                       </div>
 
+                      <div style={styles.mobileTrendRow}>
+                        <span style={styles.mobileDetailLabel}>6-Month Trend</span>
+                        <Sparkline positions={getTrendPositions(item)} width={84} height={26} />
+                      </div>
+
                       <div style={styles.mobileStatsRow}>
                         <MobileStat label="L.M" value={profile.lastMonth} />
                         <MobileStat label="Peak" value={profile.peak} />
-                        <MobileStat label="Wks" value={profile.weeks} />
+                        <MobileStat label="Mos" value={profile.weeks} />
                         <MobileStat
                           label="Plat."
                           value={plat === "Combined" && item.plat ? item.plat : "—"}
@@ -1079,13 +1301,23 @@ export default function PremiumChartsPage({
                   event.currentTarget.style.boxShadow = "none";
                 }}
               >
-                <div style={{ ...styles.rank, color: medalColor }}>{item.rank}</div>
+                <div
+                  style={{
+                    ...styles.rank,
+                    color: medalColor,
+                    justifySelf: "center",
+                    textAlign: "center",
+                  }}
+                >
+                  {item.rank}
+                </div>
 
                 <div
                   style={{
                     ...styles.moveBadge,
                     color: moveStyle.color,
                     background: moveStyle.background,
+                    justifySelf: "center",
                   }}
                 >
                   {move.label || "—"}
@@ -1093,23 +1325,40 @@ export default function PremiumChartsPage({
 
                 <div style={styles.entryCell}>
                   <div
-                    style={styles.flagBox}
+                    style={{
+                      ...styles.flagBox,
+                      background: `linear-gradient(135deg, ${badge.from} 0%, ${badge.to} 100%)`,
+                    }}
                     title={`${artistCountry.country}${
                       artistCountry.code ? ` (${artistCountry.code})` : ""
                     }`}
                   >
-                    <span style={styles.flagText}>{artistCountry.code || "—"}</span>
+                    <span style={{ ...styles.flagText, color: badge.text }}>
+                      {artistCountry.code || "—"}
+                    </span>
                   </div>
 
                   <div style={styles.entryText}>
-                    <button onClick={() => openRelease(item)} style={styles.titleButton}>
+                    <button
+                      onClick={() => openRelease(item)}
+                      className="ngoma-title-link"
+                      style={styles.titleButton}
+                    >
                       {item.title}
                     </button>
 
-                    <button onClick={() => openArtist(item.artist)} style={styles.artistButton}>
+                    <button
+                      onClick={() => openArtist(item.artist)}
+                      className="ngoma-artist-link"
+                      style={styles.artistButton}
+                    >
                       {item.artist}
                     </button>
                   </div>
+                </div>
+
+                <div style={styles.trendCell}>
+                  <Sparkline positions={getTrendPositions(item)} />
                 </div>
 
                 <div style={styles.metaNumber}>{profile.lastMonth}</div>
@@ -1125,7 +1374,7 @@ export default function PremiumChartsPage({
         </div>
 
         <div style={styles.tableFooter}>
-          Showing {display.length} of {data.length} · {month} · {platformLabel}
+          Showing {shown.length} of {data.length} · {month} · {platformLabel}
         </div>
       </section>
     </div>
@@ -1139,6 +1388,67 @@ function MiniBars({ GOLD }) {
       <rect x="5.5" y="10" width="3.5" height="14" fill="#050505" rx="0.5" />
       <rect x="11" y="5" width="3.5" height="19" fill={GOLD} rx="0.5" />
       <rect x="16.5" y="0" width="3.5" height="24" fill="#050505" rx="0.5" />
+    </svg>
+  );
+}
+
+// Inline mini-chart of a release's last few months of chart positions.
+// Lower rank = better, so the line is inverted (a climb means the rank number
+// fell). Colour reflects the net trajectory across the window.
+function Sparkline({ positions, width = 62, height = 22 }) {
+  const present = positions.map((r, i) => ({ i, r })).filter((p) => p.r != null);
+
+  if (present.length < 2) {
+    return (
+      <svg width={width} height={height} aria-hidden="true">
+        <line
+          x1="3"
+          y1={height / 2}
+          x2={width - 3}
+          y2={height / 2}
+          stroke="#d8d8d2"
+          strokeWidth="1.5"
+          strokeDasharray="2 3"
+          strokeLinecap="round"
+        />
+      </svg>
+    );
+  }
+
+  const pad = 3;
+  const ranks = present.map((p) => p.r);
+  const minR = Math.min(...ranks);
+  const maxR = Math.max(...ranks);
+  const span = Math.max(1, maxR - minR);
+  const n = positions.length;
+  const xAt = (i) => pad + (i / (n - 1)) * (width - 2 * pad);
+  // best rank (minR) -> top of the box; worst rank (maxR) -> bottom
+  const yAt = (r) => pad + ((r - minR) / span) * (height - 2 * pad);
+
+  const first = present[0].r;
+  const last = present[present.length - 1].r;
+  const color = last < first ? "#2DB04A" : last > first ? "#E53935" : "#9aa0a6";
+
+  const line = present.map((p) => `${xAt(p.i)},${yAt(p.r)}`).join(" ");
+  const end = present[present.length - 1];
+
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox={`0 0 ${width} ${height}`}
+      aria-hidden="true"
+      style={{ display: "block" }}
+    >
+      <polyline
+        points={line}
+        fill="none"
+        stroke={color}
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+      <circle cx={xAt(end.i)} cy={yAt(end.r)} r="2.4" fill={color} />
     </svg>
   );
 }
@@ -1179,7 +1489,7 @@ const styles = {
     fontWeight: 800,
     letterSpacing: "2.6px",
     textTransform: "uppercase",
-    color: "#777777",
+    color: "#555555",
   },
 
   eyebrowDivider: {
@@ -1315,11 +1625,11 @@ const styles = {
   },
 
   statLabel: {
-    fontSize: "10px",
-    letterSpacing: "2.4px",
+    fontSize: "10.5px",
+    letterSpacing: "1.6px",
     textTransform: "uppercase",
-    color: "#777777",
-    fontWeight: 800,
+    color: "#555555",
+    fontWeight: 900,
   },
 
   statValue: {
@@ -1441,8 +1751,8 @@ const styles = {
   tableSub: {
     marginTop: "6px",
     fontSize: "12px",
-    color: "#777777",
-    fontWeight: 700,
+    color: "#555555",
+    fontWeight: 800,
     letterSpacing: "1.2px",
     textTransform: "uppercase",
   },
@@ -1460,16 +1770,16 @@ const styles = {
 
   tableHeader: {
     display: "grid",
-    gridTemplateColumns: "64px 78px minmax(0, 1fr) 96px 70px 76px 96px",
-    gap: "12px",
+    gridTemplateColumns: "54px 84px minmax(0, 1fr) 92px 84px 60px 70px 86px",
+    gap: "14px",
     alignItems: "center",
     justifyItems: "center",
-    padding: "14px 22px",
-    background: "#f7f7f7",
-    color: "#777777",
-    fontSize: "10px",
+    padding: "14px 24px",
+    background: "#f4f3ef",
+    color: "#555555",
+    fontSize: "10.5px",
     fontWeight: 900,
-    letterSpacing: "1.7px",
+    letterSpacing: "1.6px",
     textTransform: "uppercase",
     borderBottom: "1px solid rgba(0,0,0,0.08)",
   },
@@ -1495,10 +1805,10 @@ const styles = {
 
   row: {
     display: "grid",
-    gridTemplateColumns: "64px 78px minmax(0, 1fr) 96px 70px 76px 96px",
-    gap: "12px",
+    gridTemplateColumns: "54px 84px minmax(0, 1fr) 92px 84px 60px 70px 86px",
+    gap: "14px",
     alignItems: "center",
-    padding: "16px 22px",
+    padding: "16px 24px",
     borderBottom: "1px solid rgba(0,0,0,0.08)",
     background: "#ffffff",
     color: "#050505",
@@ -1740,5 +2050,56 @@ const styles = {
     fontSize: "12px",
     fontWeight: 700,
     background: "#ffffff",
+  },
+
+  trendCell: {
+    justifySelf: "center",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+  },
+
+  tableTopActions: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    flexShrink: 0,
+  },
+
+  exportButton: {
+    border: "1px solid rgba(0,0,0,0.16)",
+    borderRadius: "999px",
+    background: "#ffffff",
+    color: "#3a3a3a",
+    padding: "9px 16px",
+    fontSize: "12px",
+    fontWeight: 900,
+    letterSpacing: "0.6px",
+    textTransform: "uppercase",
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+  },
+
+  pillFade: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: "6px",
+    width: "30px",
+    pointerEvents: "none",
+    background: "linear-gradient(90deg, rgba(255,255,255,0) 0%, #ffffff 80%)",
+  },
+
+  mobileTrendRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: "10px",
+    marginBottom: "12px",
+    padding: "8px 10px",
+    borderRadius: "12px",
+    background: "#ffffff",
+    border: "1px solid rgba(0,0,0,0.06)",
   },
 };

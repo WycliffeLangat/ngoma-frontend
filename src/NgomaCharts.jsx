@@ -160,6 +160,7 @@ export default function NgomaCharts(){
   const [hr,setHr]=useState(null);
   const [srch,setSrch]=useState("");
   const [sOpen,setSOpen]=useState(false);
+  const [mNav,setMNav]=useState(false);
   const [selA,setSelA]=useState(null);
   const [selR,setSelR]=useState(null);
   const [selNews,setSelNews]=useState(null);
@@ -314,7 +315,9 @@ const top = data[0];
     setAiL(false);
   };
 
-  const navTo=p=>{setPage(p);setSelA(null);setSelR(null);setSelNews(null);};
+  const navTo=p=>{setPage(p);setSelA(null);setSelR(null);setSelNews(null);setMNav(false);};
+  const navItems=["charts","trending","artists","analytics","records","year-end","certifications","news","about"];
+  const navLabel=t=>t==="year-end"?"Year End":t;
   const card=(extra={})=>({background:"#FFF",borderRadius:"14px",border:"1px solid #EFEDE7",padding:"22px",boxShadow:"0 1px 3px rgba(0,0,0,0.02),0 8px 24px rgba(0,0,0,0.02)",...extra});
   const secLbl=(c=GOLD)=>({fontFamily:F,fontSize:"9.5px",fontWeight:700,letterSpacing:"2.5px",textTransform:"uppercase",color:c,marginBottom:"14px",display:"flex",alignItems:"center",gap:"7px"});
   const SecMark=({c=GOLD})=><span style={{display:"inline-block",width:"14px",height:"2px",background:c,borderRadius:"1px"}}/>;
@@ -501,18 +504,20 @@ const top = data[0];
         ::-webkit-scrollbar{height:5px;width:5px;}
         ::-webkit-scrollbar-thumb{background:#D8D2C4;border-radius:3px;}
         * { -webkit-tap-highlight-color: transparent; }
+        .ngoma-title-link:hover{ text-decoration: underline; text-underline-offset: 2px; }
+        .ngoma-artist-link:hover{ color:#B8860B !important; text-decoration: underline; text-underline-offset: 2px; }
         @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
       `}</style>
 
       {/* HEADER */}
       <header style={{background:"#FFF",borderBottom:"3px solid #1A1A1A",position:"sticky",top:0,zIndex:50}}>
-        <div style={{display:"flex",justifyContent:"space-between",padding:"5px 28px",background:"#1A1A1A",fontFamily:F,fontSize:"9.5px",letterSpacing:"2px",textTransform:"uppercase",color:"#FFF"}}>
-          <span>Kenya's Official Music Charts</span>
-          <div style={{display:"flex",gap:"16px",alignItems:"center"}}>
-            <span style={{color:"rgba(255,255,255,0.4)",fontSize:"9.5px",letterSpacing:"1px",fontFamily:"inherit"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",padding:isMobile?"6px 14px":"5px 28px",background:"#1A1A1A",fontFamily:F,fontSize:isMobile?"8px":"9.5px",letterSpacing:isMobile?"1px":"2px",textTransform:"uppercase",color:"#FFF"}}>
+          <span style={{whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",minWidth:0}}>Kenya's Official Music Charts</span>
+          <div style={{display:"flex",gap:isMobile?"10px":"16px",alignItems:"center",flexShrink:0}}>
+            <span style={{color:"rgba(255,255,255,0.45)",fontSize:isMobile?"8px":"9.5px",letterSpacing:isMobile?"0.5px":"1px",fontFamily:"inherit",whiteSpace:"nowrap"}}>
               {new Date().toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short",year:"numeric"})}
             </span>
-            <span style={{color:"rgba(255,255,255,0.4)",cursor:"pointer"}} onClick={()=>setSOpen(true)}>⌕ Search</span>
+            <span style={{color:"rgba(255,255,255,0.45)",cursor:"pointer",whiteSpace:"nowrap"}} onClick={()=>setSOpen(true)}>⌕{isMobile?"":" Search"}</span>
           </div>
         </div>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:isMobile?"14px 16px":"18px 28px 22px",columnGap:isMobile?"16px":"60px",rowGap:"16px",flexWrap:"wrap"}}>
@@ -552,13 +557,36 @@ const top = data[0];
               </span>
             </div>
           </div>
-          <nav style={{display:"flex",gap:isMobile?"6px":"22px",fontFamily:F,fontSize:isMobile?"10px":"11px",fontWeight:600,letterSpacing:isMobile?"0.5px":"1.5px",textTransform:"uppercase",alignItems:"center",flexShrink:0,overflowX:isMobile?"auto":"visible",maxWidth:isMobile?"100%":"none",width:isMobile?"100%":"auto",WebkitOverflowScrolling:"touch",paddingBottom:isMobile?"2px":0}}>
-            {["charts","trending","artists","analytics","records","year-end","certifications","news","about"].map(t=>(
-              <span key={t} onClick={()=>navTo(t)} style={{color:page===t?"#1A1A1A":"#AAA",cursor:"pointer",whiteSpace:"nowrap",padding:"6px 12px",borderRadius:"20px",background:page===t?"linear-gradient(135deg,#FAF5EA,#F5EAD2)":"transparent",fontWeight:page===t?700:600,transition:"all 0.15s",border:page===t?"1px solid "+GOLD+"33":"1px solid transparent"}}
-                onMouseEnter={e=>{if(page!==t)e.currentTarget.style.color="#1A1A1A";}} onMouseLeave={e=>{if(page!==t)e.currentTarget.style.color="#AAA";}}>{t==="year-end"?"Year End":t}</span>
-            ))}
-            <span onClick={()=>setSOpen(true)} style={{cursor:"pointer",color:"#BBB",fontSize:"18px"}}>⌕</span>
-          </nav>
+          {isMobile ? (
+            <>
+              <button
+                onClick={()=>setMNav(o=>!o)}
+                aria-label="Toggle menu"
+                aria-expanded={mNav}
+                style={{marginLeft:"auto",display:"flex",flexDirection:"column",justifyContent:"center",gap:"4px",width:"42px",height:"38px",border:"1px solid #E5E0D4",borderRadius:"11px",background:"#FFF",cursor:"pointer",padding:"0 10px",flexShrink:0}}
+              >
+                <span style={{display:"block",height:"2px",background:"#1A1A1A",borderRadius:"2px",transition:"all .2s",transform:mNav?"translateY(6px) rotate(45deg)":"none"}}/>
+                <span style={{display:"block",height:"2px",background:"#1A1A1A",borderRadius:"2px",opacity:mNav?0:1,transition:"opacity .2s"}}/>
+                <span style={{display:"block",height:"2px",background:"#1A1A1A",borderRadius:"2px",transition:"all .2s",transform:mNav?"translateY(-6px) rotate(-45deg)":"none"}}/>
+              </button>
+              {mNav&&(
+                <div style={{width:"100%",display:"flex",flexDirection:"column",gap:"2px",marginTop:"8px",borderTop:"1px solid #EEE",paddingTop:"10px"}}>
+                  {navItems.map(t=>(
+                    <span key={t} onClick={()=>navTo(t)} style={{cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"13px",fontWeight:page===t?800:600,letterSpacing:"1px",textTransform:"uppercase",color:page===t?"#1A1A1A":"#555",background:page===t?"linear-gradient(135deg,#FAF5EA,#F5EAD2)":"transparent",border:page===t?"1px solid "+GOLD+"33":"1px solid transparent"}}>{navLabel(t)}</span>
+                  ))}
+                  <span onClick={()=>{setMNav(false);setSOpen(true);}} style={{cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"13px",fontWeight:600,letterSpacing:"1px",textTransform:"uppercase",color:"#555"}}>⌕ Search</span>
+                </div>
+              )}
+            </>
+          ) : (
+            <nav style={{display:"flex",gap:"22px",fontFamily:F,fontSize:"11px",fontWeight:700,letterSpacing:"1.5px",textTransform:"uppercase",alignItems:"center",flexShrink:0}}>
+              {navItems.map(t=>(
+                <span key={t} onClick={()=>navTo(t)} style={{color:page===t?"#1A1A1A":"#6B6B6B",cursor:"pointer",whiteSpace:"nowrap",padding:"6px 12px",borderRadius:"20px",background:page===t?"linear-gradient(135deg,#FAF5EA,#F5EAD2)":"transparent",fontWeight:page===t?800:700,transition:"all 0.15s",border:page===t?"1px solid "+GOLD+"33":"1px solid transparent"}}
+                  onMouseEnter={e=>{if(page!==t)e.currentTarget.style.color="#1A1A1A";}} onMouseLeave={e=>{if(page!==t)e.currentTarget.style.color="#6B6B6B";}}>{navLabel(t)}</span>
+              ))}
+              <span onClick={()=>setSOpen(true)} style={{cursor:"pointer",color:"#888",fontSize:"18px"}}>⌕</span>
+            </nav>
+          )}
         </div>
       </header>
 
@@ -1468,7 +1496,7 @@ liveStatus={liveStatus}
             textTransform: "uppercase",
           }}
         >
-          <span>© {new Date().getFullYear()} Ngoma Media</span>
+          <span>© 2026 Ngoma Charts · A Ngoma Media platform</span>
         </div>
       </footer>
     </div>
