@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import {
   BarChart,
   Bar,
+  LabelList,
   XAxis,
   YAxis,
   Tooltip,
@@ -291,6 +292,17 @@ const top = data[0];
 
   // Artists from FULL Top-50 data — use pre-computed
   const artists=isSingles?ANL.sArtists:ANL.aArtists;
+  const artistInitials=(name="")=>String(name).trim().split(/\s+/).slice(0,2).map(part=>part[0]||"").join("").toUpperCase()||"NC";
+  const artistTrendFor=(artist={})=>{
+    const latest=MONTHS[MONTHS.length-1];
+    const previous=MONTHS[MONTHS.length-2];
+    const latestPts=Number(artist.mp?.[latest]||0);
+    const previousPts=Number(artist.mp?.[previous]||0);
+    const delta=latestPts-previousPts;
+    if(delta>0) return {symbol:"↑",color:"#2DB04A",label:`Up ${delta.toLocaleString()} pts`};
+    if(delta<0) return {symbol:"↓",color:"#C0392B",label:`Down ${Math.abs(delta).toLocaleString()} pts`};
+    return {symbol:"–",color:"#9AA19A",label:"No change"};
+  };
 
   // Movement data for the current month
   const mvData=ANL.movements[month]||{new:0,ret:0,debut:0,risers:[],fallers:[]};
@@ -885,7 +897,7 @@ const top = data[0];
           .anl-grid-4{grid-template-columns:1fr 1fr !important;}
           .podium-grid{grid-template-columns:1fr !important;}
           .race-card{min-width:100% !important;}
-          .ngoma-artist-row{grid-template-columns:32px minmax(0,1fr) 76px !important;gap:8px !important;padding:12px 4px !important;}
+          .ngoma-artist-row{grid-template-columns:34px 34px minmax(0,1fr) 82px !important;gap:9px !important;padding:13px 8px !important;}
           .ngoma-artist-pts-label{display:none !important;}
           .ngoma-mobile-center-frame{padding-left:clamp(20px,5vw,28px) !important;padding-right:clamp(20px,5vw,28px) !important;}
         }
@@ -1162,55 +1174,77 @@ liveStatus={liveStatus}
       {/* ARTISTS PAGE */}
       {page==="artists"&&!selA&&!selR&&(
         <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:"20px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
-            <div><h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0}}>Top Artists</h2><p style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",margin:"4px 0 0",lineHeight:1.55}}>Computed from full Top 50 across all months · Click any artist for full profile</p></div>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:isMobile?"18px":"22px",gap:isMobile?"14px":"20px",flexDirection:isMobile?"column":"row"}}>
+            <div>
+              <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0}}>Top Artists</h2>
+              <p style={{fontFamily:F,fontSize:isMobile?"12.5px":"11.5px",color:"#59645D",margin:"5px 0 0",lineHeight:1.6}}>Computed from full Top 50 across all months · Click any artist for full profile</p>
+            </div>
             <Tog sm/>
           </div>
           {/* Comparison */}
-          <div style={{...card(),marginBottom:"20px",background:"#FAFAF8"}}>
-            <div style={secLbl()}><SecMark/>Artist Comparison</div>
-            <div style={{display:"flex",gap:"12px",alignItems:"center",marginBottom:"14px",flexWrap:"wrap"}}>
-              <select value={cmpA1} onChange={e=>setCmpA1(e.target.value)} style={{flex:1,minWidth:isMobile?0:"160px",padding:"8px 10px",border:"1.5px solid #DDD",borderRadius:"7px",background:"#FFF",fontSize:"11px",fontFamily:F,fontWeight:600,cursor:"pointer",outline:"none"}}>
+          <div style={{...card(),padding:isMobile?"18px":"22px",marginBottom:"22px",background:"#FAFAF8"}}>
+            <div style={{...secLbl(),marginBottom:isMobile?"14px":"16px"}}><SecMark/>Artist Comparison</div>
+            <div style={{display:"flex",gap:isMobile?"8px":"12px",alignItems:"center",marginBottom:"16px",flexWrap:isMobile?"nowrap":"wrap"}}>
+              <select value={cmpA1} onChange={e=>setCmpA1(e.target.value)} style={{flex:1,minWidth:0,padding:isMobile?"10px 9px":"9px 12px",border:"1.5px solid #D6D1C7",borderRadius:"8px",background:"#FFF",fontSize:isMobile?"12px":"11.5px",fontFamily:F,fontWeight:700,cursor:"pointer",outline:"none",color:"#1F241F"}}>
                 {allArtistNames.map(n=><option key={n} value={n}>{n}</option>)}
               </select>
-              <span style={{fontFamily:F,fontSize:"12px",color:"#CCC",fontWeight:700}}>vs</span>
-              <select value={cmpA2} onChange={e=>setCmpA2(e.target.value)} style={{flex:1,minWidth:isMobile?0:"160px",padding:"8px 10px",border:"1.5px solid #DDD",borderRadius:"7px",background:"#FFF",fontSize:"11px",fontFamily:F,fontWeight:600,cursor:"pointer",outline:"none"}}>
+              <span style={{fontFamily:F,fontSize:isMobile?"11px":"12px",color:"#7B857D",fontWeight:800,flexShrink:0}}>vs</span>
+              <select value={cmpA2} onChange={e=>setCmpA2(e.target.value)} style={{flex:1,minWidth:0,padding:isMobile?"10px 9px":"9px 12px",border:"1.5px solid #D6D1C7",borderRadius:"8px",background:"#FFF",fontSize:isMobile?"12px":"11.5px",fontFamily:F,fontWeight:700,cursor:"pointer",outline:"none",color:"#1F241F"}}>
                 {allArtistNames.map(n=><option key={n} value={n}>{n}</option>)}
               </select>
             </div>
-            <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"12px",marginBottom:"14px"}}>
+            <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:isMobile?"10px":"12px",marginBottom:isMobile?"16px":"18px"}}>
               {[{d:cmp1,c:GOLD},{d:cmp2,c:"#1565C0"}].map(({d,c},i)=>(
-                <div key={i} style={{padding:"14px",background:c+"0D",borderRadius:"8px",borderLeft:"3px solid "+c}}>
-                  <div style={{fontFamily:F,fontSize:TXT.micro,fontWeight:800,letterSpacing:"1.5px",color:c,textTransform:"uppercase",marginBottom:"8px"}}>{d.n}</div>
+                <div key={i} style={{padding:isMobile?"15px":"16px",background:c+"0D",borderRadius:"10px",borderLeft:"3px solid "+c,minHeight:isMobile?"142px":"auto"}}>
+                  <div style={{fontFamily:F,fontSize:isMobile?"10.5px":"10px",fontWeight:900,letterSpacing:"1.5px",color:c,textTransform:"uppercase",marginBottom:"9px"}}>{d.n}</div>
                   {[{l:"Total Points",v:(d.p||0).toLocaleString()},{l:"Peak Rank",v:"#"+(d.pk||"—")},{l:"Months",v:d.m||0},{l:"Titles",v:d.t||0}].map((s,j)=>(
-                    <div key={j} style={{display:"flex",justifyContent:"space-between",fontFamily:F,fontSize:TXT.note,borderBottom:"1px solid "+c+"22",padding:"4px 0"}}>
-                      <span style={{color:"#888"}}>{s.l}</span><span style={{fontWeight:700,color:c}}>{s.v}</span>
+                    <div key={j} style={{display:"flex",justifyContent:"space-between",gap:"12px",fontFamily:F,fontSize:isMobile?"12px":"11.5px",borderBottom:"1px solid "+c+"22",padding:isMobile?"5px 0":"4px 0",lineHeight:1.35}}>
+                      <span style={{color:"#59645D",fontWeight:650}}>{s.l}</span><span style={{fontWeight:850,color:c}}>{s.v}</span>
                     </div>
                   ))}
                 </div>
               ))}
             </div>
-            <ResponsiveContainer width="100%" height={130}>
-              <BarChart data={cmpData}>
-                <XAxis dataKey="month" tick={{fontSize:11,fontFamily:F}}/>
-                <YAxis tick={{fontSize:10,fontFamily:F}} tickFormatter={v=>v.toLocaleString()}/>
-                <Tooltip contentStyle={{fontFamily:F,fontSize:11}}/>
-                <Legend wrapperStyle={{fontFamily:F,fontSize:10}}/>
-                <Bar dataKey={cmpA1} fill={GOLD} radius={[4,4,0,0]}/>
-                <Bar dataKey={cmpA2} fill="#1565C0" radius={[4,4,0,0]}/>
+            <div style={{fontFamily:F,fontSize:isMobile?"10px":"10.5px",fontWeight:800,letterSpacing:"1.3px",textTransform:"uppercase",color:"#59645D",margin:"0 0 8px"}}>Total Points</div>
+            <ResponsiveContainer width="100%" height={isMobile?190:205}>
+              <BarChart data={cmpData} margin={{top:18,right:isMobile?8:12,left:isMobile?2:10,bottom:6}} barCategoryGap={isMobile?"22%":"28%"}>
+                <CartesianGrid vertical={false} stroke="#E8E4DA" strokeDasharray="3 3"/>
+                <XAxis dataKey="month" tick={{fontSize:isMobile?11:11.5,fontFamily:F,fill:"#59645D",fontWeight:700}} tickLine={false}/>
+                <YAxis width={isMobile?40:50} tick={{fontSize:isMobile?10.5:11,fontFamily:F,fill:"#59645D",fontWeight:650}} tickFormatter={v=>v.toLocaleString()} axisLine={false} tickLine={false}/>
+                <Tooltip contentStyle={{fontFamily:F,fontSize:12,borderRadius:8,border:"1px solid #E1DCD0"}} formatter={(v)=>[Number(v||0).toLocaleString()+" pts","Total Points"]}/>
+                <Legend wrapperStyle={{fontFamily:F,fontSize:isMobile?11:11.5,color:"#59645D",paddingTop:8}}/>
+                <Bar dataKey={cmpA1} fill={GOLD} radius={[5,5,0,0]} barSize={isMobile?20:36}>
+                  <LabelList dataKey={cmpA1} position="top" formatter={(v)=>Number(v||0)>0?Number(v).toLocaleString():""} style={{fontFamily:F,fontSize:isMobile?8.5:9.5,fill:"#59645D",fontWeight:700}}/>
+                </Bar>
+                <Bar dataKey={cmpA2} fill="#1565C0" radius={[5,5,0,0]} barSize={isMobile?20:36}>
+                  <LabelList dataKey={cmpA2} position="top" formatter={(v)=>Number(v||0)>0?Number(v).toLocaleString():""} style={{fontFamily:F,fontSize:isMobile?8.5:9.5,fill:"#59645D",fontWeight:700}}/>
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
           {/* Top Artists List - all 30 from full Top 50 */}
-          {artists.slice(0,30).map((a,i)=>(
-            <div key={a.n} className="ngoma-artist-row" onClick={()=>setSelA(a)} style={{display:"grid",gridTemplateColumns:isMobile?"32px minmax(0,1fr) 76px":"40px minmax(0,1fr) 110px 40px",gap:isMobile?"8px":0,padding:isMobile?"12px 4px":"10px 0",borderBottom:"1px solid #F2F2EE",alignItems:"center",cursor:"pointer",minWidth:0}}
+          <div style={{display:"grid",gridTemplateColumns:isMobile?"34px 34px minmax(0,1fr) 82px":"44px 38px minmax(0,1fr) 70px 104px 34px",gap:isMobile?"9px":"12px",alignItems:"center",padding:isMobile?"0 8px 9px":"0 12px 10px",borderBottom:"1px solid #EDEBE4",fontFamily:F,fontSize:isMobile?"9.5px":"10px",fontWeight:900,letterSpacing:"1.6px",textTransform:"uppercase",color:"#8A928B"}}>
+            <div></div>
+            <div></div>
+            <div>Artist</div>
+            {!isMobile&&<div style={{textAlign:"center"}}>Move</div>}
+            <div style={{textAlign:"right"}}>Points</div>
+            {!isMobile&&<div></div>}
+          </div>
+          {artists.slice(0,30).map((a,i)=>{const trend=artistTrendFor(a);return(
+            <div key={a.n} className="ngoma-artist-row" onClick={()=>setSelA(a)} style={{display:"grid",gridTemplateColumns:isMobile?"34px 34px minmax(0,1fr) 82px":"44px 38px minmax(0,1fr) 70px 104px 34px",gap:isMobile?"9px":"12px",padding:isMobile?"13px 8px":"12px",borderBottom:"1px solid #F2F2EE",alignItems:"center",cursor:"pointer",minWidth:0,borderRadius:isMobile?"8px":"0"}}
               onMouseEnter={e=>e.currentTarget.style.background="#FAFAF6"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
-              <div style={{fontSize:i<3?"18px":"13.5px",fontWeight:800,color:i<3?MEDALS[i]:"#D5D5D0",textAlign:"center"}}>{i+1}</div>
-              <div className="ngoma-mobile-text-safe" style={{minWidth:0}}><div style={{fontSize:TXT.rowTitle,fontWeight:800,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",lineHeight:1.15}}>{a.n}</div><div style={{fontSize:TXT.rowMeta,color:"#69716B",fontFamily:F,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",marginTop:"4px"}}>{a.t} titles · Peak #{a.pk} · {a.m} months</div></div>
-              <div style={{textAlign:"right",fontFamily:F,fontSize:TXT.metric,fontWeight:900,color:GOLD,whiteSpace:"nowrap"}}>{a.p.toLocaleString()}</div>
-              {!isMobile&&<div className="ngoma-artist-pts-label" style={{textAlign:"center",fontFamily:F,fontSize:"9px",color:"#CCC"}}>pts</div>}
+              <div style={{fontSize:i<3?"17px":"13.5px",fontWeight:900,color:i<3?MEDALS[i]:"#B8BDB8",textAlign:"center",fontFamily:F}}>{i+1}</div>
+              <div style={{width:isMobile?"28px":"30px",height:isMobile?"28px":"30px",borderRadius:"50%",background:i<3?"linear-gradient(135deg,#FFF5D8,#F3E3B2)":"#F2F1ED",border:"1px solid "+(i<3?GOLD+"33":"#E1DED6"),display:"flex",alignItems:"center",justifyContent:"center",fontFamily:F,fontSize:isMobile?"10px":"10.5px",fontWeight:900,color:i<3?GOLD:"#69716B",letterSpacing:"0.4px",flexShrink:0}}>{artistInitials(a.n)}</div>
+              <div className="ngoma-mobile-text-safe" style={{minWidth:0}}>
+                <div style={{fontSize:isMobile?"15.5px":"15.5px",fontWeight:850,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",lineHeight:1.15}}>{a.n}</div>
+                <div style={{fontSize:isMobile?"12.2px":"12px",color:"#59645D",fontFamily:F,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",marginTop:"4px",lineHeight:1.35}}>{a.t} {a.t===1?"title":"titles"} · Peak: #{a.pk} · {a.m} {a.m===1?"month":"months"}</div>
+              </div>
+              {!isMobile&&<div title={trend.label} style={{textAlign:"center",fontFamily:F,fontSize:"14px",fontWeight:900,color:trend.color}}>{trend.symbol}</div>}
+              <div style={{textAlign:"right",fontFamily:F,fontSize:isMobile?"16px":"16px",fontWeight:900,color:GOLD,whiteSpace:"nowrap"}}>{a.p.toLocaleString()}</div>
+              {!isMobile&&<div className="ngoma-artist-pts-label" style={{textAlign:"left",fontFamily:F,fontSize:"9.5px",color:"#7B857D",fontWeight:700}}>pts</div>}
             </div>
-          ))}
+          )})}
         </div>
       )}
 
