@@ -610,7 +610,7 @@ const top = data[0];
     ctx.fillText("CHARTS", x + 130 + ctx.measureText("NGOMA ").width, y + 62);
     ctx.fillStyle = dark ? "rgba(26,26,26,0.55)" : "rgba(255,255,255,0.55)";
     ctx.font = "700 19px Helvetica, Arial";
-    ctx.fillText("MUSIC RANKING INTELLIGENCE", x + 130, y + 92);
+    ctx.fillText("NGOMA TOP 50 - KENYA", x + 130, y + 92);
   };
 
   const pageSharePayload = () => {
@@ -735,7 +735,7 @@ const top = data[0];
       return {
         eyebrow: "ABOUT",
         title: "About Ngoma Charts",
-        subtitle: "Music ranking intelligence platform",
+        subtitle: "Ngoma Top 50 - Kenya",
         accent: "#B8860B",
         highlights: [
           "Transparent, data-driven monthly music rankings.",
@@ -747,8 +747,8 @@ const top = data[0];
 
     return {
       eyebrow: "NGOMA CHARTS",
-      title: "Music Ranking Intelligence",
-      subtitle: "Music charts intelligence platform",
+      title: "Ngoma Top 50 - Kenya",
+      subtitle: "Ngoma Top 50 - Kenya",
       accent: "#B8860B",
       highlights: ["Charts", "Trending", "Artists", "Analytics", "Records", "Certifications"],
     };
@@ -848,7 +848,7 @@ const top = data[0];
     x.fillText("NGOMA",bx+150,by+70);
     x.fillStyle="#B8860B";x.fillText("CHARTS",bx+150+x.measureText("NGOMA ").width,by+70);
     // eyebrow
-    x.fillStyle="rgba(255,255,255,0.5)";x.font="600 24px Helvetica";x.fillText("MUSIC RANKING INTELLIGENCE",90,by+150);
+    x.fillStyle="rgba(255,255,255,0.5)";x.font="600 24px Helvetica";x.fillText("NGOMA TOP 50 - KENYA",90,by+150);
     // huge rank
     x.fillStyle="#B8860B";x.font="900 340px Helvetica";x.textAlign="left";
     x.fillText("#"+(peak?peak.rank:r.rank||"—"),70,640);
@@ -939,7 +939,7 @@ const top = data[0];
                   whiteSpace:"nowrap",
                 }}
               >
-                Music ranking intelligence
+                Ngoma Top 50 - Kenya
               </span>
             </div>
           </div>
