@@ -147,7 +147,7 @@ const NEWS=[
   {id:4,date:"November 30, 2024",cat:"CHART NEWS",emoji:"🏆",title:"Bensoul Holds #1 For Second Straight Month",excerpt:"Extra Pressure earned 2,624 points in November — a 20% increase over October's 2,188.",body:"Extra Pressure became the first song in Ngoma Charts history to hold #1 for two consecutive months. With 6,680 cumulative points across Q4, it earned Diamond certification."},
   {id:5,date:"November 20, 2024",cat:"ANALYTICS",emoji:"📊",title:"Only Two Songs Achieved 6/6 Platform Coverage",excerpt:"Across Q4 2024, only Extra Pressure and Olodumare charted on all six platforms in the same month.",body:"Different platforms have genuinely different audiences in Kenya. A song that cracks all six must appeal across every listener segment."},
   {id:6,date:"November 5, 2024",cat:"ARTIST SPOTLIGHT",emoji:"⭐",title:"Dyana Cods Dominates 4 Platforms with Set It",excerpt:"Set It topped Apple Music, Boomplay, Spotify and Shazam simultaneously in October — a rare achievement.",body:"With 5,987 cumulative points across Q4, Dyana Cods earned Diamond certification for Set It."},
-  {id:7,date:"October 31, 2024",cat:"ANNOUNCEMENT",emoji:"🚀",title:"Ngoma Charts Launches",excerpt:"Kenya's official multi-platform music ranking system debuts with Bensoul's Extra Pressure as the inaugural #1.",body:"Ngoma Charts uses a 101-point system: #1 earns 100 points, #100 earns 1 point. Albums use a 201-point scale across the Top 200."},
+  {id:7,date:"October 31, 2024",cat:"ANNOUNCEMENT",emoji:"🚀",title:"Ngoma Charts Launches",excerpt:"Ngoma Charts' multi-platform music ranking system debuts with Bensoul's Extra Pressure as the inaugural #1.",body:"Ngoma Charts uses a 101-point system: #1 earns 100 points, #100 earns 1 point. Albums use a 201-point scale across the Top 200."},
   {id:8,date:"October 20, 2024",cat:"ALBUMS",emoji:"🎤",title:"Nyashinski's Album Anchors Albums Chart",excerpt:"To Whom It May Concern holds at #2 on the combined albums chart for October 2024.",body:"With 1,553 combined points, the album proved that Kenyan artists can compete with international heavyweights on home soil."},
 ];
 
@@ -299,7 +299,7 @@ const top = data[0];
     if(!aiQ.trim())return;setAiL(true);setAiA("");
     const sCtx=MONTHS.map(m=>m+" Singles Top 10: "+getCombined("singles",m).slice(0,10).map(e=>"#"+e.rank+" "+e.title+" ("+e.artist+","+e.pts+"pts)").join(", ")).join(" | ");
     const aCtx=MONTHS.map(m=>m+" Albums Top 5: "+getCombined("albums",m).slice(0,5).map(e=>"#"+e.rank+" "+e.title+" ("+e.artist+","+e.pts+"pts)").join(", ")).join(" | ");
-    const sys="You are Ngoma Charts AI analyst for Kenya official music charts (Oct-Dec 2024). Real data: "+sCtx+" "+aCtx+". Be concise, data-driven, and cite specific numbers.";
+    const sys="You are Ngoma Charts AI analyst for multi-platform Kenya music chart data (Oct-Dec 2024). Real data: "+sCtx+" "+aCtx+". Be concise, data-driven, and cite specific numbers.";
     try{
       let text;
       if(API_BASE){
@@ -690,7 +690,7 @@ const top = data[0];
       return {
         eyebrow: "ABOUT",
         title: "About Ngoma Charts",
-        subtitle: "Kenya's music ranking intelligence platform",
+        subtitle: "Music ranking intelligence platform",
         accent: "#B8860B",
         highlights: [
           "Transparent, data-driven monthly music rankings.",
@@ -703,7 +703,7 @@ const top = data[0];
     return {
       eyebrow: "NGOMA CHARTS",
       title: "Music Ranking Intelligence",
-      subtitle: "Kenya's music charts platform",
+      subtitle: "Music charts intelligence platform",
       accent: "#B8860B",
       highlights: ["Charts", "Trending", "Artists", "Analytics", "Records", "Certifications"],
     };
@@ -803,7 +803,7 @@ const top = data[0];
     x.fillText("NGOMA",bx+150,by+70);
     x.fillStyle="#B8860B";x.fillText("CHARTS",bx+150+x.measureText("NGOMA ").width,by+70);
     // eyebrow
-    x.fillStyle="rgba(255,255,255,0.5)";x.font="600 24px Helvetica";x.fillText("KENYA'S OFFICIAL MUSIC CHARTS",90,by+150);
+    x.fillStyle="rgba(255,255,255,0.5)";x.font="600 24px Helvetica";x.fillText("MUSIC RANKING INTELLIGENCE",90,by+150);
     // huge rank
     x.fillStyle="#B8860B";x.font="900 340px Helvetica";x.textAlign="left";
     x.fillText("#"+(peak?peak.rank:r.rank||"—"),70,640);
@@ -854,8 +854,7 @@ const top = data[0];
 
       {/* HEADER */}
       <header style={{background:"#FFF",borderBottom:"3px solid #1A1A1A",position:"sticky",top:0,zIndex:50}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",padding:isMobile?"6px 14px":"5px 28px",background:"#1A1A1A",fontFamily:F,fontSize:isMobile?"8px":"9.5px",letterSpacing:isMobile?"1px":"2px",textTransform:"uppercase",color:"#FFF"}}>
-          <span style={{whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",minWidth:0}}>Kenya's Official Music Charts</span>
+        <div style={{display:"flex",justifyContent:"flex-end",alignItems:"center",gap:"10px",padding:isMobile?"6px 14px":"5px 28px",background:"#1A1A1A",fontFamily:F,fontSize:isMobile?"8px":"9.5px",letterSpacing:isMobile?"1px":"2px",textTransform:"uppercase",color:"#FFF"}}>
           <div style={{display:"flex",gap:isMobile?"10px":"16px",alignItems:"center",flexShrink:0}}>
             <span style={{color:"rgba(255,255,255,0.45)",fontSize:isMobile?"8px":"9.5px",letterSpacing:isMobile?"0.5px":"1px",fontFamily:"inherit",whiteSpace:"nowrap"}}>
               {new Date().toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short",year:"numeric"})}
@@ -1774,7 +1773,7 @@ liveStatus={liveStatus}
       {page==="about"&&(
         <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <h2 style={{fontSize:"26px",fontWeight:800,margin:"0 0 4px"}}>About Ngoma Charts</h2>
-          <p style={{fontFamily:F,fontSize:"12px",color:"#999",margin:"0 0 24px",lineHeight:1.6}}>Kenya's official music ranking system, launched October 2024.</p>
+          <p style={{fontFamily:F,fontSize:"12px",color:"#999",margin:"0 0 24px",lineHeight:1.6}}>Ngoma Charts' multi-platform music ranking system, launched October 2024.</p>
           <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px"}}>
             {[
               {title:"How It Works",text:"Weekly data collected from major platforms. Songs score by position: #1=100 pts, #100=1 pt. Albums use a 201-point scale. Monthly charts aggregate all weekly data. Movement arrows compare each month to the previous month."},

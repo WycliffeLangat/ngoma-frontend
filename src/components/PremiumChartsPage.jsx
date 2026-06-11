@@ -681,18 +681,6 @@ export default function PremiumChartsPage({
     return sort.dir === "asc" ? " ▲" : " ▼";
   }
 
-  // ----- Trend sparkline data --------------------------------------------
-  function getTrendPositions(item) {
-    const idx = MONTHS.indexOf(month);
-    if (idx < 0) return [];
-    const windowMonths = MONTHS.slice(Math.max(0, idx - 5), idx + 1);
-    return windowMonths.map((m) => {
-      const found = getCombined(ct, m).find(
-        (entry) => entry.title === item.title && entry.artist === item.artist
-      );
-      return found && typeof found.rank === "number" ? found.rank : null;
-    });
-  }
 
   // ----- CSV / report export ---------------------------------------------
   function exportCsv() {
@@ -1130,7 +1118,6 @@ export default function PremiumChartsPage({
             </span>
             <span style={styles.headerCell}>Move</span>
             <span style={styles.headerEntryCell}>{isSingles ? "Song" : "Album"}</span>
-            <span style={styles.headerCell}>Trend</span>
             <span
               style={{ ...styles.headerCell, cursor: "pointer" }}
               onClick={() => handleSort("lastMonth")}
@@ -1281,11 +1268,6 @@ export default function PremiumChartsPage({
                         </div>
                       </div>
 
-                      <div style={styles.mobileTrendRow}>
-                        <span style={styles.mobileDetailLabel}>6-Month Trend</span>
-                        <Sparkline positions={getTrendPositions(item)} width={84} height={26} />
-                      </div>
-
                       <div style={styles.mobileStatsRow}>
                         <MobileStat label="L.M" value={profile.lastMonth} />
                         <MobileStat label="Peak" value={profile.peak} />
@@ -1373,10 +1355,6 @@ export default function PremiumChartsPage({
                   </div>
                 </div>
 
-                <div style={styles.trendCell}>
-                  <Sparkline positions={getTrendPositions(item)} />
-                </div>
-
                 <div style={styles.metaNumber}>{profile.lastMonth}</div>
                 <div style={styles.metaNumber}>{profile.peak}</div>
                 <div style={styles.metaNumber}>{profile.weeks}</div>
@@ -1404,67 +1382,6 @@ function MiniBars({ GOLD }) {
       <rect x="5.5" y="10" width="3.5" height="14" fill="#050505" rx="0.5" />
       <rect x="11" y="5" width="3.5" height="19" fill={GOLD} rx="0.5" />
       <rect x="16.5" y="0" width="3.5" height="24" fill="#050505" rx="0.5" />
-    </svg>
-  );
-}
-
-// Inline mini-chart of a release's last few months of chart positions.
-// Lower rank = better, so the line is inverted (a climb means the rank number
-// fell). Colour reflects the net trajectory across the window.
-function Sparkline({ positions, width = 62, height = 22 }) {
-  const present = positions.map((r, i) => ({ i, r })).filter((p) => p.r != null);
-
-  if (present.length < 2) {
-    return (
-      <svg width={width} height={height} aria-hidden="true">
-        <line
-          x1="3"
-          y1={height / 2}
-          x2={width - 3}
-          y2={height / 2}
-          stroke="#d8d8d2"
-          strokeWidth="1.5"
-          strokeDasharray="2 3"
-          strokeLinecap="round"
-        />
-      </svg>
-    );
-  }
-
-  const pad = 3;
-  const ranks = present.map((p) => p.r);
-  const minR = Math.min(...ranks);
-  const maxR = Math.max(...ranks);
-  const span = Math.max(1, maxR - minR);
-  const n = positions.length;
-  const xAt = (i) => pad + (i / (n - 1)) * (width - 2 * pad);
-  // best rank (minR) -> top of the box; worst rank (maxR) -> bottom
-  const yAt = (r) => pad + ((r - minR) / span) * (height - 2 * pad);
-
-  const first = present[0].r;
-  const last = present[present.length - 1].r;
-  const color = last < first ? "#2DB04A" : last > first ? "#E53935" : "#9aa0a6";
-
-  const line = present.map((p) => `${xAt(p.i)},${yAt(p.r)}`).join(" ");
-  const end = present[present.length - 1];
-
-  return (
-    <svg
-      width={width}
-      height={height}
-      viewBox={`0 0 ${width} ${height}`}
-      aria-hidden="true"
-      style={{ display: "block" }}
-    >
-      <polyline
-        points={line}
-        fill="none"
-        stroke={color}
-        strokeWidth="1.8"
-        strokeLinejoin="round"
-        strokeLinecap="round"
-      />
-      <circle cx={xAt(end.i)} cy={yAt(end.r)} r="2.4" fill={color} />
     </svg>
   );
 }
@@ -1787,7 +1704,7 @@ const styles = {
 
   tableHeader: {
     display: "grid",
-    gridTemplateColumns: "54px 84px minmax(0, 1fr) 92px 84px 60px 70px 86px",
+    gridTemplateColumns: "54px 84px minmax(0, 1fr) 84px 60px 70px 86px",
     gap: "14px",
     alignItems: "center",
     justifyItems: "center",
@@ -1822,7 +1739,7 @@ const styles = {
 
   row: {
     display: "grid",
-    gridTemplateColumns: "54px 84px minmax(0, 1fr) 92px 84px 60px 70px 86px",
+    gridTemplateColumns: "54px 84px minmax(0, 1fr) 84px 60px 70px 86px",
     gap: "14px",
     alignItems: "center",
     padding: "16px 24px",
@@ -2078,13 +1995,6 @@ const styles = {
     background: "#ffffff",
   },
 
-  trendCell: {
-    justifySelf: "center",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
-  },
 
   tableTopActions: {
     display: "flex",
@@ -2117,16 +2027,4 @@ const styles = {
     background: "linear-gradient(90deg, rgba(255,255,255,0) 0%, #ffffff 80%)",
   },
 
-  mobileTrendRow: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: "10px",
-    minWidth: 0,
-    marginBottom: "12px",
-    padding: "8px 10px",
-    borderRadius: "12px",
-    background: "#ffffff",
-    border: "1px solid rgba(0,0,0,0.06)",
-  },
 };
