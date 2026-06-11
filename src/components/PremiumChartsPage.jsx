@@ -486,7 +486,9 @@ export default function PremiumChartsPage({
   const safeGutter = mobile ? "clamp(20px, 5vw, 28px)" : "28px";
   const [expandedMobileRows, setExpandedMobileRows] = useState({});
 
-  const chartTitle = "Ngoma Top 50";
+  const chartTitle = "NGOMA TOP 50";
+  const chartRegion = "(KENYA)";
+  const chartDisplayTitle = `${chartTitle} ${chartRegion}`;
   const chartLabel = isSingles ? "Singles" : "Albums";
   const platformLabel =
     liveChartMeta?.platform || (plat === "Combined" ? "Combined" : PLAT_LABEL[plat] || plat);
@@ -841,14 +843,30 @@ export default function PremiumChartsPage({
             }}
           >
             <h1
+              aria-label={chartDisplayTitle}
               style={{
                 ...styles.heroTitle,
-                fontSize: mobile ? "42px" : "76px",
-                letterSpacing: mobile ? "-1.5px" : "-3px",
-                margin: mobile ? "-2px 0 54px" : "-10px 0 84px",
+                fontSize: mobile ? "34px" : "72px",
+                letterSpacing: mobile ? "-0.6px" : "-2.6px",
+                lineHeight: mobile ? 0.94 : 0.9,
+                margin: mobile ? "-2px 0 46px" : "-10px 0 78px",
               }}
             >
-              {chartTitle}
+              <span style={{ display: "block" }}>{chartTitle}</span>
+              <span
+                style={{
+                  display: "block",
+                  marginTop: mobile ? "7px" : "10px",
+                  fontFamily: "Inter, Arial, sans-serif",
+                  fontSize: mobile ? "16px" : "24px",
+                  fontWeight: 900,
+                  lineHeight: 1,
+                  letterSpacing: mobile ? "2.4px" : "4px",
+                  color: GOLD,
+                }}
+              >
+                {chartRegion}
+              </span>
             </h1>
 
             <div
@@ -1087,7 +1105,7 @@ export default function PremiumChartsPage({
                 fontSize: mobile ? "21px" : "24px",
               }}
             >
-              {chartTitle}
+              {chartDisplayTitle}
             </div>
             <div style={styles.tableSub}>
               {chartLabel} · {platformLabel} · {month}
