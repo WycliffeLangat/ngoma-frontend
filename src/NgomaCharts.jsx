@@ -381,8 +381,39 @@ const top = data[0];
   };
 
   const Tog=({sm})=>(
-    <div style={{display:"flex",border:"2px solid #1A1A1A",borderRadius:"5px",overflow:"hidden"}}>
-      {["singles","albums"].map(t=><button key={t} onClick={()=>{setCt(t);setPlat("Combined");}} style={{padding:sm?"4px 12px":"5px 16px",background:ct===t?"#1A1A1A":"#FFF",border:"none",color:ct===t?"#FFF":"#1A1A1A",cursor:"pointer",fontSize:"10px",fontWeight:700,letterSpacing:"1.5px",textTransform:"uppercase",fontFamily:F}}>{t}</button>)}
+    <div
+      style={{
+        display:"flex",
+        gap:sm?"5px":"6px",
+        padding:sm?"3px":"4px",
+        borderRadius:"999px",
+        background:"#F2F2F2",
+        border:"1px solid rgba(0,0,0,0.10)",
+        boxSizing:"border-box",
+        overflow:"hidden",
+        maxWidth:"100%",
+      }}
+    >
+      {["singles","albums"].map(t=><button
+        key={t}
+        onClick={()=>{setCt(t);setPlat("Combined");}}
+        style={{
+          padding:sm?"7px 14px":"8px 18px",
+          background:ct===t?GOLD:"#FFF",
+          border:"1px solid "+(ct===t?GOLD:"rgba(0,0,0,0.14)"),
+          borderRadius:"999px",
+          color:"#111",
+          cursor:"pointer",
+          fontSize:sm?"10px":"11px",
+          fontWeight:900,
+          letterSpacing:"1.5px",
+          textTransform:"uppercase",
+          fontFamily:F,
+          lineHeight:1,
+          boxShadow:ct===t?"0 2px 8px rgba(184,134,11,0.20)":"none",
+          transition:"all .16s ease",
+        }}
+      >{t}</button>)}
     </div>
   );
 
@@ -854,15 +885,14 @@ const top = data[0];
 
       {/* HEADER */}
       <header style={{background:"#FFF",borderBottom:"3px solid #1A1A1A",position:"sticky",top:0,zIndex:50}}>
-        <div style={{display:"flex",justifyContent:"flex-end",alignItems:"center",gap:"10px",padding:isMobile?"6px 14px":"5px 28px",background:"#1A1A1A",fontFamily:F,fontSize:isMobile?"8px":"9.5px",letterSpacing:isMobile?"1px":"2px",textTransform:"uppercase",color:"#FFF"}}>
-          <div style={{display:"flex",gap:isMobile?"10px":"16px",alignItems:"center",flexShrink:0}}>
-            <span style={{color:"rgba(255,255,255,0.45)",fontSize:isMobile?"8px":"9.5px",letterSpacing:isMobile?"0.5px":"1px",fontFamily:"inherit",whiteSpace:"nowrap"}}>
+        <div style={{background:"#1A1A1A",color:"#FFF"}}>
+          <div style={{...pageFrame({display:"flex",justifyContent:"flex-end",alignItems:"center",gap:"10px",padding:isMobile?"6px 16px":"5px 28px"}),fontFamily:F,fontSize:isMobile?"8px":"9.5px",letterSpacing:isMobile?"1px":"2px",textTransform:"uppercase"}}>
+            <span style={{color:"rgba(255,255,255,0.48)",fontSize:isMobile?"8px":"9.5px",letterSpacing:isMobile?"0.5px":"1px",fontFamily:"inherit",whiteSpace:"nowrap"}}>
               {new Date().toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short",year:"numeric"})}
             </span>
-            <span style={{color:"rgba(255,255,255,0.45)",cursor:"pointer",whiteSpace:"nowrap"}} onClick={()=>setSOpen(true)}>⌕{isMobile?"":" Search"}</span>
           </div>
         </div>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:isMobile?"14px 16px":"18px 28px 22px",columnGap:isMobile?"16px":"60px",rowGap:"16px",flexWrap:"wrap"}}>
+        <div style={{...pageFrame({display:"flex",justifyContent:"space-between",alignItems:"center",padding:isMobile?"14px 16px":"18px 28px 22px"}),columnGap:isMobile?"16px":"60px",rowGap:"16px",flexWrap:"wrap"}}>
           <div onClick={()=>navTo("charts")} style={{display:"flex",alignItems:"center",gap:"14px",cursor:"pointer"}}>
             <svg width={isMobile?"24":"32"} height={isMobile?"26":"34"} viewBox="0 0 22 24" style={{flexShrink:0}}>
               <rect x="0" y="15" width="3.5" height="9" fill="#1A1A1A" rx="0.5"/>
@@ -926,7 +956,24 @@ const top = data[0];
                 <span key={t} onClick={()=>navTo(t)} style={{color:page===t?"#1A1A1A":"#6B6B6B",cursor:"pointer",whiteSpace:"nowrap",padding:"6px 12px",borderRadius:"20px",background:page===t?"linear-gradient(135deg,#FAF5EA,#F5EAD2)":"transparent",fontWeight:page===t?800:700,transition:"all 0.15s",border:page===t?"1px solid "+GOLD+"33":"1px solid transparent"}}
                   onMouseEnter={e=>{if(page!==t)e.currentTarget.style.color="#1A1A1A";}} onMouseLeave={e=>{if(page!==t)e.currentTarget.style.color="#6B6B6B";}}>{navLabel(t)}</span>
               ))}
-              <span onClick={()=>setSOpen(true)} style={{cursor:"pointer",color:"#888",fontSize:"18px"}}>⌕</span>
+              <span
+                onClick={()=>setSOpen(true)}
+                style={{
+                  cursor:"pointer",
+                  color:"#6B6B6B",
+                  whiteSpace:"nowrap",
+                  padding:"6px 12px",
+                  borderRadius:"20px",
+                  fontFamily:F,
+                  fontSize:"11px",
+                  fontWeight:700,
+                  letterSpacing:"1.5px",
+                  textTransform:"uppercase",
+                  border:"1px solid transparent",
+                }}
+                onMouseEnter={e=>{e.currentTarget.style.color="#1A1A1A";e.currentTarget.style.background="#FAF5EA";}}
+                onMouseLeave={e=>{e.currentTarget.style.color="#6B6B6B";e.currentTarget.style.background="transparent";}}
+              >⌕ Search</span>
             </nav>
           )}
         </div>
@@ -1598,10 +1645,6 @@ liveStatus={liveStatus}
                   <div key={`${p.t}-${p.a}-${p.decRank}`} onClick={()=>openMomentumRelease(p)} style={{padding:isMobile?"10px 12px":"14px",background:"#F5F8FC",borderRadius:"10px",border:"1px solid #1565C022",cursor:"pointer",display:"grid",gridTemplateColumns:"1fr auto",gap:"8px",alignItems:"center"}}
                     onMouseEnter={e=>e.currentTarget.style.background="#EEF5FF"} onMouseLeave={e=>e.currentTarget.style.background="#F5F8FC"}>
                     <div style={{minWidth:0}}>
-                      <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:isMobile?"5px":"8px"}}>
-                        <span style={{background:"#242424",color:"#FFF",padding:"2px 6px",borderRadius:"4px",fontSize:"8px",letterSpacing:"1px",fontWeight:850}}>NEW</span>
-                        <span style={{fontFamily:F,fontSize:isMobile?"10px":"9px",color:"#65707A",fontWeight:700,textTransform:"uppercase"}}>{latestMonthShort} debut</span>
-                      </div>
                       <div style={{fontSize:isMobile?"13px":"13px",fontWeight:750,lineHeight:1.2,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.t}</div>
                       <div style={{fontSize:isMobile?"10.5px":"10px",color:"#69716B",fontFamily:F,marginTop:"3px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.a} · {p.decPts.toLocaleString()} pts</div>
                     </div>
@@ -1848,27 +1891,6 @@ liveStatus={liveStatus}
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d={s.path}/></svg>
               </a>
             ))}
-            <button
-              type="button"
-              onClick={shareCurrentPageCard}
-              style={{
-                marginLeft:isMobile?"0":"8px",
-                padding:"9px 18px",
-                border:"1px solid rgba(255,255,255,0.12)",
-                borderRadius:"999px",
-                background:"#101A2A",
-                color:"#FFF",
-                fontFamily:F,
-                fontSize:"12px",
-                fontWeight:850,
-                cursor:"pointer",
-                boxShadow:"0 8px 20px rgba(0,0,0,0.18)",
-              }}
-              onMouseEnter={e=>e.currentTarget.style.background="#0B1422"}
-              onMouseLeave={e=>e.currentTarget.style.background="#101A2A"}
-            >
-              Share Card
-            </button>
           </div>
         </div>
         <div
