@@ -846,23 +846,24 @@ export default function PremiumChartsPage({
               aria-label={chartDisplayTitle}
               style={{
                 ...styles.heroTitle,
-                fontSize: mobile ? "34px" : "72px",
-                letterSpacing: mobile ? "-0.6px" : "-2.6px",
-                lineHeight: mobile ? 0.94 : 0.9,
+                fontSize: mobile ? "30px" : "72px",
+                letterSpacing: mobile ? "-0.45px" : "-2.6px",
+                lineHeight: mobile ? 0.96 : 0.9,
                 margin: mobile ? "-2px 0 46px" : "-10px 0 78px",
               }}
             >
-              <span style={{ display: "block" }}>{chartTitle}</span>
+              <span style={{ display: "block", whiteSpace: "nowrap" }}>{chartTitle}</span>
               <span
                 style={{
                   display: "block",
                   marginTop: mobile ? "7px" : "10px",
                   fontFamily: "Inter, Arial, sans-serif",
-                  fontSize: mobile ? "16px" : "24px",
+                  fontSize: mobile ? "14px" : "24px",
                   fontWeight: 900,
                   lineHeight: 1,
                   letterSpacing: mobile ? "2.4px" : "4px",
                   color: GOLD,
+                  whiteSpace: "nowrap",
                 }}
               >
                 {chartRegion}
