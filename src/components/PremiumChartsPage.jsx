@@ -480,6 +480,7 @@ export default function PremiumChartsPage({
   liveChartLoading,
   liveChartMeta,
   liveStatus,
+  pageMax = "1240px",
 }) {
   const mobile = useRealMobile(isMobile);
   const [expandedMobileRows, setExpandedMobileRows] = useState({});
@@ -804,11 +805,14 @@ export default function PremiumChartsPage({
   const newEntriesCount = data.filter((item) => movement(item).type === "new").length;
 
   return (
-    <div style={styles.page}>
+    <div style={{...styles.page, padding: mobile ? "0 18px 28px" : "0 28px 34px", boxSizing: "border-box"}}>
       <section
         style={{
           ...styles.hero,
-          padding: mobile ? "28px 16px 24px" : "46px 44px 40px",
+          maxWidth: pageMax,
+          margin: "0 auto",
+          boxSizing: "border-box",
+          padding: mobile ? "28px 18px 24px" : "42px 36px 38px",
           opacity: loaded ? 1 : 0,
           transform: loaded ? "none" : "translateY(8px)",
         }}
@@ -917,6 +921,9 @@ export default function PremiumChartsPage({
       <section
         style={{
           ...styles.statsBand,
+          maxWidth: pageMax,
+          margin: "0 auto",
+          boxSizing: "border-box",
           gridTemplateColumns: mobile ? "repeat(2, minmax(0, 1fr))" : "repeat(4, minmax(0, 1fr))",
         }}
       >
@@ -970,9 +977,12 @@ export default function PremiumChartsPage({
       <section
         style={{
           ...styles.controls,
+          maxWidth: pageMax,
+          margin: "0 auto",
+          boxSizing: "border-box",
           flexDirection: mobile ? "column" : "row",
           alignItems: mobile ? "stretch" : "center",
-          padding: mobile ? "14px 16px" : "16px 28px",
+          padding: mobile ? "16px 18px" : "16px 28px",
         }}
       >
         <ChartToggle />
@@ -1066,7 +1076,10 @@ export default function PremiumChartsPage({
       <section
         style={{
           ...styles.tableShell,
-          margin: mobile ? "16px 12px 28px" : "24px 28px 34px",
+          maxWidth: pageMax,
+          width: "100%",
+          margin: mobile ? "16px auto 28px" : "24px auto 34px",
+          boxSizing: "border-box",
           borderRadius: mobile ? "20px" : "26px",
         }}
       >
@@ -1657,6 +1670,7 @@ const styles = {
     borderBottom: "1px solid #EAEAE6",
     width: "100%",
     maxWidth: "100%",
+    overflow: "hidden",
   },
 
   toggleWrap: {
@@ -1817,7 +1831,7 @@ const styles = {
   },
 
   mobileRow: {
-    padding: "15px 14px",
+    padding: "16px 16px",
     borderBottom: "1px solid rgba(0,0,0,0.08)",
     background: "#ffffff",
     color: "#050505",
@@ -1834,8 +1848,8 @@ const styles = {
 
   mobileCompactRow: {
     display: "grid",
-    gridTemplateColumns: "42px minmax(0, 1fr) auto",
-    gap: "10px",
+    gridTemplateColumns: "38px minmax(0, 1fr) auto",
+    gap: "12px",
     alignItems: "center",
   },
 
@@ -1867,7 +1881,7 @@ const styles = {
 
   mobileExpandedDetails: {
     marginTop: "14px",
-    padding: "14px 12px 12px",
+    padding: "14px 14px 12px",
     border: "1px solid rgba(0,0,0,0.06)",
     borderRadius: "16px",
     background: "#fbfaf7",

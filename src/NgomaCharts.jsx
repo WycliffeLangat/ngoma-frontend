@@ -258,7 +258,10 @@ export default function NgomaCharts(){
   const [vw,setVw]=useState(typeof window!=="undefined"?window.innerWidth:1200);
   useEffect(()=>{const h=()=>setVw(window.innerWidth);window.addEventListener("resize",h);return()=>window.removeEventListener("resize",h);},[]);
   const isMobile=vw<640;
-  const PAD=isMobile?"16px":"28px";
+  const PAD=isMobile?"18px":"28px";
+  const PAGE_MAX="1240px";
+  const pageFrame=(extra={})=>({maxWidth:PAGE_MAX,width:"100%",margin:"0 auto",boxSizing:"border-box",...extra});
+  const responsiveStack=(desktop="row")=>({flexDirection:isMobile?"column":desktop,alignItems:isMobile?"stretch":"center"});
   useEffect(()=>{const h=e=>{if(e.key==="Escape"){setSOpen(false);setSrch("");setShareImg(null);}};window.addEventListener("keydown",h);return()=>window.removeEventListener("keydown",h);},[]);
 
 
@@ -318,7 +321,7 @@ const top = data[0];
   const navTo=p=>{setPage(p);setSelA(null);setSelR(null);setSelNews(null);setMNav(false);};
   const navItems=["charts","trending","artists","analytics","records","year-end","certifications","news","about"];
   const navLabel=t=>t==="year-end"?"Year End":t;
-  const card=(extra={})=>({background:"#FFF",borderRadius:"14px",border:"1px solid #EFEDE7",padding:"22px",boxShadow:"0 1px 3px rgba(0,0,0,0.02),0 8px 24px rgba(0,0,0,0.02)",...extra});
+  const card=(extra={})=>({background:"#FFF",borderRadius:"14px",border:"1px solid #EFEDE7",padding:isMobile?"18px":"22px",boxSizing:"border-box",maxWidth:"100%",boxShadow:"0 1px 3px rgba(0,0,0,0.02),0 8px 24px rgba(0,0,0,0.02)",...extra});
   const secLbl=(c=GOLD)=>({fontFamily:F,fontSize:"9.5px",fontWeight:700,letterSpacing:"2.5px",textTransform:"uppercase",color:c,marginBottom:"14px",display:"flex",alignItems:"center",gap:"7px"});
   const SecMark=({c=GOLD})=><span style={{display:"inline-block",width:"14px",height:"2px",background:c,borderRadius:"1px"}}/>;
 
@@ -492,8 +495,295 @@ const top = data[0];
 
   const allArtistNames=[...new Set(artists.map(a=>a.n))].sort();
 
-  // === SHAREABLE CHART CARD (canvas → PNG download) ===
-  const shareCard=(r)=>{
+  // === SHAREABLE CARDS (current page or selected release → PNG download) ===
+  const safeShareFileName = (value = "ngoma-card") =>
+    String(value)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/gi, "-")
+      .replace(/^-+|-+$/g, "") || "ngoma-card";
+
+  const saveShareImage = (url, fname, title) => {
+    try {
+      const link = document.createElement("a");
+      link.download = fname;
+      link.href = url;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (e) {
+      // Preview remains available even where automatic downloads are blocked.
+    }
+
+    setShareImg({ url, fname, title });
+  };
+
+  const wrapCanvasText = (ctx, text, x, y, maxWidth, lineHeight, maxLines = 2) => {
+    const words = String(text || "").split(" ").filter(Boolean);
+    let line = "";
+    let lines = 0;
+
+    for (let i = 0; i < words.length; i += 1) {
+      const test = line ? `${line} ${words[i]}` : words[i];
+
+      if (ctx.measureText(test).width > maxWidth && line) {
+        lines += 1;
+        if (lines >= maxLines) {
+          const ellipsis = "…";
+          let clipped = line;
+          while (ctx.measureText(clipped + ellipsis).width > maxWidth && clipped.length > 0) {
+            clipped = clipped.slice(0, -1);
+          }
+          ctx.fillText(clipped.trim() + ellipsis, x, y);
+          return y + lineHeight;
+        }
+        ctx.fillText(line, x, y);
+        line = words[i];
+        y += lineHeight;
+      } else {
+        line = test;
+      }
+    }
+
+    if (line) ctx.fillText(line, x, y);
+    return y + lineHeight;
+  };
+
+  const drawShareBrand = (ctx, x, y, dark = false) => {
+    const base = dark ? "#1A1A1A" : "#FFF";
+    const barWidth = 18;
+    const bars = [38, 56, 76, 96];
+
+    bars.forEach((height, index) => {
+      ctx.fillStyle = index === 2 ? "#B8860B" : base;
+      ctx.fillRect(x + index * 28, y + 100 - height, barWidth, height);
+    });
+
+    ctx.fillStyle = base;
+    ctx.font = "800 34px Helvetica, Arial";
+    ctx.fillText("NGOMA", x + 130, y + 62);
+    ctx.fillStyle = "#B8860B";
+    ctx.fillText("CHARTS", x + 130 + ctx.measureText("NGOMA ").width, y + 62);
+    ctx.fillStyle = dark ? "rgba(26,26,26,0.55)" : "rgba(255,255,255,0.55)";
+    ctx.font = "700 19px Helvetica, Arial";
+    ctx.fillText("MUSIC RANKING INTELLIGENCE", x + 130, y + 92);
+  };
+
+  const pageSharePayload = () => {
+    const typeLabel = isSingles ? "Singles" : "Albums";
+    const platformLabel = plat === "Combined" ? "Combined" : (PLAT_LABEL[plat] || plat);
+
+    if (selNews) {
+      return {
+        eyebrow: "CHART NEWS",
+        title: selNews.title,
+        subtitle: `${selNews.cat} · ${selNews.date}`,
+        accent: "#B8860B",
+        highlights: [selNews.excerpt, "Read the full story on Ngoma Charts."].filter(Boolean),
+      };
+    }
+
+    if (selA) {
+      return {
+        eyebrow: "ARTIST PROFILE",
+        title: selA.n,
+        subtitle: `${typeLabel} performance summary`,
+        accent: "#B8860B",
+        highlights: [
+          `${Number(selA.p || 0).toLocaleString()} total points`,
+          `${selA.t} charted ${isSingles ? "songs" : "albums"}`,
+          `Peak position: #${selA.pk}`,
+          `${selA.m} months active on the chart`,
+        ],
+      };
+    }
+
+    if (page === "charts") {
+      return {
+        eyebrow: "CHARTS",
+        title: `${month} ${typeLabel} Chart`,
+        subtitle: `${platformLabel} · Top ${Math.min(vc, data.length)}`,
+        accent: "#B8860B",
+        highlights: display.slice(0, 6).map((item) => `#${item.rank} ${item.title} — ${item.artist} · ${Number(item.pts || 0).toLocaleString()} pts`),
+      };
+    }
+
+    if (page === "trending") {
+      const rising = uniqueByMomentumIdentity((isSingles ? MOM.predictions.singles : MOM.predictions.albums).rising).slice(0, 6);
+      return {
+        eyebrow: "MOMENTUM ENGINE",
+        title: "Trending Up",
+        subtitle: `${typeLabel} rising fastest in ${latestMonth}`,
+        accent: "#2DB04A",
+        highlights: rising.map((item, index) => `#${index + 1} ${item.t} — ${item.a} · +${Number(item.mom || 0).toLocaleString()} momentum`),
+      };
+    }
+
+    if (page === "artists") {
+      return {
+        eyebrow: "ARTISTS",
+        title: `Top ${typeLabel} Artists`,
+        subtitle: "Ranked by total chart points",
+        accent: "#B8860B",
+        highlights: artists.slice(0, 6).map((artist, index) => `#${index + 1} ${artist.n} · ${Number(artist.p || 0).toLocaleString()} pts · peak #${artist.pk}`),
+      };
+    }
+
+    if (page === "analytics") {
+      const topArtist = artists[0];
+      const topRelease = getCombined(ct, month)[0];
+      return {
+        eyebrow: "ANALYTICS",
+        title: `${typeLabel} Chart Analytics`,
+        subtitle: `${month} · ${platformLabel}`,
+        accent: "#1565C0",
+        highlights: [
+          topRelease ? `Current #1: ${topRelease.title} — ${topRelease.artist}` : null,
+          topArtist ? `Top artist: ${topArtist.n} · ${Number(topArtist.p || 0).toLocaleString()} pts` : null,
+          `${monthlyComp.reduce((sum, item) => sum + (item.singles || 0), 0)} total single chart entries tracked across months`,
+          `${monthlyComp.reduce((sum, item) => sum + (item.albums || 0), 0)} total album chart entries tracked across months`,
+        ].filter(Boolean),
+      };
+    }
+
+    if (page === "records") {
+      const records = (isSingles ? MOM.records.singles : MOM.records.albums).slice(0, 6);
+      return {
+        eyebrow: "THE RECORD BOOK",
+        title: `Records & Milestones`,
+        subtitle: `${typeLabel} · Q4 2024`,
+        accent: "#B8860B",
+        highlights: records.map((record) => `${record.label}: ${record.value} · ${record.sub}`),
+      };
+    }
+
+    if (page === "year-end") {
+      return {
+        eyebrow: "ANNUAL CHART",
+        title: `Best of 2024 — ${typeLabel}`,
+        subtitle: "Aggregated points across tracked months",
+        accent: "#B8860B",
+        highlights: yearEnd.slice(0, 6).map((item, index) => `#${index + 1} ${item.t} — ${item.a} · ${Number(item.totalPts || 0).toLocaleString()} pts`),
+      };
+    }
+
+    if (page === "certifications") {
+      return {
+        eyebrow: "CERTIFICATIONS",
+        title: `Ngoma Certifications`,
+        subtitle: `${typeLabel} · cumulative combined chart points`,
+        accent: "#7B1FA2",
+        highlights: certs.slice(0, 6).map((cert) => `${cert.t} — ${cert.a} · ${cert.level.toUpperCase()} · ${Number(cert.totalPts || 0).toLocaleString()} pts`),
+      };
+    }
+
+    if (page === "news") {
+      return {
+        eyebrow: "CHART NEWS",
+        title: "Ngoma Chart News",
+        subtitle: "Analysis and stories from Kenya's music charts",
+        accent: "#B8860B",
+        highlights: NEWS.slice(0, 5).map((item) => `${item.cat}: ${item.title}`),
+      };
+    }
+
+    if (page === "about") {
+      return {
+        eyebrow: "ABOUT",
+        title: "About Ngoma Charts",
+        subtitle: "Kenya's music ranking intelligence platform",
+        accent: "#B8860B",
+        highlights: [
+          "Transparent, data-driven monthly music rankings.",
+          "Tracks songs, albums, artists, certifications and milestones.",
+          "Built around multi-platform chart performance in Kenya.",
+        ],
+      };
+    }
+
+    return {
+      eyebrow: "NGOMA CHARTS",
+      title: "Music Ranking Intelligence",
+      subtitle: "Kenya's music charts platform",
+      accent: "#B8860B",
+      highlights: ["Charts", "Trending", "Artists", "Analytics", "Records", "Certifications"],
+    };
+  };
+
+  const shareCurrentPageCard = () => {
+    if (selR) {
+      shareReleaseCard(selR);
+      return;
+    }
+
+    const payload = pageSharePayload();
+    if (!payload) return;
+
+    const W = 1080;
+    const H = 1080;
+    const cv = document.createElement("canvas");
+    cv.width = W;
+    cv.height = H;
+    const x = cv.getContext("2d");
+    const accent = payload.accent || "#B8860B";
+
+    const bg = x.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0, "#1A1A1A");
+    bg.addColorStop(1, "#2A241D");
+    x.fillStyle = bg;
+    x.fillRect(0, 0, W, H);
+
+    const glow = x.createRadialGradient(W - 120, 120, 0, W - 120, 120, 620);
+    glow.addColorStop(0, accent + "55");
+    glow.addColorStop(1, "rgba(255,255,255,0)");
+    x.fillStyle = glow;
+    x.fillRect(0, 0, W, H);
+
+    drawShareBrand(x, 82, 82, false);
+
+    x.fillStyle = accent;
+    x.font = "800 26px Helvetica, Arial";
+    x.letterSpacing = "2px";
+    x.fillText(String(payload.eyebrow || "NGOMA CHARTS").toUpperCase(), 90, 285);
+
+    x.fillStyle = "#FFF";
+    x.font = "800 76px Georgia, serif";
+    const afterTitleY = wrapCanvasText(x, payload.title, 90, 380, 900, 84, 3);
+
+    x.fillStyle = "rgba(255,255,255,0.62)";
+    x.font = "600 30px Helvetica, Arial";
+    wrapCanvasText(x, payload.subtitle, 90, afterTitleY + 10, 880, 40, 2);
+
+    const boxTop = 590;
+    x.fillStyle = "rgba(255,255,255,0.08)";
+    x.fillRect(80, boxTop, 920, 330);
+    x.fillStyle = accent;
+    x.fillRect(80, boxTop, 8, 330);
+
+    x.font = "700 29px Helvetica, Arial";
+    (payload.highlights || []).slice(0, 6).forEach((line, index) => {
+      const y = boxTop + 62 + index * 45;
+      x.fillStyle = index === 0 ? "#FFF" : "rgba(255,255,255,0.78)";
+      const text = String(line || "");
+      let clipped = text;
+      while (x.measureText(clipped).width > 835 && clipped.length > 0) {
+        clipped = clipped.slice(0, -1);
+      }
+      x.fillText(clipped.length < text.length ? clipped.trim() + "…" : clipped, 120, y);
+    });
+
+    x.fillStyle = "rgba(255,255,255,0.45)";
+    x.font = "700 24px Helvetica, Arial";
+    x.fillText("ngomacharts.com", 90, 990);
+    x.textAlign = "right";
+    x.fillText(new Date().getFullYear().toString(), 990, 990);
+    x.textAlign = "left";
+
+    const url = cv.toDataURL("image/png");
+    const fname = `ngoma-${safeShareFileName(payload.eyebrow)}-${safeShareFileName(payload.title)}.png`;
+    saveShareImage(url, fname, payload.title);
+  };
+
+  const shareReleaseCard = (r) => {
     if(!r)return;
     const peak=MONTHS.reduce((best,m)=>{const e=getCombined(r.type==="album"?"albums":"singles",m).find(x=>x.title===r.title&&x.artist===r.artist);if(e&&(!best||e.rank<best.rank))return{...e,month:m};return best;},null);
     const W=1080,H=1080;
@@ -531,18 +821,8 @@ const top = data[0];
     if(peak){x.fillStyle="rgba(255,255,255,0.5)";x.font="600 30px Helvetica";x.fillText(peak.pts.toLocaleString()+" POINTS · "+peak.plat+" PLATFORMS",90,H-90);}
     // export
     const url=cv.toDataURL("image/png");
-    const fname="ngoma-"+r.title.replace(/[^a-z0-9]/gi,"-").toLowerCase()+".png";
-    // Try a direct download first (works outside sandboxed iframes)
-    let downloaded=false;
-    try{
-      const link=document.createElement("a");
-      link.download=fname;link.href=url;
-      document.body.appendChild(link);link.click();document.body.removeChild(link);
-      downloaded=true;
-    }catch(e){downloaded=false;}
-    // Always show an in-app preview so the user can save manually (right-click / long-press),
-    // which is the reliable path inside sandboxed artifact iframes.
-    setShareImg({url,fname,title:r.title});
+    const fname="ngoma-"+safeShareFileName(r.title)+".png";
+    saveShareImage(url,fname,r.title);
   };
 
   return(
@@ -670,7 +950,7 @@ const top = data[0];
       {/* SEARCH */}
       {sOpen&&(
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",zIndex:100,display:"flex",justifyContent:"center",paddingTop:"70px"}} onClick={()=>{setSOpen(false);setSrch("");}}>
-          <div onClick={e=>e.stopPropagation()} style={{background:"#FFF",borderRadius:"12px",width:"560px",maxHeight:"560px",overflow:"hidden",boxShadow:"0 20px 60px rgba(0,0,0,0.25)"}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:"#FFF",borderRadius:"12px",width:isMobile?"calc(100vw - 32px)":"560px",maxWidth:"100%",maxHeight:"560px",overflow:"hidden",boxShadow:"0 20px 60px rgba(0,0,0,0.25)",boxSizing:"border-box"}}>
             <div style={{padding:"16px 20px",borderBottom:"1px solid #EEE",display:"flex",alignItems:"center",gap:"10px"}}>
               <span style={{fontSize:"18px",color:"#CCC"}}>⌕</span>
               <input value={srch} onChange={e=>setSrch(e.target.value)} placeholder="Search across all songs, albums, artists..." autoFocus style={{flex:1,border:"none",outline:"none",fontSize:"16px",fontFamily:SF}}/>
@@ -691,15 +971,16 @@ const top = data[0];
         </div>
       )}
 
+      <main style={pageFrame({padding:0,overflow:"hidden"})}>
       {/* RELEASE DETAIL */}
       {selR&&(
-        <div style={{padding:PAD,background:"#FFF",minHeight:"60vh"}}>
+        <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <span onClick={()=>setSelR(null)} style={{fontFamily:F,fontSize:"11px",color:GOLD,cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>← Back</span>
           <div style={{marginTop:"20px"}}>
             <div style={{fontFamily:F,fontSize:"10px",letterSpacing:"2px",textTransform:"uppercase",color:GOLD,marginBottom:"6px"}}>{selR.type||"single"}</div>
             <h1 style={{fontSize:"30px",fontWeight:800,margin:"0 0 4px"}}>{selR.title}</h1>
             <p style={{fontSize:"18px",color:"#999",margin:"0 0 16px",fontFamily:F,cursor:"pointer"}} onClick={()=>{const a=artists.find(x=>x.n===selR.artist);if(a){setSelR(null);setSelA(a);}}}>{selR.artist}</p>
-            <button onClick={()=>shareCard(selR)} style={{display:"inline-flex",alignItems:"center",gap:"8px",padding:"9px 18px",background:"#1A1A1A",color:"#FFF",border:"none",borderRadius:"22px",fontFamily:F,fontSize:"12px",fontWeight:700,cursor:"pointer",marginBottom:"24px",letterSpacing:"0.5px"}}
+            <button onClick={()=>shareReleaseCard(selR)} style={{display:"inline-flex",alignItems:"center",gap:"8px",padding:"9px 18px",background:"#1A1A1A",color:"#FFF",border:"none",borderRadius:"22px",fontFamily:F,fontSize:"12px",fontWeight:700,cursor:"pointer",marginBottom:"24px",letterSpacing:"0.5px"}}
               onMouseEnter={e=>e.currentTarget.style.background="#000"} onMouseLeave={e=>e.currentTarget.style.background="#1A1A1A"}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B8860B" strokeWidth="2.5"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
               Share as Image
@@ -727,9 +1008,9 @@ const top = data[0];
 
       {/* ARTIST PROFILE */}
       {selA&&!selR&&(
-        <div style={{padding:PAD,background:"#FFF",minHeight:"60vh"}}>
+        <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <span onClick={()=>setSelA(null)} style={{fontFamily:F,fontSize:"11px",color:GOLD,cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>← Back</span>
-          <div style={{marginTop:"20px",display:"flex",gap:"20px",alignItems:"flex-start"}}>
+          <div style={{marginTop:"20px",display:"flex",gap:"20px",alignItems:isMobile?"stretch":"flex-start",flexDirection:isMobile?"column":"row",minWidth:0}}>
             <div style={{width:"80px",height:"80px",borderRadius:"50%",background:"linear-gradient(135deg,#FAF5EA,#EDE0C0)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"32px",fontWeight:900,color:GOLD,flexShrink:0,border:"2px solid "+GOLD+"22",boxShadow:"0 4px 16px rgba(184,134,11,0.12)"}}>{selA.n[0]}</div>
             <div style={{flex:1}}>
               <h2 style={{margin:0,fontSize:"26px",fontWeight:800}}>{selA.n}</h2>
@@ -806,13 +1087,14 @@ const top = data[0];
     liveChartLoading={liveChartLoading}
 liveChartMeta={liveChartMeta}
 liveStatus={liveStatus}
+    pageMax={PAGE_MAX}
   />
 )}
 
       {/* ARTISTS PAGE */}
       {page==="artists"&&!selA&&!selR&&(
-        <div style={{padding:PAD,background:"#FFF",minHeight:"60vh"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:"20px"}}>
+        <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:"20px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
             <div><h2 style={{fontSize:"24px",fontWeight:800,margin:0}}>Top Artists</h2><p style={{fontFamily:F,fontSize:"11px",color:"#999",margin:"4px 0 0"}}>Computed from full Top 50 across all months · Click any artist for full profile</p></div>
             <Tog sm/>
           </div>
@@ -820,11 +1102,11 @@ liveStatus={liveStatus}
           <div style={{...card(),marginBottom:"20px",background:"#FAFAF8"}}>
             <div style={secLbl()}><SecMark/>Artist Comparison</div>
             <div style={{display:"flex",gap:"12px",alignItems:"center",marginBottom:"14px",flexWrap:"wrap"}}>
-              <select value={cmpA1} onChange={e=>setCmpA1(e.target.value)} style={{flex:1,padding:"7px 10px",border:"1.5px solid #DDD",borderRadius:"5px",background:"#FFF",fontSize:"11px",fontFamily:F,fontWeight:600,cursor:"pointer",outline:"none"}}>
+              <select value={cmpA1} onChange={e=>setCmpA1(e.target.value)} style={{flex:1,minWidth:isMobile?0:"160px",padding:"8px 10px",border:"1.5px solid #DDD",borderRadius:"7px",background:"#FFF",fontSize:"11px",fontFamily:F,fontWeight:600,cursor:"pointer",outline:"none"}}>
                 {allArtistNames.map(n=><option key={n} value={n}>{n}</option>)}
               </select>
               <span style={{fontFamily:F,fontSize:"12px",color:"#CCC",fontWeight:700}}>vs</span>
-              <select value={cmpA2} onChange={e=>setCmpA2(e.target.value)} style={{flex:1,padding:"7px 10px",border:"1.5px solid #DDD",borderRadius:"5px",background:"#FFF",fontSize:"11px",fontFamily:F,fontWeight:600,cursor:"pointer",outline:"none"}}>
+              <select value={cmpA2} onChange={e=>setCmpA2(e.target.value)} style={{flex:1,minWidth:isMobile?0:"160px",padding:"8px 10px",border:"1.5px solid #DDD",borderRadius:"7px",background:"#FFF",fontSize:"11px",fontFamily:F,fontWeight:600,cursor:"pointer",outline:"none"}}>
                 {allArtistNames.map(n=><option key={n} value={n}>{n}</option>)}
               </select>
             </div>
@@ -866,11 +1148,11 @@ liveStatus={liveStatus}
 
       {/* ANALYTICS PAGE */}
       {page==="analytics"&&(
-        <div style={{padding:PAD,background:"transparent",minHeight:"60vh"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:"20px"}}>
+        <div style={{padding:PAD,background:"transparent",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:"20px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
             <div><h2 style={{fontSize:"24px",fontWeight:800,margin:0}}>Analytics</h2><p style={{fontFamily:F,fontSize:"11px",color:"#999",margin:"4px 0 0"}}>All visualizations computed from full Top 50 — across all platforms and months</p></div>
-            <div style={{display:"flex",gap:"8px"}}>
-              <select value={anMonth} onChange={e=>setAnMonth(e.target.value)} style={{padding:"5px 10px",border:"1.5px solid #DDD",borderRadius:"5px",background:"#FFF",fontSize:"10px",fontFamily:F,fontWeight:600,cursor:"pointer",outline:"none"}}>
+            <div style={{display:"flex",gap:"8px",flexWrap:"wrap",width:isMobile?"100%":"auto"}}>
+              <select value={anMonth} onChange={e=>setAnMonth(e.target.value)} style={{padding:"7px 10px",border:"1.5px solid #DDD",borderRadius:"7px",background:"#FFF",fontSize:"10px",fontFamily:F,fontWeight:600,cursor:"pointer",outline:"none",minWidth:0,flex:isMobile?1:"initial"}}>
                 {MONTHS.map(m=><option key={m} value={m}>{m}</option>)}
               </select>
               <Tog sm/>
@@ -1224,7 +1506,7 @@ liveStatus={liveStatus}
 
       {/* TRENDING / PREDICTIONS PAGE */}
       {page==="trending"&&(
-        <div style={{padding:PAD,minHeight:"60vh"}}>
+        <div style={{padding:PAD,minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <div style={{maxWidth:"1240px",margin:"0 auto"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"flex-start":"flex-end",marginBottom:isMobile?"16px":"20px",flexWrap:"wrap",gap:isMobile?"10px":"12px"}}>
               <div style={{minWidth:0,flex:isMobile?"1 1 100%":"1"}}>
@@ -1314,8 +1596,8 @@ liveStatus={liveStatus}
 
       {/* RECORDS & MILESTONES PAGE */}
       {page==="records"&&(
-        <div style={{padding:PAD,minHeight:"60vh"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:"20px",flexWrap:"wrap",gap:"12px"}}>
+        <div style={{padding:PAD,minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:"20px",flexWrap:"wrap",gap:"12px",flexDirection:isMobile?"column":"row"}}>
             <div>
               <div style={{fontFamily:F,fontSize:"10px",letterSpacing:"3px",textTransform:"uppercase",color:GOLD,marginBottom:"6px"}}>THE RECORD BOOK</div>
               <h2 style={{fontSize:"26px",fontWeight:800,margin:0}}>Records & Milestones</h2>
@@ -1339,8 +1621,8 @@ liveStatus={liveStatus}
 
       {/* YEAR-END PAGE */}
       {page==="year-end"&&(
-        <div style={{padding:PAD,background:"#FFF",minHeight:"60vh"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:"20px"}}>
+        <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:"20px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
             <div>
               <div style={{fontFamily:F,fontSize:"10px",letterSpacing:"3px",textTransform:"uppercase",color:GOLD,marginBottom:"6px"}}>ANNUAL CHART</div>
               <h2 style={{fontSize:"28px",fontWeight:800,margin:0}}>Best of 2024</h2>
@@ -1384,7 +1666,7 @@ liveStatus={liveStatus}
 
       {/* CERTIFICATIONS PAGE */}
       {page==="certifications"&&(
-        <div style={{padding:PAD,background:"#FFF",minHeight:"60vh"}}>
+        <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <h2 style={{fontSize:"24px",fontWeight:800,margin:"0 0 4px"}}>Ngoma Certifications</h2>
           <p style={{fontFamily:F,fontSize:"11px",color:"#999",margin:"0 0 24px"}}>Awarded based on cumulative combined chart points across all months · Computed from full Top 50</p>
           <div className="anl-grid-4" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"12px",marginBottom:"28px"}}>
@@ -1427,7 +1709,7 @@ liveStatus={liveStatus}
 
       {/* NEWS PAGE */}
       {page==="news"&&!selNews&&(
-        <div style={{padding:PAD,background:"transparent",minHeight:"60vh"}}>
+        <div style={{padding:PAD,background:"transparent",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <h2 style={{fontSize:"24px",fontWeight:800,margin:"0 0 4px"}}>Chart News</h2>
           <p style={{fontFamily:F,fontSize:"11px",color:"#999",margin:"0 0 24px"}}>Analysis and stories from Kenya's music charts</p>
           <div style={{display:"grid",gap:"14px"}}>
@@ -1453,7 +1735,7 @@ liveStatus={liveStatus}
         </div>
       )}
       {page==="news"&&selNews&&(
-        <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",maxWidth:"680px"}}>
+        <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",maxWidth:"680px",margin:"0 auto",boxSizing:"border-box",overflow:"hidden"}}>
           <span onClick={()=>setSelNews(null)} style={{fontFamily:F,fontSize:"11px",color:GOLD,cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>← All News</span>
           <div style={{marginTop:"20px"}}>
             <div style={{display:"flex",gap:"10px",alignItems:"center",marginBottom:"12px"}}>
@@ -1469,7 +1751,7 @@ liveStatus={liveStatus}
 
       {/* ABOUT PAGE */}
       {page==="about"&&(
-        <div style={{padding:PAD,background:"#FFF",minHeight:"60vh"}}>
+        <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <h2 style={{fontSize:"26px",fontWeight:800,margin:"0 0 4px"}}>About Ngoma Charts</h2>
           <p style={{fontFamily:F,fontSize:"12px",color:"#999",margin:"0 0 24px",lineHeight:1.6}}>Kenya's official music ranking system, launched October 2024.</p>
           <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px"}}>
@@ -1516,9 +1798,11 @@ liveStatus={liveStatus}
         </div>
       )}
 
+      </main>
+
       {/* FOOTER */}
-      <footer style={{padding:"20px 28px",borderTop:"3px solid #1A1A1A",background:"#1A1A1A",fontFamily:F}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:"12px"}}>
+      <footer style={{padding:isMobile?"20px 18px":"20px 28px",borderTop:"3px solid #1A1A1A",background:"#1A1A1A",fontFamily:F,boxSizing:"border-box",overflow:"hidden"}}>
+        <div style={{...pageFrame(),display:"flex",justifyContent:"space-between",alignItems:isMobile?"flex-start":"center",flexWrap:"wrap",gap:"12px",flexDirection:isMobile?"column":"row"}}>
           <div onClick={()=>navTo("charts")} style={{display:"flex",alignItems:"center",gap:"9px",cursor:"pointer"}}>
             <svg width="16" height="18" viewBox="0 0 22 24" style={{flexShrink:0}}>
               <rect x="0" y="15" width="3.5" height="9" fill="#FFF" rx="0.5"/>
@@ -1544,10 +1828,32 @@ liveStatus={liveStatus}
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d={s.path}/></svg>
               </a>
             ))}
+            <button
+              type="button"
+              onClick={shareCurrentPageCard}
+              style={{
+                marginLeft:isMobile?"0":"8px",
+                padding:"9px 18px",
+                border:"1px solid rgba(255,255,255,0.12)",
+                borderRadius:"999px",
+                background:"#101A2A",
+                color:"#FFF",
+                fontFamily:F,
+                fontSize:"12px",
+                fontWeight:850,
+                cursor:"pointer",
+                boxShadow:"0 8px 20px rgba(0,0,0,0.18)",
+              }}
+              onMouseEnter={e=>e.currentTarget.style.background="#0B1422"}
+              onMouseLeave={e=>e.currentTarget.style.background="#101A2A"}
+            >
+              Share Card
+            </button>
           </div>
         </div>
         <div
           style={{
+            ...pageFrame(),
             marginTop: "8px",
             display: "flex",
             flexDirection: isMobile ? "column" : "row",
