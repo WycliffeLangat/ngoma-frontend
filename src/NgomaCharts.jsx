@@ -1557,7 +1557,7 @@ liveStatus={liveStatus}
               <div style={secLbl("#2DB04A")}><SecMark c="#2DB04A"/>Rising Fast — Top Momentum {isSingles?"Singles":"Albums"}</div>
               {uniqueByMomentumIdentity((isSingles?MOM.predictions.singles:MOM.predictions.albums).rising).map((p,i)=>{
                 return(
-                  <div key={`${p.t}-${p.a}-${p.decRank}`} style={{display:"grid",gridTemplateColumns:isMobile?"24px minmax(0,1fr) 86px 12px":"30px minmax(0,1fr) 110px 88px 12px",gap:isMobile?"8px":"12px",alignItems:"center",padding:isMobile?"12px 0":"12px 0",borderBottom:"1px solid #F2F2EE",cursor:"pointer",borderRadius:"8px"}}
+                  <div key={`${p.t}-${p.a}-${p.decRank}`} style={{display:"grid",gridTemplateColumns:isMobile?"24px minmax(0,1fr) minmax(76px,88px)":"30px minmax(0,1fr) 110px 88px 12px",gap:isMobile?"10px":"12px",alignItems:"center",padding:isMobile?"14px 12px":"12px 0",margin:isMobile?"0 2px":"0",borderBottom:"1px solid #F2F2EE",cursor:"pointer",borderRadius:isMobile?"12px":"8px",boxSizing:"border-box",overflow:"hidden"}}
                     onClick={()=>openMomentumRelease(p)}
                     onMouseEnter={e=>e.currentTarget.style.background="#FAFAF6"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
                     <div style={{fontFamily:F,fontSize:isMobile?"13px":"13px",fontWeight:850,color:"#8E948D",textAlign:"center"}}>{i+1}</div>
@@ -1565,12 +1565,25 @@ liveStatus={liveStatus}
                       <div style={{fontSize:isMobile?"13px":"13px",fontWeight:750,lineHeight:1.2,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.t}</div>
                       <div style={{fontSize:isMobile?"10.5px":"10px",color:"#69716B",fontFamily:F,marginTop:"3px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.a} · #{p.decRank} in {latestMonthShort} · {p.decPts?.toLocaleString?.() || "—"} pts</div>
                     </div>
-                    <TrendBars trend={p.trend} compact height={30}/>
-                    <div style={{textAlign:"right",fontFamily:F}}>
-                      <span style={{fontSize:isMobile?"13px":"13px",fontWeight:850,color:"#2DB04A"}}>+{p.mom.toLocaleString()}</span>
-                      {!isMobile&&<div style={{fontSize:"8px",color:"#7B857D",letterSpacing:"1px",textTransform:"uppercase"}}>momentum</div>}
-                    </div>
-                    <div style={{fontFamily:F,fontSize:"16px",fontWeight:800,color:"#B6BDB7",textAlign:"right"}}>›</div>
+                    {isMobile ? (
+                      <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:"8px",minWidth:0,width:"100%",paddingRight:"2px",boxSizing:"border-box"}}>
+                        <div style={{width:"32px",flex:"0 0 32px",display:"flex",justifyContent:"flex-end",overflow:"hidden"}}>
+                          <TrendBars trend={p.trend} compact height={30}/>
+                        </div>
+                        <div style={{fontFamily:F,minWidth:"38px",textAlign:"left",lineHeight:1}}>
+                          <span style={{fontSize:"13px",fontWeight:850,color:"#2DB04A"}}>+{p.mom.toLocaleString()}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <TrendBars trend={p.trend} compact height={30}/>
+                        <div style={{textAlign:"right",fontFamily:F}}>
+                          <span style={{fontSize:"13px",fontWeight:850,color:"#2DB04A"}}>+{p.mom.toLocaleString()}</span>
+                          <div style={{fontSize:"8px",color:"#7B857D",letterSpacing:"1px",textTransform:"uppercase"}}>momentum</div>
+                        </div>
+                        <div style={{fontFamily:F,fontSize:"16px",fontWeight:800,color:"#B6BDB7",textAlign:"right"}}>›</div>
+                      </>
+                    )}
                   </div>
                 );
               })}
