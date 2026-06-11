@@ -322,6 +322,61 @@ const top = data[0];
   const secLbl=(c=GOLD)=>({fontFamily:F,fontSize:"9.5px",fontWeight:700,letterSpacing:"2.5px",textTransform:"uppercase",color:c,marginBottom:"14px",display:"flex",alignItems:"center",gap:"7px"});
   const SecMark=({c=GOLD})=><span style={{display:"inline-block",width:"14px",height:"2px",background:c,borderRadius:"1px"}}/>;
 
+
+  const latestMonth = MONTHS[MONTHS.length - 1] || month;
+  const latestMonthName = latestMonth.split(" ")[0] || "Latest";
+  const latestMonthShort = latestMonthName.slice(0, 3);
+  const latestTrendMonths = MONTHS.slice(-3);
+  const trendMonthShort = (label = "") => String(label).split(" ")[0].slice(0, 3);
+  const trendLabelText = latestTrendMonths.map(trendMonthShort).join(" / ");
+  const formulaLabel = latestTrendMonths.length >= 3
+    ? `Momentum = (${trendMonthShort(latestTrendMonths[2])}−${trendMonthShort(latestTrendMonths[1])} points × 0.7) + (${trendMonthShort(latestTrendMonths[1])}−${trendMonthShort(latestTrendMonths[0])} points × 0.3)`
+    : "Momentum is weighted by recent point gains";
+  const getTrendPoints = (trend = []) => {
+    const rawValues = Array.isArray(trend) ? trend.map((value) => Number(value) || 0) : [];
+    const lastValues = rawValues.slice(-latestTrendMonths.length);
+
+    while (lastValues.length < latestTrendMonths.length) lastValues.unshift(0);
+
+    return latestTrendMonths.map((trendMonth, index) => ({
+      month: trendMonth,
+      label: trendMonthShort(trendMonth),
+      value: lastValues[index] || 0,
+    }));
+  };
+  const uniqueByMomentumIdentity = (rows = []) => [
+    ...new Map(
+      rows.map((row, index) => [
+        `${String(row.t || "").trim().toLowerCase()}|${String(row.a || "").trim().toLowerCase()}|${row.decRank ?? index}`,
+        row,
+      ])
+    ).values(),
+  ];
+  const openMomentumRelease = (row) => setSelR({ title: row.t, artist: row.a, type: isSingles ? "single" : "album" });
+  const TrendBars = ({ trend = [], height = 58, compact = false }) => {
+    const bars = getTrendPoints(trend);
+    const maxValue = Math.max(1, ...bars.map((bar) => bar.value));
+
+    return (
+      <div style={{display:"flex",alignItems:"flex-end",gap:compact?"3px":"6px",height,justifyContent:compact?"flex-end":"center"}}>
+        {bars.map((bar, index) => (
+          <div key={`${bar.month}-${index}`} title={`${bar.month}: ${bar.value.toLocaleString()} pts`} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:compact?"2px":"4px"}}>
+            <div
+              style={{
+                width:compact?"7px":"28px",
+                height:Math.max(compact?3:4, (bar.value / maxValue) * (compact ? 24 : 54)) + "px",
+                background:index === bars.length - 1 ? "#2DB04A" : "#CDE8D2",
+                borderRadius:compact?"1px":"3px",
+                transition:"height 0.5s",
+              }}
+            />
+            {!compact && <span style={{fontFamily:F,fontSize:"8px",color:"#7C8A80"}}>{bar.label}</span>}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   const Tog=({sm})=>(
     <div style={{display:"flex",border:"2px solid #1A1A1A",borderRadius:"5px",overflow:"hidden"}}>
       {["singles","albums"].map(t=><button key={t} onClick={()=>{setCt(t);setPlat("Combined");}} style={{padding:sm?"4px 12px":"5px 16px",background:ct===t?"#1A1A1A":"#FFF",border:"none",color:ct===t?"#FFF":"#1A1A1A",cursor:"pointer",fontSize:"10px",fontWeight:700,letterSpacing:"1.5px",textTransform:"uppercase",fontFamily:F}}>{t}</button>)}
@@ -1170,80 +1225,88 @@ liveStatus={liveStatus}
       {/* TRENDING / PREDICTIONS PAGE */}
       {page==="trending"&&(
         <div style={{padding:PAD,minHeight:"60vh"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:"20px",flexWrap:"wrap",gap:"12px"}}>
-            <div>
-              <div style={{fontFamily:F,fontSize:"10px",letterSpacing:"3px",textTransform:"uppercase",color:"#2DB04A",marginBottom:"6px"}}>MOMENTUM ENGINE</div>
-              <h2 style={{fontSize:"26px",fontWeight:800,margin:0}}>Trending Up</h2>
-              <p style={{fontFamily:F,fontSize:"11px",color:"#999",margin:"4px 0 0"}}>Songs gaining the most momentum heading into 2025 · weighted by recent point gains</p>
-            </div>
-            <Tog sm/>
-          </div>
-          <div style={{...card({background:"linear-gradient(135deg,#F4FBF5,#FFFFFF)",borderColor:"#2DB04A22"}),marginBottom:"20px"}}>
-            <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"6px"}}>
-              <span style={{fontSize:"22px"}}>🔥</span>
-              <div>
-                <div style={{fontFamily:F,fontSize:"11px",fontWeight:700,letterSpacing:"1px",textTransform:"uppercase",color:"#2DB04A"}}>Hottest Right Now</div>
-                <div style={{fontFamily:F,fontSize:"10px",color:"#999"}}>Highest momentum score in December 2024</div>
+          <div style={{maxWidth:"1240px",margin:"0 auto"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"flex-start":"flex-end",marginBottom:isMobile?"16px":"20px",flexWrap:"wrap",gap:isMobile?"10px":"12px"}}>
+              <div style={{minWidth:0,flex:isMobile?"1 1 100%":"1"}}>
+                <div style={{fontFamily:F,fontSize:isMobile?"9px":"10px",letterSpacing:"3px",textTransform:"uppercase",color:"#2DB04A",marginBottom:"6px"}}>MOMENTUM ENGINE</div>
+                <h2 style={{fontSize:isMobile?"25px":"30px",fontWeight:800,margin:0}}>Trending Up</h2>
+                <p style={{fontFamily:F,fontSize:isMobile?"12px":"12px",color:"#626A64",margin:"6px 0 0",lineHeight:1.55}}>Tracks rising fastest across the charts, based on recent point gains.</p>
               </div>
+              <div style={{marginTop:isMobile?"2px":0}}><Tog sm/></div>
             </div>
-            {(()=>{const list=(isSingles?MOM.predictions.singles:MOM.predictions.albums).rising;const hot=list[0];if(!hot)return null;
-              const maxT=Math.max(...hot.trend);
-              return(
-                <div style={{display:"flex",alignItems:"center",gap:"20px",marginTop:"12px",flexWrap:"wrap"}}>
-                  <div style={{flex:1,minWidth:"180px"}}>
-                    <div style={{fontFamily:SF,fontSize:"24px",fontWeight:800,cursor:"pointer"}} onClick={()=>setSelR({title:hot.t,artist:hot.a,type:isSingles?"single":"album"})}>{hot.t}</div>
-                    <div style={{fontFamily:F,fontSize:"13px",color:"#888"}}>{hot.a}</div>
-                    <div style={{display:"flex",gap:"16px",marginTop:"10px"}}>
-                      <div><div style={{fontFamily:F,fontSize:"20px",fontWeight:800,color:"#2DB04A"}}>+{hot.mom.toLocaleString()}</div><div style={{fontFamily:F,fontSize:"8.5px",letterSpacing:"1px",textTransform:"uppercase",color:"#BBB"}}>Momentum</div></div>
-                      <div><div style={{fontFamily:F,fontSize:"20px",fontWeight:800,color:GOLD}}>#{hot.decRank}</div><div style={{fontFamily:F,fontSize:"8.5px",letterSpacing:"1px",textTransform:"uppercase",color:"#BBB"}}>Dec Rank</div></div>
+
+            <div style={{...card({background:"linear-gradient(135deg,#F4FBF5,#FFFFFF)",borderColor:"#2DB04A22",padding:isMobile?"18px":"24px"}),marginBottom:isMobile?"16px":"20px"}}>
+              <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"6px"}}>
+                <span style={{fontSize:"22px"}}>🔥</span>
+                <div>
+                  <div style={{fontFamily:F,fontSize:"11px",fontWeight:800,letterSpacing:"1px",textTransform:"uppercase",color:"#2DB04A"}}>Highest Momentum</div>
+                  <div style={{fontFamily:F,fontSize:isMobile?"10.5px":"10px",color:"#68746C"}}>Highest momentum score in {latestMonth}</div>
+                </div>
+              </div>
+              {(()=>{const list=uniqueByMomentumIdentity((isSingles?MOM.predictions.singles:MOM.predictions.albums).rising);const hot=list[0];if(!hot)return null;
+                return(
+                  <div style={{display:"flex",flexDirection:isMobile?"column":"row",alignItems:isMobile?"stretch":"center",gap:isMobile?"18px":"28px",marginTop:"14px"}}>
+                    <div style={{flex:1,minWidth:isMobile?"0":"260px"}}>
+                      <div style={{fontFamily:SF,fontSize:isMobile?"24px":"26px",fontWeight:800,cursor:"pointer",lineHeight:1.15}} onClick={()=>openMomentumRelease(hot)}>{hot.t}</div>
+                      <div style={{fontFamily:F,fontSize:isMobile?"13px":"13px",color:"#69716B",marginTop:"4px"}}>{hot.a}</div>
+                      <div style={{display:"flex",gap:isMobile?"14px":"20px",marginTop:"12px",flexWrap:"wrap"}}>
+                        <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"22px",fontWeight:850,color:"#2DB04A"}}>+{hot.mom.toLocaleString()}</div><div style={{fontFamily:F,fontSize:"8.5px",letterSpacing:"1px",textTransform:"uppercase",color:"#7B857D"}}>Momentum</div></div>
+                        <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"22px",fontWeight:850,color:GOLD}}>#{hot.decRank}</div><div style={{fontFamily:F,fontSize:"8.5px",letterSpacing:"1px",textTransform:"uppercase",color:"#7B857D"}}>{latestMonthShort} Rank</div></div>
+                        <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"22px",fontWeight:850,color:"#1A1A1A"}}>{hot.decPts?.toLocaleString?.() || "—"}</div><div style={{fontFamily:F,fontSize:"8.5px",letterSpacing:"1px",textTransform:"uppercase",color:"#7B857D"}}>{latestMonthShort} Points</div></div>
+                      </div>
+                    </div>
+                    <div style={{minWidth:isMobile?"100%":"180px",display:"flex",justifyContent:isMobile?"flex-start":"flex-end"}}>
+                      <TrendBars trend={hot.trend} height={isMobile?62:82}/>
                     </div>
                   </div>
-                  <div style={{display:"flex",alignItems:"flex-end",gap:"6px",height:"80px"}}>
-                    {hot.trend.map((v,i)=>(
-                      <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"4px"}}>
-                        <div style={{width:"28px",height:(v/maxT*64)+"px",background:i===2?"#2DB04A":"#CDE8D2",borderRadius:"3px",minHeight:"4px",transition:"height 0.5s"}}/>
-                        <span style={{fontFamily:F,fontSize:"8px",color:"#BBB"}}>{MONTHS[i].split(" ")[0].slice(0,3)}</span>
+                );
+              })()}
+            </div>
+
+            <div style={card({padding:isMobile?"18px":"22px"})}>
+              <div style={secLbl("#2DB04A")}><SecMark c="#2DB04A"/>Rising Fast — Top Momentum {isSingles?"Singles":"Albums"}</div>
+              {uniqueByMomentumIdentity((isSingles?MOM.predictions.singles:MOM.predictions.albums).rising).map((p,i)=>{
+                return(
+                  <div key={`${p.t}-${p.a}-${p.decRank}`} style={{display:"grid",gridTemplateColumns:isMobile?"24px minmax(0,1fr) 86px 12px":"30px minmax(0,1fr) 110px 88px 12px",gap:isMobile?"8px":"12px",alignItems:"center",padding:isMobile?"12px 0":"12px 0",borderBottom:"1px solid #F2F2EE",cursor:"pointer",borderRadius:"8px"}}
+                    onClick={()=>openMomentumRelease(p)}
+                    onMouseEnter={e=>e.currentTarget.style.background="#FAFAF6"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+                    <div style={{fontFamily:F,fontSize:isMobile?"13px":"13px",fontWeight:850,color:"#8E948D",textAlign:"center"}}>{i+1}</div>
+                    <div style={{minWidth:0}}>
+                      <div style={{fontSize:isMobile?"13px":"13px",fontWeight:750,lineHeight:1.2,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.t}</div>
+                      <div style={{fontSize:isMobile?"10.5px":"10px",color:"#69716B",fontFamily:F,marginTop:"3px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.a} · #{p.decRank} in {latestMonthShort} · {p.decPts?.toLocaleString?.() || "—"} pts</div>
+                    </div>
+                    <TrendBars trend={p.trend} compact height={30}/>
+                    <div style={{textAlign:"right",fontFamily:F}}>
+                      <span style={{fontSize:isMobile?"13px":"13px",fontWeight:850,color:"#2DB04A"}}>+{p.mom.toLocaleString()}</span>
+                      {!isMobile&&<div style={{fontSize:"8px",color:"#7B857D",letterSpacing:"1px",textTransform:"uppercase"}}>momentum</div>}
+                    </div>
+                    <div style={{fontFamily:F,fontSize:"16px",fontWeight:800,color:"#B6BDB7",textAlign:"right"}}>›</div>
+                  </div>
+                );
+              })}
+              <div style={{padding:"13px 0 0",fontFamily:F,fontSize:isMobile?"10.5px":"10px",color:"#6E746F",textAlign:"center",lineHeight:1.55}}>{formulaLabel} · Bars show {trendLabelText} point totals.</div>
+            </div>
+
+            {/* Strong Debuts */}
+            <div style={{...card({padding:isMobile?"18px":"22px"}),marginTop:isMobile?"16px":"20px"}}>
+              <div style={secLbl("#1565C0")}><SecMark c="#1565C0"/>Strongest {latestMonthName} Debuts</div>
+              <p style={{fontFamily:F,fontSize:isMobile?"10.5px":"10px",color:"#69716B",margin:"-8px 0 14px",lineHeight:1.45}}>New entries that arrived high in {latestMonth}.</p>
+              <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:isMobile?"8px":"10px"}}>
+                {uniqueByMomentumIdentity((isSingles?MOM.predictions.singles:MOM.predictions.albums).debuts).map((p)=>(
+                  <div key={`${p.t}-${p.a}-${p.decRank}`} onClick={()=>openMomentumRelease(p)} style={{padding:isMobile?"10px 12px":"14px",background:"#F5F8FC",borderRadius:"10px",border:"1px solid #1565C022",cursor:"pointer",display:"grid",gridTemplateColumns:"1fr auto",gap:"8px",alignItems:"center"}}
+                    onMouseEnter={e=>e.currentTarget.style.background="#EEF5FF"} onMouseLeave={e=>e.currentTarget.style.background="#F5F8FC"}>
+                    <div style={{minWidth:0}}>
+                      <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:isMobile?"5px":"8px"}}>
+                        <span style={{background:"#242424",color:"#FFF",padding:"2px 6px",borderRadius:"4px",fontSize:"8px",letterSpacing:"1px",fontWeight:850}}>NEW</span>
+                        <span style={{fontFamily:F,fontSize:isMobile?"10px":"9px",color:"#65707A",fontWeight:700,textTransform:"uppercase"}}>{latestMonthShort} debut</span>
                       </div>
-                    ))}
+                      <div style={{fontSize:isMobile?"13px":"13px",fontWeight:750,lineHeight:1.2,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.t}</div>
+                      <div style={{fontSize:isMobile?"10.5px":"10px",color:"#69716B",fontFamily:F,marginTop:"3px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.a} · {p.decPts.toLocaleString()} pts</div>
+                    </div>
+                    <span style={{fontFamily:F,fontSize:isMobile?"15px":"15px",fontWeight:850,color:"#1565C0"}}>#{p.decRank}</span>
                   </div>
-                </div>
-              );
-            })()}
-          </div>
-          <div style={card()}>
-            <div style={secLbl("#2DB04A")}><SecMark c="#2DB04A"/>Rising Fast — Top Momentum {isSingles?"Singles":"Albums"}</div>
-            {(isSingles?MOM.predictions.singles:MOM.predictions.albums).rising.map((p,i)=>{
-              const maxT=Math.max(...p.trend);
-              return(
-                <div key={i} style={{display:"grid",gridTemplateColumns:isMobile?"24px 1fr 70px":"30px 1fr 90px 80px",gap:"10px",alignItems:"center",padding:"11px 0",borderBottom:"1px solid #F2F2EE",cursor:"pointer"}}
-                  onClick={()=>setSelR({title:p.t,artist:p.a,type:isSingles?"single":"album"})}
-                  onMouseEnter={e=>e.currentTarget.style.background="#FAFAF6"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
-                  <div style={{fontFamily:F,fontSize:"13px",fontWeight:800,color:"#D5D5D0",textAlign:"center"}}>{i+1}</div>
-                  <div><div style={{fontSize:"13px",fontWeight:700}}>{p.t}</div><div style={{fontSize:"10px",color:"#AAA",fontFamily:F}}>{p.a} · now #{p.decRank}</div></div>
-                  {!isMobile&&<div style={{display:"flex",alignItems:"flex-end",gap:"3px",height:"30px",justifyContent:"flex-end"}}>
-                    {p.trend.map((v,j)=><div key={j} style={{width:"8px",height:(v/maxT*26)+"px",background:j===2?"#2DB04A":"#E0E0DC",borderRadius:"1px",minHeight:"3px"}}/>)}
-                  </div>}
-                  <div style={{textAlign:"right",fontFamily:F}}><span style={{fontSize:"13px",fontWeight:800,color:"#2DB04A"}}>+{p.mom.toLocaleString()}</span><div style={{fontSize:"8px",color:"#BBB",letterSpacing:"1px",textTransform:"uppercase"}}>momentum</div></div>
-                </div>
-              );
-            })}
-            <div style={{padding:"12px 0 0",fontFamily:F,fontSize:"10px",color:"#CCC",textAlign:"center"}}>Momentum = (Dec−Nov points × 0.7) + (Nov−Oct points × 0.3) · Songs charting 2+ months and still climbing</div>
-          </div>
-          {/* Strong Debuts */}
-          <div style={{...card(),marginTop:"20px"}}>
-            <div style={secLbl("#1565C0")}><SecMark c="#1565C0"/>Strongest December Debuts</div>
-            <p style={{fontFamily:F,fontSize:"10px",color:"#BBB",margin:"-8px 0 14px"}}>New entries that arrived high — ones to watch in 2025</p>
-            <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"10px"}}>
-              {(isSingles?MOM.predictions.singles:MOM.predictions.albums).debuts.map((p,i)=>(
-                <div key={i} onClick={()=>setSelR({title:p.t,artist:p.a,type:isSingles?"single":"album"})} style={{padding:"14px",background:"#F5F8FC",borderRadius:"10px",border:"1px solid #1565C022",cursor:"pointer"}}>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"8px"}}>
-                    <span style={{background:"#1A1A1A",color:"#FFF",padding:"2px 6px",borderRadius:"3px",fontSize:"8px",letterSpacing:"1px",fontWeight:800}}>NEW</span>
-                    <span style={{fontFamily:F,fontSize:"15px",fontWeight:800,color:"#1565C0"}}>#{p.decRank}</span>
-                  </div>
-                  <div style={{fontSize:"13px",fontWeight:700,lineHeight:1.2}}>{p.t}</div>
-                  <div style={{fontSize:"10px",color:"#999",fontFamily:F,marginTop:"2px"}}>{p.a} · {p.decPts.toLocaleString()} pts</div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </div>
