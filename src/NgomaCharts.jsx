@@ -1617,17 +1617,17 @@ liveStatus={liveStatus}
               <div style={secLbl("#2DB04A")}><SecMark c="#2DB04A"/>Rising Fast — Top Momentum {isSingles?"Singles":"Albums"}</div>
               {uniqueByMomentumIdentity((isSingles?MOM.predictions.singles:MOM.predictions.albums).rising).map((p,i)=>{
                 return(
-                  <div key={`${p.t}-${p.a}-${p.decRank}`} style={{display:"grid",gridTemplateColumns:isMobile?"24px minmax(0,1fr) minmax(76px,88px)":"30px minmax(0,1fr) 110px 88px 12px",gap:isMobile?"10px":"12px",alignItems:"center",padding:isMobile?"14px 12px":"12px 0",margin:isMobile?"0 2px":"0",borderBottom:"1px solid #F2F2EE",cursor:"pointer",borderRadius:isMobile?"12px":"8px",boxSizing:"border-box",overflow:"hidden"}}
+                  <div key={`${p.t}-${p.a}-${p.decRank}`} style={{display:"grid",gridTemplateColumns:isMobile?"28px minmax(0,1fr) minmax(84px,96px)":"34px minmax(0,1fr) 114px 92px 14px",gap:isMobile?"9px":"12px",alignItems:"center",padding:isMobile?"14px 10px 14px 14px":"12px 4px",margin:isMobile?"0 2px":"0",borderBottom:"1px solid #F2F2EE",cursor:"pointer",borderRadius:isMobile?"12px":"8px",boxSizing:"border-box",overflow:"hidden"}}
                     onClick={()=>openMomentumRelease(p)}
                     onMouseEnter={e=>e.currentTarget.style.background="#FAFAF6"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
-                    <div style={{fontFamily:F,fontSize:isMobile?"16px":"16px",fontWeight:850,color:"#8E948D",textAlign:"center"}}>{i+1}</div>
-                    <div style={{minWidth:0}}>
+                    <div style={{fontFamily:F,fontSize:isMobile?"16px":"16px",fontWeight:850,color:"#8E948D",textAlign:"center",transform:isMobile?"translateX(2px)":"translateX(2px)"}}>{i+1}</div>
+                    <div style={{minWidth:0,paddingLeft:isMobile?"2px":"2px",boxSizing:"border-box"}}>
                       <div style={{fontSize:isMobile?"15px":"15px",fontWeight:800,lineHeight:1.15,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.t}</div>
                       <div style={{fontSize:isMobile?"12px":"12px",color:"#69716B",fontFamily:F,marginTop:"4px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.a} · #{p.decRank} in {latestMonthShort} · {p.decPts?.toLocaleString?.() || "—"} pts</div>
                     </div>
                     {isMobile ? (
-                      <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:"8px",minWidth:0,width:"100%",paddingRight:"2px",boxSizing:"border-box"}}>
-                        <div style={{width:"32px",flex:"0 0 32px",display:"flex",justifyContent:"flex-end",overflow:"hidden"}}>
+                      <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:"8px",minWidth:0,width:"100%",paddingRight:"0",boxSizing:"border-box",transform:"translateX(2px)"}}>
+                        <div style={{width:"34px",flex:"0 0 34px",display:"flex",justifyContent:"flex-end",overflow:"hidden"}}>
                           <TrendBars trend={p.trend} compact height={30}/>
                         </div>
                         <div style={{fontFamily:F,minWidth:"38px",textAlign:"left",lineHeight:1}}>
