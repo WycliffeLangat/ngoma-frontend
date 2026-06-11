@@ -258,9 +258,9 @@ export default function NgomaCharts(){
   const [vw,setVw]=useState(typeof window!=="undefined"?window.innerWidth:1200);
   useEffect(()=>{const h=()=>setVw(window.innerWidth);window.addEventListener("resize",h);return()=>window.removeEventListener("resize",h);},[]);
   const isMobile=vw<640;
-  const PAD=isMobile?"18px":"28px";
+  const PAD=isMobile?"clamp(20px, 5vw, 28px)":"28px";
   const PAGE_MAX="1240px";
-  const pageFrame=(extra={})=>({maxWidth:PAGE_MAX,width:"100%",margin:"0 auto",boxSizing:"border-box",...extra});
+  const pageFrame=(extra={})=>({maxWidth:PAGE_MAX,width:"100%",margin:"0 auto",boxSizing:"border-box",minWidth:0,...extra});
   const responsiveStack=(desktop="row")=>({flexDirection:isMobile?"column":desktop,alignItems:isMobile?"stretch":"center"});
   useEffect(()=>{const h=e=>{if(e.key==="Escape"){setSOpen(false);setSrch("");setShareImg(null);}};window.addEventListener("keydown",h);return()=>window.removeEventListener("keydown",h);},[]);
 
@@ -826,15 +826,23 @@ const top = data[0];
   };
 
   return(
-    <div style={{fontFamily:SF,background:"linear-gradient(180deg,#FBFAF7 0%,#F7F5F0 100%)",color:"#1A1A1A",minHeight:"100vh"}}>
+    <div style={{fontFamily:SF,background:"linear-gradient(180deg,#FBFAF7 0%,#F7F5F0 100%)",color:"#1A1A1A",minHeight:"100vh",width:"100%",overflowX:"hidden"}}>
       <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700;800;900&family=Instrument+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
       <style>{`
+        html, body, #root{max-width:100%;overflow-x:hidden;}
+        *, *::before, *::after{box-sizing:border-box;}
+        img, svg, canvas, video{max-width:100%;}
+        button, input, select, textarea{max-width:100%;}
+        .ngoma-mobile-text-safe{min-width:0;overflow-wrap:anywhere;}
         @media (max-width: 640px){
           .anl-grid-2{grid-template-columns:1fr !important;}
           .anl-grid-3{grid-template-columns:1fr !important;}
           .anl-grid-4{grid-template-columns:1fr 1fr !important;}
           .podium-grid{grid-template-columns:1fr !important;}
           .race-card{min-width:100% !important;}
+          .ngoma-artist-row{grid-template-columns:32px minmax(0,1fr) 76px !important;gap:8px !important;padding:12px 4px !important;}
+          .ngoma-artist-pts-label{display:none !important;}
+          .ngoma-mobile-center-frame{padding-left:clamp(20px,5vw,28px) !important;padding-right:clamp(20px,5vw,28px) !important;}
         }
         ::-webkit-scrollbar{height:5px;width:5px;}
         ::-webkit-scrollbar-thumb{background:#D8D2C4;border-radius:3px;}
@@ -971,7 +979,7 @@ const top = data[0];
         </div>
       )}
 
-      <main style={pageFrame({padding:0,overflow:"hidden"})}>
+      <main style={pageFrame({padding:isMobile?"0 4px":0,overflow:"hidden"})}>
       {/* RELEASE DETAIL */}
       {selR&&(
         <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
@@ -1135,12 +1143,12 @@ liveStatus={liveStatus}
           </div>
           {/* Top Artists List - all 30 from full Top 50 */}
           {artists.slice(0,30).map((a,i)=>(
-            <div key={a.n} onClick={()=>setSelA(a)} style={{display:"grid",gridTemplateColumns:"40px 1fr 110px 40px",padding:"10px 0",borderBottom:"1px solid #F2F2EE",alignItems:"center",cursor:"pointer"}}
+            <div key={a.n} className="ngoma-artist-row" onClick={()=>setSelA(a)} style={{display:"grid",gridTemplateColumns:isMobile?"32px minmax(0,1fr) 76px":"40px minmax(0,1fr) 110px 40px",gap:isMobile?"8px":0,padding:isMobile?"12px 4px":"10px 0",borderBottom:"1px solid #F2F2EE",alignItems:"center",cursor:"pointer",minWidth:0}}
               onMouseEnter={e=>e.currentTarget.style.background="#FAFAF6"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
               <div style={{fontSize:i<3?"18px":"13.5px",fontWeight:800,color:i<3?MEDALS[i]:"#D5D5D0",textAlign:"center"}}>{i+1}</div>
-              <div><div style={{fontSize:"13px",fontWeight:700}}>{a.n}</div><div style={{fontSize:"10px",color:"#BBB",fontFamily:F}}>{a.t} titles · Peak #{a.pk} · {a.m} months</div></div>
-              <div style={{textAlign:"right",fontFamily:F,fontSize:"13px",fontWeight:700,color:GOLD}}>{a.p.toLocaleString()}</div>
-              <div style={{textAlign:"center",fontFamily:F,fontSize:"9px",color:"#CCC"}}>pts</div>
+              <div className="ngoma-mobile-text-safe" style={{minWidth:0}}><div style={{fontSize:"13px",fontWeight:700,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{a.n}</div><div style={{fontSize:"10px",color:"#777",fontFamily:F,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{a.t} titles · Peak #{a.pk} · {a.m} months</div></div>
+              <div style={{textAlign:"right",fontFamily:F,fontSize:"13px",fontWeight:700,color:GOLD,whiteSpace:"nowrap"}}>{a.p.toLocaleString()}</div>
+              {!isMobile&&<div className="ngoma-artist-pts-label" style={{textAlign:"center",fontFamily:F,fontSize:"9px",color:"#CCC"}}>pts</div>}
             </div>
           ))}
         </div>

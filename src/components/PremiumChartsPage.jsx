@@ -483,6 +483,7 @@ export default function PremiumChartsPage({
   pageMax = "1240px",
 }) {
   const mobile = useRealMobile(isMobile);
+  const safeGutter = mobile ? "clamp(20px, 5vw, 28px)" : "28px";
   const [expandedMobileRows, setExpandedMobileRows] = useState({});
 
   const chartTitle = "Ngoma Top 50";
@@ -805,14 +806,14 @@ export default function PremiumChartsPage({
   const newEntriesCount = data.filter((item) => movement(item).type === "new").length;
 
   return (
-    <div style={{...styles.page, padding: mobile ? "0 18px 28px" : "0 28px 34px", boxSizing: "border-box"}}>
+    <div style={{...styles.page, padding: mobile ? `0 ${safeGutter} 28px` : "0 28px 34px", boxSizing: "border-box"}}>
       <section
         style={{
           ...styles.hero,
           maxWidth: pageMax,
           margin: "0 auto",
           boxSizing: "border-box",
-          padding: mobile ? "28px 18px 24px" : "42px 36px 38px",
+          padding: mobile ? `28px ${safeGutter} 24px` : "42px 36px 38px",
           opacity: loaded ? 1 : 0,
           transform: loaded ? "none" : "translateY(8px)",
         }}
@@ -1180,6 +1181,8 @@ export default function PremiumChartsPage({
                   style={{
                     ...styles.mobileRow,
                     animationDelay: `${Math.min(index * 20, 400)}ms`,
+                    maxWidth: "100%",
+                    boxSizing: "border-box",
                   }}
                   onMouseEnter={(event) => {
                     event.currentTarget.style.background = "#fff7e6";
@@ -1831,7 +1834,7 @@ const styles = {
   },
 
   mobileRow: {
-    padding: "16px 16px",
+    padding: "16px 18px",
     borderBottom: "1px solid rgba(0,0,0,0.08)",
     background: "#ffffff",
     color: "#050505",
@@ -1848,9 +1851,11 @@ const styles = {
 
   mobileCompactRow: {
     display: "grid",
-    gridTemplateColumns: "38px minmax(0, 1fr) auto",
-    gap: "12px",
+    gridTemplateColumns: "34px minmax(0, 1fr) max-content",
+    gap: "10px",
     alignItems: "center",
+    minWidth: 0,
+    maxWidth: "100%",
   },
 
   mobileMovementWrap: {
@@ -1858,6 +1863,8 @@ const styles = {
     alignItems: "center",
     justifyContent: "flex-end",
     gap: "6px",
+    minWidth: 0,
+    maxWidth: "100%",
   },
 
   mobileDetailsToggle: {
@@ -1881,7 +1888,7 @@ const styles = {
 
   mobileExpandedDetails: {
     marginTop: "14px",
-    padding: "14px 14px 12px",
+    padding: "14px 16px 12px",
     border: "1px solid rgba(0,0,0,0.06)",
     borderRadius: "16px",
     background: "#fbfaf7",
@@ -1892,6 +1899,7 @@ const styles = {
     alignItems: "center",
     gap: "10px",
     marginBottom: "11px",
+    minWidth: 0,
   },
 
   mobileDetailLabel: {
@@ -1907,6 +1915,7 @@ const styles = {
     fontSize: "12px",
     color: "#050505",
     fontWeight: 900,
+    overflowWrap: "anywhere",
   },
 
   mobileRank: {
@@ -1917,12 +1926,13 @@ const styles = {
 
   mobileEntryMain: {
     minWidth: 0,
+    maxWidth: "100%",
   },
 
   mobileStatsRow: {
     display: "grid",
-    gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-    gap: "7px",
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    gap: "8px",
     marginTop: "12px",
   },
 
@@ -1932,6 +1942,8 @@ const styles = {
     borderRadius: "12px",
     padding: "8px 6px",
     minWidth: 0,
+    maxWidth: "100%",
+    boxSizing: "border-box",
   },
 
   mobileMiniStatLabel: {
@@ -2110,6 +2122,7 @@ const styles = {
     alignItems: "center",
     justifyContent: "space-between",
     gap: "10px",
+    minWidth: 0,
     marginBottom: "12px",
     padding: "8px 10px",
     borderRadius: "12px",
