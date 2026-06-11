@@ -1564,9 +1564,9 @@ liveStatus={liveStatus}
           <div style={{maxWidth:"1240px",margin:"0 auto"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"flex-start":"flex-end",marginBottom:isMobile?"16px":"20px",flexWrap:"wrap",gap:isMobile?"10px":"12px"}}>
               <div style={{minWidth:0,flex:isMobile?"1 1 100%":"1"}}>
-                <div style={{fontFamily:F,fontSize:isMobile?"9px":"10px",letterSpacing:"3px",textTransform:"uppercase",color:"#2DB04A",marginBottom:"6px"}}>MOMENTUM ENGINE</div>
-                <h2 style={{fontSize:isMobile?"25px":"30px",fontWeight:800,margin:0}}>Trending Up</h2>
-                <p style={{fontFamily:F,fontSize:isMobile?"12px":"12px",color:"#626A64",margin:"6px 0 0",lineHeight:1.55}}>Tracks rising fastest across the charts, based on recent point gains.</p>
+                <div style={{fontFamily:F,fontSize:isMobile?"9px":"10.5px",letterSpacing:isMobile?"2.2px":"2.6px",textTransform:"uppercase",color:"#2DB04A",marginBottom:"6px"}}>MOMENTUM ENGINE</div>
+                <h2 style={{fontSize:isMobile?"24px":"24px",fontWeight:800,margin:0}}>Trending Up</h2>
+                <p style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:"#626A64",margin:"6px 0 0",lineHeight:1.55}}>Tracks rising fastest across the charts, based on recent point gains.</p>
               </div>
               <div style={{marginTop:isMobile?"2px":0}}><Tog sm/></div>
             </div>
@@ -1575,20 +1575,20 @@ liveStatus={liveStatus}
               <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"6px"}}>
                 <span style={{fontSize:"22px"}}>🔥</span>
                 <div>
-                  <div style={{fontFamily:F,fontSize:"11px",fontWeight:800,letterSpacing:"1px",textTransform:"uppercase",color:"#2DB04A"}}>Highest Momentum</div>
-                  <div style={{fontFamily:F,fontSize:isMobile?"10.5px":"10px",color:"#68746C"}}>Highest momentum score in {latestMonth}</div>
+                  <div style={{fontFamily:F,fontSize:isMobile?"10.5px":"11px",fontWeight:800,letterSpacing:"1px",textTransform:"uppercase",color:"#2DB04A"}}>Highest Momentum</div>
+                  <div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:"#68746C"}}>Highest momentum score in {latestMonth}</div>
                 </div>
               </div>
               {(()=>{const list=uniqueByMomentumIdentity((isSingles?MOM.predictions.singles:MOM.predictions.albums).rising);const hot=list[0];if(!hot)return null;
                 return(
                   <div style={{display:"flex",flexDirection:isMobile?"column":"row",alignItems:isMobile?"stretch":"center",gap:isMobile?"18px":"28px",marginTop:"14px"}}>
                     <div style={{flex:1,minWidth:isMobile?"0":"260px"}}>
-                      <div style={{fontFamily:SF,fontSize:isMobile?"24px":"26px",fontWeight:800,cursor:"pointer",lineHeight:1.15}} onClick={()=>openMomentumRelease(hot)}>{hot.t}</div>
-                      <div style={{fontFamily:F,fontSize:isMobile?"13px":"13px",color:"#69716B",marginTop:"4px"}}>{hot.a}</div>
+                      <div style={{fontFamily:SF,fontSize:isMobile?"23px":"28px",fontWeight:850,cursor:"pointer",lineHeight:1.08}} onClick={()=>openMomentumRelease(hot)}>{hot.t}</div>
+                      <div style={{fontFamily:F,fontSize:isMobile?"15px":"15px",color:"#69716B",marginTop:"6px",fontWeight:700}}>{hot.a}</div>
                       <div style={{display:"flex",gap:isMobile?"14px":"20px",marginTop:"12px",flexWrap:"wrap"}}>
-                        <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"22px",fontWeight:850,color:"#2DB04A"}}>+{hot.mom.toLocaleString()}</div><div style={{fontFamily:F,fontSize:"8.5px",letterSpacing:"1px",textTransform:"uppercase",color:"#7B857D"}}>Momentum</div></div>
-                        <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"22px",fontWeight:850,color:GOLD}}>#{hot.decRank}</div><div style={{fontFamily:F,fontSize:"8.5px",letterSpacing:"1px",textTransform:"uppercase",color:"#7B857D"}}>{latestMonthShort} Rank</div></div>
-                        <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"22px",fontWeight:850,color:"#1A1A1A"}}>{hot.decPts?.toLocaleString?.() || "—"}</div><div style={{fontFamily:F,fontSize:"8.5px",letterSpacing:"1px",textTransform:"uppercase",color:"#7B857D"}}>{latestMonthShort} Points</div></div>
+                        <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"20px",fontWeight:900,color:"#2DB04A"}}>+{hot.mom.toLocaleString()}</div><div style={{fontFamily:F,fontSize:"10px",letterSpacing:"1px",textTransform:"uppercase",color:"#7B857D",fontWeight:800}}>Momentum</div></div>
+                        <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"20px",fontWeight:900,color:GOLD}}>#{hot.decRank}</div><div style={{fontFamily:F,fontSize:"10px",letterSpacing:"1px",textTransform:"uppercase",color:"#7B857D",fontWeight:800}}>{latestMonthShort} Rank</div></div>
+                        <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"20px",fontWeight:900,color:"#1A1A1A"}}>{hot.decPts?.toLocaleString?.() || "—"}</div><div style={{fontFamily:F,fontSize:"10px",letterSpacing:"1px",textTransform:"uppercase",color:"#7B857D",fontWeight:800}}>{latestMonthShort} Points</div></div>
                       </div>
                     </div>
                     <div style={{minWidth:isMobile?"100%":"180px",display:"flex",justifyContent:isMobile?"flex-start":"flex-end"}}>
@@ -1606,10 +1606,10 @@ liveStatus={liveStatus}
                   <div key={`${p.t}-${p.a}-${p.decRank}`} style={{display:"grid",gridTemplateColumns:isMobile?"24px minmax(0,1fr) minmax(76px,88px)":"30px minmax(0,1fr) 110px 88px 12px",gap:isMobile?"10px":"12px",alignItems:"center",padding:isMobile?"14px 12px":"12px 0",margin:isMobile?"0 2px":"0",borderBottom:"1px solid #F2F2EE",cursor:"pointer",borderRadius:isMobile?"12px":"8px",boxSizing:"border-box",overflow:"hidden"}}
                     onClick={()=>openMomentumRelease(p)}
                     onMouseEnter={e=>e.currentTarget.style.background="#FAFAF6"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
-                    <div style={{fontFamily:F,fontSize:isMobile?"13px":"13px",fontWeight:850,color:"#8E948D",textAlign:"center"}}>{i+1}</div>
+                    <div style={{fontFamily:F,fontSize:isMobile?"16px":"16px",fontWeight:850,color:"#8E948D",textAlign:"center"}}>{i+1}</div>
                     <div style={{minWidth:0}}>
-                      <div style={{fontSize:isMobile?"13px":"13px",fontWeight:750,lineHeight:1.2,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.t}</div>
-                      <div style={{fontSize:isMobile?"10.5px":"10px",color:"#69716B",fontFamily:F,marginTop:"3px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.a} · #{p.decRank} in {latestMonthShort} · {p.decPts?.toLocaleString?.() || "—"} pts</div>
+                      <div style={{fontSize:isMobile?"15px":"15px",fontWeight:800,lineHeight:1.15,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.t}</div>
+                      <div style={{fontSize:isMobile?"12px":"12px",color:"#69716B",fontFamily:F,marginTop:"4px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.a} · #{p.decRank} in {latestMonthShort} · {p.decPts?.toLocaleString?.() || "—"} pts</div>
                     </div>
                     {isMobile ? (
                       <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:"8px",minWidth:0,width:"100%",paddingRight:"2px",boxSizing:"border-box"}}>
@@ -1617,15 +1617,15 @@ liveStatus={liveStatus}
                           <TrendBars trend={p.trend} compact height={30}/>
                         </div>
                         <div style={{fontFamily:F,minWidth:"38px",textAlign:"left",lineHeight:1}}>
-                          <span style={{fontSize:"13px",fontWeight:850,color:"#2DB04A"}}>+{p.mom.toLocaleString()}</span>
+                          <span style={{fontSize:isMobile?"15px":"15px",fontWeight:900,color:"#2DB04A"}}>+{p.mom.toLocaleString()}</span>
                         </div>
                       </div>
                     ) : (
                       <>
                         <TrendBars trend={p.trend} compact height={30}/>
                         <div style={{textAlign:"right",fontFamily:F}}>
-                          <span style={{fontSize:"13px",fontWeight:850,color:"#2DB04A"}}>+{p.mom.toLocaleString()}</span>
-                          <div style={{fontSize:"8px",color:"#7B857D",letterSpacing:"1px",textTransform:"uppercase"}}>momentum</div>
+                          <span style={{fontSize:isMobile?"15px":"15px",fontWeight:900,color:"#2DB04A"}}>+{p.mom.toLocaleString()}</span>
+                          <div style={{fontSize:"10px",color:"#7B857D",letterSpacing:"1px",textTransform:"uppercase",fontWeight:800}}>momentum</div>
                         </div>
                         <div style={{fontFamily:F,fontSize:"16px",fontWeight:800,color:"#B6BDB7",textAlign:"right"}}>›</div>
                       </>
@@ -1633,22 +1633,22 @@ liveStatus={liveStatus}
                   </div>
                 );
               })}
-              <div style={{padding:"13px 0 0",fontFamily:F,fontSize:isMobile?"10.5px":"10px",color:"#6E746F",textAlign:"center",lineHeight:1.55}}>{formulaLabel} · Bars show {trendLabelText} point totals.</div>
+              <div style={{padding:"13px 0 0",fontFamily:F,fontSize:isMobile?"11px":"11px",color:"#6E746F",textAlign:"center",lineHeight:1.55}}>{formulaLabel} · Bars show {trendLabelText} point totals.</div>
             </div>
 
             {/* Strong Debuts */}
             <div style={{...card({padding:isMobile?"18px":"22px"}),marginTop:isMobile?"16px":"20px"}}>
               <div style={secLbl("#1565C0")}><SecMark c="#1565C0"/>Strongest {latestMonthName} Debuts</div>
-              <p style={{fontFamily:F,fontSize:isMobile?"10.5px":"10px",color:"#69716B",margin:"-8px 0 14px",lineHeight:1.45}}>New entries that arrived high in {latestMonth}.</p>
+              <p style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:"#69716B",margin:"-8px 0 14px",lineHeight:1.45}}>New entries that arrived high in {latestMonth}.</p>
               <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:isMobile?"8px":"10px"}}>
                 {uniqueByMomentumIdentity((isSingles?MOM.predictions.singles:MOM.predictions.albums).debuts).map((p)=>(
                   <div key={`${p.t}-${p.a}-${p.decRank}`} onClick={()=>openMomentumRelease(p)} style={{padding:isMobile?"10px 12px":"14px",background:"#F5F8FC",borderRadius:"10px",border:"1px solid #1565C022",cursor:"pointer",display:"grid",gridTemplateColumns:"1fr auto",gap:"8px",alignItems:"center"}}
                     onMouseEnter={e=>e.currentTarget.style.background="#EEF5FF"} onMouseLeave={e=>e.currentTarget.style.background="#F5F8FC"}>
                     <div style={{minWidth:0}}>
-                      <div style={{fontSize:isMobile?"13px":"13px",fontWeight:750,lineHeight:1.2,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.t}</div>
-                      <div style={{fontSize:isMobile?"10.5px":"10px",color:"#69716B",fontFamily:F,marginTop:"3px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.a} · {p.decPts.toLocaleString()} pts</div>
+                      <div style={{fontSize:isMobile?"15px":"15px",fontWeight:800,lineHeight:1.15,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.t}</div>
+                      <div style={{fontSize:isMobile?"12px":"12px",color:"#69716B",fontFamily:F,marginTop:"4px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.a} · {p.decPts.toLocaleString()} pts</div>
                     </div>
-                    <span style={{fontFamily:F,fontSize:isMobile?"15px":"15px",fontWeight:850,color:"#1565C0"}}>#{p.decRank}</span>
+                    <span style={{fontFamily:F,fontSize:isMobile?"16px":"16px",fontWeight:900,color:"#1565C0"}}>#{p.decRank}</span>
                   </div>
                 ))}
               </div>
