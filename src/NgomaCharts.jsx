@@ -960,7 +960,7 @@ const top = data[0];
                   {navItems.map(t=>(
                     <span key={t} onClick={()=>navTo(t)} style={{cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"13px",fontWeight:page===t?800:600,letterSpacing:"1px",textTransform:"uppercase",color:page===t?"#1A1A1A":"#555",background:page===t?"linear-gradient(135deg,#FAF5EA,#F5EAD2)":"transparent",border:page===t?"1px solid "+GOLD+"33":"1px solid transparent"}}>{navLabel(t)}</span>
                   ))}
-                  <span onClick={()=>{setMNav(false);setSOpen(true);}} style={{cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"13px",fontWeight:600,letterSpacing:"1px",textTransform:"uppercase",color:"#555"}}>⌕ Search</span>
+                  <span onClick={()=>{setMNav(false);setSOpen(true);}} style={{cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"13px",fontWeight:600,letterSpacing:"1px",textTransform:"uppercase",color:"#555"}}>Search</span>
                 </div>
               )}
             </>
@@ -987,7 +987,7 @@ const top = data[0];
                 }}
                 onMouseEnter={e=>{e.currentTarget.style.color="#1A1A1A";e.currentTarget.style.background="#FAF5EA";}}
                 onMouseLeave={e=>{e.currentTarget.style.color="#6B6B6B";e.currentTarget.style.background="transparent";}}
-              >⌕ Search</span>
+              >Search</span>
             </nav>
           )}
         </div>
