@@ -322,7 +322,21 @@ const top = data[0];
   const navItems=["charts","trending","artists","analytics","records","year-end","certifications","news","about"];
   const navLabel=t=>t==="year-end"?"Year End":t;
   const card=(extra={})=>({background:"#FFF",borderRadius:"14px",border:"1px solid #EFEDE7",padding:isMobile?"18px":"22px",boxSizing:"border-box",maxWidth:"100%",boxShadow:"0 1px 3px rgba(0,0,0,0.02),0 8px 24px rgba(0,0,0,0.02)",...extra});
-  const secLbl=(c=GOLD)=>({fontFamily:F,fontSize:"9.5px",fontWeight:700,letterSpacing:"2.5px",textTransform:"uppercase",color:c,marginBottom:"14px",display:"flex",alignItems:"center",gap:"7px"});
+  const TXT = {
+    kicker: isMobile ? "9px" : "10.5px",
+    pageTitle: isMobile ? "24px" : "24px",
+    lead: isMobile ? "12px" : "11px",
+    section: isMobile ? "9.5px" : "9.5px",
+    rowTitle: isMobile ? "15px" : "15px",
+    rowMeta: isMobile ? "12px" : "12px",
+    cardTitle: isMobile ? "15px" : "15px",
+    cardMeta: isMobile ? "12px" : "12px",
+    metric: isMobile ? "16px" : "16px",
+    micro: "10px",
+    note: isMobile ? "11px" : "11px",
+    body: isMobile ? "13px" : "12px",
+  };
+  const secLbl=(c=GOLD)=>({fontFamily:F,fontSize:TXT.section,fontWeight:700,letterSpacing:"2.5px",textTransform:"uppercase",color:c,marginBottom:"14px",display:"flex",alignItems:"center",gap:"7px"});
   const SecMark=({c=GOLD})=><span style={{display:"inline-block",width:"14px",height:"2px",background:c,borderRadius:"1px"}}/>;
 
 
@@ -1032,8 +1046,8 @@ const top = data[0];
           <span onClick={()=>setSelR(null)} style={{fontFamily:F,fontSize:"11px",color:GOLD,cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>← Back</span>
           <div style={{marginTop:"20px"}}>
             <div style={{fontFamily:F,fontSize:"10px",letterSpacing:"2px",textTransform:"uppercase",color:GOLD,marginBottom:"6px"}}>{selR.type||"single"}</div>
-            <h1 style={{fontSize:"30px",fontWeight:800,margin:"0 0 4px"}}>{selR.title}</h1>
-            <p style={{fontSize:"18px",color:"#999",margin:"0 0 16px",fontFamily:F,cursor:"pointer"}} onClick={()=>{const a=artists.find(x=>x.n===selR.artist);if(a){setSelR(null);setSelA(a);}}}>{selR.artist}</p>
+            <h1 style={{fontSize:isMobile?"24px":"30px",fontWeight:850,margin:"0 0 4px",lineHeight:1.12}}>{selR.title}</h1>
+            <p style={{fontSize:isMobile?"15px":"18px",color:"#69716B",margin:"0 0 16px",fontFamily:F,cursor:"pointer",fontWeight:700}} onClick={()=>{const a=artists.find(x=>x.n===selR.artist);if(a){setSelR(null);setSelA(a);}}}>{selR.artist}</p>
             <button onClick={()=>shareReleaseCard(selR)} style={{display:"inline-flex",alignItems:"center",gap:"8px",padding:"9px 18px",background:"#1A1A1A",color:"#FFF",border:"none",borderRadius:"22px",fontFamily:F,fontSize:"12px",fontWeight:700,cursor:"pointer",marginBottom:"24px",letterSpacing:"0.5px"}}
               onMouseEnter={e=>e.currentTarget.style.background="#000"} onMouseLeave={e=>e.currentTarget.style.background="#1A1A1A"}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B8860B" strokeWidth="2.5"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
@@ -1067,8 +1081,8 @@ const top = data[0];
           <div style={{marginTop:"20px",display:"flex",gap:"20px",alignItems:isMobile?"stretch":"flex-start",flexDirection:isMobile?"column":"row",minWidth:0}}>
             <div style={{width:"80px",height:"80px",borderRadius:"50%",background:"linear-gradient(135deg,#FAF5EA,#EDE0C0)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"32px",fontWeight:900,color:GOLD,flexShrink:0,border:"2px solid "+GOLD+"22",boxShadow:"0 4px 16px rgba(184,134,11,0.12)"}}>{selA.n[0]}</div>
             <div style={{flex:1}}>
-              <h2 style={{margin:0,fontSize:"26px",fontWeight:800}}>{selA.n}</h2>
-              <div style={{fontFamily:F,fontSize:"11px",color:"#999",marginTop:"3px"}}>Peak: #{selA.pk} · {selA.t} {isSingles?"songs":"albums"} · {selA.m} months on chart</div>
+              <h2 style={{margin:0,fontSize:isMobile?"24px":"26px",fontWeight:850,lineHeight:1.12}}>{selA.n}</h2>
+              <div style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",marginTop:"4px",lineHeight:1.45}}>Peak: #{selA.pk} · {selA.t} {isSingles?"songs":"albums"} · {selA.m} months on chart</div>
               <div style={{display:"flex",gap:"24px",marginTop:"14px",fontFamily:F}}>
                 {[{v:selA.p.toLocaleString(),l:"Total Points",c:GOLD},{v:selA.t,l:"Charted Titles"},{v:"#"+selA.pk,l:"Peak Rank"},{v:selA.m,l:"Months Active"}].map((s,i)=>(
                   <div key={i}><div style={{fontSize:"22px",fontWeight:700,color:s.c||"#1A1A1A"}}>{s.v}</div><div style={{fontSize:"9px",letterSpacing:"1.5px",color:"#CCC",textTransform:"uppercase"}}>{s.l}</div></div>
@@ -1099,8 +1113,8 @@ const top = data[0];
             return items.sort((a,b)=>a.rank-b.rank).map((s,i)=>(
               <div key={i} onClick={()=>setSelR(s)} style={{display:"flex",justifyContent:"space-between",padding:"9px 0",borderBottom:"1px solid #F2F2EE",fontFamily:F,cursor:"pointer"}}
                 onMouseEnter={e=>e.currentTarget.style.background="#FAFAF6"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
-                <div><span style={{fontWeight:700,fontSize:"13px",fontFamily:SF}}>{s.title}</span><span style={{color:"#CCC",fontSize:"10px"}}> · {s.month}</span></div>
-                <div><span style={{color:GOLD,fontWeight:700,fontSize:"12px"}}>#{s.rank}</span><span style={{color:"#CCC",fontSize:"12px"}}> · {s.pts.toLocaleString()} pts</span></div>
+                <div><span style={{fontWeight:800,fontSize:TXT.cardTitle,fontFamily:SF}}>{s.title}</span><span style={{color:"#7B857D",fontSize:TXT.micro,fontFamily:F}}> · {s.month}</span></div>
+                <div><span style={{color:GOLD,fontWeight:800,fontSize:TXT.cardMeta}}>#{s.rank}</span><span style={{color:"#69716B",fontSize:TXT.cardMeta}}> · {s.pts.toLocaleString()} pts</span></div>
               </div>
             ));
           })()}
@@ -1149,7 +1163,7 @@ liveStatus={liveStatus}
       {page==="artists"&&!selA&&!selR&&(
         <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:"20px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
-            <div><h2 style={{fontSize:"24px",fontWeight:800,margin:0}}>Top Artists</h2><p style={{fontFamily:F,fontSize:"11px",color:"#999",margin:"4px 0 0"}}>Computed from full Top 50 across all months · Click any artist for full profile</p></div>
+            <div><h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0}}>Top Artists</h2><p style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",margin:"4px 0 0",lineHeight:1.55}}>Computed from full Top 50 across all months · Click any artist for full profile</p></div>
             <Tog sm/>
           </div>
           {/* Comparison */}
@@ -1167,9 +1181,9 @@ liveStatus={liveStatus}
             <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"12px",marginBottom:"14px"}}>
               {[{d:cmp1,c:GOLD},{d:cmp2,c:"#1565C0"}].map(({d,c},i)=>(
                 <div key={i} style={{padding:"14px",background:c+"0D",borderRadius:"8px",borderLeft:"3px solid "+c}}>
-                  <div style={{fontFamily:F,fontSize:"10px",fontWeight:700,letterSpacing:"1.5px",color:c,textTransform:"uppercase",marginBottom:"8px"}}>{d.n}</div>
+                  <div style={{fontFamily:F,fontSize:TXT.micro,fontWeight:800,letterSpacing:"1.5px",color:c,textTransform:"uppercase",marginBottom:"8px"}}>{d.n}</div>
                   {[{l:"Total Points",v:(d.p||0).toLocaleString()},{l:"Peak Rank",v:"#"+(d.pk||"—")},{l:"Months",v:d.m||0},{l:"Titles",v:d.t||0}].map((s,j)=>(
-                    <div key={j} style={{display:"flex",justifyContent:"space-between",fontFamily:F,fontSize:"11px",borderBottom:"1px solid "+c+"22",padding:"4px 0"}}>
+                    <div key={j} style={{display:"flex",justifyContent:"space-between",fontFamily:F,fontSize:TXT.note,borderBottom:"1px solid "+c+"22",padding:"4px 0"}}>
                       <span style={{color:"#888"}}>{s.l}</span><span style={{fontWeight:700,color:c}}>{s.v}</span>
                     </div>
                   ))}
@@ -1192,8 +1206,8 @@ liveStatus={liveStatus}
             <div key={a.n} className="ngoma-artist-row" onClick={()=>setSelA(a)} style={{display:"grid",gridTemplateColumns:isMobile?"32px minmax(0,1fr) 76px":"40px minmax(0,1fr) 110px 40px",gap:isMobile?"8px":0,padding:isMobile?"12px 4px":"10px 0",borderBottom:"1px solid #F2F2EE",alignItems:"center",cursor:"pointer",minWidth:0}}
               onMouseEnter={e=>e.currentTarget.style.background="#FAFAF6"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
               <div style={{fontSize:i<3?"18px":"13.5px",fontWeight:800,color:i<3?MEDALS[i]:"#D5D5D0",textAlign:"center"}}>{i+1}</div>
-              <div className="ngoma-mobile-text-safe" style={{minWidth:0}}><div style={{fontSize:"13px",fontWeight:700,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{a.n}</div><div style={{fontSize:"10px",color:"#777",fontFamily:F,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{a.t} titles · Peak #{a.pk} · {a.m} months</div></div>
-              <div style={{textAlign:"right",fontFamily:F,fontSize:"13px",fontWeight:700,color:GOLD,whiteSpace:"nowrap"}}>{a.p.toLocaleString()}</div>
+              <div className="ngoma-mobile-text-safe" style={{minWidth:0}}><div style={{fontSize:TXT.rowTitle,fontWeight:800,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",lineHeight:1.15}}>{a.n}</div><div style={{fontSize:TXT.rowMeta,color:"#69716B",fontFamily:F,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",marginTop:"4px"}}>{a.t} titles · Peak #{a.pk} · {a.m} months</div></div>
+              <div style={{textAlign:"right",fontFamily:F,fontSize:TXT.metric,fontWeight:900,color:GOLD,whiteSpace:"nowrap"}}>{a.p.toLocaleString()}</div>
               {!isMobile&&<div className="ngoma-artist-pts-label" style={{textAlign:"center",fontFamily:F,fontSize:"9px",color:"#CCC"}}>pts</div>}
             </div>
           ))}
@@ -1204,7 +1218,7 @@ liveStatus={liveStatus}
       {page==="analytics"&&(
         <div style={{padding:PAD,background:"transparent",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:"20px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
-            <div><h2 style={{fontSize:"24px",fontWeight:800,margin:0}}>Analytics</h2><p style={{fontFamily:F,fontSize:"11px",color:"#999",margin:"4px 0 0"}}>All visualizations computed from full Top 50 — across all platforms and months</p></div>
+            <div><h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0}}>Analytics</h2><p style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",margin:"4px 0 0",lineHeight:1.55}}>All visualizations computed from full Top 50 — across all platforms and months</p></div>
             <div style={{display:"flex",gap:"8px",flexWrap:"wrap",width:isMobile?"100%":"auto"}}>
               <select value={anMonth} onChange={e=>setAnMonth(e.target.value)} style={{padding:"7px 10px",border:"1.5px solid #DDD",borderRadius:"7px",background:"#FFF",fontSize:"10px",fontFamily:F,fontWeight:600,cursor:"pointer",outline:"none",minWidth:0,flex:isMobile?1:"initial"}}>
                 {MONTHS.map(m=><option key={m} value={m}>{m}</option>)}
@@ -1231,7 +1245,7 @@ liveStatus={liveStatus}
           {/* SONG / ALBUM COMPARISON */}
           <div style={{...card(),marginBottom:"20px",background:"linear-gradient(135deg,#FAFAF8,#FFFFFF)"}}>
             <div style={secLbl()}><SecMark/>{isSingles?"Song":"Album"} Head-to-Head</div>
-            <p style={{fontFamily:F,fontSize:"10px",color:"#BBB",margin:"-8px 0 14px"}}>Compare any two {isSingles?"songs":"albums"} across every metric in the dataset</p>
+            <p style={{fontFamily:F,fontSize:TXT.note,color:"#69716B",margin:"-8px 0 14px",lineHeight:1.45}}>Compare any two {isSingles?"songs":"albums"} across every metric in the dataset</p>
             <div style={{display:"flex",gap:"12px",alignItems:"center",marginBottom:"16px",flexWrap:"wrap"}}>
               <select value={cmpS1} onChange={e=>setCmpS1(e.target.value)} style={{flex:1,minWidth:"160px",padding:"8px 10px",border:"1.5px solid "+GOLD+"55",borderRadius:"6px",background:"#FFF",fontSize:"11px",fontFamily:F,fontWeight:600,cursor:"pointer",outline:"none"}}>
                 {allTitles.map(t=><option key={t.key} value={t.key}>{t.title} — {t.artist}</option>)}
@@ -1462,7 +1476,7 @@ liveStatus={liveStatus}
             return(
               <div style={{...card(),marginBottom:"20px"}}>
                 <div style={secLbl()}><SecMark/>Local vs International — {anMonth}</div>
-                <p style={{fontFamily:F,fontSize:"10px",color:"#BBB",margin:"-6px 0 14px"}}>Share of the Top 50 combined chart held by Kenyan vs international artists</p>
+                <p style={{fontFamily:F,fontSize:TXT.note,color:"#69716B",margin:"-6px 0 14px",lineHeight:1.45}}>Share of the Top 50 combined chart held by Kenyan vs international artists</p>
                 <div style={{display:"flex",alignItems:"center",gap:"24px",flexWrap:"wrap"}}>
                   <ResponsiveContainer width={160} height={160}>
                     <PieChart>
@@ -1494,8 +1508,8 @@ liveStatus={liveStatus}
               <div style={secLbl("#2DB04A")}><SecMark c="#2DB04A"/>Top Climbers — {anMonth}</div>
               {mvData.risers.map((s,i)=>(
                 <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:"1px solid #F0F0EC"}}>
-                  <div><div style={{fontSize:"12px",fontWeight:700}}>{s.t}</div><div style={{fontSize:"10px",color:"#999",fontFamily:F}}>{s.a}</div></div>
-                  <div style={{textAlign:"right",fontFamily:F}}><div style={{color:"#2DB04A",fontSize:"12px",fontWeight:700}}>▲{s.from-s.to}</div><div style={{fontSize:"9px",color:"#CCC"}}>#{s.from}→#{s.to}</div></div>
+                  <div><div style={{fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15}}>{s.t}</div><div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginTop:"3px"}}>{s.a}</div></div>
+                  <div style={{textAlign:"right",fontFamily:F}}><div style={{color:"#2DB04A",fontSize:TXT.cardMeta,fontWeight:800}}>▲{s.from-s.to}</div><div style={{fontSize:TXT.micro,color:"#7B857D"}}>#{s.from}→#{s.to}</div></div>
                 </div>
               ))}
               {!mvData.risers.length&&<div style={{fontFamily:F,fontSize:"11px",color:"#CCC",padding:"20px 0",textAlign:"center"}}>No movement data (debut month)</div>}
@@ -1504,8 +1518,8 @@ liveStatus={liveStatus}
               <div style={secLbl("#E53935")}><SecMark c="#E53935"/>Biggest Drops — {anMonth}</div>
               {mvData.fallers.map((s,i)=>(
                 <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:"1px solid #F0F0EC"}}>
-                  <div><div style={{fontSize:"12px",fontWeight:700}}>{s.t}</div><div style={{fontSize:"10px",color:"#999",fontFamily:F}}>{s.a}</div></div>
-                  <div style={{textAlign:"right",fontFamily:F}}><div style={{color:"#E53935",fontSize:"12px",fontWeight:700}}>▼{s.to-s.from}</div><div style={{fontSize:"9px",color:"#CCC"}}>#{s.from}→#{s.to}</div></div>
+                  <div><div style={{fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15}}>{s.t}</div><div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginTop:"3px"}}>{s.a}</div></div>
+                  <div style={{textAlign:"right",fontFamily:F}}><div style={{color:"#E53935",fontSize:TXT.cardMeta,fontWeight:800}}>▼{s.to-s.from}</div><div style={{fontSize:TXT.micro,color:"#7B857D"}}>#{s.from}→#{s.to}</div></div>
                 </div>
               ))}
               {!mvData.fallers.length&&<div style={{fontFamily:F,fontSize:"11px",color:"#CCC",padding:"20px 0",textAlign:"center"}}>No drops (debut month)</div>}
@@ -1662,9 +1676,9 @@ liveStatus={liveStatus}
         <div style={{padding:PAD,minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:"20px",flexWrap:"wrap",gap:"12px",flexDirection:isMobile?"column":"row"}}>
             <div>
-              <div style={{fontFamily:F,fontSize:"10px",letterSpacing:"3px",textTransform:"uppercase",color:GOLD,marginBottom:"6px"}}>THE RECORD BOOK</div>
-              <h2 style={{fontSize:"26px",fontWeight:800,margin:0}}>Records & Milestones</h2>
-              <p style={{fontFamily:F,fontSize:"11px",color:"#999",margin:"4px 0 0"}}>Notable achievements from Q4 2024 · the chart's defining moments</p>
+              <div style={{fontFamily:F,fontSize:TXT.kicker,letterSpacing:"2.6px",textTransform:"uppercase",color:GOLD,marginBottom:"6px"}}>THE RECORD BOOK</div>
+              <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0}}>Records & Milestones</h2>
+              <p style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",margin:"4px 0 0",lineHeight:1.55}}>Notable achievements from Q4 2024 · the chart's defining moments</p>
             </div>
             <Tog sm/>
           </div>
@@ -1673,9 +1687,9 @@ liveStatus={liveStatus}
               <div key={i} style={{...card(),position:"relative",overflow:"hidden"}}>
                 <div style={{position:"absolute",top:"-10px",right:"-10px",fontSize:"64px",opacity:0.06}}>{r.icon}</div>
                 <div style={{fontSize:"26px",marginBottom:"10px"}}>{r.icon}</div>
-                <div style={{fontFamily:F,fontSize:"9px",fontWeight:700,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,marginBottom:"8px"}}>{r.label}</div>
-                <div style={{fontFamily:SF,fontSize:"18px",fontWeight:800,lineHeight:1.15,marginBottom:"4px"}}>{r.value}</div>
-                <div style={{fontFamily:F,fontSize:"11px",color:"#999"}}>{r.sub}</div>
+                <div style={{fontFamily:F,fontSize:TXT.micro,fontWeight:800,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,marginBottom:"8px"}}>{r.label}</div>
+                <div style={{fontFamily:SF,fontSize:isMobile?"18px":"19px",fontWeight:800,lineHeight:1.15,marginBottom:"4px"}}>{r.value}</div>
+                <div style={{fontFamily:F,fontSize:TXT.cardMeta,color:"#69716B",lineHeight:1.45}}>{r.sub}</div>
               </div>
             ))}
           </div>
@@ -1687,9 +1701,9 @@ liveStatus={liveStatus}
         <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:"20px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
             <div>
-              <div style={{fontFamily:F,fontSize:"10px",letterSpacing:"3px",textTransform:"uppercase",color:GOLD,marginBottom:"6px"}}>ANNUAL CHART</div>
-              <h2 style={{fontSize:"28px",fontWeight:800,margin:0}}>Best of 2024</h2>
-              <p style={{fontFamily:F,fontSize:"11px",color:"#999",margin:"4px 0 0"}}>Aggregated points across October, November & December 2024</p>
+              <div style={{fontFamily:F,fontSize:TXT.kicker,letterSpacing:"2.6px",textTransform:"uppercase",color:GOLD,marginBottom:"6px"}}>ANNUAL CHART</div>
+              <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0}}>Best of 2024</h2>
+              <p style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",margin:"4px 0 0",lineHeight:1.55}}>Aggregated points across October, November & December 2024</p>
             </div>
             <Tog sm/>
           </div>
@@ -1701,8 +1715,8 @@ liveStatus={liveStatus}
               return(<div key={i} style={{textAlign:"center",cursor:"pointer"}} onClick={()=>setSelR({title:e.t,artist:e.a,type:isSingles?"single":"album"})}>
                 <div style={{background:medal+"15",border:"2px solid "+medal,borderRadius:"12px",padding:"16px 12px"}}>
                   <div style={{fontSize:"32px",fontWeight:900,color:medal}}>#{pos}</div>
-                  <div style={{fontSize:i===1?"15px":"13px",fontWeight:700,marginBottom:"4px",lineHeight:1.2}}>{e.t}</div>
-                  <div style={{fontSize:"11px",color:"#888",fontFamily:F,marginBottom:"8px"}}>{e.a}</div>
+                  <div style={{fontSize:i===1?"15px":TXT.cardTitle,fontWeight:800,marginBottom:"4px",lineHeight:1.2}}>{e.t}</div>
+                  <div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginBottom:"8px"}}>{e.a}</div>
                   <div style={{fontSize:"18px",fontWeight:800,color:medal}}>{e.totalPts.toLocaleString()}</div>
                   <div style={{fontSize:"9px",color:"#BBB",fontFamily:F}}>total pts · {e.months} months</div>
                 </div>
@@ -1719,8 +1733,8 @@ liveStatus={liveStatus}
               onMouseEnter={e=>e.currentTarget.style.background="#FAFAF6"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}
               onClick={()=>setSelR({title:item.t,artist:item.a,type:isSingles?"single":"album"})}>
               <div style={{textAlign:"center",fontSize:t3?"20px":"13px",fontWeight:800,color:t3?MEDALS[idx]:"#D8D8D4"}}>{idx+1}</div>
-              <div><div style={{fontSize:t3?"13.5px":"12px",fontWeight:700,marginBottom:"1px"}}>{item.t}</div><div style={{fontSize:"10px",color:"#AAA",fontFamily:F}}>{item.a}</div></div>
-              <div style={{textAlign:"right",fontFamily:F,fontSize:t3?"14px":"11.5px",fontWeight:700,color:t3?GOLD:"#999"}}>{item.totalPts.toLocaleString()}</div>
+              <div><div style={{fontSize:t3?"14px":TXT.cardTitle,fontWeight:800,marginBottom:"1px",lineHeight:1.15}}>{item.t}</div><div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginTop:"3px"}}>{item.a}</div></div>
+              <div style={{textAlign:"right",fontFamily:F,fontSize:t3?"14px":TXT.cardMeta,fontWeight:800,color:t3?GOLD:"#69716B"}}>{item.totalPts.toLocaleString()}</div>
               <div style={{textAlign:"center",fontFamily:F,fontSize:"11px",color:"#BBB"}}>{item.months}/3</div>
             </div>);
           })}
@@ -1730,14 +1744,14 @@ liveStatus={liveStatus}
       {/* CERTIFICATIONS PAGE */}
       {page==="certifications"&&(
         <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
-          <h2 style={{fontSize:"24px",fontWeight:800,margin:"0 0 4px"}}>Ngoma Certifications</h2>
-          <p style={{fontFamily:F,fontSize:"11px",color:"#999",margin:"0 0 24px"}}>Awarded based on cumulative combined chart points across all months · Computed from full Top 50</p>
+          <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px"}}>Ngoma Certifications</h2>
+          <p style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",margin:"0 0 24px",lineHeight:1.55}}>Awarded based on cumulative combined chart points across all months · Computed from full Top 50</p>
           <div className="anl-grid-4" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"12px",marginBottom:"28px"}}>
             {[{icon:"💎",l:"Diamond",pts:"5,000+",color:"#7B1FA2"},{icon:"🪙",l:"Platinum",pts:"2,000+",color:SILVER},{icon:"🥇",l:"Gold",pts:"1,000+",color:GOLD},{icon:"🎵",l:"Ngoma",pts:"500+",color:"#2DB04A"}].map((c,i)=>(
               <div key={i} style={{...card({textAlign:"center"}),borderTop:"3px solid "+c.color}}>
                 <div style={{fontSize:"28px"}}>{c.icon}</div>
-                <div style={{fontWeight:800,fontSize:"16px",margin:"6px 0 2px",color:c.color}}>{c.l}</div>
-                <div style={{fontFamily:F,fontSize:"11px",color:"#999"}}>{c.pts} points</div>
+                <div style={{fontWeight:800,fontSize:TXT.metric,margin:"6px 0 2px",color:c.color}}>{c.l}</div>
+                <div style={{fontFamily:F,fontSize:TXT.cardMeta,color:"#69716B"}}>{c.pts} points</div>
               </div>
             ))}
           </div>
@@ -1753,8 +1767,8 @@ liveStatus={liveStatus}
                     <div key={i} style={{display:"flex",alignItems:"center",gap:"12px",padding:"12px 14px",background:certColors[level]+"0A",borderRadius:"8px",border:"1px solid "+certColors[level]+"22",cursor:"pointer"}} onClick={()=>setSelR({title:c.t,artist:c.a,type:isSingles?"single":"album"})}>
                       <div style={{fontSize:"22px"}}>{certIcons[level]}</div>
                       <div style={{flex:1}}>
-                        <div style={{fontWeight:700,fontSize:"13px"}}>{c.t}</div>
-                        <div style={{fontFamily:F,fontSize:"10.5px",color:"#999"}}>{c.a}</div>
+                        <div style={{fontWeight:800,fontSize:TXT.cardTitle,lineHeight:1.18}}>{c.t}</div>
+                        <div style={{fontFamily:F,fontSize:TXT.cardMeta,color:"#69716B",marginTop:"3px"}}>{c.a}</div>
                       </div>
                       <div style={{textAlign:"right",fontFamily:F}}>
                         <div style={{fontSize:"13px",fontWeight:700,color:certColors[level]}}>{c.totalPts.toLocaleString()}</div>
@@ -1773,8 +1787,8 @@ liveStatus={liveStatus}
       {/* NEWS PAGE */}
       {page==="news"&&!selNews&&(
         <div style={{padding:PAD,background:"transparent",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
-          <h2 style={{fontSize:"24px",fontWeight:800,margin:"0 0 4px"}}>Chart News</h2>
-          <p style={{fontFamily:F,fontSize:"11px",color:"#999",margin:"0 0 24px"}}>Analysis and stories from Kenya's music charts</p>
+          <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px"}}>Chart News</h2>
+          <p style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",margin:"0 0 24px",lineHeight:1.55}}>Analysis and stories from Kenya's music charts</p>
           <div style={{display:"grid",gap:"14px"}}>
             {NEWS.map((n,i)=>(
               <div key={n.id} onClick={()=>setSelNews(n)} style={{...card({cursor:"pointer",transition:"all 0.15s"}),...((i===0)?{background:"#FAF5EA",borderColor:GOLD+"44"}:{})}}
@@ -1784,11 +1798,11 @@ liveStatus={liveStatus}
                   <div style={{fontSize:i===0?"36px":"28px",flexShrink:0}}>{n.emoji}</div>
                   <div style={{flex:1}}>
                     <div style={{display:"flex",gap:"8px",alignItems:"center",marginBottom:"6px"}}>
-                      <span style={{fontFamily:F,fontSize:"9px",fontWeight:700,letterSpacing:"1.5px",textTransform:"uppercase",color:GOLD,background:"#FAF5EA",padding:"2px 8px",borderRadius:"10px"}}>{n.cat}</span>
-                      <span style={{fontFamily:F,fontSize:"10px",color:"#CCC"}}>{n.date}</span>
+                      <span style={{fontFamily:F,fontSize:TXT.micro,fontWeight:800,letterSpacing:"1.5px",textTransform:"uppercase",color:GOLD,background:"#FAF5EA",padding:"2px 8px",borderRadius:"10px"}}>{n.cat}</span>
+                      <span style={{fontFamily:F,fontSize:TXT.micro,color:"#7B857D"}}>{n.date}</span>
                     </div>
-                    <h3 style={{fontSize:i===0?"17px":"14px",fontWeight:700,margin:"0 0 6px",lineHeight:1.3}}>{n.title}</h3>
-                    <p style={{fontFamily:F,fontSize:"12px",color:"#777",margin:0,lineHeight:1.6}}>{n.excerpt}</p>
+                    <h3 style={{fontSize:i===0?(isMobile?"16px":"17px"):TXT.cardTitle,fontWeight:800,margin:"0 0 6px",lineHeight:1.25}}>{n.title}</h3>
+                    <p style={{fontFamily:F,fontSize:TXT.body,color:"#69716B",margin:0,lineHeight:1.6}}>{n.excerpt}</p>
                   </div>
                   <span style={{fontFamily:F,fontSize:"18px",color:"#DDD",flexShrink:0}}>›</span>
                 </div>
@@ -1806,8 +1820,8 @@ liveStatus={liveStatus}
               <span style={{fontFamily:F,fontSize:"10px",color:"#CCC"}}>{selNews.date}</span>
             </div>
             <div style={{fontSize:"40px",marginBottom:"16px"}}>{selNews.emoji}</div>
-            <h1 style={{fontSize:"24px",fontWeight:800,margin:"0 0 16px",lineHeight:1.2}}>{selNews.title}</h1>
-            {selNews.body.split("\n\n").map((p,i)=><p key={i} style={{fontFamily:F,fontSize:"14px",color:"#444",lineHeight:1.8,margin:"0 0 16px"}}>{p}</p>)}
+            <h1 style={{fontSize:isMobile?"24px":"26px",fontWeight:850,margin:"0 0 16px",lineHeight:1.18}}>{selNews.title}</h1>
+            {selNews.body.split("\n\n").map((p,i)=><p key={i} style={{fontFamily:F,fontSize:isMobile?"14px":"14px",color:"#444",lineHeight:1.8,margin:"0 0 16px"}}>{p}</p>)}
           </div>
         </div>
       )}
@@ -1815,8 +1829,8 @@ liveStatus={liveStatus}
       {/* ABOUT PAGE */}
       {page==="about"&&(
         <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
-          <h2 style={{fontSize:"26px",fontWeight:800,margin:"0 0 4px"}}>About Ngoma Charts</h2>
-          <p style={{fontFamily:F,fontSize:"12px",color:"#999",margin:"0 0 24px",lineHeight:1.6}}>Ngoma Charts' multi-platform music ranking system, launched October 2024.</p>
+          <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px"}}>About Ngoma Charts</h2>
+          <p style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",margin:"0 0 24px",lineHeight:1.6}}>Ngoma Charts' multi-platform music ranking system, launched October 2024.</p>
           <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px"}}>
             {[
               {title:"How It Works",text:"Weekly data collected from major platforms. Songs score by position: #1=100 pts, #100=1 pt. Albums use a 201-point scale. Monthly charts aggregate all weekly data. Movement arrows compare each month to the previous month."},
@@ -1827,8 +1841,8 @@ liveStatus={liveStatus}
               {title:"Hall of Fame",text:"Songs that hit #1 on the combined chart enter the Hall of Fame. Q4 2024: Extra Pressure (Oct, Nov), Olodumare (Dec) for singles; Lungu Boy (Oct, Nov), GNX (Dec) for albums."},
             ].map((item,i)=>(
               <div key={i} style={card()}>
-                <h3 style={{fontFamily:F,fontSize:"10px",fontWeight:700,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 10px"}}>{item.title}</h3>
-                {item.custom?<div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>{[["Apple Music","#FC3C44"],["Audiomack","#F68B1F"],["Boomplay","#2DB04A"],["Spotify","#1DB954"],["YouTube","#FF0000"],["Shazam","#0088FF"]].map(([p,c])=><span key={p} style={{padding:"5px 10px",background:c+"10",borderRadius:"12px",fontSize:"10.5px",fontFamily:F,fontWeight:600,color:c,borderLeft:"3px solid "+c}}>{p}</span>)}</div>:<p style={{fontSize:"12px",color:"#666",lineHeight:1.6,margin:0,fontFamily:F}}>{item.text}</p>}
+                <h3 style={{fontFamily:F,fontSize:TXT.micro,fontWeight:800,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 10px"}}>{item.title}</h3>
+                {item.custom?<div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>{[["Apple Music","#FC3C44"],["Audiomack","#F68B1F"],["Boomplay","#2DB04A"],["Spotify","#1DB954"],["YouTube","#FF0000"],["Shazam","#0088FF"]].map(([p,c])=><span key={p} style={{padding:"5px 10px",background:c+"10",borderRadius:"12px",fontSize:TXT.note,fontFamily:F,fontWeight:700,color:c,borderLeft:"3px solid "+c}}>{p}</span>)}</div>:<p style={{fontSize:TXT.body,color:"#555F59",lineHeight:1.65,margin:0,fontFamily:F}}>{item.text}</p>}
               </div>
             ))}
           </div>
@@ -1839,8 +1853,8 @@ liveStatus={liveStatus}
               {hof.map((e,i)=>(
                 <div key={i} style={{padding:"12px",background:"#FFF",borderRadius:"8px",border:"1px solid "+GOLD+"33",cursor:"pointer"}} onClick={()=>setSelR({...e,type:e.type})}>
                   <div style={{fontFamily:F,fontSize:"9px",letterSpacing:"1.5px",textTransform:"uppercase",color:GOLD,marginBottom:"4px"}}>{e.month} · {e.type}</div>
-                  <div style={{fontWeight:700,fontSize:"13px",marginBottom:"2px"}}>{e.title}</div>
-                  <div style={{fontFamily:F,fontSize:"10.5px",color:"#999"}}>{e.artist}</div>
+                  <div style={{fontWeight:800,fontSize:TXT.cardTitle,marginBottom:"2px",lineHeight:1.2}}>{e.title}</div>
+                  <div style={{fontFamily:F,fontSize:TXT.cardMeta,color:"#69716B"}}>{e.artist}</div>
                 </div>
               ))}
             </div>
