@@ -980,8 +980,12 @@ const top = data[0];
         .ngoma-analytics-muted{color:#59645D !important;}
         .ngoma-mobile-collapsible{margin:0 0 20px;}
         .ngoma-mobile-collapsible > summary{display:none;}
+        @media (max-width: 860px){
+          .anl-2col{grid-template-columns:1fr !important;}
+        }
         @media (max-width: 640px){
           .anl-grid-2{grid-template-columns:1fr !important;}
+          .anl-2col{grid-template-columns:1fr !important;}
           .anl-grid-3{grid-template-columns:1fr !important;}
           .anl-grid-4{grid-template-columns:1fr 1fr !important;}
           .podium-grid{grid-template-columns:1fr !important;}
@@ -1492,7 +1496,7 @@ liveStatus={liveStatus}
             ))}
           </div>
           {/* Top 10 + Platform #1s */}
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px",marginBottom:"20px"}} className="anl-2col">
+          <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:isMobile?"18px":"14px",marginBottom:"20px"}} className="anl-2col">
             <div style={card()}>
               <div style={secLbl()}><SecMark/>Top 10 {releaseLabel} — {anMonth}</div>
               {isMobile ? (
@@ -1519,7 +1523,7 @@ liveStatus={liveStatus}
             </div>
             <div style={card()}>
               <div style={secLbl()}><SecMark/>Platform #1s — {anMonth} ({chartTypeLabel})</div>
-              <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px"}}>
+              <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:isMobile?"10px":"8px"}}>
                 {platOnes.map(([pl,d])=>{
                   const lbl=PLAT_LABEL[pl]||pl;
                   return(
