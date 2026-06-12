@@ -21,7 +21,7 @@ import PremiumChartsPage from "./components/PremiumChartsPage";
 // ===== FULL Top-50 dataset across all months and platforms =====
 const MONTHS = ["October 2024","November 2024","December 2024"];
 const S_PLATS = ["Combined","APPLE MUSIC","AUDIOMACK","BOOMPLAY","SPOTIFY","YOUTUBE","SHAZAM"];
-const A_PLATS = ["Combined","APPLE MUSIC","AUDIOMACK"];
+const A_PLATS = ["Combined","APPLE MUSIC","AUDIOMACK","BOOMPLAY","SPOTIFY","YOUTUBE","SHAZAM"];
 const PLAT_LABEL = {"APPLE MUSIC":"Apple Music","AUDIOMACK":"Audiomack","BOOMPLAY":"Boomplay","SPOTIFY":"Spotify","YOUTUBE":"YouTube","SHAZAM":"Shazam"};
 const PC = {"Apple Music":"#FC3C44","APPLE MUSIC":"#FC3C44","Audiomack":"#F68B1F","AUDIOMACK":"#F68B1F","Boomplay":"#2DB04A","BOOMPLAY":"#2DB04A","Spotify":"#1DB954","SPOTIFY":"#1DB954","YouTube":"#FF0000","YOUTUBE":"#FF0000","Shazam":"#0088FF","SHAZAM":"#0088FF"};
 const GOLD="#B8860B"; const SILVER="#8C8C8C"; const BRONZE="#CD7F32";
@@ -116,7 +116,7 @@ function enrichChartEntries(entries, getRawEntries, currentMonth, totalPlatforms
   });
 }
 
-const getCombined = (ct, m) => enrichChartEntries(rawCombined(ct, m), (monthLabel) => rawCombined(ct, monthLabel), m, ct === "singles" ? 6 : 2);
+const getCombined = (ct, m) => enrichChartEntries(rawCombined(ct, m), (monthLabel) => rawCombined(ct, monthLabel), m, 6);
 const getPlatform = (ct, pl, m) => enrichChartEntries(rawPlatform(ct, pl, m), (monthLabel) => rawPlatform(ct, pl, monthLabel), m, 1);
 
 // Movement badge
@@ -184,7 +184,7 @@ export default function NgomaCharts(){
 
   const isSingles = ct === "singles";
   const platList = isSingles ? S_PLATS : A_PLATS;
-  const tp = isSingles ? 6 : 2;
+  const tp = 6;
 
   useEffect(() => {
     if (!API_BASE) return;
@@ -304,8 +304,88 @@ const top = data[0];
     return {symbol:"–",color:"#9AA19A",label:"No change"};
   };
 
-  // Movement data for the current month
-  const mvData=ANL.movements[anMonth]||{new:0,ret:0,debut:0,risers:[],fallers:[]};
+  const chartTypeLabel = isSingles ? "Singles" : "Albums";
+  const releaseLabel = isSingles ? "Songs" : "Albums";
+  const releaseLabelLower = isSingles ? "songs" : "albums";
+  const releaseSingularLower = isSingles ? "song" : "album";
+  const platformKeysFor = (chartType = ct) => (chartType === "singles" ? S_PLATS : A_PLATS).filter((platform) => platform !== "Combined");
+  const currentPlatformKeys = platformKeysFor(ct);
+
+  const platformHitsFor = (chartType, targetMonth, title, artist) => {
+    return platformKeysFor(chartType).filter((platform) =>
+      rawPlatform(chartType, platform, targetMonth).some((entry) => entryKey(entry) === entryKey({ title, artist }))
+    );
+  };
+
+  const crossPlatformRows = getCombined(ct, anMonth)
+    .map((entry) => {
+      const hits = platformHitsFor(ct, anMonth, entry.title, entry.artist);
+      const fallbackCount = Number(String(entry.plat || "").split("/")[0]) || 0;
+      const fallbackHits = hits.length ? hits : currentPlatformKeys.slice(0, fallbackCount);
+      const count = fallbackHits.length || fallbackCount;
+      return {
+        ...entry,
+        t: entry.title,
+        a: entry.artist,
+        plats: fallbackHits,
+        count,
+      };
+    })
+    .filter((entry) => entry.count > 0)
+    .sort((a, b) => b.count - a.count || Number(b.pts || 0) - Number(a.pts || 0));
+
+  const coverageBucket = crossPlatformRows.reduce((acc, entry) => {
+    acc[entry.count] = (acc[entry.count] || 0) + 1;
+    return acc;
+  }, {});
+
+  const coverageData = Object.entries(coverageBucket)
+    .map(([count, value]) => ({ name: `${count} platform${Number(count) === 1 ? "" : "s"}`, value, count: Number(count) }))
+    .sort((a, b) => b.count - a.count);
+
+  const platOnes = currentPlatformKeys
+    .map((platform) => {
+      const entry = getPlatform(ct, platform, anMonth)[0];
+      return entry ? [platform, { t: entry.title, a: entry.artist, p: entry.pts }] : null;
+    })
+    .filter(Boolean);
+
+  const platTotalsData = currentPlatformKeys
+    .map((platform) => ({
+      platform: PLAT_LABEL[platform] || platform,
+      points: rawPlatform(ct, platform, anMonth).reduce((sum, entry) => sum + (Number(entry.p) || Number(entry.pts) || 0), 0),
+      color: PC[platform] || "#888",
+    }))
+    .filter((entry) => entry.points > 0);
+
+  const buildMovementData = (chartType, targetMonth) => {
+    const currentIndex = monthIndex(targetMonth);
+    const currentRows = getCombined(chartType, targetMonth);
+    const previousMonth = currentIndex > 0 ? MONTHS[currentIndex - 1] : null;
+    const previousRows = previousMonth ? getCombined(chartType, previousMonth) : [];
+
+    const moves = currentRows
+      .map((entry) => {
+        const previous = previousRows.find((item) => entryKey(item) === entryKey(entry));
+        if (!previous) return null;
+        const from = Number(previous.rank);
+        const to = Number(entry.rank);
+        if (!Number.isFinite(from) || !Number.isFinite(to) || from === to) return null;
+        return { t: entry.title, a: entry.artist, from, to, delta: from - to };
+      })
+      .filter(Boolean);
+
+    return {
+      new: currentRows.filter((entry) => entry.is_new).length,
+      ret: currentRows.filter((entry) => entry.reentry).length,
+      debut: currentRows.filter((entry) => entry.is_new).length,
+      risers: moves.filter((entry) => entry.delta > 0).sort((a, b) => b.delta - a.delta).slice(0, 5),
+      fallers: moves.filter((entry) => entry.delta < 0).sort((a, b) => a.delta - b.delta).slice(0, 5),
+    };
+  };
+
+  // Movement data for the current analytics month and selected chart type
+  const mvData = buildMovementData(ct, anMonth);
 
   const askAI=async()=>{
     if(!aiQ.trim())return;setAiL(true);setAiA("");
@@ -445,11 +525,6 @@ const top = data[0];
 
   // === ANALYTICS COMPUTATIONS — all from full Top-50 data ===
   const top10sData=getCombined(ct,anMonth).slice(0,10).map(e=>({name:e.title.length>16?e.title.slice(0,14)+"…":e.title,pts:e.pts}));
-  const coverageData=Object.entries(ANL.coverage[anMonth]||{}).filter(([,v])=>v>0).map(([k,v])=>({name:k+" platforms",value:v}));
-  const platOnesS=Object.entries((ANL.platOnes[anMonth]||{}).singles||{});
-  const platOnesA=Object.entries((ANL.platOnes[anMonth]||{}).albums||{});
-  const crossPlat=ANL.crossPlat[anMonth]||[];
-
   const monthlyComp=MONTHS.map(m=>({
     month:m.split(" ")[0].slice(0,3),
     singles:getCombined("singles",m).length,
@@ -466,14 +541,12 @@ const top = data[0];
     return obj;
   });
 
-  const platTotalsData=Object.entries(ANL.platTotals[anMonth]||{}).map(([pl,v])=>({platform:PLAT_LABEL[pl]||pl,points:v,color:PC[pl]||"#888"}));
-
   const cmp1=artists.find(x=>x.n===cmpA1)||{n:cmpA1,p:0,m:0,t:0,pk:"-",mp:{}};
   const cmp2=artists.find(x=>x.n===cmpA2)||{n:cmpA2,p:0,m:0,t:0,pk:"-",mp:{}};
   const cmpData=MONTHS.map(m=>({month:m.split(" ")[0].slice(0,3),[cmpA1]:cmp1.mp?.[m]||0,[cmpA2]:cmp2.mp?.[m]||0}));
 
   // === SONG / ALBUM COMPARISON ===
-  const PLATS_FOR=isSingles?["APPLE MUSIC","AUDIOMACK","BOOMPLAY","SPOTIFY","YOUTUBE","SHAZAM"]:["APPLE MUSIC","AUDIOMACK"];
+  const PLATS_FOR = currentPlatformKeys;
   // Unique titles for the current chart type, with their artist
   const allTitles=useMemo(()=>{
     const map={};
@@ -516,10 +589,10 @@ const top = data[0];
   };
   // Default song selections to the current month's #1 and #2
   useEffect(()=>{
-    const cd=getCombined(ct,month);
-    if(cd[0]&&!cmpS1)setCmpS1(cd[0].title+" — "+cd[0].artist);
-    if(cd[1]&&!cmpS2)setCmpS2(cd[1].title+" — "+cd[1].artist);
-  },[ct]);
+    const cd=getCombined(ct,anMonth);
+    if(cd[0])setCmpS1(cd[0].title+" — "+cd[0].artist);
+    if(cd[1])setCmpS2(cd[1].title+" — "+cd[1].artist);
+  },[ct,anMonth]);
   const sp1=songProfile(cmpS1)||songProfile(allTitles[0]?.key);
   const sp2=songProfile(cmpS2)||songProfile(allTitles[1]?.key);
   const songMonthlyData=MONTHS.map(m=>({month:m.split(" ")[0].slice(0,3),A:sp1?.monthly[m]?.pts||0,B:sp2?.monthly[m]?.pts||0}));
@@ -696,8 +769,8 @@ const top = data[0];
         highlights: [
           topRelease ? `Current #1: ${topRelease.title} — ${topRelease.artist}` : null,
           topArtist ? `Top artist: ${topArtist.n} · ${Number(topArtist.p || 0).toLocaleString()} pts` : null,
-          `${monthlyComp.reduce((sum, item) => sum + (item.singles || 0), 0)} total single chart entries tracked across months`,
-          `${monthlyComp.reduce((sum, item) => sum + (item.albums || 0), 0)} total album chart entries tracked across months`,
+          `${getCombined(ct, anMonth).length} ${typeLabel.toLowerCase()} entries tracked in ${anMonth}`,
+          `${platOnes.length} platforms with a #1 ${isSingles ? "song" : "album"} in ${anMonth}`,
         ].filter(Boolean),
       };
     }
@@ -1410,10 +1483,10 @@ liveStatus={liveStatus}
           {/* Stats row */}
           <div className="anl-grid-4" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"10px",marginBottom:"20px"}}>
             {[
-              {l:"Chart Depth",v:getCombined(ct,anMonth).length,c:GOLD,s:"songs in Top 50 combined"},
+              {l:"Chart Depth",v:getCombined(ct,anMonth).length,c:GOLD,s:`${releaseLabelLower} in Top 50 combined`},
               {l:"New Entries",v:mvData.new,c:"#2DB04A",s:"not in prev month"},
               {l:"Re-Entries",v:mvData.ret,c:"#1565C0",s:"returned to chart"},
-              {l:"Platforms",v:tp,c:"#7B1FA2",s:"tracked for "+ct},
+              {l:"Platforms",v:tp,c:"#7B1FA2",s:`tracked for ${chartTypeLabel.toLowerCase()}`},
             ].map((s,i)=>(
               <div key={i} style={card({padding:isMobile?"15px":"18px"})}><div style={{...secLbl(s.c),marginBottom:"6px"}}>{s.l}</div><div style={{fontSize:isMobile?"24px":"28px",fontWeight:800,color:s.c}}>{s.v}</div><div style={{fontSize:isMobile?"10.5px":"10px",color:"#59645D",fontFamily:F,lineHeight:1.35}}>{s.s}</div></div>
             ))}
@@ -1421,7 +1494,7 @@ liveStatus={liveStatus}
           {/* Top 10 + Platform #1s */}
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px",marginBottom:"20px"}} className="anl-2col">
             <div style={card()}>
-              <div style={secLbl()}><SecMark/>Top 10 — {anMonth}</div>
+              <div style={secLbl()}><SecMark/>Top 10 {releaseLabel} — {anMonth}</div>
               {isMobile ? (
                 <div style={{display:"flex",flexDirection:"column",gap:"8px"}}>
                   {top10sData.map((e,i)=>(
@@ -1445,9 +1518,9 @@ liveStatus={liveStatus}
               )}
             </div>
             <div style={card()}>
-              <div style={secLbl()}><SecMark/>Platform #1s — {anMonth}</div>
+              <div style={secLbl()}><SecMark/>Platform #1s — {anMonth} ({chartTypeLabel})</div>
               <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px"}}>
-                {(isSingles?platOnesS:platOnesA).map(([pl,d])=>{
+                {platOnes.map(([pl,d])=>{
                   const lbl=PLAT_LABEL[pl]||pl;
                   return(
                     <div key={pl} style={{padding:isMobile?"12px":"10px 12px",background:(PC[pl]||"#888")+"0D",borderRadius:"8px",borderLeft:"3px solid "+(PC[pl]||"#888")}}>
@@ -1463,7 +1536,7 @@ liveStatus={liveStatus}
           {/* Top artists points line chart */}
           <AnalyticsDeepSection label="View artist trajectory">
           <div style={{...card(),marginBottom:"20px"}}>
-            <div style={secLbl()}><SecMark/>Top 5 Artists — Points Trajectory ({isSingles?"Singles":"Albums"})</div>
+            <div style={secLbl()}><SecMark/>Top 5 Artists — Points Trajectory ({chartTypeLabel})</div>
             <ResponsiveContainer width="100%" height={isMobile?260:240}>
               <LineChart data={topArtistsLine} margin={{top:10,right:isMobile?18:24,left:isMobile?0:8,bottom:isMobile?4:0}}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#F0F0EC"/>
@@ -1483,8 +1556,8 @@ liveStatus={liveStatus}
           <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px",marginBottom:"20px"}}>
             <div style={card()}>
               <div style={secLbl()}><SecMark/>Cross-Platform Reach — {anMonth}</div>
-              <p style={{fontFamily:F,fontSize:"10px",color:"#59645D",margin:"-4px 0 12px",lineHeight:1.45}}>{isSingles?"Songs charting on most platforms simultaneously":"Albums appear on Apple Music & Audiomack only"}</p>
-              {isSingles&&crossPlat.slice(0,8).map((s,i)=>(
+              <p style={{fontFamily:F,fontSize:"10px",color:"#59645D",margin:"-4px 0 12px",lineHeight:1.45}}>{releaseLabel} charting on most platforms simultaneously.</p>
+              {crossPlatformRows.slice(0,8).map((s,i)=>(
                 <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 0",borderBottom:"1px solid #F0F0EC"}}>
                   <div style={{flex:1}}>
                     <div style={{fontSize:isMobile?"13px":"12px",fontWeight:800}}>{s.t}</div>
@@ -1492,23 +1565,10 @@ liveStatus={liveStatus}
                   </div>
                   <div style={{display:"flex",gap:"3px",alignItems:"center"}}>
                     {s.plats.map(pl=><div key={pl} style={{width:"7px",height:"7px",borderRadius:"50%",background:PC[pl]||"#888"}} title={PLAT_LABEL[pl]}/>)}
-                    <span style={{fontFamily:F,fontSize:isMobile?"12px":"11px",fontWeight:700,color:GOLD,marginLeft:"6px"}}>{s.count}/6</span>
+                    <span style={{fontFamily:F,fontSize:isMobile?"12px":"11px",fontWeight:700,color:GOLD,marginLeft:"6px"}}>{s.count}/{currentPlatformKeys.length}</span>
                   </div>
                 </div>
               ))}
-              {!isSingles&&(()=>{
-                const both=getPlatform("albums","APPLE MUSIC",anMonth).filter(am=>getPlatform("albums","AUDIOMACK",anMonth).some(au=>au.title===am.title&&au.artist===am.artist)).slice(0,8);
-                return both.map((s,i)=>(
-                  <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 0",borderBottom:"1px solid #F0F0EC",cursor:"pointer"}} onClick={()=>setSelR({title:s.title,artist:s.artist,type:"album"})}>
-                    <div style={{flex:1}}><div style={{fontSize:isMobile?"13px":"12px",fontWeight:800}}>{s.title}</div><div style={{fontSize:isMobile?"11px":"10.5px",color:"#59645D",fontFamily:F,marginTop:"2px"}}>{s.artist}</div></div>
-                    <div style={{display:"flex",gap:"3px",alignItems:"center"}}>
-                      <div style={{width:"7px",height:"7px",borderRadius:"50%",background:PC["APPLE MUSIC"]}}/>
-                      <div style={{width:"7px",height:"7px",borderRadius:"50%",background:PC["AUDIOMACK"]}}/>
-                      <span style={{fontFamily:F,fontSize:isMobile?"12px":"11px",fontWeight:700,color:GOLD,marginLeft:"6px"}}>2/2</span>
-                    </div>
-                  </div>
-                ));
-              })()}
             </div>
             <div style={card()}>
               <div style={secLbl()}><SecMark/>Platform Coverage — {anMonth}</div>
@@ -1533,8 +1593,8 @@ liveStatus={liveStatus}
             </div>
           </div>
           </AnalyticsDeepSection>
-          {/* Platform totals (only singles since albums has 2) */}
-          {isSingles&&(
+          {/* Platform totals */}
+          {platTotalsData.length>0&&(
             <AnalyticsDeepSection label="View platform totals">
             <div style={{...card(),marginBottom:"20px"}}>
               <div style={secLbl()}><SecMark/>Total Points Distributed Per Platform — {anMonth}</div>
@@ -1551,9 +1611,9 @@ liveStatus={liveStatus}
             </AnalyticsDeepSection>
           )}
           {/* Local vs International */}
-          {isSingles&&(()=>{
+          {(()=>{
             const KENYAN=new Set(["Bensoul","Dyana Cods","Ssaru","D Voice","Geniusjini x66","Nadia Mukami","Iyanii","Charisma","Lilmaina","Savara","Sauti Sol","Nyashinski","Bien","Watendawili","Coster Ojwang","Otile Brown","Octopizzo","Njerae","Matata","Mutoriah","Fathermoh","Soundkraft","Bella Kombo","Wadagliz","Wakadinali","BURUKLYN BOYZ","Sosa The Prodigy","Obby Alpha","Prince Indah","Lil Maina","Spoiler"]);
-            const cd=getCombined("singles",anMonth);
+            const cd=getCombined(ct,anMonth);
             let local=0,intl=0,localPts=0,intlPts=0;
             cd.forEach(e=>{if(KENYAN.has(e.artist)){local++;localPts+=e.pts;}else{intl++;intlPts+=e.pts;}});
             const pieData=[{name:"Kenyan",value:local,color:GOLD},{name:"International",value:intl,color:"#37474F"}];
@@ -1578,7 +1638,7 @@ liveStatus={liveStatus}
                           <span style={{fontFamily:F,fontSize:"13px",fontWeight:800,color:r.col}}>{r.c} <span style={{fontSize:"10px",color:"#69716B",fontWeight:600}}>of 50</span></span>
                         </div>
                         <div style={{height:"6px",background:"#F2F0EA",borderRadius:"3px",overflow:"hidden"}}><div style={{width:(r.c/50*100)+"%",height:"100%",background:r.col,borderRadius:"3px"}}/></div>
-                        <div style={{fontFamily:F,fontSize:isMobile?"10.5px":"10px",color:"#59645D",marginTop:"4px",fontFamily:F}}>{r.p.toLocaleString()} total points</div>
+                        <div style={{fontFamily:F,fontSize:isMobile?"10.5px":"10px",color:"#59645D",marginTop:"4px"}}>{r.p.toLocaleString()} total points</div>
                       </div>
                     ))}
                   </div>
@@ -1589,7 +1649,7 @@ liveStatus={liveStatus}
           {/* Climbers & Fallers */}
           <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px",marginBottom:"20px"}}>
             <div style={card()}>
-              <div style={secLbl("#2DB04A")}><SecMark c="#2DB04A"/>Top Climbers — {anMonth}</div>
+              <div style={secLbl("#2DB04A")}><SecMark c="#2DB04A"/>Top {releaseLabel} Climbers — {anMonth}</div>
               {mvData.risers.map((s,i)=>(
                 <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:isMobile?"8px 0":"6px 0",borderBottom:"1px solid #F0F0EC"}}>
                   <div><div style={{fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15}}>{s.t}</div><div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginTop:"3px"}}>{s.a}</div></div>
@@ -1599,7 +1659,7 @@ liveStatus={liveStatus}
               {!mvData.risers.length&&<div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:"#CCC",padding:"20px 0",textAlign:"center"}}>No movement data (debut month)</div>}
             </div>
             <div style={card()}>
-              <div style={secLbl("#E53935")}><SecMark c="#E53935"/>Biggest Drops — {anMonth}</div>
+              <div style={secLbl("#E53935")}><SecMark c="#E53935"/>Biggest {releaseLabel} Drops — {anMonth}</div>
               {mvData.fallers.map((s,i)=>(
                 <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:isMobile?"8px 0":"6px 0",borderBottom:"1px solid #F0F0EC"}}>
                   <div><div style={{fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15}}>{s.t}</div><div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginTop:"3px"}}>{s.a}</div></div>
@@ -1612,7 +1672,7 @@ liveStatus={liveStatus}
           {/* Top 10 Artists Bar */}
           <AnalyticsDeepSection label="View top artists chart">
           <div style={{...card(),marginBottom:"20px"}}>
-            <div style={secLbl()}><SecMark/>Top 10 Artists by Total Points — Q4 2024 ({isSingles?"Singles":"Albums"})</div>
+            <div style={secLbl()}><SecMark/>Top 10 Artists by Total Points — ({chartTypeLabel})</div>
             <ResponsiveContainer width="100%" height={isMobile?280:260}>
               <BarChart data={artists.slice(0,10).map(a=>({name:a.n.length>14?a.n.slice(0,12)+"…":a.n,pts:a.p}))} layout="vertical" margin={{left:isMobile?4:10,right:isMobile?18:20,top:0,bottom:0}}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#F0F0EC" horizontal={false}/>
@@ -1624,28 +1684,10 @@ liveStatus={liveStatus}
             </ResponsiveContainer>
           </div>
           </AnalyticsDeepSection>
-          {/* Monthly Comparison */}
-          <AnalyticsDeepSection label="View monthly trend">
-          <div style={{...card(),marginBottom:"20px"}}>
-            <div style={secLbl()}><SecMark/>Monthly Trend — Singles vs Albums vs New Entries</div>
-            <ResponsiveContainer width="100%" height={isMobile?230:200}>
-              <BarChart data={monthlyComp} margin={{top:12,right:isMobile?18:22,left:isMobile?0:8,bottom:isMobile?4:0}}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F0F0EC"/>
-                <XAxis dataKey="month" tick={{fontSize:isMobile?11:11,fontFamily:F,fill:"#59645D",fontWeight:650}} tickLine={false}/>
-                <YAxis tick={{fontSize:isMobile?10.5:10,fontFamily:F,fill:"#59645D",fontWeight:650}} axisLine={false} tickLine={false}/>
-                <Tooltip contentStyle={{fontFamily:F,fontSize:11}}/>
-                <Legend wrapperStyle={{fontFamily:F,fontSize:isMobile?11:10.5,color:"#59645D"}}/>
-                <Bar dataKey="singles" fill={GOLD} name="Singles" radius={[4,4,0,0]}/>
-                <Bar dataKey="albums" fill="#1565C0" name="Albums" radius={[4,4,0,0]}/>
-                <Bar dataKey="new" fill="#2DB04A" name="New Singles" radius={[4,4,0,0]}/>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          </AnalyticsDeepSection>
           {/* Tracked Song Journey */}
-          <AnalyticsDeepSection label="View song rank journey">
+          <AnalyticsDeepSection label={isSingles?"View song rank journey":"View album rank journey"}>
           <div style={card()}>
-            <div style={secLbl()}><SecMark/>Song Rank Journey Across Months</div>
+            <div style={secLbl()}><SecMark/>{isSingles?"Top Songs Rank Journey Across Months":"Top Albums Rank Journey Across Months"}</div>
             {tracked.map(title=>{
               const hasAny=MONTHS.some(m=>getCombined(ct,m).find(e=>e.title===title));
               if(!hasAny)return null;
