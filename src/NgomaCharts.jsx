@@ -30,6 +30,24 @@ const F = "'Instrument Sans',Helvetica,sans-serif";
 const SF = "'Source Serif 4',Georgia,serif";
 const CC = [GOLD,"#E53935","#2DB04A","#1565C0","#7B1FA2","#E65100","#00897B","#37474F","#AD1457","#558B2F"];
 const VO = [{l:"Top 10",c:10},{l:"Top 20",c:20},{l:"Top 50",c:50}];
+const CERTIFICATION_LEVELS = [
+  { level: "diamond", label: "Diamond", icon: "💎", pts: 20000, color: "#7B1FA2" },
+  { level: "platinum", label: "Platinum", icon: "🪙", pts: 10000, color: SILVER },
+  { level: "gold", label: "Gold", icon: "🥇", pts: 5000, color: GOLD },
+];
+const getCertificationLevel = (totalPts = 0) => {
+  const points = Number(totalPts) || 0;
+  return CERTIFICATION_LEVELS.find((item) => points >= item.pts)?.level || null;
+};
+
+const buildCertifications = (items = []) => items
+  .map((item) => ({
+    t: item.t,
+    a: item.a,
+    totalPts: Number(item.totalPts) || 0,
+    level: getCertificationLevel(item.totalPts),
+  }))
+  .filter((item) => item.level);
 const MONTH_NUMBER = {
   "January": 1,
   "February": 2,
@@ -217,11 +235,11 @@ const RecordIcon = ({ label = "", size = 30, muted = false }) => {
 
 const NEWS=[
   {id:1,date:"December 31, 2024",cat:"CHART NEWS",emoji:"🎵",title:"Olodumare Dethrones Bensoul to Claim December #1",excerpt:"After two consecutive months at the top, Bensoul's Extra Pressure falls to #3 as Joel Lwaga's Olodumare storms to #1 with 2,286 points across all six platforms.",body:"Joel Lwaga's Olodumare made history in December 2024, becoming the first song to dethrone Bensoul's Extra Pressure from the #1 spot since Ngoma Charts launched. With 2,286 combined points and a perfect 6/6 platform presence, it cemented its status as one of the most cross-cutting songs of Q4 2024."},
-  {id:2,date:"December 15, 2024",cat:"ARTIST SPOTLIGHT",emoji:"🌟",title:"Iyanii: Q4's Fastest-Rising Artist",excerpt:"Kifo Cha Mende rose from outside the Top 20 in October to #2 in December — the biggest month-on-month rise of any song in Q4 2024.",body:"Iyanii's Kifo Cha Mende is the breakout story of Q4 2024. The song accumulated 3,773 combined points across the three months, reaching Diamond-tier-adjacent status."},
+  {id:2,date:"December 15, 2024",cat:"ARTIST SPOTLIGHT",emoji:"🌟",title:"Iyanii: Q4's Fastest-Rising Artist",excerpt:"Kifo Cha Mende rose from outside the Top 20 in October to #2 in December — the biggest month-on-month rise of any song in Q4 2024.",body:"Iyanii's Kifo Cha Mende is the breakout story of Q4 2024. The song accumulated 3,773 combined points across the three months, landing just below the Gold threshold."},
   {id:3,date:"December 5, 2024",cat:"ALBUMS",emoji:"💿",title:"GNX Tops Kenya's Albums Chart",excerpt:"Kendrick Lamar's surprise album lands at #1 on both Apple Music and Audiomack Kenya in December, displacing Asake's Lungu Boy.",body:"GNX edged out Marioo's The Godson by just 12 points (1,556 vs 1,544) in one of the closest #1 races of the year."},
-  {id:4,date:"November 30, 2024",cat:"CHART NEWS",emoji:"🏆",title:"Bensoul Holds #1 For Second Straight Month",excerpt:"Extra Pressure earned 2,624 points in November — a 20% increase over October's 2,188.",body:"Extra Pressure became the first song in Ngoma Charts history to hold #1 for two consecutive months. With 6,680 cumulative points across Q4, it earned Diamond certification."},
+  {id:4,date:"November 30, 2024",cat:"CHART NEWS",emoji:"🏆",title:"Bensoul Holds #1 For Second Straight Month",excerpt:"Extra Pressure earned 2,624 points in November — a 20% increase over October's 2,188.",body:"Extra Pressure became the first song in Ngoma Charts history to hold #1 for two consecutive months. With 6,680 cumulative points across Q4, it earns Gold certification under the updated certification thresholds."},
   {id:5,date:"November 20, 2024",cat:"ANALYTICS",emoji:"📊",title:"Only Two Songs Achieved 6/6 Platform Coverage",excerpt:"Across Q4 2024, only Extra Pressure and Olodumare charted on all six platforms in the same month.",body:"Different platforms have genuinely different audiences in Kenya. A song that cracks all six must appeal across every listener segment."},
-  {id:6,date:"November 5, 2024",cat:"ARTIST SPOTLIGHT",emoji:"⭐",title:"Dyana Cods Dominates 4 Platforms with Set It",excerpt:"Set It topped Apple Music, Boomplay, Spotify and Shazam simultaneously in October — a rare achievement.",body:"With 5,987 cumulative points across Q4, Dyana Cods earned Diamond certification for Set It."},
+  {id:6,date:"November 5, 2024",cat:"ARTIST SPOTLIGHT",emoji:"⭐",title:"Dyana Cods Dominates 4 Platforms with Set It",excerpt:"Set It topped Apple Music, Boomplay, Spotify and Shazam simultaneously in October — a rare achievement.",body:"With 5,987 cumulative points across Q4, Dyana Cods earns Gold certification for Set It under the updated certification thresholds."},
   {id:7,date:"October 31, 2024",cat:"ANNOUNCEMENT",emoji:"🚀",title:"Ngoma Charts Launches",excerpt:"Ngoma Charts' multi-platform music ranking system debuts with Bensoul's Extra Pressure as the inaugural #1.",body:"Ngoma Charts uses a 101-point system: #1 earns 100 points, #100 earns 1 point. Albums use a 201-point scale across the Top 200."},
   {id:8,date:"October 20, 2024",cat:"ALBUMS",emoji:"🎤",title:"Nyashinski's Album Anchors Albums Chart",excerpt:"To Whom It May Concern holds at #2 on the combined albums chart for October 2024.",body:"With 1,553 combined points, the album proved that Kenyan artists can compete with international heavyweights on home soil."},
 ];
@@ -883,9 +901,15 @@ const top = data[0];
 
   const tracked=isSingles?["Extra Pressure","Set It","Olodumare","Kifo Cha Mende","Bae Bae"]:["Lungu Boy","To Whom It May Concern","The Motions","GNX","Alusa Why Are You Topless?"];
 
-  const certs=isSingles?ANL.certs.singles:ANL.certs.albums;
-  const certIcons={diamond:"💎",platinum:"🪙",gold:"🥇",ngoma:"🎵"};
-  const certColors={diamond:"#7B1FA2",platinum:SILVER,gold:GOLD,ngoma:"#2DB04A"};
+  const certs=buildCertifications(yearEnd);
+  const certIcons=CERTIFICATION_LEVELS.reduce((acc, item) => {
+    acc[item.level] = item.icon;
+    return acc;
+  }, {});
+  const certColors=CERTIFICATION_LEVELS.reduce((acc, item) => {
+    acc[item.level] = item.color;
+    return acc;
+  }, {});
 
   // Hall of Fame: #1 each month for both singles and albums
   const hof=MONTHS.flatMap(m=>{
@@ -1079,7 +1103,7 @@ const top = data[0];
     if (page === "certifications") {
       return {
         eyebrow: "CERTIFICATIONS",
-        title: `Ngoma Certifications`,
+        title: `Certifications`,
         subtitle: `${typeLabel} · cumulative combined chart points`,
         accent: "#7B1FA2",
         highlights: certs.slice(0, 6).map((cert) => `${cert.t} — ${cert.a} · ${cert.level.toUpperCase()} · ${Number(cert.totalPts || 0).toLocaleString()} pts`),
@@ -1916,7 +1940,7 @@ liveStatus={liveStatus}
             </div>
             {aiA&&<div style={{padding:"14px",background:"#FAFAF8",borderRadius:"8px",border:"1px solid #EAEAE6",fontSize:"13px",lineHeight:1.7,whiteSpace:"pre-wrap",marginBottom:"10px"}}>{aiA}</div>}
             <div style={{display:"flex",gap:"5px",flexWrap:"wrap"}}>
-              {["Who dominated Q4 2024 overall?","Which song rose the fastest?","Compare singles vs albums platform performance","What predicts a #1 song?","Best Kenyan artists vs international?","Diamond certified breakdown","Which platform discovers trends earliest?","Cross-platform overlap analysis"].map(q=>(
+              {["Who dominated Q4 2024 overall?","Which song rose the fastest?","Compare singles vs albums platform performance","What predicts a #1 song?","Best Kenyan artists vs international?","Certification breakdown","Which platform discovers trends earliest?","Cross-platform overlap analysis"].map(q=>(
                 <button key={q} onClick={()=>setAiQ(q)} style={{padding:"4px 10px",background:"#FFF",border:"1px solid #E0E0DC",borderRadius:"14px",fontSize:"10px",fontFamily:F,color:"#888",cursor:"pointer"}}>{q}</button>
               ))}
             </div>
@@ -2724,25 +2748,25 @@ liveStatus={liveStatus}
         <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:"24px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
             <div>
-              <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px"}}>Ngoma Certifications</h2>
-              <p style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",margin:0,lineHeight:1.55}}>Awarded based on cumulative combined chart points across all months · Computed from full Top 50</p>
+              <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px"}}>Certifications</h2>
+              <p style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",margin:0,lineHeight:1.55}}>Awarded based on recalculated full-year combined chart point thresholds · Computed from full Top 50</p>
             </div>
             <div style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap"}}>
               <Tog sm/>
               <ShareCardButton compact />
             </div>
           </div>
-          <div className="anl-grid-4" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"12px",marginBottom:"28px"}}>
-            {[{icon:"💎",l:"Diamond",pts:"5,000+",color:"#7B1FA2"},{icon:"🪙",l:"Platinum",pts:"2,000+",color:SILVER},{icon:"🥇",l:"Gold",pts:"1,000+",color:GOLD},{icon:"🎵",l:"Ngoma",pts:"500+",color:"#2DB04A"}].map((c,i)=>(
+          <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"12px",marginBottom:"28px"}}>
+            {CERTIFICATION_LEVELS.map((c,i)=>(
               <div key={i} style={{...card({textAlign:"center"}),borderTop:"3px solid "+c.color}}>
                 <div style={{fontSize:"28px"}}>{c.icon}</div>
-                <div style={{fontWeight:800,fontSize:TXT.metric,margin:"6px 0 2px",color:c.color}}>{c.l}</div>
-                <div style={{fontFamily:F,fontSize:TXT.cardMeta,color:"#69716B"}}>{c.pts} points</div>
+                <div style={{fontWeight:800,fontSize:TXT.metric,margin:"6px 0 2px",color:c.color}}>{c.label}</div>
+                <div style={{fontFamily:F,fontSize:TXT.cardMeta,color:"#69716B"}}>{c.pts.toLocaleString()}+ points</div>
               </div>
             ))}
           </div>
           <div style={{marginTop:"16px"}}>
-            {["diamond","platinum","gold","ngoma"].map(level=>{
+            {CERTIFICATION_LEVELS.map(({ level })=>{
               const filtered=certs.filter(c=>c.level===level);
               if(!filtered.length)return null;
               return(<div key={level} style={{marginBottom:"24px"}}>
@@ -2822,7 +2846,7 @@ liveStatus={liveStatus}
               {title:"Platforms Tracked",custom:true},
               {title:"Singles Chart",text:"Top 50 from Apple Music, Audiomack, Boomplay, Spotify, YouTube & Shazam. Combined chart aggregates all platforms by points. View Top 10, 20 or 50."},
               {title:"Albums Chart",text:"Top 50 from Apple Music and Audiomack (201-point scale across 200 positions). Boomplay excluded. Combined chart aggregates both."},
-              {title:"Certifications",text:"💎 Ngoma Diamond: 5,000+ pts · 🪙 Ngoma Platinum: 2,000+ · 🥇 Ngoma Gold: 1,000+ · 🎵 Ngoma: 500+. Awarded on cumulative combined chart points."},
+              {title:"Certifications",text:"💎 Diamond: 20,000+ pts · 🪙 Platinum: 10,000+ pts · 🥇 Gold: 5,000+ pts. Awarded on cumulative combined chart points."},
               {title:"Hall of Fame",text:"Songs that hit #1 on the combined chart enter the Hall of Fame. Q4 2024: Extra Pressure (Oct, Nov), Olodumare (Dec) for singles; Lungu Boy (Oct, Nov), GNX (Dec) for albums."},
             ].map((item,i)=>(
               <div key={i} style={card()}>
