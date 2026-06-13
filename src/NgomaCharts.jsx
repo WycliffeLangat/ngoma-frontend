@@ -16,14 +16,14 @@ import {
   CartesianGrid,
 } from "recharts";
 import { FULL, ANL, MOM } from "./data/chartData";
-import PremiumChartsPage from "./components/PremiumChartsPage";
+import PremiumChartsPage, { getArtistCountry } from "./components/PremiumChartsPage";
 
 // ===== FULL Top-50 dataset across all months and platforms =====
 const MONTHS = ["October 2024","November 2024","December 2024"];
 const S_PLATS = ["Combined","APPLE MUSIC","AUDIOMACK","BOOMPLAY","SPOTIFY","YOUTUBE","SHAZAM"];
-const A_PLATS = ["Combined","APPLE MUSIC","AUDIOMACK","BOOMPLAY","SPOTIFY","YOUTUBE","SHAZAM"];
+const A_PLATS = ["Combined","APPLE MUSIC","AUDIOMACK"];
 const PLAT_LABEL = {"APPLE MUSIC":"Apple Music","AUDIOMACK":"Audiomack","BOOMPLAY":"Boomplay","SPOTIFY":"Spotify","YOUTUBE":"YouTube","SHAZAM":"Shazam"};
-const PC = {"Apple Music":"#FC3C44","APPLE MUSIC":"#FC3C44","Audiomack":"#F68B1F","AUDIOMACK":"#F68B1F","Boomplay":"#2DB04A","BOOMPLAY":"#2DB04A","Spotify":"#1DB954","SPOTIFY":"#1DB954","YouTube":"#FF0000","YOUTUBE":"#FF0000","Shazam":"#0088FF","SHAZAM":"#0088FF"};
+const PC = {"Apple Music":"#FC3C44","APPLE MUSIC":"#FC3C44","Audiomack":"#F68B1F","AUDIOMACK":"#F68B1F","Boomplay":"#00FFFF","BOOMPLAY":"#00FFFF","Spotify":"#1DB954","SPOTIFY":"#1DB954","YouTube":"#FF0000","YOUTUBE":"#FF0000","Shazam":"#0088FF","SHAZAM":"#0088FF"};
 const GOLD="#B8860B"; const SILVER="#8C8C8C"; const BRONZE="#CD7F32";
 const MEDALS=[GOLD,SILVER,BRONZE];
 const F = "'Instrument Sans',Helvetica,sans-serif";
@@ -48,6 +48,41 @@ const buildCertifications = (items = []) => items
     level: getCertificationLevel(item.totalPts),
   }))
   .filter((item) => item.level);
+const releaseTitle = (item = {}) => item.t || item.title || item.release_title || item.name || "";
+const releaseArtist = (item = {}) => item.a || item.artist || item.artist_name || item.primary_artist || "";
+const firstFiniteNumber = (...values) => {
+  for (const value of values) {
+    if (value === undefined || value === null || value === "") continue;
+    const parsed = Number(String(value).replace(/,/g, ""));
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return null;
+};
+const certificationKey = (title = "", artist = "") =>
+  `${String(title).trim().toLowerCase()}|||${String(artist).trim().toLowerCase()}`;
+const certificationMetaForLevel = (level) => CERTIFICATION_LEVELS.find((item) => item.level === level) || null;
+const COUNTRY_ACCENTS = {
+  BB:"#00267F",CA:"#D80621",CD:"#007FFF",CI:"#F77F00",FR:"#0055A4",GB:"#012169",
+  GH:"#CE1126",IN:"#FF9933",JM:"#009B3A",KE:"#006600",KR:"#CD2E3A",NG:"#008751",
+  NO:"#BA0C2F",RW:"#00A1DE",SE:"#006AA7",TZ:"#1EB53A",UG:"#D90000",US:"#3C3B6E",ZA:"#007749",
+};
+const CountryBadge = ({ artist, item, compact = false, style = {} }) => {
+  const country = getArtistCountry(item || { artist });
+  const accent = COUNTRY_ACCENTS[country.code] || "#69716B";
+  return (
+    <span
+      title={`${country.country}${country.code ? ` (${country.code})` : ""}`}
+      style={{
+        display:"inline-flex",alignItems:"center",justifyContent:"center",gap:"6px",
+        minWidth:compact?"28px":"36px",height:compact?"28px":"30px",padding:"0 7px",
+        borderRadius:compact?"9px":"999px",background:`${accent}12`,border:`1px solid ${accent}45`,
+        color:accent,fontFamily:F,fontSize:compact?"9px":"10px",fontWeight:850,whiteSpace:"nowrap",...style,
+      }}
+    >
+      <span style={{fontSize:compact?"9px":"10px",letterSpacing:"0.8px",lineHeight:1}}>{country.code || "—"}</span>
+    </span>
+  );
+};
 const MONTH_NUMBER = {
   "January": 1,
   "February": 2,
@@ -134,7 +169,7 @@ function enrichChartEntries(entries, getRawEntries, currentMonth, totalPlatforms
   });
 }
 
-const getCombined = (ct, m) => enrichChartEntries(rawCombined(ct, m), (monthLabel) => rawCombined(ct, monthLabel), m, 6);
+const getCombined = (ct, m) => enrichChartEntries(rawCombined(ct, m), (monthLabel) => rawCombined(ct, monthLabel), m, ct === "albums" ? 2 : 6);
 const getPlatform = (ct, pl, m) => enrichChartEntries(rawPlatform(ct, pl, m), (monthLabel) => rawPlatform(ct, pl, monthLabel), m, 1);
 
 // Movement badge
@@ -288,7 +323,7 @@ export default function NgomaCharts(){
 
   const isSingles = ct === "singles";
   const platList = isSingles ? S_PLATS : A_PLATS;
-  const tp = 6;
+  const tp = isSingles ? 6 : 2;
 
   useEffect(() => {
     if (!API_BASE) return;
@@ -441,7 +476,28 @@ const top = data[0];
 
   // Artists from FULL Top-50 data — use pre-computed
   const artists=isSingles?ANL.sArtists:ANL.aArtists;
-  const artistInitials=(name="")=>String(name).trim().split(/\s+/).slice(0,2).map(part=>part[0]||"").join("").toUpperCase()||"NC";
+  const openArtistDetails = (name) => {
+    const singleProfile = ANL.sArtists.find((item) => item.n === name);
+    const albumProfile = ANL.aArtists.find((item) => item.n === name);
+    const profile = (isSingles ? singleProfile : albumProfile) || singleProfile || albumProfile;
+    if (!profile) return;
+    setCt(singleProfile === profile ? "singles" : "albums");
+    setPlat("Combined");
+    setSelR(null);
+    setSelA(profile);
+  };
+  const openReleaseDetails = (entry = {}, type = isSingles ? "single" : "album") => {
+    const normalizedType = String(type || entry.type || "single").toLowerCase().includes("album") ? "album" : "single";
+    setCt(normalizedType === "album" ? "albums" : "singles");
+    setPlat("Combined");
+    setSelA(null);
+    setSelR({
+      ...entry,
+      title: releaseTitle(entry),
+      artist: releaseArtist(entry),
+      type: normalizedType,
+    });
+  };
   const artistTrendFor=(artist={})=>{
     const latest=MONTHS[MONTHS.length-1];
     const previous=MONTHS[MONTHS.length-2];
@@ -628,6 +684,7 @@ const top = data[0];
         displaySub: mostNumberOnes
           ? `${mostNumberOnes.artist} · No. 1 for ${mostNumberOnes.numberOneMonths.size} ${mostNumberOnes.numberOneMonths.size === 1 ? "month" : "months"} ${trackedPeriodLabel}`
           : `No #1 ${releaseLabelLower} found`,
+        certificationEntry: mostNumberOnes ? { title: mostNumberOnes.title, artist: mostNumberOnes.artist } : null,
       },
       {
         label: "Highest Monthly Score",
@@ -636,6 +693,7 @@ const top = data[0];
         displaySub: highestMonthly
           ? `${highestMonthly.artist} · ${highestMonthly.points.toLocaleString()} pts`
           : `No ${releaseLabelLower} found`,
+        certificationEntry: highestMonthly,
       },
       {
         label: "Biggest Monthly Climb",
@@ -645,6 +703,7 @@ const top = data[0];
           ? `${biggestClimb.artist} · #${biggestClimb.from} → #${biggestClimb.to}`
           : `No monthly climb found`,
         climbDelta: biggestClimb?.delta || null,
+        certificationEntry: biggestClimb,
       },
       {
         label: "Perfect Coverage Club",
@@ -660,6 +719,7 @@ const top = data[0];
         displaySub: longestRun
           ? `${longestRun.artist} · ${longestRun.months.size === MONTHS.length ? `Charted all ${monthCountLabel}` : `Charted ${longestRun.months.size} ${longestRun.months.size === 1 ? "month" : "months"}`}`
           : `No ${releaseLabelLower} found`,
+        certificationEntry: longestRun ? { title: longestRun.title, artist: longestRun.artist } : null,
       },
       {
         label: `Total Charted ${releaseLabel}`,
@@ -760,7 +820,7 @@ const top = data[0];
       ])
     ).values(),
   ];
-  const openMomentumRelease = (row) => setSelR({ title: row.t, artist: row.a, type: isSingles ? "single" : "album" });
+  const openMomentumRelease = (row) => openReleaseDetails(row, isSingles ? "single" : "album");
   const TrendBars = ({ trend = [], height = 58, compact = false }) => {
     const bars = getTrendPoints(trend);
     const maxValue = Math.max(1, ...bars.map((bar) => bar.value));
@@ -823,7 +883,7 @@ const top = data[0];
   );
 
   // === ANALYTICS COMPUTATIONS — all from full Top-50 data ===
-  const top10sData=getCombined(ct,anMonth).slice(0,10).map(e=>({name:e.title.length>16?e.title.slice(0,14)+"…":e.title,pts:e.pts}));
+  const top10sData=getCombined(ct,anMonth).slice(0,10).map(e=>({name:e.title.length>16?e.title.slice(0,14)+"…":e.title,title:e.title,artist:e.artist,pts:e.pts}));
   const monthlyComp=MONTHS.map(m=>({
     month:m.split(" ")[0].slice(0,3),
     singles:getCombined("singles",m).length,
@@ -910,6 +970,125 @@ const top = data[0];
     acc[item.level] = item.color;
     return acc;
   }, {});
+  const certificationLookup = useMemo(() => {
+    const buildLookup = (items = []) => {
+      const map = new Map();
+      items.forEach((item) => {
+        const level = getCertificationLevel(item.totalPts);
+        const meta = certificationMetaForLevel(level);
+        if (!meta) return;
+        map.set(certificationKey(item.t, item.a), {
+          ...meta,
+          totalPts: Number(item.totalPts) || 0,
+        });
+      });
+      return map;
+    };
+
+    return {
+      singles: buildLookup(ANL.yearEndS),
+      albums: buildLookup(ANL.yearEndA),
+    };
+  }, []);
+  const getCertificationForEntry = (entry = {}, fallbackType) => {
+    const type = String(fallbackType || entry.type || (isSingles ? "single" : "album")).toLowerCase();
+    const bucket = type.includes("album") ? "albums" : "singles";
+    const title = releaseTitle(entry);
+    const artist = releaseArtist(entry);
+
+    const explicitLevel = String(
+      entry.certification_level ||
+      entry.certificationLevel ||
+      entry.certification ||
+      entry.cert_level ||
+      ""
+    )
+      .trim()
+      .toLowerCase()
+      .replace(/\s+certified$/, "");
+
+    const explicitMeta = certificationMetaForLevel(explicitLevel);
+    const totalPts = firstFiniteNumber(
+      entry.totalPts,
+      entry.total_points,
+      entry.totalPoints,
+      entry.cumulative_points,
+      entry.certification_points,
+      entry.certificationPoints
+    );
+
+    if (explicitMeta) {
+      return { ...explicitMeta, totalPts: totalPts || 0 };
+    }
+
+    const fromLookup = certificationLookup[bucket]?.get(certificationKey(title, artist));
+    if (fromLookup) return fromLookup;
+
+    const levelFromPoints = getCertificationLevel(totalPts);
+    const metaFromPoints = certificationMetaForLevel(levelFromPoints);
+    return metaFromPoints ? { ...metaFromPoints, totalPts: totalPts || 0 } : null;
+  };
+  const allCertifiedReleases = useMemo(() => {
+    const build = (items = [], type) => buildCertifications(items).map((item) => {
+      const meta = certificationMetaForLevel(item.level);
+      return meta ? { ...item, ...meta, type } : null;
+    }).filter(Boolean);
+
+    return [
+      ...build(ANL.yearEndS, "single"),
+      ...build(ANL.yearEndA, "album"),
+    ].sort((a, b) => b.totalPts - a.totalPts || b.pts - a.pts);
+  }, []);
+
+  const getCertificationsForNews = (news = {}, limit = 3) => {
+    const text = `${news.title || ""} ${news.excerpt || ""} ${news.body || ""}`.toLowerCase();
+    if (!text.trim()) return [];
+
+    const seen = new Set();
+    return allCertifiedReleases.filter((cert) => {
+      const key = certificationKey(cert.t, cert.a);
+      if (seen.has(key)) return false;
+      const title = String(cert.t || "").toLowerCase();
+      const artist = String(cert.a || "").toLowerCase();
+      const matches = title && text.includes(title) || (artist && title && text.includes(artist) && text.includes(title));
+      if (matches) seen.add(key);
+      return matches;
+    }).slice(0, limit);
+  };
+
+  const CertificationTag = ({ cert, compact = true, style = {} }) => {
+    if (!cert) return null;
+    return (
+      <span
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "4px",
+          width: "fit-content",
+          maxWidth: "100%",
+          padding: compact ? "2px 7px" : "4px 9px",
+          borderRadius: "999px",
+          background: `${cert.color}14`,
+          border: `1px solid ${cert.color}40`,
+          color: cert.color,
+          fontFamily: F,
+          fontSize: compact ? "9px" : "10px",
+          fontWeight: 900,
+          letterSpacing: compact ? "0.5px" : "0.8px",
+          lineHeight: 1.1,
+          textTransform: "uppercase",
+          whiteSpace: "nowrap",
+          verticalAlign: "middle",
+          ...style,
+        }}
+        title={`${cert.label} certified · ${Number(cert.totalPts || 0).toLocaleString()} points`}
+      >
+        <span aria-hidden="true">{cert.icon}</span>
+        <span>{compact ? cert.label : `${cert.label} Certified`}</span>
+      </span>
+    );
+  };
 
   // Hall of Fame: #1 each month for both singles and albums
   const hof=MONTHS.flatMap(m=>{
@@ -1703,7 +1882,7 @@ const top = data[0];
             </div>
             <div style={{maxHeight:"480px",overflow:"auto"}}>
               {sRes.map((e,i)=>(
-                <div key={i} onClick={()=>{setSOpen(false);setSrch("");setSelR(e);setPage("charts");setCt(e.type==="single"?"singles":"albums");setMonth(e.month);}} style={{padding:"11px 20px",borderBottom:"1px solid #F5F5F3",cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}
+                <div key={i} onClick={()=>{setSOpen(false);setSrch("");setPage("charts");setMonth(e.month);openReleaseDetails(e,e.type);}} style={{padding:"11px 20px",borderBottom:"1px solid #F5F5F3",cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}
                   onMouseEnter={x=>x.currentTarget.style.background="#FAFAF6"} onMouseLeave={x=>x.currentTarget.style.background="transparent"}>
                   <div><div style={{fontSize:"14px",fontWeight:700}}>{e.title}</div><div style={{fontSize:"10.5px",color:"#999",fontFamily:F}}>{e.artist} · <span style={{color:GOLD}}>{e.type} · {e.month}</span></div></div>
                   <div style={{fontFamily:F,fontSize:"10.5px",color:GOLD,fontWeight:600}}>#{e.rank} · {e.pts.toLocaleString()} pts</div>
@@ -1718,20 +1897,39 @@ const top = data[0];
 
       <main style={pageFrame({padding:isMobile?"0 4px":0,overflow:"hidden"})}>
       {/* RELEASE DETAIL */}
-      {selR&&(
+      {selR&&(()=>{
+        const selectedCertification = getCertificationForEntry(selR, selR.type || (isSingles ? "single" : "album"));
+        const journey = releaseJourney(selR);
+        const combinedHistory = journey.filter((item) => item.combined);
+        const platformNames = new Set(journey.flatMap((item) => item.platforms.map((entry) => entry.platform)));
+        const totalPoints = combinedHistory.reduce((sum, item) => sum + Number(item.combined?.pts || 0), 0);
+        const peakRank = combinedHistory.reduce((best, item) => Math.min(best, Number(item.combined?.rank || 999)), 999);
+        return (
         <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <span onClick={()=>setSelR(null)} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:GOLD,cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>← Back</span>
           <div style={{marginTop:"20px"}}>
             <div style={{fontFamily:F,fontSize:"10px",letterSpacing:"2px",textTransform:"uppercase",color:GOLD,marginBottom:"6px"}}>{selR.type||"single"}</div>
             <h1 style={{fontSize:isMobile?"24px":"30px",fontWeight:850,margin:"0 0 4px",lineHeight:1.12}}>{selR.title}</h1>
-            <p style={{fontSize:isMobile?"15px":"18px",color:"#69716B",margin:"0 0 16px",fontFamily:F,cursor:"pointer",fontWeight:700}} onClick={()=>{const a=artists.find(x=>x.n===selR.artist);if(a){setSelR(null);setSelA(a);}}}>{selR.artist}</p>
+            {selectedCertification&&<CertificationTag cert={selectedCertification} compact={false} style={{margin:"2px 0 10px"}} />}
+            <div style={{display:"flex",alignItems:"center",gap:"9px",flexWrap:"wrap",margin:"0 0 16px"}}>
+              <button type="button" onClick={()=>openArtistDetails(selR.artist)} style={{fontSize:isMobile?"15px":"18px",color:"#4E5851",margin:0,padding:0,border:0,background:"transparent",fontFamily:F,cursor:"pointer",fontWeight:800}}>{selR.artist}</button>
+              <CountryBadge artist={selR.artist} showName />
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(4,minmax(0,1fr))",gap:"10px",marginBottom:"18px"}}>
+              {[
+                {label:"Total Points",value:totalPoints.toLocaleString()},
+                {label:"Peak Rank",value:peakRank<999?`#${peakRank}`:"—"},
+                {label:"Months Charted",value:combinedHistory.length},
+                {label:"Platforms",value:platformNames.size},
+              ].map((stat)=><div key={stat.label} style={{padding:"12px 13px",border:"1px solid #ECE9E1",borderRadius:"10px",background:"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:"#7B857D"}}>{stat.label}</div><div style={{fontFamily:F,fontSize:"19px",fontWeight:900,color:"#1A1A1A",marginTop:"5px"}}>{stat.value}</div></div>)}
+            </div>
             <button onClick={()=>shareReleaseCard(selR)} style={{display:"inline-flex",alignItems:"center",gap:"8px",padding:"9px 18px",background:"#1A1A1A",color:"#FFF",border:"none",borderRadius:"22px",fontFamily:F,fontSize:"12px",fontWeight:700,cursor:"pointer",marginBottom:"24px",letterSpacing:"0.5px"}}
               onMouseEnter={e=>e.currentTarget.style.background="#000"} onMouseLeave={e=>e.currentTarget.style.background="#1A1A1A"}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B8860B" strokeWidth="2.5"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
               Share as Image
             </button>
             <h3 style={secLbl()}><SecMark/>Cross-Platform Journey</h3>
-            {releaseJourney(selR).map(({month:m,combined,platforms})=>(
+            {journey.map(({month:m,combined,platforms})=>(
               <div key={m} style={{marginBottom:"14px",padding:"16px",background:"#FAFAF8",borderRadius:"8px",border:"1px solid #EAEAE6"}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"10px"}}>
                   <span style={{fontWeight:700,fontFamily:SF}}>{m}</span>
@@ -1749,7 +1947,8 @@ const top = data[0];
             ))}
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* ARTIST PROFILE */}
       {selA&&!selR&&(
@@ -1758,8 +1957,11 @@ const top = data[0];
           <div style={{marginTop:"20px",display:"flex",gap:"20px",alignItems:isMobile?"stretch":"flex-start",flexDirection:isMobile?"column":"row",minWidth:0}}>
             <div style={{width:"80px",height:"80px",borderRadius:"50%",background:"linear-gradient(135deg,#FAF5EA,#EDE0C0)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"32px",fontWeight:900,color:GOLD,flexShrink:0,border:"2px solid "+GOLD+"22",boxShadow:"0 4px 16px rgba(184,134,11,0.12)"}}>{selA.n[0]}</div>
             <div style={{flex:1}}>
-              <h2 style={{margin:0,fontSize:isMobile?"24px":"26px",fontWeight:850,lineHeight:1.12}}>{selA.n}</h2>
-              <div style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",marginTop:"4px",lineHeight:1.45}}>Peak: #{selA.pk} · {selA.t} {isSingles?"songs":"albums"} · {selA.m} months on chart</div>
+              <div style={{display:"flex",alignItems:"center",gap:"10px",flexWrap:"wrap"}}>
+                <h2 style={{margin:0,fontSize:isMobile?"24px":"26px",fontWeight:850,lineHeight:1.12}}>{selA.n}</h2>
+                <CountryBadge artist={selA.n} showName />
+              </div>
+              <div style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",marginTop:"6px",lineHeight:1.45}}>Peak: #{selA.pk} · {selA.t} {isSingles?"songs":"albums"} · {selA.m} months on chart</div>
               <div style={{display:"flex",gap:"24px",marginTop:"14px",fontFamily:F}}>
                 {[{v:selA.p.toLocaleString(),l:"Total Points",c:GOLD},{v:selA.t,l:"Charted Titles"},{v:"#"+selA.pk,l:"Peak Rank"},{v:selA.m,l:"Months Active"}].map((s,i)=>(
                   <div key={i}><div style={{fontSize:"22px",fontWeight:700,color:s.c||"#1A1A1A"}}>{s.v}</div><div style={{fontSize:"9px",letterSpacing:"1.5px",color:"#CCC",textTransform:"uppercase"}}>{s.l}</div></div>
@@ -1787,13 +1989,22 @@ const top = data[0];
                 items.push({...e,month:m});
               });
             });
-            return items.sort((a,b)=>a.rank-b.rank).map((s,i)=>(
-              <div key={i} onClick={()=>setSelR(s)} style={{display:"flex",justifyContent:"space-between",padding:"9px 0",borderBottom:"1px solid #F2F2EE",fontFamily:F,cursor:"pointer"}}
+            return items.sort((a,b)=>a.rank-b.rank).map((s,i)=>{
+              const certification = getCertificationForEntry(s, isSingles ? "single" : "album");
+              return (
+              <div key={i} onClick={()=>openReleaseDetails(s,isSingles?"single":"album")} style={{display:"flex",justifyContent:"space-between",gap:"12px",padding:"9px 0",borderBottom:"1px solid #F2F2EE",fontFamily:F,cursor:"pointer"}}
                 onMouseEnter={e=>e.currentTarget.style.background="#FAFAF6"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
-                <div><span style={{fontWeight:800,fontSize:TXT.cardTitle,fontFamily:SF}}>{s.title}</span><span style={{color:"#7B857D",fontSize:TXT.micro,fontFamily:F}}> · {s.month}</span></div>
-                <div><span style={{color:GOLD,fontWeight:800,fontSize:TXT.cardMeta}}>#{s.rank}</span><span style={{color:"#69716B",fontSize:TXT.cardMeta}}> · {s.pts.toLocaleString()} pts</span></div>
+                <div style={{minWidth:0}}>
+                  <div style={{display:"flex",alignItems:"center",gap:"7px",flexWrap:"wrap"}}>
+                    <span style={{fontWeight:800,fontSize:TXT.cardTitle,fontFamily:SF}}>{s.title}</span>
+                    {certification&&<CertificationTag cert={certification} compact />}
+                  </div>
+                  <span style={{color:"#7B857D",fontSize:TXT.micro,fontFamily:F}}> {s.month}</span>
+                </div>
+                <div style={{whiteSpace:"nowrap"}}><span style={{color:GOLD,fontWeight:800,fontSize:TXT.cardMeta}}>#{s.rank}</span><span style={{color:"#69716B",fontSize:TXT.cardMeta}}> · {s.pts.toLocaleString()} pts</span></div>
               </div>
-            ));
+              );
+            });
           })()}
         </div>
       )}
@@ -1834,6 +2045,8 @@ liveChartMeta={liveChartMeta}
 liveStatus={liveStatus}
     pageMax={PAGE_MAX}
     shareCurrentPageCard={shareCurrentPageCard}
+    certificationForEntry={getCertificationForEntry}
+    CertificationTag={CertificationTag}
   />
 )}
 
@@ -1894,17 +2107,17 @@ liveStatus={liveStatus}
           {/* Top Artists List - all 30 from full Top 50 */}
           <div style={{display:"grid",gridTemplateColumns:isMobile?"34px 34px minmax(0,1fr) 82px":"44px 38px minmax(0,1fr) 70px 104px 34px",gap:isMobile?"9px":"12px",alignItems:"center",padding:isMobile?"0 8px 9px":"0 12px 10px",borderBottom:"1px solid #EDEBE4",fontFamily:F,fontSize:isMobile?"9.5px":"10px",fontWeight:900,letterSpacing:"1.6px",textTransform:"uppercase",color:"#8A928B"}}>
             <div></div>
-            <div></div>
+            <div title="Country" style={{textAlign:"center"}}>Flag</div>
             <div>Artist</div>
             {!isMobile&&<div style={{textAlign:"center"}}>Move</div>}
             <div style={{textAlign:"right"}}>Points</div>
             {!isMobile&&<div></div>}
           </div>
           {artists.slice(0,30).map((a,i)=>{const trend=artistTrendFor(a);return(
-            <div key={a.n} className="ngoma-artist-row" onClick={()=>setSelA(a)} style={{display:"grid",gridTemplateColumns:isMobile?"34px 34px minmax(0,1fr) 82px":"44px 38px minmax(0,1fr) 70px 104px 34px",gap:isMobile?"9px":"12px",padding:isMobile?"13px 8px":"12px",borderBottom:"1px solid #F2F2EE",alignItems:"center",cursor:"pointer",minWidth:0,borderRadius:isMobile?"8px":"0"}}
+            <div key={a.n} className="ngoma-artist-row" onClick={()=>openArtistDetails(a.n)} style={{display:"grid",gridTemplateColumns:isMobile?"34px 34px minmax(0,1fr) 82px":"44px 38px minmax(0,1fr) 70px 104px 34px",gap:isMobile?"9px":"12px",padding:isMobile?"13px 8px":"12px",borderBottom:"1px solid #F2F2EE",alignItems:"center",cursor:"pointer",minWidth:0,borderRadius:isMobile?"8px":"0"}}
               onMouseEnter={e=>e.currentTarget.style.background="#FAFAF6"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
               <div style={{fontSize:i<3?"17px":"13.5px",fontWeight:900,color:i<3?MEDALS[i]:"#B8BDB8",textAlign:"center",fontFamily:F}}>{i+1}</div>
-              <div style={{width:isMobile?"28px":"30px",height:isMobile?"28px":"30px",borderRadius:"50%",background:i<3?"linear-gradient(135deg,#FFF5D8,#F3E3B2)":"#F2F1ED",border:"1px solid "+(i<3?GOLD+"33":"#E1DED6"),display:"flex",alignItems:"center",justifyContent:"center",fontFamily:F,fontSize:isMobile?"10px":"10.5px",fontWeight:900,color:i<3?GOLD:"#69716B",letterSpacing:"0.4px",flexShrink:0}}>{artistInitials(a.n)}</div>
+              <CountryBadge artist={a.n} compact />
               <div className="ngoma-mobile-text-safe" style={{minWidth:0}}>
                 <div style={{fontSize:isMobile?"15.5px":"15.5px",fontWeight:850,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",lineHeight:1.15}}>{a.n}</div>
                 <div style={{fontSize:isMobile?"12.2px":"12px",color:"#59645D",fontFamily:F,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",marginTop:"4px",lineHeight:1.35}}>{a.t} {a.t===1?"title":"titles"} · Peak: #{a.pk} · {a.m} {a.m===1?"month":"months"}</div>
@@ -1918,7 +2131,7 @@ liveStatus={liveStatus}
       )}
 
       {/* ANALYTICS PAGE */}
-      {page==="analytics"&&(
+      {page==="analytics"&&!selA&&!selR&&(
         <div style={{padding:PAD,background:"transparent",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:"20px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
             <div><h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0}}>Analytics</h2><p style={{fontFamily:F,fontSize:isMobile?"12.5px":"11.5px",color:"#59645D",margin:"5px 0 0",lineHeight:1.6}}>Analytics are based on the full Top 50 across all platforms and months.</p></div>
@@ -1963,9 +2176,12 @@ liveStatus={liveStatus}
               {/* Title cards */}
               <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:isMobile?"10px":"12px",marginBottom:isMobile?"12px":"14px"}}>
                 {[{d:sp1,c:GOLD},{d:sp2,c:"#1565C0"}].map(({d,c},i)=>(
-                  <div key={i} onClick={()=>setSelR({title:d.title,artist:d.artist,type:isSingles?"single":"album"})} style={{padding:isMobile?"13px":"15px",background:c+"0D",borderRadius:"10px",borderLeft:"3px solid "+c,cursor:"pointer",minWidth:0}}>
-                    <div style={{fontFamily:SF,fontSize:isMobile?"15px":"16px",fontWeight:800,lineHeight:1.15,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{d.title}</div>
-                    <div style={{fontFamily:F,fontSize:isMobile?"11.5px":"11px",color:"#59645D",marginTop:"3px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{d.artist}</div>
+                  <div key={i} onClick={()=>openReleaseDetails(d,isSingles?"single":"album")} style={{padding:isMobile?"13px":"15px",background:c+"0D",borderRadius:"10px",borderLeft:"3px solid "+c,cursor:"pointer",minWidth:0}}>
+                    <div style={{display:"flex",alignItems:"center",gap:"7px",flexWrap:"wrap",minWidth:0}}>
+                      <div style={{fontFamily:SF,fontSize:isMobile?"15px":"16px",fontWeight:800,lineHeight:1.15,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",minWidth:0}}>{d.title}</div>
+                      {getCertificationForEntry(d, isSingles ? "single" : "album")&&<CertificationTag cert={getCertificationForEntry(d, isSingles ? "single" : "album")} compact />}
+                    </div>
+                    <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(d.artist);}} style={{display:"block",maxWidth:"100%",fontFamily:F,fontSize:isMobile?"11.5px":"11px",color:"#59645D",marginTop:"3px",padding:0,border:0,background:"transparent",fontWeight:700,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",cursor:"pointer"}}>{d.artist}</button>
                     <div style={{display:"flex",gap:isMobile?"12px":"16px",marginTop:isMobile?"10px":"12px",flexWrap:"wrap"}}>
                       <div><div style={{fontFamily:F,fontSize:isMobile?"18px":"20px",fontWeight:800,color:c}}>{d.totalPts.toLocaleString()}</div><div style={{fontFamily:F,fontSize:isMobile?"8.5px":"8.5px",letterSpacing:"1px",textTransform:"uppercase",color:"#69716B",fontWeight:700}}>Total Pts</div></div>
                       <div><div style={{fontFamily:F,fontSize:isMobile?"18px":"20px",fontWeight:800,color:c}}>#{d.peak}</div><div style={{fontFamily:F,fontSize:isMobile?"8.5px":"8.5px",letterSpacing:"1px",textTransform:"uppercase",color:"#69716B",fontWeight:700}}>Peak</div></div>
@@ -1974,7 +2190,12 @@ liveStatus={liveStatus}
                 ))}
               </div>
               {/* Metric comparison table */}
-              <div style={{marginBottom:"16px"}}>
+              <div style={{marginBottom:"16px",border:"1px solid #E4E1D8",borderRadius:"12px",overflow:"hidden",background:"#FFF",boxShadow:"0 8px 24px rgba(31,36,31,0.05)"}}>
+                <div style={{display:"grid",gridTemplateColumns:isMobile?"minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)":"minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)",gap:"8px",alignItems:"center",padding:isMobile?"10px 9px":"12px 16px",background:"#1F241F",color:"#FFF"}}>
+                  <div style={{fontFamily:F,fontSize:isMobile?"10px":"11px",fontWeight:850,textAlign:"center",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",color:"#E4BE55"}}>{sp1.title}</div>
+                  <div style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.4px",textAlign:"center",textTransform:"uppercase",color:"#C9CEC9"}}>Metric</div>
+                  <div style={{fontFamily:F,fontSize:isMobile?"10px":"11px",fontWeight:850,textAlign:"center",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",color:"#72A7E8"}}>{sp2.title}</div>
+                </div>
                 {(()=>{
                   const rows=[
                     {label:"Total Points",a:sp1.totalPts,b:sp2.totalPts,fmt:v=>v.toLocaleString(),hi:"max"},
@@ -1990,10 +2211,10 @@ liveStatus={liveStatus}
                     const aWins=r.hi==="max"?r.a>r.b:r.a<r.b;
                     const bWins=r.hi==="max"?r.b>r.a:r.b<r.a;
                     return(
-                      <div key={i} style={{display:"grid",gridTemplateColumns:"1fr auto 1fr",alignItems:"center",padding:isMobile?"6px 0":"7px 0",borderBottom:"1px solid #F0F0EC",gap:isMobile?"8px":"12px"}}>
-                        <div style={{textAlign:"right",fontFamily:F,fontSize:isMobile?"13px":"14px",fontWeight:aWins?800:650,color:aWins?GOLD:"#59645D"}}>{r.fmt(r.a)}{aWins&&<span style={{fontSize:"9px",marginLeft:"4px"}}>▲</span>}</div>
-                        <div style={{textAlign:"center",fontFamily:F,fontSize:isMobile?"8.8px":"9.5px",letterSpacing:"1px",textTransform:"uppercase",color:"#69716B",minWidth:isMobile?"88px":"120px",fontWeight:750}}>{r.label}</div>
-                        <div style={{textAlign:"left",fontFamily:F,fontSize:isMobile?"13px":"14px",fontWeight:bWins?800:650,color:bWins?"#1565C0":"#59645D"}}>{bWins&&<span style={{fontSize:"9px",marginRight:"4px"}}>▲</span>}{r.fmt(r.b)}</div>
+                      <div key={i} style={{display:"grid",gridTemplateColumns:isMobile?"minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)":"minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)",alignItems:"stretch",background:i%2?"#FBFAF7":"#FFF",borderBottom:i===rows.length-1?"none":"1px solid #EEEAE1",gap:0}}>
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"9px 6px":"11px 12px",fontFamily:F,fontSize:isMobile?"13px":"14px",fontWeight:aWins?900:700,color:aWins?GOLD:"#4E5851",background:aWins?GOLD+"0D":"transparent"}}>{r.fmt(r.a)}{aWins&&<span style={{fontSize:"9px",marginLeft:"5px"}}>▲</span>}</div>
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"9px 5px":"11px 10px",borderLeft:"1px solid #EEEAE1",borderRight:"1px solid #EEEAE1",fontFamily:F,fontSize:isMobile?"8.6px":"9.5px",letterSpacing:"0.8px",textTransform:"uppercase",color:"#59645D",fontWeight:850,lineHeight:1.25}}>{r.label}</div>
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"9px 6px":"11px 12px",fontFamily:F,fontSize:isMobile?"13px":"14px",fontWeight:bWins?900:700,color:bWins?"#1565C0":"#4E5851",background:bWins?"#1565C00D":"transparent"}}>{bWins&&<span style={{fontSize:"9px",marginRight:"5px"}}>▲</span>}{r.fmt(r.b)}</div>
                       </div>
                     );
                   });
@@ -2068,7 +2289,7 @@ liveStatus={liveStatus}
               {isMobile ? (
                 <div style={{display:"flex",flexDirection:"column",gap:"8px"}}>
                   {top10sData.map((e,i)=>(
-                    <div key={e.name} style={{display:"grid",gridTemplateColumns:"28px minmax(0,1fr) 86px",alignItems:"center",gap:"10px",padding:"9px 0",borderBottom:"1px solid #F0F0EC"}}>
+                    <div key={e.name} onClick={()=>openReleaseDetails(e,isSingles?"single":"album")} style={{display:"grid",gridTemplateColumns:"28px minmax(0,1fr) 86px",alignItems:"center",gap:"10px",padding:"9px 0",borderBottom:"1px solid #F0F0EC",cursor:"pointer"}}>
                       <div style={{fontFamily:F,fontSize:"12px",fontWeight:900,color:i<3?MEDALS[i]:"#B8BDB8",textAlign:"center"}}>{i+1}</div>
                       <div style={{fontSize:"13px",fontWeight:800,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{e.name}</div>
                       <div style={{fontFamily:F,fontSize:"12px",fontWeight:900,color:GOLD,textAlign:"right",whiteSpace:"nowrap"}}>{e.pts.toLocaleString()} pts</div>
@@ -2093,7 +2314,7 @@ liveStatus={liveStatus}
                 {platOnes.map(([pl,d])=>{
                   const lbl=PLAT_LABEL[pl]||pl;
                   return(
-                    <div key={pl} style={{padding:isMobile?"12px":"10px 12px",background:(PC[pl]||"#888")+"0D",borderRadius:"8px",borderLeft:"3px solid "+(PC[pl]||"#888")}}>
+                    <div key={pl} onClick={()=>openReleaseDetails({title:d.t,artist:d.a},isSingles?"single":"album")} style={{padding:isMobile?"12px":"10px 12px",background:(PC[pl]||"#888")+"0D",borderRadius:"8px",borderLeft:"3px solid "+(PC[pl]||"#888"),cursor:"pointer"}}>
                       <div style={{fontSize:isMobile?"9.5px":"8.8px",fontFamily:F,letterSpacing:"1.5px",textTransform:"uppercase",color:PC[pl]||"#888",marginBottom:"5px",fontWeight:800}}>{lbl}</div>
                       <div style={{fontSize:isMobile?"13px":"11.5px",fontWeight:800,lineHeight:1.2}}>{d.t}</div>
                       <div style={{fontSize:isMobile?"11px":"10px",color:"#59645D",fontFamily:F,marginTop:"3px"}}>{d.a} · {d.p} pts</div>
@@ -2127,18 +2348,24 @@ liveStatus={liveStatus}
             <div style={card()}>
               <div style={secLbl()}><SecMark/>Cross-Platform Reach — {anMonth}</div>
               <p style={{fontFamily:F,fontSize:"10px",color:"#59645D",margin:"-4px 0 12px",lineHeight:1.45}}>{releaseLabel} charting on most platforms simultaneously.</p>
-              {crossPlatformRows.slice(0,8).map((s,i)=>(
-                <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 0",borderBottom:"1px solid #F0F0EC"}}>
-                  <div style={{flex:1}}>
-                    <div style={{fontSize:isMobile?"13px":"12px",fontWeight:800}}>{s.t}</div>
+              {crossPlatformRows.slice(0,8).map((s,i)=>{
+                const certification = getCertificationForEntry(s, isSingles ? "single" : "album");
+                return (
+                <div key={i} onClick={()=>openReleaseDetails(s,isSingles?"single":"album")} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:"7px 0",borderBottom:"1px solid #F0F0EC",cursor:"pointer"}}>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
+                      <span style={{fontSize:isMobile?"13px":"12px",fontWeight:800}}>{s.t}</span>
+                      {certification&&<CertificationTag cert={certification} compact />}
+                    </div>
                     <div style={{fontSize:isMobile?"11px":"10.5px",color:"#59645D",fontFamily:F,marginTop:"2px"}}>{s.a}</div>
                   </div>
-                  <div style={{display:"flex",gap:"3px",alignItems:"center"}}>
+                  <div style={{display:"flex",gap:"3px",alignItems:"center",flexShrink:0}}>
                     {s.plats.map(pl=><div key={pl} style={{width:"7px",height:"7px",borderRadius:"50%",background:PC[pl]||"#888"}} title={PLAT_LABEL[pl]}/>)}
                     <span style={{fontFamily:F,fontSize:isMobile?"12px":"11px",fontWeight:700,color:GOLD,marginLeft:"6px"}}>{s.count}/{currentPlatformKeys.length}</span>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
             <div style={card()}>
               <div style={secLbl()}><SecMark/>Platform Coverage — {anMonth}</div>
@@ -2220,22 +2447,40 @@ liveStatus={liveStatus}
           <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px",marginBottom:"20px"}}>
             <div style={card()}>
               <div style={secLbl("#2DB04A")}><SecMark c="#2DB04A"/>Top {releaseLabel} Climbers — {anMonth}</div>
-              {mvData.risers.map((s,i)=>(
-                <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:isMobile?"8px 0":"6px 0",borderBottom:"1px solid #F0F0EC"}}>
-                  <div><div style={{fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15}}>{s.t}</div><div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginTop:"3px"}}>{s.a}</div></div>
-                  <div style={{textAlign:"right",fontFamily:F}}><div style={{color:"#2DB04A",fontSize:TXT.cardMeta,fontWeight:800}}>▲{s.from-s.to}</div><div style={{fontSize:TXT.micro,color:"#7B857D"}}>#{s.from}→#{s.to}</div></div>
+              {mvData.risers.map((s,i)=>{
+                const certification = getCertificationForEntry(s, isSingles ? "single" : "album");
+                return (
+                <div key={i} onClick={()=>openReleaseDetails(s,isSingles?"single":"album")} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:isMobile?"8px 0":"6px 0",borderBottom:"1px solid #F0F0EC",cursor:"pointer"}}>
+                  <div style={{minWidth:0}}>
+                    <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
+                      <span style={{fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15}}>{s.t}</span>
+                      {certification&&<CertificationTag cert={certification} compact />}
+                    </div>
+                    <div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginTop:"3px"}}>{s.a}</div>
+                  </div>
+                  <div style={{textAlign:"right",fontFamily:F,whiteSpace:"nowrap"}}><div style={{color:"#2DB04A",fontSize:TXT.cardMeta,fontWeight:800}}>▲{s.from-s.to}</div><div style={{fontSize:TXT.micro,color:"#7B857D"}}>#{s.from}→#{s.to}</div></div>
                 </div>
-              ))}
+                );
+              })}
               {!mvData.risers.length&&<div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:"#CCC",padding:"20px 0",textAlign:"center"}}>No movement data (debut month)</div>}
             </div>
             <div style={card()}>
               <div style={secLbl("#E53935")}><SecMark c="#E53935"/>Biggest {releaseLabel} Drops — {anMonth}</div>
-              {mvData.fallers.map((s,i)=>(
-                <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:isMobile?"8px 0":"6px 0",borderBottom:"1px solid #F0F0EC"}}>
-                  <div><div style={{fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15}}>{s.t}</div><div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginTop:"3px"}}>{s.a}</div></div>
-                  <div style={{textAlign:"right",fontFamily:F}}><div style={{color:"#E53935",fontSize:TXT.cardMeta,fontWeight:800}}>▼{s.to-s.from}</div><div style={{fontSize:TXT.micro,color:"#7B857D"}}>#{s.from}→#{s.to}</div></div>
+              {mvData.fallers.map((s,i)=>{
+                const certification = getCertificationForEntry(s, isSingles ? "single" : "album");
+                return (
+                <div key={i} onClick={()=>openReleaseDetails(s,isSingles?"single":"album")} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:isMobile?"8px 0":"6px 0",borderBottom:"1px solid #F0F0EC",cursor:"pointer"}}>
+                  <div style={{minWidth:0}}>
+                    <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
+                      <span style={{fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15}}>{s.t}</span>
+                      {certification&&<CertificationTag cert={certification} compact />}
+                    </div>
+                    <div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginTop:"3px"}}>{s.a}</div>
+                  </div>
+                  <div style={{textAlign:"right",fontFamily:F,whiteSpace:"nowrap"}}><div style={{color:"#E53935",fontSize:TXT.cardMeta,fontWeight:800}}>▼{s.to-s.from}</div><div style={{fontSize:TXT.micro,color:"#7B857D"}}>#{s.from}→#{s.to}</div></div>
                 </div>
-              ))}
+                );
+              })}
               {!mvData.fallers.length&&<div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:"#CCC",padding:"20px 0",textAlign:"center"}}>No drops (debut month)</div>}
             </div>
           </div>
@@ -2262,7 +2507,10 @@ liveStatus={liveStatus}
               const hasAny=MONTHS.some(m=>getCombined(ct,m).find(e=>e.title===title));
               if(!hasAny)return null;
               return(<div key={title} style={{display:"flex",alignItems:"center",padding:"7px 0",borderBottom:"1px solid #F0F0EC",gap:"8px"}}>
-                <div style={{flex:1,fontSize:isMobile?"12.5px":"11.5px",fontWeight:800,lineHeight:1.2,cursor:"pointer",color:GOLD,minWidth:0,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}} onClick={()=>{const e=MONTHS.flatMap(m=>getCombined(ct,m)).find(x=>x.title===title);if(e)setSelR({...e,type:isSingles?"single":"album"});}}>{title}</div>
+                <div style={{flex:1,minWidth:0,display:"flex",alignItems:"center",gap:"7px",cursor:"pointer"}} onClick={()=>{const e=MONTHS.flatMap(m=>getCombined(ct,m)).find(x=>x.title===title);if(e)openReleaseDetails(e,isSingles?"single":"album");}}>
+                  <span style={{fontSize:isMobile?"12.5px":"11.5px",fontWeight:800,lineHeight:1.2,color:GOLD,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{title}</span>
+                  {(()=>{const e=MONTHS.flatMap(m=>getCombined(ct,m)).find(x=>x.title===title);const certification=e?getCertificationForEntry(e,isSingles?"single":"album"):null;return certification?<CertificationTag cert={certification} compact />:null;})()}
+                </div>
                 {MONTHS.map(m=>{const e=getCombined(ct,m).find(x=>x.title===title);return(<div key={m} style={{width:"44px",textAlign:"center",fontFamily:F}}>
                   <div style={{fontSize:isMobile?"9px":"8.5px",color:"#69716B",fontWeight:700}}>{m.split(" ")[0].slice(0,3)}</div>
                   {e?<div style={{fontSize:"14px",fontWeight:800,color:e.rank===1?GOLD:e.rank<=3?"#1A1A1A":"#888"}}>#{e.rank}</div>:<div style={{fontSize:"11px",color:"#E0E0DC"}}>—</div>}
@@ -2275,7 +2523,7 @@ liveStatus={liveStatus}
       )}
 
       {/* TRENDING / PREDICTIONS PAGE */}
-      {page==="trending"&&(
+      {page==="trending"&&!selA&&!selR&&(
         <div style={{padding:PAD,minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <div style={{maxWidth:"1240px",margin:"0 auto"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"flex-start":"flex-end",marginBottom:isMobile?"16px":"20px",flexWrap:"wrap",gap:isMobile?"10px":"12px"}}>
@@ -2302,7 +2550,10 @@ liveStatus={liveStatus}
                 return(
                   <div style={{display:"flex",flexDirection:isMobile?"column":"row",alignItems:isMobile?"stretch":"center",gap:isMobile?"18px":"28px",marginTop:"14px"}}>
                     <div style={{flex:1,minWidth:isMobile?"0":"260px"}}>
-                      <div style={{fontFamily:SF,fontSize:isMobile?"23px":"28px",fontWeight:850,cursor:"pointer",lineHeight:1.08}} onClick={()=>openMomentumRelease(hot)}>{hot.t}</div>
+                      <div style={{display:"flex",alignItems:"center",gap:"9px",flexWrap:"wrap"}}>
+                        <div style={{fontFamily:SF,fontSize:isMobile?"23px":"28px",fontWeight:850,cursor:"pointer",lineHeight:1.08}} onClick={()=>openMomentumRelease(hot)}>{hot.t}</div>
+                        {getCertificationForEntry(hot, isSingles ? "single" : "album")&&<CertificationTag cert={getCertificationForEntry(hot, isSingles ? "single" : "album")} compact={false} />}
+                      </div>
                       <div style={{fontFamily:F,fontSize:isMobile?"15px":"15px",color:"#69716B",marginTop:"6px",fontWeight:700}}>{hot.a}</div>
                       <div style={{display:"flex",gap:isMobile?"14px":"20px",marginTop:"12px",flexWrap:"wrap"}}>
                         <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"20px",fontWeight:900,color:"#2DB04A"}}>+{hot.mom.toLocaleString()}</div><div style={{fontFamily:F,fontSize:"10px",letterSpacing:"1px",textTransform:"uppercase",color:"#7B857D",fontWeight:800}}>Momentum</div></div>
@@ -2327,7 +2578,10 @@ liveStatus={liveStatus}
                     onMouseEnter={e=>e.currentTarget.style.background="#FAFAF6"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
                     <div style={{fontFamily:F,fontSize:isMobile?"16px":"16px",fontWeight:850,color:"#8E948D",textAlign:"center",transform:isMobile?"translateX(2px)":"translateX(2px)"}}>{i+1}</div>
                     <div style={{minWidth:0,paddingLeft:isMobile?"2px":"2px",boxSizing:"border-box"}}>
-                      <div style={{fontSize:isMobile?"15px":"15px",fontWeight:800,lineHeight:1.15,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.t}</div>
+                      <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap",minWidth:0}}>
+                        <span style={{fontSize:isMobile?"15px":"15px",fontWeight:800,lineHeight:1.15,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.t}</span>
+                        {getCertificationForEntry(p, isSingles ? "single" : "album")&&<CertificationTag cert={getCertificationForEntry(p, isSingles ? "single" : "album")} compact />}
+                      </div>
                       <div style={{fontSize:isMobile?"12px":"12px",color:"#69716B",fontFamily:F,marginTop:"4px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.a} · #{p.decRank} in {latestMonthShort} · {p.decPts?.toLocaleString?.() || "—"} pts</div>
                     </div>
                     {isMobile ? (
@@ -2364,7 +2618,10 @@ liveStatus={liveStatus}
                   <div key={`${p.t}-${p.a}-${p.decRank}`} onClick={()=>openMomentumRelease(p)} style={{padding:isMobile?"10px 12px":"14px",background:"#F5F8FC",borderRadius:"10px",border:"1px solid #1565C022",cursor:"pointer",display:"grid",gridTemplateColumns:"1fr auto",gap:"8px",alignItems:"center"}}
                     onMouseEnter={e=>e.currentTarget.style.background="#EEF5FF"} onMouseLeave={e=>e.currentTarget.style.background="#F5F8FC"}>
                     <div style={{minWidth:0}}>
-                      <div style={{fontSize:isMobile?"15px":"15px",fontWeight:800,lineHeight:1.15,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.t}</div>
+                      <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap",minWidth:0}}>
+                        <span style={{fontSize:isMobile?"15px":"15px",fontWeight:800,lineHeight:1.15,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.t}</span>
+                        {getCertificationForEntry(p, isSingles ? "single" : "album")&&<CertificationTag cert={getCertificationForEntry(p, isSingles ? "single" : "album")} compact />}
+                      </div>
                       <div style={{fontSize:isMobile?"12px":"12px",color:"#69716B",fontFamily:F,marginTop:"4px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.a} · {p.decPts.toLocaleString()} pts</div>
                     </div>
                     <span style={{fontFamily:F,fontSize:isMobile?"16px":"16px",fontWeight:900,color:"#1565C0"}}>#{p.decRank}</span>
@@ -2377,7 +2634,7 @@ liveStatus={liveStatus}
       )}
 
       {/* RECORDS & MILESTONES PAGE */}
-      {page==="records"&&(
+      {page==="records"&&!selA&&!selR&&(
         <div style={{padding:PAD,minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <div style={{marginBottom:isMobile?"18px":"22px"}}>
             <div style={{maxWidth:isMobile?"100%":"620px"}}>
@@ -2393,12 +2650,14 @@ liveStatus={liveStatus}
           <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:isMobile?"14px":"16px"}}>
             {currentRecords.map((r,i)=>{
               const expanded = r.isCoverage && openRecord === i;
+              const recordCertification = r.certificationEntry ? getCertificationForEntry(r.certificationEntry, isSingles ? "single" : "album") : null;
               return (
-                <div key={`${r.displayLabel}-${r.value}`} onClick={()=>r.isCoverage&&setOpenRecord(expanded?null:i)} style={{...card({padding:isMobile?"19px":"24px"}),position:"relative",overflow:"hidden",cursor:r.isCoverage?"pointer":"default"}}>
+                <div key={`${r.displayLabel}-${r.value}`} onClick={()=>{if(r.isCoverage){setOpenRecord(expanded?null:i);}else if(r.certificationEntry){openReleaseDetails(r.certificationEntry,isSingles?"single":"album");}}} style={{...card({padding:isMobile?"19px":"24px"}),position:"relative",overflow:"hidden",cursor:r.isCoverage||r.certificationEntry?"pointer":"default",gridColumn:expanded?"1 / -1":"auto"}}>
                   <div style={{position:"absolute",top:isMobile?"8px":"12px",right:isMobile?"10px":"14px",opacity:1}}><RecordIcon label={r.displayLabel} size={isMobile?54:66} muted /></div>
                   <div style={{marginBottom:"13px",position:"relative",zIndex:1}}><RecordIcon label={r.displayLabel} size={isMobile?28:30} /></div>
                   <div style={{fontFamily:F,fontSize:isMobile?"10px":"10.5px",fontWeight:850,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,marginBottom:"9px",position:"relative",zIndex:1,lineHeight:1.35}}>{r.displayLabel}</div>
-                  <div style={{fontFamily:SF,fontSize:isMobile?"20px":"21px",fontWeight:850,lineHeight:1.12,marginBottom:"5px",position:"relative",zIndex:1}}>{r.value}</div>
+                  <div style={{fontFamily:SF,fontSize:isMobile?"20px":"21px",fontWeight:850,lineHeight:1.12,marginBottom:recordCertification?"7px":"5px",position:"relative",zIndex:1}}>{r.value}</div>
+                  {recordCertification&&<CertificationTag cert={recordCertification} compact style={{marginBottom:"8px",position:"relative",zIndex:1}} />}
                   <div style={{fontFamily:F,fontSize:isMobile?"13px":"13px",color:"#59645D",lineHeight:1.45,position:"relative",zIndex:1,display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}>
                     <span>{r.displaySub}</span>
                     {r.climbDelta&&<span style={{display:"inline-flex",alignItems:"center",padding:"2px 7px",borderRadius:"999px",background:"#EAF8EF",color:"#1E8E3E",fontSize:"10px",fontWeight:900,letterSpacing:"0.4px"}}>+{r.climbDelta}</span>}
@@ -2407,13 +2666,22 @@ liveStatus={liveStatus}
                     <div style={{fontFamily:F,fontSize:isMobile?"10.5px":"10.5px",color:GOLD,fontWeight:800,letterSpacing:"0.5px",marginTop:"12px",position:"relative",zIndex:1}}>{expanded?`Hide ${releaseLabelLower}`:`View ${releaseLabelLower}`}</div>
                   )}
                   {expanded&&(
-                    <div style={{marginTop:"12px",paddingTop:"12px",borderTop:"1px solid #F0EEE8",position:"relative",zIndex:1}}>
-                      {fullCoverageClub.length?fullCoverageClub.slice(0,6).map((song,idx)=>(
-                        <div key={`${song.title}-${song.artist}`} style={{display:"grid",gridTemplateColumns:"22px minmax(0,1fr)",gap:"8px",alignItems:"start",padding:"6px 0",fontFamily:F}}>
+                    <div style={{marginTop:"12px",paddingTop:"12px",borderTop:"1px solid #F0EEE8",position:"relative",zIndex:1,display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(2,minmax(0,1fr))",columnGap:"22px"}}>
+                      {fullCoverageClub.length?fullCoverageClub.map((song,idx)=>{
+                        const certification = getCertificationForEntry(song, isSingles ? "single" : "album");
+                        return (
+                        <div key={`${song.title}-${song.artist}`} onClick={(event)=>{event.stopPropagation();openReleaseDetails(song,isSingles?"single":"album");}} style={{display:"grid",gridTemplateColumns:"22px minmax(0,1fr)",gap:"8px",alignItems:"start",padding:"8px 6px",fontFamily:F,cursor:"pointer",borderBottom:"1px solid #F2F0EA",borderRadius:"7px"}}>
                           <span style={{fontSize:"10px",fontWeight:900,color:GOLD}}>#{idx+1}</span>
-                          <span style={{minWidth:0}}><strong style={{fontSize:"12px",color:"#1A1A1A"}}>{song.title}</strong><span style={{display:"block",fontSize:"11px",color:"#59645D",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{song.artist} · {song.month}</span></span>
+                          <span style={{minWidth:0}}>
+                            <span style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
+                              <strong style={{fontSize:"12px",color:"#1A1A1A"}}>{song.title}</strong>
+                              {certification&&<CertificationTag cert={certification} compact />}
+                            </span>
+                            <span style={{display:"block",fontSize:"11px",color:"#59645D",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{song.artist} · {song.month}</span>
+                          </span>
                         </div>
-                      )):<div style={{fontFamily:F,fontSize:"12px",color:"#59645D"}}>No full-coverage entries found for this view.</div>}
+                        );
+                      }):<div style={{fontFamily:F,fontSize:"12px",color:"#59645D"}}>No full-coverage entries found for this view.</div>}
                     </div>
                   )}
                 </div>
@@ -2424,7 +2692,7 @@ liveStatus={liveStatus}
       )}
 
       {/* YEAR-END PAGE */}
-      {page==="year-end"&&(
+      {page==="year-end"&&!selA&&!selR&&(
         <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:isMobile?"16px":"20px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
             <div>
@@ -2455,11 +2723,14 @@ liveStatus={liveStatus}
               <div className="podium-grid" style={{display:"grid",gridTemplateColumns:"1fr 1.2fr 1fr",gap:isMobile?"10px":"12px",marginBottom:isMobile?"20px":"24px",alignItems:"end"}}>
                 {podiumItems.map(({e,pos,medal,featured},i)=>{
                   if(!e)return <div key={i}/>;
-                  return(<div key={`${pos}-${e.t}-${e.a}`} style={{textAlign:"center",cursor:"pointer"}} onClick={()=>setSelR({title:e.t,artist:e.a,type:isSingles?"single":"album"})}>
+                  const certification = getCertificationForEntry(e, isSingles ? "single" : "album");
+                  return(<div key={`${pos}-${e.t}-${e.a}`} style={{textAlign:"center",cursor:"pointer"}} onClick={()=>openReleaseDetails(e,isSingles?"single":"album")}>
                     <div style={{background:featured?"linear-gradient(180deg,#FFF9E8 0%,#FFFDF8 100%)":medal+"12",border:(featured?"2.5px":"2px")+" solid "+medal,borderRadius:isMobile?"12px":"13px",padding:featured?(isMobile?"18px 12px":"18px 14px"):(isMobile?"15px 12px":"16px 12px"),boxShadow:featured?"0 14px 36px rgba(184,134,11,0.16)":"none",transform:(!isMobile&&featured)?"translateY(-2px)":"none"}}>
                       <div style={{fontSize:featured?(isMobile?"33px":"38px"):"32px",fontWeight:950,color:medal,lineHeight:1}}>#{pos}</div>
                       <div style={{fontSize:featured?(isMobile?"16px":"16px"):TXT.cardTitle,fontWeight:850,margin:"8px 0 4px",lineHeight:1.18}}>{e.t}</div>
-                      <div style={{fontSize:TXT.cardMeta,color:"#59645D",fontFamily:F,marginBottom:"8px"}}>{e.a}</div>
+                      <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(e.a);}} style={{display:"block",width:"100%",fontSize:TXT.cardMeta,color:"#59645D",fontFamily:F,fontWeight:750,marginBottom:"6px",padding:0,border:0,background:"transparent",cursor:"pointer"}}>{e.a}</button>
+                      <CountryBadge artist={e.a} showName style={{margin:"0 auto 8px"}} />
+                      {certification&&<CertificationTag cert={certification} compact style={{margin:"0 auto 8px"}} />}
                       <div style={{fontSize:featured?(isMobile?"18px":"20px"):"18px",fontWeight:850,color:medal}}>{e.totalPts.toLocaleString()}</div>
                       <div style={{fontSize:"9.5px",color:"#7B817B",fontFamily:F}}>total pts · {e.months} months</div>
                     </div>
@@ -2478,11 +2749,15 @@ liveStatus={liveStatus}
                 const t3 = idx < 3;
                 const medalColor = t3 ? MEDALS[idx] : "#050505";
                 const itemTypeLabel = isSingles ? "Single" : "Album";
+                const certification = getCertificationForEntry(item, isSingles ? "single" : "album");
+                const itemCountry = getArtistCountry({artist:item.a});
                 const statItems = [
                   { label:"Total Pts", value:item.totalPts.toLocaleString() },
                   { label:"Months", value:`${item.months}/3` },
                   { label:"Year-End Rank", value:`#${idx+1}` },
                   { label:"Type", value:itemTypeLabel },
+                  { label:"Country", value:itemCountry.code || "—" },
+                  ...(certification ? [{ label:"Certification", value:certification.label }] : []),
                 ];
 
                 return(
@@ -2516,7 +2791,7 @@ liveStatus={liveStatus}
                       <div style={{minWidth:0,maxWidth:"100%"}}>
                         <button
                           type="button"
-                          onClick={(event)=>{event.stopPropagation();setSelR({title:item.t,artist:item.a,type:isSingles?"single":"album"});}}
+                          onClick={(event)=>{event.stopPropagation();openReleaseDetails(item,isSingles?"single":"album");}}
                           style={{
                             display:"block",
                             width:"100%",
@@ -2540,7 +2815,7 @@ liveStatus={liveStatus}
                         </button>
                         <button
                           type="button"
-                          onClick={(event)=>{event.stopPropagation();setSelR({title:item.t,artist:item.a,type:isSingles?"single":"album"});}}
+                          onClick={(event)=>{event.stopPropagation();openArtistDetails(item.a);}}
                           style={{
                             display:"block",
                             width:"100%",
@@ -2562,6 +2837,8 @@ liveStatus={liveStatus}
                         >
                           {item.a}
                         </button>
+                        <CountryBadge artist={item.a} showName style={{marginTop:"7px"}} />
+                        {certification&&<CertificationTag cert={certification} compact style={{marginTop:"6px"}} />}
                       </div>
 
                       <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:"6px",minWidth:0}}>
@@ -2612,7 +2889,7 @@ liveStatus={liveStatus}
 
                         <button
                           type="button"
-                          onClick={()=>setSelR({title:item.t,artist:item.a,type:isSingles?"single":"album"})}
+                          onClick={()=>openReleaseDetails(item,isSingles?"single":"album")}
                           style={{
                             marginTop:"11px",
                             width:"100%",
@@ -2668,6 +2945,7 @@ liveStatus={liveStatus}
 
                 {yearEnd.slice(0,50).map((item,idx)=>{
                   const t3=idx<3;
+                  const certification = getCertificationForEntry(item, isSingles ? "single" : "album");
                   return(
                     <div
                       key={item.t+item.a}
@@ -2682,12 +2960,16 @@ liveStatus={liveStatus}
                       }}
                       onMouseEnter={e=>e.currentTarget.style.background="#FAFAF6"}
                       onMouseLeave={e=>e.currentTarget.style.background="transparent"}
-                      onClick={()=>setSelR({title:item.t,artist:item.a,type:isSingles?"single":"album"})}
+                      onClick={()=>openReleaseDetails(item,isSingles?"single":"album")}
                     >
                       <div style={{textAlign:"center",fontSize:t3?"20px":"13px",fontWeight:850,color:t3?MEDALS[idx]:"#BFC4BF"}}>{idx+1}</div>
 
                       <div style={{minWidth:0}}>
                         <div style={{
+                          display:"flex",
+                          alignItems:"center",
+                          gap:"7px",
+                          flexWrap:"wrap",
                           fontSize:t3?"14px":TXT.cardTitle,
                           fontWeight:850,
                           marginBottom:"1px",
@@ -2696,19 +2978,26 @@ liveStatus={liveStatus}
                           overflow:"visible",
                           textOverflow:"clip"
                         }}>
-                          {item.t}
+                          <span>{item.t}</span>
+                          {certification&&<CertificationTag cert={certification} compact />}
                         </div>
-                        <div style={{
+                        <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(item.a);}} style={{
                           fontSize:TXT.cardMeta,
                           color:"#59645D",
                           fontFamily:F,
+                          border:0,
+                          background:"transparent",
+                          padding:0,
+                          textAlign:"left",
+                          cursor:"pointer",
                           marginTop:"3px",
                           whiteSpace:"normal",
                           overflow:"visible",
                           textOverflow:"clip"
                         }}>
                           {item.a}
-                        </div>
+                        </button>
+                        <CountryBadge artist={item.a} showName style={{marginTop:"7px"}} />
                       </div>
 
                       <div style={{
@@ -2744,7 +3033,7 @@ liveStatus={liveStatus}
       )}
 
       {/* CERTIFICATIONS PAGE */}
-      {page==="certifications"&&(
+      {page==="certifications"&&!selA&&!selR&&(
         <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:"24px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
             <div>
@@ -2773,11 +3062,12 @@ liveStatus={liveStatus}
                 <div style={{...secLbl(certColors[level]),marginBottom:"12px"}}>{certIcons[level]} {level.charAt(0).toUpperCase()+level.slice(1)} Certified ({filtered.length})</div>
                 <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:"8px"}}>
                   {filtered.map((c,i)=>(
-                    <div key={i} style={{display:"flex",alignItems:"center",gap:"12px",padding:"12px 14px",background:certColors[level]+"0A",borderRadius:"8px",border:"1px solid "+certColors[level]+"22",cursor:"pointer"}} onClick={()=>setSelR({title:c.t,artist:c.a,type:isSingles?"single":"album"})}>
+                    <div key={i} style={{display:"flex",alignItems:"center",gap:"12px",padding:"12px 14px",background:certColors[level]+"0A",borderRadius:"8px",border:"1px solid "+certColors[level]+"22",cursor:"pointer"}} onClick={()=>openReleaseDetails(c,isSingles?"single":"album")}>
                       <div style={{fontSize:"22px"}}>{certIcons[level]}</div>
                       <div style={{flex:1}}>
                         <div style={{fontWeight:800,fontSize:TXT.cardTitle,lineHeight:1.18}}>{c.t}</div>
-                        <div style={{fontFamily:F,fontSize:TXT.cardMeta,color:"#69716B",marginTop:"3px"}}>{c.a}</div>
+                        <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(c.a);}} style={{display:"block",fontFamily:F,fontSize:TXT.cardMeta,color:"#69716B",fontWeight:750,marginTop:"3px",padding:0,border:0,background:"transparent",cursor:"pointer",textAlign:"left"}}>{c.a}</button>
+                        <CountryBadge artist={c.a} showName style={{marginTop:"7px"}} />
                       </div>
                       <div style={{textAlign:"right",fontFamily:F}}>
                         <div style={{fontSize:"13px",fontWeight:700,color:certColors[level]}}>{c.totalPts.toLocaleString()}</div>
@@ -2794,21 +3084,24 @@ liveStatus={liveStatus}
       )}
 
       {/* NEWS PAGE */}
-      {page==="news"&&!selNews&&(
+      {page==="news"&&!selNews&&!selA&&!selR&&(
         <div style={{padding:PAD,background:"transparent",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px"}}>Chart News</h2>
           <p style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",margin:"0 0 24px",lineHeight:1.55}}>Analysis and stories from Kenya's music charts</p>
           <div style={{display:"grid",gap:"14px"}}>
-            {NEWS.map((n,i)=>(
+            {NEWS.map((n,i)=>{
+              const newsCertifications = getCertificationsForNews(n);
+              return (
               <div key={n.id} onClick={()=>setSelNews(n)} style={{...card({cursor:"pointer",transition:"all 0.15s"}),...((i===0)?{background:"#FAF5EA",borderColor:GOLD+"44"}:{})}}
                 onMouseEnter={e=>{e.currentTarget.style.boxShadow="0 4px 20px rgba(0,0,0,0.08)";e.currentTarget.style.transform="translateY(-1px)";}}
                 onMouseLeave={e=>{e.currentTarget.style.boxShadow="none";e.currentTarget.style.transform="none";}}>
                 <div style={{display:"flex",gap:"16px",alignItems:"flex-start"}}>
                   <div style={{fontSize:i===0?"36px":"28px",flexShrink:0}}>{n.emoji}</div>
-                  <div style={{flex:1}}>
-                    <div style={{display:"flex",gap:"8px",alignItems:"center",marginBottom:"6px"}}>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{display:"flex",gap:"8px",alignItems:"center",marginBottom:"6px",flexWrap:"wrap"}}>
                       <span style={{fontFamily:F,fontSize:TXT.micro,fontWeight:800,letterSpacing:"1.5px",textTransform:"uppercase",color:GOLD,background:"#FAF5EA",padding:"2px 8px",borderRadius:"10px"}}>{n.cat}</span>
                       <span style={{fontFamily:F,fontSize:TXT.micro,color:"#7B857D"}}>{n.date}</span>
+                      {newsCertifications.map((cert)=><CertificationTag key={`${cert.t}-${cert.a}`} cert={cert} compact />)}
                     </div>
                     <h3 style={{fontSize:i===0?(isMobile?"16px":"17px"):TXT.cardTitle,fontWeight:800,margin:"0 0 6px",lineHeight:1.25}}>{n.title}</h3>
                     <p style={{fontFamily:F,fontSize:TXT.body,color:"#69716B",margin:0,lineHeight:1.6}}>{n.excerpt}</p>
@@ -2816,17 +3109,19 @@ liveStatus={liveStatus}
                   <span style={{fontFamily:F,fontSize:"18px",color:"#DDD",flexShrink:0}}>›</span>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
-      {page==="news"&&selNews&&(
+      {page==="news"&&selNews&&!selA&&!selR&&(
         <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",maxWidth:"680px",margin:"0 auto",boxSizing:"border-box",overflow:"hidden"}}>
           <span onClick={()=>setSelNews(null)} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:GOLD,cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>← All News</span>
           <div style={{marginTop:"20px"}}>
-            <div style={{display:"flex",gap:"10px",alignItems:"center",marginBottom:"12px"}}>
+            <div style={{display:"flex",gap:"10px",alignItems:"center",marginBottom:"12px",flexWrap:"wrap"}}>
               <span style={{fontFamily:F,fontSize:"9px",fontWeight:700,letterSpacing:"1.5px",textTransform:"uppercase",color:GOLD,background:"#FAF5EA",padding:"2px 8px",borderRadius:"10px"}}>{selNews.cat}</span>
               <span style={{fontFamily:F,fontSize:"10px",color:"#CCC"}}>{selNews.date}</span>
+              {getCertificationsForNews(selNews).map((cert)=><CertificationTag key={`${cert.t}-${cert.a}`} cert={cert} compact={false} />)}
             </div>
             <div style={{fontSize:"40px",marginBottom:"16px"}}>{selNews.emoji}</div>
             <h1 style={{fontSize:isMobile?"24px":"26px",fontWeight:850,margin:"0 0 16px",lineHeight:1.18}}>{selNews.title}</h1>
@@ -2836,7 +3131,7 @@ liveStatus={liveStatus}
       )}
 
       {/* ABOUT PAGE */}
-      {page==="about"&&(
+      {page==="about"&&!selA&&!selR&&(
         <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px"}}>About Ngoma Charts</h2>
           <p style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",margin:"0 0 24px",lineHeight:1.6}}>Ngoma Charts' multi-platform music ranking system, launched October 2024.</p>
@@ -2851,7 +3146,7 @@ liveStatus={liveStatus}
             ].map((item,i)=>(
               <div key={i} style={card()}>
                 <h3 style={{fontFamily:F,fontSize:TXT.micro,fontWeight:800,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 10px"}}>{item.title}</h3>
-                {item.custom?<div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>{[["Apple Music","#FC3C44"],["Audiomack","#F68B1F"],["Boomplay","#2DB04A"],["Spotify","#1DB954"],["YouTube","#FF0000"],["Shazam","#0088FF"]].map(([p,c])=><span key={p} style={{padding:"5px 10px",background:c+"10",borderRadius:"12px",fontSize:TXT.note,fontFamily:F,fontWeight:700,color:c,borderLeft:"3px solid "+c}}>{p}</span>)}</div>:<p style={{fontSize:TXT.body,color:"#555F59",lineHeight:1.65,margin:0,fontFamily:F}}>{item.text}</p>}
+                {item.custom?<div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>{[["Apple Music","#FC3C44"],["Audiomack","#F68B1F"],["Boomplay","#00FFFF"],["Spotify","#1DB954"],["YouTube","#FF0000"],["Shazam","#0088FF"]].map(([p,c])=><span key={p} style={{padding:"5px 10px",background:c+"18",borderRadius:"12px",fontSize:TXT.note,fontFamily:F,fontWeight:700,color:p==="Boomplay"?"#007C7C":c,borderLeft:"3px solid "+c}}>{p}</span>)}</div>:<p style={{fontSize:TXT.body,color:"#555F59",lineHeight:1.65,margin:0,fontFamily:F}}>{item.text}</p>}
               </div>
             ))}
           </div>
@@ -2860,7 +3155,7 @@ liveStatus={liveStatus}
             <h3 style={{fontFamily:F,fontSize:"10px",fontWeight:700,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 14px"}}>🏆 Hall of Fame — Monthly #1s</h3>
             <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"10px"}}>
               {hof.map((e,i)=>(
-                <div key={i} style={{padding:"12px",background:"#FFF",borderRadius:"8px",border:"1px solid "+GOLD+"33",cursor:"pointer"}} onClick={()=>setSelR({...e,type:e.type})}>
+                <div key={i} style={{padding:"12px",background:"#FFF",borderRadius:"8px",border:"1px solid "+GOLD+"33",cursor:"pointer"}} onClick={()=>openReleaseDetails(e,e.type)}>
                   <div style={{fontFamily:F,fontSize:"9px",letterSpacing:"1.5px",textTransform:"uppercase",color:GOLD,marginBottom:"4px"}}>{e.month} · {e.type}</div>
                   <div style={{fontWeight:800,fontSize:TXT.cardTitle,marginBottom:"2px",lineHeight:1.2}}>{e.title}</div>
                   <div style={{fontFamily:F,fontSize:TXT.cardMeta,color:"#69716B"}}>{e.artist}</div>

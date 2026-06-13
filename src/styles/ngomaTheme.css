@@ -1593,4 +1593,543 @@ textarea:focus,
 .ngoma-footer {
   background: var(--ngoma-footer-dark) !important;
   color: var(--ngoma-off-white) !important;
+}/* =========================================================
+   FORCE PREMIUM / CHARTS PAGE TO LIGHT THEME
+   Paste this at the VERY BOTTOM of src/styles/ngomaTheme.css
+   ========================================================= */
+
+/* Main app/page backgrounds */
+html,
+body,
+#root,
+.app,
+main,
+.main,
+.main-content,
+.page,
+.page-content {
+  background: #f7f5ef !important;
+  color: #050505 !important;
+}
+
+/* Target the premium charts page directly */
+[class*="premium"],
+[class*="Premium"],
+[class*="charts"],
+[class*="Charts"] {
+  color: #050505;
+}
+
+/* Force premium page wrappers white/light */
+.premium-page,
+.premium-charts-page,
+.premiumChartsPage,
+.premium-shell,
+.premium-wrapper,
+.premium-layout,
+.charts-page,
+.chart-page,
+.ngoma-charts-page,
+[data-page="charts"],
+[class*="PremiumCharts"],
+[class*="premium-page"],
+[class*="premium-shell"],
+[class*="premium-wrapper"],
+[class*="chart-page"],
+[class*="charts-page"] {
+  background: #f7f5ef !important;
+  color: #050505 !important;
+  background-image: none !important;
+}
+
+/* Force the dark hero area to become light */
+.premium-hero,
+.premium-chart-hero,
+.chart-hero,
+.charts-hero,
+.ngoma-hero,
+.hero,
+.top-section,
+.summary-section,
+.chart-summary,
+[class*="hero"],
+[class*="Hero"],
+[class*="summary"],
+[class*="Summary"] {
+  background: #f7f5ef !important;
+  color: #050505 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* Make hero/card texts black */
+.premium-hero *,
+.premium-chart-hero *,
+.chart-hero *,
+.charts-hero *,
+.ngoma-hero *,
+.hero *,
+.top-section *,
+.summary-section *,
+.chart-summary *,
+[class*="hero"] *,
+[class*="Hero"] *,
+[class*="summary"] *,
+[class*="Summary"] * {
+  color: inherit;
+}
+
+.premium-hero h1,
+.premium-hero h2,
+.premium-hero h3,
+.premium-hero h4,
+.chart-hero h1,
+.chart-hero h2,
+.chart-hero h3,
+.chart-hero h4,
+.charts-hero h1,
+.charts-hero h2,
+.charts-hero h3,
+.charts-hero h4,
+.hero h1,
+.hero h2,
+.hero h3,
+.hero h4,
+[class*="hero"] h1,
+[class*="Hero"] h1,
+[class*="hero"] h2,
+[class*="Hero"] h2 {
+  color: #050505 !important;
+}
+
+/* Main huge title like NGOMA TOP 50 */
+.premium-hero .title,
+.chart-hero .title,
+.charts-hero .title,
+.hero .title,
+[class*="hero"] .title,
+[class*="Hero"] .title {
+  color: #050505 !important;
+}
+
+/* Subtexts */
+.premium-hero p,
+.premium-hero small,
+.chart-hero p,
+.chart-hero small,
+.charts-hero p,
+.charts-hero small,
+.hero p,
+.hero small,
+[class*="hero"] p,
+[class*="Hero"] p,
+[class*="hero"] small,
+[class*="Hero"] small {
+  color: #777777 !important;
+}
+
+/* The #1 this month card should become white */
+.leader-card,
+.summary-card,
+.stat-card,
+.metric-card,
+.info-card,
+[class*="leader"],
+[class*="Leader"],
+[class*="stat-card"],
+[class*="StatCard"],
+[class*="summary-card"],
+[class*="SummaryCard"] {
+  background: #ffffff !important;
+  color: #050505 !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06) !important;
+  background-image: none !important;
+}
+
+/* Keep gold numbers gold */
+.leader-card .rank,
+.summary-card .rank,
+.stat-card .rank,
+.metric-card .rank,
+[class*="leader"] .rank,
+[class*="Leader"] .rank {
+  color: #c89116 !important;
+}
+
+/* Filters area */
+.filters,
+.filter-bar,
+.controls,
+.chart-controls,
+.premium-controls,
+[class*="filters"],
+[class*="Filters"],
+[class*="controls"],
+[class*="Controls"] {
+  background: #f7f5ef !important;
+  color: #050505 !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Filter buttons */
+.filter,
+.pill,
+.tab,
+.platform-filter,
+.month-filter,
+button[class*="filter"],
+button[class*="Filter"],
+button[class*="pill"],
+button[class*="Pill"],
+button[class*="tab"],
+button[class*="Tab"] {
+  background: #ffffff !important;
+  color: #050505 !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Active filter buttons */
+.filter.active,
+.pill.active,
+.tab.active,
+.platform-filter.active,
+.month-filter.active,
+button.active {
+  background: #c89116 !important;
+  color: #050505 !important;
+  border-color: #c89116 !important;
+}
+
+/* Main chart/table containers should be white */
+.chart-list,
+.ranking-list,
+.chart-table,
+.ranking-table,
+.table-container,
+.premium-table,
+.premium-card,
+[class*="chart-list"],
+[class*="ChartList"],
+[class*="ranking-list"],
+[class*="RankingList"],
+[class*="chart-table"],
+[class*="ChartTable"],
+[class*="ranking-table"],
+[class*="RankingTable"],
+[class*="table-container"],
+[class*="TableContainer"],
+[class*="premium-card"],
+[class*="PremiumCard"] {
+  background: #ffffff !important;
+  color: #050505 !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06) !important;
+  background-image: none !important;
+}
+
+/* Table should be white */
+table {
+  background: #ffffff !important;
+  color: #050505 !important;
+}
+
+thead {
+  background: #f7f7f7 !important;
+  color: #777777 !important;
+}
+
+tbody {
+  background: #ffffff !important;
+  color: #050505 !important;
+}
+
+tr,
+td,
+th {
+  background-color: transparent;
+}
+
+th {
+  color: #777777 !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+td {
+  color: #050505 !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Rows should be white with black text */
+tr,
+.chart-row,
+.ranking-row,
+.song-row,
+.album-row,
+.artist-row,
+.table-row,
+.list-row,
+.chart-item,
+.ranking-item,
+.song-item,
+.album-item,
+.artist-item,
+[class*="row"],
+[class*="Row"],
+[class*="item"],
+[class*="Item"] {
+  background: #ffffff !important;
+  color: #050505 !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Hover should be soft gold, not dark and not white-on-white */
+tr:hover,
+.chart-row:hover,
+.ranking-row:hover,
+.song-row:hover,
+.album-row:hover,
+.artist-row:hover,
+.table-row:hover,
+.list-row:hover,
+.chart-item:hover,
+.ranking-item:hover,
+.song-item:hover,
+.album-item:hover,
+.artist-item:hover,
+[class*="row"]:hover,
+[class*="Row"]:hover,
+[class*="item"]:hover,
+[class*="Item"]:hover {
+  background: #fff7e6 !important;
+  color: #050505 !important;
+  box-shadow: inset 4px 0 0 #c89116 !important;
+}
+
+/* Make all text inside rows readable */
+tr *,
+.chart-row *,
+.ranking-row *,
+.song-row *,
+.album-row *,
+.artist-row *,
+.table-row *,
+.list-row *,
+.chart-item *,
+ranking-item *,
+.song-item *,
+.album-item *,
+.artist-item *,
+[class*="row"] *,
+[class*="Row"] *,
+[class*="item"] *,
+[class*="Item"] * {
+  color: inherit;
+}
+
+/* Song titles and artist names */
+.title,
+.name,
+.song-title,
+.artist-name,
+.album-title,
+.entry-title,
+.track-title,
+[class*="title"],
+[class*="Title"],
+[class*="name"],
+[class*="Name"] {
+  color: #050505 !important;
+}
+
+/* Artist/subtitle/meta text */
+.artist,
+.meta,
+.subtitle,
+.description,
+.song-meta,
+.artist-meta,
+.chart-meta,
+.album-meta,
+[class*="meta"],
+[class*="Meta"],
+[class*="subtitle"],
+[class*="Subtitle"] {
+  color: #777777 !important;
+}
+
+/* Rank numbers */
+.rank,
+.position,
+.chart-position,
+[class*="rank"],
+[class*="Rank"],
+[class*="position"],
+[class*="Position"] {
+  color: #050505 !important;
+}
+
+/* Gold points / highlights */
+.points,
+.pts,
+.score,
+.total-points,
+.gold,
+.text-gold,
+.gold-text,
+[class*="points"],
+[class*="Points"],
+[class*="score"],
+[class*="Score"] {
+  color: #c89116 !important;
+}
+
+/* Platform badges */
+.platform,
+.plat,
+.platform-count,
+[class*="platform"],
+[class*="Platform"] {
+  background: #f2f2f2 !important;
+  color: #050505 !important;
+}
+
+/* Country/entry badges */
+.entry,
+.country,
+.country-code,
+.badge,
+.tag,
+.label {
+  color: #050505 !important;
+}
+
+/* Footer remains dark like Trending page */
+.footer,
+.site-footer,
+.ngoma-footer {
+  background: #151515 !important;
+  color: #f4f1ea !important;
+}
+
+.footer *,
+.site-footer *,
+.ngoma-footer * {
+  color: inherit;
+}
+
+.footer .text-gold,
+.site-footer .text-gold,
+.ngoma-footer .text-gold,
+.footer .gold-text,
+.site-footer .gold-text,
+.ngoma-footer .gold-text {
+  color: #c89116 !important;
+}
+/* =========================================================
+   MOBILE ANALYTICS CARD + CHART CENTERING FIX
+   Paste at the VERY BOTTOM of NgomaTheme.css
+   ========================================================= */
+
+@media (max-width: 768px) {
+  /* Force Top 10 and Platform #1s to stack vertically on mobile */
+  .top10-platform-grid,
+  .analytics-two-column,
+  .analytics-split-grid,
+  .analytics-card-grid,
+  .dashboard-two-column,
+  .dashboard-grid,
+  .insights-grid,
+  .charts-grid,
+  [class*="two-column"],
+  [class*="TwoColumn"],
+  [class*="split-grid"],
+  [class*="SplitGrid"] {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    width: 100% !important;
+    gap: 16px !important;
+  }
+
+  /* Keep all white cards safely inside the screen */
+  .analytics-card,
+  .chart-card,
+  .table-card,
+  .premium-card,
+  .ngoma-card,
+  .card,
+  [class*="analytics-card"],
+  [class*="AnalyticsCard"],
+  [class*="chart-card"],
+  [class*="ChartCard"],
+  [class*="table-card"],
+  [class*="TableCard"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
+  /* Center charts/graphs inside white cards */
+  .chart-wrapper,
+  .graph-wrapper,
+  .analytics-chart,
+  .recharts-responsive-container,
+  [class*="chart-wrapper"],
+  [class*="ChartWrapper"],
+  [class*="graph-wrapper"],
+  [class*="GraphWrapper"],
+  [class*="analytics-chart"],
+  [class*="AnalyticsChart"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    overflow-x: auto !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Prevent SVG charts from touching or being cut by card edges */
+  .analytics-card svg,
+  .chart-card svg,
+  .premium-card svg,
+  .ngoma-card svg,
+  .card svg {
+    display: block !important;
+    max-width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  /* Center tables and allow safe horizontal scroll */
+  .table-wrapper,
+  .analytics-table-wrapper,
+  .table-container,
+  [class*="table-wrapper"],
+  [class*="TableWrapper"],
+  [class*="table-container"],
+  [class*="TableContainer"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    overflow-x: auto !important;
+    box-sizing: border-box !important;
+  }
+
+  table {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  /* Add inner breathing space so charts/tables do not touch card edges */
+  .analytics-card,
+  .chart-card,
+  .table-card,
+  .premium-card {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
 }

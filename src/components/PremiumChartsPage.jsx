@@ -16,9 +16,32 @@ const REGION_BADGE = {
 };
 const DEFAULT_BADGE = { from: "#9aa0a6", to: "#6b7077", text: "#ffffff" }; // other / unknown — grey
 
+// Flag-derived palettes replace the previous arbitrary regional colors.
+const FLAG_BADGE = {
+  BB: { from: "#00267F", to: "#FFC726", text: "#111111" },
+  CA: { from: "#D80621", to: "#FFFFFF", text: "#111111" },
+  CD: { from: "#007FFF", to: "#CE1021", text: "#FFFFFF" },
+  CI: { from: "#F77F00", to: "#009E60", text: "#FFFFFF" },
+  FR: { from: "#0055A4", to: "#EF4135", text: "#FFFFFF" },
+  GB: { from: "#012169", to: "#C8102E", text: "#FFFFFF" },
+  GH: { from: "#CE1126", to: "#006B3F", text: "#FFFFFF" },
+  IN: { from: "#FF9933", to: "#138808", text: "#111111" },
+  JM: { from: "#009B3A", to: "#FED100", text: "#111111" },
+  KE: { from: "#000000", to: "#006600", text: "#FFFFFF" },
+  KR: { from: "#FFFFFF", to: "#CD2E3A", text: "#111111" },
+  NG: { from: "#008751", to: "#FFFFFF", text: "#111111" },
+  NO: { from: "#BA0C2F", to: "#00205B", text: "#FFFFFF" },
+  RW: { from: "#00A1DE", to: "#20603D", text: "#FFFFFF" },
+  SE: { from: "#006AA7", to: "#FECC02", text: "#111111" },
+  TZ: { from: "#1EB53A", to: "#00A3DD", text: "#111111" },
+  UG: { from: "#000000", to: "#D90000", text: "#FFFFFF" },
+  US: { from: "#3C3B6E", to: "#B22234", text: "#FFFFFF" },
+  ZA: { from: "#007749", to: "#DE3831", text: "#FFFFFF" },
+};
+
 function regionBadge(code) {
   const key = String(code || "").trim().toUpperCase();
-  if (REGION_BADGE[key]) return REGION_BADGE[key];
+  if (FLAG_BADGE[key]) return FLAG_BADGE[key];
   // East-African neighbours not explicitly listed lean gold; everything else slate-ish
   return DEFAULT_BADGE;
 }
@@ -406,7 +429,7 @@ function useRealMobile(isMobileFromParent) {
   return realMobile;
 }
 
-function countryCodeToFlag(countryCode) {
+export function countryCodeToFlag(countryCode) {
   const code = String(countryCode || "").trim().toUpperCase();
 
   if (code.length !== 2 || !/^[A-Z]{2}$/.test(code)) {
@@ -419,7 +442,7 @@ function countryCodeToFlag(countryCode) {
     .join("");
 }
 
-function getArtistCountry(item) {
+export function getArtistCountry(item) {
   const directCode = String(item.artist_country_code || item.country_code || "").trim().toUpperCase();
 
   if (directCode) {
@@ -482,6 +505,8 @@ export default function PremiumChartsPage({
   liveStatus,
   pageMax = "1240px",
   shareCurrentPageCard,
+  certificationForEntry = () => null,
+  CertificationTag = () => null,
 }) {
   const mobile = useRealMobile(isMobile);
   const safeGutter = mobile ? "clamp(20px, 5vw, 28px)" : "28px";
@@ -496,6 +521,8 @@ export default function PremiumChartsPage({
   const chartLabel = isSingles ? "Singles" : "Albums";
   const platformLabel =
     liveChartMeta?.platform || (plat === "Combined" ? "Combined" : PLAT_LABEL[plat] || plat);
+  const chartAccent = plat === "Combined" ? GOLD : PC[plat] || GOLD;
+  const chartAccentInk = plat === "BOOMPLAY" ? "#007C7C" : chartAccent;
 
   function movement(item) {
     const movementType = String(item.movement || item.movement_type || "").toLowerCase();
@@ -807,9 +834,9 @@ export default function PremiumChartsPage({
               }}
               style={{
                 ...styles.toggleButton,
-                background: active ? GOLD : "#ffffff",
+                background: active ? chartAccent : "#ffffff",
                 color: active ? "#090909" : "#111111",
-                borderColor: active ? GOLD : "rgba(0,0,0,0.14)",
+                borderColor: active ? chartAccent : "rgba(0,0,0,0.14)",
                 flex: mobile ? 1 : "initial",
               }}
             >
@@ -838,7 +865,10 @@ export default function PremiumChartsPage({
   });
 
   const isCombinedChart = plat === "Combined";
-  const crossPlatformHitsCount = data.filter((item) => item.plat === `${tp}/${tp}`).length;
+  const crossPlatformHitsCount = data.filter((item) => {
+    const count = Number(String(item.plat || item.platform_count || "").split("/")[0]);
+    return count >= tp;
+  }).length;
   const newEntriesCount = data.filter((item) => movement(item).type === "new").length;
 
   const chartPackYear = (String(month).match(/\b(20\d{2})\b/) || [])[1] || String(new Date().getFullYear());
@@ -975,7 +1005,7 @@ export default function PremiumChartsPage({
           transform: loaded ? "none" : "translateY(8px)",
         }}
       >
-        <div style={styles.heroGlow} />
+        <div style={{...styles.heroGlow,background:`linear-gradient(120deg, ${chartAccent}12 0%, transparent 54%, ${chartAccent}08 100%)`}} />
 
         <div
           style={{
@@ -1030,7 +1060,7 @@ export default function PremiumChartsPage({
                   fontWeight: 900,
                   lineHeight: 1,
                   letterSpacing: mobile ? "2.4px" : "4px",
-                  color: GOLD,
+                  color: chartAccentInk,
                   whiteSpace: "nowrap",
                 }}
               >
@@ -1065,7 +1095,7 @@ export default function PremiumChartsPage({
           maxWidth: pageMax,
           margin: "0 auto",
           boxSizing: "border-box",
-          gridTemplateColumns: mobile ? "repeat(2, minmax(0, 1fr))" : "repeat(4, minmax(0, 1fr))",
+          gridTemplateColumns: mobile ? "repeat(2, minmax(0, 1fr))" : `repeat(${isCombinedChart ? 4 : 3}, minmax(0, 1fr))`,
         }}
       >
         {[
@@ -1074,13 +1104,11 @@ export default function PremiumChartsPage({
             value: data.length,
             sub: isSingles ? "songs" : "albums",
           },
-          {
-            label: isCombinedChart ? "Cross-Platform Hits" : "Platform Entries",
-            value: isCombinedChart ? crossPlatformHitsCount : data.length,
-            sub: isCombinedChart
-              ? `on all ${tp} platforms`
-              : `${isSingles ? "songs" : "albums"} on ${platformLabel}`,
-          },
+          ...(isCombinedChart ? [{
+            label: "Cross-Platform Hits",
+            value: crossPlatformHitsCount,
+            sub: `on all ${tp} platforms`,
+          }] : []),
           {
             label: "New Entries",
             value: newEntriesCount,
@@ -1105,7 +1133,7 @@ export default function PremiumChartsPage({
               style={{
                 ...styles.statValue,
                 fontSize: item.compact ? (mobile ? "15px" : "18px") : mobile ? "25px" : "30px",
-                color: index === 3 ? GOLD : "#050505",
+                color: item.label === "Chart Leader" ? chartAccentInk : "#050505",
               }}
             >
               {item.value}
@@ -1157,6 +1185,7 @@ export default function PremiumChartsPage({
             {platList.map((item) => {
               const active = plat === item;
               const color = item === "Combined" ? GOLD : PC[item] || GOLD;
+              const ink = item === "BOOMPLAY" ? "#007C7C" : color;
               const label = item === "Combined" ? item : PLAT_LABEL[item] || item;
 
               return (
@@ -1168,7 +1197,7 @@ export default function PremiumChartsPage({
                     padding: mobile ? "9px 15px" : "8px 12px",
                     borderColor: active ? color : "rgba(0,0,0,0.12)",
                     background: active ? `${color}18` : "#ffffff",
-                    color: active ? color : "#6b7280",
+                    color: active ? ink : "#6b7280",
                     flexShrink: 0,
                   }}
                 >
@@ -1200,8 +1229,8 @@ export default function PremiumChartsPage({
                   ...styles.viewButton,
                   padding: mobile ? "11px 12px" : "8px 12px",
                   background: active ? "#ffffff" : "#f6f6f3",
-                  color: active ? GOLD : "#4b5563",
-                  border: active ? `2px solid ${GOLD}` : "1px solid #e5e7eb",
+                  color: active ? chartAccentInk : "#4b5563",
+                  border: active ? `2px solid ${chartAccent}` : "1px solid #e5e7eb",
                   fontWeight: active ? 900 : 800,
                   opacity: disabled ? 0.4 : 1,
                   flex: mobile ? 1 : "initial",
@@ -1217,6 +1246,7 @@ export default function PremiumChartsPage({
       <section
         style={{
           ...styles.tableShell,
+          borderTop:`3px solid ${chartAccent}`,
           maxWidth: pageMax,
           width: "100%",
           margin: mobile ? "16px auto 28px" : "24px auto 34px",
@@ -1267,12 +1297,12 @@ export default function PremiumChartsPage({
                 Share Card
               </button>
             )}
-            <div style={styles.tableRange}>Top {Math.min(vc, data.length)}</div>
+            <div style={{...styles.tableRange,background:`${chartAccent}18`,color:chartAccentInk}}>Top {Math.min(vc, data.length)}</div>
           </div>
         </div>
 
         {!mobile && (
-          <div style={styles.tableHeader}>
+          <div style={{...styles.tableHeader,gridTemplateColumns:isCombinedChart?styles.tableHeader.gridTemplateColumns:"54px 84px minmax(0, 1fr) 84px 60px 70px"}}>
             <span
               style={{ ...styles.headerCell, cursor: "pointer" }}
               onClick={() => handleSort("rank")}
@@ -1303,13 +1333,13 @@ export default function PremiumChartsPage({
             >
               Months{sortArrow("months")}
             </span>
-            <span
+            {isCombinedChart&&<span
               style={{ ...styles.headerCell, cursor: "pointer" }}
               onClick={() => handleSort("platforms")}
               title="Sort by platform coverage"
             >
               Platforms{sortArrow("platforms")}
-            </span>
+            </span>}
           </div>
         )}
 
@@ -1321,6 +1351,7 @@ export default function PremiumChartsPage({
             const medalColor = item.rank <= 3 ? MEDALS[item.rank - 1] : "#050505";
             const artistCountry = getArtistCountry(item);
             const badge = regionBadge(artistCountry.code);
+            const certification = certificationForEntry(item, isSingles ? "single" : "album");
 
             if (mobile) {
               const rowKey = getMobileRowKey(item, index);
@@ -1336,8 +1367,8 @@ export default function PremiumChartsPage({
                     boxSizing: "border-box",
                   }}
                   onMouseEnter={(event) => {
-                    event.currentTarget.style.background = "#fff7e6";
-                    event.currentTarget.style.boxShadow = "inset 4px 0 0 #c89116";
+                    event.currentTarget.style.background = `${chartAccent}0B`;
+                    event.currentTarget.style.boxShadow = `inset 4px 0 0 ${chartAccent}`;
                   }}
                   onMouseLeave={(event) => {
                     event.currentTarget.style.background = "#ffffff";
@@ -1374,6 +1405,10 @@ export default function PremiumChartsPage({
                       >
                         {item.artist}
                       </button>
+
+                      {certification && (
+                        <CertificationTag cert={certification} compact style={{ marginTop: "6px" }} />
+                      )}
                     </div>
 
                     <div style={styles.mobileMovementWrap}>
@@ -1426,8 +1461,7 @@ export default function PremiumChartsPage({
                         <div>
                           <div style={styles.mobileDetailLabel}>Country</div>
                           <div style={styles.mobileDetailValue}>
-                            {artistCountry.country || "Country not set"}
-                            {artistCountry.code ? ` (${artistCountry.code})` : ""}
+                            {artistCountry.code || "—"}
                           </div>
                         </div>
                       </div>
@@ -1436,10 +1470,7 @@ export default function PremiumChartsPage({
                         <MobileStat label="L.M" value={profile.lastMonth} />
                         <MobileStat label="Peak" value={profile.peak} />
                         <MobileStat label="Mos" value={profile.weeks} />
-                        <MobileStat
-                          label="Plat."
-                          value={plat === "Combined" && item.plat ? item.plat : "—"}
-                        />
+                        {isCombinedChart&&<MobileStat label="Plat." value={item.plat || "—"} />}
                       </div>
                     </div>
                   )}
@@ -1452,11 +1483,12 @@ export default function PremiumChartsPage({
                 key={`${item.title}-${item.artist}-${item.rank}-${index}`}
                 style={{
                   ...styles.row,
+                  gridTemplateColumns:isCombinedChart?styles.row.gridTemplateColumns:"54px 84px minmax(0, 1fr) 84px 60px 70px",
                   animationDelay: `${Math.min(index * 20, 400)}ms`,
                 }}
                 onMouseEnter={(event) => {
-                  event.currentTarget.style.background = "#fff7e6";
-                  event.currentTarget.style.boxShadow = "inset 4px 0 0 #c89116";
+                  event.currentTarget.style.background = `${chartAccent}0B`;
+                  event.currentTarget.style.boxShadow = `inset 4px 0 0 ${chartAccent}`;
                 }}
                 onMouseLeave={(event) => {
                   event.currentTarget.style.background = "#ffffff";
@@ -1516,6 +1548,10 @@ export default function PremiumChartsPage({
                     >
                       {item.artist}
                     </button>
+
+                    {certification && (
+                      <CertificationTag cert={certification} compact style={{ marginTop: "6px" }} />
+                    )}
                   </div>
                 </div>
 
@@ -1523,9 +1559,7 @@ export default function PremiumChartsPage({
                 <div style={styles.metaNumber}>{profile.peak}</div>
                 <div style={styles.metaNumber}>{profile.weeks}</div>
 
-                <div style={styles.platformCell}>
-                  {plat === "Combined" && item.plat ? item.plat : "—"}
-                </div>
+                {isCombinedChart&&<div style={styles.platformCell}>{item.plat || "—"}</div>}
               </div>
             );
           })}
