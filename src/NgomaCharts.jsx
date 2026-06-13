@@ -340,6 +340,47 @@ export default function NgomaCharts(){
   const responsiveStack=(desktop="row")=>({flexDirection:isMobile?"column":desktop,alignItems:isMobile?"stretch":"center"});
   useEffect(()=>{const h=e=>{if(e.key==="Escape"){setSOpen(false);setSrch("");setShareImg(null);}};window.addEventListener("keydown",h);return()=>window.removeEventListener("keydown",h);},[]);
 
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof document === "undefined") return;
+
+    const hideStrayShareButtons = () => {
+      const buttons = Array.from(document.querySelectorAll("button"));
+      buttons.forEach((btn) => {
+        const label = (btn.textContent || "").replace(/\s+/g, " ").trim().toLowerCase();
+        if (label !== "share card") return;
+
+        const isApprovedPageAction = btn.getAttribute("data-keep-share-card") === "true" || Boolean(btn.closest("[data-share-action-area='true']"));
+        if (isApprovedPageAction) return;
+
+        const computed = window.getComputedStyle(btn);
+        const rect = btn.getBoundingClientRect();
+        const inFooter = Boolean(btn.closest("footer"));
+        const floatingPosition = computed.position === "fixed" || computed.position === "sticky" || computed.position === "absolute";
+        const bottomRightFloat = rect.right > window.innerWidth - 260 && rect.bottom > window.innerHeight - 180;
+
+        if (inFooter || floatingPosition || bottomRightFloat) {
+          btn.style.setProperty("display", "none", "important");
+          btn.style.setProperty("visibility", "hidden", "important");
+          btn.style.setProperty("pointer-events", "none", "important");
+          btn.setAttribute("aria-hidden", "true");
+          btn.setAttribute("data-stray-share-hidden", "true");
+        }
+      });
+    };
+
+    hideStrayShareButtons();
+    const observer = new MutationObserver(hideStrayShareButtons);
+    observer.observe(document.body, { childList: true, subtree: true });
+    window.addEventListener("resize", hideStrayShareButtons);
+    window.addEventListener("scroll", hideStrayShareButtons, { passive: true });
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", hideStrayShareButtons);
+      window.removeEventListener("scroll", hideStrayShareButtons);
+    };
+  }, [page]);
+
 
 const getData = () =>
   plat === "Combined" ? getCombined(ct, month) : getPlatform(ct, plat, month);
@@ -1140,6 +1181,8 @@ const top = data[0];
   const ShareCardButton = ({ compact = false, dark = false }) => (
     <button
       type="button"
+      data-keep-share-card="true"
+      data-share-card="page-action"
       onClick={shareCurrentPageCard}
       style={{
         border: dark ? "1px solid rgba(255,255,255,0.28)" : "1px solid #D7D2C8",
@@ -1222,6 +1265,9 @@ const top = data[0];
         *, *::before, *::after{box-sizing:border-box;}
         img, svg, canvas, video{max-width:100%;}
         button, input, select, textarea{max-width:100%;}
+        footer button:not([data-keep-share-card="true"]){display:none !important;}
+        footer .share-card-button, footer [data-share-card]:not([data-keep-share-card="true"]), footer [aria-label*="Share"]{display:none !important;}
+        button[data-stray-share-hidden="true"]{display:none !important;visibility:hidden !important;pointer-events:none !important;}
         .ngoma-mobile-text-safe{min-width:0;overflow-wrap:anywhere;}
         .ngoma-analytics-chart-scroll{max-width:100%;overflow-x:auto;overflow-y:hidden;padding-bottom:4px;}
         .ngoma-analytics-chart-inner{min-width:0;}
