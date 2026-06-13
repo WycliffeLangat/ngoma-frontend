@@ -259,6 +259,14 @@ export default function NgomaCharts(){
   const [liveChartMeta, setLiveChartMeta] = useState(null);
   const [liveChartLoading, setLiveChartLoading] = useState(false);
   const [openRecord, setOpenRecord] = useState(null);
+  const [expandedYearEndRows, setExpandedYearEndRows] = useState({});
+
+  const toggleYearEndRow = (rowKey) => {
+    setExpandedYearEndRows((current) => ({
+      ...current,
+      [rowKey]: !current[rowKey],
+    }));
+  };
 
   const isSingles = ct === "singles";
   const platList = isSingles ? S_PLATS : A_PLATS;
@@ -2438,109 +2446,290 @@ liveStatus={liveStatus}
           })()}
 
           {/* Full list */}
-          <div style={{
-            overflowX:isMobile?"auto":"visible",
-            overflowY:"hidden",
-            WebkitOverflowScrolling:"touch",
-            margin:isMobile?"0 -4px":"0",
-            paddingBottom:isMobile?"2px":"0"
-          }}>
-            <div style={{minWidth:isMobile?"350px":"0",width:"100%"}}>
-              <div style={{
-                display:"grid",
-                gridTemplateColumns:isMobile?"34px minmax(90px,1fr) 92px 64px":"54px minmax(0,1fr) 148px 92px",
-                columnGap:isMobile?"16px":"30px",
-                padding:isMobile?"10px 12px":"11px 0",
-                borderBottom:"2px solid #1A1A1A",
-                fontFamily:F,
-                fontSize:isMobile?"7.8px":"9px",
-                fontWeight:900,
-                letterSpacing:isMobile?"0.75px":"1.8px",
-                textTransform:"uppercase",
-                color:"#4F5751",
-                alignItems:"end"
-              }}>
-                <span style={{textAlign:"center"}}>#</span>
-                <span>TITLE</span>
-                <span style={{textAlign:"center",justifySelf:"stretch",whiteSpace:"nowrap"}}>TOTAL PTS</span>
-                <span style={{textAlign:"center",justifySelf:"stretch",whiteSpace:"nowrap",borderLeft:isMobile?"1px solid #E6E0D2":"none",paddingLeft:0}}>MONTHS</span>
-              </div>
-
+          {isMobile ? (
+            <div style={{display:"grid",gap:"10px"}}>
               {yearEnd.slice(0,50).map((item,idx)=>{
-                const t3=idx<3;
+                const rowKey = `${item.t}-${item.a}-${idx}`;
+                const expanded = Boolean(expandedYearEndRows[rowKey]);
+                const t3 = idx < 3;
+                const medalColor = t3 ? MEDALS[idx] : "#050505";
+                const itemTypeLabel = isSingles ? "Single" : "Album";
+                const statItems = [
+                  { label:"Total Pts", value:item.totalPts.toLocaleString() },
+                  { label:"Months", value:`${item.months}/3` },
+                  { label:"Year-End Rank", value:`#${idx+1}` },
+                  { label:"Type", value:itemTypeLabel },
+                ];
+
                 return(
                   <div
-                    key={item.t+item.a}
+                    key={rowKey}
                     style={{
-                      display:"grid",
-                      gridTemplateColumns:isMobile?"34px minmax(90px,1fr) 92px 64px":"54px minmax(0,1fr) 148px 92px",
-                      columnGap:isMobile?"16px":"30px",
-                      padding:t3?(isMobile?"13px 12px":"13px 0"):(isMobile?"10px 12px":"9px 0"),
-                      borderBottom:"1px solid #F2F2EE",
-                      alignItems:"center",
-                      cursor:"pointer"
+                      padding:"15px 16px",
+                      border:"1px solid rgba(0,0,0,0.08)",
+                      borderRadius:"16px",
+                      background:"#FFF",
+                      color:"#050505",
+                      boxShadow:expanded ? "inset 4px 0 0 #C89116, 0 8px 22px rgba(0,0,0,0.045)" : "0 2px 10px rgba(0,0,0,0.025)",
+                      transition:"background 180ms ease, box-shadow 180ms ease, transform 180ms ease",
                     }}
-                    onMouseEnter={e=>e.currentTarget.style.background="#FAFAF6"}
-                    onMouseLeave={e=>e.currentTarget.style.background="transparent"}
-                    onClick={()=>setSelR({title:item.t,artist:item.a,type:isSingles?"single":"album"})}
                   >
-                    <div style={{textAlign:"center",fontSize:t3?(isMobile?"19px":"20px"):(isMobile?"12px":"13px"),fontWeight:850,color:t3?MEDALS[idx]:"#BFC4BF"}}>{idx+1}</div>
+                    <div
+                      onClick={()=>toggleYearEndRow(rowKey)}
+                      role="button"
+                      aria-expanded={expanded}
+                      style={{
+                        display:"grid",
+                        gridTemplateColumns:"34px minmax(0,1fr) max-content",
+                        gap:"10px",
+                        alignItems:"center",
+                        cursor:"pointer",
+                        minWidth:0,
+                      }}
+                    >
+                      <div style={{fontSize:t3?"28px":"24px",fontWeight:950,lineHeight:1,color:medalColor,textAlign:"center",fontFamily:F}}>{idx+1}</div>
 
-                    <div style={{minWidth:0}}>
-                      <div style={{
-                        fontSize:t3?(isMobile?"13.5px":"14px"):TXT.cardTitle,
-                        fontWeight:850,
-                        marginBottom:"1px",
-                        lineHeight:1.15,
-                        whiteSpace:isMobile?"nowrap":"normal",
-                        overflow:isMobile?"hidden":"visible",
-                        textOverflow:isMobile?"ellipsis":"clip"
-                      }}>
-                        {item.t}
+                      <div style={{minWidth:0,maxWidth:"100%"}}>
+                        <button
+                          type="button"
+                          onClick={(event)=>{event.stopPropagation();setSelR({title:item.t,artist:item.a,type:isSingles?"single":"album"});}}
+                          style={{
+                            display:"block",
+                            width:"100%",
+                            border:0,
+                            background:"transparent",
+                            padding:0,
+                            margin:0,
+                            textAlign:"left",
+                            fontFamily:SF,
+                            fontSize:t3?"15.5px":"15px",
+                            fontWeight:850,
+                            lineHeight:1.15,
+                            color:"#050505",
+                            whiteSpace:"nowrap",
+                            overflow:"hidden",
+                            textOverflow:"ellipsis",
+                            cursor:"pointer",
+                          }}
+                        >
+                          {item.t}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(event)=>{event.stopPropagation();setSelR({title:item.t,artist:item.a,type:isSingles?"single":"album"});}}
+                          style={{
+                            display:"block",
+                            width:"100%",
+                            border:0,
+                            background:"transparent",
+                            padding:0,
+                            margin:"4px 0 0",
+                            textAlign:"left",
+                            fontFamily:F,
+                            fontSize:"12.2px",
+                            fontWeight:700,
+                            lineHeight:1.35,
+                            color:"#59645D",
+                            whiteSpace:"nowrap",
+                            overflow:"hidden",
+                            textOverflow:"ellipsis",
+                            cursor:"pointer",
+                          }}
+                        >
+                          {item.a}
+                        </button>
                       </div>
-                      <div style={{
-                        fontSize:TXT.cardMeta,
-                        color:"#59645D",
-                        fontFamily:F,
-                        marginTop:"3px",
-                        whiteSpace:isMobile?"nowrap":"normal",
-                        overflow:isMobile?"hidden":"visible",
-                        textOverflow:isMobile?"ellipsis":"clip"
-                      }}>
-                        {item.a}
+
+                      <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:"6px",minWidth:0}}>
+                        <div style={{
+                          minWidth:"64px",
+                          padding:"6px 7px",
+                          borderRadius:"12px",
+                          background:t3?"#FFF7E4":"#FBFAF7",
+                          border:"1px solid rgba(0,0,0,0.08)",
+                          textAlign:"center",
+                          fontFamily:F,
+                          color:t3?GOLD:"#59645D",
+                          boxSizing:"border-box",
+                        }}>
+                          <div style={{fontSize:"12px",fontWeight:950,lineHeight:1,whiteSpace:"nowrap"}}>{item.totalPts.toLocaleString()}</div>
+                          <div style={{fontSize:"7.5px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",marginTop:"3px",color:"#7B817B"}}>pts</div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(event)=>{event.stopPropagation();toggleYearEndRow(rowKey);}}
+                          aria-label={expanded ? "Hide year-end details" : "Show year-end details"}
+                          aria-expanded={expanded}
+                          style={{
+                            width:"38px",
+                            height:"34px",
+                            border:"1px solid rgba(0,0,0,0.08)",
+                            borderRadius:"14px",
+                            background:"#FBFAF7",
+                            color:"#555",
+                            fontSize:"18px",
+                            fontWeight:900,
+                            lineHeight:1,
+                            cursor:"pointer",
+                            display:"flex",
+                            alignItems:"center",
+                            justifyContent:"center",
+                            padding:"0 0 2px",
+                            boxShadow:"0 2px 8px rgba(0,0,0,0.04)",
+                          }}
+                        >
+                          {expanded ? "▴" : "▾"}
+                        </button>
                       </div>
                     </div>
 
-                    <div style={{
-                      textAlign:"center",
-                      justifySelf:"stretch",
-                      fontFamily:F,
-                      fontSize:t3?(isMobile?"13px":"14px"):TXT.cardMeta,
-                      fontWeight:850,
-                      color:t3?GOLD:"#59645D",
-                      whiteSpace:"nowrap"
-                    }}>
-                      {item.totalPts.toLocaleString()}
-                    </div>
+                    {expanded && (
+                      <div style={{
+                        marginTop:"14px",
+                        padding:"14px 16px 12px",
+                        border:"1px solid rgba(0,0,0,0.06)",
+                        borderRadius:"16px",
+                        background:"#FBFAF7",
+                      }}>
+                        <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:"8px"}}>
+                          {statItems.map((stat)=>(
+                            <div key={stat.label} style={{background:"#F7F7F7",border:"1px solid rgba(0,0,0,0.06)",borderRadius:"12px",padding:"8px 6px",minWidth:0,boxSizing:"border-box"}}>
+                              <span style={{display:"block",fontFamily:F,fontSize:"9px",color:"#777",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",textAlign:"center"}}>{stat.label}</span>
+                              <span style={{display:"block",marginTop:"4px",fontFamily:F,color:"#050505",fontSize:"12px",fontWeight:900,textAlign:"center",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{stat.value}</span>
+                            </div>
+                          ))}
+                        </div>
 
-                    <div style={{
-                      textAlign:"center",
-                      justifySelf:"stretch",
-                      fontFamily:F,
-                      fontSize:isMobile?"10.8px":"11px",
-                      color:"#7B817B",
-                      fontWeight:750,
-                      whiteSpace:"nowrap",
-                      borderLeft:isMobile?"1px solid #F0EADB":"none",
-                      paddingLeft:0
-                    }}>
-                      {item.months}/3
-                    </div>
+                        <button
+                          type="button"
+                          onClick={()=>setSelR({title:item.t,artist:item.a,type:isSingles?"single":"album"})}
+                          style={{
+                            marginTop:"11px",
+                            width:"100%",
+                            border:"1px solid rgba(184,134,11,0.22)",
+                            borderRadius:"13px",
+                            background:"#FFF",
+                            color:GOLD,
+                            fontFamily:F,
+                            fontSize:"10.5px",
+                            fontWeight:900,
+                            letterSpacing:"1px",
+                            textTransform:"uppercase",
+                            padding:"10px 12px",
+                            cursor:"pointer",
+                          }}
+                        >
+                          View {itemTypeLabel} Details
+                        </button>
+                      </div>
+                    )}
                   </div>
                 );
               })}
             </div>
-          </div>
+          ) : (
+            <div style={{
+              overflowX:"visible",
+              overflowY:"hidden",
+              WebkitOverflowScrolling:"touch",
+              margin:"0",
+              paddingBottom:"0"
+            }}>
+              <div style={{minWidth:"0",width:"100%"}}>
+                <div style={{
+                  display:"grid",
+                  gridTemplateColumns:"54px minmax(0,1fr) 148px 92px",
+                  columnGap:"30px",
+                  padding:"11px 0",
+                  borderBottom:"2px solid #1A1A1A",
+                  fontFamily:F,
+                  fontSize:"9px",
+                  fontWeight:900,
+                  letterSpacing:"1.8px",
+                  textTransform:"uppercase",
+                  color:"#4F5751",
+                  alignItems:"end"
+                }}>
+                  <span style={{textAlign:"center"}}>#</span>
+                  <span>TITLE</span>
+                  <span style={{textAlign:"center",justifySelf:"stretch",whiteSpace:"nowrap"}}>TOTAL PTS</span>
+                  <span style={{textAlign:"center",justifySelf:"stretch",whiteSpace:"nowrap"}}>MONTHS</span>
+                </div>
+
+                {yearEnd.slice(0,50).map((item,idx)=>{
+                  const t3=idx<3;
+                  return(
+                    <div
+                      key={item.t+item.a}
+                      style={{
+                        display:"grid",
+                        gridTemplateColumns:"54px minmax(0,1fr) 148px 92px",
+                        columnGap:"30px",
+                        padding:t3?"13px 0":"9px 0",
+                        borderBottom:"1px solid #F2F2EE",
+                        alignItems:"center",
+                        cursor:"pointer"
+                      }}
+                      onMouseEnter={e=>e.currentTarget.style.background="#FAFAF6"}
+                      onMouseLeave={e=>e.currentTarget.style.background="transparent"}
+                      onClick={()=>setSelR({title:item.t,artist:item.a,type:isSingles?"single":"album"})}
+                    >
+                      <div style={{textAlign:"center",fontSize:t3?"20px":"13px",fontWeight:850,color:t3?MEDALS[idx]:"#BFC4BF"}}>{idx+1}</div>
+
+                      <div style={{minWidth:0}}>
+                        <div style={{
+                          fontSize:t3?"14px":TXT.cardTitle,
+                          fontWeight:850,
+                          marginBottom:"1px",
+                          lineHeight:1.15,
+                          whiteSpace:"normal",
+                          overflow:"visible",
+                          textOverflow:"clip"
+                        }}>
+                          {item.t}
+                        </div>
+                        <div style={{
+                          fontSize:TXT.cardMeta,
+                          color:"#59645D",
+                          fontFamily:F,
+                          marginTop:"3px",
+                          whiteSpace:"normal",
+                          overflow:"visible",
+                          textOverflow:"clip"
+                        }}>
+                          {item.a}
+                        </div>
+                      </div>
+
+                      <div style={{
+                        textAlign:"center",
+                        justifySelf:"stretch",
+                        fontFamily:F,
+                        fontSize:t3?"14px":TXT.cardMeta,
+                        fontWeight:850,
+                        color:t3?GOLD:"#59645D",
+                        whiteSpace:"nowrap"
+                      }}>
+                        {item.totalPts.toLocaleString()}
+                      </div>
+
+                      <div style={{
+                        textAlign:"center",
+                        justifySelf:"stretch",
+                        fontFamily:F,
+                        fontSize:"11px",
+                        color:"#7B817B",
+                        fontWeight:750,
+                        whiteSpace:"nowrap"
+                      }}>
+                        {item.months}/3
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
