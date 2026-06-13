@@ -273,9 +273,9 @@ const NEWS=[
   {id:2,date:"December 15, 2024",cat:"ARTIST SPOTLIGHT",emoji:"🌟",title:"Iyanii: Q4's Fastest-Rising Artist",excerpt:"Kifo Cha Mende rose from outside the Top 20 in October to #2 in December — the biggest month-on-month rise of any song in Q4 2024.",body:"Iyanii's Kifo Cha Mende is the breakout story of Q4 2024. The song accumulated 3,773 combined points across the three months, landing just below the Gold threshold."},
   {id:3,date:"December 5, 2024",cat:"ALBUMS",emoji:"💿",title:"GNX Tops Kenya's Albums Chart",excerpt:"Kendrick Lamar's surprise album lands at #1 on both Apple Music and Audiomack Kenya in December, displacing Asake's Lungu Boy.",body:"GNX edged out Marioo's The Godson by just 12 points (1,556 vs 1,544) in one of the closest #1 races of the year."},
   {id:4,date:"November 30, 2024",cat:"CHART NEWS",emoji:"🏆",title:"Bensoul Holds #1 For Second Straight Month",excerpt:"Extra Pressure earned 2,624 points in November — a 20% increase over October's 2,188.",body:"Extra Pressure became the first song in Ngoma Charts history to hold #1 for two consecutive months. With 6,680 cumulative points across Q4, it earns Gold certification under the updated certification thresholds."},
-  {id:5,date:"November 20, 2024",cat:"ANALYTICS",emoji:"📊",title:"Only Two Songs Achieved 6/6 Platform Coverage",excerpt:"Across Q4 2024, only Extra Pressure and Olodumare charted on all six platforms in the same month.",body:"Different platforms have genuinely different audiences in Kenya. A song that cracks all six must appeal across every listener segment."},
+  {id:5,date:"November 20, 2024",cat:"ANALYTICS",emoji:"📊",title:"Only Two Songs Reached 6/6 Platform Coverage",excerpt:"Across Q4 2024, only Extra Pressure and Olodumare charted on all six platforms in the same month.",body:"Different platforms have genuinely different audiences in Kenya. A song that cracks all six must appeal across every listener segment."},
   {id:6,date:"November 5, 2024",cat:"ARTIST SPOTLIGHT",emoji:"⭐",title:"Dyana Cods Dominates 4 Platforms with Set It",excerpt:"Set It topped Apple Music, Boomplay, Spotify and Shazam simultaneously in October — a rare achievement.",body:"With 5,987 cumulative points across Q4, Dyana Cods earns Gold certification for Set It under the updated certification thresholds."},
-  {id:7,date:"October 31, 2024",cat:"ANNOUNCEMENT",emoji:"🚀",title:"Ngoma Charts Launches",excerpt:"Ngoma Charts' multi-platform music ranking system debuts with Bensoul's Extra Pressure as the inaugural #1.",body:"Ngoma Charts uses a 101-point system: #1 earns 100 points, #100 earns 1 point. Albums use a 201-point scale across the Top 200."},
+  {id:7,date:"October 31, 2024",cat:"ANNOUNCEMENT",emoji:"🚀",title:"Ngoma Charts Officially Launches",excerpt:"Ngoma Charts' multi-platform music ranking system debuts with Bensoul's Extra Pressure as the inaugural #1.",body:"Ngoma Charts uses a 101-point system: #1 earns 100 points, #100 earns 1 point. Albums use a 201-point scale across the Top 200."},
   {id:8,date:"October 20, 2024",cat:"ALBUMS",emoji:"🎤",title:"Nyashinski's Album Anchors Albums Chart",excerpt:"To Whom It May Concern holds at #2 on the combined albums chart for October 2024.",body:"With 1,553 combined points, the album proved that Kenyan artists can compete with international heavyweights on home soil."},
 ];
 
@@ -314,6 +314,7 @@ export default function NgomaCharts(){
   const [openRecord, setOpenRecord] = useState(null);
   const [expandedYearEndRows, setExpandedYearEndRows] = useState({});
   const [expandedArtistRows, setExpandedArtistRows] = useState({});
+  const [expandedTrendingRows, setExpandedTrendingRows] = useState({});
 
   const toggleYearEndRow = (rowKey) => {
     setExpandedYearEndRows((current) => ({
@@ -324,6 +325,13 @@ export default function NgomaCharts(){
 
   const toggleArtistRow = (rowKey) => {
     setExpandedArtistRows((current) => ({
+      ...current,
+      [rowKey]: !current[rowKey],
+    }));
+  };
+
+  const toggleTrendingRow = (rowKey) => {
+    setExpandedTrendingRows((current) => ({
       ...current,
       [rowKey]: !current[rowKey],
     }));
@@ -512,9 +520,9 @@ const top = data[0];
     const latestPts=Number(artist.mp?.[latest]||0);
     const previousPts=Number(artist.mp?.[previous]||0);
     const delta=latestPts-previousPts;
-    if(delta>0) return {symbol:"↑",color:"#2DB04A",label:`Up ${delta.toLocaleString()} pts`};
-    if(delta<0) return {symbol:"↓",color:"#C0392B",label:`Down ${Math.abs(delta).toLocaleString()} pts`};
-    return {symbol:"–",color:"#9AA19A",label:"No change"};
+    if(delta>0) return {symbol:"↑",color:"#2DB04A",label:`Up ${delta.toLocaleString()} pts`,shortLabel:"Up"};
+    if(delta<0) return {symbol:"↓",color:"#C0392B",label:`Down ${Math.abs(delta).toLocaleString()} pts`,shortLabel:"Down"};
+    return {symbol:"–",color:"#9AA19A",label:"No change",shortLabel:"No change"};
   };
 
   const chartTypeLabel = isSingles ? "Singles" : "Albums";
@@ -1628,7 +1636,7 @@ const top = data[0];
               {mNav&&(
                 <div style={{width:"100%",display:"flex",flexDirection:"column",gap:"2px",marginTop:"8px",borderTop:"1px solid #EEE",paddingTop:"10px"}}>
                   {navItems.map(t=>(
-                    <span key={t} onClick={()=>navTo(t)} style={{cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"13px",fontWeight:page===t?800:600,letterSpacing:"1px",textTransform:"uppercase",color:page===t?"#1A1A1A":"#555",background:page===t?"linear-gradient(135deg,#FAF5EA,#F5EAD2)":"transparent",border:page===t?"1px solid "+GOLD+"33":"1px solid transparent"}}>{navLabel(t)}</span>
+                    <span key={t} onClick={()=>navTo(t)} style={{cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"13px",fontWeight:page===t?800:600,letterSpacing:"1px",textTransform:"uppercase",color:page===t?"#1A1A1A":"#555",background:page===t?"#F1E3BF":"transparent",border:page===t?"1px solid #D4B65E":"1px solid transparent"}}>{navLabel(t)}</span>
                   ))}
                   <span onClick={()=>{setMNav(false);setSOpen(true);}} style={{cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"13px",fontWeight:600,letterSpacing:"1px",textTransform:"uppercase",color:"#555"}}>Search</span>
                 </div>
@@ -1637,7 +1645,7 @@ const top = data[0];
           ) : (
             <nav style={{display:"flex",gap:"22px",fontFamily:F,fontSize:isMobile?"12px":"11px",fontWeight:700,letterSpacing:"1.5px",textTransform:"uppercase",alignItems:"center",flexShrink:0}}>
               {navItems.map(t=>(
-                <span key={t} onClick={()=>navTo(t)} style={{color:page===t?"#1A1A1A":"#6B6B6B",cursor:"pointer",whiteSpace:"nowrap",padding:"6px 12px",borderRadius:"20px",background:page===t?"linear-gradient(135deg,#FAF5EA,#F5EAD2)":"transparent",fontWeight:page===t?800:700,transition:"all 0.15s",border:page===t?"1px solid "+GOLD+"33":"1px solid transparent"}}
+                <span key={t} onClick={()=>navTo(t)} style={{color:page===t?"#1A1A1A":"#6B6B6B",cursor:"pointer",whiteSpace:"nowrap",padding:"6px 12px",borderRadius:"20px",background:page===t?"#F1E3BF":"transparent",fontWeight:page===t?800:700,transition:"all 0.15s",border:page===t?"1px solid #D4B65E":"1px solid transparent"}}
                   onMouseEnter={e=>{if(page!==t)e.currentTarget.style.color="#1A1A1A";}} onMouseLeave={e=>{if(page!==t)e.currentTarget.style.color="#6B6B6B";}}>{navLabel(t)}</span>
               ))}
               <span
@@ -2119,11 +2127,9 @@ liveStatus={liveStatus}
                 const rowKey=`${a.n}-${i}`;
                 const expanded=Boolean(expandedArtistRows[rowKey]);
                 const artistStats=[
-                  {label:"Total Points",value:a.p.toLocaleString()},
                   {label:"Peak Rank",value:`#${a.pk}`},
                   {label:"Months",value:a.m},
                   {label:"Titles",value:a.t},
-                  {label:"Movement",value:`${trend.symbol} ${trend.label}`},
                 ];
                 return(
                   <div key={rowKey} style={{padding:"15px 16px",border:"1px solid rgba(0,0,0,0.08)",borderRadius:"16px",background:"#FFF",boxShadow:expanded?"inset 4px 0 0 #C89116, 0 8px 22px rgba(0,0,0,0.045)":"0 2px 10px rgba(0,0,0,0.025)"}}>
@@ -2132,17 +2138,17 @@ liveStatus={liveStatus}
                       <CountryBadge artist={a.n} style={{minWidth:"42px",width:"42px",height:"42px",borderRadius:"12px",padding:0,flexShrink:0}} />
                       <div style={{minWidth:0}}>
                         <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(a.n);}} style={{display:"block",width:"100%",border:0,background:"transparent",padding:0,margin:0,textAlign:"left",fontFamily:SF,fontSize:"15.5px",fontWeight:850,lineHeight:1.2,color:"#050505",whiteSpace:"normal",overflowWrap:"anywhere",cursor:"pointer"}}>{a.n}</button>
-                        <div style={{fontFamily:F,fontSize:"11.5px",fontWeight:750,color:trend.color,marginTop:"5px",lineHeight:1.25}}>{trend.symbol} {trend.label}</div>
+                        <div style={{fontFamily:F,fontSize:"11.5px",fontWeight:800,color:trend.color,marginTop:"5px",lineHeight:1.25}}>{trend.symbol} {trend.shortLabel}</div>
                       </div>
                       <button type="button" onClick={(event)=>{event.stopPropagation();toggleArtistRow(rowKey);}} aria-label={expanded?"Hide artist details":"Show artist details"} aria-expanded={expanded} style={{width:"38px",height:"34px",border:"1px solid rgba(0,0,0,0.08)",borderRadius:"14px",background:"#FBFAF7",color:"#555",fontSize:"18px",fontWeight:900,lineHeight:1,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",padding:"0 0 2px",boxShadow:"0 2px 8px rgba(0,0,0,0.04)"}}>{expanded?"▴":"▾"}</button>
                     </div>
                     {expanded&&(
                       <div style={{marginTop:"14px",padding:"14px 16px 12px",border:"1px solid rgba(0,0,0,0.06)",borderRadius:"16px",background:"#FBFAF7"}}>
                         <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:"8px"}}>
-                          {artistStats.map((stat,index)=>(
-                            <div key={stat.label} style={{gridColumn:index===artistStats.length-1?"1 / -1":"auto",background:"#FFF",border:"1px solid rgba(0,0,0,0.06)",borderRadius:"12px",padding:"9px 7px",minWidth:0}}>
+                          {artistStats.map((stat)=>(
+                            <div key={stat.label} style={{background:"#FFF",border:"1px solid rgba(0,0,0,0.06)",borderRadius:"12px",padding:"9px 7px",minWidth:0}}>
                               <span style={{display:"block",fontFamily:F,fontSize:"9px",color:"#777",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",textAlign:"center"}}>{stat.label}</span>
-                              <span style={{display:"block",marginTop:"4px",fontFamily:F,color:stat.label==="Movement"?trend.color:"#050505",fontSize:"12px",fontWeight:900,textAlign:"center",whiteSpace:"normal",overflowWrap:"anywhere"}}>{stat.value}</span>
+                              <span style={{display:"block",marginTop:"4px",fontFamily:F,color:"#050505",fontSize:"12px",fontWeight:900,textAlign:"center",whiteSpace:"normal",overflowWrap:"anywhere"}}>{stat.value}</span>
                             </div>
                           ))}
                         </div>
@@ -2254,19 +2260,19 @@ liveStatus={liveStatus}
                     {label:"Peak",a:sp1.peak,b:sp2.peak,fmt:v=>"#"+v,hi:"min"},
                     {label:"Avg. Rank",a:sp1.avgRank,b:sp2.avgRank,fmt:v=>"#"+v,hi:"min"},
                     {label:"Months",a:sp1.months,b:sp2.months,fmt:v=>v+"/3",hi:"max"},
-                    {label:"#1 Finishes",a:sp1.numberOnes,b:sp2.numberOnes,fmt:v=>v+"×",hi:"max"},
+                    {label:"#1 Finishes",a:sp1.numberOnes,b:sp2.numberOnes,fmt:v=>v,hi:"max"},
                     {label:"Best Coverage",a:sp1.bestCov,b:sp2.bestCov,fmt:v=>v+"/"+tp,hi:"max"},
                     {label:"Platforms Charted",a:sp1.platformCount,b:sp2.platformCount,fmt:v=>v+"/"+tp,hi:"max"},
-                    {label:"Appearances",a:sp1.appearances,b:sp2.appearances,fmt:v=>v+"×",hi:"max"},
+                    {label:"Appearances",a:sp1.appearances,b:sp2.appearances,fmt:v=>v,hi:"max"},
                   ];
                   return rows.map((r,i)=>{
                     const aWins=r.hi==="max"?r.a>r.b:r.a<r.b;
                     const bWins=r.hi==="max"?r.b>r.a:r.b<r.a;
                     return(
                       <div key={i} style={{display:"grid",gridTemplateColumns:isMobile?"minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)":"minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)",alignItems:"stretch",background:i%2?"#FBFAF7":"#FFF",borderBottom:i===rows.length-1?"none":"1px solid #EEEAE1",gap:0}}>
-                        <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"9px 6px":"11px 12px",fontFamily:F,fontSize:isMobile?"13px":"14px",fontWeight:aWins?900:700,color:aWins?GOLD:"#4E5851",background:aWins?GOLD+"0D":"transparent"}}>{r.fmt(r.a)}{aWins&&<span style={{fontSize:"9px",marginLeft:"5px"}}>▲</span>}</div>
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"9px 6px":"11px 12px",fontFamily:F,fontSize:isMobile?"13px":"14px",fontWeight:aWins?900:700,color:aWins?GOLD:"#4E5851",background:aWins?GOLD+"0D":"transparent"}}>{r.fmt(r.a)}</div>
                         <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"9px 5px":"11px 10px",borderLeft:"1px solid #EEEAE1",borderRight:"1px solid #EEEAE1",fontFamily:F,fontSize:isMobile?"8.6px":"9.5px",letterSpacing:"0.8px",textTransform:"uppercase",color:"#59645D",fontWeight:850,lineHeight:1.25}}>{r.label}</div>
-                        <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"9px 6px":"11px 12px",fontFamily:F,fontSize:isMobile?"13px":"14px",fontWeight:bWins?900:700,color:bWins?"#1565C0":"#4E5851",background:bWins?"#1565C00D":"transparent"}}>{bWins&&<span style={{fontSize:"9px",marginRight:"5px"}}>▲</span>}{r.fmt(r.b)}</div>
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"9px 6px":"11px 12px",fontFamily:F,fontSize:isMobile?"13px":"14px",fontWeight:bWins?900:700,color:bWins?"#1565C0":"#4E5851",background:bWins?"#1565C00D":"transparent"}}>{r.fmt(r.b)}</div>
                       </div>
                     );
                   });
@@ -2628,8 +2634,29 @@ liveStatus={liveStatus}
             <div style={card({padding:isMobile?"18px":"22px"})}>
               <div style={secLbl("#2DB04A")}><SecMark c="#2DB04A"/>Rising Fast — Top Momentum {isSingles?"Singles":"Albums"}</div>
               {uniqueByMomentumIdentity((isSingles?MOM.predictions.singles:MOM.predictions.albums).rising).map((p,i)=>{
+                const rowKey=`rising-${p.t}-${p.a}-${p.decRank}`;
+                const expanded=Boolean(expandedTrendingRows[rowKey]);
+                if(isMobile)return(
+                  <div key={rowKey} style={{padding:"14px 15px",marginBottom:"9px",border:"1px solid #E8EDE8",borderRadius:"14px",background:"#FFF",boxShadow:expanded?"inset 4px 0 0 #2DB04A, 0 7px 20px rgba(0,0,0,0.04)":"0 2px 8px rgba(0,0,0,0.025)"}}>
+                    <div onClick={()=>toggleTrendingRow(rowKey)} role="button" aria-expanded={expanded} style={{display:"grid",gridTemplateColumns:"28px minmax(0,1fr) 38px",gap:"10px",alignItems:"center",cursor:"pointer"}}>
+                      <div style={{fontFamily:F,fontSize:"18px",fontWeight:900,color:"#8E948D",textAlign:"center"}}>{i+1}</div>
+                      <div style={{minWidth:0}}>
+                        <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}><strong style={{fontSize:"15px",lineHeight:1.2,overflowWrap:"anywhere"}}>{p.t}</strong>{getCertificationForEntry(p,isSingles?"single":"album")&&<CertificationTag cert={getCertificationForEntry(p,isSingles?"single":"album")} compact />}</div>
+                        <div style={{fontFamily:F,fontSize:"11.5px",fontWeight:850,color:"#2DB04A",marginTop:"5px"}}>↑ Rising</div>
+                      </div>
+                      <button type="button" onClick={(event)=>{event.stopPropagation();toggleTrendingRow(rowKey);}} aria-label={expanded?"Hide momentum details":"Show momentum details"} aria-expanded={expanded} style={{width:"38px",height:"34px",border:"1px solid rgba(0,0,0,0.08)",borderRadius:"14px",background:"#FBFAF7",color:"#555",fontSize:"18px",fontWeight:900,lineHeight:1,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",padding:"0 0 2px"}}>{expanded?"▴":"▾"}</button>
+                    </div>
+                    {expanded&&<div style={{marginTop:"13px",padding:"13px",borderRadius:"13px",background:"#F7FBF7",border:"1px solid #2DB04A18"}}>
+                      <div style={{fontFamily:F,fontSize:"12px",fontWeight:750,color:"#59645D",lineHeight:1.5}}>{p.a}</div>
+                      <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:"8px",marginTop:"10px"}}>
+                        {[{l:`${latestMonthShort} Rank`,v:`#${p.decRank}`},{l:`${latestMonthShort} Points`,v:p.decPts?.toLocaleString?.()||"—"},{l:"Momentum",v:`+${p.mom.toLocaleString()}`},{l:"Trend",v:(p.trend||[]).map(v=>Number(v||0).toLocaleString()).join(" → ")}].map(s=><div key={s.l} style={{padding:"9px 6px",background:"#FFF",borderRadius:"10px",textAlign:"center",minWidth:0}}><span style={{display:"block",fontFamily:F,fontSize:"8.5px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:"#7B857D"}}>{s.l}</span><strong style={{display:"block",marginTop:"4px",fontFamily:F,fontSize:"12px",overflowWrap:"anywhere",color:s.l==="Momentum"?"#2DB04A":"#1A1A1A"}}>{s.v}</strong></div>)}
+                      </div>
+                      <button type="button" onClick={()=>openMomentumRelease(p)} style={{marginTop:"10px",width:"100%",padding:"9px 10px",borderRadius:"11px",border:"1px solid #2DB04A33",background:"#FFF",color:"#258A3D",fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",cursor:"pointer"}}>View Details</button>
+                    </div>}
+                  </div>
+                );
                 return(
-                  <div key={`${p.t}-${p.a}-${p.decRank}`} style={{display:"grid",gridTemplateColumns:isMobile?"28px minmax(0,1fr) minmax(84px,96px)":"34px minmax(0,1fr) 114px 92px 14px",gap:isMobile?"9px":"12px",alignItems:"center",padding:isMobile?"14px 10px 14px 14px":"12px 4px",margin:isMobile?"0 2px":"0",borderBottom:"1px solid #F2F2EE",cursor:"pointer",borderRadius:isMobile?"12px":"8px",boxSizing:"border-box",overflow:"hidden"}}
+                  <div key={`${p.t}-${p.a}-${p.decRank}`} style={{display:"grid",gridTemplateColumns:"34px minmax(0,1fr) 114px 92px 14px",gap:"12px",alignItems:"center",padding:"12px 4px",margin:0,borderBottom:"1px solid #F2F2EE",cursor:"pointer",borderRadius:"8px",boxSizing:"border-box",overflow:"hidden"}}
                     onClick={()=>openMomentumRelease(p)}
                     onMouseEnter={e=>e.currentTarget.style.background="#FAFAF6"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
                     <div style={{fontFamily:F,fontSize:isMobile?"16px":"16px",fontWeight:850,color:"#8E948D",textAlign:"center",transform:isMobile?"translateX(2px)":"translateX(2px)"}}>{i+1}</div>
@@ -2640,25 +2667,9 @@ liveStatus={liveStatus}
                       </div>
                       <div style={{fontSize:isMobile?"12px":"12px",color:"#69716B",fontFamily:F,marginTop:"4px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.a} · #{p.decRank} in {latestMonthShort} · {p.decPts?.toLocaleString?.() || "—"} pts</div>
                     </div>
-                    {isMobile ? (
-                      <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:"8px",minWidth:0,width:"100%",paddingRight:"0",boxSizing:"border-box",transform:"translateX(2px)"}}>
-                        <div style={{width:"34px",flex:"0 0 34px",display:"flex",justifyContent:"flex-end",overflow:"hidden"}}>
-                          <TrendBars trend={p.trend} compact height={30}/>
-                        </div>
-                        <div style={{fontFamily:F,minWidth:"38px",textAlign:"left",lineHeight:1}}>
-                          <span style={{fontSize:isMobile?"15px":"15px",fontWeight:900,color:"#2DB04A"}}>+{p.mom.toLocaleString()}</span>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        <TrendBars trend={p.trend} compact height={30}/>
-                        <div style={{textAlign:"right",fontFamily:F}}>
-                          <span style={{fontSize:isMobile?"15px":"15px",fontWeight:900,color:"#2DB04A"}}>+{p.mom.toLocaleString()}</span>
-                          <div style={{fontSize:"10px",color:"#7B857D",letterSpacing:"1px",textTransform:"uppercase",fontWeight:800}}>momentum</div>
-                        </div>
-                        <div style={{fontFamily:F,fontSize:"16px",fontWeight:800,color:"#B6BDB7",textAlign:"right"}}>›</div>
-                      </>
-                    )}
+                    <TrendBars trend={p.trend} compact height={30}/>
+                    <div style={{textAlign:"right",fontFamily:F}}><span style={{fontSize:"15px",fontWeight:900,color:"#2DB04A"}}>+{p.mom.toLocaleString()}</span><div style={{fontSize:"10px",color:"#7B857D",letterSpacing:"1px",textTransform:"uppercase",fontWeight:800}}>momentum</div></div>
+                    <div style={{fontFamily:F,fontSize:"16px",fontWeight:800,color:"#B6BDB7",textAlign:"right"}}>›</div>
                   </div>
                 );
               })}
@@ -2670,8 +2681,18 @@ liveStatus={liveStatus}
               <div style={secLbl("#1565C0")}><SecMark c="#1565C0"/>Strongest {latestMonthName} Debuts</div>
               <p style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:"#69716B",margin:"-8px 0 14px",lineHeight:1.45}}>New entries that arrived high in {latestMonth}.</p>
               <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:isMobile?"8px":"10px"}}>
-                {uniqueByMomentumIdentity((isSingles?MOM.predictions.singles:MOM.predictions.albums).debuts).map((p)=>(
-                  <div key={`${p.t}-${p.a}-${p.decRank}`} onClick={()=>openMomentumRelease(p)} style={{padding:isMobile?"10px 12px":"14px",background:"#F5F8FC",borderRadius:"10px",border:"1px solid #1565C022",cursor:"pointer",display:"grid",gridTemplateColumns:"1fr auto",gap:"8px",alignItems:"center"}}
+                {uniqueByMomentumIdentity((isSingles?MOM.predictions.singles:MOM.predictions.albums).debuts).map((p)=>{
+                  const rowKey=`debut-${p.t}-${p.a}-${p.decRank}`;
+                  const expanded=Boolean(expandedTrendingRows[rowKey]);
+                  if(isMobile)return <div key={rowKey} style={{padding:"14px 15px",background:"#F8FAFD",borderRadius:"14px",border:"1px solid #1565C022",boxShadow:expanded?"inset 4px 0 0 #1565C0":"none"}}>
+                    <div onClick={()=>toggleTrendingRow(rowKey)} role="button" aria-expanded={expanded} style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) 38px",gap:"10px",alignItems:"center",cursor:"pointer"}}>
+                      <div style={{minWidth:0}}><strong style={{fontSize:"15px",lineHeight:1.2,overflowWrap:"anywhere"}}>{p.t}</strong><div style={{fontFamily:F,fontSize:"11.5px",fontWeight:850,color:"#1565C0",marginTop:"5px"}}>New at #{p.decRank}</div></div>
+                      <button type="button" onClick={(event)=>{event.stopPropagation();toggleTrendingRow(rowKey);}} aria-label={expanded?"Hide debut details":"Show debut details"} aria-expanded={expanded} style={{width:"38px",height:"34px",border:"1px solid rgba(0,0,0,0.08)",borderRadius:"14px",background:"#FFF",color:"#555",fontSize:"18px",fontWeight:900,lineHeight:1,cursor:"pointer"}}>{expanded?"▴":"▾"}</button>
+                    </div>
+                    {expanded&&<div style={{marginTop:"12px",padding:"12px",background:"#FFF",borderRadius:"12px",fontFamily:F}}><div style={{fontSize:"12px",fontWeight:750,color:"#59645D"}}>{p.a}</div><div style={{display:"flex",justifyContent:"space-between",gap:"12px",marginTop:"8px",fontSize:"12px"}}><span>{p.decPts.toLocaleString()} pts</span><strong style={{color:"#1565C0"}}>#{p.decRank}</strong></div><button type="button" onClick={()=>openMomentumRelease(p)} style={{marginTop:"10px",width:"100%",padding:"9px 10px",borderRadius:"11px",border:"1px solid #1565C033",background:"#F8FAFD",color:"#1565C0",fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",cursor:"pointer"}}>View Details</button></div>}
+                  </div>;
+                  return(
+                  <div key={`${p.t}-${p.a}-${p.decRank}`} onClick={()=>openMomentumRelease(p)} style={{padding:"14px",background:"#F5F8FC",borderRadius:"10px",border:"1px solid #1565C022",cursor:"pointer",display:"grid",gridTemplateColumns:"1fr auto",gap:"8px",alignItems:"center"}}
                     onMouseEnter={e=>e.currentTarget.style.background="#EEF5FF"} onMouseLeave={e=>e.currentTarget.style.background="#F5F8FC"}>
                     <div style={{minWidth:0}}>
                       <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap",minWidth:0}}>
@@ -2681,8 +2702,8 @@ liveStatus={liveStatus}
                       <div style={{fontSize:isMobile?"12px":"12px",color:"#69716B",fontFamily:F,marginTop:"4px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.a} · {p.decPts.toLocaleString()} pts</div>
                     </div>
                     <span style={{fontFamily:F,fontSize:isMobile?"16px":"16px",fontWeight:900,color:"#1565C0"}}>#{p.decRank}</span>
-                  </div>
-                ))}
+                  </div>);
+                })}
               </div>
             </div>
           </div>
@@ -3143,28 +3164,26 @@ liveStatus={liveStatus}
 
       {/* NEWS PAGE */}
       {page==="news"&&!selNews&&!selA&&!selR&&(
-        <div style={{padding:PAD,background:"transparent",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
+        <div style={{padding:PAD,background:"transparent",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden",maxWidth:"1040px",margin:"0 auto"}}>
           <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px"}}>Chart News</h2>
-          <p style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",margin:"0 0 24px",lineHeight:1.55}}>Analysis and stories from Kenya's music charts</p>
-          <div style={{display:"grid",gap:"14px"}}>
+          <p style={{fontFamily:F,fontSize:isMobile?"11.5px":TXT.lead,color:"#59645D",margin:isMobile?"0 0 20px":"0 0 24px",lineHeight:1.6}}>Analysis and stories from Kenya's music charts</p>
+          <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(2,minmax(0,1fr))",gap:isMobile?"18px":"16px"}}>
             {NEWS.map((n,i)=>{
-              const newsCertifications = getCertificationsForNews(n);
               return (
-              <div key={n.id} onClick={()=>setSelNews(n)} style={{...card({cursor:"pointer",transition:"all 0.15s"}),...((i===0)?{background:"#FAF5EA",borderColor:GOLD+"44"}:{})}}
-                onMouseEnter={e=>{e.currentTarget.style.boxShadow="0 4px 20px rgba(0,0,0,0.08)";e.currentTarget.style.transform="translateY(-1px)";}}
-                onMouseLeave={e=>{e.currentTarget.style.boxShadow="none";e.currentTarget.style.transform="none";}}>
-                <div style={{display:"flex",gap:"16px",alignItems:"flex-start"}}>
-                  <div style={{fontSize:i===0?"36px":"28px",flexShrink:0}}>{n.emoji}</div>
-                  <div style={{flex:1,minWidth:0}}>
-                    <div style={{display:"flex",gap:"8px",alignItems:"center",marginBottom:"6px",flexWrap:"wrap"}}>
-                      <span style={{fontFamily:F,fontSize:TXT.micro,fontWeight:800,letterSpacing:"1.5px",textTransform:"uppercase",color:GOLD,background:"#FAF5EA",padding:"2px 8px",borderRadius:"10px"}}>{n.cat}</span>
-                      <span style={{fontFamily:F,fontSize:TXT.micro,color:"#7B857D"}}>{n.date}</span>
-                      {newsCertifications.map((cert)=><CertificationTag key={`${cert.t}-${cert.a}`} cert={cert} compact />)}
+              <div key={n.id} onClick={()=>setSelNews(n)} style={{...card({cursor:"pointer",padding:isMobile?"15px 16px":"20px",transition:"transform .2s ease, box-shadow .2s ease",gridColumn:!isMobile&&i===0?"1 / -1":"auto"}),...((i===0)?{background:"#FAF5EA",borderColor:GOLD+"44"}:{})}}
+                onMouseEnter={e=>{if(!isMobile){e.currentTarget.style.boxShadow="0 12px 30px rgba(31,36,31,0.10)";e.currentTarget.style.transform="translateY(-2px)";}}}
+                onMouseLeave={e=>{e.currentTarget.style.boxShadow="0 1px 3px rgba(0,0,0,0.02),0 8px 24px rgba(0,0,0,0.02)";e.currentTarget.style.transform="none";}}>
+                <div style={{display:"flex",gap:isMobile?"10px":"14px",alignItems:"center",minWidth:0}}>
+                  {i===0&&<div style={{fontSize:isMobile?"27px":"34px",flexShrink:0,alignSelf:"flex-start"}}>{n.emoji}</div>}
+                  <div style={{flex:1,minWidth:0,maxWidth:!isMobile&&i===0?"780px":"none"}}>
+                    <div style={{display:"flex",gap:"8px",alignItems:"center",marginBottom:isMobile?"8px":"7px",flexWrap:"wrap"}}>
+                      <span style={{display:"inline-flex",alignItems:"center",height:"22px",fontFamily:F,fontSize:"9px",fontWeight:850,letterSpacing:"1.3px",textTransform:"uppercase",color:GOLD,background:"#F7EFD9",padding:"0 9px",borderRadius:"999px"}}>{n.cat}</span>
+                      <span style={{fontFamily:F,fontSize:"10px",fontWeight:650,color:"#59645D"}}>{n.date}</span>
                     </div>
-                    <h3 style={{fontSize:i===0?(isMobile?"16px":"17px"):TXT.cardTitle,fontWeight:800,margin:"0 0 6px",lineHeight:1.25}}>{n.title}</h3>
-                    <p style={{fontFamily:F,fontSize:TXT.body,color:"#69716B",margin:0,lineHeight:1.6}}>{n.excerpt}</p>
+                    <h3 style={{fontSize:i===0?(isMobile?"16px":"18px"):TXT.cardTitle,fontWeight:800,margin:isMobile?"0 0 7px":"0 0 6px",lineHeight:1.28}}>{n.title}</h3>
+                    <p style={{fontFamily:F,fontSize:TXT.body,color:"#59645D",margin:0,lineHeight:isMobile?1.68:1.6}}>{n.excerpt}</p>
                   </div>
-                  <span style={{fontFamily:F,fontSize:"18px",color:"#DDD",flexShrink:0}}>›</span>
+                  <span aria-hidden="true" style={{fontFamily:F,fontSize:isMobile?"22px":"20px",color:"#A5ACA6",flexShrink:0,padding:isMobile?"8px 0 8px 4px":"6px 2px 6px 8px"}}>›</span>
                 </div>
               </div>
               );
@@ -3178,10 +3197,8 @@ liveStatus={liveStatus}
           <div style={{marginTop:"20px"}}>
             <div style={{display:"flex",gap:"10px",alignItems:"center",marginBottom:"12px",flexWrap:"wrap"}}>
               <span style={{fontFamily:F,fontSize:"9px",fontWeight:700,letterSpacing:"1.5px",textTransform:"uppercase",color:GOLD,background:"#FAF5EA",padding:"2px 8px",borderRadius:"10px"}}>{selNews.cat}</span>
-              <span style={{fontFamily:F,fontSize:"10px",color:"#CCC"}}>{selNews.date}</span>
-              {getCertificationsForNews(selNews).map((cert)=><CertificationTag key={`${cert.t}-${cert.a}`} cert={cert} compact={false} />)}
+              <span style={{fontFamily:F,fontSize:"10px",fontWeight:650,color:"#59645D"}}>{selNews.date}</span>
             </div>
-            <div style={{fontSize:"40px",marginBottom:"16px"}}>{selNews.emoji}</div>
             <h1 style={{fontSize:isMobile?"24px":"26px",fontWeight:850,margin:"0 0 16px",lineHeight:1.18}}>{selNews.title}</h1>
             {selNews.body.split("\n\n").map((p,i)=><p key={i} style={{fontFamily:F,fontSize:isMobile?"14px":"14px",color:"#444",lineHeight:1.8,margin:"0 0 16px"}}>{p}</p>)}
           </div>
@@ -3192,25 +3209,42 @@ liveStatus={liveStatus}
       {page==="about"&&!selA&&!selR&&(
         <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px"}}>About Ngoma Charts</h2>
-          <p style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",margin:"0 0 24px",lineHeight:1.6}}>Ngoma Charts' multi-platform music ranking system, launched October 2024.</p>
+          <p style={{fontFamily:F,fontSize:TXT.lead,color:"#59645D",margin:"0 0 24px",lineHeight:1.6}}>Ngoma Charts' multi-platform music ranking system, launched October 2024.</p>
           <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px"}}>
-            {[
-              {title:"How It Works",text:"Weekly data collected from major platforms. Songs score by position: #1=100 pts, #100=1 pt. Albums use a 201-point scale. Monthly charts aggregate all weekly data. Movement arrows compare each month to the previous month."},
-              {title:"Platforms Tracked",custom:true},
-              {title:"Singles Chart",text:"Top 50 from Apple Music, Audiomack, Boomplay, Spotify, YouTube & Shazam. Combined chart aggregates all platforms by points. View Top 10, 20 or 50."},
-              {title:"Albums Chart",text:"Top 50 from Apple Music and Audiomack (201-point scale across 200 positions). Boomplay excluded. Combined chart aggregates both."},
-              {title:"Certifications",text:"💎 Diamond: 20,000+ pts · 🪙 Platinum: 10,000+ pts · 🥇 Gold: 5,000+ pts. Awarded on cumulative combined chart points."},
-              {title:"Hall of Fame",text:"Songs that hit #1 on the combined chart enter the Hall of Fame. Q4 2024: Extra Pressure (Oct, Nov), Olodumare (Dec) for singles; Lungu Boy (Oct, Nov), GNX (Dec) for albums."},
-            ].map((item,i)=>(
-              <div key={i} style={card()}>
-                <h3 style={{fontFamily:F,fontSize:TXT.micro,fontWeight:800,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 10px"}}>{item.title}</h3>
-                {item.custom?<div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>{[["Apple Music","#FC3C44"],["Audiomack","#F68B1F"],["Boomplay","#00FFFF"],["Spotify","#1DB954"],["YouTube","#FF0000"],["Shazam","#0088FF"]].map(([p,c])=><span key={p} style={{padding:"5px 10px",background:c+"18",borderRadius:"12px",fontSize:TXT.note,fontFamily:F,fontWeight:700,color:p==="Boomplay"?"#007C7C":c,borderLeft:"3px solid "+c}}>{p}</span>)}</div>:<p style={{fontSize:TXT.body,color:"#555F59",lineHeight:1.65,margin:0,fontFamily:F}}>{item.text}</p>}
+            <div style={card()}>
+              <h3 style={{fontFamily:F,fontSize:TXT.micro,fontWeight:800,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 10px"}}>How It Works</h3>
+              <p style={{fontSize:TXT.body,color:"#555F59",lineHeight:1.68,margin:0,fontFamily:F}}>Weekly chart data is collected from major platforms. Songs are scored by position, with #1 earning 100 points and #100 earning 1 point. Albums use a 201-point scale. Monthly charts aggregate all weekly data, while movement arrows compare each entry with the previous month.</p>
+              <div style={{marginTop:"15px",padding:"12px",background:"#FAF8F2",borderRadius:"12px",border:"1px solid #EDE6D6"}}>
+                <div style={{height:"8px",borderRadius:"999px",background:"linear-gradient(90deg,#B8860B 0%,#E7C86C 48%,#E9E7E0 100%)"}}></div>
+                <div style={{display:"flex",justifyContent:"space-between",marginTop:"7px",fontFamily:F,fontSize:"10px",fontWeight:850,color:"#59645D"}}><span>#1 = 100 pts</span><span>#100 = 1 pt</span></div>
               </div>
-            ))}
+            </div>
+            <div style={card()}>
+              <h3 style={{fontFamily:F,fontSize:TXT.micro,fontWeight:800,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 10px"}}>Platforms Tracked</h3>
+              <div style={{display:"flex",flexWrap:"wrap",gap:"7px"}}>{[["Apple Music","#FC3C44"],["Audiomack","#F68B1F"],["Boomplay","#00FFFF"],["Spotify","#1DB954"],["YouTube","#FF0000"],["Shazam","#0088FF"]].map(([p,c])=><span key={p} style={{display:"inline-flex",alignItems:"center",minHeight:"28px",padding:"5px 10px",background:c+"18",borderRadius:"999px",fontSize:TXT.note,fontFamily:F,fontWeight:750,color:p==="Boomplay"?"#007C7C":c,border:`1px solid ${c}35`}}>{p}</span>)}</div>
+            </div>
+            <div style={card()}>
+              <h3 style={{fontFamily:F,fontSize:TXT.micro,fontWeight:800,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 10px"}}>Singles Chart</h3>
+              <p style={{fontSize:TXT.body,color:"#555F59",lineHeight:1.65,margin:"0 0 13px",fontFamily:F}}>The singles chart combines performance across all six tracked platforms.</p>
+              <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>{["Apple Music","Audiomack","Boomplay","Spotify","YouTube","Shazam"].map(p=><span key={p} style={{padding:"5px 9px",borderRadius:"9px",background:"#F7F6F2",border:"1px solid #E9E6DE",fontFamily:F,fontSize:"9.5px",fontWeight:800,color:"#4F5751"}}>{p}</span>)}</div>
+            </div>
+            <div style={card()}>
+              <h3 style={{fontFamily:F,fontSize:TXT.micro,fontWeight:800,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 10px"}}>Albums Chart</h3>
+              <p style={{fontSize:TXT.body,color:"#555F59",lineHeight:1.65,margin:"0 0 13px",fontFamily:F}}>Album charts are based on Apple Music and Audiomack using a 201-point scale. The combined albums chart aggregates points from both platforms.</p>
+              <div style={{display:"flex",flexWrap:"wrap",gap:"7px"}}><span style={{padding:"6px 10px",borderRadius:"9px",background:"#FC3C4412",border:"1px solid #FC3C4435",fontFamily:F,fontSize:"9.5px",fontWeight:850,color:"#FC3C44"}}>Apple Music</span><span style={{padding:"6px 10px",borderRadius:"9px",background:"#F68B1F12",border:"1px solid #F68B1F35",fontFamily:F,fontSize:"9.5px",fontWeight:850,color:"#D66E00"}}>Audiomack</span><span style={{padding:"6px 10px",borderRadius:"9px",background:"#F7F2F2",border:"1px dashed #B35B5B",fontFamily:F,fontSize:"9.5px",fontWeight:850,color:"#9E3F3F",textDecoration:"line-through"}}>Boomplay excluded</span></div>
+            </div>
+            <div style={card()}>
+              <h3 style={{fontFamily:F,fontSize:TXT.micro,fontWeight:800,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 10px"}}>Certifications</h3>
+              <div style={{display:"grid",gap:"8px"}}>{CERTIFICATION_LEVELS.map(level=><div key={level.level} style={{display:"grid",gridTemplateColumns:"30px minmax(0,1fr) auto",gap:"9px",alignItems:"center",padding:"9px 10px",borderRadius:"11px",background:`${level.color}0B`,border:`1px solid ${level.color}25`}}><span style={{fontSize:"18px",textAlign:"center"}}>{level.icon}</span><strong style={{fontFamily:F,fontSize:"11px",color:level.color}}>{level.label}</strong><span style={{fontFamily:F,fontSize:"10px",fontWeight:800,color:"#59645D"}}>{level.pts.toLocaleString()}+ pts</span></div>)}</div>
+            </div>
+            <div style={card()}>
+              <h3 style={{fontFamily:F,fontSize:TXT.micro,fontWeight:800,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 10px"}}>Hall of Fame</h3>
+              <p style={{fontSize:TXT.body,color:"#555F59",lineHeight:1.68,margin:0,fontFamily:F}}>Songs and albums that reach #1 on the combined chart enter the Hall of Fame. In Q4 2024, Extra Pressure topped singles in October and November, while Olodumare led in December. For albums, Lungu Boy led in October and November, followed by GNX in December.</p>
+            </div>
           </div>
           {/* Hall of Fame */}
           <div style={{...card({marginTop:"14px"}),background:"#FAF5EA",borderColor:GOLD+"44"}}>
-            <h3 style={{fontFamily:F,fontSize:"10px",fontWeight:700,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 14px"}}>🏆 Hall of Fame — Monthly #1s</h3>
+            <h3 style={{fontFamily:F,fontSize:"10px",fontWeight:700,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 14px"}}>{isMobile?"Monthly #1s":"Hall of Fame — Monthly #1s"}</h3>
             <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"10px"}}>
               {hof.map((e,i)=>(
                 <div key={i} style={{padding:"12px",background:"#FFF",borderRadius:"8px",border:"1px solid "+GOLD+"33",cursor:"pointer"}} onClick={()=>openReleaseDetails(e,e.type)}>
@@ -3221,18 +3255,19 @@ liveStatus={liveStatus}
               ))}
             </div>
           </div>
+          <div style={{display:"flex",justifyContent:"center",marginTop:"18px"}}><button type="button" onClick={()=>navTo("charts")} style={{padding:"12px 18px",borderRadius:"999px",border:"1px solid #B8860B55",background:"#B8860B",color:"#FFF",fontFamily:F,fontSize:"10.5px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",cursor:"pointer",boxShadow:"0 8px 20px rgba(184,134,11,0.18)"}}>Explore Current Charts</button></div>
           {/* Brand */}
-          <div style={{marginTop:"14px",padding:"20px",background:"#1A1A1A",borderRadius:"10px",color:"#FFF"}}>
+          <div style={{marginTop:"18px",padding:"20px",background:"#FAF5EA",border:"1px solid #E8DDBF",borderRadius:"14px",color:"#1A1A1A"}}>
             <div style={{display:"flex",alignItems:"center",gap:"10px"}}>
               <svg width="20" height="22" viewBox="0 0 22 24" style={{flexShrink:0}}>
-                <rect x="0" y="15" width="3.5" height="9" fill="#FFF" rx="0.5"/>
-                <rect x="5.5" y="10" width="3.5" height="14" fill="#FFF" rx="0.5"/>
+                <rect x="0" y="15" width="3.5" height="9" fill="#1A1A1A" rx="0.5"/>
+                <rect x="5.5" y="10" width="3.5" height="14" fill="#1A1A1A" rx="0.5"/>
                 <rect x="11" y="5" width="3.5" height="19" fill="#B8860B" rx="0.5"/>
-                <rect x="16.5" y="0" width="3.5" height="24" fill="#FFF" rx="0.5"/>
+                <rect x="16.5" y="0" width="3.5" height="24" fill="#1A1A1A" rx="0.5"/>
               </svg>
-              <span style={{fontFamily:F,fontSize:"13px",fontWeight:800,letterSpacing:"2.5px",color:"#FFF",textTransform:"uppercase"}}>Ngoma <span style={{color:"#B8860B"}}>Charts</span></span>
+              <span style={{fontFamily:F,fontSize:"13px",fontWeight:800,letterSpacing:"2.5px",color:"#1A1A1A",textTransform:"uppercase"}}>Ngoma <span style={{color:"#B8860B"}}>Charts</span></span>
             </div>
-            <p style={{fontFamily:F,fontSize:"11.5px",color:"rgba(255,255,255,0.5)",margin:"10px 0 0",lineHeight:1.6}}>"Ngoma" means music/drum in Swahili — the heartbeat of Kenyan culture. Transparent, data-driven rankings celebrating artists making an impact in Kenya.</p>
+            <p style={{fontFamily:F,fontSize:"11.5px",color:"#59645D",margin:"10px 0 0",lineHeight:1.65}}>"Ngoma" means music or drum in Swahili: the heartbeat of Kenyan culture. Transparent, data-driven rankings celebrate the artists making an impact in Kenya.</p>
           </div>
         </div>
       )}
@@ -3240,8 +3275,8 @@ liveStatus={liveStatus}
       </main>
 
       {/* FOOTER */}
-      <footer style={{padding:isMobile?"24px 18px 30px":"20px 28px",borderTop:"3px solid #1A1A1A",background:"#1A1A1A",fontFamily:F,boxSizing:"border-box",overflow:"hidden"}}>
-        <div style={{...pageFrame(),display:"flex",justifyContent:"space-between",alignItems:isMobile?"flex-start":"center",flexWrap:"wrap",gap:"12px",flexDirection:isMobile?"column":"row"}}>
+      <footer style={{padding:isMobile?"32px 18px 36px":"22px 28px",borderTop:"3px solid #1A1A1A",background:"#1A1A1A",fontFamily:F,boxSizing:"border-box",overflow:"hidden"}}>
+        <div style={{...pageFrame(),display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:isMobile?"18px":"14px",flexDirection:isMobile?"column":"row",textAlign:isMobile?"center":"left"}}>
           <div onClick={()=>navTo("charts")} style={{display:"flex",alignItems:"center",gap:"9px",cursor:"pointer"}}>
             <svg width="16" height="18" viewBox="0 0 22 24" style={{flexShrink:0}}>
               <rect x="0" y="15" width="3.5" height="9" fill="#FFF" rx="0.5"/>
@@ -3251,7 +3286,7 @@ liveStatus={liveStatus}
             </svg>
             <span style={{fontFamily:F,fontSize:isMobile?"12px":"11px",fontWeight:800,letterSpacing:"2.5px",color:"#FFF",textTransform:"uppercase"}}>Ngoma <span style={{color:"#B8860B"}}>Charts</span></span>
           </div>
-          <div style={{display:"flex",gap:"18px",alignItems:"center"}}>
+          <div style={{display:"flex",gap:isMobile?"10px":"14px",alignItems:"center",justifyContent:"center"}}>
             {[
               {label:"Facebook", href:"https://www.facebook.com/ngomacharts",
                path:"M14 8.5h2V5.8h-2.4C11.5 5.8 10.5 7 10.5 9v1.5H8.7V13h1.8v6h2.6v-6h2l.3-2.5h-2.3V9.1c0-.4.2-.6.7-.6Z"},
@@ -3261,10 +3296,10 @@ liveStatus={liveStatus}
                path:"M12 7.3A4.7 4.7 0 1012 16.7 4.7 4.7 0 0012 7.3Zm0 7.7a3 3 0 110-6 3 3 0 010 6Zm4.9-7.9a1.1 1.1 0 11-2.2 0 1.1 1.1 0 012.2 0ZM16.5 5h-9A2.5 2.5 0 005 7.5v9A2.5 2.5 0 007.5 19h9a2.5 2.5 0 002.5-2.5v-9A2.5 2.5 0 0016.5 5Z"},
             ].map(s=>(
               <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label}
-                 style={{display:"flex",color:"rgba(255,255,255,0.62)",transition:"color .2s"}}
+                 style={{display:"flex",alignItems:"center",justifyContent:"center",width:isMobile?"44px":"38px",height:isMobile?"44px":"38px",borderRadius:"50%",color:"rgba(255,255,255,0.68)",transition:"color .2s, background .2s",background:"rgba(255,255,255,0.04)"}}
                  onMouseEnter={e=>e.currentTarget.style.color="#B8860B"}
                  onMouseLeave={e=>e.currentTarget.style.color="rgba(255,255,255,0.62)"}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d={s.path}/></svg>
+                <svg width={isMobile?"22":"20"} height={isMobile?"22":"20"} viewBox="0 0 24 24" fill="currentColor"><path d={s.path}/></svg>
               </a>
             ))}
           </div>
@@ -3276,7 +3311,9 @@ liveStatus={liveStatus}
             display: "flex",
             flexDirection: isMobile ? "column" : "row",
             gap: isMobile ? "4px" : "10px",
-            alignItems: isMobile ? "flex-start" : "center",
+            alignItems: "center",
+            justifyContent: isMobile ? "center" : "flex-start",
+            textAlign: isMobile ? "center" : "left",
             fontSize: "8px",
             color: "rgba(255,255,255,0.38)",
             letterSpacing: "1px",

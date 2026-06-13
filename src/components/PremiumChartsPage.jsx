@@ -1408,37 +1408,15 @@ export default function PremiumChartsPage({
                   {expanded && (
                     <div style={styles.mobileExpandedDetails}>
                       <div style={styles.mobileCountryRow}>
-                        <div
-                          style={{
-                            ...styles.flagBox,
-                            width: "38px",
-                            height: "38px",
-                            borderRadius: "12px",
-                            background: `${badge.accent}12`,
-                            border: `1px solid ${badge.accent}45`,
-                            boxShadow: "none",
-                          }}
-                          title={`${artistCountry.country}${
-                            artistCountry.code ? ` (${artistCountry.code})` : ""
-                          }`}
-                        >
-                          <span style={{ ...styles.flagText, color: badge.accent }}>
-                            {artistCountry.code || "—"}
-                          </span>
-                        </div>
-
-                        <div>
-                          <div style={styles.mobileDetailLabel}>Country</div>
-                          <div style={styles.mobileDetailValue}>
-                            {artistCountry.code || "—"}
-                          </div>
+                        <div style={{fontFamily:F,fontSize:"12px",fontWeight:800,color:"#4F5751"}}>
+                          Country: <span style={{color:badge.accent}}>{artistCountry.code || "—"}</span>
                         </div>
                       </div>
 
                       <div style={styles.mobileStatsRow}>
                         <MobileStat label="L.M" value={profile.lastMonth} />
                         <MobileStat label="Peak" value={profile.peak} />
-                        <MobileStat label="Mos" value={profile.weeks} />
+                        <MobileStat label="Months" value={profile.weeks} />
                         {isCombinedChart&&<MobileStat label="Plat." value={item.plat || "—"} />}
                       </div>
                     </div>
