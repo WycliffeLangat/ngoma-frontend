@@ -486,6 +486,9 @@ export default function PremiumChartsPage({
   const mobile = useRealMobile(isMobile);
   const safeGutter = mobile ? "clamp(20px, 5vw, 28px)" : "28px";
   const [expandedMobileRows, setExpandedMobileRows] = useState({});
+  const [chartPackOpen, setChartPackOpen] = useState(false);
+  const [chartPackRange, setChartPackRange] = useState(Math.min(vc || 10, data?.length || 10));
+  const [chartPackFormat, setChartPackFormat] = useState("PNG");
 
   const chartTitle = "NGOMA TOP 50";
   const chartRegion = "(KENYA)";
@@ -747,6 +750,10 @@ export default function PremiumChartsPage({
     setExpandedMobileRows({});
   }, [ct, month, plat, vc]);
 
+  useEffect(() => {
+    setChartPackRange(Math.min(vc || 10, data?.length || vc || 10));
+  }, [vc, data?.length, ct, month, plat]);
+
   function ChartToggle() {
     return (
       <div style={styles.toggleWrap}>
@@ -795,6 +802,127 @@ export default function PremiumChartsPage({
   const isCombinedChart = plat === "Combined";
   const crossPlatformHitsCount = data.filter((item) => item.plat === `${tp}/${tp}`).length;
   const newEntriesCount = data.filter((item) => movement(item).type === "new").length;
+
+  const chartPackYear = (String(month).match(/\b(20\d{2})\b/) || [])[1] || String(new Date().getFullYear());
+  const chartPackYears = Array.from(
+    new Set(MONTHS.map((item) => (String(item).match(/\b(20\d{2})\b/) || [])[1]).filter(Boolean))
+  ).sort();
+  const chartPackRows = sortedData.slice(0, Math.min(chartPackRange || vc || 10, data.length));
+  const chartPackTitle = `${chartDisplayTitle} — ${chartLabel} · ${platformLabel} · ${month}`;
+
+  function downloadChartPackImage() {
+    if (!chartPackRows.length) return;
+
+    const W = 1200;
+    const H = 1200;
+    const canvas = document.createElement("canvas");
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext("2d");
+
+    const slug = (value) =>
+      String(value || "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "");
+
+    const bg = ctx.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0, "#0f0f0f");
+    bg.addColorStop(1, "#1f1b16");
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.fillStyle = GOLD;
+    ctx.fillRect(90, 110, 8, 24);
+    ctx.fillRect(106, 94, 8, 40);
+    ctx.fillRect(122, 74, 8, 60);
+    ctx.fillRect(138, 48, 8, 86);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "900 58px Inter, Arial, sans-serif";
+    ctx.fillText("NGOMA", 180, 105);
+    ctx.fillStyle = GOLD;
+    ctx.fillText("CHARTS", 420, 105);
+    ctx.fillStyle = "rgba(255,255,255,0.68)";
+    ctx.font = "700 22px Inter, Arial, sans-serif";
+    ctx.fillText("MUSIC RANKING INTELLIGENCE", 184, 142);
+
+    ctx.fillStyle = GOLD;
+    ctx.font = "900 23px Inter, Arial, sans-serif";
+    ctx.fillText(`${chartLabel.toUpperCase()} · ${String(platformLabel).toUpperCase()} · TOP ${chartPackRows.length}`, 88, 225);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "900 46px Georgia, serif";
+    ctx.fillText(chartDisplayTitle, 88, 292);
+    ctx.fillStyle = "rgba(255,255,255,0.72)";
+    ctx.font = "800 27px Georgia, serif";
+    ctx.fillText(month, 88, 336);
+
+    ctx.strokeStyle = GOLD;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(88, 380);
+    ctx.lineTo(1110, 380);
+    ctx.stroke();
+
+    ctx.fillStyle = GOLD;
+    ctx.font = "900 18px Inter, Arial, sans-serif";
+    ctx.fillText("#", 88, 430);
+    ctx.fillText(isSingles ? "TITLE / ARTIST" : "ALBUM / ARTIST", 160, 430);
+    ctx.fillText("MOVE", 760, 430);
+    ctx.fillText("LAST MONTH", 900, 430);
+
+    chartPackRows.slice(0, 20).forEach((item, index) => {
+      const y = 485 + index * 34;
+      const mv = movement(item).label || "—";
+      const profile = getReleaseProfile(item);
+
+      ctx.fillStyle = index < 3 ? GOLD : "rgba(255,255,255,0.82)";
+      ctx.font = "900 21px Inter, Arial, sans-serif";
+      ctx.fillText(String(item.rank), 88, y);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "900 22px Georgia, serif";
+      let title = String(item.title || "");
+      while (ctx.measureText(title).width > 440 && title.length > 0) title = title.slice(0, -1);
+      ctx.fillText(title.length < String(item.title || "").length ? `${title.trim()}…` : title, 160, y);
+
+      ctx.fillStyle = "rgba(255,255,255,0.58)";
+      ctx.font = "700 15px Inter, Arial, sans-serif";
+      let artist = String(item.artist || "");
+      while (ctx.measureText(artist).width > 360 && artist.length > 0) artist = artist.slice(0, -1);
+      ctx.fillText(artist.length < String(item.artist || "").length ? `${artist.trim()}…` : artist, 160, y + 20);
+
+      ctx.fillStyle = mv.includes("▲") ? "#2DB04A" : mv.includes("▼") ? "#E53935" : "rgba(255,255,255,0.65)";
+      ctx.font = "900 20px Inter, Arial, sans-serif";
+      ctx.fillText(mv, 760, y);
+
+      ctx.fillStyle = "rgba(255,255,255,0.82)";
+      ctx.font = "900 20px Inter, Arial, sans-serif";
+      ctx.fillText(String(profile.lastMonth || "—"), 930, y);
+
+      ctx.strokeStyle = "rgba(255,255,255,0.08)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(88, y + 28);
+      ctx.lineTo(1110, y + 28);
+      ctx.stroke();
+    });
+
+    ctx.fillStyle = "rgba(255,255,255,0.45)";
+    ctx.font = "800 18px Inter, Arial, sans-serif";
+    ctx.fillText("ngomacharts.com", 88, 1120);
+    ctx.textAlign = "right";
+    ctx.fillText(new Date().getFullYear().toString(), 1110, 1120);
+    ctx.textAlign = "left";
+
+    const link = document.createElement("a");
+    link.href = canvas.toDataURL("image/png");
+    link.download = `ngoma-chart-pack-${slug(chartLabel)}-${slug(month)}-${slug(platformLabel)}-top-${chartPackRows.length}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
 
   return (
     <div style={{...styles.page, padding: mobile ? `0 ${safeGutter} 28px` : "0 28px 34px", boxSizing: "border-box"}}>
@@ -1092,9 +1220,9 @@ export default function PremiumChartsPage({
             {typeof shareCurrentPageCard === "function" && (
               <button
                 type="button"
-                onClick={shareCurrentPageCard}
+                onClick={() => setChartPackOpen(true)}
                 style={styles.shareButton}
-                title="Create a share card for this chart view"
+                title="Open the chart pack share window"
               >
                 Share Card
               </button>
@@ -1367,6 +1495,177 @@ export default function PremiumChartsPage({
           Showing {shown.length} of {data.length} · {month} · {platformLabel}
         </div>
       </section>
+
+      {chartPackOpen && (
+        <div
+          style={styles.chartPackOverlay}
+          onClick={() => setChartPackOpen(false)}
+        >
+          <div
+            style={{
+              ...styles.chartPackModal,
+              width: mobile ? "calc(100vw - 28px)" : "min(1180px, calc(100vw - 80px))",
+              maxHeight: mobile ? "86vh" : "82vh",
+            }}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div style={styles.chartPackHeader}>
+              <div>
+                <h3 style={styles.chartPackTitle}>Download Chart Pack</h3>
+                <p style={styles.chartPackSubtitle}>Export real chart data by type, month, year, platform and range.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setChartPackOpen(false)}
+                style={styles.chartPackClose}
+                aria-label="Close chart pack"
+              >
+                ×
+              </button>
+            </div>
+
+            <div
+              style={{
+                ...styles.chartPackControls,
+                gridTemplateColumns: mobile ? "1fr" : "1.05fr 0.7fr 1.1fr 1.1fr 1.1fr 0.95fr auto",
+              }}
+            >
+              <label style={styles.chartPackLabel}>
+                Chart
+                <select
+                  value={ct}
+                  onChange={(event) => {
+                    setCt(event.target.value);
+                    setPlat("Combined");
+                  }}
+                  style={styles.chartPackSelect}
+                >
+                  <option value="singles">Singles</option>
+                  <option value="albums">Albums</option>
+                </select>
+              </label>
+
+              <label style={styles.chartPackLabel}>
+                Year
+                <select
+                  value={chartPackYear}
+                  onChange={(event) => {
+                    const nextMonth = MONTHS.find((item) => String(item).includes(event.target.value));
+                    if (nextMonth) setMonth(nextMonth);
+                  }}
+                  style={styles.chartPackSelect}
+                >
+                  {(chartPackYears.length ? chartPackYears : [chartPackYear]).map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label style={styles.chartPackLabel}>
+                Month
+                <select value={month} onChange={(event) => setMonth(event.target.value)} style={styles.chartPackSelect}>
+                  {MONTHS.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label style={styles.chartPackLabel}>
+                Platform
+                <select value={plat} onChange={(event) => setPlat(event.target.value)} style={styles.chartPackSelect}>
+                  {platList.map((item) => (
+                    <option key={item} value={item}>
+                      {item === "Combined" ? "Combined" : PLAT_LABEL[item] || item}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label style={styles.chartPackLabel}>
+                Final range
+                <select
+                  value={chartPackRange}
+                  onChange={(event) => setChartPackRange(Number(event.target.value))}
+                  style={styles.chartPackSelect}
+                >
+                  {[10, 20, 50].map((range) => (
+                    <option key={range} value={Math.min(range, Math.max(data.length, 1))}>
+                      Top {Math.min(range, Math.max(data.length, 1))} only
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label style={styles.chartPackLabel}>
+                Format
+                <select value={chartPackFormat} onChange={(event) => setChartPackFormat(event.target.value)} style={styles.chartPackSelect}>
+                  <option value="PNG">PNG</option>
+                </select>
+              </label>
+
+              <button
+                type="button"
+                onClick={downloadChartPackImage}
+                disabled={!chartPackRows.length || chartPackFormat !== "PNG"}
+                style={{
+                  ...styles.chartPackDownload,
+                  opacity: chartPackRows.length ? 1 : 0.5,
+                  cursor: chartPackRows.length ? "pointer" : "not-allowed",
+                  alignSelf: mobile ? "stretch" : "end",
+                }}
+              >
+                Download 1 Image
+              </button>
+            </div>
+
+            {!chartPackRows.length && (
+              <div style={styles.chartPackWarning}>No published chart found for the selected filters.</div>
+            )}
+
+            <div style={styles.chartPackPreviewWrap}>
+              <div style={styles.chartPackPreview}>
+                <div style={styles.chartPackPreviewTop}>
+                  <div>
+                    <div style={styles.chartPackPreviewBrand}>NGOMA <span>CHARTS</span></div>
+                    <div style={styles.chartPackPreviewSub}>Music ranking intelligence</div>
+                  </div>
+                  <div style={styles.chartPackPreviewPill}>Top {chartPackRows.length || Math.min(chartPackRange, data.length || chartPackRange)}</div>
+                </div>
+
+                <div style={styles.chartPackPreviewMeta}>{chartLabel} · {platformLabel} · {month}</div>
+                <div style={styles.chartPackPreviewTitle}>{chartDisplayTitle}</div>
+
+                <div style={styles.chartPackPreviewHeader}>
+                  <span>#</span>
+                  <span>{isSingles ? "Title / Artist" : "Album / Artist"}</span>
+                  <span>Move</span>
+                  <span>Last Month</span>
+                </div>
+
+                {chartPackRows.slice(0, mobile ? 8 : 10).map((item, index) => {
+                  const mv = movement(item).label || "—";
+                  const profile = getReleaseProfile(item);
+                  return (
+                    <div key={`${item.title}-${item.artist}-${item.rank}-${index}`} style={styles.chartPackPreviewRow}>
+                      <span style={{ color: index < 3 ? GOLD : "rgba(255,255,255,0.78)" }}>{item.rank}</span>
+                      <span style={styles.chartPackPreviewEntry}>
+                        <strong>{item.title}</strong>
+                        <em>{item.artist}</em>
+                      </span>
+                      <span style={{ color: mv.includes("▲") ? "#35C26B" : mv.includes("▼") ? "#FF6464" : "rgba(255,255,255,0.62)" }}>{mv}</span>
+                      <span>{profile.lastMonth}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -2027,6 +2326,223 @@ const styles = {
     cursor: "pointer",
     whiteSpace: "nowrap",
     boxShadow: "0 8px 22px rgba(16,24,40,0.10)",
+  },
+
+  chartPackOverlay: {
+    position: "fixed",
+    inset: 0,
+    zIndex: 500,
+    background: "rgba(0,0,0,0.56)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "22px",
+    boxSizing: "border-box",
+  },
+
+  chartPackModal: {
+    background: "#ffffff",
+    borderRadius: "18px",
+    boxShadow: "0 30px 90px rgba(0,0,0,0.34)",
+    overflowY: "auto",
+    boxSizing: "border-box",
+    padding: "28px",
+  },
+
+  chartPackHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: "18px",
+    marginBottom: "20px",
+  },
+
+  chartPackTitle: {
+    margin: 0,
+    fontSize: "26px",
+    lineHeight: 1.1,
+    fontWeight: 950,
+    color: "#0f172a",
+  },
+
+  chartPackSubtitle: {
+    margin: "8px 0 0",
+    fontFamily: "Inter, Arial, sans-serif",
+    fontSize: "14px",
+    color: "#526071",
+    lineHeight: 1.45,
+  },
+
+  chartPackClose: {
+    border: 0,
+    background: "transparent",
+    color: "#0f172a",
+    fontSize: "32px",
+    fontWeight: 800,
+    cursor: "pointer",
+    lineHeight: 1,
+  },
+
+  chartPackControls: {
+    display: "grid",
+    gap: "12px",
+    alignItems: "end",
+    marginBottom: "16px",
+  },
+
+  chartPackLabel: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "7px",
+    fontFamily: "Inter, Arial, sans-serif",
+    fontSize: "12px",
+    fontWeight: 850,
+    color: "#263241",
+  },
+
+  chartPackSelect: {
+    width: "100%",
+    height: "44px",
+    border: "1px solid #d7dce3",
+    borderRadius: "12px",
+    background: "#ffffff",
+    color: "#0f172a",
+    padding: "0 13px",
+    fontSize: "14px",
+    fontWeight: 700,
+    outline: "none",
+  },
+
+  chartPackDownload: {
+    height: "44px",
+    border: 0,
+    borderRadius: "12px",
+    background: "#c89116",
+    color: "#ffffff",
+    padding: "0 18px",
+    fontFamily: "Inter, Arial, sans-serif",
+    fontSize: "14px",
+    fontWeight: 950,
+    whiteSpace: "nowrap",
+  },
+
+  chartPackWarning: {
+    borderRadius: "12px",
+    background: "#fde2e2",
+    color: "#9f1239",
+    padding: "14px 16px",
+    margin: "0 0 16px",
+    fontFamily: "Inter, Arial, sans-serif",
+    fontSize: "14px",
+    fontWeight: 700,
+  },
+
+  chartPackPreviewWrap: {
+    background: "#f3f4f6",
+    borderRadius: "16px",
+    padding: "22px",
+    overflowX: "auto",
+  },
+
+  chartPackPreview: {
+    width: "560px",
+    minHeight: "520px",
+    borderRadius: "2px",
+    background: "linear-gradient(135deg, #111111, #1e1a15)",
+    color: "#ffffff",
+    padding: "34px",
+    boxSizing: "border-box",
+    boxShadow: "0 18px 38px rgba(0,0,0,0.28)",
+  },
+
+  chartPackPreviewTop: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: "20px",
+    marginBottom: "28px",
+  },
+
+  chartPackPreviewBrand: {
+    fontFamily: "Inter, Arial, sans-serif",
+    fontSize: "29px",
+    fontWeight: 950,
+    letterSpacing: "2px",
+    color: "#ffffff",
+  },
+
+  chartPackPreviewSub: {
+    marginTop: "6px",
+    fontFamily: "Inter, Arial, sans-serif",
+    fontSize: "12px",
+    fontWeight: 800,
+    color: "rgba(255,255,255,0.58)",
+    letterSpacing: "1.2px",
+    textTransform: "uppercase",
+  },
+
+  chartPackPreviewPill: {
+    borderRadius: "999px",
+    background: "#c89116",
+    color: "#111111",
+    padding: "10px 16px",
+    fontFamily: "Inter, Arial, sans-serif",
+    fontSize: "13px",
+    fontWeight: 950,
+    textTransform: "uppercase",
+    whiteSpace: "nowrap",
+  },
+
+  chartPackPreviewMeta: {
+    fontFamily: "Inter, Arial, sans-serif",
+    fontSize: "12px",
+    fontWeight: 950,
+    letterSpacing: "2px",
+    textTransform: "uppercase",
+    color: "#c89116",
+    marginBottom: "12px",
+  },
+
+  chartPackPreviewTitle: {
+    fontSize: "27px",
+    fontWeight: 950,
+    lineHeight: 1.1,
+    marginBottom: "24px",
+  },
+
+  chartPackPreviewHeader: {
+    display: "grid",
+    gridTemplateColumns: "44px 1fr 72px 96px",
+    gap: "10px",
+    borderTop: "1px solid #c89116",
+    borderBottom: "1px solid rgba(255,255,255,0.14)",
+    padding: "12px 0",
+    fontFamily: "Inter, Arial, sans-serif",
+    fontSize: "10px",
+    fontWeight: 950,
+    letterSpacing: "1.3px",
+    textTransform: "uppercase",
+    color: "#c89116",
+  },
+
+  chartPackPreviewRow: {
+    display: "grid",
+    gridTemplateColumns: "44px 1fr 72px 96px",
+    gap: "10px",
+    alignItems: "center",
+    borderBottom: "1px solid rgba(255,255,255,0.08)",
+    padding: "10px 0",
+    fontFamily: "Inter, Arial, sans-serif",
+    fontSize: "13px",
+    fontWeight: 900,
+    color: "rgba(255,255,255,0.82)",
+  },
+
+  chartPackPreviewEntry: {
+    minWidth: 0,
+    display: "flex",
+    flexDirection: "column",
+    gap: "3px",
   },
 
   pillFade: {
