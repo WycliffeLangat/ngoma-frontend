@@ -462,69 +462,153 @@ const top = data[0];
   // Movement data for the current analytics month and selected chart type
   const mvData = buildMovementData(ct, anMonth);
 
-  const recordKnownArtist = (title = "") => ({
-    "Extra Pressure": "Bensoul",
-    "Ova": "Mbosso",
-    "Olodumare": "Joel Lwaga",
-    "Kifo Cha Mende": "Iyanii",
-  }[title] || "");
-
-  const formatRecordSub = (record = {}) => {
-    let sub = String(record.sub || "").trim();
-    const title = String(record.value || "").trim();
-    const artist = recordKnownArtist(title);
-
-    sub = sub
-      .replace(/(\d+)\s*[x×]\s*#1\s*in\s*Q4/i, (_, n) => `No. 1 for ${n} ${Number(n) === 1 ? "month" : "months"} in Q4`)
-      .replace(/full\s*6\/6\s*platform\s*presence/i, "6/6 platform coverage")
-      .replace(/3\s*of\s*3\s*months\s*charting/i, "Charted all 3 months")
-      .replace(/#(\d+)\s*(?:→|->|to)\s*#(\d+)/i, "#$1 → #$2")
-      .replace(/\b(\d{4,})\s*pts\b/i, (_, n) => `${Number(n).toLocaleString()} pts`);
-
-    if (artist && !sub.toLowerCase().includes(artist.toLowerCase())) {
-      sub = `${artist} · ${sub}`;
-    }
-
-    return sub;
+  const num = (value) => {
+    const parsed = Number(String(value ?? 0).replace(/,/g, ""));
+    return Number.isFinite(parsed) ? parsed : 0;
   };
 
-  const getRecordLabel = (record = {}) => {
-    const label = String(record.label || "").trim();
-    if (/total unique/i.test(label)) return `Total Charted ${releaseLabel}`;
-    return label;
+  const trackedPeriodLabel = "across all tracked months";
+  const monthCountLabel = `${MONTHS.length} ${MONTHS.length === 1 ? "month" : "months"}`;
+
+  const releaseGroupsFor = (chartType) => {
+    const groups = new Map();
+    MONTHS.forEach((m) => {
+      getCombined(chartType, m).forEach((entry) => {
+        const key = entryKey(entry);
+        if (!groups.has(key)) {
+          groups.set(key, {
+            key,
+            title: entry.title,
+            artist: entry.artist,
+            totalPoints: 0,
+            months: new Set(),
+            numberOneMonths: new Set(),
+            rows: [],
+            fullCoverageMonths: new Set(),
+          });
+        }
+
+        const group = groups.get(key);
+        const points = num(entry.pts);
+        const rank = num(entry.rank);
+        const hits = platformHitsFor(chartType, m, entry.title, entry.artist);
+        const fallbackCount = num(entry.platform_count) || num(String(entry.plat || "").split("/")[0]);
+        const platformCount = Math.max(hits.length, fallbackCount);
+
+        group.totalPoints += points;
+        group.months.add(m);
+        group.rows.push({ ...entry, month: m, points, rank, platformCount });
+        if (rank === 1) group.numberOneMonths.add(m);
+        if (platformCount >= platformKeysFor(chartType).length) group.fullCoverageMonths.add(m);
+      });
+    });
+    return [...groups.values()];
   };
 
-  const getRecordClimb = (record = {}) => {
-    const sub = String(record.sub || "");
-    const match = sub.match(/#(\d+)\s*(?:→|->|to)\s*#(\d+)/i);
-    if (!match) return null;
-    const from = Number(match[1]);
-    const to = Number(match[2]);
-    const delta = from - to;
-    return delta > 0 ? delta : null;
+  const monthlyBestFor = (chartType) => {
+    const rows = [];
+    MONTHS.forEach((m) => {
+      getCombined(chartType, m).forEach((entry) => rows.push({ ...entry, month: m, points: num(entry.pts) }));
+    });
+    return rows.sort((a, b) => b.points - a.points)[0] || null;
   };
 
-  const currentRecords = (isSingles ? MOM.records.singles : MOM.records.albums).map((record) => ({
-    ...record,
-    displayLabel: getRecordLabel(record),
-    displaySub: formatRecordSub(record),
-    climbDelta: getRecordClimb(record),
-    isCoverage: /coverage/i.test(String(record.label || "")),
-  }));
+  const biggestClimbFor = (chartType) => {
+    let best = null;
+    MONTHS.forEach((m, index) => {
+      if (index === 0) return;
+      const previousMonth = MONTHS[index - 1];
+      const previousRows = getCombined(chartType, previousMonth);
+      getCombined(chartType, m).forEach((entry) => {
+        const previous = previousRows.find((item) => entryKey(item) === entryKey(entry));
+        if (!previous) return;
+        const from = num(previous.rank);
+        const to = num(entry.rank);
+        const delta = from - to;
+        if (delta > 0 && (!best || delta > best.delta)) {
+          best = { ...entry, from, to, delta, month: m };
+        }
+      });
+    });
+    return best;
+  };
+
+  const currentRecords = (() => {
+    const groups = releaseGroupsFor(ct);
+    const highestMonthly = monthlyBestFor(ct);
+    const biggestClimb = biggestClimbFor(ct);
+    const mostNumberOnes = [...groups]
+      .filter((group) => group.numberOneMonths.size > 0)
+      .sort((a, b) => b.numberOneMonths.size - a.numberOneMonths.size || b.totalPoints - a.totalPoints)[0];
+    const longestRun = [...groups]
+      .sort((a, b) => b.months.size - a.months.size || b.totalPoints - a.totalPoints)[0];
+    const fullCoverageCount = groups.filter((group) => group.fullCoverageMonths.size > 0).length;
+
+    return [
+      {
+        label: "Most Months at #1",
+        displayLabel: "Most Months at #1",
+        value: mostNumberOnes?.title || "—",
+        displaySub: mostNumberOnes
+          ? `${mostNumberOnes.artist} · No. 1 for ${mostNumberOnes.numberOneMonths.size} ${mostNumberOnes.numberOneMonths.size === 1 ? "month" : "months"} ${trackedPeriodLabel}`
+          : `No #1 ${releaseLabelLower} found`,
+      },
+      {
+        label: "Highest Monthly Score",
+        displayLabel: "Highest Monthly Score",
+        value: highestMonthly?.title || "—",
+        displaySub: highestMonthly
+          ? `${highestMonthly.artist} · ${highestMonthly.points.toLocaleString()} pts`
+          : `No ${releaseLabelLower} found`,
+      },
+      {
+        label: "Biggest Monthly Climb",
+        displayLabel: "Biggest Monthly Climb",
+        value: biggestClimb?.title || "—",
+        displaySub: biggestClimb
+          ? `${biggestClimb.artist} · #${biggestClimb.from} → #${biggestClimb.to}`
+          : `No monthly climb found`,
+        climbDelta: biggestClimb?.delta || null,
+      },
+      {
+        label: "Perfect Coverage Club",
+        displayLabel: "Perfect Coverage Club",
+        value: `${fullCoverageCount} ${releaseLabelLower}`,
+        displaySub: `${currentPlatformKeys.length}/${currentPlatformKeys.length} platform coverage`,
+        isCoverage: true,
+      },
+      {
+        label: "Chart Longevity",
+        displayLabel: "Chart Longevity",
+        value: longestRun?.title || "—",
+        displaySub: longestRun
+          ? `${longestRun.artist} · ${longestRun.months.size === MONTHS.length ? `Charted all ${monthCountLabel}` : `Charted ${longestRun.months.size} ${longestRun.months.size === 1 ? "month" : "months"}`}`
+          : `No ${releaseLabelLower} found`,
+      },
+      {
+        label: `Total Charted ${releaseLabel}`,
+        displayLabel: `Total Charted ${releaseLabel}`,
+        value: groups.length,
+        displaySub: `charted ${trackedPeriodLabel}`,
+      },
+    ];
+  })();
 
   const fullCoverageClub = useMemo(() => {
     const seen = new Map();
     MONTHS.forEach((m) => {
       getCombined(ct, m).forEach((entry) => {
-        const count = Number(entry.platform_count) || Number(String(entry.plat || "").split("/")[0]) || 0;
-        if (count >= 6) {
+        const hits = platformHitsFor(ct, m, entry.title, entry.artist);
+        const fallbackCount = num(entry.platform_count) || num(String(entry.plat || "").split("/")[0]);
+        const count = Math.max(hits.length, fallbackCount);
+        if (count >= currentPlatformKeys.length) {
           const key = entryKey(entry);
           if (!seen.has(key)) seen.set(key, { title: entry.title, artist: entry.artist, month: m, pts: entry.pts });
         }
       });
     });
-    return [...seen.values()].sort((a, b) => Number(b.pts || 0) - Number(a.pts || 0));
-  }, [ct]);
+    return [...seen.values()].sort((a, b) => num(b.pts) - num(a.pts));
+  }, [ct, currentPlatformKeys]);
 
   const askAI=async()=>{
     if(!aiQ.trim())return;setAiL(true);setAiA("");
@@ -915,13 +999,12 @@ const top = data[0];
     }
 
     if (page === "records") {
-      const records = (isSingles ? MOM.records.singles : MOM.records.albums).slice(0, 6);
       return {
         eyebrow: "THE RECORD BOOK",
         title: `Records & Milestones`,
-        subtitle: `${typeLabel} · Q4 2024`,
+        subtitle: `${typeLabel} · all tracked months`,
         accent: "#B8860B",
-        highlights: records.map((record) => `${record.label}: ${record.value} · ${record.sub}`),
+        highlights: currentRecords.slice(0, 6).map((record) => `${record.displayLabel}: ${record.value} · ${record.displaySub}`),
       };
     }
 
@@ -1953,7 +2036,7 @@ liveStatus={liveStatus}
             <div style={{maxWidth:isMobile?"100%":"620px"}}>
               <div style={{fontFamily:F,fontSize:TXT.kicker,letterSpacing:"2.6px",textTransform:"uppercase",color:GOLD,marginBottom:"6px"}}>THE RECORD BOOK</div>
               <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0}}>Records & Milestones</h2>
-              <p style={{fontFamily:F,fontSize:TXT.lead,color:"#59645D",margin:"4px 0 0",lineHeight:1.55}}>Notable achievements from Q4 2024 · the chart's defining moments</p>
+              <p style={{fontFamily:F,fontSize:TXT.lead,color:"#59645D",margin:"4px 0 0",lineHeight:1.55}}>{chartTypeLabel} achievements across all tracked months · the chart's defining moments</p>
             </div>
             <div style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",marginTop:isMobile?"14px":"16px",flexWrap:"wrap"}}>
               <Tog sm/>
