@@ -252,6 +252,9 @@ export default function NgomaCharts(){
   const API_BASE = import.meta.env.VITE_API_BASE || "";
   const [liveStatus, setLiveStatus] = useState("static"); // "static" | "live" | "checking"
   const [shareImg, setShareImg] = useState(null);
+  const [shareCardModalOpen, setShareCardModalOpen] = useState(false);
+  const [shareCardRange, setShareCardRange] = useState(6);
+  const [shareCardFormat, setShareCardFormat] = useState("PNG");
   const [liveChartEntries, setLiveChartEntries] = useState([]);
   const [liveChartMeta, setLiveChartMeta] = useState(null);
   const [liveChartLoading, setLiveChartLoading] = useState(false);
@@ -331,6 +334,10 @@ export default function NgomaCharts(){
       });
   }, [API_BASE, ct, month, plat, tp]);
   useEffect(()=>{setTimeout(()=>setLd(true),100);},[]);
+
+  useEffect(() => {
+    setShareCardRange(6);
+  }, [page, ct, month, anMonth, plat]);
   const [vw,setVw]=useState(typeof window!=="undefined"?window.innerWidth:1200);
   useEffect(()=>{const h=()=>setVw(window.innerWidth);window.addEventListener("resize",h);return()=>window.removeEventListener("resize",h);},[]);
   const isMobile=vw<640;
@@ -338,7 +345,7 @@ export default function NgomaCharts(){
   const PAGE_MAX="1240px";
   const pageFrame=(extra={})=>({maxWidth:PAGE_MAX,width:"100%",margin:"0 auto",boxSizing:"border-box",minWidth:0,...extra});
   const responsiveStack=(desktop="row")=>({flexDirection:isMobile?"column":desktop,alignItems:isMobile?"stretch":"center"});
-  useEffect(()=>{const h=e=>{if(e.key==="Escape"){setSOpen(false);setSrch("");setShareImg(null);}};window.addEventListener("keydown",h);return()=>window.removeEventListener("keydown",h);},[]);
+  useEffect(()=>{const h=e=>{if(e.key==="Escape"){setSOpen(false);setSrch("");setShareImg(null);setShareCardModalOpen(false);}};window.addEventListener("keydown",h);return()=>window.removeEventListener("keydown",h);},[]);
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof document === "undefined") return;
@@ -1104,7 +1111,7 @@ const top = data[0];
     };
   };
 
-  const shareCurrentPageCard = () => {
+  const shareCurrentPageCard = (downloadDirect = false) => {
     if (selR) {
       shareReleaseCard(selR);
       return;
@@ -1175,6 +1182,17 @@ const top = data[0];
 
     const url = cv.toDataURL("image/png");
     const fname = `ngoma-${safeShareFileName(payload.eyebrow)}-${safeShareFileName(payload.title)}.png`;
+
+    if (downloadDirect) {
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fname;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      return;
+    }
+
     saveShareImage(url, fname, payload.title);
   };
 
@@ -1183,7 +1201,7 @@ const top = data[0];
       type="button"
       data-keep-share-card="true"
       data-share-card="page-action"
-      onClick={shareCurrentPageCard}
+      onClick={openShareCardPack}
       style={{
         border: dark ? "1px solid rgba(255,255,255,0.28)" : "1px solid #D7D2C8",
         background: dark ? "#101828" : "#FFF",
@@ -1204,6 +1222,29 @@ const top = data[0];
       Share Card
     </button>
   );
+
+  const shareModalPayload = pageSharePayload();
+  const shareModalMonth = page === "analytics" ? anMonth : month;
+  const shareModalYear = (String(shareModalMonth).match(/\b(20\d{2})\b/) || [])[1] || String(new Date().getFullYear());
+  const shareModalYears = Array.from(new Set(MONTHS.map((item) => (String(item).match(/\b(20\d{2})\b/) || [])[1]).filter(Boolean))).sort();
+  const shareModalPlatformLabel = plat === "Combined" ? "Combined" : (PLAT_LABEL[plat] || plat);
+  const shareModalTypeLabel = isSingles ? "Singles" : "Albums";
+  const shareModalMaxRange = Math.max(1, shareModalPayload?.highlights?.length || 6);
+  const shareModalSelectedRange = Math.min(Math.max(1, shareCardRange || 6), shareModalMaxRange);
+  const shareModalHighlights = (shareModalPayload?.highlights || []).slice(0, shareModalSelectedRange);
+  const shareModalRangeOptions = Array.from(new Set([3, 6, 10, shareModalSelectedRange].map((value) => Math.min(value, shareModalMaxRange)))).filter(Boolean).sort((a, b) => a - b);
+  const openShareCardPack = () => {
+    if (selR) {
+      shareCurrentPageCard();
+      return;
+    }
+    setShareCardModalOpen(true);
+  };
+  const downloadShareCardPackImage = () => {
+    if (shareCardFormat !== "PNG") return;
+    setShareCardModalOpen(false);
+    shareCurrentPageCard(true);
+  };
 
   const shareReleaseCard = (r) => {
     if(!r)return;
@@ -1420,6 +1461,199 @@ const top = data[0];
               <div style={{display:"flex",gap:"8px"}}>
                 <a href={shareImg.url} download={shareImg.fname} style={{flex:1,textAlign:"center",padding:"11px",background:"#1A1A1A",color:"#FFF",borderRadius:"22px",fontFamily:F,fontSize:"12px",fontWeight:700,textDecoration:"none"}}>Download PNG</a>
                 <a href={shareImg.url} target="_blank" rel="noopener noreferrer" style={{flex:1,textAlign:"center",padding:"11px",background:"#FFF",color:"#1A1A1A",border:"1.5px solid #E0E0DC",borderRadius:"22px",fontFamily:F,fontSize:"12px",fontWeight:700,textDecoration:"none"}}>Open in New Tab</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PAGE SHARE CARD PACK */}
+      {shareCardModalOpen && shareModalPayload && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 260,
+            background: "rgba(0,0,0,0.58)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: isMobile ? "14px" : "22px",
+            boxSizing: "border-box",
+          }}
+          onClick={() => setShareCardModalOpen(false)}
+        >
+          <div
+            style={{
+              background: "#ffffff",
+              borderRadius: "18px",
+              width: isMobile ? "calc(100vw - 28px)" : "min(1080px, calc(100vw - 80px))",
+              maxHeight: isMobile ? "86vh" : "82vh",
+              overflowY: "auto",
+              boxShadow: "0 30px 90px rgba(0,0,0,0.34)",
+              padding: isMobile ? "18px" : "28px",
+              boxSizing: "border-box",
+            }}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:"18px",marginBottom:"20px"}}>
+              <div>
+                <h3 style={{margin:0,fontFamily:F,fontSize:isMobile?"22px":"26px",lineHeight:1.1,fontWeight:950,color:"#0f172a"}}>Download Chart Pack</h3>
+                <p style={{margin:"8px 0 0",fontFamily:F,fontSize:isMobile?"12.5px":"14px",color:"#526071",lineHeight:1.45}}>Export this page as a share card with the same options style used on Charts.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShareCardModalOpen(false)}
+                aria-label="Close share card pack"
+                style={{border:"none",background:"#f1f3f5",width:"34px",height:"34px",borderRadius:"999px",fontSize:"22px",lineHeight:1,cursor:"pointer",color:"#0f172a",fontWeight:700,flexShrink:0}}
+              >
+                ×
+              </button>
+            </div>
+
+            <div
+              style={{
+                display:"grid",
+                gridTemplateColumns:isMobile?"1fr":"1.05fr 0.75fr 1.05fr 1.1fr 1fr 0.9fr auto",
+                gap:"10px",
+                alignItems:"end",
+                marginBottom:"20px",
+              }}
+            >
+              <label style={{display:"grid",gap:"6px",fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:"#687385"}}>
+                Chart
+                <select
+                  value={ct}
+                  onChange={(event) => {
+                    setCt(event.target.value);
+                    setPlat("Combined");
+                  }}
+                  style={{width:"100%",border:"1px solid #d8dee8",borderRadius:"10px",background:"#fff",padding:"11px 12px",fontFamily:F,fontSize:"13px",fontWeight:800,color:"#101828",outline:"none"}}
+                >
+                  <option value="singles">Singles</option>
+                  <option value="albums">Albums</option>
+                </select>
+              </label>
+
+              <label style={{display:"grid",gap:"6px",fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:"#687385"}}>
+                Year
+                <select
+                  value={shareModalYear}
+                  onChange={(event) => {
+                    const nextMonth = MONTHS.find((item) => String(item).includes(event.target.value));
+                    if (nextMonth) {
+                      setMonth(nextMonth);
+                      setAnMonth(nextMonth);
+                    }
+                  }}
+                  style={{width:"100%",border:"1px solid #d8dee8",borderRadius:"10px",background:"#fff",padding:"11px 12px",fontFamily:F,fontSize:"13px",fontWeight:800,color:"#101828",outline:"none"}}
+                >
+                  {(shareModalYears.length ? shareModalYears : [shareModalYear]).map((year) => <option key={year} value={year}>{year}</option>)}
+                </select>
+              </label>
+
+              <label style={{display:"grid",gap:"6px",fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:"#687385"}}>
+                Month
+                <select
+                  value={shareModalMonth}
+                  onChange={(event) => {
+                    setMonth(event.target.value);
+                    setAnMonth(event.target.value);
+                  }}
+                  style={{width:"100%",border:"1px solid #d8dee8",borderRadius:"10px",background:"#fff",padding:"11px 12px",fontFamily:F,fontSize:"13px",fontWeight:800,color:"#101828",outline:"none"}}
+                >
+                  {MONTHS.map((item) => <option key={item} value={item}>{item}</option>)}
+                </select>
+              </label>
+
+              <label style={{display:"grid",gap:"6px",fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:"#687385"}}>
+                Platform
+                <select
+                  value={plat}
+                  onChange={(event) => setPlat(event.target.value)}
+                  style={{width:"100%",border:"1px solid #d8dee8",borderRadius:"10px",background:"#fff",padding:"11px 12px",fontFamily:F,fontSize:"13px",fontWeight:800,color:"#101828",outline:"none"}}
+                >
+                  {platList.map((item) => <option key={item} value={item}>{item === "Combined" ? "Combined" : PLAT_LABEL[item] || item}</option>)}
+                </select>
+              </label>
+
+              <label style={{display:"grid",gap:"6px",fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:"#687385"}}>
+                Preview range
+                <select
+                  value={shareModalSelectedRange}
+                  onChange={(event) => setShareCardRange(Number(event.target.value))}
+                  style={{width:"100%",border:"1px solid #d8dee8",borderRadius:"10px",background:"#fff",padding:"11px 12px",fontFamily:F,fontSize:"13px",fontWeight:800,color:"#101828",outline:"none"}}
+                >
+                  {(shareModalRangeOptions.length ? shareModalRangeOptions : [3,6]).map((range) => <option key={range} value={range}>Top {range} insights</option>)}
+                </select>
+              </label>
+
+              <label style={{display:"grid",gap:"6px",fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:"#687385"}}>
+                Format
+                <select
+                  value={shareCardFormat}
+                  onChange={(event) => setShareCardFormat(event.target.value)}
+                  style={{width:"100%",border:"1px solid #d8dee8",borderRadius:"10px",background:"#fff",padding:"11px 12px",fontFamily:F,fontSize:"13px",fontWeight:800,color:"#101828",outline:"none"}}
+                >
+                  <option value="PNG">PNG</option>
+                </select>
+              </label>
+
+              <button
+                type="button"
+                onClick={downloadShareCardPackImage}
+                disabled={shareCardFormat !== "PNG"}
+                style={{border:"none",borderRadius:"999px",background:shareCardFormat === "PNG" ? "#101828" : "#9aa4b2",color:"#fff",padding:"12px 18px",fontFamily:F,fontSize:"12px",fontWeight:950,letterSpacing:"0.8px",textTransform:"uppercase",cursor:shareCardFormat === "PNG" ? "pointer" : "not-allowed",whiteSpace:"nowrap",minHeight:"42px"}}
+              >
+                Download 1 Image
+              </button>
+            </div>
+
+            <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"0.95fr 1.05fr",gap:isMobile?"14px":"22px",alignItems:"stretch"}}>
+              <div style={{border:"1px solid #e7e9ee",borderRadius:"16px",padding:isMobile?"14px":"18px",background:"#f8fafc"}}>
+                <div style={{fontFamily:F,fontSize:"10px",fontWeight:950,letterSpacing:"1.4px",textTransform:"uppercase",color:"#687385",marginBottom:"10px"}}>Preview details</div>
+                <div style={{display:"grid",gap:"10px"}}>
+                  {[
+                    ["Page", shareModalPayload.eyebrow || "Ngoma Charts"],
+                    ["Chart", shareModalTypeLabel],
+                    ["Month", shareModalMonth],
+                    ["Platform", shareModalPlatformLabel],
+                    ["Items", `${shareModalHighlights.length} shown`],
+                  ].map(([label,value]) => (
+                    <div key={label} style={{display:"flex",justifyContent:"space-between",gap:"14px",borderBottom:"1px solid #edf0f4",paddingBottom:"8px",fontFamily:F,fontSize:"12px"}}>
+                      <span style={{color:"#687385",fontWeight:800}}>{label}</span>
+                      <strong style={{color:"#101828",textAlign:"right"}}>{value}</strong>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{borderRadius:"18px",overflow:"hidden",background:"linear-gradient(135deg,#101010,#261f18)",minHeight:isMobile?"420px":"520px",padding:isMobile?"22px":"34px",boxSizing:"border-box",boxShadow:"inset 0 0 0 1px rgba(255,255,255,0.08)",position:"relative"}}>
+                <div style={{position:"absolute",right:"-90px",top:"-110px",width:"280px",height:"280px",borderRadius:"50%",background:(shareModalPayload.accent || GOLD) + "33",filter:"blur(4px)"}} />
+                <div style={{position:"relative",zIndex:1,display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:"18px",marginBottom:"28px"}}>
+                  <div>
+                    <div style={{fontFamily:F,fontSize:isMobile?"21px":"28px",fontWeight:950,letterSpacing:"0.5px",color:"#fff"}}>NGOMA <span style={{color:GOLD}}>CHARTS</span></div>
+                    <div style={{fontFamily:F,fontSize:isMobile?"9px":"10.5px",fontWeight:800,letterSpacing:"1.7px",textTransform:"uppercase",color:"rgba(255,255,255,0.62)",marginTop:"5px"}}>Music ranking intelligence</div>
+                  </div>
+                  <div style={{fontFamily:F,fontSize:"10px",fontWeight:950,letterSpacing:"1px",textTransform:"uppercase",color:"#101828",background:GOLD,borderRadius:"999px",padding:"7px 10px",whiteSpace:"nowrap"}}>Top {shareModalHighlights.length}</div>
+                </div>
+
+                <div style={{position:"relative",zIndex:1,fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1.3px",textTransform:"uppercase",color:shareModalPayload.accent || GOLD,marginBottom:"12px"}}>{shareModalPayload.eyebrow}</div>
+                <div style={{position:"relative",zIndex:1,fontFamily:SF,fontSize:isMobile?"28px":"39px",fontWeight:900,lineHeight:1.03,color:"#fff",maxWidth:"880px"}}>{shareModalPayload.title}</div>
+                <div style={{position:"relative",zIndex:1,fontFamily:F,fontSize:isMobile?"12px":"14px",fontWeight:700,lineHeight:1.45,color:"rgba(255,255,255,0.68)",marginTop:"12px"}}>{shareModalPayload.subtitle}</div>
+
+                <div style={{position:"relative",zIndex:1,marginTop:"28px",background:"rgba(255,255,255,0.08)",borderLeft:`5px solid ${shareModalPayload.accent || GOLD}`,borderRadius:"10px",padding:isMobile?"14px":"18px"}}>
+                  {shareModalHighlights.map((line, index) => (
+                    <div key={`${line}-${index}`} style={{fontFamily:F,fontSize:isMobile?"12.5px":"15px",fontWeight:index===0?900:750,lineHeight:1.42,color:index===0?"#fff":"rgba(255,255,255,0.78)",padding:index===0?"0 0 9px":"9px 0",borderBottom:index===shareModalHighlights.length-1?"none":"1px solid rgba(255,255,255,0.08)"}}>
+                      {line}
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{position:"relative",zIndex:1,display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",marginTop:"28px",fontFamily:F,fontSize:"11px",fontWeight:850,letterSpacing:"1px",textTransform:"uppercase",color:"rgba(255,255,255,0.46)"}}>
+                  <span>ngomacharts.com</span>
+                  <span>{new Date().getFullYear()}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -2160,48 +2394,151 @@ liveStatus={liveStatus}
       {/* YEAR-END PAGE */}
       {page==="year-end"&&(
         <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:"20px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:isMobile?"16px":"20px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
             <div>
-              <div style={{fontFamily:F,fontSize:TXT.kicker,letterSpacing:"2.6px",textTransform:"uppercase",color:GOLD,marginBottom:"6px"}}>ANNUAL CHART</div>
+              <div style={{fontFamily:F,fontSize:isMobile?"10.5px":"11px",letterSpacing:isMobile?"1.8px":"2px",textTransform:"uppercase",color:GOLD,marginBottom:"6px",fontWeight:850}}>ANNUAL CHART</div>
               <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0}}>Best of 2024</h2>
-              <p style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",margin:"4px 0 0",lineHeight:1.55}}>Aggregated points across October, November & December 2024</p>
+              <p style={{fontFamily:F,fontSize:TXT.lead,color:"#59645D",margin:"4px 0 0",lineHeight:1.55}}>Aggregated points across October, November & December 2024</p>
             </div>
-            <div style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap"}}>
+            <div className="year-end-actions" data-share-action-area="true" style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap",position:isMobile?"sticky":"static",top:isMobile?"0":"auto",zIndex:isMobile?5:"auto",background:isMobile?"#FFF":"transparent",padding:isMobile?"8px 0 4px":"0"}}>
               <Tog sm/>
               <ShareCardButton compact />
             </div>
           </div>
+
           {/* Podium */}
-          <div className="podium-grid" style={{display:"grid",gridTemplateColumns:"1fr 1.2fr 1fr",gap:"12px",marginBottom:"24px",alignItems:"end"}}>
-            {[yearEnd[1],yearEnd[0],yearEnd[2]].map((e,i)=>{
-              if(!e)return <div key={i}/>;
-              const pos=[2,1,3][i],medal=[SILVER,GOLD,BRONZE][i];
-              return(<div key={i} style={{textAlign:"center",cursor:"pointer"}} onClick={()=>setSelR({title:e.t,artist:e.a,type:isSingles?"single":"album"})}>
-                <div style={{background:medal+"15",border:"2px solid "+medal,borderRadius:"12px",padding:"16px 12px"}}>
-                  <div style={{fontSize:"32px",fontWeight:900,color:medal}}>#{pos}</div>
-                  <div style={{fontSize:i===1?"15px":TXT.cardTitle,fontWeight:800,marginBottom:"4px",lineHeight:1.2}}>{e.t}</div>
-                  <div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginBottom:"8px"}}>{e.a}</div>
-                  <div style={{fontSize:"18px",fontWeight:800,color:medal}}>{e.totalPts.toLocaleString()}</div>
-                  <div style={{fontSize:"9px",color:"#BBB",fontFamily:F}}>total pts · {e.months} months</div>
-                </div>
-              </div>);
-            })}
-          </div>
+          {(()=>{
+            const podiumItems = isMobile
+              ? [
+                  { e: yearEnd[0], pos: 1, medal: GOLD, featured: true },
+                  { e: yearEnd[1], pos: 2, medal: SILVER, featured: false },
+                  { e: yearEnd[2], pos: 3, medal: BRONZE, featured: false },
+                ]
+              : [
+                  { e: yearEnd[1], pos: 2, medal: SILVER, featured: false },
+                  { e: yearEnd[0], pos: 1, medal: GOLD, featured: true },
+                  { e: yearEnd[2], pos: 3, medal: BRONZE, featured: false },
+                ];
+            return (
+              <div className="podium-grid" style={{display:"grid",gridTemplateColumns:"1fr 1.2fr 1fr",gap:isMobile?"10px":"12px",marginBottom:isMobile?"20px":"24px",alignItems:"end"}}>
+                {podiumItems.map(({e,pos,medal,featured},i)=>{
+                  if(!e)return <div key={i}/>;
+                  return(<div key={`${pos}-${e.t}-${e.a}`} style={{textAlign:"center",cursor:"pointer"}} onClick={()=>setSelR({title:e.t,artist:e.a,type:isSingles?"single":"album"})}>
+                    <div style={{background:featured?"linear-gradient(180deg,#FFF9E8 0%,#FFFDF8 100%)":medal+"12",border:(featured?"2.5px":"2px")+" solid "+medal,borderRadius:isMobile?"12px":"13px",padding:featured?(isMobile?"18px 12px":"18px 14px"):(isMobile?"15px 12px":"16px 12px"),boxShadow:featured?"0 14px 36px rgba(184,134,11,0.16)":"none",transform:(!isMobile&&featured)?"translateY(-2px)":"none"}}>
+                      <div style={{fontSize:featured?(isMobile?"33px":"38px"):"32px",fontWeight:950,color:medal,lineHeight:1}}>#{pos}</div>
+                      <div style={{fontSize:featured?(isMobile?"16px":"16px"):TXT.cardTitle,fontWeight:850,margin:"8px 0 4px",lineHeight:1.18}}>{e.t}</div>
+                      <div style={{fontSize:TXT.cardMeta,color:"#59645D",fontFamily:F,marginBottom:"8px"}}>{e.a}</div>
+                      <div style={{fontSize:featured?(isMobile?"18px":"20px"):"18px",fontWeight:850,color:medal}}>{e.totalPts.toLocaleString()}</div>
+                      <div style={{fontSize:"9.5px",color:"#7B817B",fontFamily:F}}>total pts · {e.months} months</div>
+                    </div>
+                  </div>);
+                })}
+              </div>
+            );
+          })()}
+
           {/* Full list */}
-          <div style={{display:"grid",gridTemplateColumns:"48px 1fr 80px 60px",padding:"10px 0",borderBottom:"2px solid #1A1A1A",fontFamily:F,fontSize:"8.5px",fontWeight:700,letterSpacing:"2px",textTransform:"uppercase",color:"#CCC"}}>
-            <span style={{textAlign:"center"}}>#</span><span>TITLE</span><span style={{textAlign:"right"}}>TOTAL PTS</span><span style={{textAlign:"center"}}>MONTHS</span>
+          <div style={{
+            overflowX:isMobile?"auto":"visible",
+            overflowY:"hidden",
+            WebkitOverflowScrolling:"touch",
+            margin:isMobile?"0 -4px":"0",
+            paddingBottom:isMobile?"2px":"0"
+          }}>
+            <div style={{minWidth:isMobile?"350px":"0",width:"100%"}}>
+              <div style={{
+                display:"grid",
+                gridTemplateColumns:isMobile?"34px minmax(90px,1fr) 92px 64px":"54px minmax(0,1fr) 148px 92px",
+                columnGap:isMobile?"16px":"30px",
+                padding:isMobile?"10px 12px":"11px 0",
+                borderBottom:"2px solid #1A1A1A",
+                fontFamily:F,
+                fontSize:isMobile?"7.8px":"9px",
+                fontWeight:900,
+                letterSpacing:isMobile?"0.75px":"1.8px",
+                textTransform:"uppercase",
+                color:"#4F5751",
+                alignItems:"end"
+              }}>
+                <span style={{textAlign:"center"}}>#</span>
+                <span>TITLE</span>
+                <span style={{textAlign:"right",whiteSpace:"nowrap"}}>TOTAL PTS</span>
+                <span style={{textAlign:"right",whiteSpace:"nowrap",borderLeft:isMobile?"1px solid #E6E0D2":"none",paddingLeft:isMobile?"14px":"0"}}>MONTHS</span>
+              </div>
+
+              {yearEnd.slice(0,50).map((item,idx)=>{
+                const t3=idx<3;
+                return(
+                  <div
+                    key={item.t+item.a}
+                    style={{
+                      display:"grid",
+                      gridTemplateColumns:isMobile?"34px minmax(90px,1fr) 92px 64px":"54px minmax(0,1fr) 148px 92px",
+                      columnGap:isMobile?"16px":"30px",
+                      padding:t3?(isMobile?"13px 12px":"13px 0"):(isMobile?"10px 12px":"9px 0"),
+                      borderBottom:"1px solid #F2F2EE",
+                      alignItems:"center",
+                      cursor:"pointer"
+                    }}
+                    onMouseEnter={e=>e.currentTarget.style.background="#FAFAF6"}
+                    onMouseLeave={e=>e.currentTarget.style.background="transparent"}
+                    onClick={()=>setSelR({title:item.t,artist:item.a,type:isSingles?"single":"album"})}
+                  >
+                    <div style={{textAlign:"center",fontSize:t3?(isMobile?"19px":"20px"):(isMobile?"12px":"13px"),fontWeight:850,color:t3?MEDALS[idx]:"#BFC4BF"}}>{idx+1}</div>
+
+                    <div style={{minWidth:0}}>
+                      <div style={{
+                        fontSize:t3?(isMobile?"13.5px":"14px"):TXT.cardTitle,
+                        fontWeight:850,
+                        marginBottom:"1px",
+                        lineHeight:1.15,
+                        whiteSpace:isMobile?"nowrap":"normal",
+                        overflow:isMobile?"hidden":"visible",
+                        textOverflow:isMobile?"ellipsis":"clip"
+                      }}>
+                        {item.t}
+                      </div>
+                      <div style={{
+                        fontSize:TXT.cardMeta,
+                        color:"#59645D",
+                        fontFamily:F,
+                        marginTop:"3px",
+                        whiteSpace:isMobile?"nowrap":"normal",
+                        overflow:isMobile?"hidden":"visible",
+                        textOverflow:isMobile?"ellipsis":"clip"
+                      }}>
+                        {item.a}
+                      </div>
+                    </div>
+
+                    <div style={{
+                      textAlign:"right",
+                      fontFamily:F,
+                      fontSize:t3?(isMobile?"13px":"14px"):TXT.cardMeta,
+                      fontWeight:850,
+                      color:t3?GOLD:"#59645D",
+                      whiteSpace:"nowrap"
+                    }}>
+                      {item.totalPts.toLocaleString()}
+                    </div>
+
+                    <div style={{
+                      textAlign:"right",
+                      fontFamily:F,
+                      fontSize:isMobile?"10.8px":"11px",
+                      color:"#7B817B",
+                      fontWeight:750,
+                      whiteSpace:"nowrap",
+                      borderLeft:isMobile?"1px solid #F0EADB":"none",
+                      paddingLeft:isMobile?"14px":"0"
+                    }}>
+                      {item.months}/3
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-          {yearEnd.slice(0,50).map((item,idx)=>{
-            const t3=idx<3;
-            return(<div key={item.t+item.a} style={{display:"grid",gridTemplateColumns:"48px 1fr 80px 60px",padding:t3?"13px 0":"9px 0",borderBottom:"1px solid #F2F2EE",alignItems:"center",cursor:"pointer"}}
-              onMouseEnter={e=>e.currentTarget.style.background="#FAFAF6"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}
-              onClick={()=>setSelR({title:item.t,artist:item.a,type:isSingles?"single":"album"})}>
-              <div style={{textAlign:"center",fontSize:t3?"20px":"13px",fontWeight:800,color:t3?MEDALS[idx]:"#D8D8D4"}}>{idx+1}</div>
-              <div><div style={{fontSize:t3?"14px":TXT.cardTitle,fontWeight:800,marginBottom:"1px",lineHeight:1.15}}>{item.t}</div><div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginTop:"3px"}}>{item.a}</div></div>
-              <div style={{textAlign:"right",fontFamily:F,fontSize:t3?"14px":TXT.cardMeta,fontWeight:800,color:t3?GOLD:"#69716B"}}>{item.totalPts.toLocaleString()}</div>
-              <div style={{textAlign:"center",fontFamily:F,fontSize:isMobile?"12px":"11px",color:"#BBB"}}>{item.months}/3</div>
-            </div>);
-          })}
         </div>
       )}
 
