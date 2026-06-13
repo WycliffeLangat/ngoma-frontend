@@ -385,6 +385,8 @@ const top = data[0];
   const releaseSingularLower = isSingles ? "song" : "album";
   const platformKeysFor = (chartType = ct) => (chartType === "singles" ? S_PLATS : A_PLATS).filter((platform) => platform !== "Combined");
   const currentPlatformKeys = platformKeysFor(ct);
+  const recordsCoverageTargetFor = (chartType = ct) => (chartType === "albums" ? 2 : platformKeysFor(chartType).length);
+  const currentRecordsCoverageTarget = recordsCoverageTargetFor(ct);
 
   const platformHitsFor = (chartType, targetMonth, title, artist) => {
     return platformKeysFor(chartType).filter((platform) =>
@@ -499,7 +501,7 @@ const top = data[0];
         group.months.add(m);
         group.rows.push({ ...entry, month: m, points, rank, platformCount });
         if (rank === 1) group.numberOneMonths.add(m);
-        if (platformCount >= platformKeysFor(chartType).length) group.fullCoverageMonths.add(m);
+        if (platformCount >= recordsCoverageTargetFor(chartType)) group.fullCoverageMonths.add(m);
       });
     });
     return [...groups.values()];
@@ -574,7 +576,7 @@ const top = data[0];
         label: "Perfect Coverage Club",
         displayLabel: "Perfect Coverage Club",
         value: `${fullCoverageCount} ${releaseLabelLower}`,
-        displaySub: isSingles ? `${currentPlatformKeys.length}/${currentPlatformKeys.length} platform coverage` : `Album coverage across tracked album charts`,
+        displaySub: `${currentRecordsCoverageTarget}/${currentRecordsCoverageTarget} platform coverage`,
         isCoverage: true,
       },
       {
@@ -601,14 +603,14 @@ const top = data[0];
         const hits = platformHitsFor(ct, m, entry.title, entry.artist);
         const fallbackCount = num(entry.platform_count) || num(String(entry.plat || "").split("/")[0]);
         const count = Math.max(hits.length, fallbackCount);
-        if (count >= currentPlatformKeys.length) {
+        if (count >= currentRecordsCoverageTarget) {
           const key = entryKey(entry);
           if (!seen.has(key)) seen.set(key, { title: entry.title, artist: entry.artist, month: m, pts: entry.pts });
         }
       });
     });
     return [...seen.values()].sort((a, b) => num(b.pts) - num(a.pts));
-  }, [ct, currentPlatformKeys]);
+  }, [ct, currentRecordsCoverageTarget]);
 
   const askAI=async()=>{
     if(!aiQ.trim())return;setAiL(true);setAiA("");
