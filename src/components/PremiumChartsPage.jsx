@@ -832,8 +832,8 @@ export default function PremiumChartsPage({
         <div
           style={{
             ...styles.heroMain,
-            gridTemplateColumns: mobile ? "1fr" : "minmax(0, 1fr) minmax(260px, 360px)",
-            gap: mobile ? "20px" : "28px",
+            gridTemplateColumns: "1fr",
+            gap: 0,
           }}
         >
           <div
@@ -889,41 +889,6 @@ export default function PremiumChartsPage({
                 {month}
               </span>
             </div>
-          </div>
-
-          <div
-            style={{
-              ...styles.numberOneCard,
-              borderRadius: mobile ? "22px" : "28px",
-              padding: mobile ? "20px" : "24px",
-            }}
-          >
-            <div style={styles.numberOneLabel}>#1 this month</div>
-
-            <div
-              style={{
-                ...styles.numberOneRank,
-                fontSize: mobile ? "76px" : "96px",
-              }}
-            >
-              1
-            </div>
-
-            <button
-              onClick={() => top && openRelease(top)}
-              style={{
-                ...styles.numberOneTitle,
-                fontSize: mobile ? "23px" : "28px",
-              }}
-            >
-              {top?.title || "—"}
-            </button>
-
-            <button onClick={() => top && openArtist(top.artist)} style={styles.numberOneArtist}>
-              {top?.artist || ""}
-            </button>
-
-            {top?.plat && <div style={styles.coveragePill}>{top.plat} platforms</div>}
           </div>
         </div>
       </section>
