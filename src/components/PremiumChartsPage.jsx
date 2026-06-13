@@ -443,6 +443,7 @@ export function getArtistCountry(item) {
 export default function PremiumChartsPage({
   isMobile,
   loaded,
+  F,
   GOLD,
   MEDALS,
   MONTHS,
