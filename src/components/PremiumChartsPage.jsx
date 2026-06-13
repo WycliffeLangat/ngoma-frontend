@@ -840,6 +840,7 @@ export default function PremiumChartsPage({
               ...styles.heroLeft,
               paddingTop: 0,
               paddingBottom: 0,
+              transform: mobile ? "translateX(-8px)" : "none",
             }}
           >
             <h1
