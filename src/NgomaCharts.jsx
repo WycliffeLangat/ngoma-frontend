@@ -141,6 +141,80 @@ const MvBadge=({e})=>{
   return <span style={{color:"#DEDEDE",fontSize:"9px"}}>{"—"}</span>;
 };
 
+const RecordIcon = ({ label = "", size = 30, muted = false }) => {
+  const key = String(label).toLowerCase();
+  const common = {
+    width: size,
+    height: size,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "1.8",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    style: { color: muted ? "rgba(184,134,11,0.13)" : GOLD, display: "block" },
+  };
+
+  if (key.includes("#1") || key.includes("months at")) {
+    return (
+      <svg {...common}>
+        <path d="M4 18h16" />
+        <path d="M5 16 4 7l5 3 3-6 3 6 5-3-1 9H5Z" />
+      </svg>
+    );
+  }
+
+  if (key.includes("score")) {
+    return (
+      <svg {...common}>
+        <path d="M4 19V5" />
+        <path d="M4 19h16" />
+        <path d="m7 15 3-4 3 2 5-7" />
+      </svg>
+    );
+  }
+
+  if (key.includes("climb")) {
+    return (
+      <svg {...common}>
+        <path d="M4 17 17 4" />
+        <path d="M9 4h8v8" />
+        <path d="M4 17l4 3 2-5" />
+      </svg>
+    );
+  }
+
+  if (key.includes("coverage")) {
+    return (
+      <svg {...common}>
+        <circle cx="12" cy="12" r="8" />
+        <path d="M4 12h16" />
+        <path d="M12 4c2.2 2.3 3.2 5 3.2 8s-1 5.7-3.2 8" />
+        <path d="M12 4c-2.2 2.3-3.2 5-3.2 8s1 5.7 3.2 8" />
+      </svg>
+    );
+  }
+
+  if (key.includes("longevity")) {
+    return (
+      <svg {...common}>
+        <path d="M7 4h10" />
+        <path d="M7 20h10" />
+        <path d="M8 4c0 4 3.2 5.4 4 8-0.8 2.6-4 4-4 8" />
+        <path d="M16 4c0 4-3.2 5.4-4 8 0.8 2.6 4 4 4 8" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg {...common}>
+      <path d="M10 18V6l8-2v10" />
+      <circle cx="7" cy="18" r="3" />
+      <circle cx="15" cy="14" r="3" />
+    </svg>
+  );
+};
+
 const NEWS=[
   {id:1,date:"December 31, 2024",cat:"CHART NEWS",emoji:"🎵",title:"Olodumare Dethrones Bensoul to Claim December #1",excerpt:"After two consecutive months at the top, Bensoul's Extra Pressure falls to #3 as Joel Lwaga's Olodumare storms to #1 with 2,286 points across all six platforms.",body:"Joel Lwaga's Olodumare made history in December 2024, becoming the first song to dethrone Bensoul's Extra Pressure from the #1 spot since Ngoma Charts launched. With 2,286 combined points and a perfect 6/6 platform presence, it cemented its status as one of the most cross-cutting songs of Q4 2024."},
   {id:2,date:"December 15, 2024",cat:"ARTIST SPOTLIGHT",emoji:"🌟",title:"Iyanii: Q4's Fastest-Rising Artist",excerpt:"Kifo Cha Mende rose from outside the Top 20 in October to #2 in December — the biggest month-on-month rise of any song in Q4 2024.",body:"Iyanii's Kifo Cha Mende is the breakout story of Q4 2024. The song accumulated 3,773 combined points across the three months, reaching Diamond-tier-adjacent status."},
@@ -181,6 +255,7 @@ export default function NgomaCharts(){
   const [liveChartEntries, setLiveChartEntries] = useState([]);
   const [liveChartMeta, setLiveChartMeta] = useState(null);
   const [liveChartLoading, setLiveChartLoading] = useState(false);
+  const [openRecord, setOpenRecord] = useState(null);
 
   const isSingles = ct === "singles";
   const platList = isSingles ? S_PLATS : A_PLATS;
@@ -386,6 +461,70 @@ const top = data[0];
 
   // Movement data for the current analytics month and selected chart type
   const mvData = buildMovementData(ct, anMonth);
+
+  const recordKnownArtist = (title = "") => ({
+    "Extra Pressure": "Bensoul",
+    "Ova": "Mbosso",
+    "Olodumare": "Joel Lwaga",
+    "Kifo Cha Mende": "Iyanii",
+  }[title] || "");
+
+  const formatRecordSub = (record = {}) => {
+    let sub = String(record.sub || "").trim();
+    const title = String(record.value || "").trim();
+    const artist = recordKnownArtist(title);
+
+    sub = sub
+      .replace(/(\d+)\s*[x×]\s*#1\s*in\s*Q4/i, (_, n) => `No. 1 for ${n} ${Number(n) === 1 ? "month" : "months"} in Q4`)
+      .replace(/full\s*6\/6\s*platform\s*presence/i, "6/6 platform coverage")
+      .replace(/3\s*of\s*3\s*months\s*charting/i, "Charted all 3 months")
+      .replace(/#(\d+)\s*(?:→|->|to)\s*#(\d+)/i, "#$1 → #$2")
+      .replace(/\b(\d{4,})\s*pts\b/i, (_, n) => `${Number(n).toLocaleString()} pts`);
+
+    if (artist && !sub.toLowerCase().includes(artist.toLowerCase())) {
+      sub = `${artist} · ${sub}`;
+    }
+
+    return sub;
+  };
+
+  const getRecordLabel = (record = {}) => {
+    const label = String(record.label || "").trim();
+    if (/total unique/i.test(label)) return `Total Charted ${releaseLabel}`;
+    return label;
+  };
+
+  const getRecordClimb = (record = {}) => {
+    const sub = String(record.sub || "");
+    const match = sub.match(/#(\d+)\s*(?:→|->|to)\s*#(\d+)/i);
+    if (!match) return null;
+    const from = Number(match[1]);
+    const to = Number(match[2]);
+    const delta = from - to;
+    return delta > 0 ? delta : null;
+  };
+
+  const currentRecords = (isSingles ? MOM.records.singles : MOM.records.albums).map((record) => ({
+    ...record,
+    displayLabel: getRecordLabel(record),
+    displaySub: formatRecordSub(record),
+    climbDelta: getRecordClimb(record),
+    isCoverage: /coverage/i.test(String(record.label || "")),
+  }));
+
+  const fullCoverageClub = useMemo(() => {
+    const seen = new Map();
+    MONTHS.forEach((m) => {
+      getCombined(ct, m).forEach((entry) => {
+        const count = Number(entry.platform_count) || Number(String(entry.plat || "").split("/")[0]) || 0;
+        if (count >= 6) {
+          const key = entryKey(entry);
+          if (!seen.has(key)) seen.set(key, { title: entry.title, artist: entry.artist, month: m, pts: entry.pts });
+        }
+      });
+    });
+    return [...seen.values()].sort((a, b) => Number(b.pts || 0) - Number(a.pts || 0));
+  }, [ct]);
 
   const askAI=async()=>{
     if(!aiQ.trim())return;setAiL(true);setAiA("");
@@ -1017,7 +1156,7 @@ const top = data[0];
       <header style={{background:"#FFF",borderBottom:"3px solid #1A1A1A",position:"sticky",top:0,zIndex:50}}>
         <div style={{background:"#1A1A1A",color:"#FFF"}}>
           <div style={{...pageFrame({display:"flex",justifyContent:"flex-end",alignItems:"center",gap:"10px",padding:isMobile?"6px 16px":"5px 28px"}),fontFamily:F,fontSize:isMobile?"8px":"9.5px",letterSpacing:isMobile?"1px":"2px",textTransform:"uppercase"}}>
-            <span style={{color:"rgba(255,255,255,0.48)",fontSize:isMobile?"8px":"9.5px",letterSpacing:isMobile?"0.5px":"1px",fontFamily:"inherit",whiteSpace:"nowrap"}}>
+            <span style={{color:"rgba(255,255,255,0.68)",fontSize:isMobile?"8px":"9.5px",letterSpacing:isMobile?"0.5px":"1px",fontFamily:"inherit",whiteSpace:"nowrap"}}>
               {new Date().toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short",year:"numeric"})}
             </span>
           </div>
@@ -1810,24 +1949,46 @@ liveStatus={liveStatus}
       {/* RECORDS & MILESTONES PAGE */}
       {page==="records"&&(
         <div style={{padding:PAD,minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:"20px",flexWrap:"wrap",gap:"12px",flexDirection:isMobile?"column":"row"}}>
-            <div>
+          <div style={{marginBottom:isMobile?"18px":"22px"}}>
+            <div style={{maxWidth:isMobile?"100%":"620px"}}>
               <div style={{fontFamily:F,fontSize:TXT.kicker,letterSpacing:"2.6px",textTransform:"uppercase",color:GOLD,marginBottom:"6px"}}>THE RECORD BOOK</div>
               <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0}}>Records & Milestones</h2>
-              <p style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",margin:"4px 0 0",lineHeight:1.55}}>Notable achievements from Q4 2024 · the chart's defining moments</p>
+              <p style={{fontFamily:F,fontSize:TXT.lead,color:"#59645D",margin:"4px 0 0",lineHeight:1.55}}>Notable achievements from Q4 2024 · the chart's defining moments</p>
             </div>
-            <Tog sm/>
+            <div style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",marginTop:isMobile?"14px":"16px",flexWrap:"wrap"}}>
+              <Tog sm/>
+              <button onClick={shareCurrentPageCard} style={{border:"1px solid #D7D2C8",background:"#FFF",borderRadius:"999px",padding:isMobile?"8px 13px":"8px 16px",fontFamily:F,fontSize:isMobile?"10px":"10.5px",fontWeight:850,letterSpacing:"1.1px",textTransform:"uppercase",cursor:"pointer",boxShadow:"0 4px 12px rgba(0,0,0,0.04)",color:"#1A1A1A"}}>Share Card</button>
+            </div>
           </div>
-          <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"14px"}}>
-            {(isSingles?MOM.records.singles:MOM.records.albums).map((r,i)=>(
-              <div key={i} style={{...card(),position:"relative",overflow:"hidden"}}>
-                <div style={{position:"absolute",top:"-10px",right:"-10px",fontSize:"64px",opacity:0.06}}>{r.icon}</div>
-                <div style={{fontSize:"26px",marginBottom:"10px"}}>{r.icon}</div>
-                <div style={{fontFamily:F,fontSize:TXT.micro,fontWeight:800,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,marginBottom:"8px"}}>{r.label}</div>
-                <div style={{fontFamily:SF,fontSize:isMobile?"18px":"19px",fontWeight:800,lineHeight:1.15,marginBottom:"4px"}}>{r.value}</div>
-                <div style={{fontFamily:F,fontSize:TXT.cardMeta,color:"#69716B",lineHeight:1.45}}>{r.sub}</div>
-              </div>
-            ))}
+          <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:isMobile?"14px":"16px"}}>
+            {currentRecords.map((r,i)=>{
+              const expanded = r.isCoverage && openRecord === i;
+              return (
+                <div key={`${r.displayLabel}-${r.value}`} onClick={()=>r.isCoverage&&setOpenRecord(expanded?null:i)} style={{...card({padding:isMobile?"19px":"24px"}),position:"relative",overflow:"hidden",cursor:r.isCoverage?"pointer":"default"}}>
+                  <div style={{position:"absolute",top:isMobile?"8px":"12px",right:isMobile?"10px":"14px",opacity:1}}><RecordIcon label={r.displayLabel} size={isMobile?54:66} muted /></div>
+                  <div style={{marginBottom:"13px",position:"relative",zIndex:1}}><RecordIcon label={r.displayLabel} size={isMobile?28:30} /></div>
+                  <div style={{fontFamily:F,fontSize:isMobile?"10px":"10.5px",fontWeight:850,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,marginBottom:"9px",position:"relative",zIndex:1,lineHeight:1.35}}>{r.displayLabel}</div>
+                  <div style={{fontFamily:SF,fontSize:isMobile?"20px":"21px",fontWeight:850,lineHeight:1.12,marginBottom:"5px",position:"relative",zIndex:1}}>{r.value}</div>
+                  <div style={{fontFamily:F,fontSize:isMobile?"13px":"13px",color:"#59645D",lineHeight:1.45,position:"relative",zIndex:1,display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}>
+                    <span>{r.displaySub}</span>
+                    {r.climbDelta&&<span style={{display:"inline-flex",alignItems:"center",padding:"2px 7px",borderRadius:"999px",background:"#EAF8EF",color:"#1E8E3E",fontSize:"10px",fontWeight:900,letterSpacing:"0.4px"}}>+{r.climbDelta}</span>}
+                  </div>
+                  {r.isCoverage&&(
+                    <div style={{fontFamily:F,fontSize:isMobile?"10.5px":"10.5px",color:GOLD,fontWeight:800,letterSpacing:"0.5px",marginTop:"12px",position:"relative",zIndex:1}}>{expanded?"Hide songs":"View songs"}</div>
+                  )}
+                  {expanded&&(
+                    <div style={{marginTop:"12px",paddingTop:"12px",borderTop:"1px solid #F0EEE8",position:"relative",zIndex:1}}>
+                      {fullCoverageClub.length?fullCoverageClub.slice(0,6).map((song,idx)=>(
+                        <div key={`${song.title}-${song.artist}`} style={{display:"grid",gridTemplateColumns:"22px minmax(0,1fr)",gap:"8px",alignItems:"start",padding:"6px 0",fontFamily:F}}>
+                          <span style={{fontSize:"10px",fontWeight:900,color:GOLD}}>#{idx+1}</span>
+                          <span style={{minWidth:0}}><strong style={{fontSize:"12px",color:"#1A1A1A"}}>{song.title}</strong><span style={{display:"block",fontSize:"11px",color:"#59645D",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{song.artist} · {song.month}</span></span>
+                        </div>
+                      )):<div style={{fontFamily:F,fontSize:"12px",color:"#59645D"}}>No full-coverage entries found for this view.</div>}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
@@ -2014,7 +2175,7 @@ liveStatus={liveStatus}
       </main>
 
       {/* FOOTER */}
-      <footer style={{padding:isMobile?"20px 18px":"20px 28px",borderTop:"3px solid #1A1A1A",background:"#1A1A1A",fontFamily:F,boxSizing:"border-box",overflow:"hidden"}}>
+      <footer style={{padding:isMobile?"24px 18px 30px":"20px 28px",borderTop:"3px solid #1A1A1A",background:"#1A1A1A",fontFamily:F,boxSizing:"border-box",overflow:"hidden"}}>
         <div style={{...pageFrame(),display:"flex",justifyContent:"space-between",alignItems:isMobile?"flex-start":"center",flexWrap:"wrap",gap:"12px",flexDirection:isMobile?"column":"row"}}>
           <div onClick={()=>navTo("charts")} style={{display:"flex",alignItems:"center",gap:"9px",cursor:"pointer"}}>
             <svg width="16" height="18" viewBox="0 0 22 24" style={{flexShrink:0}}>
@@ -2035,9 +2196,9 @@ liveStatus={liveStatus}
                path:"M12 7.3A4.7 4.7 0 1012 16.7 4.7 4.7 0 0012 7.3Zm0 7.7a3 3 0 110-6 3 3 0 010 6Zm4.9-7.9a1.1 1.1 0 11-2.2 0 1.1 1.1 0 012.2 0ZM16.5 5h-9A2.5 2.5 0 005 7.5v9A2.5 2.5 0 007.5 19h9a2.5 2.5 0 002.5-2.5v-9A2.5 2.5 0 0016.5 5Z"},
             ].map(s=>(
               <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label}
-                 style={{display:"flex",color:"rgba(255,255,255,0.35)",transition:"color .2s"}}
+                 style={{display:"flex",color:"rgba(255,255,255,0.62)",transition:"color .2s"}}
                  onMouseEnter={e=>e.currentTarget.style.color="#B8860B"}
-                 onMouseLeave={e=>e.currentTarget.style.color="rgba(255,255,255,0.35)"}>
+                 onMouseLeave={e=>e.currentTarget.style.color="rgba(255,255,255,0.62)"}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d={s.path}/></svg>
               </a>
             ))}
@@ -2052,7 +2213,7 @@ liveStatus={liveStatus}
             gap: isMobile ? "4px" : "10px",
             alignItems: isMobile ? "flex-start" : "center",
             fontSize: "8px",
-            color: "rgba(255,255,255,0.22)",
+            color: "rgba(255,255,255,0.38)",
             letterSpacing: "1px",
             textTransform: "uppercase",
           }}
