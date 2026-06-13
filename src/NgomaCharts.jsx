@@ -2480,7 +2480,7 @@ liveStatus={liveStatus}
                       aria-expanded={expanded}
                       style={{
                         display:"grid",
-                        gridTemplateColumns:"34px minmax(0,1fr) max-content",
+                        gridTemplateColumns:"34px minmax(0,1fr) 38px",
                         gap:"10px",
                         alignItems:"center",
                         cursor:"pointer",
@@ -2541,20 +2541,6 @@ liveStatus={liveStatus}
                       </div>
 
                       <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:"6px",minWidth:0}}>
-                        <div style={{
-                          minWidth:"64px",
-                          padding:"6px 7px",
-                          borderRadius:"12px",
-                          background:t3?"#FFF7E4":"#FBFAF7",
-                          border:"1px solid rgba(0,0,0,0.08)",
-                          textAlign:"center",
-                          fontFamily:F,
-                          color:t3?GOLD:"#59645D",
-                          boxSizing:"border-box",
-                        }}>
-                          <div style={{fontSize:"12px",fontWeight:950,lineHeight:1,whiteSpace:"nowrap"}}>{item.totalPts.toLocaleString()}</div>
-                          <div style={{fontSize:"7.5px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",marginTop:"3px",color:"#7B817B"}}>pts</div>
-                        </div>
                         <button
                           type="button"
                           onClick={(event)=>{event.stopPropagation();toggleYearEndRow(rowKey);}}
