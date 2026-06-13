@@ -481,6 +481,7 @@ export default function PremiumChartsPage({
   liveChartMeta,
   liveStatus,
   pageMax = "1240px",
+  shareCurrentPageCard,
 }) {
   const mobile = useRealMobile(isMobile);
   const safeGutter = mobile ? "clamp(20px, 5vw, 28px)" : "28px";
@@ -1123,6 +1124,16 @@ export default function PremiumChartsPage({
             >
               ↓ Export CSV
             </button>
+            {typeof shareCurrentPageCard === "function" && (
+              <button
+                type="button"
+                onClick={shareCurrentPageCard}
+                style={styles.shareButton}
+                title="Create a share card for this chart view"
+              >
+                Share Card
+              </button>
+            )}
             <div style={styles.tableRange}>Top {Math.min(vc, data.length)}</div>
           </div>
         </div>
@@ -2019,8 +2030,9 @@ const styles = {
   tableTopActions: {
     display: "flex",
     alignItems: "center",
-    gap: "12px",
+    gap: "10px",
     flexShrink: 0,
+    flexWrap: "wrap",
   },
 
   exportButton: {
@@ -2035,6 +2047,21 @@ const styles = {
     textTransform: "uppercase",
     cursor: "pointer",
     whiteSpace: "nowrap",
+  },
+
+  shareButton: {
+    border: "1px solid rgba(0,0,0,0.18)",
+    borderRadius: "999px",
+    background: "#101828",
+    color: "#ffffff",
+    padding: "9px 16px",
+    fontSize: "12px",
+    fontWeight: 900,
+    letterSpacing: "0.6px",
+    textTransform: "uppercase",
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+    boxShadow: "0 8px 22px rgba(16,24,40,0.10)",
   },
 
   pillFade: {

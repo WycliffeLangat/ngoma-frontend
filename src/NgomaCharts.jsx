@@ -574,7 +574,7 @@ const top = data[0];
         label: "Perfect Coverage Club",
         displayLabel: "Perfect Coverage Club",
         value: `${fullCoverageCount} ${releaseLabelLower}`,
-        displaySub: `${currentPlatformKeys.length}/${currentPlatformKeys.length} platform coverage`,
+        displaySub: isSingles ? `${currentPlatformKeys.length}/${currentPlatformKeys.length} platform coverage` : `Album coverage across tracked album charts`,
         isCoverage: true,
       },
       {
@@ -1135,6 +1135,31 @@ const top = data[0];
     saveShareImage(url, fname, payload.title);
   };
 
+  const ShareCardButton = ({ compact = false, dark = false }) => (
+    <button
+      type="button"
+      onClick={shareCurrentPageCard}
+      style={{
+        border: dark ? "1px solid rgba(255,255,255,0.28)" : "1px solid #D7D2C8",
+        background: dark ? "#101828" : "#FFF",
+        borderRadius: "999px",
+        padding: compact ? (isMobile ? "8px 12px" : "8px 14px") : (isMobile ? "9px 14px" : "9px 16px"),
+        fontFamily: F,
+        fontSize: isMobile ? "10px" : "10.5px",
+        fontWeight: 850,
+        letterSpacing: "1.05px",
+        textTransform: "uppercase",
+        cursor: "pointer",
+        boxShadow: dark ? "0 8px 24px rgba(0,0,0,0.10)" : "0 4px 12px rgba(0,0,0,0.04)",
+        color: dark ? "#FFF" : "#1A1A1A",
+        whiteSpace: "nowrap",
+        lineHeight: 1,
+      }}
+    >
+      Share Card
+    </button>
+  );
+
   const shareReleaseCard = (r) => {
     if(!r)return;
     const peak=MONTHS.reduce((best,m)=>{const e=getCombined(r.type==="album"?"albums":"singles",m).find(x=>x.title===r.title&&x.artist===r.artist);if(e&&(!best||e.rank<best.rank))return{...e,month:m};return best;},null);
@@ -1494,6 +1519,7 @@ const top = data[0];
 liveChartMeta={liveChartMeta}
 liveStatus={liveStatus}
     pageMax={PAGE_MAX}
+    shareCurrentPageCard={shareCurrentPageCard}
   />
 )}
 
@@ -1505,7 +1531,10 @@ liveStatus={liveStatus}
               <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0}}>Top Artists</h2>
               <p style={{fontFamily:F,fontSize:isMobile?"12.5px":"11.5px",color:"#59645D",margin:"5px 0 0",lineHeight:1.6}}>Computed from full Top 50 across all months · Click any artist for full profile</p>
             </div>
-            <Tog sm/>
+            <div style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap"}}>
+              <Tog sm/>
+              <ShareCardButton compact />
+            </div>
           </div>
           {/* Comparison */}
           <div style={{...card(),padding:isMobile?"18px":"22px",marginBottom:"22px",background:"#FAFAF8"}}>
@@ -1584,6 +1613,7 @@ liveStatus={liveStatus}
                 {MONTHS.map(m=><option key={m} value={m}>{m}</option>)}
               </select>
               <Tog sm/>
+              <ShareCardButton compact />
             </div>
           </div>
           {/* AI Analyst — hidden for now, re-enable by removing the display:none wrapper */}
@@ -1940,7 +1970,10 @@ liveStatus={liveStatus}
                 <h2 style={{fontSize:isMobile?"24px":"24px",fontWeight:800,margin:0}}>Trending Up</h2>
                 <p style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:"#626A64",margin:"6px 0 0",lineHeight:1.55}}>Tracks rising fastest across the charts, based on recent point gains.</p>
               </div>
-              <div style={{marginTop:isMobile?"2px":0}}><Tog sm/></div>
+              <div style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap",marginTop:isMobile?"2px":0}}>
+                <Tog sm/>
+                <ShareCardButton compact />
+              </div>
             </div>
 
             <div style={{...card({background:"linear-gradient(135deg,#F4FBF5,#FFFFFF)",borderColor:"#2DB04A22",padding:isMobile?"18px":"24px"}),marginBottom:isMobile?"16px":"20px"}}>
@@ -2040,7 +2073,7 @@ liveStatus={liveStatus}
             </div>
             <div style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",marginTop:isMobile?"14px":"16px",flexWrap:"wrap"}}>
               <Tog sm/>
-              <button onClick={shareCurrentPageCard} style={{border:"1px solid #D7D2C8",background:"#FFF",borderRadius:"999px",padding:isMobile?"8px 13px":"8px 16px",fontFamily:F,fontSize:isMobile?"10px":"10.5px",fontWeight:850,letterSpacing:"1.1px",textTransform:"uppercase",cursor:"pointer",boxShadow:"0 4px 12px rgba(0,0,0,0.04)",color:"#1A1A1A"}}>Share Card</button>
+              <ShareCardButton compact />
             </div>
           </div>
           <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:isMobile?"14px":"16px"}}>
@@ -2057,7 +2090,7 @@ liveStatus={liveStatus}
                     {r.climbDelta&&<span style={{display:"inline-flex",alignItems:"center",padding:"2px 7px",borderRadius:"999px",background:"#EAF8EF",color:"#1E8E3E",fontSize:"10px",fontWeight:900,letterSpacing:"0.4px"}}>+{r.climbDelta}</span>}
                   </div>
                   {r.isCoverage&&(
-                    <div style={{fontFamily:F,fontSize:isMobile?"10.5px":"10.5px",color:GOLD,fontWeight:800,letterSpacing:"0.5px",marginTop:"12px",position:"relative",zIndex:1}}>{expanded?"Hide songs":"View songs"}</div>
+                    <div style={{fontFamily:F,fontSize:isMobile?"10.5px":"10.5px",color:GOLD,fontWeight:800,letterSpacing:"0.5px",marginTop:"12px",position:"relative",zIndex:1}}>{expanded?`Hide ${releaseLabelLower}`:`View ${releaseLabelLower}`}</div>
                   )}
                   {expanded&&(
                     <div style={{marginTop:"12px",paddingTop:"12px",borderTop:"1px solid #F0EEE8",position:"relative",zIndex:1}}>
@@ -2085,7 +2118,10 @@ liveStatus={liveStatus}
               <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0}}>Best of 2024</h2>
               <p style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",margin:"4px 0 0",lineHeight:1.55}}>Aggregated points across October, November & December 2024</p>
             </div>
-            <Tog sm/>
+            <div style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap"}}>
+              <Tog sm/>
+              <ShareCardButton compact />
+            </div>
           </div>
           {/* Podium */}
           <div className="podium-grid" style={{display:"grid",gridTemplateColumns:"1fr 1.2fr 1fr",gap:"12px",marginBottom:"24px",alignItems:"end"}}>
@@ -2124,8 +2160,16 @@ liveStatus={liveStatus}
       {/* CERTIFICATIONS PAGE */}
       {page==="certifications"&&(
         <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
-          <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px"}}>Ngoma Certifications</h2>
-          <p style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",margin:"0 0 24px",lineHeight:1.55}}>Awarded based on cumulative combined chart points across all months · Computed from full Top 50</p>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:"24px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
+            <div>
+              <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px"}}>Ngoma Certifications</h2>
+              <p style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",margin:0,lineHeight:1.55}}>Awarded based on cumulative combined chart points across all months · Computed from full Top 50</p>
+            </div>
+            <div style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap"}}>
+              <Tog sm/>
+              <ShareCardButton compact />
+            </div>
+          </div>
           <div className="anl-grid-4" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"12px",marginBottom:"28px"}}>
             {[{icon:"💎",l:"Diamond",pts:"5,000+",color:"#7B1FA2"},{icon:"🪙",l:"Platinum",pts:"2,000+",color:SILVER},{icon:"🥇",l:"Gold",pts:"1,000+",color:GOLD},{icon:"🎵",l:"Ngoma",pts:"500+",color:"#2DB04A"}].map((c,i)=>(
               <div key={i} style={{...card({textAlign:"center"}),borderTop:"3px solid "+c.color}}>
@@ -2135,7 +2179,6 @@ liveStatus={liveStatus}
               </div>
             ))}
           </div>
-          <Tog sm/>
           <div style={{marginTop:"16px"}}>
             {["diamond","platinum","gold","ngoma"].map(level=>{
               const filtered=certs.filter(c=>c.level===level);
