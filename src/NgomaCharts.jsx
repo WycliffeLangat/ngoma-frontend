@@ -2462,8 +2462,8 @@ liveStatus={liveStatus}
               }}>
                 <span style={{textAlign:"center"}}>#</span>
                 <span>TITLE</span>
-                <span style={{textAlign:"right",whiteSpace:"nowrap"}}>TOTAL PTS</span>
-                <span style={{textAlign:"right",whiteSpace:"nowrap",borderLeft:isMobile?"1px solid #E6E0D2":"none",paddingLeft:isMobile?"14px":"0"}}>MONTHS</span>
+                <span style={{textAlign:"center",justifySelf:"stretch",whiteSpace:"nowrap"}}>TOTAL PTS</span>
+                <span style={{textAlign:"center",justifySelf:"stretch",whiteSpace:"nowrap",borderLeft:isMobile?"1px solid #E6E0D2":"none",paddingLeft:0}}>MONTHS</span>
               </div>
 
               {yearEnd.slice(0,50).map((item,idx)=>{
@@ -2512,7 +2512,8 @@ liveStatus={liveStatus}
                     </div>
 
                     <div style={{
-                      textAlign:"right",
+                      textAlign:"center",
+                      justifySelf:"stretch",
                       fontFamily:F,
                       fontSize:t3?(isMobile?"13px":"14px"):TXT.cardMeta,
                       fontWeight:850,
@@ -2523,14 +2524,15 @@ liveStatus={liveStatus}
                     </div>
 
                     <div style={{
-                      textAlign:"right",
+                      textAlign:"center",
+                      justifySelf:"stretch",
                       fontFamily:F,
                       fontSize:isMobile?"10.8px":"11px",
                       color:"#7B817B",
                       fontWeight:750,
                       whiteSpace:"nowrap",
                       borderLeft:isMobile?"1px solid #F0EADB":"none",
-                      paddingLeft:isMobile?"14px":"0"
+                      paddingLeft:0
                     }}>
                       {item.months}/3
                     </div>
