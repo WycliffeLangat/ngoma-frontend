@@ -851,7 +851,7 @@ export default function PremiumChartsPage({
                 fontSize: mobile ? "30px" : "72px",
                 letterSpacing: mobile ? "-0.45px" : "-2.6px",
                 lineHeight: mobile ? 0.96 : 0.9,
-                margin: mobile ? "-2px 0 46px" : "-10px 0 78px",
+                margin: mobile ? "28px 0 28px" : "38px 0 38px",
               }}
             >
               <span style={{ display: "block", whiteSpace: "nowrap" }}>{chartTitle}</span>
