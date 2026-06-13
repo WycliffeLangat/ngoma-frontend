@@ -804,7 +804,7 @@ export default function PremiumChartsPage({
           maxWidth: pageMax,
           margin: "0 auto",
           boxSizing: "border-box",
-          padding: mobile ? `28px ${safeGutter} 24px` : "42px 36px 38px",
+          padding: mobile ? "28px 0 24px" : "42px 0 38px",
           opacity: loaded ? 1 : 0,
           transform: loaded ? "none" : "translateY(8px)",
         }}
@@ -841,7 +841,7 @@ export default function PremiumChartsPage({
               ...styles.heroLeft,
               paddingTop: 0,
               paddingBottom: 0,
-              transform: mobile ? "translateX(-8px)" : "none",
+              transform: "none",
             }}
           >
             <h1
