@@ -1058,34 +1058,33 @@ const top = data[0];
 
   const CertificationTag = ({ cert, compact = true, style = {} }) => {
     if (!cert) return null;
+    const certificationLabel = `${cert.label} certified · ${Number(cert.totalPts || 0).toLocaleString()} points`;
     return (
       <span
         style={{
           display: "inline-flex",
           alignItems: "center",
           justifyContent: "center",
-          gap: "4px",
           width: "fit-content",
           maxWidth: "100%",
-          padding: compact ? "2px 7px" : "4px 9px",
+          minWidth: compact ? "24px" : "30px",
+          minHeight: compact ? "24px" : "30px",
+          padding: compact ? "2px 5px" : "4px 6px",
           borderRadius: "999px",
           background: `${cert.color}14`,
           border: `1px solid ${cert.color}40`,
           color: cert.color,
           fontFamily: F,
-          fontSize: compact ? "9px" : "10px",
-          fontWeight: 900,
-          letterSpacing: compact ? "0.5px" : "0.8px",
+          fontSize: compact ? "13px" : "17px",
           lineHeight: 1.1,
-          textTransform: "uppercase",
           whiteSpace: "nowrap",
           verticalAlign: "middle",
           ...style,
         }}
-        title={`${cert.label} certified · ${Number(cert.totalPts || 0).toLocaleString()} points`}
+        title={certificationLabel}
+        aria-label={certificationLabel}
       >
         <span aria-hidden="true">{cert.icon}</span>
-        <span>{compact ? cert.label : `${cert.label} Certified`}</span>
       </span>
     );
   };
