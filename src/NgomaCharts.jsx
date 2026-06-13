@@ -2726,9 +2726,9 @@ liveStatus={liveStatus}
                   return(<div key={`${pos}-${e.t}-${e.a}`} style={{textAlign:"center",cursor:"pointer"}} onClick={()=>openReleaseDetails(e,isSingles?"single":"album")}>
                     <div style={{background:featured?"linear-gradient(180deg,#FFF9E8 0%,#FFFDF8 100%)":medal+"12",border:(featured?"2.5px":"2px")+" solid "+medal,borderRadius:isMobile?"12px":"13px",padding:featured?(isMobile?"18px 12px":"18px 14px"):(isMobile?"15px 12px":"16px 12px"),boxShadow:featured?"0 14px 36px rgba(184,134,11,0.16)":"none",transform:(!isMobile&&featured)?"translateY(-2px)":"none"}}>
                       <div style={{fontSize:featured?(isMobile?"33px":"38px"):"32px",fontWeight:950,color:medal,lineHeight:1}}>#{pos}</div>
+                      <CountryBadge artist={e.a} style={{margin:"10px auto 0",minWidth:isMobile?"34px":"38px",height:isMobile?"30px":"34px",borderRadius:"11px",padding:"0 7px"}} />
                       <div style={{fontSize:featured?(isMobile?"16px":"16px"):TXT.cardTitle,fontWeight:850,margin:"8px 0 4px",lineHeight:1.18}}>{e.t}</div>
                       <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(e.a);}} style={{display:"block",width:"100%",fontSize:TXT.cardMeta,color:"#59645D",fontFamily:F,fontWeight:750,marginBottom:"6px",padding:0,border:0,background:"transparent",cursor:"pointer"}}>{e.a}</button>
-                      <CountryBadge artist={e.a} showName style={{margin:"0 auto 8px"}} />
                       {certification&&<CertificationTag cert={certification} compact style={{margin:"0 auto 8px"}} />}
                       <div style={{fontSize:featured?(isMobile?"18px":"20px"):"18px",fontWeight:850,color:medal}}>{e.totalPts.toLocaleString()}</div>
                       <div style={{fontSize:"9.5px",color:"#7B817B",fontFamily:F}}>total pts · {e.months} months</div>
@@ -2749,13 +2749,11 @@ liveStatus={liveStatus}
                 const medalColor = t3 ? MEDALS[idx] : "#050505";
                 const itemTypeLabel = isSingles ? "Single" : "Album";
                 const certification = getCertificationForEntry(item, isSingles ? "single" : "album");
-                const itemCountry = getArtistCountry({artist:item.a});
                 const statItems = [
                   { label:"Total Pts", value:item.totalPts.toLocaleString() },
                   { label:"Months", value:`${item.months}/3` },
                   { label:"Year-End Rank", value:`#${idx+1}` },
                   { label:"Type", value:itemTypeLabel },
-                  { label:"Country", value:itemCountry.code || "—" },
                   ...(certification ? [{ label:"Certification", value:certification.label }] : []),
                 ];
 
@@ -2787,57 +2785,59 @@ liveStatus={liveStatus}
                     >
                       <div style={{fontSize:t3?"28px":"24px",fontWeight:950,lineHeight:1,color:medalColor,textAlign:"center",fontFamily:F}}>{idx+1}</div>
 
-                      <div style={{minWidth:0,maxWidth:"100%"}}>
-                        <button
-                          type="button"
-                          onClick={(event)=>{event.stopPropagation();openReleaseDetails(item,isSingles?"single":"album");}}
-                          style={{
-                            display:"block",
-                            width:"100%",
-                            border:0,
-                            background:"transparent",
-                            padding:0,
-                            margin:0,
-                            textAlign:"left",
-                            fontFamily:SF,
-                            fontSize:t3?"15.5px":"15px",
-                            fontWeight:850,
-                            lineHeight:1.15,
-                            color:"#050505",
-                            whiteSpace:"nowrap",
-                            overflow:"hidden",
-                            textOverflow:"ellipsis",
-                            cursor:"pointer",
-                          }}
-                        >
-                          {item.t}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={(event)=>{event.stopPropagation();openArtistDetails(item.a);}}
-                          style={{
-                            display:"block",
-                            width:"100%",
-                            border:0,
-                            background:"transparent",
-                            padding:0,
-                            margin:"4px 0 0",
-                            textAlign:"left",
-                            fontFamily:F,
-                            fontSize:"12.2px",
-                            fontWeight:700,
-                            lineHeight:1.35,
-                            color:"#59645D",
-                            whiteSpace:"nowrap",
-                            overflow:"hidden",
-                            textOverflow:"ellipsis",
-                            cursor:"pointer",
-                          }}
-                        >
-                          {item.a}
-                        </button>
-                        <CountryBadge artist={item.a} showName style={{marginTop:"7px"}} />
-                        {certification&&<CertificationTag cert={certification} compact style={{marginTop:"6px"}} />}
+                      <div style={{display:"flex",alignItems:"center",gap:"11px",minWidth:0,maxWidth:"100%"}}>
+                        <CountryBadge artist={item.a} style={{minWidth:"42px",width:"42px",height:"42px",borderRadius:"12px",padding:0,flexShrink:0}} />
+                        <div style={{minWidth:0,flex:1}}>
+                          <button
+                            type="button"
+                            onClick={(event)=>{event.stopPropagation();openReleaseDetails(item,isSingles?"single":"album");}}
+                            style={{
+                              display:"block",
+                              width:"100%",
+                              border:0,
+                              background:"transparent",
+                              padding:0,
+                              margin:0,
+                              textAlign:"left",
+                              fontFamily:SF,
+                              fontSize:t3?"15.5px":"15px",
+                              fontWeight:850,
+                              lineHeight:1.15,
+                              color:"#050505",
+                              whiteSpace:"nowrap",
+                              overflow:"hidden",
+                              textOverflow:"ellipsis",
+                              cursor:"pointer",
+                            }}
+                          >
+                            {item.t}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(event)=>{event.stopPropagation();openArtistDetails(item.a);}}
+                            style={{
+                              display:"block",
+                              width:"100%",
+                              border:0,
+                              background:"transparent",
+                              padding:0,
+                              margin:"4px 0 0",
+                              textAlign:"left",
+                              fontFamily:F,
+                              fontSize:"12.2px",
+                              fontWeight:700,
+                              lineHeight:1.35,
+                              color:"#59645D",
+                              whiteSpace:"nowrap",
+                              overflow:"hidden",
+                              textOverflow:"ellipsis",
+                              cursor:"pointer",
+                            }}
+                          >
+                            {item.a}
+                          </button>
+                          {certification&&<CertificationTag cert={certification} compact style={{marginTop:"6px"}} />}
+                        </div>
                       </div>
 
                       <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:"6px",minWidth:0}}>
@@ -2963,40 +2963,42 @@ liveStatus={liveStatus}
                     >
                       <div style={{textAlign:"center",fontSize:t3?"20px":"13px",fontWeight:850,color:t3?MEDALS[idx]:"#BFC4BF"}}>{idx+1}</div>
 
-                      <div style={{minWidth:0}}>
-                        <div style={{
-                          display:"flex",
-                          alignItems:"center",
-                          gap:"7px",
-                          flexWrap:"wrap",
-                          fontSize:t3?"14px":TXT.cardTitle,
-                          fontWeight:850,
-                          marginBottom:"1px",
-                          lineHeight:1.15,
-                          whiteSpace:"normal",
-                          overflow:"visible",
-                          textOverflow:"clip"
-                        }}>
-                          <span>{item.t}</span>
-                          {certification&&<CertificationTag cert={certification} compact />}
+                      <div style={{display:"flex",alignItems:"center",gap:"12px",minWidth:0}}>
+                        <CountryBadge artist={item.a} style={{minWidth:"50px",width:"50px",height:"50px",borderRadius:"14px",padding:0,flexShrink:0}} />
+                        <div style={{minWidth:0}}>
+                          <div style={{
+                            display:"flex",
+                            alignItems:"center",
+                            gap:"7px",
+                            flexWrap:"wrap",
+                            fontSize:t3?"14px":TXT.cardTitle,
+                            fontWeight:850,
+                            marginBottom:"1px",
+                            lineHeight:1.15,
+                            whiteSpace:"normal",
+                            overflow:"visible",
+                            textOverflow:"clip"
+                          }}>
+                            <span>{item.t}</span>
+                            {certification&&<CertificationTag cert={certification} compact />}
+                          </div>
+                          <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(item.a);}} style={{
+                            fontSize:TXT.cardMeta,
+                            color:"#59645D",
+                            fontFamily:F,
+                            border:0,
+                            background:"transparent",
+                            padding:0,
+                            textAlign:"left",
+                            cursor:"pointer",
+                            marginTop:"3px",
+                            whiteSpace:"normal",
+                            overflow:"visible",
+                            textOverflow:"clip"
+                          }}>
+                            {item.a}
+                          </button>
                         </div>
-                        <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(item.a);}} style={{
-                          fontSize:TXT.cardMeta,
-                          color:"#59645D",
-                          fontFamily:F,
-                          border:0,
-                          background:"transparent",
-                          padding:0,
-                          textAlign:"left",
-                          cursor:"pointer",
-                          marginTop:"3px",
-                          whiteSpace:"normal",
-                          overflow:"visible",
-                          textOverflow:"clip"
-                        }}>
-                          {item.a}
-                        </button>
-                        <CountryBadge artist={item.a} showName style={{marginTop:"7px"}} />
                       </div>
 
                       <div style={{
