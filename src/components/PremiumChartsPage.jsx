@@ -1,49 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 
-// Region-based colour-coding for country badges. Lets a user scan the chart
-// and instantly gauge domestic (KE) vs cross-border market penetration.
-const REGION_BADGE = {
-  KE: { from: "#d4af37", to: "#b88914", text: "#111111" }, // Kenya — gold (home market)
-  TZ: { from: "#2f7bd6", to: "#1d579e", text: "#ffffff" }, // Tanzania — blue
-  UG: { from: "#15909e", to: "#0e6770", text: "#ffffff" }, // Uganda — teal
-  RW: { from: "#4f5bd5", to: "#3a44a6", text: "#ffffff" }, // Rwanda — indigo
-  CD: { from: "#b07a2b", to: "#825a1d", text: "#ffffff" }, // DR Congo — bronze
-  NG: { from: "#7a5bd0", to: "#5a3fa6", text: "#ffffff" }, // Nigeria — violet
-  GH: { from: "#c0463b", to: "#902f27", text: "#ffffff" }, // Ghana — red
-  ZA: { from: "#e07b1f", to: "#b35f13", text: "#ffffff" }, // South Africa — orange
-  US: { from: "#4a5568", to: "#2d3340", text: "#ffffff" }, // USA / intl — slate
-  GB: { from: "#5b6b8c", to: "#3c4a66", text: "#ffffff" }, // UK — slate-blue
-};
-const DEFAULT_BADGE = { from: "#9aa0a6", to: "#6b7077", text: "#ffffff" }; // other / unknown — grey
-
-// Flag-derived palettes replace the previous arbitrary regional colors.
-const FLAG_BADGE = {
-  BB: { from: "#00267F", to: "#FFC726", text: "#111111" },
-  CA: { from: "#D80621", to: "#FFFFFF", text: "#111111" },
-  CD: { from: "#007FFF", to: "#CE1021", text: "#FFFFFF" },
-  CI: { from: "#F77F00", to: "#009E60", text: "#FFFFFF" },
-  FR: { from: "#0055A4", to: "#EF4135", text: "#FFFFFF" },
-  GB: { from: "#012169", to: "#C8102E", text: "#FFFFFF" },
-  GH: { from: "#CE1126", to: "#006B3F", text: "#FFFFFF" },
-  IN: { from: "#FF9933", to: "#138808", text: "#111111" },
-  JM: { from: "#009B3A", to: "#FED100", text: "#111111" },
-  KE: { from: "#000000", to: "#006600", text: "#FFFFFF" },
-  KR: { from: "#FFFFFF", to: "#CD2E3A", text: "#111111" },
-  NG: { from: "#008751", to: "#FFFFFF", text: "#111111" },
-  NO: { from: "#BA0C2F", to: "#00205B", text: "#FFFFFF" },
-  RW: { from: "#00A1DE", to: "#20603D", text: "#FFFFFF" },
-  SE: { from: "#006AA7", to: "#FECC02", text: "#111111" },
-  TZ: { from: "#1EB53A", to: "#00A3DD", text: "#111111" },
-  UG: { from: "#000000", to: "#D90000", text: "#FFFFFF" },
-  US: { from: "#3C3B6E", to: "#B22234", text: "#FFFFFF" },
-  ZA: { from: "#007749", to: "#DE3831", text: "#FFFFFF" },
+// Flag-derived accent colors shared with the Year End country tags.
+const COUNTRY_ACCENTS = {
+  BB: "#00267F", CA: "#D80621", CD: "#007FFF", CI: "#F77F00", FR: "#0055A4",
+  GB: "#012169", GH: "#CE1126", IN: "#FF9933", JM: "#009B3A", KE: "#006600",
+  KR: "#CD2E3A", NG: "#008751", NO: "#BA0C2F", RW: "#00A1DE", SE: "#006AA7",
+  TZ: "#1EB53A", UG: "#D90000", US: "#3C3B6E", ZA: "#007749",
 };
 
 function regionBadge(code) {
   const key = String(code || "").trim().toUpperCase();
-  if (FLAG_BADGE[key]) return FLAG_BADGE[key];
-  // East-African neighbours not explicitly listed lean gold; everything else slate-ish
-  return DEFAULT_BADGE;
+  return { accent: COUNTRY_ACCENTS[key] || "#69716B" };
 }
 
 // Complete artist -> country map (generated from the full roster).
@@ -1447,13 +1414,15 @@ export default function PremiumChartsPage({
                             width: "38px",
                             height: "38px",
                             borderRadius: "12px",
-                            background: `linear-gradient(135deg, ${badge.from} 0%, ${badge.to} 100%)`,
+                            background: `${badge.accent}12`,
+                            border: `1px solid ${badge.accent}45`,
+                            boxShadow: "none",
                           }}
                           title={`${artistCountry.country}${
                             artistCountry.code ? ` (${artistCountry.code})` : ""
                           }`}
                         >
-                          <span style={{ ...styles.flagText, color: badge.text }}>
+                          <span style={{ ...styles.flagText, color: badge.accent }}>
                             {artistCountry.code || "—"}
                           </span>
                         </div>
@@ -1521,13 +1490,15 @@ export default function PremiumChartsPage({
                   <div
                     style={{
                       ...styles.flagBox,
-                      background: `linear-gradient(135deg, ${badge.from} 0%, ${badge.to} 100%)`,
+                      background: `${badge.accent}12`,
+                      border: `1px solid ${badge.accent}45`,
+                      boxShadow: "none",
                     }}
                     title={`${artistCountry.country}${
                       artistCountry.code ? ` (${artistCountry.code})` : ""
                     }`}
                   >
-                    <span style={{ ...styles.flagText, color: badge.text }}>
+                    <span style={{ ...styles.flagText, color: badge.accent }}>
                       {artistCountry.code || "—"}
                     </span>
                   </div>
