@@ -642,6 +642,8 @@ export default function PremiumChartsPage({
         return num(profile.peak);
       case "months":
         return num(profile.weeks);
+      case "points":
+        return num(item.pts);
       case "platforms": {
         const m = String(item.plat || "").match(/^(\d+)/);
         return m ? Number(m[1]) : -1;
@@ -670,7 +672,7 @@ export default function PremiumChartsPage({
       if (current.key !== key) {
         // Rank/Last Month/Peak read best-first (asc); Months/Platforms read
         // most-first (desc) on first click — that's what people expect.
-        const firstDir = key === "months" || key === "platforms" ? "desc" : "asc";
+        const firstDir = key === "months" || key === "points" || key === "platforms" ? "desc" : "asc";
         return { key, dir: firstDir };
       }
       return { key, dir: current.dir === "asc" ? "desc" : "asc" };
@@ -694,7 +696,8 @@ export default function PremiumChartsPage({
       "Last Month",
       "Peak",
       "Months on Chart",
-      "Platforms",
+      "Points",
+      ...(isCombinedChart ? ["Platforms"] : []),
     ];
     const escape = (value) => {
       const s = String(value ?? "");
@@ -712,7 +715,8 @@ export default function PremiumChartsPage({
         profile.lastMonth,
         profile.peak,
         profile.weeks,
-        plat === "Combined" && item.plat ? item.plat : "—",
+        item.pts,
+        ...(isCombinedChart ? [item.plat || "—"] : []),
       ]
         .map(escape)
         .join(",");
@@ -1085,7 +1089,7 @@ export default function PremiumChartsPage({
           {
             label: "Chart Leader",
             value: top?.title || "—",
-            sub: top?.artist || "",
+            sub: top ? `${top.artist}${isCombinedChart ? ` · ${top.pts} pts` : ""}` : "",
             compact: true,
           },
         ].map((item, index) => (
@@ -1303,6 +1307,13 @@ export default function PremiumChartsPage({
             </span>
             {isCombinedChart&&<span
               style={{ ...styles.headerCell, cursor: "pointer" }}
+              onClick={() => handleSort("points")}
+              title="Sort by Combined chart points"
+            >
+              Points{sortArrow("points")}
+            </span>}
+            {isCombinedChart&&<span
+              style={{ ...styles.headerCell, cursor: "pointer" }}
               onClick={() => handleSort("platforms")}
               title="Sort by platform coverage"
             >
@@ -1418,6 +1429,7 @@ export default function PremiumChartsPage({
                         <MobileStat label="L.M" value={profile.lastMonth} />
                         <MobileStat label="Peak" value={profile.peak} />
                         <MobileStat label="Months" value={profile.weeks} />
+                        {isCombinedChart&&<MobileStat label="Points" value={item.pts} />}
                         {isCombinedChart&&<MobileStat label="Plat." value={item.plat || "—"} />}
                       </div>
                     </div>
@@ -1509,6 +1521,7 @@ export default function PremiumChartsPage({
                 <div style={styles.metaNumber}>{profile.peak}</div>
                 <div style={styles.metaNumber}>{profile.weeks}</div>
 
+                {isCombinedChart&&<div style={{...styles.metaNumber,color:chartAccentInk}}>{item.pts}</div>}
                 {isCombinedChart&&<div style={styles.platformCell}>{item.plat || "—"}</div>}
               </div>
             );
@@ -2023,7 +2036,7 @@ const styles = {
 
   tableHeader: {
     display: "grid",
-    gridTemplateColumns: "54px 84px minmax(0, 1fr) 84px 60px 70px 86px",
+    gridTemplateColumns: "54px 84px minmax(0, 1fr) 84px 60px 70px 64px 86px",
     gap: "14px",
     alignItems: "center",
     justifyItems: "center",
@@ -2058,7 +2071,7 @@ const styles = {
 
   row: {
     display: "grid",
-    gridTemplateColumns: "54px 84px minmax(0, 1fr) 84px 60px 70px 86px",
+    gridTemplateColumns: "54px 84px minmax(0, 1fr) 84px 60px 70px 64px 86px",
     gap: "14px",
     alignItems: "center",
     padding: "16px 24px",

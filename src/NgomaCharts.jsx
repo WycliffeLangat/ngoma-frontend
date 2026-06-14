@@ -15,7 +15,7 @@ import {
   Pie,
   CartesianGrid,
 } from "recharts";
-import { FULL, ANL, MOM } from "./data/chartData";
+import { FULL, ANL } from "./data/chartData";
 import PremiumChartsPage, { getArtistCountry } from "./components/PremiumChartsPage";
 
 // ===== FULL Top-50 dataset across all months and platforms =====
@@ -31,9 +31,9 @@ const SF = "'Source Serif 4',Georgia,serif";
 const CC = [GOLD,"#E53935","#2DB04A","#1565C0","#7B1FA2","#E65100","#00897B","#37474F","#AD1457","#558B2F"];
 const VO = [{l:"Top 10",c:10},{l:"Top 20",c:20},{l:"Top 50",c:50}];
 const CERTIFICATION_LEVELS = [
-  { level: "diamond", label: "Diamond", icon: "💎", pts: 20000, color: "#7B1FA2" },
-  { level: "platinum", label: "Platinum", icon: "🪙", pts: 10000, color: SILVER },
-  { level: "gold", label: "Gold", icon: "🥇", pts: 5000, color: GOLD },
+  { level: "diamond", label: "Diamond", icon: "💎", pts: 140, color: "#7B1FA2" },
+  { level: "platinum", label: "Platinum", icon: "🪙", pts: 110, color: SILVER },
+  { level: "gold", label: "Gold", icon: "🥇", pts: 80, color: GOLD },
 ];
 const getCertificationLevel = (totalPts = 0) => {
   const points = Number(totalPts) || 0;
@@ -169,8 +169,142 @@ function enrichChartEntries(entries, getRawEntries, currentMonth, totalPlatforms
   });
 }
 
-const getCombined = (ct, m) => enrichChartEntries(rawCombined(ct, m), (monthLabel) => rawCombined(ct, monthLabel), m, ct === "albums" ? 2 : 6);
+const getCombined = (ct, m) => enrichChartEntries(rawCombined(ct, m), (monthLabel) => rawCombined(ct, monthLabel), m, ct === "albums" ? 2 : 6)
+  .map((entry, index) => ({
+    ...entry,
+    rawPts: entry.pts,
+    pts: Math.min(50, Math.max(1, 51 - (Number(entry.rank) || index + 1))),
+  }));
 const getPlatform = (ct, pl, m) => enrichChartEntries(rawPlatform(ct, pl, m), (monthLabel) => rawPlatform(ct, pl, monthLabel), m, 1);
+
+const buildCombinedYearEnd = (chartType) => {
+  const releases = new Map();
+
+  MONTHS.forEach((monthLabel) => {
+    getCombined(chartType, monthLabel).forEach((entry) => {
+      const key = entryKey(entry);
+      const current = releases.get(key) || {
+        t: entry.title,
+        a: entry.artist,
+        totalPts: 0,
+        months: 0,
+        best: Number.POSITIVE_INFINITY,
+      };
+
+      current.totalPts += Number(entry.pts) || 0;
+      current.months += 1;
+      current.best = Math.min(current.best, Number(entry.rank) || Number.POSITIVE_INFINITY);
+      releases.set(key, current);
+    });
+  });
+
+  return [...releases.values()].sort((a, b) =>
+    b.totalPts - a.totalPts || a.best - b.best || a.t.localeCompare(b.t)
+  );
+};
+
+const buildCombinedArtists = (chartType) => {
+  const artistMap = new Map();
+
+  MONTHS.forEach((monthLabel) => {
+    getCombined(chartType, monthLabel).forEach((entry) => {
+      const key = String(entry.artist || "").trim().toLowerCase();
+      if (!key) return;
+
+      const current = artistMap.get(key) || {
+        n: entry.artist,
+        p: 0,
+        m: 0,
+        t: 0,
+        pk: Number.POSITIVE_INFINITY,
+        mp: {},
+        months: new Set(),
+        titles: new Set(),
+      };
+
+      current.p += Number(entry.pts) || 0;
+      current.mp[monthLabel] = (current.mp[monthLabel] || 0) + (Number(entry.pts) || 0);
+      current.pk = Math.min(current.pk, Number(entry.rank) || Number.POSITIVE_INFINITY);
+      current.months.add(monthLabel);
+      current.titles.add(entryKey(entry));
+      artistMap.set(key, current);
+    });
+  });
+
+  return [...artistMap.values()]
+    .map(({ months, titles, ...artist }) => ({
+      ...artist,
+      m: months.size,
+      t: titles.size,
+      pk: Number.isFinite(artist.pk) ? artist.pk : "—",
+    }))
+    .sort((a, b) => b.p - a.p || a.pk - b.pk || a.n.localeCompare(b.n));
+};
+
+const buildCombinedTrending = (chartType) => {
+  const latestMonth = MONTHS[MONTHS.length - 1];
+  const previousMonth = MONTHS[MONTHS.length - 2];
+  const earlierMonths = MONTHS.slice(0, -2);
+  const latestRows = getCombined(chartType, latestMonth);
+  const previousRows = getCombined(chartType, previousMonth);
+  const previousMap = new Map(previousRows.map((entry) => [entryKey(entry), entry]));
+  const earlierMaps = earlierMonths.map((monthLabel) =>
+    new Map(getCombined(chartType, monthLabel).map((entry) => [entryKey(entry), entry]))
+  );
+
+  const rising = latestRows
+    .map((entry) => {
+      const key = entryKey(entry);
+      const previous = previousMap.get(key);
+      if (!previous || Number(previous.rank) <= Number(entry.rank)) return null;
+
+      const earlierRanks = earlierMaps.map((map) => map.get(key)?.rank ?? null);
+      const rankTrend = [...earlierRanks, previous.rank, entry.rank];
+      const chartedRanks = rankTrend.filter((rank) => Number.isFinite(Number(rank))).map(Number);
+      const consecutive = chartedRanks.length >= 3 && chartedRanks.every((rank, index) => index === 0 || rank < chartedRanks[index - 1]);
+
+      return {
+        t: entry.title,
+        a: entry.artist,
+        fromRank: Number(previous.rank),
+        decRank: Number(entry.rank),
+        places: Number(previous.rank) - Number(entry.rank),
+        trend: rankTrend,
+        consecutive,
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.places - a.places || Number(b.consecutive) - Number(a.consecutive) || a.decRank - b.decRank)
+    .slice(0, 8);
+
+  const previousKeys = new Set([
+    ...previousRows.map(entryKey),
+    ...earlierMaps.flatMap((map) => [...map.keys()]),
+  ]);
+  const debuts = latestRows
+    .filter((entry) => !previousKeys.has(entryKey(entry)) && Number(entry.rank) <= 15)
+    .map((entry) => ({
+      t: entry.title,
+      a: entry.artist,
+      decRank: Number(entry.rank),
+      trend: [...earlierMonths.map(() => null), null, Number(entry.rank)],
+    }));
+
+  return { rising, debuts };
+};
+
+const COMBINED_YEAR_END = {
+  singles: buildCombinedYearEnd("singles"),
+  albums: buildCombinedYearEnd("albums"),
+};
+const COMBINED_ARTISTS = {
+  singles: buildCombinedArtists("singles"),
+  albums: buildCombinedArtists("albums"),
+};
+const COMBINED_TRENDING = {
+  singles: buildCombinedTrending("singles"),
+  albums: buildCombinedTrending("albums"),
+};
 
 // Movement badge
 const mv = e => {
@@ -269,14 +403,14 @@ const RecordIcon = ({ label = "", size = 30, muted = false }) => {
 };
 
 const NEWS=[
-  {id:1,date:"December 31, 2024",cat:"CHART NEWS",emoji:"🎵",title:"Olodumare Dethrones Bensoul to Claim December #1",excerpt:"After two consecutive months at the top, Bensoul's Extra Pressure falls to #3 as Joel Lwaga's Olodumare storms to #1 with 2,286 points across all six platforms.",body:"Joel Lwaga's Olodumare made history in December 2024, becoming the first song to dethrone Bensoul's Extra Pressure from the #1 spot since Ngoma Charts launched. With 2,286 combined points and a perfect 6/6 platform presence, it cemented its status as one of the most cross-cutting songs of Q4 2024."},
-  {id:2,date:"December 15, 2024",cat:"ARTIST SPOTLIGHT",emoji:"🌟",title:"Iyanii: Q4's Fastest-Rising Artist",excerpt:"Kifo Cha Mende rose from outside the Top 20 in October to #2 in December — the biggest month-on-month rise of any song in Q4 2024.",body:"Iyanii's Kifo Cha Mende is the breakout story of Q4 2024. The song accumulated 3,773 combined points across the three months, landing just below the Gold threshold."},
-  {id:3,date:"December 5, 2024",cat:"ALBUMS",emoji:"💿",title:"GNX Tops Kenya's Albums Chart",excerpt:"Kendrick Lamar's surprise album lands at #1 on both Apple Music and Audiomack Kenya in December, displacing Asake's Lungu Boy.",body:"GNX edged out Marioo's The Godson by just 12 points (1,556 vs 1,544) in one of the closest #1 races of the year."},
-  {id:4,date:"November 30, 2024",cat:"CHART NEWS",emoji:"🏆",title:"Bensoul Holds #1 For Second Straight Month",excerpt:"Extra Pressure earned 2,624 points in November — a 20% increase over October's 2,188.",body:"Extra Pressure became the first song in Ngoma Charts history to hold #1 for two consecutive months. With 6,680 cumulative points across Q4, it earns Gold certification under the updated certification thresholds."},
+  {id:1,date:"December 31, 2024",cat:"CHART NEWS",emoji:"🎵",title:"Olodumare Dethrones Bensoul to Claim December #1",excerpt:"After two consecutive months at the top, Bensoul's Extra Pressure falls to #3 as Joel Lwaga's Olodumare storms to #1 with presence across all six platforms.",body:"Joel Lwaga's Olodumare made history in December 2024, becoming the first song to dethrone Bensoul's Extra Pressure from the #1 spot since Ngoma Charts launched. Its perfect 6/6 platform presence cemented its status as one of the most cross-cutting songs of Q4 2024."},
+  {id:2,date:"December 15, 2024",cat:"ARTIST SPOTLIGHT",emoji:"🌟",title:"Iyanii: Q4's Fastest-Rising Artist",excerpt:"Kifo Cha Mende climbed to #2 in December, completing one of Q4 2024's strongest late-year runs.",body:"Iyanii's Kifo Cha Mende is one of the breakout stories of Q4 2024. Its rapid rise through the Combined chart established it as a defining release of the quarter."},
+  {id:3,date:"December 5, 2024",cat:"ALBUMS",emoji:"💿",title:"GNX Tops Kenya's Albums Chart",excerpt:"Kendrick Lamar's surprise album lands at #1 on the combined albums chart in December, displacing Asake's Lungu Boy.",body:"GNX held off Marioo's The Godson in one of the closest #1 album races of the year."},
+  {id:4,date:"November 30, 2024",cat:"CHART NEWS",emoji:"🏆",title:"Bensoul Holds #1 For Second Straight Month",excerpt:"Extra Pressure held the Combined chart summit in November after leading the inaugural October ranking.",body:"Extra Pressure became the first song in Ngoma Charts history to hold #1 for two consecutive months, strengthening its position among Q4's most consistent releases."},
   {id:5,date:"November 20, 2024",cat:"ANALYTICS",emoji:"📊",title:"Only Two Songs Reached 6/6 Platform Coverage",excerpt:"Across Q4 2024, only Extra Pressure and Olodumare charted on all six platforms in the same month.",body:"Different platforms have genuinely different audiences in Kenya. A song that cracks all six must appeal across every listener segment."},
-  {id:6,date:"November 5, 2024",cat:"ARTIST SPOTLIGHT",emoji:"⭐",title:"Dyana Cods Dominates 4 Platforms with Set It",excerpt:"Set It topped Apple Music, Boomplay, Spotify and Shazam simultaneously in October — a rare achievement.",body:"With 5,987 cumulative points across Q4, Dyana Cods earns Gold certification for Set It under the updated certification thresholds."},
-  {id:7,date:"October 31, 2024",cat:"ANNOUNCEMENT",emoji:"🚀",title:"Ngoma Charts Officially Launches",excerpt:"Ngoma Charts' multi-platform music ranking system debuts with Bensoul's Extra Pressure as the inaugural #1.",body:"Ngoma Charts uses a 101-point system: #1 earns 100 points, #100 earns 1 point. Albums use a 201-point scale across the Top 200."},
-  {id:8,date:"October 20, 2024",cat:"ALBUMS",emoji:"🎤",title:"Nyashinski's Album Anchors Albums Chart",excerpt:"To Whom It May Concern holds at #2 on the combined albums chart for October 2024.",body:"With 1,553 combined points, the album proved that Kenyan artists can compete with international heavyweights on home soil."},
+  {id:6,date:"November 5, 2024",cat:"ARTIST SPOTLIGHT",emoji:"⭐",title:"Dyana Cods Dominates 4 Platforms with Set It",excerpt:"Set It topped Apple Music, Boomplay, Spotify and Shazam simultaneously in October — a rare achievement.",body:"Set It remained one of Q4's most consistent cross-platform releases and finished among the leading songs of the quarter."},
+  {id:7,date:"October 31, 2024",cat:"ANNOUNCEMENT",emoji:"🚀",title:"Ngoma Charts Officially Launches",excerpt:"Ngoma Charts' multi-platform music ranking system debuts with Bensoul's Extra Pressure as the inaugural #1.",body:"Ngoma Charts combines performance across major music platforms into a single monthly ranking. Combined chart positions are displayed on a 50-to-1 scale, while each platform chart retains its own scoring data."},
+  {id:8,date:"October 20, 2024",cat:"ALBUMS",emoji:"🎤",title:"Nyashinski's Album Anchors Albums Chart",excerpt:"To Whom It May Concern holds at #2 on the combined albums chart for October 2024.",body:"The result showed that Kenyan artists can compete with international heavyweights on home soil."},
 ];
 
 export default function NgomaCharts(){
@@ -376,11 +510,17 @@ export default function NgomaCharts(){
         const entries = (chartData.entries || []).map((entry) => {
           const movementType = String(entry.movement || "").toLowerCase();
 
+          const rawPoints = entry.total_points || 0;
+          const combinedPoints = plat === "Combined"
+            ? Math.min(50, Math.max(1, 51 - (Number(entry.rank) || 50)))
+            : rawPoints;
+
           return {
             rank: entry.rank,
             title: entry.title,
             artist: entry.artist,
-            pts: entry.total_points || 0,
+            pts: combinedPoints,
+            rawPts: rawPoints,
             plat: entry.platform_count ? `${entry.platform_count}/${tp}` : "",
             prev: entry.prev_rank,
             first: false,
@@ -490,11 +630,11 @@ const top = data[0];
     e.title.toLowerCase().includes(srch.toLowerCase())||e.artist.toLowerCase().includes(srch.toLowerCase())
   ).map(e=>[e.type+e.title+e.artist+e.month,e])).values()].slice(0,16):[];
 
-  // Artists from FULL Top-50 data — use pre-computed
-  const artists=isSingles?ANL.sArtists:ANL.aArtists;
+  // Artist totals are derived from the displayed Combined rank scores.
+  const artists=isSingles?COMBINED_ARTISTS.singles:COMBINED_ARTISTS.albums;
   const openArtistDetails = (name) => {
-    const singleProfile = ANL.sArtists.find((item) => item.n === name);
-    const albumProfile = ANL.aArtists.find((item) => item.n === name);
+    const singleProfile = COMBINED_ARTISTS.singles.find((item) => item.n === name);
+    const albumProfile = COMBINED_ARTISTS.albums.find((item) => item.n === name);
     const profile = (isSingles ? singleProfile : albumProfile) || singleProfile || albumProfile;
     if (!profile) return;
     setCt(singleProfile === profile ? "singles" : "albums");
@@ -813,19 +953,20 @@ const top = data[0];
   const latestTrendMonths = MONTHS.slice(-3);
   const trendMonthShort = (label = "") => String(label).split(" ")[0].slice(0, 3);
   const trendLabelText = latestTrendMonths.map(trendMonthShort).join(" / ");
-  const formulaLabel = latestTrendMonths.length >= 3
-    ? `Momentum = (${trendMonthShort(latestTrendMonths[2])}−${trendMonthShort(latestTrendMonths[1])} points × 0.7) + (${trendMonthShort(latestTrendMonths[1])}−${trendMonthShort(latestTrendMonths[0])} points × 0.3)`
-    : "Momentum is weighted by recent point gains";
+  const currentTrending = isSingles ? COMBINED_TRENDING.singles : COMBINED_TRENDING.albums;
+  const formulaLabel = "Movement compares each release's Combined chart rank with the previous month";
   const getTrendPoints = (trend = []) => {
-    const rawValues = Array.isArray(trend) ? trend.map((value) => Number(value) || 0) : [];
+    const rawValues = Array.isArray(trend)
+      ? trend.map((value) => Number.isFinite(Number(value)) ? Number(value) : null)
+      : [];
     const lastValues = rawValues.slice(-latestTrendMonths.length);
 
-    while (lastValues.length < latestTrendMonths.length) lastValues.unshift(0);
+    while (lastValues.length < latestTrendMonths.length) lastValues.unshift(null);
 
     return latestTrendMonths.map((trendMonth, index) => ({
       month: trendMonth,
       label: trendMonthShort(trendMonth),
-      value: lastValues[index] || 0,
+      rank: lastValues[index],
     }));
   };
   const uniqueByMomentumIdentity = (rows = []) => [
@@ -839,17 +980,16 @@ const top = data[0];
   const openMomentumRelease = (row) => openReleaseDetails(row, isSingles ? "single" : "album");
   const TrendBars = ({ trend = [], height = 58, compact = false }) => {
     const bars = getTrendPoints(trend);
-    const maxValue = Math.max(1, ...bars.map((bar) => bar.value));
 
     return (
       <div style={{display:"flex",alignItems:"flex-end",gap:compact?"3px":"6px",height,justifyContent:compact?"flex-end":"center"}}>
         {bars.map((bar, index) => (
-          <div key={`${bar.month}-${index}`} title={`${bar.month}: ${bar.value.toLocaleString()} pts`} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:compact?"2px":"4px"}}>
+          <div key={`${bar.month}-${index}`} title={`${bar.month}: ${bar.rank ? `#${bar.rank}` : "not charted"}`} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:compact?"2px":"4px"}}>
             <div
               style={{
                 width:compact?"7px":"28px",
-                height:Math.max(compact?3:4, (bar.value / maxValue) * (compact ? 24 : 54)) + "px",
-                background:index === bars.length - 1 ? "#2DB04A" : "#CDE8D2",
+                height:bar.rank ? Math.max(compact?3:4, ((51 - bar.rank) / 50) * (compact ? 24 : 54)) + "px" : compact?"3px":"4px",
+                background:bar.rank ? (index === bars.length - 1 ? "#2DB04A" : "#CDE8D2") : "#E7EAE7",
                 borderRadius:compact?"1px":"3px",
                 transition:"height 0.5s",
               }}
@@ -973,7 +1113,7 @@ const top = data[0];
   const songMonthlyData=MONTHS.map(m=>({month:m.split(" ")[0].slice(0,3),A:sp1?.monthly[m]?.pts||0,B:sp2?.monthly[m]?.pts||0}));
   const songRankData=MONTHS.map(m=>({month:m.split(" ")[0].slice(0,3),A:sp1?.monthly[m]?.rank||null,B:sp2?.monthly[m]?.rank||null}));
 
-  const yearEnd=isSingles?ANL.yearEndS:ANL.yearEndA;
+  const yearEnd=isSingles?COMBINED_YEAR_END.singles:COMBINED_YEAR_END.albums;
 
   const tracked=isSingles?["Extra Pressure","Set It","Olodumare","Kifo Cha Mende","Bae Bae"]:["Lungu Boy","To Whom It May Concern","The Motions","GNX","Alusa Why Are You Topless?"];
 
@@ -1002,8 +1142,8 @@ const top = data[0];
     };
 
     return {
-      singles: buildLookup(ANL.yearEndS),
-      albums: buildLookup(ANL.yearEndA),
+      singles: buildLookup(COMBINED_YEAR_END.singles),
+      albums: buildLookup(COMBINED_YEAR_END.albums),
     };
   }, []);
   const getCertificationForEntry = (entry = {}, fallbackType) => {
@@ -1033,12 +1173,12 @@ const top = data[0];
       entry.certificationPoints
     );
 
+    const fromLookup = certificationLookup[bucket]?.get(certificationKey(title, artist));
+    if (fromLookup) return fromLookup;
+
     if (explicitMeta) {
       return { ...explicitMeta, totalPts: totalPts || 0 };
     }
-
-    const fromLookup = certificationLookup[bucket]?.get(certificationKey(title, artist));
-    if (fromLookup) return fromLookup;
 
     const levelFromPoints = getCertificationLevel(totalPts);
     const metaFromPoints = certificationMetaForLevel(levelFromPoints);
@@ -1051,8 +1191,8 @@ const top = data[0];
     }).filter(Boolean);
 
     return [
-      ...build(ANL.yearEndS, "single"),
-      ...build(ANL.yearEndA, "album"),
+      ...build(COMBINED_YEAR_END.singles, "single"),
+      ...build(COMBINED_YEAR_END.albums, "album"),
     ].sort((a, b) => b.totalPts - a.totalPts || b.pts - a.pts);
   }, []);
 
@@ -1237,13 +1377,13 @@ const top = data[0];
     }
 
     if (page === "trending") {
-      const rising = uniqueByMomentumIdentity((isSingles ? MOM.predictions.singles : MOM.predictions.albums).rising).slice(0, 6);
+      const rising = uniqueByMomentumIdentity(currentTrending.rising).slice(0, 6);
       return {
-        eyebrow: "MOMENTUM ENGINE",
+        eyebrow: "RANK MOMENTUM",
         title: "Trending Up",
         subtitle: `${typeLabel} rising fastest in ${latestMonth}`,
         accent: "#2DB04A",
-        highlights: rising.map((item, index) => `#${index + 1} ${item.t} — ${item.a} · +${Number(item.mom || 0).toLocaleString()} momentum`),
+        highlights: rising.map((item, index) => `#${index + 1} ${item.t} — ${item.a} · #${item.fromRank} → #${item.decRank}`),
       };
     }
 
@@ -2286,7 +2426,7 @@ liveStatus={liveStatus}
                     <ResponsiveContainer width="100%" height={isMobile?190:158}>
                       <BarChart data={songMonthlyData} margin={{top:14,right:isMobile?20:12,left:isMobile?8:4,bottom:4}}>
                         <XAxis dataKey="month" tick={{fontSize:isMobile?11:10.5,fontFamily:F,fill:"#59645D",fontWeight:650}} tickLine={false}/>
-                        <YAxis width={isMobile?42:40} tick={{fontSize:isMobile?10.5:10,fontFamily:F,fill:"#59645D",fontWeight:650}} tickFormatter={v=>v>=1000?(v/1000)+"k":v} axisLine={false} tickLine={false}/>
+                        <YAxis width={isMobile?42:40} domain={[0,50]} tick={{fontSize:isMobile?10.5:10,fontFamily:F,fill:"#59645D",fontWeight:650}} axisLine={false} tickLine={false}/>
                         <Tooltip contentStyle={{fontFamily:F,fontSize:11}} formatter={(v,n)=>[v.toLocaleString()+" pts",n==="A"?sp1.title:sp2.title]}/>
                         <Bar dataKey="A" fill={GOLD} radius={[3,3,0,0]}/>
                         <Bar dataKey="B" fill="#1565C0" radius={[3,3,0,0]}/>
@@ -2362,7 +2502,7 @@ liveStatus={liveStatus}
                 <ResponsiveContainer width="100%" height={260}>
                   <BarChart data={top10sData} layout="vertical" margin={{left:10,right:20,top:0,bottom:0}}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#F0F0EC" horizontal={false}/>
-                    <XAxis type="number" tick={{fontSize:10.5,fontFamily:F,fill:"#59645D",fontWeight:650}} tickFormatter={v=>v.toLocaleString()} axisLine={false} tickLine={false}/>
+                    <XAxis type="number" domain={[0,50]} tick={{fontSize:10.5,fontFamily:F,fill:"#59645D",fontWeight:650}} tickFormatter={v=>v.toLocaleString()} axisLine={false} tickLine={false}/>
                     <YAxis type="category" dataKey="name" width={120} tick={{fontSize:10.5,fontFamily:F,textAnchor:"end",fill:"#59645D",fontWeight:650}} tickLine={false}/>
                     <Tooltip formatter={v=>[v.toLocaleString()+" pts","Points"]} contentStyle={{fontFamily:F,fontSize:12,borderRadius:8,border:"1px solid #E1DCD0"}}/>
                     <Bar dataKey="pts" radius={[0,4,4,0]}>{top10sData.map((e,i)=><Cell key={i} fill={i===0?GOLD:`rgba(184,134,11,${Math.max(0.35,0.92-i*0.055)})`}/>)}</Bar>
@@ -2590,9 +2730,9 @@ liveStatus={liveStatus}
           <div style={{maxWidth:"1240px",margin:"0 auto"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"flex-start":"flex-end",marginBottom:isMobile?"16px":"20px",flexWrap:"wrap",gap:isMobile?"10px":"12px"}}>
               <div style={{minWidth:0,flex:isMobile?"1 1 100%":"1"}}>
-                <div style={{fontFamily:F,fontSize:isMobile?"9px":"10.5px",letterSpacing:isMobile?"2.2px":"2.6px",textTransform:"uppercase",color:"#2DB04A",marginBottom:"6px"}}>MOMENTUM ENGINE</div>
+                <div style={{fontFamily:F,fontSize:isMobile?"9px":"10.5px",letterSpacing:isMobile?"2.2px":"2.6px",textTransform:"uppercase",color:"#2DB04A",marginBottom:"6px"}}>RANK MOMENTUM</div>
                 <h2 style={{fontSize:isMobile?"24px":"24px",fontWeight:800,margin:0}}>Trending Up</h2>
-                <p style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:"#626A64",margin:"6px 0 0",lineHeight:1.55}}>Tracks rising fastest across the charts, based on recent point gains.</p>
+                <p style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:"#626A64",margin:"6px 0 0",lineHeight:1.55}}>Tracks rising fastest on the Combined chart, measured by positions gained.</p>
               </div>
               <div style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap",marginTop:isMobile?"2px":0}}>
                 <Tog sm/>
@@ -2604,11 +2744,11 @@ liveStatus={liveStatus}
               <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"6px"}}>
                 <span style={{fontSize:"22px"}}>🔥</span>
                 <div>
-                  <div style={{fontFamily:F,fontSize:isMobile?"10.5px":"11px",fontWeight:800,letterSpacing:"1px",textTransform:"uppercase",color:"#2DB04A"}}>Highest Momentum</div>
-                  <div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:"#68746C"}}>Highest momentum score in {latestMonth}</div>
+                  <div style={{fontFamily:F,fontSize:isMobile?"10.5px":"11px",fontWeight:800,letterSpacing:"1px",textTransform:"uppercase",color:"#2DB04A"}}>Biggest Climb</div>
+                  <div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:"#68746C"}}>Most Combined chart places gained in {latestMonth}</div>
                 </div>
               </div>
-              {(()=>{const list=uniqueByMomentumIdentity((isSingles?MOM.predictions.singles:MOM.predictions.albums).rising);const hot=list[0];if(!hot)return null;
+              {(()=>{const list=uniqueByMomentumIdentity(currentTrending.rising);const hot=list[0];if(!hot)return null;
                 return(
                   <div style={{display:"flex",flexDirection:isMobile?"column":"row",alignItems:isMobile?"stretch":"center",gap:isMobile?"18px":"28px",marginTop:"14px"}}>
                     <div style={{flex:1,minWidth:isMobile?"0":"260px"}}>
@@ -2618,9 +2758,9 @@ liveStatus={liveStatus}
                       </div>
                       <div style={{fontFamily:F,fontSize:isMobile?"15px":"15px",color:"#69716B",marginTop:"6px",fontWeight:700}}>{hot.a}</div>
                       <div style={{display:"flex",gap:isMobile?"14px":"20px",marginTop:"12px",flexWrap:"wrap"}}>
-                        <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"20px",fontWeight:900,color:"#2DB04A"}}>+{hot.mom.toLocaleString()}</div><div style={{fontFamily:F,fontSize:"10px",letterSpacing:"1px",textTransform:"uppercase",color:"#7B857D",fontWeight:800}}>Momentum</div></div>
+                        <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"20px",fontWeight:900,color:"#2DB04A"}}>+{hot.places}</div><div style={{fontFamily:F,fontSize:"10px",letterSpacing:"1px",textTransform:"uppercase",color:"#7B857D",fontWeight:800}}>Places</div></div>
+                        <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"20px",fontWeight:900,color:"#1A1A1A"}}>#{hot.fromRank}</div><div style={{fontFamily:F,fontSize:"10px",letterSpacing:"1px",textTransform:"uppercase",color:"#7B857D",fontWeight:800}}>Previous Rank</div></div>
                         <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"20px",fontWeight:900,color:GOLD}}>#{hot.decRank}</div><div style={{fontFamily:F,fontSize:"10px",letterSpacing:"1px",textTransform:"uppercase",color:"#7B857D",fontWeight:800}}>{latestMonthShort} Rank</div></div>
-                        <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"20px",fontWeight:900,color:"#1A1A1A"}}>{hot.decPts?.toLocaleString?.() || "—"}</div><div style={{fontFamily:F,fontSize:"10px",letterSpacing:"1px",textTransform:"uppercase",color:"#7B857D",fontWeight:800}}>{latestMonthShort} Points</div></div>
                       </div>
                     </div>
                     <div style={{minWidth:isMobile?"100%":"180px",display:"flex",justifyContent:isMobile?"flex-start":"flex-end"}}>
@@ -2632,8 +2772,8 @@ liveStatus={liveStatus}
             </div>
 
             <div style={card({padding:isMobile?"18px":"22px"})}>
-              <div style={secLbl("#2DB04A")}><SecMark c="#2DB04A"/>Rising Fast — Top Momentum {isSingles?"Singles":"Albums"}</div>
-              {uniqueByMomentumIdentity((isSingles?MOM.predictions.singles:MOM.predictions.albums).rising).map((p,i)=>{
+              <div style={secLbl("#2DB04A")}><SecMark c="#2DB04A"/>Rising Fast — Most Places Gained ({isSingles?"Singles":"Albums"})</div>
+              {uniqueByMomentumIdentity(currentTrending.rising).map((p,i)=>{
                 const rowKey=`rising-${p.t}-${p.a}-${p.decRank}`;
                 const expanded=Boolean(expandedTrendingRows[rowKey]);
                 if(isMobile)return(
@@ -2642,14 +2782,14 @@ liveStatus={liveStatus}
                       <div style={{fontFamily:F,fontSize:"18px",fontWeight:900,color:"#8E948D",textAlign:"center"}}>{i+1}</div>
                       <div style={{minWidth:0}}>
                         <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}><strong style={{fontSize:"15px",lineHeight:1.2,overflowWrap:"anywhere"}}>{p.t}</strong>{getCertificationForEntry(p,isSingles?"single":"album")&&<CertificationTag cert={getCertificationForEntry(p,isSingles?"single":"album")} compact />}</div>
-                        <div style={{fontFamily:F,fontSize:"11.5px",fontWeight:850,color:"#2DB04A",marginTop:"5px"}}>↑ Rising</div>
+                        <div style={{fontFamily:F,fontSize:"11.5px",fontWeight:850,color:"#2DB04A",marginTop:"5px"}}>↑ Up {p.places} {p.places===1?"place":"places"}{p.consecutive?" · climbing 2+ months":""}</div>
                       </div>
-                      <button type="button" onClick={(event)=>{event.stopPropagation();toggleTrendingRow(rowKey);}} aria-label={expanded?"Hide momentum details":"Show momentum details"} aria-expanded={expanded} style={{width:"38px",height:"34px",border:"1px solid rgba(0,0,0,0.08)",borderRadius:"14px",background:"#FBFAF7",color:"#555",fontSize:"18px",fontWeight:900,lineHeight:1,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",padding:"0 0 2px"}}>{expanded?"▴":"▾"}</button>
+                      <button type="button" onClick={(event)=>{event.stopPropagation();toggleTrendingRow(rowKey);}} aria-label={expanded?"Hide rank movement details":"Show rank movement details"} aria-expanded={expanded} style={{width:"38px",height:"34px",border:"1px solid rgba(0,0,0,0.08)",borderRadius:"14px",background:"#FBFAF7",color:"#555",fontSize:"18px",fontWeight:900,lineHeight:1,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",padding:"0 0 2px"}}>{expanded?"▴":"▾"}</button>
                     </div>
                     {expanded&&<div style={{marginTop:"13px",padding:"13px",borderRadius:"13px",background:"#F7FBF7",border:"1px solid #2DB04A18"}}>
                       <div style={{fontFamily:F,fontSize:"12px",fontWeight:750,color:"#59645D",lineHeight:1.5}}>{p.a}</div>
                       <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:"8px",marginTop:"10px"}}>
-                        {[{l:`${latestMonthShort} Rank`,v:`#${p.decRank}`},{l:`${latestMonthShort} Points`,v:p.decPts?.toLocaleString?.()||"—"},{l:"Momentum",v:`+${p.mom.toLocaleString()}`},{l:"Trend",v:(p.trend||[]).map(v=>Number(v||0).toLocaleString()).join(" → ")}].map(s=><div key={s.l} style={{padding:"9px 6px",background:"#FFF",borderRadius:"10px",textAlign:"center",minWidth:0}}><span style={{display:"block",fontFamily:F,fontSize:"8.5px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:"#7B857D"}}>{s.l}</span><strong style={{display:"block",marginTop:"4px",fontFamily:F,fontSize:"12px",overflowWrap:"anywhere",color:s.l==="Momentum"?"#2DB04A":"#1A1A1A"}}>{s.v}</strong></div>)}
+                        {[{l:"Previous Rank",v:`#${p.fromRank}`},{l:`${latestMonthShort} Rank`,v:`#${p.decRank}`},{l:"Places Gained",v:`+${p.places}`},{l:"Rank Path",v:(p.trend||[]).map(v=>v?`#${v}`:"—").join(" → ")}].map(s=><div key={s.l} style={{padding:"9px 6px",background:"#FFF",borderRadius:"10px",textAlign:"center",minWidth:0}}><span style={{display:"block",fontFamily:F,fontSize:"8.5px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:"#7B857D"}}>{s.l}</span><strong style={{display:"block",marginTop:"4px",fontFamily:F,fontSize:"12px",overflowWrap:"anywhere",color:s.l==="Places Gained"?"#2DB04A":"#1A1A1A"}}>{s.v}</strong></div>)}
                       </div>
                       <button type="button" onClick={()=>openMomentumRelease(p)} style={{marginTop:"10px",width:"100%",padding:"9px 10px",borderRadius:"11px",border:"1px solid #2DB04A33",background:"#FFF",color:"#258A3D",fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",cursor:"pointer"}}>View Details</button>
                     </div>}
@@ -2665,15 +2805,15 @@ liveStatus={liveStatus}
                         <span style={{fontSize:isMobile?"15px":"15px",fontWeight:800,lineHeight:1.15,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.t}</span>
                         {getCertificationForEntry(p, isSingles ? "single" : "album")&&<CertificationTag cert={getCertificationForEntry(p, isSingles ? "single" : "album")} compact />}
                       </div>
-                      <div style={{fontSize:isMobile?"12px":"12px",color:"#69716B",fontFamily:F,marginTop:"4px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.a} · #{p.decRank} in {latestMonthShort} · {p.decPts?.toLocaleString?.() || "—"} pts</div>
+                      <div style={{fontSize:isMobile?"12px":"12px",color:"#69716B",fontFamily:F,marginTop:"4px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.a} · #{p.fromRank} → #{p.decRank}{p.consecutive?" · climbing 2+ months":""}</div>
                     </div>
                     <TrendBars trend={p.trend} compact height={30}/>
-                    <div style={{textAlign:"right",fontFamily:F}}><span style={{fontSize:"15px",fontWeight:900,color:"#2DB04A"}}>+{p.mom.toLocaleString()}</span><div style={{fontSize:"10px",color:"#7B857D",letterSpacing:"1px",textTransform:"uppercase",fontWeight:800}}>momentum</div></div>
+                    <div style={{textAlign:"right",fontFamily:F}}><span style={{fontSize:"15px",fontWeight:900,color:"#2DB04A"}}>+{p.places}</span><div style={{fontSize:"10px",color:"#7B857D",letterSpacing:"1px",textTransform:"uppercase",fontWeight:800}}>places</div></div>
                     <div style={{fontFamily:F,fontSize:"16px",fontWeight:800,color:"#B6BDB7",textAlign:"right"}}>›</div>
                   </div>
                 );
               })}
-              <div style={{padding:"13px 0 0",fontFamily:F,fontSize:isMobile?"11px":"11px",color:"#6E746F",textAlign:"center",lineHeight:1.55}}>{formulaLabel} · Bars show {trendLabelText} point totals.</div>
+              <div style={{padding:"13px 0 0",fontFamily:F,fontSize:isMobile?"11px":"11px",color:"#6E746F",textAlign:"center",lineHeight:1.55}}>{formulaLabel} · Bars show {trendLabelText} rank strength.</div>
             </div>
 
             {/* Strong Debuts */}
@@ -2681,7 +2821,7 @@ liveStatus={liveStatus}
               <div style={secLbl("#1565C0")}><SecMark c="#1565C0"/>Strongest {latestMonthName} Debuts</div>
               <p style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:"#69716B",margin:"-8px 0 14px",lineHeight:1.45}}>New entries that arrived high in {latestMonth}.</p>
               <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:isMobile?"8px":"10px"}}>
-                {uniqueByMomentumIdentity((isSingles?MOM.predictions.singles:MOM.predictions.albums).debuts).map((p)=>{
+                {uniqueByMomentumIdentity(currentTrending.debuts).map((p)=>{
                   const rowKey=`debut-${p.t}-${p.a}-${p.decRank}`;
                   const expanded=Boolean(expandedTrendingRows[rowKey]);
                   if(isMobile)return <div key={rowKey} style={{padding:"14px 15px",background:"#F8FAFD",borderRadius:"14px",border:"1px solid #1565C022",boxShadow:expanded?"inset 4px 0 0 #1565C0":"none"}}>
@@ -2689,7 +2829,7 @@ liveStatus={liveStatus}
                       <div style={{minWidth:0}}><strong style={{fontSize:"15px",lineHeight:1.2,overflowWrap:"anywhere"}}>{p.t}</strong><div style={{fontFamily:F,fontSize:"11.5px",fontWeight:850,color:"#1565C0",marginTop:"5px"}}>New at #{p.decRank}</div></div>
                       <button type="button" onClick={(event)=>{event.stopPropagation();toggleTrendingRow(rowKey);}} aria-label={expanded?"Hide debut details":"Show debut details"} aria-expanded={expanded} style={{width:"38px",height:"34px",border:"1px solid rgba(0,0,0,0.08)",borderRadius:"14px",background:"#FFF",color:"#555",fontSize:"18px",fontWeight:900,lineHeight:1,cursor:"pointer"}}>{expanded?"▴":"▾"}</button>
                     </div>
-                    {expanded&&<div style={{marginTop:"12px",padding:"12px",background:"#FFF",borderRadius:"12px",fontFamily:F}}><div style={{fontSize:"12px",fontWeight:750,color:"#59645D"}}>{p.a}</div><div style={{display:"flex",justifyContent:"space-between",gap:"12px",marginTop:"8px",fontSize:"12px"}}><span>{p.decPts.toLocaleString()} pts</span><strong style={{color:"#1565C0"}}>#{p.decRank}</strong></div><button type="button" onClick={()=>openMomentumRelease(p)} style={{marginTop:"10px",width:"100%",padding:"9px 10px",borderRadius:"11px",border:"1px solid #1565C033",background:"#F8FAFD",color:"#1565C0",fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",cursor:"pointer"}}>View Details</button></div>}
+                    {expanded&&<div style={{marginTop:"12px",padding:"12px",background:"#FFF",borderRadius:"12px",fontFamily:F}}><div style={{fontSize:"12px",fontWeight:750,color:"#59645D"}}>{p.a}</div><div style={{display:"flex",justifyContent:"space-between",gap:"12px",marginTop:"8px",fontSize:"12px"}}><span>First Combined appearance</span><strong style={{color:"#1565C0"}}>#{p.decRank}</strong></div><button type="button" onClick={()=>openMomentumRelease(p)} style={{marginTop:"10px",width:"100%",padding:"9px 10px",borderRadius:"11px",border:"1px solid #1565C033",background:"#F8FAFD",color:"#1565C0",fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",cursor:"pointer"}}>View Details</button></div>}
                   </div>;
                   return(
                   <div key={`${p.t}-${p.a}-${p.decRank}`} onClick={()=>openMomentumRelease(p)} style={{padding:"14px",background:"#F5F8FC",borderRadius:"10px",border:"1px solid #1565C022",cursor:"pointer",display:"grid",gridTemplateColumns:"1fr auto",gap:"8px",alignItems:"center"}}
@@ -2699,7 +2839,7 @@ liveStatus={liveStatus}
                         <span style={{fontSize:isMobile?"15px":"15px",fontWeight:800,lineHeight:1.15,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.t}</span>
                         {getCertificationForEntry(p, isSingles ? "single" : "album")&&<CertificationTag cert={getCertificationForEntry(p, isSingles ? "single" : "album")} compact />}
                       </div>
-                      <div style={{fontSize:isMobile?"12px":"12px",color:"#69716B",fontFamily:F,marginTop:"4px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.a} · {p.decPts.toLocaleString()} pts</div>
+                      <div style={{fontSize:isMobile?"12px":"12px",color:"#69716B",fontFamily:F,marginTop:"4px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.a} · First Combined appearance</div>
                     </div>
                     <span style={{fontFamily:F,fontSize:isMobile?"16px":"16px",fontWeight:900,color:"#1565C0"}}>#{p.decRank}</span>
                   </div>);
@@ -3117,7 +3257,7 @@ liveStatus={liveStatus}
           <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:"24px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
             <div>
               <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px"}}>Certifications</h2>
-              <p style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",margin:0,lineHeight:1.55}}>Awarded based on recalculated full-year combined chart point thresholds · Computed from full Top 50</p>
+              <p style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",margin:0,lineHeight:1.55}}>Awarded from cumulative Combined chart points earned across every month a song or album appears.</p>
             </div>
             <div style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap"}}>
               <Tog sm/>
@@ -3213,10 +3353,10 @@ liveStatus={liveStatus}
           <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px"}}>
             <div style={card()}>
               <h3 style={{fontFamily:F,fontSize:TXT.micro,fontWeight:800,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 10px"}}>How It Works</h3>
-              <p style={{fontSize:TXT.body,color:"#555F59",lineHeight:1.68,margin:0,fontFamily:F}}>Weekly chart data is collected from major platforms. Songs are scored by position, with #1 earning 100 points and #100 earning 1 point. Albums use a 201-point scale. Monthly charts aggregate all weekly data, while movement arrows compare each entry with the previous month.</p>
+              <p style={{fontSize:TXT.body,color:"#555F59",lineHeight:1.68,margin:0,fontFamily:F}}>Chart data is collected from major platforms and combined using the existing ranking method. Once the monthly Top 50 order is set, Combined results are displayed on a 50-to-1 scale. Movement arrows compare each entry with the previous month.</p>
               <div style={{marginTop:"15px",padding:"12px",background:"#FAF8F2",borderRadius:"12px",border:"1px solid #EDE6D6"}}>
                 <div style={{height:"8px",borderRadius:"999px",background:"linear-gradient(90deg,#B8860B 0%,#E7C86C 48%,#E9E7E0 100%)"}}></div>
-                <div style={{display:"flex",justifyContent:"space-between",marginTop:"7px",fontFamily:F,fontSize:"10px",fontWeight:850,color:"#59645D"}}><span>#1 = 100 pts</span><span>#100 = 1 pt</span></div>
+                <div style={{display:"flex",justifyContent:"space-between",marginTop:"7px",fontFamily:F,fontSize:"10px",fontWeight:850,color:"#59645D"}}><span>#1 = 50 pts</span><span>#50 = 1 pt</span></div>
               </div>
             </div>
             <div style={card()}>
@@ -3230,7 +3370,7 @@ liveStatus={liveStatus}
             </div>
             <div style={card()}>
               <h3 style={{fontFamily:F,fontSize:TXT.micro,fontWeight:800,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 10px"}}>Albums Chart</h3>
-              <p style={{fontSize:TXT.body,color:"#555F59",lineHeight:1.65,margin:"0 0 13px",fontFamily:F}}>Album charts are based on Apple Music and Audiomack using a 201-point scale. The combined albums chart aggregates points from both platforms.</p>
+              <p style={{fontSize:TXT.body,color:"#555F59",lineHeight:1.65,margin:"0 0 13px",fontFamily:F}}>Album rankings are based on Apple Music and Audiomack. Their platform data determines the Combined order, which is then displayed on the same 50-to-1 scale as singles.</p>
               <div style={{display:"flex",flexWrap:"wrap",gap:"7px"}}><span style={{padding:"6px 10px",borderRadius:"9px",background:"#FC3C4412",border:"1px solid #FC3C4435",fontFamily:F,fontSize:"9.5px",fontWeight:850,color:"#FC3C44"}}>Apple Music</span><span style={{padding:"6px 10px",borderRadius:"9px",background:"#F68B1F12",border:"1px solid #F68B1F35",fontFamily:F,fontSize:"9.5px",fontWeight:850,color:"#D66E00"}}>Audiomack</span><span style={{padding:"6px 10px",borderRadius:"9px",background:"#F7F2F2",border:"1px dashed #B35B5B",fontFamily:F,fontSize:"9.5px",fontWeight:850,color:"#9E3F3F",textDecoration:"line-through"}}>Boomplay excluded</span></div>
             </div>
             <div style={card()}>
