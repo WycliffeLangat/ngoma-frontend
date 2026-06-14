@@ -1372,7 +1372,7 @@ const top = data[0];
         title: `${month} ${typeLabel} Chart`,
         subtitle: `${platformLabel} · Top ${Math.min(vc, data.length)}`,
         accent: "#B8860B",
-        highlights: display.slice(0, 6).map((item) => `#${item.rank} ${item.title} — ${item.artist} · ${Number(item.pts || 0).toLocaleString()} pts`),
+        highlights: display.slice(0, 6).map((item) => `#${item.rank} ${item.title} — ${item.artist}`),
       };
     }
 
@@ -2118,7 +2118,7 @@ const top = data[0];
               </div>
               <div style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",marginTop:"6px",lineHeight:1.45}}>Peak: #{selA.pk} · {selA.t} {isSingles?"songs":"albums"} · {selA.m} months on chart</div>
               <div style={{display:"flex",gap:"24px",marginTop:"14px",fontFamily:F}}>
-                {[{v:selA.p.toLocaleString(),l:"Total Points",c:GOLD},{v:selA.t,l:"Charted Titles"},{v:"#"+selA.pk,l:"Peak Rank"},{v:selA.m,l:"Months Active"}].map((s,i)=>(
+                {[{v:selA.p.toLocaleString(),l:"Total Points",c:GOLD},{v:selA.t,l:"Charted Entries"},{v:"#"+selA.pk,l:"Peak Rank"},{v:selA.m,l:"Months Active"}].map((s,i)=>(
                   <div key={i}><div style={{fontSize:"22px",fontWeight:700,color:s.c||"#1A1A1A"}}>{s.v}</div><div style={{fontSize:"9px",letterSpacing:"1.5px",color:"#CCC",textTransform:"uppercase"}}>{s.l}</div></div>
                 ))}
               </div>
@@ -2135,7 +2135,7 @@ const top = data[0];
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <h3 style={secLbl()}>Charted Titles Across Months</h3>
+          <h3 style={secLbl()}>Charted Entries Across Months</h3>
           {(()=>{
             const titles=new Set();
             const items=[];
@@ -2234,7 +2234,7 @@ liveStatus={liveStatus}
               {[{d:cmp1,c:GOLD},{d:cmp2,c:"#1565C0"}].map(({d,c},i)=>(
                 <div key={i} style={{padding:isMobile?"15px":"16px",background:c+"0D",borderRadius:"10px",borderLeft:"3px solid "+c,minHeight:isMobile?"142px":"auto"}}>
                   <div style={{fontFamily:F,fontSize:isMobile?"10.5px":"10px",fontWeight:900,letterSpacing:"1.5px",color:c,textTransform:"uppercase",marginBottom:"9px"}}>{d.n}</div>
-                  {[{l:"Total Points",v:(d.p||0).toLocaleString()},{l:"Peak Rank",v:"#"+(d.pk||"—")},{l:"Months",v:d.m||0},{l:"Titles",v:d.t||0}].map((s,j)=>(
+                  {[{l:"Total Points",v:(d.p||0).toLocaleString()},{l:"Peak Rank",v:"#"+(d.pk||"—")},{l:"Months",v:d.m||0},{l:"Entries",v:d.t||0}].map((s,j)=>(
                     <div key={j} style={{display:"flex",justifyContent:"space-between",gap:"12px",fontFamily:F,fontSize:isMobile?"12px":"11.5px",borderBottom:"1px solid "+c+"22",padding:isMobile?"5px 0":"4px 0",lineHeight:1.35}}>
                       <span style={{color:"#59645D",fontWeight:650}}>{s.l}</span><span style={{fontWeight:850,color:c}}>{s.v}</span>
                     </div>
@@ -2269,7 +2269,7 @@ liveStatus={liveStatus}
                 const artistStats=[
                   {label:"Peak Rank",value:`#${a.pk}`},
                   {label:"Months",value:a.m},
-                  {label:"Titles",value:a.t},
+                  {label:"Entries",value:a.t},
                 ];
                 return(
                   <div key={rowKey} style={{padding:"15px 16px",border:"1px solid rgba(0,0,0,0.08)",borderRadius:"16px",background:"#FFF",boxShadow:expanded?"inset 4px 0 0 #C89116, 0 8px 22px rgba(0,0,0,0.045)":"0 2px 10px rgba(0,0,0,0.025)"}}>
@@ -2308,7 +2308,7 @@ liveStatus={liveStatus}
                 onMouseEnter={e=>e.currentTarget.style.background="#FAFAF6"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
                 <div style={{fontSize:i<3?"17px":"13.5px",fontWeight:900,color:i<3?MEDALS[i]:"#B8BDB8",textAlign:"center",fontFamily:F}}>{i+1}</div>
                 <CountryBadge artist={a.n} compact />
-                <div style={{minWidth:0}}><div style={{fontSize:"15.5px",fontWeight:850,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",lineHeight:1.15}}>{a.n}</div><div style={{fontSize:"12px",color:"#59645D",fontFamily:F,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",marginTop:"4px",lineHeight:1.35}}>{a.t} {a.t===1?"title":"titles"} · Peak: #{a.pk} · {a.m} {a.m===1?"month":"months"}</div></div>
+                <div style={{minWidth:0}}><div style={{fontSize:"15.5px",fontWeight:850,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",lineHeight:1.15}}>{a.n}</div><div style={{fontSize:"12px",color:"#59645D",fontFamily:F,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",marginTop:"4px",lineHeight:1.35}}>{a.t} {a.t===1?"entry":"entries"} · Peak: #{a.pk} · {a.m} {a.m===1?"month":"months"}</div></div>
                 <div title={trend.label} style={{textAlign:"center",fontFamily:F,fontSize:"14px",fontWeight:900,color:trend.color}}>{trend.symbol}</div>
                 <div style={{textAlign:"right",fontFamily:F,fontSize:"16px",fontWeight:900,color:GOLD,whiteSpace:"nowrap"}}>{a.p.toLocaleString()}</div>
                 <div className="ngoma-artist-pts-label" style={{textAlign:"left",fontFamily:F,fontSize:"9.5px",color:"#7B857D",fontWeight:700}}>pts</div>
@@ -2401,7 +2401,6 @@ liveStatus={liveStatus}
                     {label:"Avg. Rank",a:sp1.avgRank,b:sp2.avgRank,fmt:v=>"#"+v,hi:"min"},
                     {label:"Months",a:sp1.months,b:sp2.months,fmt:v=>v+"/3",hi:"max"},
                     {label:"#1 Finishes",a:sp1.numberOnes,b:sp2.numberOnes,fmt:v=>v,hi:"max"},
-                    {label:"Best Coverage",a:sp1.bestCov,b:sp2.bestCov,fmt:v=>v+"/"+tp,hi:"max"},
                     {label:"Platforms Charted",a:sp1.platformCount,b:sp2.platformCount,fmt:v=>v+"/"+tp,hi:"max"},
                     {label:"Appearances",a:sp1.appearances,b:sp2.appearances,fmt:v=>v,hi:"max"},
                   ];
