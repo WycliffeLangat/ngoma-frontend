@@ -15,11 +15,13 @@ import {
   Pie,
   CartesianGrid,
 } from "recharts";
-import { FULL, ANL } from "./data/chartData";
+import { FULL, MONTHS } from "./data/chartData";
 import PremiumChartsPage, { getArtistCountry } from "./components/PremiumChartsPage";
 
 // ===== FULL Top-50 dataset across all months and platforms =====
-const MONTHS = ["October 2024","November 2024","December 2024"];
+const CURRENT_MONTH = MONTHS[MONTHS.length - 1];
+const DATA_PERIOD = `${MONTHS[0]} – ${CURRENT_MONTH}`;
+const DATA_YEARS = "2025–2026";
 const S_PLATS = ["Combined","APPLE MUSIC","AUDIOMACK","BOOMPLAY","SPOTIFY","YOUTUBE","SHAZAM"];
 const A_PLATS = ["Combined","APPLE MUSIC","AUDIOMACK"];
 const PLAT_LABEL = {"APPLE MUSIC":"Apple Music","AUDIOMACK":"Audiomack","BOOMPLAY":"Boomplay","SPOTIFY":"Spotify","YOUTUBE":"YouTube","SHAZAM":"Shazam"};
@@ -115,7 +117,8 @@ function platformToSlug(platform) {
 }
 
 // Helpers — return entries from FULL with proper month-to-month chart history
-const entryKey = e => `${String(e.t || e.title || "").trim().toLowerCase()}|||${String(e.a || e.artist || "").trim().toLowerCase()}`;
+const entryKey = e => `${String(e.t || e.title || "").trim().toLowerCase()}|||${String(e.primary_artist || e.a || e.artist || "").trim().toLowerCase()}`;
+const sameRelease = (left, right) => entryKey(left) === entryKey(right);
 const monthIndex = m => MONTHS.indexOf(m);
 
 const rawCombined = (ct, m) => FULL[ct].combined[m] || [];
@@ -150,11 +153,17 @@ function enrichChartEntries(entries, getRawEntries, currentMonth, totalPlatforms
       ? Number(String(e.pl).split("/")[0]) || undefined
       : undefined;
 
+    const primaryArtist = String(e.a || "").trim();
+    const featuredArtists = String(e.fa || "").trim();
+
     return {
       rank: e.r,
       title: e.t,
-      artist: e.a,
+      artist: featuredArtists ? `${primaryArtist} feat. ${featuredArtists}` : primaryArtist,
+      primary_artist: primaryArtist,
+      featured_artists: featuredArtists,
       pts: e.p,
+      rawPts: e.rp ?? null,
       plat: e.pl || (platformCount ? `${platformCount}/${totalPlatforms}` : ""),
       prev: previousEntry ? previousEntry.r : null,
       last_month: previousEntry ? previousEntry.r : "—",
@@ -163,17 +172,20 @@ function enrichChartEntries(entries, getRawEntries, currentMonth, totalPlatforms
       reentry: !previousEntry && appearedBefore,
       movement: previousEntry ? undefined : appearedBefore ? "reentry" : "new",
       peak_rank: peakRank === 999 ? e.r : peakRank,
-      weeks_on_chart: monthsOnChart || "—",
+      weeks_on_chart: e.w ?? "—",
+      months_on_chart: monthsOnChart || "—",
       platform_count: platformCount,
+      platform_max: e.pl ? Number(String(e.pl).split("/")[1]) || totalPlatforms : totalPlatforms,
+      release_year: e.y ?? null,
+      confidence: e.c || "",
     };
   });
 }
 
 const getCombined = (ct, m) => enrichChartEntries(rawCombined(ct, m), (monthLabel) => rawCombined(ct, monthLabel), m, ct === "albums" ? 2 : 6)
-  .map((entry, index) => ({
+  .map((entry) => ({
     ...entry,
-    rawPts: entry.pts,
-    pts: Math.min(50, Math.max(1, 51 - (Number(entry.rank) || index + 1))),
+    pts: entry.pts,
   }));
 const getPlatform = (ct, pl, m) => enrichChartEntries(rawPlatform(ct, pl, m), (monthLabel) => rawPlatform(ct, pl, monthLabel), m, 1);
 
@@ -208,11 +220,12 @@ const buildCombinedArtists = (chartType) => {
 
   MONTHS.forEach((monthLabel) => {
     getCombined(chartType, monthLabel).forEach((entry) => {
-      const key = String(entry.artist || "").trim().toLowerCase();
+      const primaryArtist = entry.primary_artist || entry.artist;
+      const key = String(primaryArtist || "").trim().toLowerCase();
       if (!key) return;
 
       const current = artistMap.get(key) || {
-        n: entry.artist,
+        n: primaryArtist,
         p: 0,
         m: 0,
         t: 0,
@@ -416,7 +429,7 @@ const NEWS=[
 export default function NgomaCharts(){
   const [page,setPage]=useState("charts");
   const [ct,setCt]=useState("singles");
-  const [month,setMonth]=useState("December 2024");
+  const [month,setMonth]=useState(CURRENT_MONTH);
   const [plat,setPlat]=useState("Combined");
   const [vc,setVc]=useState(10);
   const [hr,setHr]=useState(null);
@@ -433,7 +446,7 @@ export default function NgomaCharts(){
   const [aiQ,setAiQ]=useState("");
   const [aiA,setAiA]=useState("");
   const [aiL,setAiL]=useState(false);
-  const [anMonth,setAnMonth]=useState("December 2024");
+  const [anMonth,setAnMonth]=useState(CURRENT_MONTH);
   const [loaded,setLd]=useState(false);
   // Live backend (optional) — falls back to baked-in data if unreachable
   const API_BASE = import.meta.env.VITE_API_BASE || "";
@@ -487,11 +500,16 @@ export default function NgomaCharts(){
   }, [API_BASE]);
 
   useEffect(() => {
+    setLiveChartEntries([]);
+    setLiveChartMeta(null);
+
     if (!API_BASE) return;
 
     const { monthNumber, year } = getMonthYearParts(month);
 
     if (!monthNumber || !year) return;
+
+    const controller = new AbortController();
 
     const params = new URLSearchParams();
     params.set("type", ct);
@@ -501,7 +519,7 @@ export default function NgomaCharts(){
 
     setLiveChartLoading(true);
 
-    fetch(`${API_BASE}/export/chart-image-data/?${params.toString()}`)
+    fetch(`${API_BASE}/export/chart-image-data/?${params.toString()}`, { signal: controller.signal })
       .then((response) => {
         if (!response.ok) throw new Error("Live chart unavailable");
         return response.json();
@@ -510,18 +528,17 @@ export default function NgomaCharts(){
         const entries = (chartData.entries || []).map((entry) => {
           const movementType = String(entry.movement || "").toLowerCase();
 
-          const rawPoints = entry.total_points || 0;
-          const combinedPoints = plat === "Combined"
-            ? Math.min(50, Math.max(1, 51 - (Number(entry.rank) || 50)))
-            : rawPoints;
+          const displayPoints = entry.total_points || 0;
 
           return {
             rank: entry.rank,
             title: entry.title,
             artist: entry.artist,
-            pts: combinedPoints,
-            rawPts: rawPoints,
-            plat: entry.platform_count ? `${entry.platform_count}/${tp}` : "",
+            primary_artist: entry.primary_artist || entry.artist,
+            featured_artists: entry.featured_artists || "",
+            pts: displayPoints,
+            rawPts: null,
+            plat: entry.platform_count ? `${entry.platform_count}/${entry.platform_max || tp}` : "",
             prev: entry.prev_rank,
             first: false,
             is_new: movementType === "new",
@@ -534,6 +551,9 @@ export default function NgomaCharts(){
             peak_rank: entry.peak_rank,
             weeks_on_chart: entry.weeks_on_chart,
             platform_count: entry.platform_count,
+            platform_max: entry.platform_max,
+            release_year: entry.release_year,
+            confidence: entry.confidence,
           };
         });
 
@@ -541,14 +561,17 @@ export default function NgomaCharts(){
         setLiveChartMeta(chartData);
         setLiveStatus("live");
       })
-      .catch(() => {
+      .catch((error) => {
+        if (error.name === "AbortError") return;
         setLiveChartEntries([]);
         setLiveChartMeta(null);
         setLiveStatus("static");
       })
       .finally(() => {
-        setLiveChartLoading(false);
+        if (!controller.signal.aborted) setLiveChartLoading(false);
       });
+
+    return () => controller.abort();
   }, [API_BASE, ct, month, plat, tp]);
   useEffect(()=>{setTimeout(()=>setLd(true),100);},[]);
 
@@ -682,7 +705,7 @@ const top = data[0];
 
   const crossPlatformRows = getCombined(ct, anMonth)
     .map((entry) => {
-      const hits = platformHitsFor(ct, anMonth, entry.title, entry.artist);
+      const hits = platformHitsFor(ct, anMonth, entry.title, entry.primary_artist || entry.artist);
       const fallbackCount = Number(String(entry.plat || "").split("/")[0]) || 0;
       const fallbackHits = hits.length ? hits : currentPlatformKeys.slice(0, fallbackCount);
       const count = fallbackHits.length || fallbackCount;
@@ -779,7 +802,7 @@ const top = data[0];
         const group = groups.get(key);
         const points = num(entry.pts);
         const rank = num(entry.rank);
-        const hits = platformHitsFor(chartType, m, entry.title, entry.artist);
+        const hits = platformHitsFor(chartType, m, entry.title, entry.primary_artist || entry.artist);
         const fallbackCount = num(entry.platform_count) || num(String(entry.plat || "").split("/")[0]);
         const platformCount = Math.max(hits.length, fallbackCount);
 
@@ -890,7 +913,7 @@ const top = data[0];
     const seen = new Map();
     MONTHS.forEach((m) => {
       getCombined(ct, m).forEach((entry) => {
-        const hits = platformHitsFor(ct, m, entry.title, entry.artist);
+        const hits = platformHitsFor(ct, m, entry.title, entry.primary_artist || entry.artist);
         const fallbackCount = num(entry.platform_count) || num(String(entry.plat || "").split("/")[0]);
         const count = Math.max(hits.length, fallbackCount);
         if (count >= currentRecordsCoverageTarget) {
@@ -906,7 +929,7 @@ const top = data[0];
     if(!aiQ.trim())return;setAiL(true);setAiA("");
     const sCtx=MONTHS.map(m=>m+" Singles Top 10: "+getCombined("singles",m).slice(0,10).map(e=>"#"+e.rank+" "+e.title+" ("+e.artist+","+e.pts+"pts)").join(", ")).join(" | ");
     const aCtx=MONTHS.map(m=>m+" Albums Top 5: "+getCombined("albums",m).slice(0,5).map(e=>"#"+e.rank+" "+e.title+" ("+e.artist+","+e.pts+"pts)").join(", ")).join(" | ");
-    const sys="You are Ngoma Charts AI analyst for multi-platform Kenya music chart data (Oct-Dec 2024). Real data: "+sCtx+" "+aCtx+". Be concise, data-driven, and cite specific numbers.";
+    const sys=`You are Ngoma Charts AI analyst for multi-platform Kenya music chart data (${DATA_PERIOD}). Real data: ${sCtx} ${aCtx}. Be concise, data-driven, and cite specific numbers.`;
     try{
       let text;
       if(API_BASE){
@@ -1040,13 +1063,16 @@ const top = data[0];
 
   // === ANALYTICS COMPUTATIONS — all from full Top-50 data ===
   const top10sData=getCombined(ct,anMonth).slice(0,10).map(e=>({name:e.title.length>16?e.title.slice(0,14)+"…":e.title,title:e.title,artist:e.artist,pts:e.pts}));
-  const monthlyComp=MONTHS.map(m=>({
-    month:m.split(" ")[0].slice(0,3),
-    singles:getCombined("singles",m).length,
-    albums:getCombined("albums",m).length,
-    new:ANL.movements[m].new,
-    debut:ANL.movements[m].debut,
-  }));
+  const monthlyComp=MONTHS.map(m=>{
+    const rows=getCombined(ct,m);
+    return {
+      month:m.split(" ")[0].slice(0,3),
+      singles:getCombined("singles",m).length,
+      albums:getCombined("albums",m).length,
+      new:rows.filter(entry=>entry.is_new).length,
+      debut:rows.filter(entry=>entry.is_new&&Number(entry.rank)<=10).length,
+    };
+  });
 
   const topArtistsLine=MONTHS.map(m=>{
     const obj={month:m.split(" ")[0].slice(0,3)};
@@ -1065,18 +1091,18 @@ const top = data[0];
   // Unique titles for the current chart type, with their artist
   const allTitles=useMemo(()=>{
     const map={};
-    MONTHS.forEach(m=>getCombined(ct,m).forEach(e=>{const k=e.title+" — "+e.artist;if(!map[k])map[k]={key:k,title:e.title,artist:e.artist};}));
+    MONTHS.forEach(m=>getCombined(ct,m).forEach(e=>{const k=e.title+" — "+e.artist;if(!map[k])map[k]={key:k,title:e.title,artist:e.artist,primary_artist:e.primary_artist||e.artist};}));
     return Object.values(map).sort((a,b)=>a.title.localeCompare(b.title));
   },[ct]);
   // Build a full profile for a song key
   const songProfile=(key)=>{
     const meta=allTitles.find(t=>t.key===key);
     if(!meta)return null;
-    const {title,artist}=meta;
-    const prof={title,artist,monthly:{},platforms:{},totalPts:0,peak:999,months:0,debutMonth:null,bestCov:0,avgRank:0};
+    const {title,artist,primary_artist}=meta;
+    const prof={title,artist,primary_artist,monthly:{},platforms:{},totalPts:0,peak:999,months:0,debutMonth:null,bestCov:0,avgRank:0};
     let rankSum=0,rankCount=0;
     MONTHS.forEach(m=>{
-      const e=getCombined(ct,m).find(x=>x.title===title&&x.artist===artist);
+      const e=getCombined(ct,m).find(x=>sameRelease(x,{title,primary_artist}));
       if(e){
         prof.monthly[m]={rank:e.rank,pts:e.pts,cov:e.plat};
         prof.totalPts+=e.pts; prof.months+=1;
@@ -1090,13 +1116,13 @@ const top = data[0];
     prof.avgRank=rankCount?Math.round(rankSum/rankCount):0;
     PLATS_FOR.forEach(pl=>{
       let best=null;
-      MONTHS.forEach(m=>{const pe=getPlatform(ct,pl,m).find(x=>x.title===title&&x.artist===artist);if(pe&&(best===null||pe.rank<best))best=pe.rank;});
+      MONTHS.forEach(m=>{const pe=getPlatform(ct,pl,m).find(x=>sameRelease(x,{title,primary_artist}));if(pe&&(best===null||pe.rank<best))best=pe.rank;});
       if(best!==null)prof.platforms[pl]=best;
     });
     prof.platformCount=Object.keys(prof.platforms).length;
     // weeks-equivalent: number of (platform×month) chart appearances
     let appearances=0;
-    PLATS_FOR.forEach(pl=>MONTHS.forEach(m=>{if(getPlatform(ct,pl,m).find(x=>x.title===title&&x.artist===artist))appearances+=1;}));
+    PLATS_FOR.forEach(pl=>MONTHS.forEach(m=>{if(getPlatform(ct,pl,m).find(x=>sameRelease(x,{title,primary_artist})))appearances+=1;}));
     prof.appearances=appearances;
     // #1 count on combined
     prof.numberOnes=Object.values(prof.monthly).filter(x=>x.rank===1).length;
@@ -1115,7 +1141,7 @@ const top = data[0];
 
   const yearEnd=isSingles?COMBINED_YEAR_END.singles:COMBINED_YEAR_END.albums;
 
-  const tracked=isSingles?["Extra Pressure","Set It","Olodumare","Kifo Cha Mende","Bae Bae"]:["Lungu Boy","To Whom It May Concern","The Motions","GNX","Alusa Why Are You Topless?"];
+  const tracked=getCombined(ct,CURRENT_MONTH).slice(0,5).map(entry=>entry.title);
 
   const certs=buildCertifications(yearEnd);
   const certIcons=CERTIFICATION_LEVELS.reduce((acc, item) => {
@@ -1255,9 +1281,9 @@ const top = data[0];
   const releaseJourney=r=>{
     if(!r)return [];
     return MONTHS.map(m=>{
-      const sc=getCombined(ct,m).find(e=>e.title===r.title&&e.artist===r.artist);
+      const sc=getCombined(ct,m).find(e=>sameRelease(e,r));
       const platforms=isSingles?["APPLE MUSIC","AUDIOMACK","BOOMPLAY","SPOTIFY","YOUTUBE","SHAZAM"]:["APPLE MUSIC","AUDIOMACK"];
-      const entries=platforms.map(pl=>{const d=getPlatform(ct,pl,m).find(e=>e.title===r.title&&e.artist===r.artist);return d?{platform:PLAT_LABEL[pl]||pl,rank:d.rank,pts:d.pts}:null;}).filter(Boolean);
+      const entries=platforms.map(pl=>{const d=getPlatform(ct,pl,m).find(e=>sameRelease(e,r));return d?{platform:PLAT_LABEL[pl]||pl,rank:d.rank,pts:d.pts}:null;}).filter(Boolean);
       return {month:m,combined:sc||null,platforms:entries};
     });
   };
@@ -1372,7 +1398,7 @@ const top = data[0];
         title: `${month} ${typeLabel} Chart`,
         subtitle: `${platformLabel} · Top ${Math.min(vc, data.length)}`,
         accent: "#B8860B",
-        highlights: display.slice(0, 6).map((item) => `#${item.rank} ${item.title} — ${item.artist}`),
+        highlights: display.slice(0, 6).map((item) => `#${item.rank} ${item.title} — ${item.artist} · ${Number(item.pts || 0).toLocaleString()} pts`),
       };
     }
 
@@ -1427,7 +1453,7 @@ const top = data[0];
     if (page === "year-end") {
       return {
         eyebrow: "ANNUAL CHART",
-        title: `Best of 2024 — ${typeLabel}`,
+        title: `Best of ${DATA_YEARS} — ${typeLabel}`,
         subtitle: "Aggregated points across tracked months",
         accent: "#B8860B",
         highlights: yearEnd.slice(0, 6).map((item, index) => `#${index + 1} ${item.t} — ${item.a} · ${Number(item.totalPts || 0).toLocaleString()} pts`),
@@ -2059,6 +2085,8 @@ const top = data[0];
         const platformNames = new Set(journey.flatMap((item) => item.platforms.map((entry) => entry.platform)));
         const totalPoints = combinedHistory.reduce((sum, item) => sum + Number(item.combined?.pts || 0), 0);
         const peakRank = combinedHistory.reduce((best, item) => Math.min(best, Number(item.combined?.rank || 999)), 999);
+        const releaseMetadata = combinedHistory.find((item) => item.combined?.release_year || item.combined?.confidence)?.combined || {};
+        const releaseConfidence = selR.confidence || releaseMetadata.confidence;
         return (
         <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <span onClick={()=>setSelR(null)} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:GOLD,cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>← Back</span>
@@ -2067,17 +2095,20 @@ const top = data[0];
             <h1 style={{fontSize:isMobile?"24px":"30px",fontWeight:850,margin:"0 0 4px",lineHeight:1.12}}>{selR.title}</h1>
             {selectedCertification&&<CertificationTag cert={selectedCertification} compact={false} style={{margin:"2px 0 10px"}} />}
             <div style={{display:"flex",alignItems:"center",gap:"9px",flexWrap:"wrap",margin:"0 0 16px"}}>
-              <button type="button" onClick={()=>openArtistDetails(selR.artist)} style={{fontSize:isMobile?"15px":"18px",color:"#4E5851",margin:0,padding:0,border:0,background:"transparent",fontFamily:F,cursor:"pointer",fontWeight:800}}>{selR.artist}</button>
-              <CountryBadge artist={selR.artist} showName />
+              <button type="button" onClick={()=>openArtistDetails(selR.primary_artist||selR.artist)} style={{fontSize:isMobile?"15px":"18px",color:"#4E5851",margin:0,padding:0,border:0,background:"transparent",fontFamily:F,cursor:"pointer",fontWeight:800}}>{selR.artist}</button>
+              <CountryBadge artist={selR.primary_artist||selR.artist} showName />
             </div>
-            <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(4,minmax(0,1fr))",gap:"10px",marginBottom:"18px"}}>
+            <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(3,minmax(0,1fr))",gap:"10px",marginBottom:"18px"}}>
               {[
                 {label:"Total Points",value:totalPoints.toLocaleString()},
                 {label:"Peak Rank",value:peakRank<999?`#${peakRank}`:"—"},
                 {label:"Months Charted",value:combinedHistory.length},
                 {label:"Platforms",value:platformNames.size},
+                {label:"Release Year",value:selR.release_year||releaseMetadata.release_year||"—"},
+                {label:"Weeks This Month",value:selR.weeks_on_chart||"—"},
               ].map((stat)=><div key={stat.label} style={{padding:"12px 13px",border:"1px solid #ECE9E1",borderRadius:"10px",background:"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:"#7B857D"}}>{stat.label}</div><div style={{fontFamily:F,fontSize:"19px",fontWeight:900,color:"#1A1A1A",marginTop:"5px"}}>{stat.value}</div></div>)}
             </div>
+            {releaseConfidence&&<div style={{fontFamily:F,fontSize:"11px",color:"#68716B",margin:"-6px 0 18px"}}>Metadata confidence: <strong>{releaseConfidence}</strong></div>}
             <button onClick={()=>shareReleaseCard(selR)} style={{display:"inline-flex",alignItems:"center",gap:"8px",padding:"9px 18px",background:"#1A1A1A",color:"#FFF",border:"none",borderRadius:"22px",fontFamily:F,fontSize:"12px",fontWeight:700,cursor:"pointer",marginBottom:"24px",letterSpacing:"0.5px"}}
               onMouseEnter={e=>e.currentTarget.style.background="#000"} onMouseLeave={e=>e.currentTarget.style.background="#1A1A1A"}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B8860B" strokeWidth="2.5"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
@@ -2343,7 +2374,7 @@ liveStatus={liveStatus}
             </div>
             {aiA&&<div style={{padding:"14px",background:"#FAFAF8",borderRadius:"8px",border:"1px solid #EAEAE6",fontSize:"13px",lineHeight:1.7,whiteSpace:"pre-wrap",marginBottom:"10px"}}>{aiA}</div>}
             <div style={{display:"flex",gap:"5px",flexWrap:"wrap"}}>
-              {["Who dominated Q4 2024 overall?","Which song rose the fastest?","Compare singles vs albums platform performance","What predicts a #1 song?","Best Kenyan artists vs international?","Certification breakdown","Which platform discovers trends earliest?","Cross-platform overlap analysis"].map(q=>(
+              {[`Who dominated ${DATA_YEARS} overall?`,"Which song rose the fastest?","Compare singles vs albums platform performance","What predicts a #1 song?","Best Kenyan artists vs international?","Certification breakdown","Which platform discovers trends earliest?","Cross-platform overlap analysis"].map(q=>(
                 <button key={q} onClick={()=>setAiQ(q)} style={{padding:"4px 10px",background:"#FFF",border:"1px solid #E0E0DC",borderRadius:"14px",fontSize:"10px",fontFamily:F,color:"#888",cursor:"pointer"}}>{q}</button>
               ))}
             </div>
@@ -2399,7 +2430,7 @@ liveStatus={liveStatus}
                     {label:"Total Points",a:sp1.totalPts,b:sp2.totalPts,fmt:v=>v.toLocaleString(),hi:"max"},
                     {label:"Peak",a:sp1.peak,b:sp2.peak,fmt:v=>"#"+v,hi:"min"},
                     {label:"Avg. Rank",a:sp1.avgRank,b:sp2.avgRank,fmt:v=>"#"+v,hi:"min"},
-                    {label:"Months",a:sp1.months,b:sp2.months,fmt:v=>v+"/3",hi:"max"},
+                    {label:"Months",a:sp1.months,b:sp2.months,fmt:v=>v+"/"+MONTHS.length,hi:"max"},
                     {label:"#1 Finishes",a:sp1.numberOnes,b:sp2.numberOnes,fmt:v=>v,hi:"max"},
                     {label:"Platforms Charted",a:sp1.platformCount,b:sp2.platformCount,fmt:v=>v+"/"+tp,hi:"max"},
                     {label:"Appearances",a:sp1.appearances,b:sp2.appearances,fmt:v=>v,hi:"max"},
@@ -2913,8 +2944,8 @@ liveStatus={liveStatus}
           <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:isMobile?"16px":"20px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
             <div>
               <div style={{fontFamily:F,fontSize:isMobile?"10.5px":"11px",letterSpacing:isMobile?"1.8px":"2px",textTransform:"uppercase",color:GOLD,marginBottom:"6px",fontWeight:850}}>ANNUAL CHART</div>
-              <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0}}>Best of 2024</h2>
-              <p style={{fontFamily:F,fontSize:TXT.lead,color:"#59645D",margin:"4px 0 0",lineHeight:1.55}}>Aggregated points across October, November & December 2024</p>
+              <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0}}>Best of {DATA_YEARS}</h2>
+              <p style={{fontFamily:F,fontSize:TXT.lead,color:"#59645D",margin:"4px 0 0",lineHeight:1.55}}>Aggregated Display Points across {DATA_PERIOD}</p>
             </div>
             <div className="year-end-actions" data-share-action-area="true" style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap",position:isMobile?"sticky":"static",top:isMobile?"0":"auto",zIndex:isMobile?5:"auto",background:isMobile?"#FFF":"transparent",padding:isMobile?"8px 0 4px":"0"}}>
               <Tog sm/>
@@ -3378,7 +3409,7 @@ liveStatus={liveStatus}
             </div>
             <div style={card()}>
               <h3 style={{fontFamily:F,fontSize:TXT.micro,fontWeight:800,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 10px"}}>Hall of Fame</h3>
-              <p style={{fontSize:TXT.body,color:"#555F59",lineHeight:1.68,margin:0,fontFamily:F}}>Songs and albums that reach #1 on the combined chart enter the Hall of Fame. In Q4 2024, Extra Pressure topped singles in October and November, while Olodumare led in December. For albums, Lungu Boy led in October and November, followed by GNX in December.</p>
+              <p style={{fontSize:TXT.body,color:"#555F59",lineHeight:1.68,margin:0,fontFamily:F}}>Songs and albums that reach #1 on the Combined chart enter the Hall of Fame. The monthly leaders below cover the complete {DATA_PERIOD} dataset.</p>
             </div>
           </div>
           {/* Hall of Fame */}

@@ -421,9 +421,10 @@ export function getArtistCountry(item) {
   }
 
   const fallback =
+    findArtistCountryFallback(item.primary_artist) ||
     findArtistCountryFallback(item.artist) ||
     findArtistCountryFallback(item.artist_name) ||
-    findArtistCountryFallback(item.primary_artist);
+    null;
 
   if (fallback) {
     return {
@@ -572,7 +573,7 @@ export default function PremiumChartsPage({
       item.weeks_on_chart !== null &&
       item.weeks_on_chart !== ""
         ? item.weeks_on_chart
-        : calculateStaticWeeks(item);
+        : "—";
 
     return {
       lastMonth,
@@ -586,7 +587,8 @@ export default function PremiumChartsPage({
 
     MONTHS.forEach((m) => {
       const found = getCombined(ct, m).find(
-        (entry) => entry.title === item.title && entry.artist === item.artist
+        (entry) => entry.title === item.title &&
+          (entry.primary_artist || entry.artist) === (item.primary_artist || item.artist)
       );
 
       if (found && typeof found.rank === "number" && found.rank < peak) {
@@ -595,20 +597,6 @@ export default function PremiumChartsPage({
     });
 
     return peak;
-  }
-
-  function calculateStaticWeeks(item) {
-    let weeks = 0;
-
-    MONTHS.forEach((m) => {
-      const found = getCombined(ct, m).find(
-        (entry) => entry.title === item.title && entry.artist === item.artist
-      );
-
-      if (found) weeks += 1;
-    });
-
-    return weeks || "—";
   }
 
   function openArtist(name) {
@@ -642,6 +630,8 @@ export default function PremiumChartsPage({
         return num(profile.peak);
       case "months":
         return num(profile.weeks);
+      case "points":
+        return num(item.pts);
       case "platforms": {
         const m = String(item.plat || "").match(/^(\d+)/);
         return m ? Number(m[1]) : -1;
@@ -670,7 +660,7 @@ export default function PremiumChartsPage({
       if (current.key !== key) {
         // Rank/Last Month/Peak read best-first (asc); Months/Platforms read
         // most-first (desc) on first click — that's what people expect.
-        const firstDir = key === "months" || key === "platforms" ? "desc" : "asc";
+        const firstDir = key === "months" || key === "points" || key === "platforms" ? "desc" : "asc";
         return { key, dir: firstDir };
       }
       return { key, dir: current.dir === "asc" ? "desc" : "asc" };
@@ -693,7 +683,8 @@ export default function PremiumChartsPage({
       "Country Code",
       "Last Month",
       "Peak",
-      "Months on Chart",
+      "Weeks",
+      "Points",
       ...(isCombinedChart ? ["Platforms"] : []),
     ];
     const escape = (value) => {
@@ -712,6 +703,7 @@ export default function PremiumChartsPage({
         profile.lastMonth,
         profile.peak,
         profile.weeks,
+        item.pts,
         ...(isCombinedChart ? [item.plat || "—"] : []),
       ]
         .map(escape)
@@ -1085,7 +1077,7 @@ export default function PremiumChartsPage({
           {
             label: "Chart Leader",
             value: top?.title || "—",
-            sub: top?.artist || "",
+            sub: top ? `${top.artist} · ${Number(top.pts || 0).toLocaleString()} pts` : "",
             compact: true,
           },
         ].map((item, index) => (
@@ -1270,7 +1262,7 @@ export default function PremiumChartsPage({
         </div>
 
         {!mobile && (
-          <div style={{...styles.tableHeader,gridTemplateColumns:isCombinedChart?styles.tableHeader.gridTemplateColumns:"54px 84px minmax(0, 1fr) 84px 60px 70px"}}>
+          <div style={{...styles.tableHeader,gridTemplateColumns:isCombinedChart?styles.tableHeader.gridTemplateColumns:"54px 84px minmax(0, 1fr) 84px 60px 70px 64px"}}>
             <span
               style={{ ...styles.headerCell, cursor: "pointer" }}
               onClick={() => handleSort("rank")}
@@ -1297,9 +1289,16 @@ export default function PremiumChartsPage({
             <span
               style={{ ...styles.headerCell, cursor: "pointer" }}
               onClick={() => handleSort("months")}
-              title="Sort by months on chart"
+              title="Sort by weeks charted"
             >
-              Months{sortArrow("months")}
+              Weeks{sortArrow("months")}
+            </span>
+            <span
+              style={{ ...styles.headerCell, cursor: "pointer" }}
+              onClick={() => handleSort("points")}
+              title="Sort by points"
+            >
+              Points{sortArrow("points")}
             </span>
             {isCombinedChart&&<span
               style={{ ...styles.headerCell, cursor: "pointer" }}
@@ -1366,7 +1365,7 @@ export default function PremiumChartsPage({
                       <button
                         onClick={(event) => {
                           event.stopPropagation();
-                          openArtist(item.artist);
+                          openArtist(item.primary_artist || item.artist);
                         }}
                         className="ngoma-artist-link"
                         style={styles.artistButton}
@@ -1417,7 +1416,8 @@ export default function PremiumChartsPage({
                       <div style={styles.mobileStatsRow}>
                         <MobileStat label="L.M" value={profile.lastMonth} />
                         <MobileStat label="Peak" value={profile.peak} />
-                        <MobileStat label="Months" value={profile.weeks} />
+                        <MobileStat label="Weeks" value={profile.weeks} />
+                        <MobileStat label="Points" value={item.pts} />
                         {isCombinedChart&&<MobileStat label="Plat." value={item.plat || "—"} />}
                       </div>
                     </div>
@@ -1431,7 +1431,7 @@ export default function PremiumChartsPage({
                 key={`${item.title}-${item.artist}-${item.rank}-${index}`}
                 style={{
                   ...styles.row,
-                  gridTemplateColumns:isCombinedChart?styles.row.gridTemplateColumns:"54px 84px minmax(0, 1fr) 84px 60px 70px",
+                  gridTemplateColumns:isCombinedChart?styles.row.gridTemplateColumns:"54px 84px minmax(0, 1fr) 84px 60px 70px 64px",
                   animationDelay: `${Math.min(index * 20, 400)}ms`,
                 }}
                 onMouseEnter={(event) => {
@@ -1492,7 +1492,7 @@ export default function PremiumChartsPage({
                     </button>
 
                     <button
-                      onClick={() => openArtist(item.artist)}
+                      onClick={() => openArtist(item.primary_artist || item.artist)}
                       className="ngoma-artist-link"
                       style={styles.artistButton}
                     >
@@ -1509,6 +1509,7 @@ export default function PremiumChartsPage({
                 <div style={styles.metaNumber}>{profile.peak}</div>
                 <div style={styles.metaNumber}>{profile.weeks}</div>
 
+                <div style={{...styles.metaNumber,color:chartAccentInk}}>{item.pts}</div>
                 {isCombinedChart&&<div style={styles.platformCell}>{item.plat || "—"}</div>}
               </div>
             );
@@ -2023,7 +2024,7 @@ const styles = {
 
   tableHeader: {
     display: "grid",
-    gridTemplateColumns: "54px 84px minmax(0, 1fr) 84px 60px 70px 86px",
+    gridTemplateColumns: "54px 84px minmax(0, 1fr) 84px 60px 70px 64px 86px",
     gap: "14px",
     alignItems: "center",
     justifyItems: "center",
@@ -2058,7 +2059,7 @@ const styles = {
 
   row: {
     display: "grid",
-    gridTemplateColumns: "54px 84px minmax(0, 1fr) 84px 60px 70px 86px",
+    gridTemplateColumns: "54px 84px minmax(0, 1fr) 84px 60px 70px 64px 86px",
     gap: "14px",
     alignItems: "center",
     padding: "16px 24px",

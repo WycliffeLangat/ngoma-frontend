@@ -2,7 +2,7 @@
 
 Kenya's official multi-platform music charts. Singles and albums ranked across Apple Music, Audiomack, Boomplay, Spotify, YouTube and Shazam.
 
-This is a production-ready React + Vite single-page app. It ships with the full Q4 2024 dataset bundled in, so **it works fully standalone with no backend**. When you deploy the Django backend, set one environment variable and it switches to live data automatically.
+This is a production-ready React + Vite single-page app. It ships with the complete September 2025–May 2026 dataset bundled in, so **it works fully standalone with no backend**. When you deploy the Django backend, set one environment variable and it switches to live data automatically.
 
 ## Quick start
 
@@ -36,7 +36,7 @@ ngoma-charts/
     ├── NgomaCharts.jsx     # the full application (all pages)
     ├── index.css           # fonts + reset
     └── data/
-        └── chartData.js    # the Q4 2024 dataset (FULL, ANL, MOM)
+        └── chartData.js    # generated September 2025–May 2026 chart data
 ```
 
 The app and the dataset are separated: `src/data/chartData.js` holds all the chart data, so updating data never touches the UI code.
