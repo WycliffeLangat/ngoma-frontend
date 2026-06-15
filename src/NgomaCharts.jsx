@@ -33,9 +33,9 @@ const SF = "'Source Serif 4',Georgia,serif";
 const CC = [GOLD,"#E53935","#2DB04A","#1565C0","#7B1FA2","#E65100","#00897B","#37474F","#AD1457","#558B2F"];
 const VO = [{l:"Top 10",c:10},{l:"Top 20",c:20},{l:"Top 50",c:50}];
 const CERTIFICATION_LEVELS = [
-  { level: "diamond", label: "Diamond", icon: "💎", pts: 140, color: "#7B1FA2" },
-  { level: "platinum", label: "Platinum", icon: "🪙", pts: 110, color: SILVER },
-  { level: "gold", label: "Gold", icon: "🥇", pts: 80, color: GOLD },
+  { level: "diamond", label: "Diamond", icon: "💎", pts: 350, color: "#7B1FA2" },
+  { level: "platinum", label: "Platinum", icon: "🪙", pts: 200, color: SILVER },
+  { level: "gold", label: "Gold", icon: "🥇", pts: 100, color: GOLD },
 ];
 const getCertificationLevel = (totalPts = 0) => {
   const points = Number(totalPts) || 0;
@@ -64,9 +64,9 @@ const certificationKey = (title = "", artist = "") =>
   `${String(title).trim().toLowerCase()}|||${String(artist).trim().toLowerCase()}`;
 const certificationMetaForLevel = (level) => CERTIFICATION_LEVELS.find((item) => item.level === level) || null;
 const COUNTRY_ACCENTS = {
-  BB:"#00267F",CA:"#D80621",CD:"#007FFF",CI:"#F77F00",FR:"#0055A4",GB:"#012169",
+  BB:"#00267F",CA:"#D80621",CD:"#007FFF",CI:"#F77F00",CL:"#D52B1E",DE:"#FFCE00",FR:"#0055A4",GB:"#012169",
   GH:"#CE1126",IN:"#FF9933",JM:"#009B3A",KE:"#006600",KR:"#CD2E3A",NG:"#008751",
-  NO:"#BA0C2F",RW:"#00A1DE",SE:"#006AA7",TZ:"#1EB53A",UG:"#D90000",US:"#3C3B6E",ZA:"#007749",
+  NO:"#BA0C2F",PR:"#ED0000",RW:"#00A1DE",SE:"#006AA7",TZ:"#1EB53A",UG:"#D90000",US:"#3C3B6E",ZA:"#007749",ZW:"#319208",
 };
 const CountryBadge = ({ artist, item, compact = false, style = {} }) => {
   const country = getArtistCountry(item || { artist });
@@ -481,14 +481,24 @@ const RecordIcon = ({ label = "", size = 30, muted = false }) => {
 };
 
 const NEWS=[
-  {id:1,date:"December 31, 2024",cat:"CHART NEWS",emoji:"🎵",title:"Olodumare Dethrones Bensoul to Claim December #1",excerpt:"After two consecutive months at the top, Bensoul's Extra Pressure falls to #3 as Joel Lwaga's Olodumare storms to #1 with presence across all six platforms.",body:"Joel Lwaga's Olodumare made history in December 2024, becoming the first song to dethrone Bensoul's Extra Pressure from the #1 spot since Ngoma Charts launched. Its perfect 6/6 platform presence cemented its status as one of the most cross-cutting songs of Q4 2024."},
-  {id:2,date:"December 15, 2024",cat:"ARTIST SPOTLIGHT",emoji:"🌟",title:"Iyanii: Q4's Fastest-Rising Artist",excerpt:"Kifo Cha Mende climbed to #2 in December, completing one of Q4 2024's strongest late-year runs.",body:"Iyanii's Kifo Cha Mende is one of the breakout stories of Q4 2024. Its rapid rise through the Combined chart established it as a defining release of the quarter."},
-  {id:3,date:"December 5, 2024",cat:"ALBUMS",emoji:"💿",title:"GNX Tops Kenya's Albums Chart",excerpt:"Kendrick Lamar's surprise album lands at #1 on the combined albums chart in December, displacing Asake's Lungu Boy.",body:"GNX held off Marioo's The Godson in one of the closest #1 album races of the year."},
-  {id:4,date:"November 30, 2024",cat:"CHART NEWS",emoji:"🏆",title:"Bensoul Holds #1 For Second Straight Month",excerpt:"Extra Pressure held the Combined chart summit in November after leading the inaugural October ranking.",body:"Extra Pressure became the first song in Ngoma Charts history to hold #1 for two consecutive months, strengthening its position among Q4's most consistent releases."},
-  {id:5,date:"November 20, 2024",cat:"ANALYTICS",emoji:"📊",title:"Only Two Songs Reached 6/6 Platform Coverage",excerpt:"Across Q4 2024, only Extra Pressure and Olodumare charted on all six platforms in the same month.",body:"Different platforms have genuinely different audiences in Kenya. A song that cracks all six must appeal across every listener segment."},
-  {id:6,date:"November 5, 2024",cat:"ARTIST SPOTLIGHT",emoji:"⭐",title:"Dyana Cods Dominates 4 Platforms with Set It",excerpt:"Set It topped Apple Music, Boomplay, Spotify and Shazam simultaneously in October — a rare achievement.",body:"Set It remained one of Q4's most consistent cross-platform releases and finished among the leading songs of the quarter."},
-  {id:7,date:"October 31, 2024",cat:"ANNOUNCEMENT",emoji:"🚀",title:"Ngoma Charts Officially Launches",excerpt:"Ngoma Charts' multi-platform music ranking system debuts with Bensoul's Extra Pressure as the inaugural #1.",body:"Ngoma Charts combines performance across major music platforms into a single monthly ranking. Combined chart positions are displayed on a 50-to-1 scale, while each platform chart retains its own scoring data."},
-  {id:8,date:"October 20, 2024",cat:"ALBUMS",emoji:"🎤",title:"Nyashinski's Album Anchors Albums Chart",excerpt:"To Whom It May Concern holds at #2 on the combined albums chart for October 2024.",body:"The result showed that Kenyan artists can compete with international heavyweights on home soil."},
+  {id:1,date:"June 15, 2026",cat:"CHART NEWS",emoji:"",title:"Ywaya Tajiri Claims May's #1 With Chai ya saa kumi",excerpt:"Chai ya saa kumi rises nineteen places from #20 to lead the May 2026 Combined singles chart.",body:"Ywaya Tajiri completed the month's biggest charge toward the summit, moving from #20 in April to #1 in May. The result also made the song Apple Music's leading single for the month."},
+  {id:2,date:"June 14, 2026",cat:"ALBUMS",emoji:"",title:"Cardi B Extends an Eight-Month Albums Reign",excerpt:"AM I THE DRAMA? (Album Release Live Edition) has held #1 every month from October 2025 through May 2026.",body:"Cardi B's live edition has now led eight consecutive Combined album charts. Its 400 cumulative display points make it the period's second-highest scoring album release."},
+  {id:3,date:"June 13, 2026",cat:"ANALYTICS",emoji:"",title:"Natafuta Doo Makes May's Biggest Singles Jump",excerpt:"ELISHA TOTO climbs twenty-one positions, moving from #33 in April to #12 in May.",body:"No single gained more positions in May. Natafuta Doo's 21-place rise put it just outside the month's Top 10 and ahead of every other returning climber."},
+  {id:4,date:"June 12, 2026",cat:"ALBUMS",emoji:"",title:"Fally Ipupa's XX Rockets Thirty Places",excerpt:"XX surges from #34 to #4, the largest month-to-month move on May's Combined albums chart.",body:"Fally Ipupa produced the strongest album climb in the current dataset's latest month. XX gained 30 positions and finished inside the Top 5."},
+  {id:5,date:"June 11, 2026",cat:"CHART NEWS",emoji:"",title:"Wakadinali Debut at #2 With LAST DANCE",excerpt:"LAST DANCE enters the May Combined singles chart one position below the summit.",body:"Wakadinali delivered May's highest singles debut. The #2 arrival immediately placed LAST DANCE among the month's biggest releases."},
+  {id:6,date:"June 10, 2026",cat:"ALBUMS",emoji:"",title:"Asake's M$NEY Opens at #2",excerpt:"M$NEY is May's highest new album, debuting directly behind Cardi B's chart leader.",body:"Asake placed three albums inside May's Top 20: M$NEY at #2, Lungu Boy at #17 and Mr. Money With The Vibe at #18."},
+  {id:7,date:"June 9, 2026",cat:"ANALYTICS",emoji:"",title:"Pawa Is the Period's Highest-Scoring Single",excerpt:"Mbosso's Pawa totals 443 display points across all nine chart months.",body:"Pawa charted in every month from September 2025 through May 2026 and spent five of those months at #1, the strongest singles run in the dataset."},
+  {id:8,date:"June 8, 2026",cat:"ARTIST SPOTLIGHT",emoji:"",title:"Toxic Lyrikali Leads Singles Artists on 1,244 Points",excerpt:"Ten chart entries combine to give Toxic Lyrikali the largest singles artist total in the current period.",body:"The catalogue depth is the story: Backbencher, Bud Flowers, Dumpsite and seven other entries collectively produced 1,244 display points across the nine-month dataset."},
+  {id:9,date:"June 7, 2026",cat:"ARTIST SPOTLIGHT",emoji:"",title:"Gunna Tops the Albums Artist Standings",excerpt:"The Last Wun and One of Wun combine for 792 display points.",body:"Gunna leads every album artist in cumulative points. The Last Wun is also the period's highest-scoring album release with 415 points."},
+  {id:10,date:"June 6, 2026",cat:"ANALYTICS",emoji:"",title:"Taya Delivers Nine Months of Top-Level Consistency",excerpt:"Okello Max's Taya has charted in every month, earned 413 points and peaked at #2.",body:"Taya never needed a #1 month to become the second-highest scoring single of the period. Its nine-month consistency kept it near the top throughout the dataset."},
+  {id:11,date:"June 5, 2026",cat:"ANALYTICS",emoji:"",title:"Wrong Places Reaches Diamond Territory",excerpt:"Joshua Baraka and JAE5's Wrong Places totals 370 cumulative display points.",body:"Wrong Places charted in all nine months and peaked at #3. Under the updated certification scale, its 370 points qualify the release for Diamond status."},
+  {id:12,date:"June 4, 2026",cat:"PLATFORM WATCH",emoji:"",title:"May's Platform #1s Show Six Different Singles Stories",excerpt:"Apple Music, Audiomack, Boomplay, Spotify, YouTube and Shazam each produced their own leader.",body:"Ywaya Tajiri led Apple Music, Alikiba led Audiomack, Prince Indah led Boomplay, Bien led Spotify and YouTube, while Deejay MJ led Shazam. The split shows why the Combined chart rewards broad platform performance."},
+  {id:13,date:"June 3, 2026",cat:"ANALYTICS",emoji:"",title:"No May Single Reached All Six Platforms",excerpt:"The latest Combined singles chart has no 6/6 coverage entry.",body:"May's audience was highly fragmented across services. Strong platform-specific leaders did not translate into a single release appearing on every tracked singles platform."},
+  {id:14,date:"June 2, 2026",cat:"ALBUMS",emoji:"",title:"Twenty-Four May Albums Reached 2/2 Coverage",excerpt:"Nearly half of May's Combined Top 50 appeared on both Apple Music and Audiomack.",body:"The 24 fully covered albums include the entire Top 11, led by Cardi B, Asake, Bridget Blue, Fally Ipupa and Kehlani."},
+  {id:15,date:"June 1, 2026",cat:"ALBUMS",emoji:"",title:"Bridget Blue's RNB Reaches #3",excerpt:"RNB places third in May with full 2/2 platform coverage.",body:"Bridget Blue's album sits behind only Cardi B and Asake in the latest Combined ranking, giving a Kenyan release a prominent place in May's Top 3."},
+  {id:16,date:"May 31, 2026",cat:"ALBUMS",emoji:"",title:"Kusslove's GOLD Climbs Seventeen Places",excerpt:"GOLD moves from #31 in April to #14 in May.",body:"Kusslove recorded May's second-largest returning album gain, behind only Fally Ipupa's XX."},
+  {id:17,date:"May 30, 2026",cat:"CHART NEWS",emoji:"",title:"Zuchu's I Love You Jumps Into the Top 20",excerpt:"I Love You rises sixteen places from #35 to #19.",body:"The 16-position climb was one of May's strongest singles gains and returned Zuchu to the upper half of the Combined chart."},
+  {id:18,date:"May 29, 2026",cat:"ALBUMS",emoji:"",title:"Yariasu Returns Upward for Nyashinski",excerpt:"Yariasu gains five places to finish May at #27.",body:"Nyashinski's album improved from #32 in April and maintained its long-running presence in the Combined albums chart."},
 ];
 
 export default function NgomaCharts(){
@@ -2589,18 +2599,22 @@ liveStatus={liveStatus}
           <AnalyticsDeepSection label="View artist trajectory" isMobile={isMobile}>
           <div style={{...card(),marginBottom:"20px"}}>
             <div style={secLbl()}><SecMark/>Top 5 Artists — Points Trajectory ({chartTypeLabel})</div>
-            <ResponsiveContainer width="100%" height={isMobile?260:240}>
-              <LineChart data={topArtistsLine} margin={{top:10,right:isMobile?18:24,left:isMobile?0:8,bottom:isMobile?4:0}}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F0F0EC"/>
-                <XAxis dataKey="month" tick={{fontSize:isMobile?11:11,fontFamily:F,fill:"#59645D",fontWeight:650}} tickLine={false}/>
-                <YAxis tick={{fontSize:isMobile?10.5:10.5,fontFamily:F,fill:"#59645D",fontWeight:650}} tickFormatter={v=>v.toLocaleString()} axisLine={false} tickLine={false}/>
-                <Tooltip formatter={(v,n)=>[v.toLocaleString()+" pts",n]} contentStyle={{fontFamily:F,fontSize:11}}/>
-                <Legend wrapperStyle={{fontFamily:F,fontSize:isMobile?11:10.5,color:"#59645D"}}/>
-                {artists.slice(0,5).map((a,i)=>(
-                  <Line key={a.n} type="monotone" dataKey={a.n} stroke={CC[i]} strokeWidth={2} dot={{r:4}} activeDot={{r:6}}/>
-                ))}
-              </LineChart>
-            </ResponsiveContainer>
+            <div className="ngoma-analytics-chart-scroll" aria-label="Scrollable artist trajectory chart">
+              <div style={{minWidth:isMobile?"720px":"100%",height:isMobile?270:240}}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={topArtistsLine} margin={{top:10,right:24,left:8,bottom:4}}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#F0F0EC"/>
+                    <XAxis dataKey="month" interval={0} tick={{fontSize:11,fontFamily:F,fill:"#59645D",fontWeight:650}} tickLine={false}/>
+                    <YAxis tick={{fontSize:10.5,fontFamily:F,fill:"#59645D",fontWeight:650}} tickFormatter={v=>v.toLocaleString()} axisLine={false} tickLine={false}/>
+                    <Tooltip formatter={(v,n)=>[v.toLocaleString()+" pts",n]} contentStyle={{fontFamily:F,fontSize:11}}/>
+                    <Legend wrapperStyle={{fontFamily:F,fontSize:isMobile?11:10.5,color:"#59645D"}}/>
+                    {artists.slice(0,5).map((a,i)=>(
+                      <Line key={a.n} type="monotone" dataKey={a.n} stroke={CC[i]} strokeWidth={2} dot={{r:4}} activeDot={{r:6}}/>
+                    ))}
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
           </div>
           </AnalyticsDeepSection>
           {/* Cross-platform overlap + Coverage pie */}
@@ -2766,11 +2780,13 @@ liveStatus={liveStatus}
           <AnalyticsDeepSection label={isSingles?"View song rank journey":"View album rank journey"} isMobile={isMobile}>
           <div style={card()}>
             <div style={secLbl()}><SecMark/>{isSingles?"Top Songs Rank Journey Across Months":"Top Albums Rank Journey Across Months"}</div>
+            <div className="ngoma-analytics-chart-scroll" aria-label="Scrollable rank journey table">
+            <div style={{minWidth:isMobile?"760px":"100%"}}>
             {tracked.map(title=>{
               const hasAny=MONTHS.some(m=>getCombined(ct,m).find(e=>e.title===title));
               if(!hasAny)return null;
-              return(<div key={title} style={{display:"flex",alignItems:"center",padding:"7px 0",borderBottom:"1px solid #F0F0EC",gap:"8px"}}>
-                <div style={{flex:1,minWidth:0,display:"flex",alignItems:"center",gap:"7px",cursor:"pointer"}} onClick={()=>{const e=MONTHS.flatMap(m=>getCombined(ct,m)).find(x=>x.title===title);if(e)openReleaseDetails(e,isSingles?"single":"album");}}>
+              return(<div key={title} style={{display:"grid",gridTemplateColumns:`minmax(${isMobile?180:220}px,1fr) repeat(${MONTHS.length},44px)`,alignItems:"center",padding:"8px 0",borderBottom:"1px solid #F0F0EC",gap:"8px"}}>
+                <div style={{minWidth:0,display:"flex",alignItems:"center",gap:"7px",cursor:"pointer"}} onClick={()=>{const e=MONTHS.flatMap(m=>getCombined(ct,m)).find(x=>x.title===title);if(e)openReleaseDetails(e,isSingles?"single":"album");}}>
                   <span style={{fontSize:isMobile?"12.5px":"11.5px",fontWeight:800,lineHeight:1.2,color:GOLD,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{title}</span>
                   {(()=>{const e=MONTHS.flatMap(m=>getCombined(ct,m)).find(x=>x.title===title);const certification=e?getCertificationForEntry(e,isSingles?"single":"album"):null;return certification?<CertificationTag cert={certification} compact />:null;})()}
                 </div>
@@ -2780,6 +2796,8 @@ liveStatus={liveStatus}
                 </div>);})}
               </div>);
             })}
+            </div>
+            </div>
           </div>
           </AnalyticsDeepSection>
         </div>
@@ -3375,7 +3393,7 @@ liveStatus={liveStatus}
                 onMouseEnter={e=>{if(!isMobile){e.currentTarget.style.boxShadow="0 12px 30px rgba(31,36,31,0.10)";e.currentTarget.style.transform="translateY(-2px)";}}}
                 onMouseLeave={e=>{e.currentTarget.style.boxShadow="0 1px 3px rgba(0,0,0,0.02),0 8px 24px rgba(0,0,0,0.02)";e.currentTarget.style.transform="none";}}>
                 <div style={{display:"flex",gap:isMobile?"10px":"14px",alignItems:"center",minWidth:0}}>
-                  {i===0&&<div style={{fontSize:isMobile?"27px":"34px",flexShrink:0,alignSelf:"flex-start"}}>{n.emoji}</div>}
+                  {i===0&&n.emoji&&<div style={{fontSize:isMobile?"27px":"34px",flexShrink:0,alignSelf:"flex-start"}}>{n.emoji}</div>}
                   <div style={{flex:1,minWidth:0,maxWidth:!isMobile&&i===0?"780px":"none"}}>
                     <div style={{display:"flex",gap:"8px",alignItems:"center",marginBottom:isMobile?"8px":"7px",flexWrap:"wrap"}}>
                       <span style={{display:"inline-flex",alignItems:"center",height:"22px",fontFamily:F,fontSize:"9px",fontWeight:850,letterSpacing:"1.3px",textTransform:"uppercase",color:GOLD,background:"#F7EFD9",padding:"0 9px",borderRadius:"999px"}}>{n.cat}</span>
@@ -3432,7 +3450,7 @@ liveStatus={liveStatus}
             <div style={card()}>
               <h3 style={{fontFamily:F,fontSize:TXT.micro,fontWeight:800,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 10px"}}>Albums Chart</h3>
               <p style={{fontSize:TXT.body,color:"#555F59",lineHeight:1.65,margin:"0 0 13px",fontFamily:F}}>Album rankings are based on Apple Music and Audiomack. Their platform data determines the Combined order, which is then displayed on the same 50-to-1 scale as singles.</p>
-              <div style={{display:"flex",flexWrap:"wrap",gap:"7px"}}><span style={{padding:"6px 10px",borderRadius:"9px",background:"#FC3C4412",border:"1px solid #FC3C4435",fontFamily:F,fontSize:"9.5px",fontWeight:850,color:"#FC3C44"}}>Apple Music</span><span style={{padding:"6px 10px",borderRadius:"9px",background:"#F68B1F12",border:"1px solid #F68B1F35",fontFamily:F,fontSize:"9.5px",fontWeight:850,color:"#D66E00"}}>Audiomack</span><span style={{padding:"6px 10px",borderRadius:"9px",background:"#F7F2F2",border:"1px dashed #B35B5B",fontFamily:F,fontSize:"9.5px",fontWeight:850,color:"#9E3F3F",textDecoration:"line-through"}}>Boomplay excluded</span></div>
+              <div style={{display:"flex",flexWrap:"wrap",gap:"7px"}}><span style={{padding:"6px 10px",borderRadius:"9px",background:"#FC3C4412",border:"1px solid #FC3C4435",fontFamily:F,fontSize:"9.5px",fontWeight:850,color:"#FC3C44"}}>Apple Music</span><span style={{padding:"6px 10px",borderRadius:"9px",background:"#F68B1F12",border:"1px solid #F68B1F35",fontFamily:F,fontSize:"9.5px",fontWeight:850,color:"#D66E00"}}>Audiomack</span></div>
             </div>
             <div style={card()}>
               <h3 style={{fontFamily:F,fontSize:TXT.micro,fontWeight:800,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 10px"}}>Certifications</h3>

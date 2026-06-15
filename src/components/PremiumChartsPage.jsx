@@ -2,10 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 
 // Flag-derived accent colors shared with the Year End country tags.
 const COUNTRY_ACCENTS = {
-  BB: "#00267F", CA: "#D80621", CD: "#007FFF", CI: "#F77F00", FR: "#0055A4",
+  BB: "#00267F", CA: "#D80621", CD: "#007FFF", CI: "#F77F00", CL: "#D52B1E", DE: "#FFCE00", FR: "#0055A4",
   GB: "#012169", GH: "#CE1126", IN: "#FF9933", JM: "#009B3A", KE: "#006600",
-  KR: "#CD2E3A", NG: "#008751", NO: "#BA0C2F", RW: "#00A1DE", SE: "#006AA7",
-  TZ: "#1EB53A", UG: "#D90000", US: "#3C3B6E", ZA: "#007749",
+  KR: "#CD2E3A", NG: "#008751", NO: "#BA0C2F", PR: "#ED0000", RW: "#00A1DE", SE: "#006AA7",
+  TZ: "#1EB53A", UG: "#D90000", US: "#3C3B6E", ZA: "#007749", ZW: "#319208",
 };
 
 function regionBadge(code) {
@@ -304,6 +304,135 @@ const ARTIST_COUNTRY_FALLBACK = {
   "ZIGGY MADUDU": { country: "Kenya", code: "KE" },
   "Zuchu": { country: "Tanzania", code: "TZ" },
   "Zzero Sufuri": { country: "Kenya", code: "KE" },
+  "031choppa": { country: "South Africa", code: "ZA" },
+  "2wentysixx": { country: "Tanzania", code: "TZ" },
+  "A$AP Rocky": { country: "United States", code: "US" },
+  "Abongo Jakabwana": { country: "Kenya", code: "KE" },
+  "Addeh Prince": { country: "Kenya", code: "KE" },
+  "Aidonia": { country: "Jamaica", code: "JM" },
+  "Alex Warren": { country: "United States", code: "US" },
+  "AUDREY NUNA": { country: "United States", code: "US" },
+  "Ayetian": { country: "Jamaica", code: "JM" },
+  "Babalwa M": { country: "South Africa", code: "ZA" },
+  "Baby Keem": { country: "United States", code: "US" },
+  "Bad Bunny": { country: "Puerto Rico", code: "PR" },
+  "Barry Jhay": { country: "Nigeria", code: "NG" },
+  "Bella Shmurda": { country: "Nigeria", code: "NG" },
+  "Brandy Maina": { country: "Kenya", code: "KE" },
+  "Brent Faiyaz": { country: "United States", code: "US" },
+  "BTS": { country: "South Korea", code: "KR" },
+  "Calad": { country: "Tanzania", code: "TZ" },
+  "Chella": { country: "Nigeria", code: "NG" },
+  "Ciara": { country: "United States", code: "US" },
+  "Ciza": { country: "South Africa", code: "ZA" },
+  "Clipse": { country: "United States", code: "US" },
+  "Collo Blue": { country: "Kenya", code: "KE" },
+  "Cris Mj": { country: "Chile", code: "CL" },
+  "Countree Hype": { country: "Kenya", code: "KE" },
+  "D-voice": { country: "Tanzania", code: "TZ" },
+  "Daniel Caesar": { country: "Canada", code: "CA" },
+  "Diameter Pallet": { country: "Kenya", code: "KE" },
+  "Dj 4kerty": { country: "Nigeria", code: "NG" },
+  "DJ CHEEM": { country: "United States", code: "US" },
+  "DJ Maphorisa": { country: "South Africa", code: "ZA" },
+  "DJ Smallz": { country: "South Africa", code: "ZA" },
+  "Devrix Da Fubu": { country: "Kenya", code: "KE" },
+  "Doja Cat": { country: "United States", code: "US" },
+  "Dominic Fike": { country: "United States", code: "US" },
+  "Dorcas": { country: "Rwanda", code: "RW" },
+  "Dufla": { country: "Kenya", code: "KE" },
+  "Eemoh": { country: "South Africa", code: "ZA" },
+  "EJAE": { country: "United States", code: "US" },
+  "Eddy G": { country: "Jamaica", code: "JM" },
+  "Elevation Worship": { country: "United States", code: "US" },
+  "ELISHA TOTO": { country: "Tanzania", code: "TZ" },
+  "ELEMENT EleéeH": { country: "Rwanda", code: "RW" },
+  "Enny Man Da Guitar": { country: "South Africa", code: "ZA" },
+  "EsDeeKid": { country: "United Kingdom", code: "GB" },
+  "FAVE": { country: "Nigeria", code: "NG" },
+  "Fik Fameica": { country: "Uganda", code: "UG" },
+  "FloyyMenor": { country: "Chile", code: "CL" },
+  "FOLA": { country: "Nigeria", code: "NG" },
+  "Gajendra Verma": { country: "India", code: "IN" },
+  "GL_Ceejay": { country: "South Africa", code: "ZA" },
+  "Goon Flavour": { country: "South Africa", code: "ZA" },
+  "Gradine Toto": { country: "Kenya", code: "KE" },
+  "HUNTR/X": { country: "South Korea", code: "KR" },
+  "Harry Styles": { country: "United Kingdom", code: "GB" },
+  "Intence": { country: "Jamaica", code: "JM" },
+  "Isaiah Rashad": { country: "United States", code: "US" },
+  "Ivanny": { country: "Tanzania", code: "TZ" },
+  "JACKBOYS": { country: "United States", code: "US" },
+  "JAE5": { country: "United Kingdom", code: "GB" },
+  "Jahvillani": { country: "Jamaica", code: "JM" },
+  "Jazzworx": { country: "South Africa", code: "ZA" },
+  "JAZZWRLD": { country: "South Africa", code: "ZA" },
+  "JELEEL!": { country: "United States", code: "US" },
+  "JETTI": { country: "United States", code: "US" },
+  "Kehlani": { country: "United States", code: "US" },
+  "Kondela": { country: "Kenya", code: "KE" },
+  "KPop Demon Hunters Cast": { country: "South Korea", code: "KR" },
+  "KunaTino Music": { country: "Zimbabwe", code: "ZW" },
+  "Kunmie": { country: "Nigeria", code: "NG" },
+  "Kusslove": { country: "Tanzania", code: "TZ" },
+  "Lady Maureen": { country: "Kenya", code: "KE" },
+  "Lava Lava": { country: "Tanzania", code: "TZ" },
+  "Leehleza": { country: "South Africa", code: "ZA" },
+  "Licky Tones": { country: "Kenya", code: "KE" },
+  "Lil Baby": { country: "United States", code: "US" },
+  "Maandy": { country: "Kenya", code: "KE" },
+  "MAD G": { country: "Kenya", code: "KE" },
+  "MaWhoo": { country: "South Africa", code: "ZA" },
+  "Malice": { country: "United States", code: "US" },
+  "Mariah the Scientist": { country: "United States", code: "US" },
+  "Michael Jackson": { country: "United States", code: "US" },
+  "Minister James": { country: "Tanzania", code: "TZ" },
+  "Myztro": { country: "South Africa", code: "ZA" },
+  "Mugs.Roze": { country: "Jamaica", code: "JM" },
+  "Nasty C": { country: "South Africa", code: "ZA" },
+  "Nameless": { country: "Kenya", code: "KE" },
+  "Neha Kakkar": { country: "India", code: "IN" },
+  "Nathaniel Bassey": { country: "Nigeria", code: "NG" },
+  "Nigy Boy": { country: "Jamaica", code: "JM" },
+  "Nine Vicious": { country: "United States", code: "US" },
+  "nk_njoroge": { country: "Kenya", code: "KE" },
+  "ODUMODUBLVCK": { country: "Nigeria", code: "NG" },
+  "Offset": { country: "United States", code: "US" },
+  "Okello Max": { country: "Kenya", code: "KE" },
+  "Olamide": { country: "Nigeria", code: "NG" },
+  "Popcaan": { country: "Jamaica", code: "JM" },
+  "Pusha T": { country: "United States", code: "US" },
+  "RAYE": { country: "United Kingdom", code: "GB" },
+  "REI AMI": { country: "United States", code: "US" },
+  "Rymey": { country: "Jamaica", code: "JM" },
+  "Saja Boys": { country: "South Korea", code: "KR" },
+  "Sarz": { country: "Nigeria", code: "NG" },
+  "Scotts Maphuma": { country: "South Africa", code: "ZA" },
+  "Silent Addy": { country: "Ghana", code: "GH" },
+  "Skeng": { country: "Jamaica", code: "JM" },
+  "SUNS3T": { country: "South Africa", code: "ZA" },
+  "Soul Touch Brand": { country: "Kenya", code: "KE" },
+  "Sun-El Musician": { country: "South Africa", code: "ZA" },
+  "T.I Blaze": { country: "Nigeria", code: "NG" },
+  "The Second Voice": { country: "Kenya", code: "KE" },
+  "Thukuthela": { country: "South Africa", code: "ZA" },
+  "Teebone": { country: "Jamaica", code: "JM" },
+  "Tommy Lee": { country: "Jamaica", code: "JM" },
+  "Tml Vibez": { country: "Nigeria", code: "NG" },
+  "Vestine": { country: "Rwanda", code: "RW" },
+  "Vic West": { country: "Kenya", code: "KE" },
+  "Udede": { country: "Kenya", code: "KE" },
+  "Unjaps": { country: "South Africa", code: "ZA" },
+  "Urban Chords": { country: "Nigeria", code: "NG" },
+  "Wapendwa Muziki": { country: "Kenya", code: "KE" },
+  "X.O": { country: "South Africa", code: "ZA" },
+  "Xania Monet": { country: "United States", code: "US" },
+  "Xduppy": { country: "South Africa", code: "ZA" },
+  "Young Thug": { country: "United States", code: "US" },
+  "Ywaya Tajiri": { country: "Kenya", code: "KE" },
+  "Zaituni": { country: "Tanzania", code: "TZ" },
+  "ZinedinexSguche": { country: "South Africa", code: "ZA" },
+  "mikeeysmind": { country: "Germany", code: "DE" },
 };
 
 function normalizeArtistName(name) {
@@ -568,17 +697,9 @@ export default function PremiumChartsPage({
         ? item.peak_rank
         : calculateStaticPeak(item);
 
-    const weeks =
-      item.weeks_on_chart !== undefined &&
-      item.weeks_on_chart !== null &&
-      item.weeks_on_chart !== ""
-        ? item.weeks_on_chart
-        : "—";
-
     return {
       lastMonth,
       peak,
-      weeks,
     };
   }
 
@@ -628,10 +749,6 @@ export default function PremiumChartsPage({
         return num(profile.lastMonth);
       case "peak":
         return num(profile.peak);
-      case "months":
-        return num(profile.weeks);
-      case "points":
-        return num(item.pts);
       case "platforms": {
         const m = String(item.plat || "").match(/^(\d+)/);
         return m ? Number(m[1]) : -1;
@@ -658,9 +775,8 @@ export default function PremiumChartsPage({
   function handleSort(key) {
     setSort((current) => {
       if (current.key !== key) {
-        // Rank/Last Month/Peak read best-first (asc); Months/Platforms read
-        // most-first (desc) on first click — that's what people expect.
-        const firstDir = key === "months" || key === "points" || key === "platforms" ? "desc" : "asc";
+        // Coverage reads most-first; rank history reads best-first.
+        const firstDir = key === "platforms" ? "desc" : "asc";
         return { key, dir: firstDir };
       }
       return { key, dir: current.dir === "asc" ? "desc" : "asc" };
@@ -683,8 +799,6 @@ export default function PremiumChartsPage({
       "Country Code",
       "Last Month",
       "Peak",
-      "Weeks",
-      "Points",
       ...(isCombinedChart ? ["Platforms"] : []),
     ];
     const escape = (value) => {
@@ -702,8 +816,6 @@ export default function PremiumChartsPage({
         country.code,
         profile.lastMonth,
         profile.peak,
-        profile.weeks,
-        item.pts,
         ...(isCombinedChart ? [item.plat || "—"] : []),
       ]
         .map(escape)
@@ -1039,7 +1151,7 @@ export default function PremiumChartsPage({
           {
             label: "Chart Leader",
             value: top?.title || "—",
-            sub: top ? `${top.artist} · ${Number(top.pts || 0).toLocaleString()} pts` : "",
+            sub: top ? top.artist : "",
             compact: true,
           },
         ].map((item, index) => (
@@ -1224,7 +1336,7 @@ export default function PremiumChartsPage({
         </div>
 
         {!mobile && (
-          <div style={{...styles.tableHeader,gridTemplateColumns:isCombinedChart?styles.tableHeader.gridTemplateColumns:"54px 84px minmax(0, 1fr) 84px 60px 70px 64px"}}>
+          <div style={{...styles.tableHeader,gridTemplateColumns:isCombinedChart?styles.tableHeader.gridTemplateColumns:"54px 84px minmax(0, 1fr) 84px 60px"}}>
             <span
               style={{ ...styles.headerCell, cursor: "pointer" }}
               onClick={() => handleSort("rank")}
@@ -1247,20 +1359,6 @@ export default function PremiumChartsPage({
               title="Sort by peak position"
             >
               Peak{sortArrow("peak")}
-            </span>
-            <span
-              style={{ ...styles.headerCell, cursor: "pointer" }}
-              onClick={() => handleSort("months")}
-              title="Sort by weeks charted"
-            >
-              Weeks{sortArrow("months")}
-            </span>
-            <span
-              style={{ ...styles.headerCell, cursor: "pointer" }}
-              onClick={() => handleSort("points")}
-              title="Sort by points"
-            >
-              Points{sortArrow("points")}
             </span>
             {isCombinedChart&&<span
               style={{ ...styles.headerCell, cursor: "pointer" }}
@@ -1378,8 +1476,6 @@ export default function PremiumChartsPage({
                       <div style={styles.mobileStatsRow}>
                         <MobileStat label="L.M" value={profile.lastMonth} />
                         <MobileStat label="Peak" value={profile.peak} />
-                        <MobileStat label="Weeks" value={profile.weeks} />
-                        <MobileStat label="Points" value={item.pts} />
                         {isCombinedChart&&<MobileStat label="Plat." value={item.plat || "—"} />}
                       </div>
                     </div>
@@ -1393,7 +1489,7 @@ export default function PremiumChartsPage({
                 key={`${item.title}-${item.artist}-${item.rank}-${index}`}
                 style={{
                   ...styles.row,
-                  gridTemplateColumns:isCombinedChart?styles.row.gridTemplateColumns:"54px 84px minmax(0, 1fr) 84px 60px 70px 64px",
+                  gridTemplateColumns:isCombinedChart?styles.row.gridTemplateColumns:"54px 84px minmax(0, 1fr) 84px 60px",
                   animationDelay: `${Math.min(index * 20, 400)}ms`,
                 }}
                 onMouseEnter={(event) => {
@@ -1469,9 +1565,6 @@ export default function PremiumChartsPage({
 
                 <div style={styles.metaNumber}>{profile.lastMonth}</div>
                 <div style={styles.metaNumber}>{profile.peak}</div>
-                <div style={styles.metaNumber}>{profile.weeks}</div>
-
-                <div style={{...styles.metaNumber,color:chartAccentInk}}>{item.pts}</div>
                 {isCombinedChart&&<div style={styles.platformCell}>{item.plat || "—"}</div>}
               </div>
             );
@@ -1986,7 +2079,7 @@ const styles = {
 
   tableHeader: {
     display: "grid",
-    gridTemplateColumns: "54px 84px minmax(0, 1fr) 84px 60px 70px 64px 86px",
+    gridTemplateColumns: "54px 84px minmax(0, 1fr) 84px 60px 86px",
     gap: "14px",
     alignItems: "center",
     justifyItems: "center",
@@ -2021,7 +2114,7 @@ const styles = {
 
   row: {
     display: "grid",
-    gridTemplateColumns: "54px 84px minmax(0, 1fr) 84px 60px 70px 64px 86px",
+    gridTemplateColumns: "54px 84px minmax(0, 1fr) 84px 60px 86px",
     gap: "14px",
     alignItems: "center",
     padding: "16px 24px",
