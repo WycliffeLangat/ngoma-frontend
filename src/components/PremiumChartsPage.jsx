@@ -741,44 +741,6 @@ export default function PremiumChartsPage({
     setChartPackRange(Math.min(vc || 10, data?.length || vc || 10));
   }, [vc, data?.length, ct, month, plat]);
 
-  useEffect(() => {
-    if (typeof window === "undefined" || typeof document === "undefined") return;
-
-    const hideStrayShareButtons = () => {
-      const buttons = Array.from(document.querySelectorAll("button"));
-      buttons.forEach((btn) => {
-        const label = (btn.textContent || "").replace(/\s+/g, " ").trim().toLowerCase();
-        if (label !== "share card") return;
-        if (btn.getAttribute("data-keep-share-card") === "true" || btn.closest("[data-share-action-area='true']")) return;
-
-        const computed = window.getComputedStyle(btn);
-        const rect = btn.getBoundingClientRect();
-        const inFooter = Boolean(btn.closest("footer"));
-        const floatingPosition = computed.position === "fixed" || computed.position === "sticky" || computed.position === "absolute";
-        const bottomRightFloat = rect.right > window.innerWidth - 260 && rect.bottom > window.innerHeight - 180;
-
-        if (inFooter || floatingPosition || bottomRightFloat) {
-          btn.style.setProperty("display", "none", "important");
-          btn.style.setProperty("visibility", "hidden", "important");
-          btn.style.setProperty("pointer-events", "none", "important");
-          btn.setAttribute("aria-hidden", "true");
-          btn.setAttribute("data-stray-share-hidden", "true");
-        }
-      });
-    };
-
-    hideStrayShareButtons();
-    const observer = new MutationObserver(hideStrayShareButtons);
-    observer.observe(document.body, { childList: true, subtree: true });
-    window.addEventListener("resize", hideStrayShareButtons);
-    window.addEventListener("scroll", hideStrayShareButtons, { passive: true });
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", hideStrayShareButtons);
-      window.removeEventListener("scroll", hideStrayShareButtons);
-    };
-  }, []);
-
   function ChartToggle() {
     return (
       <div style={styles.toggleWrap}>

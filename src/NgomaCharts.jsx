@@ -123,31 +123,60 @@ const monthIndex = m => MONTHS.indexOf(m);
 
 const rawCombined = (ct, m) => FULL[ct].combined[m] || [];
 const rawPlatform = (ct, pl, m) => ((FULL[ct].platforms[pl] || {})[m] || []);
+const combinedEntryCache = new Map();
+const platformEntryCache = new Map();
+const rawPlatformIndexCache = new Map();
+
+const getRawPlatformIndex = (ct, pl, m) => {
+  const cacheKey = `${ct}|${pl}|${m}`;
+  if (!rawPlatformIndexCache.has(cacheKey)) {
+    const index = new Map();
+    rawPlatform(ct, pl, m).forEach((entry) => {
+      const key = entryKey(entry);
+      if (!index.has(key)) index.set(key, entry);
+    });
+    rawPlatformIndexCache.set(cacheKey, index);
+  }
+  return rawPlatformIndexCache.get(cacheKey);
+};
 
 function enrichChartEntries(entries, getRawEntries, currentMonth, totalPlatforms) {
   const currentIndex = monthIndex(currentMonth);
-  const previousMonth = currentIndex > 0 ? MONTHS[currentIndex - 1] : null;
-  const previousEntries = previousMonth ? getRawEntries(previousMonth) : [];
-  const earlierEntries = currentIndex > 0
-    ? MONTHS.slice(0, currentIndex).flatMap((m) => getRawEntries(m))
-    : [];
-  const allToCurrentEntries = currentIndex >= 0
-    ? MONTHS.slice(0, currentIndex + 1).flatMap((m) => getRawEntries(m))
-    : entries;
+  const historyMonths = currentIndex >= 0 ? MONTHS.slice(0, currentIndex + 1) : [];
+  const historyByMonth = historyMonths.map((monthLabel) => getRawEntries(monthLabel));
+  const previousEntries = currentIndex > 0 ? historyByMonth[currentIndex - 1] : [];
+  const previousByKey = new Map();
+  previousEntries.forEach((item) => {
+    const key = entryKey(item);
+    if (!previousByKey.has(key)) previousByKey.set(key, item);
+  });
+  const earlierKeys = new Set();
+  const historyStats = new Map();
+
+  historyByMonth.forEach((monthEntries, monthOffset) => {
+    const seenThisMonth = new Set();
+    monthEntries.forEach((item) => {
+      const key = entryKey(item);
+      if (monthOffset < currentIndex) earlierKeys.add(key);
+
+      const rank = Number(item.r);
+      const stats = historyStats.get(key) || { peakRank: Number.POSITIVE_INFINITY, months: 0 };
+      if (Number.isFinite(rank)) stats.peakRank = Math.min(stats.peakRank, rank);
+      if (!seenThisMonth.has(key)) {
+        stats.months += 1;
+        seenThisMonth.add(key);
+      }
+      historyStats.set(key, stats);
+    });
+  });
 
   return entries.map((e) => {
     const key = entryKey(e);
-    const previousEntry = previousEntries.find((item) => entryKey(item) === key);
-    const appearedBefore = earlierEntries.some((item) => entryKey(item) === key);
-    const sameReleaseHistory = allToCurrentEntries.filter((item) => entryKey(item) === key);
-    const peakRank = sameReleaseHistory.reduce((best, item) => {
-      const rank = Number(item.r);
-      return Number.isFinite(rank) && rank < best ? rank : best;
-    }, Number(e.r) || 999);
-
-    const monthsOnChart = MONTHS.slice(0, currentIndex + 1).reduce((count, m) => {
-      return getRawEntries(m).some((item) => entryKey(item) === key) ? count + 1 : count;
-    }, 0);
+    const previousEntry = previousByKey.get(key);
+    const appearedBefore = earlierKeys.has(key);
+    const stats = historyStats.get(key) || {};
+    const peakRank = stats.peakRank;
+    const monthsOnChart = stats.months || 0;
 
     const platformCount = e.pl
       ? Number(String(e.pl).split("/")[0]) || undefined
@@ -182,12 +211,32 @@ function enrichChartEntries(entries, getRawEntries, currentMonth, totalPlatforms
   });
 }
 
-const getCombined = (ct, m) => enrichChartEntries(rawCombined(ct, m), (monthLabel) => rawCombined(ct, monthLabel), m, ct === "albums" ? 2 : 6)
-  .map((entry) => ({
-    ...entry,
-    pts: entry.pts,
-  }));
-const getPlatform = (ct, pl, m) => enrichChartEntries(rawPlatform(ct, pl, m), (monthLabel) => rawPlatform(ct, pl, monthLabel), m, 1);
+const getCombined = (ct, m) => {
+  const cacheKey = `${ct}|${m}`;
+  if (!combinedEntryCache.has(cacheKey)) {
+    combinedEntryCache.set(
+      cacheKey,
+      enrichChartEntries(rawCombined(ct, m), (monthLabel) => rawCombined(ct, monthLabel), m, ct === "albums" ? 2 : 6)
+    );
+  }
+  return combinedEntryCache.get(cacheKey);
+};
+
+const getPlatform = (ct, pl, m) => {
+  const cacheKey = `${ct}|${pl}|${m}`;
+  if (!platformEntryCache.has(cacheKey)) {
+    platformEntryCache.set(
+      cacheKey,
+      enrichChartEntries(rawPlatform(ct, pl, m), (monthLabel) => rawPlatform(ct, pl, monthLabel), m, 1)
+    );
+  }
+  return platformEntryCache.get(cacheKey);
+};
+
+const defaultComparisonKey = (chartType, index) => {
+  const entry = getCombined(chartType, CURRENT_MONTH)[index];
+  return entry ? `${entry.title} — ${entry.artist}` : "";
+};
 
 const buildCombinedYearEnd = (chartType) => {
   const releases = new Map();
@@ -319,6 +368,22 @@ const COMBINED_TRENDING = {
   albums: buildCombinedTrending("albums"),
 };
 
+function AnalyticsDeepSection({ label, isMobile, children }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  if (!isMobile) return <>{children}</>;
+
+  return (
+    <details
+      className="ngoma-mobile-collapsible"
+      onToggle={(event) => setIsOpen(event.currentTarget.open)}
+    >
+      <summary>{label}<span>View</span></summary>
+      {isOpen && <div className="ngoma-mobile-collapsible-body">{children}</div>}
+    </details>
+  );
+}
+
 // Movement badge
 const mv = e => {
   const movementType = String(e.movement || e.movement_type || "").toLowerCase();
@@ -441,8 +506,8 @@ export default function NgomaCharts(){
   const [selNews,setSelNews]=useState(null);
   const [cmpA1,setCmpA1]=useState("Bensoul");
   const [cmpA2,setCmpA2]=useState("Dyana Cods");
-  const [cmpS1,setCmpS1]=useState("");
-  const [cmpS2,setCmpS2]=useState("");
+  const [cmpS1,setCmpS1]=useState(() => defaultComparisonKey("singles", 0));
+  const [cmpS2,setCmpS2]=useState(() => defaultComparisonKey("singles", 1));
   const [aiQ,setAiQ]=useState("");
   const [aiA,setAiA]=useState("");
   const [aiL,setAiL]=useState(false);
@@ -587,48 +652,6 @@ export default function NgomaCharts(){
   const responsiveStack=(desktop="row")=>({flexDirection:isMobile?"column":desktop,alignItems:isMobile?"stretch":"center"});
   useEffect(()=>{const h=e=>{if(e.key==="Escape"){setSOpen(false);setSrch("");setShareImg(null);setShareCardModalOpen(false);}};window.addEventListener("keydown",h);return()=>window.removeEventListener("keydown",h);},[]);
 
-  useEffect(() => {
-    if (typeof window === "undefined" || typeof document === "undefined") return;
-
-    const hideStrayShareButtons = () => {
-      const buttons = Array.from(document.querySelectorAll("button"));
-      buttons.forEach((btn) => {
-        const label = (btn.textContent || "").replace(/\s+/g, " ").trim().toLowerCase();
-        if (label !== "share card") return;
-
-        const isApprovedPageAction = btn.getAttribute("data-keep-share-card") === "true" || Boolean(btn.closest("[data-share-action-area='true']"));
-        if (isApprovedPageAction) return;
-
-        const computed = window.getComputedStyle(btn);
-        const rect = btn.getBoundingClientRect();
-        const inFooter = Boolean(btn.closest("footer"));
-        const floatingPosition = computed.position === "fixed" || computed.position === "sticky" || computed.position === "absolute";
-        const bottomRightFloat = rect.right > window.innerWidth - 260 && rect.bottom > window.innerHeight - 180;
-
-        if (inFooter || floatingPosition || bottomRightFloat) {
-          btn.style.setProperty("display", "none", "important");
-          btn.style.setProperty("visibility", "hidden", "important");
-          btn.style.setProperty("pointer-events", "none", "important");
-          btn.setAttribute("aria-hidden", "true");
-          btn.setAttribute("data-stray-share-hidden", "true");
-        }
-      });
-    };
-
-    hideStrayShareButtons();
-    const observer = new MutationObserver(hideStrayShareButtons);
-    observer.observe(document.body, { childList: true, subtree: true });
-    window.addEventListener("resize", hideStrayShareButtons);
-    window.addEventListener("scroll", hideStrayShareButtons, { passive: true });
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", hideStrayShareButtons);
-      window.removeEventListener("scroll", hideStrayShareButtons);
-    };
-  }, [page]);
-
-
 const getData = () =>
   plat === "Combined" ? getCombined(ct, month) : getPlatform(ct, plat, month);
 
@@ -694,16 +717,18 @@ const top = data[0];
   const releaseSingularLower = isSingles ? "song" : "album";
   const platformKeysFor = (chartType = ct) => (chartType === "singles" ? S_PLATS : A_PLATS).filter((platform) => platform !== "Combined");
   const currentPlatformKeys = platformKeysFor(ct);
+  const analyticsActive = page === "analytics";
+  const recordsActive = page === "records";
   const recordsCoverageTargetFor = (chartType = ct) => (chartType === "albums" ? 2 : platformKeysFor(chartType).length);
   const currentRecordsCoverageTarget = recordsCoverageTargetFor(ct);
 
   const platformHitsFor = (chartType, targetMonth, title, artist) => {
     return platformKeysFor(chartType).filter((platform) =>
-      rawPlatform(chartType, platform, targetMonth).some((entry) => entryKey(entry) === entryKey({ title, artist }))
+      getRawPlatformIndex(chartType, platform, targetMonth).has(entryKey({ title, artist }))
     );
   };
 
-  const crossPlatformRows = getCombined(ct, anMonth)
+  const crossPlatformRows = analyticsActive ? getCombined(ct, anMonth)
     .map((entry) => {
       const hits = platformHitsFor(ct, anMonth, entry.title, entry.primary_artist || entry.artist);
       const fallbackCount = Number(String(entry.plat || "").split("/")[0]) || 0;
@@ -718,7 +743,7 @@ const top = data[0];
       };
     })
     .filter((entry) => entry.count > 0)
-    .sort((a, b) => b.count - a.count || Number(b.pts || 0) - Number(a.pts || 0));
+    .sort((a, b) => b.count - a.count || Number(b.pts || 0) - Number(a.pts || 0)) : [];
 
   const coverageBucket = crossPlatformRows.reduce((acc, entry) => {
     acc[entry.count] = (acc[entry.count] || 0) + 1;
@@ -729,20 +754,20 @@ const top = data[0];
     .map(([count, value]) => ({ name: `${count} platform${Number(count) === 1 ? "" : "s"}`, value, count: Number(count) }))
     .sort((a, b) => b.count - a.count);
 
-  const platOnes = currentPlatformKeys
+  const platOnes = analyticsActive ? currentPlatformKeys
     .map((platform) => {
-      const entry = getPlatform(ct, platform, anMonth)[0];
-      return entry ? [platform, { t: entry.title, a: entry.artist, p: entry.pts }] : null;
+      const entry = rawPlatform(ct, platform, anMonth)[0];
+      return entry ? [platform, { t: entry.t, a: entry.a, p: entry.p }] : null;
     })
-    .filter(Boolean);
+    .filter(Boolean) : [];
 
-  const platTotalsData = currentPlatformKeys
+  const platTotalsData = analyticsActive ? currentPlatformKeys
     .map((platform) => ({
       platform: PLAT_LABEL[platform] || platform,
       points: rawPlatform(ct, platform, anMonth).reduce((sum, entry) => sum + (Number(entry.p) || Number(entry.pts) || 0), 0),
       color: PC[platform] || "#888",
     }))
-    .filter((entry) => entry.points > 0);
+    .filter((entry) => entry.points > 0) : [];
 
   const buildMovementData = (chartType, targetMonth) => {
     const currentIndex = monthIndex(targetMonth);
@@ -771,7 +796,9 @@ const top = data[0];
   };
 
   // Movement data for the current analytics month and selected chart type
-  const mvData = buildMovementData(ct, anMonth);
+  const mvData = analyticsActive
+    ? buildMovementData(ct, anMonth)
+    : { new: 0, ret: 0, debut: 0, risers: [], fallers: [] };
 
   const num = (value) => {
     const parsed = Number(String(value ?? 0).replace(/,/g, ""));
@@ -844,7 +871,7 @@ const top = data[0];
     return best;
   };
 
-  const currentRecords = (() => {
+  const currentRecords = recordsActive ? (() => {
     const groups = releaseGroupsFor(ct);
     const highestMonthly = monthlyBestFor(ct);
     const biggestClimb = biggestClimbFor(ct);
@@ -907,9 +934,10 @@ const top = data[0];
         displaySub: `charted ${trackedPeriodLabel}`,
       },
     ];
-  })();
+  })() : [];
 
   const fullCoverageClub = useMemo(() => {
+    if (!recordsActive) return [];
     const seen = new Map();
     MONTHS.forEach((m) => {
       getCombined(ct, m).forEach((entry) => {
@@ -923,7 +951,7 @@ const top = data[0];
       });
     });
     return [...seen.values()].sort((a, b) => num(b.pts) - num(a.pts));
-  }, [ct, currentRecordsCoverageTarget]);
+  }, [ct, currentRecordsCoverageTarget, recordsActive]);
 
   const askAI=async()=>{
     if(!aiQ.trim())return;setAiL(true);setAiA("");
@@ -1062,8 +1090,8 @@ const top = data[0];
   );
 
   // === ANALYTICS COMPUTATIONS — all from full Top-50 data ===
-  const top10sData=getCombined(ct,anMonth).slice(0,10).map(e=>({name:e.title.length>16?e.title.slice(0,14)+"…":e.title,title:e.title,artist:e.artist,pts:e.pts}));
-  const monthlyComp=MONTHS.map(m=>{
+  const top10sData=analyticsActive?getCombined(ct,anMonth).slice(0,10).map(e=>({name:e.title.length>16?e.title.slice(0,14)+"…":e.title,title:e.title,artist:e.artist,pts:e.pts})):[];
+  const monthlyComp=analyticsActive?MONTHS.map(m=>{
     const rows=getCombined(ct,m);
     return {
       month:m.split(" ")[0].slice(0,3),
@@ -1072,28 +1100,29 @@ const top = data[0];
       new:rows.filter(entry=>entry.is_new).length,
       debut:rows.filter(entry=>entry.is_new&&Number(entry.rank)<=10).length,
     };
-  });
+  }):[];
 
-  const topArtistsLine=MONTHS.map(m=>{
+  const topArtistsLine=analyticsActive?MONTHS.map(m=>{
     const obj={month:m.split(" ")[0].slice(0,3)};
     artists.slice(0,6).forEach(a=>{
       obj[a.n]=a.mp[m]||0;
     });
     return obj;
-  });
+  }):[];
 
   const cmp1=artists.find(x=>x.n===cmpA1)||{n:cmpA1,p:0,m:0,t:0,pk:"-",mp:{}};
   const cmp2=artists.find(x=>x.n===cmpA2)||{n:cmpA2,p:0,m:0,t:0,pk:"-",mp:{}};
-  const cmpData=MONTHS.map(m=>({month:m.split(" ")[0].slice(0,3),[cmpA1]:cmp1.mp?.[m]||0,[cmpA2]:cmp2.mp?.[m]||0}));
+  const cmpData=analyticsActive?MONTHS.map(m=>({month:m.split(" ")[0].slice(0,3),[cmpA1]:cmp1.mp?.[m]||0,[cmpA2]:cmp2.mp?.[m]||0})):[];
 
   // === SONG / ALBUM COMPARISON ===
   const PLATS_FOR = currentPlatformKeys;
   // Unique titles for the current chart type, with their artist
   const allTitles=useMemo(()=>{
+    if(!analyticsActive)return [];
     const map={};
     MONTHS.forEach(m=>getCombined(ct,m).forEach(e=>{const k=e.title+" — "+e.artist;if(!map[k])map[k]={key:k,title:e.title,artist:e.artist,primary_artist:e.primary_artist||e.artist};}));
     return Object.values(map).sort((a,b)=>a.title.localeCompare(b.title));
-  },[ct]);
+  },[analyticsActive,ct]);
   // Build a full profile for a song key
   const songProfile=(key)=>{
     const meta=allTitles.find(t=>t.key===key);
@@ -1114,15 +1143,16 @@ const top = data[0];
       }
     });
     prof.avgRank=rankCount?Math.round(rankSum/rankCount):0;
+    const releaseKey=entryKey({title,primary_artist});
     PLATS_FOR.forEach(pl=>{
       let best=null;
-      MONTHS.forEach(m=>{const pe=getPlatform(ct,pl,m).find(x=>sameRelease(x,{title,primary_artist}));if(pe&&(best===null||pe.rank<best))best=pe.rank;});
+      MONTHS.forEach(m=>{const pe=getRawPlatformIndex(ct,pl,m).get(releaseKey);if(pe&&(best===null||pe.r<best))best=pe.r;});
       if(best!==null)prof.platforms[pl]=best;
     });
     prof.platformCount=Object.keys(prof.platforms).length;
     // weeks-equivalent: number of (platform×month) chart appearances
     let appearances=0;
-    PLATS_FOR.forEach(pl=>MONTHS.forEach(m=>{if(getPlatform(ct,pl,m).find(x=>sameRelease(x,{title,primary_artist})))appearances+=1;}));
+    PLATS_FOR.forEach(pl=>MONTHS.forEach(m=>{if(getRawPlatformIndex(ct,pl,m).has(releaseKey))appearances+=1;}));
     prof.appearances=appearances;
     // #1 count on combined
     prof.numberOnes=Object.values(prof.monthly).filter(x=>x.rank===1).length;
@@ -1130,14 +1160,20 @@ const top = data[0];
   };
   // Default song selections to the current month's #1 and #2
   useEffect(()=>{
+    if(!analyticsActive)return;
     const cd=getCombined(ct,anMonth);
     if(cd[0])setCmpS1(cd[0].title+" — "+cd[0].artist);
     if(cd[1])setCmpS2(cd[1].title+" — "+cd[1].artist);
-  },[ct,anMonth]);
-  const sp1=songProfile(cmpS1)||songProfile(allTitles[0]?.key);
-  const sp2=songProfile(cmpS2)||songProfile(allTitles[1]?.key);
-  const songMonthlyData=MONTHS.map(m=>({month:m.split(" ")[0].slice(0,3),A:sp1?.monthly[m]?.pts||0,B:sp2?.monthly[m]?.pts||0}));
-  const songRankData=MONTHS.map(m=>({month:m.split(" ")[0].slice(0,3),A:sp1?.monthly[m]?.rank||null,B:sp2?.monthly[m]?.rank||null}));
+  },[analyticsActive,ct,anMonth]);
+  const [sp1,sp2]=useMemo(()=>{
+    if(!analyticsActive)return [null,null];
+    return [
+      songProfile(cmpS1)||songProfile(allTitles[0]?.key),
+      songProfile(cmpS2)||songProfile(allTitles[1]?.key),
+    ];
+  },[analyticsActive,ct,cmpS1,cmpS2,allTitles]);
+  const songMonthlyData=analyticsActive?MONTHS.map(m=>({month:m.split(" ")[0].slice(0,3),A:sp1?.monthly[m]?.pts||0,B:sp2?.monthly[m]?.pts||0})):[];
+  const songRankData=analyticsActive?MONTHS.map(m=>({month:m.split(" ")[0].slice(0,3),A:sp1?.monthly[m]?.rank||null,B:sp2?.monthly[m]?.rank||null})):[];
 
   const yearEnd=isSingles?COMBINED_YEAR_END.singles:COMBINED_YEAR_END.albums;
 
@@ -1680,16 +1716,6 @@ const top = data[0];
     saveShareImage(url,fname,r.title);
   };
 
-  const AnalyticsDeepSection = ({ label, children }) => {
-    if (!isMobile) return <>{children}</>;
-    return (
-      <details className="ngoma-mobile-collapsible">
-        <summary>{label}<span>View</span></summary>
-        <div className="ngoma-mobile-collapsible-body">{children}</div>
-      </details>
-    );
-  };
-
   return(
     <div style={{fontFamily:SF,background:"linear-gradient(180deg,#FBFAF7 0%,#F7F5F0 100%)",color:"#1A1A1A",minHeight:"100vh",width:"100%",overflowX:"hidden"}}>
       <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700;800;900&family=Instrument+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -1706,6 +1732,7 @@ const top = data[0];
         .ngoma-analytics-chart-inner{min-width:0;}
         .ngoma-analytics-metric-label{color:#59645D !important;}
         .ngoma-analytics-muted{color:#59645D !important;}
+        .ngoma-analytics-page > *{content-visibility:auto;contain-intrinsic-size:auto 320px;}
         .ngoma-mobile-collapsible{margin:0 0 20px;}
         .ngoma-mobile-collapsible > summary{display:none;}
         @media (max-width: 860px){
@@ -2351,7 +2378,7 @@ liveStatus={liveStatus}
 
       {/* ANALYTICS PAGE */}
       {page==="analytics"&&!selA&&!selR&&(
-        <div style={{padding:PAD,background:"transparent",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
+        <div className="ngoma-analytics-page" style={{padding:PAD,background:"transparent",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:"20px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
             <div><h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0}}>Analytics</h2><p style={{fontFamily:F,fontSize:isMobile?"12.5px":"11.5px",color:"#59645D",margin:"5px 0 0",lineHeight:1.6}}>Analytics are based on the full Top 50 across all platforms and months.</p></div>
             <div style={{display:"flex",gap:isMobile?"10px":"8px",flexDirection:isMobile?"column":"row",alignItems:isMobile?"stretch":"center",width:isMobile?"100%":"auto"}}>
@@ -2449,6 +2476,7 @@ liveStatus={liveStatus}
                 })()}
               </div>
               {/* Points + Rank charts */}
+              <AnalyticsDeepSection label="View comparison charts" isMobile={isMobile}>
               <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px"}}>
                 <div style={{width:"100%",maxWidth:isMobile?"360px":"none",margin:"0 auto",padding:isMobile?"14px 8px 10px":"0",background:isMobile?"#FFF":"transparent",border:isMobile?"1px solid #E9E5DC":"none",borderRadius:isMobile?"13px":"0",boxShadow:isMobile?"0 6px 20px rgba(31,36,31,0.04)":"none",overflow:"hidden"}}>
                   <div style={{fontFamily:F,fontSize:isMobile?"10px":"9.5px",fontWeight:800,letterSpacing:"1.4px",textTransform:"uppercase",textAlign:isMobile?"center":"left",color:"#59645D",marginBottom:"8px"}}>Points by Month</div>
@@ -2479,6 +2507,7 @@ liveStatus={liveStatus}
                   </div>
                 </div>
               </div>
+              </AnalyticsDeepSection>
               {/* Platform-by-platform peak ranks */}
               <div style={{marginTop:isMobile?"14px":"16px"}}>
                 <div style={{fontFamily:F,fontSize:isMobile?"10px":"9.5px",fontWeight:800,letterSpacing:"1.4px",textTransform:"uppercase",color:"#59645D",marginBottom:"10px"}}>Peak Rank by Platform</div>
@@ -2557,7 +2586,7 @@ liveStatus={liveStatus}
             </div>
           </div>
           {/* Top artists points line chart */}
-          <AnalyticsDeepSection label="View artist trajectory">
+          <AnalyticsDeepSection label="View artist trajectory" isMobile={isMobile}>
           <div style={{...card(),marginBottom:"20px"}}>
             <div style={secLbl()}><SecMark/>Top 5 Artists — Points Trajectory ({chartTypeLabel})</div>
             <ResponsiveContainer width="100%" height={isMobile?260:240}>
@@ -2575,7 +2604,7 @@ liveStatus={liveStatus}
           </div>
           </AnalyticsDeepSection>
           {/* Cross-platform overlap + Coverage pie */}
-          <AnalyticsDeepSection label="View platform reach">
+          <AnalyticsDeepSection label="View platform reach" isMobile={isMobile}>
           <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px",marginBottom:"20px"}}>
             <div style={card()}>
               <div style={secLbl()}><SecMark/>Cross-Platform Reach — {anMonth}</div>
@@ -2624,7 +2653,7 @@ liveStatus={liveStatus}
           </AnalyticsDeepSection>
           {/* Platform totals */}
           {platTotalsData.length>0&&(
-            <AnalyticsDeepSection label="View platform totals">
+            <AnalyticsDeepSection label="View platform totals" isMobile={isMobile}>
             <div style={{...card(),marginBottom:"20px"}}>
               <div style={secLbl()}><SecMark/>Total Points Distributed Per Platform — {anMonth}</div>
               <ResponsiveContainer width="100%" height={isMobile?230:200}>
@@ -2647,6 +2676,7 @@ liveStatus={liveStatus}
             cd.forEach(e=>{if(KENYAN.has(e.artist)){local++;localPts+=e.pts;}else{intl++;intlPts+=e.pts;}});
             const pieData=[{name:"Kenyan",value:local,color:GOLD},{name:"International",value:intl,color:"#37474F"}];
             return(
+              <AnalyticsDeepSection label="View local vs international" isMobile={isMobile}>
               <div style={{...card(),marginBottom:"20px"}}>
                 <div style={secLbl()}><SecMark/>Local vs International — {anMonth}</div>
                 <p style={{fontFamily:F,fontSize:TXT.note,color:"#69716B",margin:"-6px 0 14px",lineHeight:1.45}}>Share of the Top 50 by Kenyan and international artists.</p>
@@ -2673,6 +2703,7 @@ liveStatus={liveStatus}
                   </div>
                 </div>
               </div>
+              </AnalyticsDeepSection>
             );
           })()}
           {/* Climbers & Fallers */}
@@ -2717,7 +2748,7 @@ liveStatus={liveStatus}
             </div>
           </div>
           {/* Top 10 Artists Bar */}
-          <AnalyticsDeepSection label="View top artists chart">
+          <AnalyticsDeepSection label="View top artists chart" isMobile={isMobile}>
           <div style={{...card(),marginBottom:"20px"}}>
             <div style={secLbl()}><SecMark/>Top 10 Artists by Total Points — ({chartTypeLabel})</div>
             <ResponsiveContainer width="100%" height={isMobile?280:260}>
@@ -2732,7 +2763,7 @@ liveStatus={liveStatus}
           </div>
           </AnalyticsDeepSection>
           {/* Tracked Song Journey */}
-          <AnalyticsDeepSection label={isSingles?"View song rank journey":"View album rank journey"}>
+          <AnalyticsDeepSection label={isSingles?"View song rank journey":"View album rank journey"} isMobile={isMobile}>
           <div style={card()}>
             <div style={secLbl()}><SecMark/>{isSingles?"Top Songs Rank Journey Across Months":"Top Albums Rank Journey Across Months"}</div>
             {tracked.map(title=>{
