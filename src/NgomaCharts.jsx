@@ -579,9 +579,6 @@ export default function NgomaCharts(){
   const [cmpA2,setCmpA2]=useState("Dyana Cods");
   const [cmpS1,setCmpS1]=useState(() => defaultComparisonKey("singles", 0));
   const [cmpS2,setCmpS2]=useState(() => defaultComparisonKey("singles", 1));
-  const [aiQ,setAiQ]=useState("");
-  const [aiA,setAiA]=useState("");
-  const [aiL,setAiL]=useState(false);
   const [anMonth,setAnMonth]=useState(CURRENT_MONTH);
   const [artistMonth,setArtistMonth]=useState(CURRENT_MONTH);
   const [rankJourneyView,setRankJourneyView]=useState("table");
@@ -1067,29 +1064,6 @@ const top = data[0];
     });
     return [...seen.values()].sort((a, b) => num(b.pts) - num(a.pts));
   }, [ct, currentRecordsCoverageTarget, recordsActive]);
-
-  const askAI=async()=>{
-    if(!aiQ.trim())return;setAiL(true);setAiA("");
-    const sCtx=MONTHS.map(m=>m+" Singles Top 10: "+getCombined("singles",m).slice(0,10).map(e=>"#"+e.rank+" "+e.title+" ("+e.artist+","+e.pts+"pts)").join(", ")).join(" | ");
-    const aCtx=MONTHS.map(m=>m+" Albums Top 5: "+getCombined("albums",m).slice(0,5).map(e=>"#"+e.rank+" "+e.title+" ("+e.artist+","+e.pts+"pts)").join(", ")).join(" | ");
-    const sys=`You are Ngoma Charts AI analyst for multi-platform Kenya music chart data (${DATA_PERIOD}). Real data: ${sCtx} ${aCtx}. Be concise, data-driven, and cite specific numbers.`;
-    try{
-      let text;
-      if(API_BASE){
-        // DEPLOYED: route through your backend, which holds the API key securely server-side.
-        const r=await fetch(API_BASE+"/ai/analyst/",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question:aiQ,system:sys})});
-        const d=await r.json();
-        text=d.answer||d.error||"No response.";
-      }else{
-        // ARTIFACT PREVIEW: direct call (auth injected by the Claude environment only).
-        const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1200,system:sys,messages:[{role:"user",content:aiQ}]})});
-        const d=await r.json();
-        text=d.content?.map(c=>c.text).join("")||"No response.";
-      }
-      setAiA(text);
-    }catch{setAiA("Unable to connect. (If deployed, ensure the backend /ai/analyst/ endpoint and ANTHROPIC_API_KEY are configured.)");}
-    setAiL(false);
-  };
 
   const navTo=p=>{setPage(p);setSelA(null);setSelR(null);setSelNews(null);setMNav(false);};
   const navItems=["charts","trending","artists","analytics","records","year-end","certifications","news","about"];
@@ -1962,22 +1936,6 @@ liveStatus={liveStatus}
               </div>
             </div>
           </div>
-          {/* AI Analyst — hidden for now, re-enable by removing the display:none wrapper */}
-          <div style={{display:"none"}}>
-          <div style={{...card(),marginBottom:"20px"}}>
-            <div style={secLbl()}><SecMark/>Ngoma AI Analyst</div>
-            <div style={{display:"flex",gap:"8px",marginBottom:"10px"}}>
-              <input value={aiQ} onChange={e=>setAiQ(e.target.value)} onKeyDown={e=>e.key==="Enter"&&askAI()} placeholder="Ask about charts, artists, trends, predictions..." style={{flex:1,padding:"10px 14px",border:"1.5px solid #E0E0DC",borderRadius:"6px",fontSize:"13px",fontFamily:SF,outline:"none"}}/>
-              <button onClick={askAI} disabled={aiL} style={{padding:"10px 22px",background:"#1A1A1A",border:"none",borderRadius:"6px",color:"#FFF",cursor:aiL?"default":"pointer",fontFamily:F,fontSize:isMobile?"12px":"11px",fontWeight:700,opacity:aiL?0.6:1}}>{aiL?"...":"Ask"}</button>
-            </div>
-            {aiA&&<div style={{padding:"14px",background:"#FAFAF8",borderRadius:"8px",border:"1px solid #EAEAE6",fontSize:"13px",lineHeight:1.7,whiteSpace:"pre-wrap",marginBottom:"10px"}}>{aiA}</div>}
-            <div style={{display:"flex",gap:"5px",flexWrap:"wrap"}}>
-              {[`Who dominated ${DATA_PERIOD} overall?`,"Which song rose the fastest?","Compare singles vs albums platform performance","What predicts a #1 song?","Best Kenyan artists vs international?","Certification breakdown","Which platform discovers trends earliest?","Cross-platform overlap analysis"].map(q=>(
-                <button key={q} onClick={()=>setAiQ(q)} style={{padding:"4px 10px",background:"#FFF",border:"1px solid #E0E0DC",borderRadius:"14px",fontSize:"10px",fontFamily:F,color:"#888",cursor:"pointer"}}>{q}</button>
-              ))}
-            </div>
-          </div>
-          </div>{/* end AI hidden wrapper */}
           {/* SONG / ALBUM COMPARISON */}
           <div style={{...card(),padding:isMobile?"16px":"18px",marginBottom:isMobile?"18px":"20px",background:"linear-gradient(135deg,#FAFAF8,#FFFFFF)"}}>
             <div style={secLbl()}><SecMark/>{isSingles?"Song":"Album"} Head-to-Head</div>

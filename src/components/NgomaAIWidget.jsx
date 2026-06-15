@@ -1,7 +1,12 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { answerNgomaQuestion, NGOMA_ANALYST_PERIOD } from "../utils/ngomaAnalyst";
 
-const API_BASE =
-  import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000/api/v1";
+const STARTER_PROMPTS = [
+  "Who is #1 in May 2026?",
+  "Top 5 artists",
+  "Which song rose fastest in May 2026?",
+  "Certification breakdown",
+];
 
 export default function NgomaAIWidget() {
   const [open, setOpen] = useState(false);
@@ -9,59 +14,39 @@ export default function NgomaAIWidget() {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      text: "Hi, I’m Ngoma AI Analyst. Ask me about chart data, artists, releases, platforms, or Q4 2024 performance.",
+      text: `I answer only from Ngoma Charts data (${NGOMA_ANALYST_PERIOD}). Ask about charts, artists, releases, platforms, movements, coverage, or certifications.`,
     },
   ]);
   const [loading, setLoading] = useState(false);
+  const messagesRef = useRef(null);
 
-  async function askAI() {
-    const cleanQuestion = question.trim();
+  useEffect(() => {
+    messagesRef.current?.scrollTo({ top: messagesRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages, loading, open]);
 
+  useEffect(() => {
+    const handleEscape = (event) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, []);
+
+  function askAI(prompt = question) {
+    const cleanQuestion = String(prompt || "").trim();
     if (!cleanQuestion || loading) return;
 
-    setMessages((prev) => [
-      ...prev,
-      { role: "user", text: cleanQuestion },
-    ]);
-
+    setMessages((previous) => [...previous, { role: "user", text: cleanQuestion }]);
     setQuestion("");
     setLoading(true);
 
-    try {
-      const response = await fetch(`${API_BASE}/ai/analyst/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          question: cleanQuestion,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "AI request failed.");
-      }
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          text: data.answer || "I could not find an answer.",
-        },
+    window.setTimeout(() => {
+      setMessages((previous) => [
+        ...previous,
+        { role: "assistant", text: answerNgomaQuestion(cleanQuestion) },
       ]);
-    } catch (error) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          text: "Sorry, I could not connect to Ngoma AI Analyst right now. Please try again.",
-        },
-      ]);
-    } finally {
       setLoading(false);
-    }
+    }, 80);
   }
 
   function handleKeyDown(event) {
@@ -74,51 +59,59 @@ export default function NgomaAIWidget() {
   return (
     <>
       <button
-        onClick={() => setOpen(true)}
+        type="button"
+        onClick={() => setOpen((current) => !current)}
         style={styles.floatingButton}
         aria-label="Open Ngoma AI Analyst"
+        aria-expanded={open}
         title="Ngoma AI Analyst"
       >
-        <span style={styles.bulbIcon}>💡</span>
+        <span style={styles.spark}>N</span>
+        <span style={styles.floatingLabel}>ASK NGOMA</span>
       </button>
 
       {open && (
-        <div style={styles.panel}>
+        <aside style={styles.panel} aria-label="Ngoma AI Analyst">
           <div style={styles.header}>
             <div>
               <div style={styles.title}>Ngoma AI Analyst</div>
-              <div style={styles.subtitle}>Ask about live chart data</div>
+              <div style={styles.subtitle}>
+                APP DATA ONLY <span style={styles.statusDot} /> NO INTERNET REQUIRED
+              </div>
             </div>
 
             <button
+              type="button"
               onClick={() => setOpen(false)}
               style={styles.closeButton}
               aria-label="Close Ngoma AI Analyst"
             >
-              ×
+              &times;
             </button>
           </div>
 
-          <div style={styles.messages}>
+          <div ref={messagesRef} style={styles.messages}>
             {messages.map((message, index) => (
               <div
-                key={index}
+                key={`${message.role}-${index}`}
                 style={{
                   ...styles.message,
-                  ...(message.role === "user"
-                    ? styles.userMessage
-                    : styles.assistantMessage),
+                  ...(message.role === "user" ? styles.userMessage : styles.assistantMessage),
                 }}
               >
                 {message.text}
               </div>
             ))}
 
-            {loading && (
-              <div style={{ ...styles.message, ...styles.assistantMessage }}>
-                Thinking...
-              </div>
-            )}
+            {loading && <div style={{ ...styles.message, ...styles.assistantMessage }}>Checking the charts...</div>}
+          </div>
+
+          <div style={styles.prompts}>
+            {STARTER_PROMPTS.map((prompt) => (
+              <button key={prompt} type="button" onClick={() => askAI(prompt)} style={styles.promptButton}>
+                {prompt}
+              </button>
+            ))}
           </div>
 
           <div style={styles.inputArea}>
@@ -126,23 +119,25 @@ export default function NgomaAIWidget() {
               value={question}
               onChange={(event) => setQuestion(event.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask Ngoma AI..."
+              placeholder="Ask about the charts..."
               style={styles.textarea}
               rows={2}
             />
 
             <button
-              onClick={askAI}
+              type="button"
+              onClick={() => askAI()}
               disabled={loading || !question.trim()}
-              style={{
-                ...styles.sendButton,
-                opacity: loading || !question.trim() ? 0.5 : 1,
-              }}
+              style={{ ...styles.sendButton, opacity: loading || !question.trim() ? 0.45 : 1 }}
             >
-              ↑
+              ASK
             </button>
           </div>
-        </div>
+
+          <div style={styles.disclaimer}>
+            Answers are calculated from chart data stored in this app. No web search or external AI service is used.
+          </div>
+        </aside>
       )}
     </>
   );
@@ -151,132 +146,174 @@ export default function NgomaAIWidget() {
 const styles = {
   floatingButton: {
     position: "fixed",
-    right: "24px",
-    top: "68px",
+    right: "clamp(14px, 2.4vw, 28px)",
+    bottom: "clamp(14px, 2.4vw, 28px)",
     zIndex: 9999,
-    width: "50px",
-    height: "50px",
-    borderRadius: "50%",
-    border: "1px solid #e5e7eb",
-    background: "#ffffff",
-    color: "#111827",
-    fontSize: "26px",
+    minWidth: "54px",
+    height: "54px",
+    padding: "0 17px 0 8px",
+    borderRadius: "999px",
+    border: "1px solid rgba(184,134,11,0.45)",
+    background: "#11130f",
+    color: "#ffffff",
     cursor: "pointer",
-    boxShadow: "0 8px 20px rgba(0, 0, 0, 0.12)",
+    boxShadow: "0 12px 32px rgba(0,0,0,0.22)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    gap: "9px",
+    fontFamily: "'Instrument Sans', Helvetica, sans-serif",
   },
-
-  bulbIcon: {
-    display: "inline-block",
+  spark: {
+    width: "38px",
+    height: "38px",
+    borderRadius: "50%",
+    display: "grid",
+    placeItems: "center",
+    background: "#b8860b",
+    color: "#fff",
+    fontFamily: "Georgia, serif",
+    fontWeight: 900,
+    fontSize: "19px",
   },
-
+  floatingLabel: {
+    fontSize: "10px",
+    fontWeight: 900,
+    letterSpacing: "1.2px",
+    whiteSpace: "nowrap",
+  },
   panel: {
     position: "fixed",
-    top: "20px",
-    right: "20px",
-    width: "390px",
-    maxWidth: "calc(100vw - 40px)",
-    height: "calc(100vh - 40px)",
+    right: "clamp(10px, 2vw, 24px)",
+    bottom: "clamp(78px, 9vw, 94px)",
+    width: "min(430px, calc(100vw - 20px))",
+    height: "min(680px, calc(100vh - 100px))",
     background: "#ffffff",
-    color: "#111827",
-    borderRadius: "24px",
-    boxShadow: "0 20px 60px rgba(0, 0, 0, 0.25)",
+    color: "#171914",
+    borderRadius: "18px",
+    boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
     display: "flex",
     flexDirection: "column",
     overflow: "hidden",
     zIndex: 10000,
+    border: "1px solid #e7e3d8",
+    fontFamily: "'Instrument Sans', Helvetica, sans-serif",
   },
-
   header: {
-    padding: "20px",
-    borderBottom: "1px solid #e5e7eb",
+    padding: "17px 18px",
+    borderBottom: "1px solid #e5e0d4",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
   },
-
-  title: {
-    fontSize: "20px",
-    fontWeight: 700,
-  },
-
+  title: { fontSize: "18px", fontWeight: 850 },
   subtitle: {
-    fontSize: "13px",
-    color: "#6b7280",
+    display: "flex",
+    alignItems: "center",
+    gap: "5px",
+    fontSize: "8px",
+    letterSpacing: "0.8px",
+    fontWeight: 850,
+    color: "#6b7169",
     marginTop: "4px",
   },
-
+  statusDot: {
+    display: "inline-block",
+    width: "5px",
+    height: "5px",
+    borderRadius: "50%",
+    background: "#2f9e44",
+  },
   closeButton: {
     border: "none",
     background: "transparent",
-    fontSize: "28px",
+    fontSize: "26px",
     cursor: "pointer",
-    color: "#374151",
+    color: "#37413a",
   },
-
   messages: {
     flex: 1,
-    padding: "18px",
+    padding: "16px",
     overflowY: "auto",
     display: "flex",
     flexDirection: "column",
     gap: "12px",
-    background: "#f9fafb",
+    background: "#f7f5ef",
   },
-
   message: {
     padding: "12px 14px",
-    borderRadius: "16px",
-    fontSize: "14px",
-    lineHeight: 1.5,
+    borderRadius: "14px",
+    fontSize: "13px",
+    lineHeight: 1.58,
     whiteSpace: "pre-wrap",
   },
-
   userMessage: {
     alignSelf: "flex-end",
-    background: "#111827",
+    background: "#171914",
     color: "#ffffff",
     maxWidth: "85%",
   },
-
   assistantMessage: {
     alignSelf: "flex-start",
     background: "#ffffff",
-    border: "1px solid #e5e7eb",
-    color: "#111827",
-    maxWidth: "90%",
+    border: "1px solid #e5e0d4",
+    color: "#171914",
+    maxWidth: "92%",
   },
-
-  inputArea: {
-    padding: "14px",
-    borderTop: "1px solid #e5e7eb",
+  prompts: {
+    padding: "10px 14px 4px",
     display: "flex",
-    gap: "10px",
+    gap: "6px",
+    overflowX: "auto",
+    background: "#ffffff",
+  },
+  promptButton: {
+    border: "1px solid #ded8c9",
+    background: "#fff",
+    color: "#5c625b",
+    borderRadius: "999px",
+    padding: "7px 10px",
+    fontFamily: "inherit",
+    fontSize: "9px",
+    fontWeight: 750,
+    whiteSpace: "nowrap",
+    cursor: "pointer",
+  },
+  inputArea: {
+    padding: "10px 14px 12px",
+    borderTop: "1px solid #e5e0d4",
+    display: "flex",
+    gap: "9px",
     alignItems: "flex-end",
     background: "#ffffff",
   },
-
   textarea: {
     flex: 1,
     resize: "none",
-    border: "1px solid #d1d5db",
-    borderRadius: "16px",
-    padding: "12px",
-    fontSize: "14px",
+    border: "1px solid #d8d2c5",
+    borderRadius: "12px",
+    padding: "11px 12px",
+    fontSize: "13px",
     outline: "none",
     fontFamily: "inherit",
   },
-
   sendButton: {
-    width: "42px",
+    width: "54px",
     height: "42px",
-    borderRadius: "50%",
+    borderRadius: "11px",
     border: "none",
-    background: "#111827",
+    background: "#b8860b",
     color: "#ffffff",
-    fontSize: "20px",
+    fontSize: "10px",
+    fontWeight: 900,
     cursor: "pointer",
+  },
+  disclaimer: {
+    padding: "0 15px 12px",
+    background: "#ffffff",
+    color: "#858a84",
+    fontSize: "8.5px",
+    lineHeight: 1.4,
+    textAlign: "center",
   },
 };
