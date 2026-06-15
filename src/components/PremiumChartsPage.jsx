@@ -155,6 +155,8 @@ const ARTIST_COUNTRY_FALLBACK = {
   "King Promise": { country: "Ghana", code: "GH" },
   "Kizz Daniel": { country: "Nigeria", code: "NG" },
   "KODONGKLAN": { country: "Kenya", code: "KE" },
+  "Kahuti": { country: "Kenya", code: "KE" },
+  "Kinoti": { country: "Kenya", code: "KE" },
   "Koffi Olomide": { country: "DR Congo", code: "CD" },
   "Koppa Gekon": { country: "Kenya", code: "KE" },
   "Kouz1": { country: "Kenya", code: "KE" },
@@ -236,6 +238,7 @@ const ARTIST_COUNTRY_FALLBACK = {
   "ROSÃ‰": { country: "South Korea", code: "KR" },
   "ROSÉ": { country: "South Korea", code: "KR" },
   "Ruger": { country: "Nigeria", code: "NG" },
+  "Rvssian": { country: "Jamaica", code: "JM" },
   "Sabrina Carpenter": { country: "United States", code: "US" },
   "SahBabii": { country: "United States", code: "US" },
   "Salim Junior": { country: "Kenya", code: "KE" },
@@ -281,6 +284,7 @@ const ARTIST_COUNTRY_FALLBACK = {
   "Tyler, The Creator": { country: "United States", code: "US" },
   "Tyler, The creator": { country: "United States", code: "US" },
   "Uncle Eddy": { country: "Kenya", code: "KE" },
+  "Unspoken Salaton": { country: "Kenya", code: "KE" },
   "Vicky Brilliance": { country: "Kenya", code: "KE" },
   "Victony": { country: "Nigeria", code: "NG" },
   "Vinka": { country: "Uganda", code: "UG" },
@@ -597,6 +601,8 @@ export default function PremiumChartsPage({
   artists,
   setSelA,
   setSelR,
+  onOpenArtist,
+  onOpenRelease,
   getCombined,
   liveChartLoading,
   liveChartMeta,
@@ -721,11 +727,19 @@ export default function PremiumChartsPage({
   }
 
   function openArtist(name) {
+    if (onOpenArtist) {
+      onOpenArtist(name);
+      return;
+    }
     const artist = artists.find((item) => item.n === name);
     if (artist) setSelA(artist);
   }
 
   function openRelease(item) {
+    if (onOpenRelease) {
+      onOpenRelease(item, isSingles ? "single" : "album");
+      return;
+    }
     setSelR({
       ...item,
       type: isSingles ? "single" : "album",

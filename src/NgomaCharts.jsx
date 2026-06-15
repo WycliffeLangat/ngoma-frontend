@@ -1,8 +1,7 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   BarChart,
   Bar,
-  LabelList,
   XAxis,
   YAxis,
   Tooltip,
@@ -52,6 +51,12 @@ const buildCertifications = (items = []) => items
   .filter((item) => item.level);
 const releaseTitle = (item = {}) => item.t || item.title || item.release_title || item.name || "";
 const releaseArtist = (item = {}) => item.a || item.artist || item.artist_name || item.primary_artist || "";
+const formatArtistCredit = (primaryArtist = "", featuredArtists = "") => {
+  const members = [primaryArtist, ...String(featuredArtists || "").split(/\s*,\s*|\s*&\s*/)]
+    .map((member) => String(member || "").trim())
+    .filter(Boolean);
+  return [...new Map(members.map((member) => [member.toLowerCase(), member])).values()].join(" & ");
+};
 const firstFiniteNumber = (...values) => {
   for (const value of values) {
     if (value === undefined || value === null || value === "") continue;
@@ -182,13 +187,13 @@ function enrichChartEntries(entries, getRawEntries, currentMonth, totalPlatforms
       ? Number(String(e.pl).split("/")[0]) || undefined
       : undefined;
 
-    const primaryArtist = String(e.a || "").trim();
+    const primaryArtist = String(e.pa || e.a || "").trim();
     const featuredArtists = String(e.fa || "").trim();
 
     return {
       rank: e.r,
       title: e.t,
-      artist: featuredArtists ? `${primaryArtist} feat. ${featuredArtists}` : primaryArtist,
+      artist: formatArtistCredit(primaryArtist, featuredArtists),
       primary_artist: primaryArtist,
       featured_artists: featuredArtists,
       pts: e.p,
@@ -207,6 +212,10 @@ function enrichChartEntries(entries, getRawEntries, currentMonth, totalPlatforms
       platform_max: e.pl ? Number(String(e.pl).split("/")[1]) || totalPlatforms : totalPlatforms,
       release_year: e.y ?? null,
       confidence: e.c || "",
+      country: e.co || "",
+      country_code: e.cc || "",
+      artist_country: e.co || "",
+      artist_country_code: e.cc || "",
     };
   });
 }
@@ -266,6 +275,7 @@ const buildCombinedYearEnd = (chartType) => {
 
 const buildCombinedArtists = (chartType) => {
   const artistMap = new Map();
+  const monthlyArtistTotals = new Map();
 
   MONTHS.forEach((monthLabel) => {
     getCombined(chartType, monthLabel).forEach((entry) => {
@@ -286,11 +296,23 @@ const buildCombinedArtists = (chartType) => {
 
       current.p += Number(entry.pts) || 0;
       current.mp[monthLabel] = (current.mp[monthLabel] || 0) + (Number(entry.pts) || 0);
-      current.pk = Math.min(current.pk, Number(entry.rank) || Number.POSITIVE_INFINITY);
       current.months.add(monthLabel);
       current.titles.add(entryKey(entry));
       artistMap.set(key, current);
+
+      if (!monthlyArtistTotals.has(monthLabel)) monthlyArtistTotals.set(monthLabel, new Map());
+      const monthTotals = monthlyArtistTotals.get(monthLabel);
+      monthTotals.set(key, (monthTotals.get(key) || 0) + (Number(entry.pts) || 0));
     });
+  });
+
+  monthlyArtistTotals.forEach((monthTotals) => {
+    [...monthTotals.entries()]
+      .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
+      .forEach(([key], index) => {
+        const artist = artistMap.get(key);
+        if (artist) artist.pk = Math.min(artist.pk, index + 1);
+      });
   });
 
   return [...artistMap.values()]
@@ -481,24 +503,24 @@ const RecordIcon = ({ label = "", size = 30, muted = false }) => {
 };
 
 const NEWS=[
-  {id:1,date:"June 15, 2026",cat:"CHART NEWS",emoji:"",title:"Ywaya Tajiri Claims May's #1 With Chai ya saa kumi",excerpt:"Chai ya saa kumi rises nineteen places from #20 to lead the May 2026 Combined singles chart.",body:"Ywaya Tajiri completed the month's biggest charge toward the summit, moving from #20 in April to #1 in May. The result also made the song Apple Music's leading single for the month."},
-  {id:2,date:"June 14, 2026",cat:"ALBUMS",emoji:"",title:"Cardi B Extends an Eight-Month Albums Reign",excerpt:"AM I THE DRAMA? (Album Release Live Edition) has held #1 every month from October 2025 through May 2026.",body:"Cardi B's live edition has now led eight consecutive Combined album charts. Its 400 cumulative display points make it the period's second-highest scoring album release."},
-  {id:3,date:"June 13, 2026",cat:"ANALYTICS",emoji:"",title:"Natafuta Doo Makes May's Biggest Singles Jump",excerpt:"ELISHA TOTO climbs twenty-one positions, moving from #33 in April to #12 in May.",body:"No single gained more positions in May. Natafuta Doo's 21-place rise put it just outside the month's Top 10 and ahead of every other returning climber."},
-  {id:4,date:"June 12, 2026",cat:"ALBUMS",emoji:"",title:"Fally Ipupa's XX Rockets Thirty Places",excerpt:"XX surges from #34 to #4, the largest month-to-month move on May's Combined albums chart.",body:"Fally Ipupa produced the strongest album climb in the current dataset's latest month. XX gained 30 positions and finished inside the Top 5."},
-  {id:5,date:"June 11, 2026",cat:"CHART NEWS",emoji:"",title:"Wakadinali Debut at #2 With LAST DANCE",excerpt:"LAST DANCE enters the May Combined singles chart one position below the summit.",body:"Wakadinali delivered May's highest singles debut. The #2 arrival immediately placed LAST DANCE among the month's biggest releases."},
-  {id:6,date:"June 10, 2026",cat:"ALBUMS",emoji:"",title:"Asake's M$NEY Opens at #2",excerpt:"M$NEY is May's highest new album, debuting directly behind Cardi B's chart leader.",body:"Asake placed three albums inside May's Top 20: M$NEY at #2, Lungu Boy at #17 and Mr. Money With The Vibe at #18."},
-  {id:7,date:"June 9, 2026",cat:"ANALYTICS",emoji:"",title:"Pawa Is the Period's Highest-Scoring Single",excerpt:"Mbosso's Pawa totals 443 display points across all nine chart months.",body:"Pawa charted in every month from September 2025 through May 2026 and spent five of those months at #1, the strongest singles run in the dataset."},
-  {id:8,date:"June 8, 2026",cat:"ARTIST SPOTLIGHT",emoji:"",title:"Toxic Lyrikali Leads Singles Artists on 1,244 Points",excerpt:"Ten chart entries combine to give Toxic Lyrikali the largest singles artist total in the current period.",body:"The catalogue depth is the story: Backbencher, Bud Flowers, Dumpsite and seven other entries collectively produced 1,244 display points across the nine-month dataset."},
-  {id:9,date:"June 7, 2026",cat:"ARTIST SPOTLIGHT",emoji:"",title:"Gunna Tops the Albums Artist Standings",excerpt:"The Last Wun and One of Wun combine for 792 display points.",body:"Gunna leads every album artist in cumulative points. The Last Wun is also the period's highest-scoring album release with 415 points."},
-  {id:10,date:"June 6, 2026",cat:"ANALYTICS",emoji:"",title:"Taya Delivers Nine Months of Top-Level Consistency",excerpt:"Okello Max's Taya has charted in every month, earned 413 points and peaked at #2.",body:"Taya never needed a #1 month to become the second-highest scoring single of the period. Its nine-month consistency kept it near the top throughout the dataset."},
-  {id:11,date:"June 5, 2026",cat:"ANALYTICS",emoji:"",title:"Wrong Places Reaches Diamond Territory",excerpt:"Joshua Baraka and JAE5's Wrong Places totals 370 cumulative display points.",body:"Wrong Places charted in all nine months and peaked at #3. Under the updated certification scale, its 370 points qualify the release for Diamond status."},
-  {id:12,date:"June 4, 2026",cat:"PLATFORM WATCH",emoji:"",title:"May's Platform #1s Show Six Different Singles Stories",excerpt:"Apple Music, Audiomack, Boomplay, Spotify, YouTube and Shazam each produced their own leader.",body:"Ywaya Tajiri led Apple Music, Alikiba led Audiomack, Prince Indah led Boomplay, Bien led Spotify and YouTube, while Deejay MJ led Shazam. The split shows why the Combined chart rewards broad platform performance."},
-  {id:13,date:"June 3, 2026",cat:"ANALYTICS",emoji:"",title:"No May Single Reached All Six Platforms",excerpt:"The latest Combined singles chart has no 6/6 coverage entry.",body:"May's audience was highly fragmented across services. Strong platform-specific leaders did not translate into a single release appearing on every tracked singles platform."},
-  {id:14,date:"June 2, 2026",cat:"ALBUMS",emoji:"",title:"Twenty-Four May Albums Reached 2/2 Coverage",excerpt:"Nearly half of May's Combined Top 50 appeared on both Apple Music and Audiomack.",body:"The 24 fully covered albums include the entire Top 11, led by Cardi B, Asake, Bridget Blue, Fally Ipupa and Kehlani."},
-  {id:15,date:"June 1, 2026",cat:"ALBUMS",emoji:"",title:"Bridget Blue's RNB Reaches #3",excerpt:"RNB places third in May with full 2/2 platform coverage.",body:"Bridget Blue's album sits behind only Cardi B and Asake in the latest Combined ranking, giving a Kenyan release a prominent place in May's Top 3."},
-  {id:16,date:"May 31, 2026",cat:"ALBUMS",emoji:"",title:"Kusslove's GOLD Climbs Seventeen Places",excerpt:"GOLD moves from #31 in April to #14 in May.",body:"Kusslove recorded May's second-largest returning album gain, behind only Fally Ipupa's XX."},
-  {id:17,date:"May 30, 2026",cat:"CHART NEWS",emoji:"",title:"Zuchu's I Love You Jumps Into the Top 20",excerpt:"I Love You rises sixteen places from #35 to #19.",body:"The 16-position climb was one of May's strongest singles gains and returned Zuchu to the upper half of the Combined chart."},
-  {id:18,date:"May 29, 2026",cat:"ALBUMS",emoji:"",title:"Yariasu Returns Upward for Nyashinski",excerpt:"Yariasu gains five places to finish May at #27.",body:"Nyashinski's album improved from #32 in April and maintained its long-running presence in the Combined albums chart."},
+  {id:1,date:"June 15, 2026",cat:"CHART NEWS",emoji:"",title:"Finale Leads May After Collaboration Credits Are Unified",excerpt:"Bien & Alikiba's Finale ranks #1 with appearances on five of six tracked singles platforms.",body:"Finale combines 1,404 raw platform points after equivalent Bien, Bien ft. Alikiba and Bien & Alikiba credits are treated as one release. It leads Apple Music, Spotify and YouTube for May."},
+  {id:2,date:"June 14, 2026",cat:"CHART NEWS",emoji:"",title:"Finale Completes Back-to-Back Months at #1",excerpt:"Bien & Alikiba also lead the recalculated April Combined singles chart.",body:"The collaboration totals 1,593 raw platform points in April, ahead of Siaka and Pawa, then retains the summit in May."},
+  {id:3,date:"June 13, 2026",cat:"ANALYTICS",emoji:"",title:"Pawa Remains the Period's Highest-Scoring Single",excerpt:"Mbosso's Pawa totals 436 display points across all nine tracked months.",body:"Pawa appeared in every monthly Combined chart and finished #1 in November and December 2025."},
+  {id:4,date:"June 12, 2026",cat:"ARTIST SPOTLIGHT",emoji:"",title:"Toxic Lyrikali Leads Singles Artists on 1,238 Points",excerpt:"A deep catalogue keeps Toxic Lyrikali comfortably ahead in the period artist standings.",body:"Backbencher, Mfisadi, Dumpsite and the rest of the catalogue combine for 1,238 display points across the updated nine-month dataset."},
+  {id:5,date:"June 11, 2026",cat:"ANALYTICS",emoji:"",title:"Natafuta Doo Makes May's Biggest Singles Jump",excerpt:"ELISHA TOTO climbs twenty-three positions from #40 to #17.",body:"The 23-place gain is the largest positive move among returning singles in May's normalized Combined chart."},
+  {id:6,date:"June 10, 2026",cat:"CHART NEWS",emoji:"",title:"Zuchu's I Love You Climbs Eighteen Places",excerpt:"I Love You moves from #36 in April to #18 in May.",body:"The release also leads Boomplay's May chart, giving Zuchu both a strong platform result and a Top 20 Combined finish."},
+  {id:7,date:"June 9, 2026",cat:"CHART NEWS",emoji:"",title:"Chai ya saa kumi Surges to #2",excerpt:"Ywaya Tajiri gains seventeen places from April to May.",body:"Chai ya saa kumi rises from #19 to #2 and appears on five of the six tracked singles platforms."},
+  {id:8,date:"June 8, 2026",cat:"ANALYTICS",emoji:"",title:"May's Top Five Reflect Broad Platform Reach",excerpt:"Four of the first five singles chart on five platforms, while LAST DANCE reaches four.",body:"Finale, Chai ya saa kumi, AYAYAAH and Siaka each post 5/6 coverage in the latest Combined Top 50."},
+  {id:9,date:"June 7, 2026",cat:"PLATFORM WATCH",emoji:"",title:"Finale Leads Three May Platform Charts",excerpt:"Bien & Alikiba finish #1 on Apple Music, Spotify and YouTube.",body:"Audiomack is led by Alikiba & Mbosso's Bhuju, Boomplay by Zuchu's I Love You, and Shazam by Deejay MJ's Well Done."},
+  {id:10,date:"June 6, 2026",cat:"ANALYTICS",emoji:"",title:"No May Single Reaches 6/6 Coverage",excerpt:"The latest singles chart peaks at five tracked platforms per release.",body:"The result highlights how differently audiences behave across Apple Music, Audiomack, Boomplay, Spotify, YouTube and Shazam."},
+  {id:11,date:"June 5, 2026",cat:"ALBUMS",emoji:"",title:"Asake's M$NEY Debuts at #1",excerpt:"M$NEY leads the May Combined albums chart with full 2/2 coverage.",body:"The album appears on both Apple Music and Audiomack and arrives ahead of Cardi B's AM I THE DRAMA? (Ultimate Edition)."},
+  {id:12,date:"June 4, 2026",cat:"ALBUMS",emoji:"",title:"Kehlani Makes May's Biggest Album Leap",excerpt:"Kehlani rises forty-five places from #50 to #5.",body:"No returning song or album makes a larger month-to-month move in the latest Combined rankings."},
+  {id:13,date:"June 3, 2026",cat:"ALBUMS",emoji:"",title:"Fally Ipupa's XX Rockets to #4",excerpt:"XX gains thirty-one positions from its April rank of #35.",body:"The climb places Fally Ipupa immediately behind May's Top 3 albums and gives XX full Apple Music and Audiomack coverage."},
+  {id:14,date:"June 2, 2026",cat:"ALBUMS",emoji:"",title:"GOLD Climbs Sixteen Places",excerpt:"GOLD moves from #31 in April to #15 in May.",body:"The album records one of May's strongest gains and returns to the upper half of the Combined Top 50."},
+  {id:15,date:"June 1, 2026",cat:"ARTIST SPOTLIGHT",emoji:"",title:"Gunna Tops Albums Artists on 785 Points",excerpt:"The Last Wun and One of Wun drive the strongest artist total in the albums dataset.",body:"Gunna leads PARTYNEXTDOOR, Marioo, Cardi B and Asake in cumulative album artist points."},
+  {id:16,date:"May 31, 2026",cat:"ALBUMS",emoji:"",title:"The Last Wun Leads the Nine-Month Albums Ranking",excerpt:"Gunna's album totals 414 display points across all nine months.",body:"The Last Wun finishes ahead of Bien's Alusa Why Are You Topless? and PARTYNEXTDOOR's $ome $exy $ongs 4 U."},
+  {id:17,date:"May 30, 2026",cat:"ALBUMS",emoji:"",title:"Sixteen May Top 20 Albums Reach Both Platforms",excerpt:"Most of May's leading albums appear on both Apple Music and Audiomack.",body:"M$NEY, RNB, XX, Kehlani and twelve other Top 20 albums record full 2/2 platform coverage."},
+  {id:18,date:"May 29, 2026",cat:"ANALYTICS",emoji:"",title:"Wrong Places Secures Diamond Status",excerpt:"Joshua Baraka & JAE5 total 405 points across nine months.",body:"Wrong Places appears in every tracked month and exceeds the current 350-point Diamond certification threshold."},
 ];
 
 export default function NgomaCharts(){
@@ -537,6 +559,8 @@ export default function NgomaCharts(){
   const [expandedYearEndRows, setExpandedYearEndRows] = useState({});
   const [expandedArtistRows, setExpandedArtistRows] = useState({});
   const [expandedTrendingRows, setExpandedTrendingRows] = useState({});
+  const detailOpenRef = useRef(false);
+  const detailReturnScrollRef = useRef(0);
 
   const toggleYearEndRow = (rowKey) => {
     setExpandedYearEndRows((current) => ({
@@ -608,7 +632,7 @@ export default function NgomaCharts(){
           return {
             rank: entry.rank,
             title: entry.title,
-            artist: entry.artist,
+            artist: formatArtistCredit(entry.primary_artist || entry.artist, entry.featured_artists),
             primary_artist: entry.primary_artist || entry.artist,
             featured_artists: entry.featured_artists || "",
             pts: displayPoints,
@@ -629,6 +653,10 @@ export default function NgomaCharts(){
             platform_max: entry.platform_max,
             release_year: entry.release_year,
             confidence: entry.confidence,
+            country: entry.artist_country || entry.country || "",
+            country_code: entry.artist_country_code || entry.country_code || "",
+            artist_country: entry.artist_country || entry.country || "",
+            artist_country_code: entry.artist_country_code || entry.country_code || "",
           };
         });
 
@@ -661,6 +689,20 @@ export default function NgomaCharts(){
   const pageFrame=(extra={})=>({maxWidth:PAGE_MAX,width:"100%",margin:"0 auto",boxSizing:"border-box",minWidth:0,...extra});
   const responsiveStack=(desktop="row")=>({flexDirection:isMobile?"column":desktop,alignItems:isMobile?"stretch":"center"});
   useEffect(()=>{const h=e=>{if(e.key==="Escape"){setSOpen(false);setSrch("");setShareImg(null);setShareCardModalOpen(false);}};window.addEventListener("keydown",h);return()=>window.removeEventListener("keydown",h);},[]);
+  useEffect(() => {
+    detailOpenRef.current = Boolean(selA || selR);
+  }, [selA, selR]);
+  useEffect(() => {
+    const handlePopState = () => {
+      if (!detailOpenRef.current) return;
+      detailOpenRef.current = false;
+      setSelA(null);
+      setSelR(null);
+      requestAnimationFrame(() => window.scrollTo({ top: detailReturnScrollRef.current, behavior: "auto" }));
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
 const getData = () =>
   plat === "Combined" ? getCombined(ct, month) : getPlatform(ct, plat, month);
@@ -688,6 +730,24 @@ const top = data[0];
 
   // Artist totals are derived from the displayed Combined rank scores.
   const artists=isSingles?COMBINED_ARTISTS.singles:COMBINED_ARTISTS.albums;
+  const prepareDetailNavigation = () => {
+    if (!detailOpenRef.current) {
+      detailReturnScrollRef.current = window.scrollY || 0;
+      window.history.pushState({ ...(window.history.state || {}), ngomaDetail: true }, "");
+      detailOpenRef.current = true;
+    }
+    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
+  };
+  const closeDetails = () => {
+    if (window.history.state?.ngomaDetail) {
+      window.history.back();
+      return;
+    }
+    detailOpenRef.current = false;
+    setSelA(null);
+    setSelR(null);
+    requestAnimationFrame(() => window.scrollTo({ top: detailReturnScrollRef.current, behavior: "auto" }));
+  };
   const openArtistDetails = (name) => {
     const singleProfile = COMBINED_ARTISTS.singles.find((item) => item.n === name);
     const albumProfile = COMBINED_ARTISTS.albums.find((item) => item.n === name);
@@ -697,6 +757,7 @@ const top = data[0];
     setPlat("Combined");
     setSelR(null);
     setSelA(profile);
+    prepareDetailNavigation();
   };
   const openReleaseDetails = (entry = {}, type = isSingles ? "single" : "album") => {
     const normalizedType = String(type || entry.type || "single").toLowerCase().includes("album") ? "album" : "single";
@@ -709,6 +770,7 @@ const top = data[0];
       artist: releaseArtist(entry),
       type: normalizedType,
     });
+    prepareDetailNavigation();
   };
   const artistTrendFor=(artist={})=>{
     const latest=MONTHS[MONTHS.length-1];
@@ -767,7 +829,7 @@ const top = data[0];
   const platOnes = analyticsActive ? currentPlatformKeys
     .map((platform) => {
       const entry = rawPlatform(ct, platform, anMonth)[0];
-      return entry ? [platform, { t: entry.t, a: entry.a, p: entry.p }] : null;
+      return entry ? [platform, { t: entry.t, a: formatArtistCredit(entry.a, entry.fa), primary_artist: entry.a, featured_artists: entry.fa || "", p: entry.p }] : null;
     })
     .filter(Boolean) : [];
 
@@ -1122,7 +1184,6 @@ const top = data[0];
 
   const cmp1=artists.find(x=>x.n===cmpA1)||{n:cmpA1,p:0,m:0,t:0,pk:"-",mp:{}};
   const cmp2=artists.find(x=>x.n===cmpA2)||{n:cmpA2,p:0,m:0,t:0,pk:"-",mp:{}};
-  const cmpData=analyticsActive?MONTHS.map(m=>({month:m.split(" ")[0].slice(0,3),[cmpA1]:cmp1.mp?.[m]||0,[cmpA2]:cmp2.mp?.[m]||0})):[];
 
   // === SONG / ALBUM COMPARISON ===
   const PLATS_FOR = currentPlatformKeys;
@@ -2126,7 +2187,7 @@ const top = data[0];
         const releaseConfidence = selR.confidence || releaseMetadata.confidence;
         return (
         <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
-          <span onClick={()=>setSelR(null)} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:GOLD,cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>← Back</span>
+          <span onClick={closeDetails} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:GOLD,cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>← Back</span>
           <div style={{marginTop:"20px"}}>
             <div style={{fontFamily:F,fontSize:"10px",letterSpacing:"2px",textTransform:"uppercase",color:GOLD,marginBottom:"6px"}}>{selR.type||"single"}</div>
             <h1 style={{fontSize:isMobile?"24px":"30px",fontWeight:850,margin:"0 0 4px",lineHeight:1.12}}>{selR.title}</h1>
@@ -2176,7 +2237,7 @@ const top = data[0];
       {/* ARTIST PROFILE */}
       {selA&&!selR&&(
         <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
-          <span onClick={()=>setSelA(null)} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:GOLD,cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>← Back</span>
+          <span onClick={closeDetails} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:GOLD,cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>← Back</span>
           <div style={{marginTop:"20px",display:"flex",gap:"20px",alignItems:isMobile?"stretch":"flex-start",flexDirection:isMobile?"column":"row",minWidth:0}}>
             <div style={{width:"80px",height:"80px",borderRadius:"50%",background:"linear-gradient(135deg,#FAF5EA,#EDE0C0)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"32px",fontWeight:900,color:GOLD,flexShrink:0,border:"2px solid "+GOLD+"22",boxShadow:"0 4px 16px rgba(184,134,11,0.12)"}}>{selA.n[0]}</div>
             <div style={{flex:1}}>
@@ -2184,7 +2245,7 @@ const top = data[0];
                 <h2 style={{margin:0,fontSize:isMobile?"24px":"26px",fontWeight:850,lineHeight:1.12}}>{selA.n}</h2>
                 <CountryBadge artist={selA.n} showName />
               </div>
-              <div style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",marginTop:"6px",lineHeight:1.45}}>Peak: #{selA.pk} · {selA.t} {isSingles?"songs":"albums"} · {selA.m} months on chart</div>
+              <div style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",marginTop:"6px",lineHeight:1.45}}>Top Artists peak: #{selA.pk} · {selA.t} {isSingles?"songs":"albums"} · {selA.m} months on chart</div>
               <div style={{display:"flex",gap:"24px",marginTop:"14px",fontFamily:F}}>
                 {[{v:selA.p.toLocaleString(),l:"Total Points",c:GOLD},{v:selA.t,l:"Charted Entries"},{v:"#"+selA.pk,l:"Peak Rank"},{v:selA.m,l:"Months Active"}].map((s,i)=>(
                   <div key={i}><div style={{fontSize:"22px",fontWeight:700,color:s.c||"#1A1A1A"}}>{s.v}</div><div style={{fontSize:"9px",letterSpacing:"1.5px",color:"#CCC",textTransform:"uppercase"}}>{s.l}</div></div>
@@ -2262,6 +2323,8 @@ const top = data[0];
     artists={artists}
     setSelA={setSelA}
     setSelR={setSelR}
+    onOpenArtist={openArtistDetails}
+    onOpenRelease={openReleaseDetails}
     getCombined={getCombined}
     liveChartLoading={liveChartLoading}
 liveChartMeta={liveChartMeta}
@@ -2298,34 +2361,37 @@ liveStatus={liveStatus}
                 {allArtistNames.map(n=><option key={n} value={n}>{n}</option>)}
               </select>
             </div>
-            <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:isMobile?"10px":"12px",marginBottom:isMobile?"16px":"18px"}}>
+            <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:isMobile?"10px":"12px",marginBottom:isMobile?"12px":"14px"}}>
               {[{d:cmp1,c:GOLD},{d:cmp2,c:"#1565C0"}].map(({d,c},i)=>(
-                <div key={i} style={{padding:isMobile?"15px":"16px",background:c+"0D",borderRadius:"10px",borderLeft:"3px solid "+c,minHeight:isMobile?"142px":"auto"}}>
-                  <div style={{fontFamily:F,fontSize:isMobile?"10.5px":"10px",fontWeight:900,letterSpacing:"1.5px",color:c,textTransform:"uppercase",marginBottom:"9px"}}>{d.n}</div>
-                  {[{l:"Total Points",v:(d.p||0).toLocaleString()},{l:"Peak Rank",v:"#"+(d.pk||"—")},{l:"Months",v:d.m||0},{l:"Entries",v:d.t||0}].map((s,j)=>(
-                    <div key={j} style={{display:"flex",justifyContent:"space-between",gap:"12px",fontFamily:F,fontSize:isMobile?"12px":"11.5px",borderBottom:"1px solid "+c+"22",padding:isMobile?"5px 0":"4px 0",lineHeight:1.35}}>
-                      <span style={{color:"#59645D",fontWeight:650}}>{s.l}</span><span style={{fontWeight:850,color:c}}>{s.v}</span>
-                    </div>
-                  ))}
-                </div>
+                <button key={i} type="button" onClick={()=>openArtistDetails(d.n)} style={{padding:isMobile?"13px":"15px",background:c+"0D",borderRadius:"10px",border:"none",borderLeft:"3px solid "+c,cursor:"pointer",minWidth:0,textAlign:"left"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:"8px",minWidth:0}}>
+                    <CountryBadge artist={d.n} compact />
+                    <div style={{fontFamily:SF,fontSize:isMobile?"15px":"16px",fontWeight:850,lineHeight:1.2,whiteSpace:"normal",overflowWrap:"anywhere",color:"#1F241F"}}>{d.n}</div>
+                  </div>
+                </button>
               ))}
             </div>
-            <div style={{fontFamily:F,fontSize:isMobile?"10px":"10.5px",fontWeight:800,letterSpacing:"1.3px",textTransform:"uppercase",color:"#59645D",margin:"0 0 8px"}}>Total Points</div>
-            <ResponsiveContainer width="100%" height={isMobile?190:205}>
-              <BarChart data={cmpData} margin={{top:18,right:isMobile?8:12,left:isMobile?2:10,bottom:6}} barCategoryGap={isMobile?"22%":"28%"}>
-                <CartesianGrid vertical={false} stroke="#E8E4DA" strokeDasharray="3 3"/>
-                <XAxis dataKey="month" tick={{fontSize:isMobile?11:11.5,fontFamily:F,fill:"#59645D",fontWeight:700}} tickLine={false}/>
-                <YAxis width={isMobile?40:50} tick={{fontSize:isMobile?10.5:11,fontFamily:F,fill:"#59645D",fontWeight:650}} tickFormatter={v=>v.toLocaleString()} axisLine={false} tickLine={false}/>
-                <Tooltip contentStyle={{fontFamily:F,fontSize:12,borderRadius:8,border:"1px solid #E1DCD0"}} formatter={(v)=>[Number(v||0).toLocaleString()+" pts","Total Points"]}/>
-                <Legend wrapperStyle={{fontFamily:F,fontSize:isMobile?11:11.5,color:"#59645D",paddingTop:8}}/>
-                <Bar dataKey={cmpA1} fill={GOLD} radius={[5,5,0,0]} barSize={isMobile?20:36}>
-                  <LabelList dataKey={cmpA1} position="top" formatter={(v)=>Number(v||0)>0?Number(v).toLocaleString():""} style={{fontFamily:F,fontSize:isMobile?8.5:9.5,fill:"#59645D",fontWeight:700}}/>
-                </Bar>
-                <Bar dataKey={cmpA2} fill="#1565C0" radius={[5,5,0,0]} barSize={isMobile?20:36}>
-                  <LabelList dataKey={cmpA2} position="top" formatter={(v)=>Number(v||0)>0?Number(v).toLocaleString():""} style={{fontFamily:F,fontSize:isMobile?8.5:9.5,fill:"#59645D",fontWeight:700}}/>
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <div style={{width:"100%",maxWidth:isMobile?"360px":"none",margin:"0 auto",border:"1px solid #E4E1D8",borderRadius:"12px",overflow:"hidden",background:"#FFF",boxShadow:"0 8px 24px rgba(31,36,31,0.05)"}}>
+              <div style={{display:"grid",gridTemplateColumns:isMobile?"minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)":"minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)",gap:"8px",alignItems:"center",padding:isMobile?"10px 9px":"12px 16px",background:"#1F241F",color:"#FFF"}}>
+                <div style={{fontFamily:F,fontSize:isMobile?"10px":"11px",fontWeight:850,textAlign:"center",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",color:"#E4BE55"}}>{cmp1.n}</div>
+                <div style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.4px",textAlign:"center",textTransform:"uppercase",color:"#C9CEC9"}}>Metric</div>
+                <div style={{fontFamily:F,fontSize:isMobile?"10px":"11px",fontWeight:850,textAlign:"center",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",color:"#72A7E8"}}>{cmp2.n}</div>
+              </div>
+              {[
+                {label:"Total Points",a:cmp1.p||0,b:cmp2.p||0,fmt:v=>v.toLocaleString(),hi:"max"},
+                {label:"Best Artist Rank",a:cmp1.pk||999,b:cmp2.pk||999,fmt:v=>v===999?"—":"#"+v,hi:"min"},
+                {label:"Months Active",a:cmp1.m||0,b:cmp2.m||0,fmt:v=>v,hi:"max"},
+                {label:"Entries",a:cmp1.t||0,b:cmp2.t||0,fmt:v=>v,hi:"max"},
+              ].map((row,i)=>{
+                const aWins=row.hi==="max"?row.a>row.b:row.a<row.b;
+                const bWins=row.hi==="max"?row.b>row.a:row.b<row.a;
+                return <div key={row.label} style={{display:"grid",gridTemplateColumns:isMobile?"minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)":"minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)",alignItems:"stretch",background:i%2?"#FBFAF7":"#FFF",borderBottom:i===3?"none":"1px solid #EEEAE1"}}>
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:isMobile?"9px 6px":"11px 12px",fontFamily:F,fontSize:isMobile?"13px":"14px",fontWeight:aWins?900:700,color:aWins?GOLD:"#4E5851",background:aWins?GOLD+"0D":"transparent"}}>{row.fmt(row.a)}</div>
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"9px 5px":"11px 10px",borderLeft:"1px solid #EEEAE1",borderRight:"1px solid #EEEAE1",fontFamily:F,fontSize:isMobile?"8.6px":"9.5px",letterSpacing:"0.8px",textTransform:"uppercase",color:"#59645D",fontWeight:850,lineHeight:1.25}}>{row.label}</div>
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:isMobile?"9px 6px":"11px 12px",fontFamily:F,fontSize:isMobile?"13px":"14px",fontWeight:bWins?900:700,color:bWins?"#1565C0":"#4E5851",background:bWins?"#1565C00D":"transparent"}}>{row.fmt(row.b)}</div>
+                </div>;
+              })}
+            </div>
           </div>
           {/* Top Artists List - all 30 from full Top 50 */}
           {isMobile ? (
@@ -2368,18 +2434,17 @@ liveStatus={liveStatus}
               })}
             </div>
           ) : (<>
-            <div style={{display:"grid",gridTemplateColumns:"44px 38px minmax(0,1fr) 70px 104px 34px",gap:"12px",alignItems:"center",padding:"0 12px 10px",borderBottom:"1px solid #EDEBE4",fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"1.6px",textTransform:"uppercase",color:"#8A928B"}}>
-              <div></div><div title="Country" style={{textAlign:"center"}}>Flag</div><div>Artist</div><div style={{textAlign:"center"}}>Move</div><div style={{textAlign:"right"}}>Points</div><div></div>
+            <div style={{display:"grid",gridTemplateColumns:"44px 38px minmax(0,1fr) 70px 126px",gap:"12px",alignItems:"center",padding:"0 12px 10px",borderBottom:"1px solid #EDEBE4",fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"1.6px",textTransform:"uppercase",color:"#8A928B"}}>
+              <div></div><div title="Country" style={{textAlign:"center"}}>Country</div><div>Artist</div><div style={{textAlign:"center"}}>Move</div><div style={{textAlign:"right"}}>Total Points</div>
             </div>
             {artists.slice(0,30).map((a,i)=>{const trend=artistTrendFor(a);return(
-              <div key={a.n} className="ngoma-artist-row" onClick={()=>openArtistDetails(a.n)} style={{display:"grid",gridTemplateColumns:"44px 38px minmax(0,1fr) 70px 104px 34px",gap:"12px",padding:"12px",borderBottom:"1px solid #F2F2EE",alignItems:"center",cursor:"pointer",minWidth:0}}
+              <div key={a.n} className="ngoma-artist-row" onClick={()=>openArtistDetails(a.n)} style={{display:"grid",gridTemplateColumns:"44px 38px minmax(0,1fr) 70px 126px",gap:"12px",padding:"12px",borderBottom:"1px solid #F2F2EE",alignItems:"center",cursor:"pointer",minWidth:0}}
                 onMouseEnter={e=>e.currentTarget.style.background="#FAFAF6"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
                 <div style={{fontSize:i<3?"17px":"13.5px",fontWeight:900,color:i<3?MEDALS[i]:"#B8BDB8",textAlign:"center",fontFamily:F}}>{i+1}</div>
                 <CountryBadge artist={a.n} compact />
-                <div style={{minWidth:0}}><div style={{fontSize:"15.5px",fontWeight:850,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",lineHeight:1.15}}>{a.n}</div><div style={{fontSize:"12px",color:"#59645D",fontFamily:F,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",marginTop:"4px",lineHeight:1.35}}>{a.t} {a.t===1?"entry":"entries"} · Peak: #{a.pk} · {a.m} {a.m===1?"month":"months"}</div></div>
+                <div style={{minWidth:0}}><div style={{fontSize:"15.5px",fontWeight:850,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",lineHeight:1.15}}>{a.n}</div><div style={{fontSize:"12px",color:"#59645D",fontFamily:F,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",marginTop:"4px",lineHeight:1.35}}>{a.t} {a.t===1?"entry":"entries"} · Artist peak: #{a.pk} · {a.m} {a.m===1?"month":"months"}</div></div>
                 <div title={trend.label} style={{textAlign:"center",fontFamily:F,fontSize:"14px",fontWeight:900,color:trend.color}}>{trend.symbol}</div>
-                <div style={{textAlign:"right",fontFamily:F,fontSize:"16px",fontWeight:900,color:GOLD,whiteSpace:"nowrap"}}>{a.p.toLocaleString()}</div>
-                <div className="ngoma-artist-pts-label" style={{textAlign:"left",fontFamily:F,fontSize:"9.5px",color:"#7B857D",fontWeight:700}}>pts</div>
+                <div style={{textAlign:"right",fontFamily:F,fontSize:"16px",fontWeight:900,color:GOLD,whiteSpace:"nowrap"}}>{a.p.toLocaleString()} <span style={{fontSize:"9.5px",color:"#7B857D",fontWeight:750}}>pts</span></div>
               </div>
             )})}
           </>)}
@@ -2585,7 +2650,7 @@ liveStatus={liveStatus}
                 {platOnes.map(([pl,d])=>{
                   const lbl=PLAT_LABEL[pl]||pl;
                   return(
-                    <div key={pl} onClick={()=>openReleaseDetails({title:d.t,artist:d.a},isSingles?"single":"album")} style={{padding:isMobile?"12px":"10px 12px",background:(PC[pl]||"#888")+"0D",borderRadius:"8px",borderLeft:"3px solid "+(PC[pl]||"#888"),cursor:"pointer"}}>
+                    <div key={pl} onClick={()=>openReleaseDetails({title:d.t,artist:d.a,primary_artist:d.primary_artist,featured_artists:d.featured_artists},isSingles?"single":"album")} style={{padding:isMobile?"12px":"10px 12px",background:(PC[pl]||"#888")+"0D",borderRadius:"8px",borderLeft:"3px solid "+(PC[pl]||"#888"),cursor:"pointer"}}>
                       <div style={{fontSize:isMobile?"9.5px":"8.8px",fontFamily:F,letterSpacing:"1.5px",textTransform:"uppercase",color:PC[pl]||"#888",marginBottom:"5px",fontWeight:800}}>{lbl}</div>
                       <div style={{fontSize:isMobile?"13px":"11.5px",fontWeight:800,lineHeight:1.2}}>{d.t}</div>
                       <div style={{fontSize:isMobile?"11px":"10px",color:"#59645D",fontFamily:F,marginTop:"3px"}}>{d.a} · {d.p} pts</div>
@@ -2673,27 +2738,27 @@ liveStatus={liveStatus}
               <ResponsiveContainer width="100%" height={isMobile?230:200}>
                 <BarChart data={platTotalsData} margin={{top:12,right:isMobile?16:20,left:isMobile?0:8,bottom:isMobile?6:0}}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#F0F0EC"/>
-                  <XAxis dataKey="platform" tick={{fontSize:isMobile?10.5:10,fontFamily:F,fill:"#59645D",fontWeight:650}} tickLine={false}/>
+                  <XAxis dataKey="platform" tick={isMobile?false:{fontSize:10,fontFamily:F,fill:"#59645D",fontWeight:650}} tickLine={false}/>
                   <YAxis tick={{fontSize:isMobile?10.5:10,fontFamily:F,fill:"#59645D",fontWeight:650}} tickFormatter={v=>v.toLocaleString()} axisLine={false} tickLine={false}/>
                   <Tooltip contentStyle={{fontFamily:F,fontSize:11}} formatter={v=>[v.toLocaleString()+" pts","Total Points"]}/>
                   <Bar dataKey="points" radius={[4,4,0,0]}>{platTotalsData.map((e,i)=><Cell key={i} fill={e.color}/>)}</Bar>
                 </BarChart>
               </ResponsiveContainer>
+              {isMobile&&<div style={{display:"flex",justifyContent:"center",gap:"8px 12px",flexWrap:"wrap",marginTop:"10px"}}>{platTotalsData.map((entry)=><div key={entry.platform} style={{display:"inline-flex",alignItems:"center",gap:"5px",fontFamily:F,fontSize:"10px",fontWeight:750,color:"#59645D"}}><span style={{width:"9px",height:"9px",borderRadius:"3px",background:entry.color,flexShrink:0}}/>{entry.platform}</div>)}</div>}
             </div>
             </AnalyticsDeepSection>
           )}
           {/* Local vs International */}
           {(()=>{
-            const KENYAN=new Set(["Bensoul","Dyana Cods","Ssaru","D Voice","Geniusjini x66","Nadia Mukami","Iyanii","Charisma","Lilmaina","Savara","Sauti Sol","Nyashinski","Bien","Watendawili","Coster Ojwang","Otile Brown","Octopizzo","Njerae","Matata","Mutoriah","Fathermoh","Soundkraft","Bella Kombo","Wadagliz","Wakadinali","BURUKLYN BOYZ","Sosa The Prodigy","Obby Alpha","Prince Indah","Lil Maina","Spoiler"]);
             const cd=getCombined(ct,anMonth);
             let local=0,intl=0,localPts=0,intlPts=0;
-            cd.forEach(e=>{if(KENYAN.has(e.artist)){local++;localPts+=e.pts;}else{intl++;intlPts+=e.pts;}});
+            cd.forEach(e=>{if(getArtistCountry(e).code==="KE"){local++;localPts+=e.pts;}else{intl++;intlPts+=e.pts;}});
             const pieData=[{name:"Kenyan",value:local,color:GOLD},{name:"International",value:intl,color:"#37474F"}];
             return(
               <AnalyticsDeepSection label="View local vs international" isMobile={isMobile}>
               <div style={{...card(),marginBottom:"20px"}}>
                 <div style={secLbl()}><SecMark/>Local vs International — {anMonth}</div>
-                <p style={{fontFamily:F,fontSize:TXT.note,color:"#69716B",margin:"-6px 0 14px",lineHeight:1.45}}>Share of the Top 50 by Kenyan and international artists.</p>
+                <p style={{fontFamily:F,fontSize:TXT.note,color:"#69716B",margin:"-6px 0 14px",lineHeight:1.45}}>Share of the current Top 50 entries by primary artist country.</p>
                 <div style={{display:"flex",alignItems:"center",gap:"24px",flexWrap:"wrap"}}>
                   <ResponsiveContainer width={160} height={160}>
                     <PieChart>
@@ -3048,7 +3113,7 @@ liveStatus={liveStatus}
                 const certification = getCertificationForEntry(item, isSingles ? "single" : "album");
                 const statItems = [
                   { label:"Total Pts", value:item.totalPts.toLocaleString() },
-                  { label:"Months", value:`${item.months}/3` },
+                  { label:"Months", value:item.months },
                   { label:"Year-End Rank", value:`#${idx+1}` },
                   { label:"Type", value:itemTypeLabel },
                   ...(certification ? [{ label:"Certification", value:certification.label }] : []),
@@ -3319,7 +3384,7 @@ liveStatus={liveStatus}
                         fontWeight:750,
                         whiteSpace:"nowrap"
                       }}>
-                        {item.months}/3
+                        {item.months}
                       </div>
                     </div>
                   );
