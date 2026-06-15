@@ -715,9 +715,6 @@ export default function NgomaCharts(){
   }, [API_BASE, ct, month, plat, tp]);
   useEffect(()=>{setTimeout(()=>setLd(true),100);},[]);
 
-  useEffect(() => {
-    setShareCardRange(6);
-  }, [page, ct, month, anMonth, plat]);
   const [vw,setVw]=useState(typeof window!=="undefined"?window.innerWidth:1200);
   useEffect(()=>{const h=()=>setVw(window.innerWidth);window.addEventListener("resize",h);return()=>window.removeEventListener("resize",h);},[]);
   const isMobile=vw<640;
@@ -725,7 +722,7 @@ export default function NgomaCharts(){
   const PAGE_MAX="1240px";
   const pageFrame=(extra={})=>({maxWidth:PAGE_MAX,width:"100%",margin:"0 auto",boxSizing:"border-box",minWidth:0,...extra});
   const responsiveStack=(desktop="row")=>({flexDirection:isMobile?"column":desktop,alignItems:isMobile?"stretch":"center"});
-  useEffect(()=>{const h=e=>{if(e.key==="Escape"){setSOpen(false);setSrch("");setShareImg(null);setShareCardModalOpen(false);}};window.addEventListener("keydown",h);return()=>window.removeEventListener("keydown",h);},[]);
+  useEffect(()=>{const h=e=>{if(e.key==="Escape"){setSOpen(false);setSrch("");}};window.addEventListener("keydown",h);return()=>window.removeEventListener("keydown",h);},[]);
   useEffect(() => {
     detailOpenRef.current = Boolean(selA || selR);
   }, [selA, selR]);

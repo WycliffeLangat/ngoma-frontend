@@ -859,10 +859,6 @@ export default function PremiumChartsPage({
     setExpandedMobileRows({});
   }, [ct, month, plat, vc]);
 
-  useEffect(() => {
-    setChartPackRange(Math.min(vc || 10, data?.length || vc || 10));
-  }, [vc, data?.length, ct, month, plat]);
-
   function ChartToggle() {
     return (
       <div style={styles.toggleWrap}>
