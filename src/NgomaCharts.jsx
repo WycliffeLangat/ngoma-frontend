@@ -20,7 +20,6 @@ import PremiumChartsPage, { getArtistCountry } from "./components/PremiumChartsP
 // ===== FULL Top-50 dataset across all months and platforms =====
 const CURRENT_MONTH = MONTHS[MONTHS.length - 1];
 const DATA_PERIOD = `${MONTHS[0]} – ${CURRENT_MONTH}`;
-const DATA_YEARS = "2025–2026";
 const S_PLATS = ["Combined","APPLE MUSIC","AUDIOMACK","BOOMPLAY","SPOTIFY","YOUTUBE","SHAZAM"];
 const A_PLATS = ["Combined","APPLE MUSIC","AUDIOMACK"];
 const PLAT_LABEL = {"APPLE MUSIC":"Apple Music","AUDIOMACK":"Audiomack","BOOMPLAY":"Boomplay","SPOTIFY":"Spotify","YOUTUBE":"YouTube","SHAZAM":"Shazam"};
@@ -32,9 +31,9 @@ const SF = "'Source Serif 4',Georgia,serif";
 const CC = [GOLD,"#E53935","#2DB04A","#1565C0","#7B1FA2","#E65100","#00897B","#37474F","#AD1457","#558B2F"];
 const VO = [{l:"Top 10",c:10},{l:"Top 20",c:20},{l:"Top 50",c:50}];
 const CERTIFICATION_LEVELS = [
-  { level: "diamond", label: "Diamond", icon: "💎", pts: 350, color: "#7B1FA2" },
-  { level: "platinum", label: "Platinum", icon: "🪙", pts: 200, color: SILVER },
-  { level: "gold", label: "Gold", icon: "🥇", pts: 100, color: GOLD },
+  { level: "diamond", label: "Diamond", icon: "💎", pts: 600, color: "#7B1FA2" },
+  { level: "platinum", label: "Platinum", icon: "🪙", pts: 400, color: SILVER },
+  { level: "gold", label: "Gold", icon: "🥇", pts: 200, color: GOLD },
 ];
 const getCertificationLevel = (totalPts = 0) => {
   const points = Number(totalPts) || 0;
@@ -51,11 +50,31 @@ const buildCertifications = (items = []) => items
   .filter((item) => item.level);
 const releaseTitle = (item = {}) => item.t || item.title || item.release_title || item.name || "";
 const releaseArtist = (item = {}) => item.a || item.artist || item.artist_name || item.primary_artist || "";
+const formatCreditMembers = (members = []) => {
+  const unique = [...new Map(members
+    .map((member) => String(member || "").trim())
+    .filter(Boolean)
+    .map((member) => [member.toLowerCase(), member])).values()];
+  if (unique.length <= 1) return unique[0] || "";
+  if (unique.length === 2) return unique.join(" & ");
+  return `${unique.slice(0, -1).join(", ")} & ${unique[unique.length - 1]}`;
+};
+const artistCreditMembers = (item = {}) => {
+  const primaryArtist = String(item.primary_artist || item.pa || "").trim();
+  const featuredArtists = String(item.featured_artists || item.fa || "").trim();
+  const source = primaryArtist
+    ? [primaryArtist, ...featuredArtists.split(/\s*,\s*|\s*&\s*/)]
+    : String(item.artist || item.a || "").split(/\s*,\s*|\s*&\s*/);
+  return [...new Map(source
+    .map((member) => String(member || "").trim())
+    .filter(Boolean)
+    .map((member) => [member.toLowerCase(), member])).values()];
+};
 const formatArtistCredit = (primaryArtist = "", featuredArtists = "") => {
   const members = [primaryArtist, ...String(featuredArtists || "").split(/\s*,\s*|\s*&\s*/)]
     .map((member) => String(member || "").trim())
     .filter(Boolean);
-  return [...new Map(members.map((member) => [member.toLowerCase(), member])).values()].join(" & ");
+  return formatCreditMembers(members);
 };
 const firstFiniteNumber = (...values) => {
   for (const value of values) {
@@ -148,7 +167,9 @@ const getRawPlatformIndex = (ct, pl, m) => {
 function enrichChartEntries(entries, getRawEntries, currentMonth, totalPlatforms) {
   const currentIndex = monthIndex(currentMonth);
   const historyMonths = currentIndex >= 0 ? MONTHS.slice(0, currentIndex + 1) : [];
-  const historyByMonth = historyMonths.map((monthLabel) => getRawEntries(monthLabel));
+  const historyByMonth = historyMonths.map((monthLabel) =>
+    getRawEntries(monthLabel).filter((item) => Number(item.r) <= 50).slice(0, 50)
+  );
   const previousEntries = currentIndex > 0 ? historyByMonth[currentIndex - 1] : [];
   const previousByKey = new Map();
   previousEntries.forEach((item) => {
@@ -256,6 +277,11 @@ const buildCombinedYearEnd = (chartType) => {
       const current = releases.get(key) || {
         t: entry.title,
         a: entry.artist,
+        primary_artist: entry.primary_artist,
+        featured_artists: entry.featured_artists,
+        release_year: entry.release_year,
+        confidence: entry.confidence,
+        country_code: entry.country_code,
         totalPts: 0,
         months: 0,
         best: Number.POSITIVE_INFINITY,
@@ -273,56 +299,69 @@ const buildCombinedYearEnd = (chartType) => {
   );
 };
 
-const buildCombinedArtists = (chartType) => {
+const combinedArtistsCache = new Map();
+const buildCombinedArtists = (chartType, throughMonth = CURRENT_MONTH) => {
+  const cacheKey = `${chartType}|${throughMonth}`;
+  if (combinedArtistsCache.has(cacheKey)) return combinedArtistsCache.get(cacheKey);
+
+  const cutoffIndex = Math.max(0, monthIndex(throughMonth));
+  const includedMonths = MONTHS.slice(0, cutoffIndex + 1);
   const artistMap = new Map();
-  const monthlyArtistTotals = new Map();
+  const cumulativeTotals = new Map();
+  const previousRanks = new Map();
 
-  MONTHS.forEach((monthLabel) => {
+  includedMonths.forEach((monthLabel, monthOffset) => {
     getCombined(chartType, monthLabel).forEach((entry) => {
-      const primaryArtist = entry.primary_artist || entry.artist;
-      const key = String(primaryArtist || "").trim().toLowerCase();
-      if (!key) return;
+      artistCreditMembers(entry).forEach((artistName) => {
+        const key = artistName.toLowerCase();
+        const current = artistMap.get(key) || {
+          n: artistName,
+          p: 0,
+          m: 0,
+          t: 0,
+          rank: Number.POSITIVE_INFINITY,
+          prevRank: null,
+          pk: Number.POSITIVE_INFINITY,
+          mp: {},
+          rh: {},
+          months: new Set(),
+          titles: new Set(),
+        };
 
-      const current = artistMap.get(key) || {
-        n: primaryArtist,
-        p: 0,
-        m: 0,
-        t: 0,
-        pk: Number.POSITIVE_INFINITY,
-        mp: {},
-        months: new Set(),
-        titles: new Set(),
-      };
-
-      current.p += Number(entry.pts) || 0;
-      current.mp[monthLabel] = (current.mp[monthLabel] || 0) + (Number(entry.pts) || 0);
-      current.months.add(monthLabel);
-      current.titles.add(entryKey(entry));
-      artistMap.set(key, current);
-
-      if (!monthlyArtistTotals.has(monthLabel)) monthlyArtistTotals.set(monthLabel, new Map());
-      const monthTotals = monthlyArtistTotals.get(monthLabel);
-      monthTotals.set(key, (monthTotals.get(key) || 0) + (Number(entry.pts) || 0));
+        const points = Number(entry.pts) || 0;
+        current.p += points;
+        current.mp[monthLabel] = (current.mp[monthLabel] || 0) + points;
+        current.months.add(monthLabel);
+        current.titles.add(entryKey(entry));
+        artistMap.set(key, current);
+        cumulativeTotals.set(key, (cumulativeTotals.get(key) || 0) + points);
+      });
     });
-  });
 
-  monthlyArtistTotals.forEach((monthTotals) => {
-    [...monthTotals.entries()]
+    [...cumulativeTotals.entries()]
       .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
       .forEach(([key], index) => {
         const artist = artistMap.get(key);
-        if (artist) artist.pk = Math.min(artist.pk, index + 1);
+        if (!artist) return;
+        const rank = index + 1;
+        artist.rh[monthLabel] = rank;
+        artist.pk = Math.min(artist.pk, rank);
+        if (monthOffset === includedMonths.length - 2) previousRanks.set(key, rank);
+        if (monthOffset === includedMonths.length - 1) artist.rank = rank;
       });
   });
 
-  return [...artistMap.values()]
-    .map(({ months, titles, ...artist }) => ({
+  const result = [...artistMap.entries()]
+    .map(([key, { months, titles, ...artist }]) => ({
       ...artist,
       m: months.size,
       t: titles.size,
+      prevRank: previousRanks.get(key) || null,
       pk: Number.isFinite(artist.pk) ? artist.pk : "—",
     }))
-    .sort((a, b) => b.p - a.p || a.pk - b.pk || a.n.localeCompare(b.n));
+    .sort((a, b) => a.rank - b.rank || b.p - a.p || a.n.localeCompare(b.n));
+  combinedArtistsCache.set(cacheKey, result);
+  return result;
 };
 
 const buildCombinedTrending = (chartType) => {
@@ -503,10 +542,10 @@ const RecordIcon = ({ label = "", size = 30, muted = false }) => {
 };
 
 const NEWS=[
-  {id:1,date:"June 15, 2026",cat:"CHART NEWS",emoji:"",title:"Finale Leads May After Collaboration Credits Are Unified",excerpt:"Bien & Alikiba's Finale ranks #1 with appearances on five of six tracked singles platforms.",body:"Finale combines 1,404 raw platform points after equivalent Bien, Bien ft. Alikiba and Bien & Alikiba credits are treated as one release. It leads Apple Music, Spotify and YouTube for May."},
-  {id:2,date:"June 14, 2026",cat:"CHART NEWS",emoji:"",title:"Finale Completes Back-to-Back Months at #1",excerpt:"Bien & Alikiba also lead the recalculated April Combined singles chart.",body:"The collaboration totals 1,593 raw platform points in April, ahead of Siaka and Pawa, then retains the summit in May."},
+  {id:1,date:"June 15, 2026",cat:"CHART NEWS",emoji:"",title:"Finale Leads May After Collaboration Credits Are Unified",excerpt:"Bien & Alikiba's Finale ranks #1 with appearances on five of six tracked singles platforms.",body:"Equivalent Bien, Bien ft. Alikiba and Bien & Alikiba credits are treated as one release. Finale leads Apple Music, Spotify and YouTube for May."},
+  {id:2,date:"June 14, 2026",cat:"CHART NEWS",emoji:"",title:"Finale Completes Back-to-Back Months at #1",excerpt:"Bien & Alikiba also lead the recalculated April Combined singles chart.",body:"The collaboration finishes ahead of Siaka and Pawa in April, then retains the summit in May."},
   {id:3,date:"June 13, 2026",cat:"ANALYTICS",emoji:"",title:"Pawa Remains the Period's Highest-Scoring Single",excerpt:"Mbosso's Pawa totals 436 display points across all nine tracked months.",body:"Pawa appeared in every monthly Combined chart and finished #1 in November and December 2025."},
-  {id:4,date:"June 12, 2026",cat:"ARTIST SPOTLIGHT",emoji:"",title:"Toxic Lyrikali Leads Singles Artists on 1,238 Points",excerpt:"A deep catalogue keeps Toxic Lyrikali comfortably ahead in the period artist standings.",body:"Backbencher, Mfisadi, Dumpsite and the rest of the catalogue combine for 1,238 display points across the updated nine-month dataset."},
+  {id:4,date:"June 12, 2026",cat:"ARTIST SPOTLIGHT",emoji:"",title:`${COMBINED_ARTISTS.singles[0].n} Leads the Singles Artist Ranking`,excerpt:`Credited appearances produce ${COMBINED_ARTISTS.singles[0].p.toLocaleString()} cumulative artist points through May 2026.`,body:"The artist ranking now credits every named primary and featured artist whenever a release contributes to the Combined Top 50."},
   {id:5,date:"June 11, 2026",cat:"ANALYTICS",emoji:"",title:"Natafuta Doo Makes May's Biggest Singles Jump",excerpt:"ELISHA TOTO climbs twenty-three positions from #40 to #17.",body:"The 23-place gain is the largest positive move among returning singles in May's normalized Combined chart."},
   {id:6,date:"June 10, 2026",cat:"CHART NEWS",emoji:"",title:"Zuchu's I Love You Climbs Eighteen Places",excerpt:"I Love You moves from #36 in April to #18 in May.",body:"The release also leads Boomplay's May chart, giving Zuchu both a strong platform result and a Top 20 Combined finish."},
   {id:7,date:"June 9, 2026",cat:"CHART NEWS",emoji:"",title:"Chai ya saa kumi Surges to #2",excerpt:"Ywaya Tajiri gains seventeen places from April to May.",body:"Chai ya saa kumi rises from #19 to #2 and appears on five of the six tracked singles platforms."},
@@ -517,10 +556,10 @@ const NEWS=[
   {id:12,date:"June 4, 2026",cat:"ALBUMS",emoji:"",title:"Kehlani Makes May's Biggest Album Leap",excerpt:"Kehlani rises forty-five places from #50 to #5.",body:"No returning song or album makes a larger month-to-month move in the latest Combined rankings."},
   {id:13,date:"June 3, 2026",cat:"ALBUMS",emoji:"",title:"Fally Ipupa's XX Rockets to #4",excerpt:"XX gains thirty-one positions from its April rank of #35.",body:"The climb places Fally Ipupa immediately behind May's Top 3 albums and gives XX full Apple Music and Audiomack coverage."},
   {id:14,date:"June 2, 2026",cat:"ALBUMS",emoji:"",title:"GOLD Climbs Sixteen Places",excerpt:"GOLD moves from #31 in April to #15 in May.",body:"The album records one of May's strongest gains and returns to the upper half of the Combined Top 50."},
-  {id:15,date:"June 1, 2026",cat:"ARTIST SPOTLIGHT",emoji:"",title:"Gunna Tops Albums Artists on 785 Points",excerpt:"The Last Wun and One of Wun drive the strongest artist total in the albums dataset.",body:"Gunna leads PARTYNEXTDOOR, Marioo, Cardi B and Asake in cumulative album artist points."},
+  {id:15,date:"June 1, 2026",cat:"ARTIST SPOTLIGHT",emoji:"",title:`${COMBINED_ARTISTS.albums[0].n} Tops the Albums Artist Ranking`,excerpt:`Credited album appearances total ${COMBINED_ARTISTS.albums[0].p.toLocaleString()} cumulative artist points.`,body:"The albums artist ranking includes both primary and featured credits across every tracked Combined Top 50."},
   {id:16,date:"May 31, 2026",cat:"ALBUMS",emoji:"",title:"The Last Wun Leads the Nine-Month Albums Ranking",excerpt:"Gunna's album totals 414 display points across all nine months.",body:"The Last Wun finishes ahead of Bien's Alusa Why Are You Topless? and PARTYNEXTDOOR's $ome $exy $ongs 4 U."},
   {id:17,date:"May 30, 2026",cat:"ALBUMS",emoji:"",title:"Sixteen May Top 20 Albums Reach Both Platforms",excerpt:"Most of May's leading albums appear on both Apple Music and Audiomack.",body:"M$NEY, RNB, XX, Kehlani and twelve other Top 20 albums record full 2/2 platform coverage."},
-  {id:18,date:"May 29, 2026",cat:"ANALYTICS",emoji:"",title:"Wrong Places Secures Diamond Status",excerpt:"Joshua Baraka & JAE5 total 405 points across nine months.",body:"Wrong Places appears in every tracked month and exceeds the current 350-point Diamond certification threshold."},
+  {id:18,date:"May 29, 2026",cat:"ANALYTICS",emoji:"",title:"Wrong Places Secures Platinum Status",excerpt:"Joshua Baraka & JAE5 total 408 points across nine months.",body:"Wrong Places appears in every tracked month and exceeds the new 400-point Platinum certification threshold."},
 ];
 
 export default function NgomaCharts(){
@@ -544,14 +583,12 @@ export default function NgomaCharts(){
   const [aiA,setAiA]=useState("");
   const [aiL,setAiL]=useState(false);
   const [anMonth,setAnMonth]=useState(CURRENT_MONTH);
+  const [artistMonth,setArtistMonth]=useState(CURRENT_MONTH);
+  const [rankJourneyView,setRankJourneyView]=useState("table");
   const [loaded,setLd]=useState(false);
   // Live backend (optional) — falls back to baked-in data if unreachable
   const API_BASE = import.meta.env.VITE_API_BASE || "";
   const [liveStatus, setLiveStatus] = useState("static"); // "static" | "live" | "checking"
-  const [shareImg, setShareImg] = useState(null);
-  const [shareCardModalOpen, setShareCardModalOpen] = useState(false);
-  const [shareCardRange, setShareCardRange] = useState(6);
-  const [shareCardFormat, setShareCardFormat] = useState("PNG");
   const [liveChartEntries, setLiveChartEntries] = useState([]);
   const [liveChartMeta, setLiveChartMeta] = useState(null);
   const [liveChartLoading, setLiveChartLoading] = useState(false);
@@ -709,7 +746,8 @@ const getData = () =>
 
 const staticData = getData();
 
-const data = liveChartEntries.length ? liveChartEntries : staticData;
+const sourceData = liveChartEntries.length ? liveChartEntries : staticData;
+const data = sourceData.filter((entry) => Number(entry.rank) <= 50).slice(0, 50);
 
 const display = data.slice(0, Math.min(vc, data.length));
 
@@ -728,8 +766,14 @@ const top = data[0];
     e.title.toLowerCase().includes(srch.toLowerCase())||e.artist.toLowerCase().includes(srch.toLowerCase())
   ).map(e=>[e.type+e.title+e.artist+e.month,e])).values()].slice(0,16):[];
 
-  // Artist totals are derived from the displayed Combined rank scores.
-  const artists=isSingles?COMBINED_ARTISTS.singles:COMBINED_ARTISTS.albums;
+  // Every credited artist receives the release's full chart contribution.
+  const artistCutoffMonth = page === "analytics" ? anMonth : page === "artists" ? artistMonth : CURRENT_MONTH;
+  const artists = buildCombinedArtists(ct, artistCutoffMonth);
+  useEffect(() => {
+    if (!artists.length) return;
+    if (!artists.some((item) => item.n === cmpA1)) setCmpA1(artists[0].n);
+    if (!artists.some((item) => item.n === cmpA2)) setCmpA2((artists[1] || artists[0]).n);
+  }, [ct, artistCutoffMonth, artists, cmpA1, cmpA2]);
   const prepareDetailNavigation = () => {
     if (!detailOpenRef.current) {
       detailReturnScrollRef.current = window.scrollY || 0;
@@ -749,8 +793,13 @@ const top = data[0];
     requestAnimationFrame(() => window.scrollTo({ top: detailReturnScrollRef.current, behavior: "auto" }));
   };
   const openArtistDetails = (name) => {
-    const singleProfile = COMBINED_ARTISTS.singles.find((item) => item.n === name);
-    const albumProfile = COMBINED_ARTISTS.albums.find((item) => item.n === name);
+    const requestedName = String(name || "").trim();
+    const allCurrentArtists = [...COMBINED_ARTISTS.singles, ...COMBINED_ARTISTS.albums];
+    const resolvedName = allCurrentArtists.find((item) => item.n.toLowerCase() === requestedName.toLowerCase())?.n
+      || artistCreditMembers({ artist: requestedName })[0]
+      || requestedName;
+    const singleProfile = buildCombinedArtists("singles", CURRENT_MONTH).find((item) => item.n === resolvedName);
+    const albumProfile = buildCombinedArtists("albums", CURRENT_MONTH).find((item) => item.n === resolvedName);
     const profile = (isSingles ? singleProfile : albumProfile) || singleProfile || albumProfile;
     if (!profile) return;
     setCt(singleProfile === profile ? "singles" : "albums");
@@ -761,25 +810,25 @@ const top = data[0];
   };
   const openReleaseDetails = (entry = {}, type = isSingles ? "single" : "album") => {
     const normalizedType = String(type || entry.type || "single").toLowerCase().includes("album") ? "album" : "single";
+    const displayArtist = releaseArtist(entry);
+    const primaryArtist = entry.primary_artist || entry.pa || artistCreditMembers({ artist: displayArtist })[0] || displayArtist;
     setCt(normalizedType === "album" ? "albums" : "singles");
     setPlat("Combined");
     setSelA(null);
     setSelR({
       ...entry,
       title: releaseTitle(entry),
-      artist: releaseArtist(entry),
+      artist: displayArtist,
+      primary_artist: primaryArtist,
       type: normalizedType,
     });
     prepareDetailNavigation();
   };
   const artistTrendFor=(artist={})=>{
-    const latest=MONTHS[MONTHS.length-1];
-    const previous=MONTHS[MONTHS.length-2];
-    const latestPts=Number(artist.mp?.[latest]||0);
-    const previousPts=Number(artist.mp?.[previous]||0);
-    const delta=latestPts-previousPts;
-    if(delta>0) return {symbol:"↑",color:"#2DB04A",label:`Up ${delta.toLocaleString()} pts`,shortLabel:"Up"};
-    if(delta<0) return {symbol:"↓",color:"#C0392B",label:`Down ${Math.abs(delta).toLocaleString()} pts`,shortLabel:"Down"};
+    if(!artist.prevRank) return {symbol:"NEW",color:"#1565C0",label:"New",shortLabel:"New"};
+    const delta=Number(artist.prevRank)-Number(artist.rank);
+    if(delta>0) return {symbol:"↑",color:"#2DB04A",label:`Up ${delta}`,shortLabel:"Up"};
+    if(delta<0) return {symbol:"↓",color:"#C0392B",label:`Down ${Math.abs(delta)}`,shortLabel:"Down"};
     return {symbol:"–",color:"#9AA19A",label:"No change",shortLabel:"No change"};
   };
 
@@ -834,12 +883,16 @@ const top = data[0];
     .filter(Boolean) : [];
 
   const platTotalsData = analyticsActive ? currentPlatformKeys
-    .map((platform) => ({
-      platform: PLAT_LABEL[platform] || platform,
-      points: rawPlatform(ct, platform, anMonth).reduce((sum, entry) => sum + (Number(entry.p) || Number(entry.pts) || 0), 0),
-      color: PC[platform] || "#888",
-    }))
-    .filter((entry) => entry.points > 0) : [];
+    .map((platform) => {
+      const platformIndex = getRawPlatformIndex(ct, platform, anMonth);
+      const entries = getCombined(ct, anMonth).filter((entry) => platformIndex.has(entryKey(entry))).length;
+      return {
+        platform: PLAT_LABEL[platform] || platform,
+        entries,
+        color: PC[platform] || "#888",
+      };
+    })
+    .filter((entry) => entry.entries > 0) : [];
 
   const buildMovementData = (chartType, targetMonth) => {
     const currentIndex = monthIndex(targetMonth);
@@ -915,14 +968,6 @@ const top = data[0];
     return [...groups.values()];
   };
 
-  const monthlyBestFor = (chartType) => {
-    const rows = [];
-    MONTHS.forEach((m) => {
-      getCombined(chartType, m).forEach((entry) => rows.push({ ...entry, month: m, points: num(entry.pts) }));
-    });
-    return rows.sort((a, b) => b.points - a.points)[0] || null;
-  };
-
   const biggestClimbFor = (chartType) => {
     let best = null;
     MONTHS.forEach((m, index) => {
@@ -945,7 +990,8 @@ const top = data[0];
 
   const currentRecords = recordsActive ? (() => {
     const groups = releaseGroupsFor(ct);
-    const highestMonthly = monthlyBestFor(ct);
+    const highestPoints = [...groups]
+      .sort((a, b) => b.totalPoints - a.totalPoints || a.title.localeCompare(b.title))[0];
     const biggestClimb = biggestClimbFor(ct);
     const mostNumberOnes = [...groups]
       .filter((group) => group.numberOneMonths.size > 0)
@@ -965,13 +1011,13 @@ const top = data[0];
         certificationEntry: mostNumberOnes ? { title: mostNumberOnes.title, artist: mostNumberOnes.artist } : null,
       },
       {
-        label: "Highest Monthly Score",
-        displayLabel: "Highest Monthly Score",
-        value: highestMonthly?.title || "—",
-        displaySub: highestMonthly
-          ? `${highestMonthly.artist} · ${highestMonthly.points.toLocaleString()} pts`
+        label: "Highest Points Score",
+        displayLabel: "Highest Points Score",
+        value: highestPoints?.title || "—",
+        displaySub: highestPoints
+          ? `${highestPoints.artist} · ${highestPoints.totalPoints.toLocaleString()} pts`
           : `No ${releaseLabelLower} found`,
-        certificationEntry: highestMonthly,
+        certificationEntry: highestPoints ? { title: highestPoints.title, artist: highestPoints.artist } : null,
       },
       {
         label: "Biggest Monthly Climb",
@@ -1162,8 +1208,9 @@ const top = data[0];
   );
 
   // === ANALYTICS COMPUTATIONS — all from full Top-50 data ===
-  const top10sData=analyticsActive?getCombined(ct,anMonth).slice(0,10).map(e=>({name:e.title.length>16?e.title.slice(0,14)+"…":e.title,title:e.title,artist:e.artist,pts:e.pts})):[];
-  const monthlyComp=analyticsActive?MONTHS.map(m=>{
+  const analysisMonths = analyticsActive ? MONTHS.slice(0, Math.max(0, monthIndex(anMonth)) + 1) : MONTHS;
+  const top10sData=analyticsActive?getCombined(ct,anMonth).slice(0,10).map(e=>({...e,name:e.title.length>16?e.title.slice(0,14)+"…":e.title,title:e.title,artist:e.artist,pts:e.pts})):[];
+  const monthlyComp=analyticsActive?analysisMonths.map(m=>{
     const rows=getCombined(ct,m);
     return {
       month:m.split(" ")[0].slice(0,3),
@@ -1174,7 +1221,7 @@ const top = data[0];
     };
   }):[];
 
-  const topArtistsLine=analyticsActive?MONTHS.map(m=>{
+  const topArtistsLine=analyticsActive?analysisMonths.map(m=>{
     const obj={month:m.split(" ")[0].slice(0,3)};
     artists.slice(0,6).forEach(a=>{
       obj[a.n]=a.mp[m]||0;
@@ -1191,9 +1238,9 @@ const top = data[0];
   const allTitles=useMemo(()=>{
     if(!analyticsActive)return [];
     const map={};
-    MONTHS.forEach(m=>getCombined(ct,m).forEach(e=>{const k=e.title+" — "+e.artist;if(!map[k])map[k]={key:k,title:e.title,artist:e.artist,primary_artist:e.primary_artist||e.artist};}));
+    analysisMonths.forEach(m=>getCombined(ct,m).forEach(e=>{const k=e.title+" — "+e.artist;if(!map[k])map[k]={key:k,title:e.title,artist:e.artist,primary_artist:e.primary_artist||e.artist};}));
     return Object.values(map).sort((a,b)=>a.title.localeCompare(b.title));
-  },[analyticsActive,ct]);
+  },[analyticsActive,ct,anMonth]);
   // Build a full profile for a song key
   const songProfile=(key)=>{
     const meta=allTitles.find(t=>t.key===key);
@@ -1201,7 +1248,7 @@ const top = data[0];
     const {title,artist,primary_artist}=meta;
     const prof={title,artist,primary_artist,monthly:{},platforms:{},totalPts:0,peak:999,months:0,debutMonth:null,bestCov:0,avgRank:0};
     let rankSum=0,rankCount=0;
-    MONTHS.forEach(m=>{
+    analysisMonths.forEach(m=>{
       const e=getCombined(ct,m).find(x=>sameRelease(x,{title,primary_artist}));
       if(e){
         prof.monthly[m]={rank:e.rank,pts:e.pts,cov:e.plat};
@@ -1217,13 +1264,13 @@ const top = data[0];
     const releaseKey=entryKey({title,primary_artist});
     PLATS_FOR.forEach(pl=>{
       let best=null;
-      MONTHS.forEach(m=>{const pe=getRawPlatformIndex(ct,pl,m).get(releaseKey);if(pe&&(best===null||pe.r<best))best=pe.r;});
+      analysisMonths.forEach(m=>{const pe=getRawPlatformIndex(ct,pl,m).get(releaseKey);if(pe&&(best===null||pe.r<best))best=pe.r;});
       if(best!==null)prof.platforms[pl]=best;
     });
     prof.platformCount=Object.keys(prof.platforms).length;
     // weeks-equivalent: number of (platform×month) chart appearances
     let appearances=0;
-    PLATS_FOR.forEach(pl=>MONTHS.forEach(m=>{if(getRawPlatformIndex(ct,pl,m).has(releaseKey))appearances+=1;}));
+    PLATS_FOR.forEach(pl=>analysisMonths.forEach(m=>{if(getRawPlatformIndex(ct,pl,m).has(releaseKey))appearances+=1;}));
     prof.appearances=appearances;
     // #1 count on combined
     prof.numberOnes=Object.values(prof.monthly).filter(x=>x.rank===1).length;
@@ -1243,12 +1290,12 @@ const top = data[0];
       songProfile(cmpS2)||songProfile(allTitles[1]?.key),
     ];
   },[analyticsActive,ct,cmpS1,cmpS2,allTitles]);
-  const songMonthlyData=analyticsActive?MONTHS.map(m=>({month:m.split(" ")[0].slice(0,3),A:sp1?.monthly[m]?.pts||0,B:sp2?.monthly[m]?.pts||0})):[];
-  const songRankData=analyticsActive?MONTHS.map(m=>({month:m.split(" ")[0].slice(0,3),A:sp1?.monthly[m]?.rank||null,B:sp2?.monthly[m]?.rank||null})):[];
+  const songMonthlyData=analyticsActive?analysisMonths.map(m=>({month:m.split(" ")[0].slice(0,3),A:sp1?.monthly[m]?.pts||0,B:sp2?.monthly[m]?.pts||0})):[];
+  const songRankData=analyticsActive?analysisMonths.map(m=>({month:m.split(" ")[0].slice(0,3),A:sp1?.monthly[m]?.rank||null,B:sp2?.monthly[m]?.rank||null})):[];
 
   const yearEnd=isSingles?COMBINED_YEAR_END.singles:COMBINED_YEAR_END.albums;
 
-  const tracked=getCombined(ct,CURRENT_MONTH).slice(0,5).map(entry=>entry.title);
+  const tracked=getCombined(ct,analyticsActive?anMonth:CURRENT_MONTH).slice(0,5).map(entry=>entry.title);
 
   const certs=buildCertifications(yearEnd);
   const certIcons=CERTIFICATION_LEVELS.reduce((acc, item) => {
@@ -1396,396 +1443,17 @@ const top = data[0];
   };
 
   const allArtistNames=[...new Set(artists.map(a=>a.n))].sort();
-
-  // === SHAREABLE CARDS (current page or selected release → PNG download) ===
-  const safeShareFileName = (value = "ngoma-card") =>
-    String(value)
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/gi, "-")
-      .replace(/^-+|-+$/g, "") || "ngoma-card";
-
-  const saveShareImage = (url, fname, title) => {
-    try {
-      const link = document.createElement("a");
-      link.download = fname;
-      link.href = url;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (e) {
-      // Preview remains available even where automatic downloads are blocked.
-    }
-
-    setShareImg({ url, fname, title });
-  };
-
-  const wrapCanvasText = (ctx, text, x, y, maxWidth, lineHeight, maxLines = 2) => {
-    const words = String(text || "").split(" ").filter(Boolean);
-    let line = "";
-    let lines = 0;
-
-    for (let i = 0; i < words.length; i += 1) {
-      const test = line ? `${line} ${words[i]}` : words[i];
-
-      if (ctx.measureText(test).width > maxWidth && line) {
-        lines += 1;
-        if (lines >= maxLines) {
-          const ellipsis = "…";
-          let clipped = line;
-          while (ctx.measureText(clipped + ellipsis).width > maxWidth && clipped.length > 0) {
-            clipped = clipped.slice(0, -1);
-          }
-          ctx.fillText(clipped.trim() + ellipsis, x, y);
-          return y + lineHeight;
-        }
-        ctx.fillText(line, x, y);
-        line = words[i];
-        y += lineHeight;
-      } else {
-        line = test;
-      }
-    }
-
-    if (line) ctx.fillText(line, x, y);
-    return y + lineHeight;
-  };
-
-  const drawShareBrand = (ctx, x, y, dark = false) => {
-    const base = dark ? "#1A1A1A" : "#FFF";
-    const barWidth = 18;
-    const bars = [38, 56, 76, 96];
-
-    bars.forEach((height, index) => {
-      ctx.fillStyle = index === 2 ? "#B8860B" : base;
-      ctx.fillRect(x + index * 28, y + 100 - height, barWidth, height);
-    });
-
-    ctx.fillStyle = base;
-    ctx.font = "800 34px Helvetica, Arial";
-    ctx.fillText("NGOMA", x + 130, y + 62);
-    ctx.fillStyle = "#B8860B";
-    ctx.fillText("CHARTS", x + 130 + ctx.measureText("NGOMA ").width, y + 62);
-    ctx.fillStyle = dark ? "rgba(26,26,26,0.55)" : "rgba(255,255,255,0.55)";
-    ctx.font = "700 19px Helvetica, Arial";
-    ctx.fillText("MUSIC RANKING INTELLIGENCE", x + 130, y + 92);
-  };
-
-  const pageSharePayload = () => {
-    const typeLabel = isSingles ? "Singles" : "Albums";
-    const platformLabel = plat === "Combined" ? "Combined" : (PLAT_LABEL[plat] || plat);
-
-    if (selNews) {
-      return {
-        eyebrow: "CHART NEWS",
-        title: selNews.title,
-        subtitle: `${selNews.cat} · ${selNews.date}`,
-        accent: "#B8860B",
-        highlights: [selNews.excerpt, "Read the full story on Ngoma Charts."].filter(Boolean),
-      };
-    }
-
-    if (selA) {
-      return {
-        eyebrow: "ARTIST PROFILE",
-        title: selA.n,
-        subtitle: `${typeLabel} performance summary`,
-        accent: "#B8860B",
-        highlights: [
-          `${Number(selA.p || 0).toLocaleString()} total points`,
-          `${selA.t} charted ${isSingles ? "songs" : "albums"}`,
-          `Peak position: #${selA.pk}`,
-          `${selA.m} months active on the chart`,
-        ],
-      };
-    }
-
-    if (page === "charts") {
-      return {
-        eyebrow: "CHARTS",
-        title: `${month} ${typeLabel} Chart`,
-        subtitle: `${platformLabel} · Top ${Math.min(vc, data.length)}`,
-        accent: "#B8860B",
-        highlights: display.slice(0, 6).map((item) => `#${item.rank} ${item.title} — ${item.artist} · ${Number(item.pts || 0).toLocaleString()} pts`),
-      };
-    }
-
-    if (page === "trending") {
-      const rising = uniqueByMomentumIdentity(currentTrending.rising).slice(0, 6);
-      return {
-        eyebrow: "RANK MOMENTUM",
-        title: "Trending Up",
-        subtitle: `${typeLabel} rising fastest in ${latestMonth}`,
-        accent: "#2DB04A",
-        highlights: rising.map((item, index) => `#${index + 1} ${item.t} — ${item.a} · #${item.fromRank} → #${item.decRank}`),
-      };
-    }
-
-    if (page === "artists") {
-      return {
-        eyebrow: "ARTISTS",
-        title: `Top ${typeLabel} Artists`,
-        subtitle: "Ranked by total chart points",
-        accent: "#B8860B",
-        highlights: artists.slice(0, 6).map((artist, index) => `#${index + 1} ${artist.n} · ${Number(artist.p || 0).toLocaleString()} pts · peak #${artist.pk}`),
-      };
-    }
-
-    if (page === "analytics") {
-      const topArtist = artists[0];
-      const topRelease = getCombined(ct, month)[0];
-      return {
-        eyebrow: "ANALYTICS",
-        title: `${typeLabel} Chart Analytics`,
-        subtitle: `${month} · ${platformLabel}`,
-        accent: "#1565C0",
-        highlights: [
-          topRelease ? `Current #1: ${topRelease.title} — ${topRelease.artist}` : null,
-          topArtist ? `Top artist: ${topArtist.n} · ${Number(topArtist.p || 0).toLocaleString()} pts` : null,
-          `${getCombined(ct, anMonth).length} ${typeLabel.toLowerCase()} entries tracked in ${anMonth}`,
-          `${platOnes.length} platforms with a #1 ${isSingles ? "song" : "album"} in ${anMonth}`,
-        ].filter(Boolean),
-      };
-    }
-
-    if (page === "records") {
-      return {
-        eyebrow: "THE RECORD BOOK",
-        title: `Records & Milestones`,
-        subtitle: `${typeLabel} · all tracked months`,
-        accent: "#B8860B",
-        highlights: currentRecords.slice(0, 6).map((record) => `${record.displayLabel}: ${record.value} · ${record.displaySub}`),
-      };
-    }
-
-    if (page === "year-end") {
-      return {
-        eyebrow: "ANNUAL CHART",
-        title: `Best of ${DATA_YEARS} — ${typeLabel}`,
-        subtitle: "Aggregated points across tracked months",
-        accent: "#B8860B",
-        highlights: yearEnd.slice(0, 6).map((item, index) => `#${index + 1} ${item.t} — ${item.a} · ${Number(item.totalPts || 0).toLocaleString()} pts`),
-      };
-    }
-
-    if (page === "certifications") {
-      return {
-        eyebrow: "CERTIFICATIONS",
-        title: `Certifications`,
-        subtitle: `${typeLabel} · cumulative combined chart points`,
-        accent: "#7B1FA2",
-        highlights: certs.slice(0, 6).map((cert) => `${cert.t} — ${cert.a} · ${cert.level.toUpperCase()} · ${Number(cert.totalPts || 0).toLocaleString()} pts`),
-      };
-    }
-
-    if (page === "news") {
-      return {
-        eyebrow: "CHART NEWS",
-        title: "Ngoma Chart News",
-        subtitle: "Analysis and stories from Kenya's music charts",
-        accent: "#B8860B",
-        highlights: NEWS.slice(0, 5).map((item) => `${item.cat}: ${item.title}`),
-      };
-    }
-
-    if (page === "about") {
-      return {
-        eyebrow: "ABOUT",
-        title: "About Ngoma Charts",
-        subtitle: "Music ranking intelligence",
-        accent: "#B8860B",
-        highlights: [
-          "Transparent, data-driven monthly music rankings.",
-          "Tracks songs, albums, artists, certifications and milestones.",
-          "Built around multi-platform chart performance in Kenya.",
-        ],
-      };
-    }
-
-    return {
-      eyebrow: "NGOMA CHARTS",
-      title: "Music ranking intelligence",
-      subtitle: "Music ranking intelligence",
-      accent: "#B8860B",
-      highlights: ["Charts", "Trending", "Artists", "Analytics", "Records", "Certifications"],
-    };
-  };
-
-  const shareCurrentPageCard = (downloadDirect = false) => {
-    if (selR) {
-      shareReleaseCard(selR);
-      return;
-    }
-
-    const payload = pageSharePayload();
-    if (!payload) return;
-
-    const W = 1080;
-    const H = 1080;
-    const cv = document.createElement("canvas");
-    cv.width = W;
-    cv.height = H;
-    const x = cv.getContext("2d");
-    const accent = payload.accent || "#B8860B";
-
-    const bg = x.createLinearGradient(0, 0, W, H);
-    bg.addColorStop(0, "#1A1A1A");
-    bg.addColorStop(1, "#2A241D");
-    x.fillStyle = bg;
-    x.fillRect(0, 0, W, H);
-
-    const glow = x.createRadialGradient(W - 120, 120, 0, W - 120, 120, 620);
-    glow.addColorStop(0, accent + "55");
-    glow.addColorStop(1, "rgba(255,255,255,0)");
-    x.fillStyle = glow;
-    x.fillRect(0, 0, W, H);
-
-    drawShareBrand(x, 82, 82, false);
-
-    x.fillStyle = accent;
-    x.font = "800 26px Helvetica, Arial";
-    x.letterSpacing = "2px";
-    x.fillText(String(payload.eyebrow || "NGOMA CHARTS").toUpperCase(), 90, 285);
-
-    x.fillStyle = "#FFF";
-    x.font = "800 76px Georgia, serif";
-    const afterTitleY = wrapCanvasText(x, payload.title, 90, 380, 900, 84, 3);
-
-    x.fillStyle = "rgba(255,255,255,0.62)";
-    x.font = "600 30px Helvetica, Arial";
-    wrapCanvasText(x, payload.subtitle, 90, afterTitleY + 10, 880, 40, 2);
-
-    const boxTop = 590;
-    x.fillStyle = "rgba(255,255,255,0.08)";
-    x.fillRect(80, boxTop, 920, 330);
-    x.fillStyle = accent;
-    x.fillRect(80, boxTop, 8, 330);
-
-    x.font = "700 29px Helvetica, Arial";
-    (payload.highlights || []).slice(0, 6).forEach((line, index) => {
-      const y = boxTop + 62 + index * 45;
-      x.fillStyle = index === 0 ? "#FFF" : "rgba(255,255,255,0.78)";
-      const text = String(line || "");
-      let clipped = text;
-      while (x.measureText(clipped).width > 835 && clipped.length > 0) {
-        clipped = clipped.slice(0, -1);
-      }
-      x.fillText(clipped.length < text.length ? clipped.trim() + "…" : clipped, 120, y);
-    });
-
-    x.fillStyle = "rgba(255,255,255,0.45)";
-    x.font = "700 24px Helvetica, Arial";
-    x.fillText("ngomacharts.com", 90, 990);
-    x.textAlign = "right";
-    x.fillText(new Date().getFullYear().toString(), 990, 990);
-    x.textAlign = "left";
-
-    const url = cv.toDataURL("image/png");
-    const fname = `ngoma-${safeShareFileName(payload.eyebrow)}-${safeShareFileName(payload.title)}.png`;
-
-    if (downloadDirect) {
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = fname;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      return;
-    }
-
-    saveShareImage(url, fname, payload.title);
-  };
-
-  const ShareCardButton = ({ compact = false, dark = false }) => (
-    <button
-      type="button"
-      data-keep-share-card="true"
-      data-share-card="page-action"
-      onClick={openShareCardPack}
-      style={{
-        border: dark ? "1px solid rgba(255,255,255,0.28)" : "1px solid #D7D2C8",
-        background: dark ? "#101828" : "#FFF",
-        borderRadius: "999px",
-        padding: compact ? (isMobile ? "8px 12px" : "8px 14px") : (isMobile ? "9px 14px" : "9px 16px"),
-        fontFamily: F,
-        fontSize: isMobile ? "10px" : "10.5px",
-        fontWeight: 850,
-        letterSpacing: "1.05px",
-        textTransform: "uppercase",
-        cursor: "pointer",
-        boxShadow: dark ? "0 8px 24px rgba(0,0,0,0.10)" : "0 4px 12px rgba(0,0,0,0.04)",
-        color: dark ? "#FFF" : "#1A1A1A",
-        whiteSpace: "nowrap",
-        lineHeight: 1,
-      }}
-    >
-      Share Card
-    </button>
-  );
-
-  const shareModalPayload = pageSharePayload();
-  const shareModalMonth = page === "analytics" ? anMonth : month;
-  const shareModalYear = (String(shareModalMonth).match(/\b(20\d{2})\b/) || [])[1] || String(new Date().getFullYear());
-  const shareModalYears = Array.from(new Set(MONTHS.map((item) => (String(item).match(/\b(20\d{2})\b/) || [])[1]).filter(Boolean))).sort();
-  const shareModalPlatformLabel = plat === "Combined" ? "Combined" : (PLAT_LABEL[plat] || plat);
-  const shareModalTypeLabel = isSingles ? "Singles" : "Albums";
-  const shareModalMaxRange = Math.max(1, shareModalPayload?.highlights?.length || 6);
-  const shareModalSelectedRange = Math.min(Math.max(1, shareCardRange || 6), shareModalMaxRange);
-  const shareModalHighlights = (shareModalPayload?.highlights || []).slice(0, shareModalSelectedRange);
-  const shareModalRangeOptions = Array.from(new Set([3, 6, 10, shareModalSelectedRange].map((value) => Math.min(value, shareModalMaxRange)))).filter(Boolean).sort((a, b) => a - b);
-  const openShareCardPack = () => {
-    if (selR) {
-      shareCurrentPageCard();
-      return;
-    }
-    setShareCardModalOpen(true);
-  };
-  const downloadShareCardPackImage = () => {
-    if (shareCardFormat !== "PNG") return;
-    setShareCardModalOpen(false);
-    shareCurrentPageCard(true);
-  };
-
-  const shareReleaseCard = (r) => {
-    if(!r)return;
-    const peak=MONTHS.reduce((best,m)=>{const e=getCombined(r.type==="album"?"albums":"singles",m).find(x=>x.title===r.title&&x.artist===r.artist);if(e&&(!best||e.rank<best.rank))return{...e,month:m};return best;},null);
-    const W=1080,H=1080;
-    const cv=document.createElement("canvas");cv.width=W;cv.height=H;
-    const x=cv.getContext("2d");
-    // bg
-    const g=x.createLinearGradient(0,0,W,H);g.addColorStop(0,"#1A1A1A");g.addColorStop(1,"#2C2620");
-    x.fillStyle=g;x.fillRect(0,0,W,H);
-    // gold glow
-    const rg=x.createRadialGradient(W-150,150,0,W-150,150,500);rg.addColorStop(0,"rgba(184,134,11,0.25)");rg.addColorStop(1,"transparent");
-    x.fillStyle=rg;x.fillRect(0,0,W,H);
-    // logo bars
-    const bx=90,by=130;const bars=[[0,40,24],[34,55,24],[68,75,24,true],[102,95,24]];
-    bars.forEach(([ox,h,w,gold])=>{x.fillStyle=gold?"#B8860B":"#FFF";x.fillRect(bx+ox,by+95-h,w,h);});
-    // wordmark
-    x.fillStyle="#FFF";x.font="800 34px Helvetica,Arial";x.textBaseline="alphabetic";
-    x.fillText("NGOMA",bx+150,by+70);
-    x.fillStyle="#B8860B";x.fillText("CHARTS",bx+150+x.measureText("NGOMA ").width,by+70);
-    // eyebrow
-    x.fillStyle="rgba(255,255,255,0.5)";x.font="600 24px Helvetica";x.fillText("MUSIC RANKING INTELLIGENCE",90,by+150);
-    // huge rank
-    x.fillStyle="#B8860B";x.font="900 340px Helvetica";x.textAlign="left";
-    x.fillText("#"+(peak?peak.rank:r.rank||"—"),70,640);
-    // peak label
-    x.fillStyle="rgba(255,255,255,0.4)";x.font="600 28px Helvetica";
-    x.fillText("PEAK POSITION"+(peak?" · "+peak.month.split(" ")[0].toUpperCase():""),90,700);
-    // title (wrap)
-    x.fillStyle="#FFF";x.font="800 64px Georgia,serif";
-    const words=r.title.split(" ");let line="",ty=800;
-    words.forEach(w=>{const test=line+w+" ";if(x.measureText(test).width>900&&line){x.fillText(line.trim(),90,ty);line=w+" ";ty+=76;}else line=test;});
-    x.fillText(line.trim(),90,ty);
-    // artist
-    x.fillStyle="#B8860B";x.font="500 40px Helvetica";x.fillText(r.artist,90,ty+70);
-    // points footer
-    if(peak){x.fillStyle="rgba(255,255,255,0.5)";x.font="600 30px Helvetica";x.fillText(peak.pts.toLocaleString()+" POINTS · "+peak.plat+" PLATFORMS",90,H-90);}
-    // export
-    const url=cv.toDataURL("image/png");
-    const fname="ngoma-"+safeShareFileName(r.title)+".png";
-    saveShareImage(url,fname,r.title);
-  };
+  const selectedArtistEntries = selA ? MONTHS.flatMap((monthLabel) =>
+    getCombined(ct, monthLabel)
+      .filter((entry) => artistCreditMembers(entry).some((name) => name.toLowerCase() === selA.n.toLowerCase()))
+      .map((entry) => ({...entry, month: monthLabel}))
+  ) : [];
+  const selectedArtistReleases = selA ? [...new Map(selectedArtistEntries.map((entry) => [entryKey(entry), entry])).values()] : [];
+  const selectedArtistRankData = selA ? MONTHS.map((monthLabel) => ({
+    month: monthLabel.split(" ")[0].slice(0, 3),
+    rank: selA.rh?.[monthLabel] || null,
+    points: selA.mp?.[monthLabel] || 0,
+  })) : [];
 
   return(
     <div style={{fontFamily:SF,background:"linear-gradient(180deg,#FBFAF7 0%,#F7F5F0 100%)",color:"#1A1A1A",minHeight:"100vh",width:"100%",overflowX:"hidden"}}>
@@ -1936,220 +1604,6 @@ const top = data[0];
       </header>
 
       {/* SHARE IMAGE PREVIEW */}
-      {shareImg&&(
-        <div style={{position:"fixed",inset:0,background:"rgba(20,18,15,0.82)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",backdropFilter:"blur(4px)"}} onClick={()=>setShareImg(null)}>
-          <div onClick={e=>e.stopPropagation()} style={{background:"#FFF",borderRadius:"16px",maxWidth:"420px",width:"100%",overflow:"hidden",boxShadow:"0 30px 80px rgba(0,0,0,0.4)"}}>
-            <div style={{padding:"18px 22px",borderBottom:"1px solid #EEE",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <div style={{fontFamily:F,fontSize:"13px",fontWeight:700}}>Share Card Ready</div>
-              <span onClick={()=>setShareImg(null)} style={{cursor:"pointer",color:"#CCC",fontSize:"16px"}}>✕</span>
-            </div>
-            <div style={{padding:"20px",background:"#FAFAF8"}}>
-              <img src={shareImg.url} alt={shareImg.title} style={{width:"100%",borderRadius:"10px",display:"block",boxShadow:"0 8px 24px rgba(0,0,0,0.15)"}}/>
-            </div>
-            <div style={{padding:"16px 22px 20px"}}>
-              <p style={{fontFamily:F,fontSize:"11.5px",color:"#888",lineHeight:1.5,margin:"0 0 14px"}}>On desktop: right-click the image → "Save image as". On mobile: press and hold → "Save to Photos". Or use the button below.</p>
-              <div style={{display:"flex",gap:"8px"}}>
-                <a href={shareImg.url} download={shareImg.fname} style={{flex:1,textAlign:"center",padding:"11px",background:"#1A1A1A",color:"#FFF",borderRadius:"22px",fontFamily:F,fontSize:"12px",fontWeight:700,textDecoration:"none"}}>Download PNG</a>
-                <a href={shareImg.url} target="_blank" rel="noopener noreferrer" style={{flex:1,textAlign:"center",padding:"11px",background:"#FFF",color:"#1A1A1A",border:"1.5px solid #E0E0DC",borderRadius:"22px",fontFamily:F,fontSize:"12px",fontWeight:700,textDecoration:"none"}}>Open in New Tab</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* PAGE SHARE CARD PACK */}
-      {shareCardModalOpen && shareModalPayload && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 260,
-            background: "rgba(0,0,0,0.58)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: isMobile ? "14px" : "22px",
-            boxSizing: "border-box",
-          }}
-          onClick={() => setShareCardModalOpen(false)}
-        >
-          <div
-            style={{
-              background: "#ffffff",
-              borderRadius: "18px",
-              width: isMobile ? "calc(100vw - 28px)" : "min(1080px, calc(100vw - 80px))",
-              maxHeight: isMobile ? "86vh" : "82vh",
-              overflowY: "auto",
-              boxShadow: "0 30px 90px rgba(0,0,0,0.34)",
-              padding: isMobile ? "18px" : "28px",
-              boxSizing: "border-box",
-            }}
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:"18px",marginBottom:"20px"}}>
-              <div>
-                <h3 style={{margin:0,fontFamily:F,fontSize:isMobile?"22px":"26px",lineHeight:1.1,fontWeight:950,color:"#0f172a"}}>Download Chart Pack</h3>
-                <p style={{margin:"8px 0 0",fontFamily:F,fontSize:isMobile?"12.5px":"14px",color:"#526071",lineHeight:1.45}}>Export this page as a share card with the same options style used on Charts.</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShareCardModalOpen(false)}
-                aria-label="Close share card pack"
-                style={{border:"none",background:"#f1f3f5",width:"34px",height:"34px",borderRadius:"999px",fontSize:"22px",lineHeight:1,cursor:"pointer",color:"#0f172a",fontWeight:700,flexShrink:0}}
-              >
-                ×
-              </button>
-            </div>
-
-            <div
-              style={{
-                display:"grid",
-                gridTemplateColumns:isMobile?"1fr":"1.05fr 0.75fr 1.05fr 1.1fr 1fr 0.9fr auto",
-                gap:"10px",
-                alignItems:"end",
-                marginBottom:"20px",
-              }}
-            >
-              <label style={{display:"grid",gap:"6px",fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:"#687385"}}>
-                Chart
-                <select
-                  value={ct}
-                  onChange={(event) => {
-                    setCt(event.target.value);
-                    setPlat("Combined");
-                  }}
-                  style={{width:"100%",border:"1px solid #d8dee8",borderRadius:"10px",background:"#fff",padding:"11px 12px",fontFamily:F,fontSize:"13px",fontWeight:800,color:"#101828",outline:"none"}}
-                >
-                  <option value="singles">Singles</option>
-                  <option value="albums">Albums</option>
-                </select>
-              </label>
-
-              <label style={{display:"grid",gap:"6px",fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:"#687385"}}>
-                Year
-                <select
-                  value={shareModalYear}
-                  onChange={(event) => {
-                    const nextMonth = MONTHS.find((item) => String(item).includes(event.target.value));
-                    if (nextMonth) {
-                      setMonth(nextMonth);
-                      setAnMonth(nextMonth);
-                    }
-                  }}
-                  style={{width:"100%",border:"1px solid #d8dee8",borderRadius:"10px",background:"#fff",padding:"11px 12px",fontFamily:F,fontSize:"13px",fontWeight:800,color:"#101828",outline:"none"}}
-                >
-                  {(shareModalYears.length ? shareModalYears : [shareModalYear]).map((year) => <option key={year} value={year}>{year}</option>)}
-                </select>
-              </label>
-
-              <label style={{display:"grid",gap:"6px",fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:"#687385"}}>
-                Month
-                <select
-                  value={shareModalMonth}
-                  onChange={(event) => {
-                    setMonth(event.target.value);
-                    setAnMonth(event.target.value);
-                  }}
-                  style={{width:"100%",border:"1px solid #d8dee8",borderRadius:"10px",background:"#fff",padding:"11px 12px",fontFamily:F,fontSize:"13px",fontWeight:800,color:"#101828",outline:"none"}}
-                >
-                  {MONTHS.map((item) => <option key={item} value={item}>{item}</option>)}
-                </select>
-              </label>
-
-              <label style={{display:"grid",gap:"6px",fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:"#687385"}}>
-                Platform
-                <select
-                  value={plat}
-                  onChange={(event) => setPlat(event.target.value)}
-                  style={{width:"100%",border:"1px solid #d8dee8",borderRadius:"10px",background:"#fff",padding:"11px 12px",fontFamily:F,fontSize:"13px",fontWeight:800,color:"#101828",outline:"none"}}
-                >
-                  {platList.map((item) => <option key={item} value={item}>{item === "Combined" ? "Combined" : PLAT_LABEL[item] || item}</option>)}
-                </select>
-              </label>
-
-              <label style={{display:"grid",gap:"6px",fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:"#687385"}}>
-                Preview range
-                <select
-                  value={shareModalSelectedRange}
-                  onChange={(event) => setShareCardRange(Number(event.target.value))}
-                  style={{width:"100%",border:"1px solid #d8dee8",borderRadius:"10px",background:"#fff",padding:"11px 12px",fontFamily:F,fontSize:"13px",fontWeight:800,color:"#101828",outline:"none"}}
-                >
-                  {(shareModalRangeOptions.length ? shareModalRangeOptions : [3,6]).map((range) => <option key={range} value={range}>Top {range} insights</option>)}
-                </select>
-              </label>
-
-              <label style={{display:"grid",gap:"6px",fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:"#687385"}}>
-                Format
-                <select
-                  value={shareCardFormat}
-                  onChange={(event) => setShareCardFormat(event.target.value)}
-                  style={{width:"100%",border:"1px solid #d8dee8",borderRadius:"10px",background:"#fff",padding:"11px 12px",fontFamily:F,fontSize:"13px",fontWeight:800,color:"#101828",outline:"none"}}
-                >
-                  <option value="PNG">PNG</option>
-                </select>
-              </label>
-
-              <button
-                type="button"
-                onClick={downloadShareCardPackImage}
-                disabled={shareCardFormat !== "PNG"}
-                style={{border:"none",borderRadius:"999px",background:shareCardFormat === "PNG" ? "#101828" : "#9aa4b2",color:"#fff",padding:"12px 18px",fontFamily:F,fontSize:"12px",fontWeight:950,letterSpacing:"0.8px",textTransform:"uppercase",cursor:shareCardFormat === "PNG" ? "pointer" : "not-allowed",whiteSpace:"nowrap",minHeight:"42px"}}
-              >
-                Download 1 Image
-              </button>
-            </div>
-
-            <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"0.95fr 1.05fr",gap:isMobile?"14px":"22px",alignItems:"stretch"}}>
-              <div style={{border:"1px solid #e7e9ee",borderRadius:"16px",padding:isMobile?"14px":"18px",background:"#f8fafc"}}>
-                <div style={{fontFamily:F,fontSize:"10px",fontWeight:950,letterSpacing:"1.4px",textTransform:"uppercase",color:"#687385",marginBottom:"10px"}}>Preview details</div>
-                <div style={{display:"grid",gap:"10px"}}>
-                  {[
-                    ["Page", shareModalPayload.eyebrow || "Ngoma Charts"],
-                    ["Chart", shareModalTypeLabel],
-                    ["Month", shareModalMonth],
-                    ["Platform", shareModalPlatformLabel],
-                    ["Items", `${shareModalHighlights.length} shown`],
-                  ].map(([label,value]) => (
-                    <div key={label} style={{display:"flex",justifyContent:"space-between",gap:"14px",borderBottom:"1px solid #edf0f4",paddingBottom:"8px",fontFamily:F,fontSize:"12px"}}>
-                      <span style={{color:"#687385",fontWeight:800}}>{label}</span>
-                      <strong style={{color:"#101828",textAlign:"right"}}>{value}</strong>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div style={{borderRadius:"18px",overflow:"hidden",background:"linear-gradient(135deg,#101010,#261f18)",minHeight:isMobile?"420px":"520px",padding:isMobile?"22px":"34px",boxSizing:"border-box",boxShadow:"inset 0 0 0 1px rgba(255,255,255,0.08)",position:"relative"}}>
-                <div style={{position:"absolute",right:"-90px",top:"-110px",width:"280px",height:"280px",borderRadius:"50%",background:(shareModalPayload.accent || GOLD) + "33",filter:"blur(4px)"}} />
-                <div style={{position:"relative",zIndex:1,display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:"18px",marginBottom:"28px"}}>
-                  <div>
-                    <div style={{fontFamily:F,fontSize:isMobile?"21px":"28px",fontWeight:950,letterSpacing:"0.5px",color:"#fff"}}>NGOMA <span style={{color:GOLD}}>CHARTS</span></div>
-                    <div style={{fontFamily:F,fontSize:isMobile?"9px":"10.5px",fontWeight:800,letterSpacing:"1.7px",textTransform:"uppercase",color:"rgba(255,255,255,0.62)",marginTop:"5px"}}>Music ranking intelligence</div>
-                  </div>
-                  <div style={{fontFamily:F,fontSize:"10px",fontWeight:950,letterSpacing:"1px",textTransform:"uppercase",color:"#101828",background:GOLD,borderRadius:"999px",padding:"7px 10px",whiteSpace:"nowrap"}}>Top {shareModalHighlights.length}</div>
-                </div>
-
-                <div style={{position:"relative",zIndex:1,fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1.3px",textTransform:"uppercase",color:shareModalPayload.accent || GOLD,marginBottom:"12px"}}>{shareModalPayload.eyebrow}</div>
-                <div style={{position:"relative",zIndex:1,fontFamily:SF,fontSize:isMobile?"28px":"39px",fontWeight:900,lineHeight:1.03,color:"#fff",maxWidth:"880px"}}>{shareModalPayload.title}</div>
-                <div style={{position:"relative",zIndex:1,fontFamily:F,fontSize:isMobile?"12px":"14px",fontWeight:700,lineHeight:1.45,color:"rgba(255,255,255,0.68)",marginTop:"12px"}}>{shareModalPayload.subtitle}</div>
-
-                <div style={{position:"relative",zIndex:1,marginTop:"28px",background:"rgba(255,255,255,0.08)",borderLeft:`5px solid ${shareModalPayload.accent || GOLD}`,borderRadius:"10px",padding:isMobile?"14px":"18px"}}>
-                  {shareModalHighlights.map((line, index) => (
-                    <div key={`${line}-${index}`} style={{fontFamily:F,fontSize:isMobile?"12.5px":"15px",fontWeight:index===0?900:750,lineHeight:1.42,color:index===0?"#fff":"rgba(255,255,255,0.78)",padding:index===0?"0 0 9px":"9px 0",borderBottom:index===shareModalHighlights.length-1?"none":"1px solid rgba(255,255,255,0.08)"}}>
-                      {line}
-                    </div>
-                  ))}
-                </div>
-
-                <div style={{position:"relative",zIndex:1,display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",marginTop:"28px",fontFamily:F,fontSize:"11px",fontWeight:850,letterSpacing:"1px",textTransform:"uppercase",color:"rgba(255,255,255,0.46)"}}>
-                  <span>ngomacharts.com</span>
-                  <span>{new Date().getFullYear()}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* SEARCH */}
       {sOpen&&(
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",zIndex:100,display:"flex",justifyContent:"center",paddingTop:"70px"}} onClick={()=>{setSOpen(false);setSrch("");}}>
@@ -2161,9 +1615,9 @@ const top = data[0];
             </div>
             <div style={{maxHeight:"480px",overflow:"auto"}}>
               {sRes.map((e,i)=>(
-                <div key={i} onClick={()=>{setSOpen(false);setSrch("");setPage("charts");setMonth(e.month);openReleaseDetails(e,e.type);}} style={{padding:"11px 20px",borderBottom:"1px solid #F5F5F3",cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}
+                <div key={i} style={{padding:"11px 20px",borderBottom:"1px solid #F5F5F3",display:"flex",justifyContent:"space-between",alignItems:"center"}}
                   onMouseEnter={x=>x.currentTarget.style.background="#FAFAF6"} onMouseLeave={x=>x.currentTarget.style.background="transparent"}>
-                  <div><div style={{fontSize:"14px",fontWeight:700}}>{e.title}</div><div style={{fontSize:"10.5px",color:"#999",fontFamily:F}}>{e.artist} · <span style={{color:GOLD}}>{e.type} · {e.month}</span></div></div>
+                  <div><button type="button" onClick={()=>{setSOpen(false);setSrch("");setPage("charts");setMonth(e.month);openReleaseDetails(e,e.type);}} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:"14px",fontWeight:700,cursor:"pointer",textAlign:"left"}}>{e.title}</button><div style={{fontSize:"10.5px",color:"#999",fontFamily:F}}>{e.artist} · <span style={{color:GOLD}}>{e.type} · {e.month}</span></div></div>
                   <div style={{fontFamily:F,fontSize:"10.5px",color:GOLD,fontWeight:600}}>#{e.rank} · {e.pts.toLocaleString()} pts</div>
                 </div>
               ))}
@@ -2183,6 +1637,18 @@ const top = data[0];
         const platformNames = new Set(journey.flatMap((item) => item.platforms.map((entry) => entry.platform)));
         const totalPoints = combinedHistory.reduce((sum, item) => sum + Number(item.combined?.pts || 0), 0);
         const peakRank = combinedHistory.reduce((best, item) => Math.min(best, Number(item.combined?.rank || 999)), 999);
+        const currentCombined = combinedHistory[combinedHistory.length - 1];
+        const averageRank = combinedHistory.length ? Math.round(combinedHistory.reduce((sum, item) => sum + Number(item.combined.rank || 0), 0) / combinedHistory.length) : null;
+        const numberOneMonths = combinedHistory.filter((item) => Number(item.combined.rank) === 1).length;
+        const bestCoverage = combinedHistory.reduce((best, item) => Math.max(best, Number(String(item.combined.plat || "0").split("/")[0]) || 0), 0);
+        const releaseRankData = combinedHistory.map((item) => ({month:item.month.split(" ")[0].slice(0,3),rank:Number(item.combined.rank),points:Number(item.combined.pts)||0}));
+        const platformPeaks = [...platformNames].map((platformName) => ({
+          platform: platformName,
+          rank: journey.reduce((best, item) => {
+            const platformEntry = item.platforms.find((entry) => entry.platform === platformName);
+            return platformEntry ? Math.min(best, Number(platformEntry.rank)) : best;
+          }, 999),
+        })).sort((a,b)=>a.rank-b.rank);
         const releaseMetadata = combinedHistory.find((item) => item.combined?.release_year || item.combined?.confidence)?.combined || {};
         const releaseConfidence = selR.confidence || releaseMetadata.confidence;
         return (
@@ -2196,22 +1662,40 @@ const top = data[0];
               <button type="button" onClick={()=>openArtistDetails(selR.primary_artist||selR.artist)} style={{fontSize:isMobile?"15px":"18px",color:"#4E5851",margin:0,padding:0,border:0,background:"transparent",fontFamily:F,cursor:"pointer",fontWeight:800}}>{selR.artist}</button>
               <CountryBadge artist={selR.primary_artist||selR.artist} showName />
             </div>
-            <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(3,minmax(0,1fr))",gap:"10px",marginBottom:"18px"}}>
+            <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(4,minmax(0,1fr))",gap:"10px",marginBottom:"18px"}}>
               {[
                 {label:"Total Points",value:totalPoints.toLocaleString()},
                 {label:"Peak Rank",value:peakRank<999?`#${peakRank}`:"—"},
+                {label:"Current Rank",value:currentCombined?`#${currentCombined.combined.rank}`:"—"},
+                {label:"Average Rank",value:averageRank?`#${averageRank}`:"—"},
                 {label:"Months Charted",value:combinedHistory.length},
+                {label:"#1 Months",value:numberOneMonths},
                 {label:"Platforms",value:platformNames.size},
+                {label:"Best Coverage",value:`${bestCoverage}/${isSingles?6:2}`},
                 {label:"Release Year",value:selR.release_year||releaseMetadata.release_year||"—"},
-                {label:"Weeks This Month",value:selR.weeks_on_chart||"—"},
               ].map((stat)=><div key={stat.label} style={{padding:"12px 13px",border:"1px solid #ECE9E1",borderRadius:"10px",background:"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:"#7B857D"}}>{stat.label}</div><div style={{fontFamily:F,fontSize:"19px",fontWeight:900,color:"#1A1A1A",marginTop:"5px"}}>{stat.value}</div></div>)}
             </div>
             {releaseConfidence&&<div style={{fontFamily:F,fontSize:"11px",color:"#68716B",margin:"-6px 0 18px"}}>Metadata confidence: <strong>{releaseConfidence}</strong></div>}
-            <button onClick={()=>shareReleaseCard(selR)} style={{display:"inline-flex",alignItems:"center",gap:"8px",padding:"9px 18px",background:"#1A1A1A",color:"#FFF",border:"none",borderRadius:"22px",fontFamily:F,fontSize:"12px",fontWeight:700,cursor:"pointer",marginBottom:"24px",letterSpacing:"0.5px"}}
-              onMouseEnter={e=>e.currentTarget.style.background="#000"} onMouseLeave={e=>e.currentTarget.style.background="#1A1A1A"}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B8860B" strokeWidth="2.5"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-              Share as Image
-            </button>
+            <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1.4fr 0.8fr",gap:"14px",marginBottom:"20px"}}>
+              <div style={card()}>
+                <div style={secLbl()}><SecMark/>Combined Rank & Points Journey</div>
+                <ResponsiveContainer width="100%" height={220}>
+                  <LineChart data={releaseRankData} margin={{top:10,right:18,left:0,bottom:0}}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#F0F0EC"/>
+                    <XAxis dataKey="month" tick={{fontSize:10,fontFamily:F,fill:"#59645D"}}/>
+                    <YAxis yAxisId="rank" reversed domain={[1,50]} tick={{fontSize:10,fontFamily:F,fill:"#59645D"}} tickFormatter={v=>`#${v}`}/>
+                    <YAxis yAxisId="points" orientation="right" domain={[0,50]} hide/>
+                    <Tooltip formatter={(value,name)=>[name==="rank"?`#${value}`:value,name==="rank"?"Rank":"Points"]} contentStyle={{fontFamily:F,fontSize:11}}/>
+                    <Line yAxisId="rank" type="monotone" dataKey="rank" stroke={GOLD} strokeWidth={3} dot={{r:4}}/>
+                    <Line yAxisId="points" type="monotone" dataKey="points" stroke="#1565C0" strokeWidth={2} strokeDasharray="5 4" dot={{r:3}}/>
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+              <div style={card()}>
+                <div style={secLbl()}><SecMark/>Platform Peak Ranks</div>
+                {platformPeaks.map((item)=><div key={item.platform} style={{display:"flex",justifyContent:"space-between",gap:"12px",padding:"8px 0",borderBottom:"1px solid #F0F0EC",fontFamily:F,fontSize:"12px"}}><span style={{color:PC[item.platform]||"#59645D",fontWeight:800}}>{item.platform}</span><strong>#{item.rank}</strong></div>)}
+              </div>
+            </div>
             <h3 style={secLbl()}><SecMark/>Cross-Platform Journey</h3>
             {journey.map(({month:m,combined,platforms})=>(
               <div key={m} style={{marginBottom:"14px",padding:"16px",background:"#FAFAF8",borderRadius:"8px",border:"1px solid #EAEAE6"}}>
@@ -2245,42 +1729,57 @@ const top = data[0];
                 <h2 style={{margin:0,fontSize:isMobile?"24px":"26px",fontWeight:850,lineHeight:1.12}}>{selA.n}</h2>
                 <CountryBadge artist={selA.n} showName />
               </div>
-              <div style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",marginTop:"6px",lineHeight:1.45}}>Top Artists peak: #{selA.pk} · {selA.t} {isSingles?"songs":"albums"} · {selA.m} months on chart</div>
-              <div style={{display:"flex",gap:"24px",marginTop:"14px",fontFamily:F}}>
-                {[{v:selA.p.toLocaleString(),l:"Total Points",c:GOLD},{v:selA.t,l:"Charted Entries"},{v:"#"+selA.pk,l:"Peak Rank"},{v:selA.m,l:"Months Active"}].map((s,i)=>(
+              <div style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",marginTop:"6px",lineHeight:1.45}}>Credited on {selA.t} {isSingles?"songs":"albums"} across {selA.m} months</div>
+              <div style={{display:"flex",gap:"24px",marginTop:"14px",fontFamily:F,flexWrap:"wrap"}}>
+                {[{v:"#"+selA.rank,l:"Current Rank",c:GOLD},{v:"#"+selA.pk,l:"Best Artist Rank"},{v:selA.p.toLocaleString(),l:"Total Points"},{v:selA.t,l:"Entries"},{v:selA.m,l:"Months Active"}].map((s,i)=>(
                   <div key={i}><div style={{fontSize:"22px",fontWeight:700,color:s.c||"#1A1A1A"}}>{s.v}</div><div style={{fontSize:"9px",letterSpacing:"1.5px",color:"#CCC",textTransform:"uppercase"}}>{s.l}</div></div>
                 ))}
               </div>
             </div>
           </div>
-          <div style={{...card(),marginTop:"24px",marginBottom:"20px"}}>
-            <div style={secLbl()}><SecMark/>Monthly Points</div>
-            <ResponsiveContainer width="100%" height={140}>
-              <BarChart data={MONTHS.map(m=>({month:m.split(" ")[0].slice(0,3),pts:selA.mp?.[m]||0}))}>
-                <XAxis dataKey="month" tick={{fontSize:isMobile?11:11,fontFamily:F,fill:"#59645D",fontWeight:650}} tickLine={false}/>
-                <YAxis tick={{fontSize:isMobile?10.5:10.5,fontFamily:F,fill:"#59645D",fontWeight:650}} tickFormatter={v=>v.toLocaleString()} axisLine={false} tickLine={false}/>
-                <Tooltip formatter={v=>[v.toLocaleString()+" pts","Points"]} contentStyle={{fontFamily:F,fontSize:11}}/>
-                <Bar dataKey="pts" fill={GOLD} radius={[4,4,0,0]}/>
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:"14px",marginTop:"24px",marginBottom:"20px"}}>
+            <div style={card()}>
+              <div style={secLbl()}><SecMark/>Monthly Credited Points</div>
+              <ResponsiveContainer width="100%" height={190}>
+                <BarChart data={selectedArtistRankData}>
+                  <XAxis dataKey="month" tick={{fontSize:10.5,fontFamily:F,fill:"#59645D",fontWeight:650}} tickLine={false}/>
+                  <YAxis tick={{fontSize:10,fontFamily:F,fill:"#59645D",fontWeight:650}} axisLine={false} tickLine={false}/>
+                  <Tooltip formatter={v=>[v.toLocaleString()+" pts","Points"]} contentStyle={{fontFamily:F,fontSize:11}}/>
+                  <Bar dataKey="points" fill={GOLD} radius={[4,4,0,0]}/>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <div style={card()}>
+              <div style={secLbl()}><SecMark/>Cumulative Artist Rank</div>
+              <ResponsiveContainer width="100%" height={190}>
+                <LineChart data={selectedArtistRankData} margin={{top:8,right:12,left:0,bottom:0}}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F0F0EC"/>
+                  <XAxis dataKey="month" tick={{fontSize:10.5,fontFamily:F,fill:"#59645D"}}/>
+                  <YAxis reversed domain={[1,"dataMax"]} allowDecimals={false} tick={{fontSize:10,fontFamily:F,fill:"#59645D"}} tickFormatter={v=>`#${v}`}/>
+                  <Tooltip formatter={v=>[`#${v}`,"Artist Rank"]} contentStyle={{fontFamily:F,fontSize:11}}/>
+                  <Line type="monotone" dataKey="rank" stroke="#1565C0" strokeWidth={3} connectNulls dot={{r:4}}/>
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(4,minmax(0,1fr))",gap:"10px",marginBottom:"22px"}}>
+            {[
+              {label:"Unique Releases",value:selectedArtistReleases.length},
+              {label:"Top 10 Placements",value:selectedArtistEntries.filter((entry)=>Number(entry.rank)<=10).length},
+              {label:"#1 Placements",value:selectedArtistEntries.filter((entry)=>Number(entry.rank)===1).length},
+              {label:"Best Release Rank",value:selectedArtistEntries.length?`#${Math.min(...selectedArtistEntries.map((entry)=>Number(entry.rank)))}`:"—"},
+            ].map((stat)=><div key={stat.label} style={{padding:"12px 13px",border:"1px solid #ECE9E1",borderRadius:"10px",background:"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:"#7B857D"}}>{stat.label}</div><div style={{fontFamily:F,fontSize:"19px",fontWeight:900,marginTop:"5px"}}>{stat.value}</div></div>)}
           </div>
           <h3 style={secLbl()}>Charted Entries Across Months</h3>
           {(()=>{
-            const titles=new Set();
-            const items=[];
-            MONTHS.forEach(m=>{
-              getCombined(ct,m).filter(e=>e.artist===selA.n).forEach(e=>{
-                items.push({...e,month:m});
-              });
-            });
-            return items.sort((a,b)=>a.rank-b.rank).map((s,i)=>{
+            return selectedArtistEntries.sort((a,b)=>a.rank-b.rank).map((s,i)=>{
               const certification = getCertificationForEntry(s, isSingles ? "single" : "album");
               return (
-              <div key={i} onClick={()=>openReleaseDetails(s,isSingles?"single":"album")} style={{display:"flex",justifyContent:"space-between",gap:"12px",padding:"9px 0",borderBottom:"1px solid #F2F2EE",fontFamily:F,cursor:"pointer"}}
+              <div key={i} style={{display:"flex",justifyContent:"space-between",gap:"12px",padding:"9px 0",borderBottom:"1px solid #F2F2EE",fontFamily:F}}
                 onMouseEnter={e=>e.currentTarget.style.background="#FAFAF6"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
                 <div style={{minWidth:0}}>
                   <div style={{display:"flex",alignItems:"center",gap:"7px",flexWrap:"wrap"}}>
-                    <span style={{fontWeight:800,fontSize:TXT.cardTitle,fontFamily:SF}}>{s.title}</span>
+                    <button type="button" onClick={()=>openReleaseDetails(s,isSingles?"single":"album")} style={{fontWeight:800,fontSize:TXT.cardTitle,fontFamily:SF,border:0,background:"transparent",padding:0,cursor:"pointer",textAlign:"left"}}>{s.title}</button>
                     {certification&&<CertificationTag cert={certification} compact />}
                   </div>
                   <span style={{color:"#7B857D",fontSize:TXT.micro,fontFamily:F}}> {s.month}</span>
@@ -2330,7 +1829,6 @@ const top = data[0];
 liveChartMeta={liveChartMeta}
 liveStatus={liveStatus}
     pageMax={PAGE_MAX}
-    shareCurrentPageCard={shareCurrentPageCard}
     certificationForEntry={getCertificationForEntry}
     CertificationTag={CertificationTag}
   />
@@ -2342,11 +1840,13 @@ liveStatus={liveStatus}
           <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:isMobile?"18px":"22px",gap:isMobile?"14px":"20px",flexDirection:isMobile?"column":"row"}}>
             <div>
               <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0}}>Top Artists</h2>
-              <p style={{fontFamily:F,fontSize:isMobile?"12.5px":"11.5px",color:"#59645D",margin:"5px 0 0",lineHeight:1.6}}>Computed from full Top 50 across all months · Click any artist for full profile</p>
+              <p style={{fontFamily:F,fontSize:isMobile?"12.5px":"11.5px",color:"#59645D",margin:"5px 0 0",lineHeight:1.6}}>Cumulative credited performance from {MONTHS[0]} through {artistMonth}</p>
             </div>
             <div style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap"}}>
+              <select value={artistMonth} onChange={e=>setArtistMonth(e.target.value)} style={{width:isMobile?"100%":"auto",padding:isMobile?"11px 12px":"8px 12px",border:"1.5px solid #DDD",borderRadius:"9px",background:"#FFF",fontSize:isMobile?"12.5px":"10.5px",fontFamily:F,fontWeight:750,cursor:"pointer",outline:"none"}}>
+                {MONTHS.map(m=><option key={m} value={m}>{m}</option>)}
+              </select>
               <Tog sm/>
-              <ShareCardButton compact />
             </div>
           </div>
           {/* Comparison */}
@@ -2393,10 +1893,10 @@ liveStatus={liveStatus}
               })}
             </div>
           </div>
-          {/* Top Artists List - all 30 from full Top 50 */}
+          {/* Top 50 artists through the selected month */}
           {isMobile ? (
             <div style={{display:"grid",gap:"10px"}}>
-              {artists.slice(0,30).map((a,i)=>{
+              {artists.slice(0,50).map((a,i)=>{
                 const trend=artistTrendFor(a);
                 const rowKey=`${a.n}-${i}`;
                 const expanded=Boolean(expandedArtistRows[rowKey]);
@@ -2435,16 +1935,16 @@ liveStatus={liveStatus}
             </div>
           ) : (<>
             <div style={{display:"grid",gridTemplateColumns:"44px 38px minmax(0,1fr) 70px 126px",gap:"12px",alignItems:"center",padding:"0 12px 10px",borderBottom:"1px solid #EDEBE4",fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"1.6px",textTransform:"uppercase",color:"#8A928B"}}>
-              <div></div><div title="Country" style={{textAlign:"center"}}>Country</div><div>Artist</div><div style={{textAlign:"center"}}>Move</div><div style={{textAlign:"right"}}>Total Points</div>
+              <div></div><div title="Country"></div><div>Artist</div><div style={{textAlign:"center"}}>Move</div><div style={{textAlign:"center"}}>Total Points</div>
             </div>
-            {artists.slice(0,30).map((a,i)=>{const trend=artistTrendFor(a);return(
-              <div key={a.n} className="ngoma-artist-row" onClick={()=>openArtistDetails(a.n)} style={{display:"grid",gridTemplateColumns:"44px 38px minmax(0,1fr) 70px 126px",gap:"12px",padding:"12px",borderBottom:"1px solid #F2F2EE",alignItems:"center",cursor:"pointer",minWidth:0}}
+            {artists.slice(0,50).map((a,i)=>{const trend=artistTrendFor(a);return(
+              <div key={a.n} className="ngoma-artist-row" style={{display:"grid",gridTemplateColumns:"44px 38px minmax(0,1fr) 70px 126px",gap:"12px",padding:"12px",borderBottom:"1px solid #F2F2EE",alignItems:"center",minWidth:0}}
                 onMouseEnter={e=>e.currentTarget.style.background="#FAFAF6"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
                 <div style={{fontSize:i<3?"17px":"13.5px",fontWeight:900,color:i<3?MEDALS[i]:"#B8BDB8",textAlign:"center",fontFamily:F}}>{i+1}</div>
                 <CountryBadge artist={a.n} compact />
-                <div style={{minWidth:0}}><div style={{fontSize:"15.5px",fontWeight:850,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",lineHeight:1.15}}>{a.n}</div><div style={{fontSize:"12px",color:"#59645D",fontFamily:F,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",marginTop:"4px",lineHeight:1.35}}>{a.t} {a.t===1?"entry":"entries"} · Artist peak: #{a.pk} · {a.m} {a.m===1?"month":"months"}</div></div>
+                <div style={{minWidth:0}}><button type="button" onClick={()=>openArtistDetails(a.n)} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:"15.5px",fontWeight:850,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",lineHeight:1.15,cursor:"pointer",maxWidth:"100%",textAlign:"left"}}>{a.n}</button><div style={{fontSize:"12px",color:"#59645D",fontFamily:F,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",marginTop:"4px",lineHeight:1.35}}>{a.t} {a.t===1?"entry":"entries"} · Artist peak: #{a.pk} · {a.m} {a.m===1?"month":"months"}</div></div>
                 <div title={trend.label} style={{textAlign:"center",fontFamily:F,fontSize:"14px",fontWeight:900,color:trend.color}}>{trend.symbol}</div>
-                <div style={{textAlign:"right",fontFamily:F,fontSize:"16px",fontWeight:900,color:GOLD,whiteSpace:"nowrap"}}>{a.p.toLocaleString()} <span style={{fontSize:"9.5px",color:"#7B857D",fontWeight:750}}>pts</span></div>
+                <div style={{textAlign:"center",fontFamily:F,fontSize:"16px",fontWeight:900,color:GOLD,whiteSpace:"nowrap"}}>{a.p.toLocaleString()}</div>
               </div>
             )})}
           </>)}
@@ -2462,7 +1962,6 @@ liveStatus={liveStatus}
               </select>
               <div style={{display:"flex",alignItems:"center",gap:"10px",flexWrap:"wrap"}}>
                 <Tog sm/>
-                <ShareCardButton compact />
               </div>
             </div>
           </div>
@@ -2476,7 +1975,7 @@ liveStatus={liveStatus}
             </div>
             {aiA&&<div style={{padding:"14px",background:"#FAFAF8",borderRadius:"8px",border:"1px solid #EAEAE6",fontSize:"13px",lineHeight:1.7,whiteSpace:"pre-wrap",marginBottom:"10px"}}>{aiA}</div>}
             <div style={{display:"flex",gap:"5px",flexWrap:"wrap"}}>
-              {[`Who dominated ${DATA_YEARS} overall?`,"Which song rose the fastest?","Compare singles vs albums platform performance","What predicts a #1 song?","Best Kenyan artists vs international?","Certification breakdown","Which platform discovers trends earliest?","Cross-platform overlap analysis"].map(q=>(
+              {[`Who dominated ${DATA_PERIOD} overall?`,"Which song rose the fastest?","Compare singles vs albums platform performance","What predicts a #1 song?","Best Kenyan artists vs international?","Certification breakdown","Which platform discovers trends earliest?","Cross-platform overlap analysis"].map(q=>(
                 <button key={q} onClick={()=>setAiQ(q)} style={{padding:"4px 10px",background:"#FFF",border:"1px solid #E0E0DC",borderRadius:"14px",fontSize:"10px",fontFamily:F,color:"#888",cursor:"pointer"}}>{q}</button>
               ))}
             </div>
@@ -2507,9 +2006,9 @@ liveStatus={liveStatus}
               {/* Title cards */}
               <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:isMobile?"10px":"12px",marginBottom:isMobile?"12px":"14px"}}>
                 {[{d:sp1,c:GOLD},{d:sp2,c:"#1565C0"}].map(({d,c},i)=>(
-                  <div key={i} onClick={()=>openReleaseDetails(d,isSingles?"single":"album")} style={{padding:isMobile?"13px":"15px",background:c+"0D",borderRadius:"10px",borderLeft:"3px solid "+c,cursor:"pointer",minWidth:0}}>
+                  <div key={i} style={{padding:isMobile?"13px":"15px",background:c+"0D",borderRadius:"10px",borderLeft:"3px solid "+c,minWidth:0}}>
                     <div style={{display:"flex",alignItems:"center",gap:"7px",flexWrap:"wrap",minWidth:0}}>
-                      <div style={{fontFamily:SF,fontSize:isMobile?"15px":"16px",fontWeight:800,lineHeight:1.2,whiteSpace:isMobile?"normal":"nowrap",overflow:isMobile?"visible":"hidden",textOverflow:isMobile?"clip":"ellipsis",overflowWrap:"anywhere",minWidth:0}}>{d.title}</div>
+                      <button type="button" onClick={()=>openReleaseDetails(d,isSingles?"single":"album")} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:isMobile?"15px":"16px",fontWeight:800,lineHeight:1.2,whiteSpace:isMobile?"normal":"nowrap",overflow:isMobile?"visible":"hidden",textOverflow:isMobile?"clip":"ellipsis",overflowWrap:"anywhere",minWidth:0,cursor:"pointer",textAlign:"left"}}>{d.title}</button>
                       {getCertificationForEntry(d, isSingles ? "single" : "album")&&<CertificationTag cert={getCertificationForEntry(d, isSingles ? "single" : "album")} compact />}
                     </div>
                     <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(d.artist);}} style={{display:"block",maxWidth:"100%",fontFamily:F,fontSize:isMobile?"11.5px":"11px",color:"#59645D",marginTop:"3px",padding:0,border:0,background:"transparent",fontWeight:700,whiteSpace:isMobile?"normal":"nowrap",overflow:isMobile?"visible":"hidden",textOverflow:isMobile?"clip":"ellipsis",overflowWrap:"anywhere",cursor:"pointer",textAlign:"left"}}>{d.artist}</button>
@@ -2625,9 +2124,9 @@ liveStatus={liveStatus}
               {isMobile ? (
                 <div style={{display:"flex",flexDirection:"column",gap:"8px"}}>
                   {top10sData.map((e,i)=>(
-                    <div key={e.name} onClick={()=>openReleaseDetails(e,isSingles?"single":"album")} style={{display:"grid",gridTemplateColumns:"28px minmax(0,1fr) 86px",alignItems:"center",gap:"10px",padding:"9px 0",borderBottom:"1px solid #F0F0EC",cursor:"pointer"}}>
+                    <div key={e.name} style={{display:"grid",gridTemplateColumns:"28px minmax(0,1fr) 86px",alignItems:"center",gap:"10px",padding:"9px 0",borderBottom:"1px solid #F0F0EC"}}>
                       <div style={{fontFamily:F,fontSize:"12px",fontWeight:900,color:i<3?MEDALS[i]:"#B8BDB8",textAlign:"center"}}>{i+1}</div>
-                      <div style={{fontSize:"13px",fontWeight:800,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{e.name}</div>
+                      <button type="button" onClick={()=>openReleaseDetails(e,isSingles?"single":"album")} style={{border:0,background:"transparent",padding:0,textAlign:"left",fontFamily:SF,fontSize:"13px",fontWeight:800,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",cursor:"pointer"}}>{e.name}</button>
                       <div style={{fontFamily:F,fontSize:"12px",fontWeight:900,color:GOLD,textAlign:"right",whiteSpace:"nowrap"}}>{e.pts.toLocaleString()} pts</div>
                     </div>
                   ))}
@@ -2650,10 +2149,10 @@ liveStatus={liveStatus}
                 {platOnes.map(([pl,d])=>{
                   const lbl=PLAT_LABEL[pl]||pl;
                   return(
-                    <div key={pl} onClick={()=>openReleaseDetails({title:d.t,artist:d.a,primary_artist:d.primary_artist,featured_artists:d.featured_artists},isSingles?"single":"album")} style={{padding:isMobile?"12px":"10px 12px",background:(PC[pl]||"#888")+"0D",borderRadius:"8px",borderLeft:"3px solid "+(PC[pl]||"#888"),cursor:"pointer"}}>
+                    <div key={pl} style={{padding:isMobile?"12px":"10px 12px",background:(PC[pl]||"#888")+"0D",borderRadius:"8px",borderLeft:"3px solid "+(PC[pl]||"#888")}}>
                       <div style={{fontSize:isMobile?"9.5px":"8.8px",fontFamily:F,letterSpacing:"1.5px",textTransform:"uppercase",color:PC[pl]||"#888",marginBottom:"5px",fontWeight:800}}>{lbl}</div>
-                      <div style={{fontSize:isMobile?"13px":"11.5px",fontWeight:800,lineHeight:1.2}}>{d.t}</div>
-                      <div style={{fontSize:isMobile?"11px":"10px",color:"#59645D",fontFamily:F,marginTop:"3px"}}>{d.a} · {d.p} pts</div>
+                      <button type="button" onClick={()=>openReleaseDetails({title:d.t,artist:d.a,primary_artist:d.primary_artist,featured_artists:d.featured_artists},isSingles?"single":"album")} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:isMobile?"13px":"11.5px",fontWeight:800,lineHeight:1.2,cursor:"pointer",textAlign:"left"}}>{d.t}</button>
+                      <div style={{fontSize:isMobile?"11px":"10px",color:"#59645D",fontFamily:F,marginTop:"3px"}}>{d.a}</div>
                     </div>
                   );
                 })}
@@ -2691,10 +2190,10 @@ liveStatus={liveStatus}
               {crossPlatformRows.slice(0,8).map((s,i)=>{
                 const certification = getCertificationForEntry(s, isSingles ? "single" : "album");
                 return (
-                <div key={i} onClick={()=>openReleaseDetails(s,isSingles?"single":"album")} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:"7px 0",borderBottom:"1px solid #F0F0EC",cursor:"pointer"}}>
+                <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:"7px 0",borderBottom:"1px solid #F0F0EC"}}>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
-                      <span style={{fontSize:isMobile?"13px":"12px",fontWeight:800}}>{s.t}</span>
+                      <button type="button" onClick={()=>openReleaseDetails(s,isSingles?"single":"album")} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:isMobile?"13px":"12px",fontWeight:800,cursor:"pointer",textAlign:"left"}}>{s.t}</button>
                       {certification&&<CertificationTag cert={certification} compact />}
                     </div>
                     <div style={{fontSize:isMobile?"11px":"10.5px",color:"#59645D",fontFamily:F,marginTop:"2px"}}>{s.a}</div>
@@ -2734,14 +2233,14 @@ liveStatus={liveStatus}
           {platTotalsData.length>0&&(
             <AnalyticsDeepSection label="View platform totals" isMobile={isMobile}>
             <div style={{...card(),marginBottom:"20px"}}>
-              <div style={secLbl()}><SecMark/>Total Points Distributed Per Platform — {anMonth}</div>
+              <div style={secLbl()}><SecMark/>Combined Top 50 Entries Contributed Per Platform — {anMonth}</div>
               <ResponsiveContainer width="100%" height={isMobile?230:200}>
                 <BarChart data={platTotalsData} margin={{top:12,right:isMobile?16:20,left:isMobile?0:8,bottom:isMobile?6:0}}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#F0F0EC"/>
                   <XAxis dataKey="platform" tick={isMobile?false:{fontSize:10,fontFamily:F,fill:"#59645D",fontWeight:650}} tickLine={false}/>
-                  <YAxis tick={{fontSize:isMobile?10.5:10,fontFamily:F,fill:"#59645D",fontWeight:650}} tickFormatter={v=>v.toLocaleString()} axisLine={false} tickLine={false}/>
-                  <Tooltip contentStyle={{fontFamily:F,fontSize:11}} formatter={v=>[v.toLocaleString()+" pts","Total Points"]}/>
-                  <Bar dataKey="points" radius={[4,4,0,0]}>{platTotalsData.map((e,i)=><Cell key={i} fill={e.color}/>)}</Bar>
+                  <YAxis domain={[0,50]} allowDecimals={false} tick={{fontSize:isMobile?10.5:10,fontFamily:F,fill:"#59645D",fontWeight:650}} axisLine={false} tickLine={false}/>
+                  <Tooltip contentStyle={{fontFamily:F,fontSize:11}} formatter={v=>[v,"Combined entries"]}/>
+                  <Bar dataKey="entries" radius={[4,4,0,0]}>{platTotalsData.map((e,i)=><Cell key={i} fill={e.color}/>)}</Bar>
                 </BarChart>
               </ResponsiveContainer>
               {isMobile&&<div style={{display:"flex",justifyContent:"center",gap:"8px 12px",flexWrap:"wrap",marginTop:"10px"}}>{platTotalsData.map((entry)=><div key={entry.platform} style={{display:"inline-flex",alignItems:"center",gap:"5px",fontFamily:F,fontSize:"10px",fontWeight:750,color:"#59645D"}}><span style={{width:"9px",height:"9px",borderRadius:"3px",background:entry.color,flexShrink:0}}/>{entry.platform}</div>)}</div>}
@@ -2792,10 +2291,10 @@ liveStatus={liveStatus}
               {mvData.risers.map((s,i)=>{
                 const certification = getCertificationForEntry(s, isSingles ? "single" : "album");
                 return (
-                <div key={i} onClick={()=>openReleaseDetails(s,isSingles?"single":"album")} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:isMobile?"8px 0":"6px 0",borderBottom:"1px solid #F0F0EC",cursor:"pointer"}}>
+                <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:isMobile?"8px 0":"6px 0",borderBottom:"1px solid #F0F0EC"}}>
                   <div style={{minWidth:0}}>
                     <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
-                      <span style={{fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15}}>{s.t}</span>
+                      <button type="button" onClick={()=>openReleaseDetails(s,isSingles?"single":"album")} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15,cursor:"pointer",textAlign:"left"}}>{s.t}</button>
                       {certification&&<CertificationTag cert={certification} compact />}
                     </div>
                     <div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginTop:"3px"}}>{s.a}</div>
@@ -2811,10 +2310,10 @@ liveStatus={liveStatus}
               {mvData.fallers.map((s,i)=>{
                 const certification = getCertificationForEntry(s, isSingles ? "single" : "album");
                 return (
-                <div key={i} onClick={()=>openReleaseDetails(s,isSingles?"single":"album")} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:isMobile?"8px 0":"6px 0",borderBottom:"1px solid #F0F0EC",cursor:"pointer"}}>
+                <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:isMobile?"8px 0":"6px 0",borderBottom:"1px solid #F0F0EC"}}>
                   <div style={{minWidth:0}}>
                     <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
-                      <span style={{fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15}}>{s.t}</span>
+                      <button type="button" onClick={()=>openReleaseDetails(s,isSingles?"single":"album")} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15,cursor:"pointer",textAlign:"left"}}>{s.t}</button>
                       {certification&&<CertificationTag cert={certification} compact />}
                     </div>
                     <div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginTop:"3px"}}>{s.a}</div>
@@ -2844,18 +2343,39 @@ liveStatus={liveStatus}
           {/* Tracked Song Journey */}
           <AnalyticsDeepSection label={isSingles?"View song rank journey":"View album rank journey"} isMobile={isMobile}>
           <div style={card()}>
-            <div style={secLbl()}><SecMark/>{isSingles?"Top Songs Rank Journey Across Months":"Top Albums Rank Journey Across Months"}</div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",marginBottom:"14px",flexWrap:"wrap"}}>
+              <div style={{...secLbl(),marginBottom:0}}><SecMark/>{isSingles?"Top Songs Rank Journey Across Months":"Top Albums Rank Journey Across Months"}</div>
+              <div style={{display:"flex",padding:"3px",borderRadius:"999px",background:"#F2F2EE",border:"1px solid #E3E0D8"}}>
+                {["table","graph"].map((view)=><button key={view} type="button" onClick={()=>setRankJourneyView(view)} style={{border:0,borderRadius:"999px",background:rankJourneyView===view?"#1A1A1A":"transparent",color:rankJourneyView===view?"#FFF":"#59645D",padding:"7px 12px",fontFamily:F,fontSize:"9.5px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",cursor:"pointer"}}>{view}</button>)}
+              </div>
+            </div>
+            {rankJourneyView==="graph" ? (
+              <div className="ngoma-analytics-chart-scroll" aria-label="Scrollable rank journey graph">
+                <div style={{minWidth:isMobile?"720px":"100%",height:320}}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={analysisMonths.map((m)=>{const row={month:m.split(" ")[0].slice(0,3)};tracked.forEach((title)=>{row[title]=getCombined(ct,m).find((entry)=>entry.title===title)?.rank||null;});return row;})} margin={{top:10,right:24,left:8,bottom:8}}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#F0F0EC"/>
+                      <XAxis dataKey="month" tick={{fontSize:10.5,fontFamily:F,fill:"#59645D"}}/>
+                      <YAxis reversed domain={[1,50]} tick={{fontSize:10,fontFamily:F,fill:"#59645D"}} tickFormatter={v=>`#${v}`}/>
+                      <Tooltip formatter={(value,name)=>[`#${value}`,name]} contentStyle={{fontFamily:F,fontSize:11}}/>
+                      <Legend wrapperStyle={{fontFamily:F,fontSize:10,color:"#59645D"}}/>
+                      {tracked.map((title,index)=><Line key={title} type="monotone" dataKey={title} stroke={CC[index]} strokeWidth={2.5} connectNulls={false} dot={{r:3}} activeDot={{r:5}}/>)}
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            ) : (
             <div className="ngoma-analytics-chart-scroll" aria-label="Scrollable rank journey table">
             <div style={{minWidth:isMobile?"760px":"100%"}}>
             {tracked.map(title=>{
-              const hasAny=MONTHS.some(m=>getCombined(ct,m).find(e=>e.title===title));
+              const hasAny=analysisMonths.some(m=>getCombined(ct,m).find(e=>e.title===title));
               if(!hasAny)return null;
-              return(<div key={title} style={{display:"grid",gridTemplateColumns:`minmax(${isMobile?180:220}px,1fr) repeat(${MONTHS.length},44px)`,alignItems:"center",padding:"8px 0",borderBottom:"1px solid #F0F0EC",gap:"8px"}}>
-                <div style={{minWidth:0,display:"flex",alignItems:"center",gap:"7px",cursor:"pointer"}} onClick={()=>{const e=MONTHS.flatMap(m=>getCombined(ct,m)).find(x=>x.title===title);if(e)openReleaseDetails(e,isSingles?"single":"album");}}>
-                  <span style={{fontSize:isMobile?"12.5px":"11.5px",fontWeight:800,lineHeight:1.2,color:GOLD,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{title}</span>
-                  {(()=>{const e=MONTHS.flatMap(m=>getCombined(ct,m)).find(x=>x.title===title);const certification=e?getCertificationForEntry(e,isSingles?"single":"album"):null;return certification?<CertificationTag cert={certification} compact />:null;})()}
+              return(<div key={title} style={{display:"grid",gridTemplateColumns:`minmax(${isMobile?180:220}px,1fr) repeat(${analysisMonths.length},44px)`,alignItems:"center",padding:"8px 0",borderBottom:"1px solid #F0F0EC",gap:"8px"}}>
+                <div style={{minWidth:0,display:"flex",alignItems:"center",gap:"7px"}}>
+                  <button type="button" onClick={()=>{const e=analysisMonths.flatMap(m=>getCombined(ct,m)).find(x=>x.title===title);if(e)openReleaseDetails(e,isSingles?"single":"album");}} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:isMobile?"12.5px":"11.5px",fontWeight:800,lineHeight:1.2,color:GOLD,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",cursor:"pointer"}}>{title}</button>
+                  {(()=>{const e=analysisMonths.flatMap(m=>getCombined(ct,m)).find(x=>x.title===title);const certification=e?getCertificationForEntry(e,isSingles?"single":"album"):null;return certification?<CertificationTag cert={certification} compact />:null;})()}
                 </div>
-                {MONTHS.map(m=>{const e=getCombined(ct,m).find(x=>x.title===title);return(<div key={m} style={{width:"44px",textAlign:"center",fontFamily:F}}>
+                {analysisMonths.map(m=>{const e=getCombined(ct,m).find(x=>x.title===title);return(<div key={m} style={{width:"44px",textAlign:"center",fontFamily:F}}>
                   <div style={{fontSize:isMobile?"9px":"8.5px",color:"#69716B",fontWeight:700}}>{m.split(" ")[0].slice(0,3)}</div>
                   {e?<div style={{fontSize:"14px",fontWeight:800,color:e.rank===1?GOLD:e.rank<=3?"#1A1A1A":"#888"}}>#{e.rank}</div>:<div style={{fontSize:"11px",color:"#E0E0DC"}}>—</div>}
                 </div>);})}
@@ -2863,6 +2383,7 @@ liveStatus={liveStatus}
             })}
             </div>
             </div>
+            )}
           </div>
           </AnalyticsDeepSection>
         </div>
@@ -2880,7 +2401,6 @@ liveStatus={liveStatus}
               </div>
               <div style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap",marginTop:isMobile?"2px":0}}>
                 <Tog sm/>
-                <ShareCardButton compact />
               </div>
             </div>
 
@@ -2940,13 +2460,12 @@ liveStatus={liveStatus}
                   </div>
                 );
                 return(
-                  <div key={`${p.t}-${p.a}-${p.decRank}`} style={{display:"grid",gridTemplateColumns:"34px minmax(0,1fr) 114px 92px 14px",gap:"12px",alignItems:"center",padding:"12px 4px",margin:0,borderBottom:"1px solid #F2F2EE",cursor:"pointer",borderRadius:"8px",boxSizing:"border-box",overflow:"hidden"}}
-                    onClick={()=>openMomentumRelease(p)}
+                  <div key={`${p.t}-${p.a}-${p.decRank}`} style={{display:"grid",gridTemplateColumns:"34px minmax(0,1fr) 114px 92px 14px",gap:"12px",alignItems:"center",padding:"12px 4px",margin:0,borderBottom:"1px solid #F2F2EE",borderRadius:"8px",boxSizing:"border-box",overflow:"hidden"}}
                     onMouseEnter={e=>e.currentTarget.style.background="#FAFAF6"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
                     <div style={{fontFamily:F,fontSize:isMobile?"16px":"16px",fontWeight:850,color:"#8E948D",textAlign:"center",transform:isMobile?"translateX(2px)":"translateX(2px)"}}>{i+1}</div>
                     <div style={{minWidth:0,paddingLeft:isMobile?"2px":"2px",boxSizing:"border-box"}}>
                       <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap",minWidth:0}}>
-                        <span style={{fontSize:isMobile?"15px":"15px",fontWeight:800,lineHeight:1.15,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.t}</span>
+                        <button type="button" onClick={()=>openMomentumRelease(p)} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:isMobile?"15px":"15px",fontWeight:800,lineHeight:1.15,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",cursor:"pointer",textAlign:"left"}}>{p.t}</button>
                         {getCertificationForEntry(p, isSingles ? "single" : "album")&&<CertificationTag cert={getCertificationForEntry(p, isSingles ? "single" : "album")} compact />}
                       </div>
                       <div style={{fontSize:isMobile?"12px":"12px",color:"#69716B",fontFamily:F,marginTop:"4px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.a} · #{p.fromRank} → #{p.decRank}{p.consecutive?" · climbing 2+ months":""}</div>
@@ -2976,11 +2495,11 @@ liveStatus={liveStatus}
                     {expanded&&<div style={{marginTop:"12px",padding:"12px",background:"#FFF",borderRadius:"12px",fontFamily:F}}><div style={{fontSize:"12px",fontWeight:750,color:"#59645D"}}>{p.a}</div><div style={{display:"flex",justifyContent:"space-between",gap:"12px",marginTop:"8px",fontSize:"12px"}}><span>First Combined appearance</span><strong style={{color:"#1565C0"}}>#{p.decRank}</strong></div><button type="button" onClick={()=>openMomentumRelease(p)} style={{marginTop:"10px",width:"100%",padding:"9px 10px",borderRadius:"11px",border:"1px solid #1565C033",background:"#F8FAFD",color:"#1565C0",fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",cursor:"pointer"}}>View Details</button></div>}
                   </div>;
                   return(
-                  <div key={`${p.t}-${p.a}-${p.decRank}`} onClick={()=>openMomentumRelease(p)} style={{padding:"14px",background:"#F5F8FC",borderRadius:"10px",border:"1px solid #1565C022",cursor:"pointer",display:"grid",gridTemplateColumns:"1fr auto",gap:"8px",alignItems:"center"}}
+                  <div key={`${p.t}-${p.a}-${p.decRank}`} style={{padding:"14px",background:"#F5F8FC",borderRadius:"10px",border:"1px solid #1565C022",display:"grid",gridTemplateColumns:"1fr auto",gap:"8px",alignItems:"center"}}
                     onMouseEnter={e=>e.currentTarget.style.background="#EEF5FF"} onMouseLeave={e=>e.currentTarget.style.background="#F5F8FC"}>
                     <div style={{minWidth:0}}>
                       <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap",minWidth:0}}>
-                        <span style={{fontSize:isMobile?"15px":"15px",fontWeight:800,lineHeight:1.15,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.t}</span>
+                        <button type="button" onClick={()=>openMomentumRelease(p)} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:isMobile?"15px":"15px",fontWeight:800,lineHeight:1.15,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",cursor:"pointer",textAlign:"left"}}>{p.t}</button>
                         {getCertificationForEntry(p, isSingles ? "single" : "album")&&<CertificationTag cert={getCertificationForEntry(p, isSingles ? "single" : "album")} compact />}
                       </div>
                       <div style={{fontSize:isMobile?"12px":"12px",color:"#69716B",fontFamily:F,marginTop:"4px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.a} · First Combined appearance</div>
@@ -3005,7 +2524,6 @@ liveStatus={liveStatus}
             </div>
             <div style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",marginTop:isMobile?"14px":"16px",flexWrap:"wrap"}}>
               <Tog sm/>
-              <ShareCardButton compact />
             </div>
           </div>
           <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:isMobile?"14px":"16px"}}>
@@ -3013,11 +2531,11 @@ liveStatus={liveStatus}
               const expanded = r.isCoverage && openRecord === i;
               const recordCertification = r.certificationEntry ? getCertificationForEntry(r.certificationEntry, isSingles ? "single" : "album") : null;
               return (
-                <div key={`${r.displayLabel}-${r.value}`} onClick={()=>{if(r.isCoverage){setOpenRecord(expanded?null:i);}else if(r.certificationEntry){openReleaseDetails(r.certificationEntry,isSingles?"single":"album");}}} style={{...card({padding:isMobile?"19px":"24px"}),position:"relative",overflow:"hidden",cursor:r.isCoverage||r.certificationEntry?"pointer":"default",gridColumn:expanded?"1 / -1":"auto"}}>
+                <div key={`${r.displayLabel}-${r.value}`} onClick={()=>{if(r.isCoverage)setOpenRecord(expanded?null:i);}} style={{...card({padding:isMobile?"19px":"24px"}),position:"relative",overflow:"hidden",cursor:r.isCoverage?"pointer":"default",gridColumn:expanded?"1 / -1":"auto"}}>
                   <div style={{position:"absolute",top:isMobile?"8px":"12px",right:isMobile?"10px":"14px",opacity:1}}><RecordIcon label={r.displayLabel} size={isMobile?54:66} muted /></div>
                   <div style={{marginBottom:"13px",position:"relative",zIndex:1}}><RecordIcon label={r.displayLabel} size={isMobile?28:30} /></div>
                   <div style={{fontFamily:F,fontSize:isMobile?"10px":"10.5px",fontWeight:850,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,marginBottom:"9px",position:"relative",zIndex:1,lineHeight:1.35}}>{r.displayLabel}</div>
-                  <div style={{fontFamily:SF,fontSize:isMobile?"20px":"21px",fontWeight:850,lineHeight:1.12,marginBottom:recordCertification?"7px":"5px",position:"relative",zIndex:1}}>{r.value}</div>
+                  {r.certificationEntry ? <button type="button" onClick={(event)=>{event.stopPropagation();openReleaseDetails(r.certificationEntry,isSingles?"single":"album");}} style={{display:"block",border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:isMobile?"20px":"21px",fontWeight:850,lineHeight:1.12,marginBottom:recordCertification?"7px":"5px",position:"relative",zIndex:1,cursor:"pointer",textAlign:"left"}}>{r.value}</button> : <div style={{fontFamily:SF,fontSize:isMobile?"20px":"21px",fontWeight:850,lineHeight:1.12,marginBottom:"5px",position:"relative",zIndex:1}}>{r.value}</div>}
                   {recordCertification&&<CertificationTag cert={recordCertification} compact style={{marginBottom:"8px",position:"relative",zIndex:1}} />}
                   <div style={{fontFamily:F,fontSize:isMobile?"13px":"13px",color:"#59645D",lineHeight:1.45,position:"relative",zIndex:1,display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}>
                     <span>{r.displaySub}</span>
@@ -3031,11 +2549,11 @@ liveStatus={liveStatus}
                       {fullCoverageClub.length?fullCoverageClub.map((song,idx)=>{
                         const certification = getCertificationForEntry(song, isSingles ? "single" : "album");
                         return (
-                        <div key={`${song.title}-${song.artist}`} onClick={(event)=>{event.stopPropagation();openReleaseDetails(song,isSingles?"single":"album");}} style={{display:"grid",gridTemplateColumns:"22px minmax(0,1fr)",gap:"8px",alignItems:"start",padding:"8px 6px",fontFamily:F,cursor:"pointer",borderBottom:"1px solid #F2F0EA",borderRadius:"7px"}}>
+                        <div key={`${song.title}-${song.artist}`} style={{display:"grid",gridTemplateColumns:"22px minmax(0,1fr)",gap:"8px",alignItems:"start",padding:"8px 6px",fontFamily:F,borderBottom:"1px solid #F2F0EA",borderRadius:"7px"}}>
                           <span style={{fontSize:"10px",fontWeight:900,color:GOLD}}>#{idx+1}</span>
                           <span style={{minWidth:0}}>
                             <span style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
-                              <strong style={{fontSize:"12px",color:"#1A1A1A"}}>{song.title}</strong>
+                              <button type="button" onClick={(event)=>{event.stopPropagation();openReleaseDetails(song,isSingles?"single":"album");}} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:"12px",fontWeight:850,color:"#1A1A1A",cursor:"pointer",textAlign:"left"}}>{song.title}</button>
                               {certification&&<CertificationTag cert={certification} compact />}
                             </span>
                             <span style={{display:"block",fontSize:"11px",color:"#59645D",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{song.artist} · {song.month}</span>
@@ -3058,12 +2576,11 @@ liveStatus={liveStatus}
           <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:isMobile?"16px":"20px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
             <div>
               <div style={{fontFamily:F,fontSize:isMobile?"10.5px":"11px",letterSpacing:isMobile?"1.8px":"2px",textTransform:"uppercase",color:GOLD,marginBottom:"6px",fontWeight:850}}>ANNUAL CHART</div>
-              <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0}}>Best of {DATA_YEARS}</h2>
+              <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0}}>Best of the Year</h2>
               <p style={{fontFamily:F,fontSize:TXT.lead,color:"#59645D",margin:"4px 0 0",lineHeight:1.55}}>Aggregated Display Points across {DATA_PERIOD}</p>
             </div>
             <div className="year-end-actions" data-share-action-area="true" style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap",position:isMobile?"sticky":"static",top:isMobile?"0":"auto",zIndex:isMobile?5:"auto",background:isMobile?"#FFF":"transparent",padding:isMobile?"8px 0 4px":"0"}}>
               <Tog sm/>
-              <ShareCardButton compact />
             </div>
           </div>
 
@@ -3085,15 +2602,14 @@ liveStatus={liveStatus}
                 {podiumItems.map(({e,pos,medal,featured},i)=>{
                   if(!e)return <div key={i}/>;
                   const certification = getCertificationForEntry(e, isSingles ? "single" : "album");
-                  return(<div key={`${pos}-${e.t}-${e.a}`} style={{textAlign:"center",cursor:"pointer"}} onClick={()=>openReleaseDetails(e,isSingles?"single":"album")}>
+                  return(<div key={`${pos}-${e.t}-${e.a}`} style={{textAlign:"center"}}>
                     <div style={{background:featured?"linear-gradient(180deg,#FFF9E8 0%,#FFFDF8 100%)":medal+"12",border:(featured?"2.5px":"2px")+" solid "+medal,borderRadius:isMobile?"12px":"13px",padding:featured?(isMobile?"18px 12px":"18px 14px"):(isMobile?"15px 12px":"16px 12px"),boxShadow:featured?"0 14px 36px rgba(184,134,11,0.16)":"none",transform:(!isMobile&&featured)?"translateY(-2px)":"none"}}>
                       <div style={{fontSize:featured?(isMobile?"33px":"38px"):"32px",fontWeight:950,color:medal,lineHeight:1}}>#{pos}</div>
                       <CountryBadge artist={e.a} style={{margin:"10px auto 0",minWidth:isMobile?"34px":"38px",height:isMobile?"30px":"34px",borderRadius:"11px",padding:"0 7px"}} />
-                      <div style={{fontSize:featured?(isMobile?"16px":"16px"):TXT.cardTitle,fontWeight:850,margin:"8px 0 4px",lineHeight:1.18}}>{e.t}</div>
+                      <button type="button" onClick={()=>openReleaseDetails(e,isSingles?"single":"album")} style={{display:"block",width:"100%",border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:featured?(isMobile?"16px":"16px"):TXT.cardTitle,fontWeight:850,margin:"8px 0 4px",lineHeight:1.18,cursor:"pointer"}}>{e.t}</button>
                       <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(e.a);}} style={{display:"block",width:"100%",fontSize:TXT.cardMeta,color:"#59645D",fontFamily:F,fontWeight:750,marginBottom:"6px",padding:0,border:0,background:"transparent",cursor:"pointer"}}>{e.a}</button>
                       {certification&&<CertificationTag cert={certification} compact style={{margin:"0 auto 8px"}} />}
                       <div style={{fontSize:featured?(isMobile?"18px":"20px"):"18px",fontWeight:850,color:medal}}>{e.totalPts.toLocaleString()}</div>
-                      <div style={{fontSize:"9.5px",color:"#7B817B",fontFamily:F}}>total pts · {e.months} months</div>
                     </div>
                   </div>);
                 })}
@@ -3317,11 +2833,10 @@ liveStatus={liveStatus}
                         padding:t3?"13px 0":"9px 0",
                         borderBottom:"1px solid #F2F2EE",
                         alignItems:"center",
-                        cursor:"pointer"
+                        cursor:"default"
                       }}
                       onMouseEnter={e=>e.currentTarget.style.background="#FAFAF6"}
                       onMouseLeave={e=>e.currentTarget.style.background="transparent"}
-                      onClick={()=>openReleaseDetails(item,isSingles?"single":"album")}
                     >
                       <div style={{textAlign:"center",fontSize:t3?"20px":"13px",fontWeight:850,color:t3?MEDALS[idx]:"#BFC4BF"}}>{idx+1}</div>
 
@@ -3341,7 +2856,7 @@ liveStatus={liveStatus}
                             overflow:"visible",
                             textOverflow:"clip"
                           }}>
-                            <span>{item.t}</span>
+                            <button type="button" onClick={()=>openReleaseDetails(item,isSingles?"single":"album")} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:"inherit",fontWeight:"inherit",lineHeight:"inherit",cursor:"pointer",textAlign:"left"}}>{item.t}</button>
                             {certification&&<CertificationTag cert={certification} compact />}
                           </div>
                           <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(item.a);}} style={{
@@ -3405,7 +2920,6 @@ liveStatus={liveStatus}
             </div>
             <div style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap"}}>
               <Tog sm/>
-              <ShareCardButton compact />
             </div>
           </div>
           <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"12px",marginBottom:"28px"}}>
@@ -3425,10 +2939,10 @@ liveStatus={liveStatus}
                 <div style={{...secLbl(certColors[level]),marginBottom:"12px"}}>{certIcons[level]} {level.charAt(0).toUpperCase()+level.slice(1)} Certified ({filtered.length})</div>
                 <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:"8px"}}>
                   {filtered.map((c,i)=>(
-                    <div key={i} style={{display:"flex",alignItems:"center",gap:"12px",padding:"12px 14px",background:certColors[level]+"0A",borderRadius:"8px",border:"1px solid "+certColors[level]+"22",cursor:"pointer"}} onClick={()=>openReleaseDetails(c,isSingles?"single":"album")}>
+                    <div key={i} style={{display:"flex",alignItems:"center",gap:"12px",padding:"12px 14px",background:certColors[level]+"0A",borderRadius:"8px",border:"1px solid "+certColors[level]+"22"}}>
                       <div style={{fontSize:"22px"}}>{certIcons[level]}</div>
                       <div style={{flex:1}}>
-                        <div style={{fontWeight:800,fontSize:TXT.cardTitle,lineHeight:1.18}}>{c.t}</div>
+                        <button type="button" onClick={()=>openReleaseDetails(c,isSingles?"single":"album")} style={{display:"block",border:0,background:"transparent",padding:0,fontFamily:SF,fontWeight:800,fontSize:TXT.cardTitle,lineHeight:1.18,cursor:"pointer",textAlign:"left"}}>{c.t}</button>
                         <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(c.a);}} style={{display:"block",fontFamily:F,fontSize:TXT.cardMeta,color:"#69716B",fontWeight:750,marginTop:"3px",padding:0,border:0,background:"transparent",cursor:"pointer",textAlign:"left"}}>{c.a}</button>
                         <CountryBadge artist={c.a} showName style={{marginTop:"7px"}} />
                       </div>
@@ -3531,9 +3045,9 @@ liveStatus={liveStatus}
             <h3 style={{fontFamily:F,fontSize:"10px",fontWeight:700,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 14px"}}>{isMobile?"Monthly #1s":"Hall of Fame — Monthly #1s"}</h3>
             <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"10px"}}>
               {hof.map((e,i)=>(
-                <div key={i} style={{padding:"12px",background:"#FFF",borderRadius:"8px",border:"1px solid "+GOLD+"33",cursor:"pointer"}} onClick={()=>openReleaseDetails(e,e.type)}>
+                <div key={i} style={{padding:"12px",background:"#FFF",borderRadius:"8px",border:"1px solid "+GOLD+"33"}}>
                   <div style={{fontFamily:F,fontSize:"9px",letterSpacing:"1.5px",textTransform:"uppercase",color:GOLD,marginBottom:"4px"}}>{e.month} · {e.type}</div>
-                  <div style={{fontWeight:800,fontSize:TXT.cardTitle,marginBottom:"2px",lineHeight:1.2}}>{e.title}</div>
+                  <button type="button" onClick={()=>openReleaseDetails(e,e.type)} style={{display:"block",border:0,background:"transparent",padding:0,fontFamily:SF,fontWeight:800,fontSize:TXT.cardTitle,marginBottom:"2px",lineHeight:1.2,cursor:"pointer",textAlign:"left"}}>{e.title}</button>
                   <div style={{fontFamily:F,fontSize:TXT.cardMeta,color:"#69716B"}}>{e.artist}</div>
                 </div>
               ))}
