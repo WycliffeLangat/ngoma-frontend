@@ -52,7 +52,7 @@ The app runs without a backend. To switch to live data from the Django backend:
    ```
 3. Rebuild. The app will ping the backend on load and show a green **LIVE** indicator when connected (it falls back to the bundled dataset if the backend is unreachable, so the site never breaks).
 
-The **AI Analyst** also uses this: when `VITE_API_BASE` is set, it routes questions through your backend's `/ai/analyst/` endpoint (which holds your Anthropic API key securely server-side). See `ai_analyst.py` and `CONNECT_FRONTEND_TO_BACKEND.md` in the backend bundle.
+The **AI Analyst** also uses this connection. With `VITE_API_BASE` set, it sends conversations to `/ai/analyst/`, where an OpenAI model can call read-only Ngoma data tools, compare releases and artists, explain charts, create grounded visualizations, and produce clearly labelled forecasts. The API key remains server-side. If the backend or model is unavailable, the widget falls back to the bundled local analyst.
 
 ## Deploy in one click
 
@@ -78,5 +78,5 @@ Replace the contents of `src/data/chartData.js` with new month data (same shape)
 
 ## Notes
 
-- Browser storage (localStorage/sessionStorage) is intentionally not used.
+- AI Analyst conversations are stored in `localStorage` on the current device and can be deleted from the chat history panel.
 - Share-as-image uses the Canvas API and works on any real host (the in-app preview fallback exists for sandboxed environments only).
