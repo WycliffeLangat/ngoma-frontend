@@ -22,18 +22,18 @@
   --ngoma-off-white: #f8f7f3;
   --ngoma-page-bg: #ffffff;
   --ngoma-card-bg: #ffffff;
-  --ngoma-soft-bg: #fbfaf7;
-  --ngoma-soft-gold-bg: #fff7e6;
+  --ngoma-soft-bg: #ffffff;
+  --ngoma-soft-gold-bg: rgba(255, 191, 0, 0.16);
 
   --ngoma-text: #050505;
   --ngoma-text-soft: #4f4f4f;
   --ngoma-muted: #777777;
   --ngoma-muted-light: #b8b8b8;
 
-  --ngoma-gold: #c89116;
-  --ngoma-gold-bright: #f0b429;
-  --ngoma-gold-soft: rgba(200, 145, 22, 0.14);
-  --ngoma-gold-border: rgba(200, 145, 22, 0.42);
+  --ngoma-gold: #FFBF00;
+  --ngoma-gold-bright: #FFD24A;
+  --ngoma-gold-soft: rgba(255, 191, 0, 0.14);
+  --ngoma-gold-border: rgba(255, 191, 0, 0.42);
 
   --ngoma-green: #2fb153;
   --ngoma-blue: #1f6fd1;
@@ -181,7 +181,7 @@ main {
 .ngoma-nav .active {
   color: var(--ngoma-text);
   border-color: var(--ngoma-gold);
-  background: rgba(200, 145, 22, 0.12);
+  background: rgba(255, 191, 0, 0.12);
 }
 
 .nav-pill,
@@ -415,7 +415,7 @@ small,
 .summary-card:hover,
 .leader-card:hover {
   background: var(--ngoma-white);
-  border-color: rgba(200, 145, 22, 0.32);
+  border-color: rgba(255, 191, 0, 0.32);
 }
 
 .card h1,
@@ -544,7 +544,7 @@ small,
 .month-filter:hover {
   color: var(--ngoma-gold);
   border-color: var(--ngoma-gold-border);
-  background: rgba(200, 145, 22, 0.08);
+  background: rgba(255, 191, 0, 0.08);
 }
 
 .tab.active,
@@ -1258,7 +1258,7 @@ select:focus,
 textarea:focus,
 .search-input:focus {
   border-color: var(--ngoma-gold);
-  box-shadow: 0 0 0 3px rgba(200, 145, 22, 0.16);
+  box-shadow: 0 0 0 3px rgba(255, 191, 0, 0.16);
 }
 
 .search-icon,
@@ -1337,7 +1337,7 @@ textarea:focus,
 
 .dropdown-item:hover,
 .menu-item:hover {
-  background: rgba(200, 145, 22, 0.1);
+  background: rgba(255, 191, 0, 0.1);
   color: var(--ngoma-text);
 }
 
@@ -1538,6 +1538,20 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background:#ffffff" i],
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: #ffffff" i],
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background:#FAFAF8" i],
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: #FAFAF8" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background:#FFF" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: #FFF" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background:#ffffff" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: #ffffff" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background:#FFFFFF" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: #FFFFFF" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background-color:#FFF" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background-color: #FFF" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background-color:#ffffff" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background-color: #ffffff" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background-color:#FFFFFF" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background-color: #FFFFFF" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: rgb(255, 255, 255)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background-color: rgb(255, 255, 255)" i],
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background:#FAFAF6" i],
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: #FAFAF6" i],
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background:#FAF9F5" i],
@@ -1882,7 +1896,7 @@ main,
 .metric-card .rank,
 [class*="leader"] .rank,
 [class*="Leader"] .rank {
-  color: #c89116 !important;
+  color: #FFBF00 !important;
 }
 
 /* Filters area */
@@ -1924,9 +1938,9 @@ button[class*="Tab"] {
 .platform-filter.active,
 .month-filter.active,
 button.active {
-  background: #c89116 !important;
+  background: #FFBF00 !important;
   color: #050505 !important;
-  border-color: #c89116 !important;
+  border-color: #FFBF00 !important;
 }
 
 /* Main chart/table containers should be white */
@@ -2031,7 +2045,7 @@ tr:hover,
 [class*="Item"]:hover {
   background: #fff7e6 !important;
   color: #050505 !important;
-  box-shadow: inset 4px 0 0 #c89116 !important;
+  box-shadow: inset 4px 0 0 #FFBF00 !important;
 }
 
 /* Make all text inside rows readable */
@@ -2109,7 +2123,7 @@ ranking-item *,
 [class*="Points"],
 [class*="score"],
 [class*="Score"] {
-  color: #c89116 !important;
+  color: #FFBF00 !important;
 }
 
 /* Platform badges */
@@ -2152,7 +2166,7 @@ ranking-item *,
 .footer .gold-text,
 .site-footer .gold-text,
 .ngoma-footer .gold-text {
-  color: #c89116 !important;
+  color: #FFBF00 !important;
 }
 /* =========================================================
    MOBILE ANALYTICS CARD + CHART CENTERING FIX
@@ -2346,10 +2360,10 @@ html[data-ngoma-theme="dark"] {
   --ngoma-muted: #aeb6ae;
   --ngoma-muted-light: #8f968f;
   --ngoma-page-bg: #050505;
-  --ngoma-card-bg: #111411;
-  --ngoma-soft-bg: #111411;
-  --ngoma-border-light: #2b302b;
-  --ngoma-border-medium: #343a34;
+  --ngoma-card-bg: #FFBF00;
+  --ngoma-soft-bg: #FFBF00;
+  --ngoma-border-light: rgba(255, 191, 0, 0.42);
+  --ngoma-border-medium: rgba(255, 191, 0, 0.58);
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell :where(h1,h2,h3,h4,h5,h6,p,label,summary,li,td,th,strong,b,em,small,caption,figcaption):not([style*="color" i]) {
@@ -2466,14 +2480,14 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell .recharts-cartesian-axis-tick-val
 
 /* Final dark interaction pass: old hover rules and inline hover styles must not turn surfaces pale. */
 html[data-ngoma-theme="dark"] {
-  --ngoma-hover-bg: #181c18;
-  --ngoma-hover-bg-strong: #1f241f;
-  --ngoma-row-bg: #111411;
-  --ngoma-row-bg-alt: #151915;
-  --ngoma-control-bg: #151815;
-  --ngoma-control-hover: #1e241e;
+  --ngoma-hover-bg: #e6ad00;
+  --ngoma-hover-bg-strong: #d49f00;
+  --ngoma-row-bg: #FFBF00;
+  --ngoma-row-bg-alt: #f2b500;
+  --ngoma-control-bg: #FFBF00;
+  --ngoma-control-hover: #e6ad00;
   --ngoma-dark-shadow: rgba(0, 0, 0, 0.38);
-  --ngoma-soft-gold-bg: rgba(200, 145, 22, 0.18);
+  --ngoma-soft-gold-bg: #FFBF00;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
@@ -2492,9 +2506,9 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
   [class*="card"],
   [class*="Card"]
 ) {
-  background-color: #111411 !important;
-  color: #f6f3ea !important;
-  border-color: #2b302b !important;
+  background-color: #FFBF00 !important;
+  color: #050505 !important;
+  border-color: #dba500 !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
@@ -2513,9 +2527,9 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
   [class*="card"],
   [class*="Card"]
 ):hover {
-  background-color: #151915 !important;
-  color: #f6f3ea !important;
-  border-color: #343a34 !important;
+  background-color: #e6ad00 !important;
+  color: #050505 !important;
+  border-color: #c79600 !important;
   box-shadow: 0 10px 28px var(--ngoma-dark-shadow) !important;
 }
 
@@ -2552,8 +2566,9 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
   [class*="item"],
   [class*="Item"]
 ) {
-  color: #f6f3ea !important;
-  border-color: #2b302b !important;
+  background-color: #FFBF00 !important;
+  color: #050505 !important;
+  border-color: #dba500 !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
@@ -2589,11 +2604,11 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
   [class*="item"],
   [class*="Item"]
 ):hover {
-  background: #181c18 !important;
-  background-color: #181c18 !important;
-  color: #f6f3ea !important;
-  border-color: #343a34 !important;
-  box-shadow: inset 4px 0 0 #c89116 !important;
+  background: #e6ad00 !important;
+  background-color: #e6ad00 !important;
+  color: #050505 !important;
+  border-color: #c79600 !important;
+  box-shadow: inset 4px 0 0 #050505 !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
@@ -2639,9 +2654,9 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
   [class*="control"],
   [class*="Control"]
 ):hover {
-  background-color: #1e241e !important;
-  color: #f6f3ea !important;
-  border-color: #3c443c !important;
+  background-color: #e6ad00 !important;
+  color: #050505 !important;
+  border-color: #c79600 !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
@@ -2653,9 +2668,9 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
   summary,
   [role="button"]
 ):focus-visible {
-  outline: 2px solid rgba(200, 145, 22, 0.78) !important;
+  outline: 2px solid rgba(255, 191, 0, 0.78) !important;
   outline-offset: 2px !important;
-  box-shadow: 0 0 0 4px rgba(200, 145, 22, 0.16) !important;
+  box-shadow: 0 0 0 4px rgba(255, 191, 0, 0.16) !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
@@ -2666,9 +2681,9 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
   [data-active="true"],
   [data-selected="true"]
 ) {
-  background-color: rgba(200, 145, 22, 0.20) !important;
-  color: #f6f3ea !important;
-  border-color: rgba(200, 145, 22, 0.42) !important;
+  background-color: #FFBF00 !important;
+  color: #050505 !important;
+  border-color: #dba500 !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background:#FAFAF6" i],
@@ -2713,26 +2728,298 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: rgb(250, 245
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background-color: rgb(250, 245, 234)" i],
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: rgb(250, 248, 242)" i],
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background-color: rgb(250, 248, 242)" i] {
-  background: #181c18 !important;
-  background-color: #181c18 !important;
+  background: #FFBF00 !important;
+  background-color: #FFBF00 !important;
   background-image: none !important;
-  color: #f6f3ea !important;
-  border-color: #343a34 !important;
+  color: #050505 !important;
+  border-color: #dba500 !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="linear-gradient" i][style*="#ffffff" i],
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="linear-gradient" i][style*="#FFFFFF" i],
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="linear-gradient" i][style*="#FAFAF8" i],
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="linear-gradient" i][style*="#FAF5EA" i] {
-  background: linear-gradient(135deg, #151915, #0b0d0b) !important;
-  background-color: #151915 !important;
-  color: #f6f3ea !important;
+  background: linear-gradient(135deg, #FFBF00, #e6ad00) !important;
+  background-color: #FFBF00 !important;
+  color: #050505 !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell .hover\:bg-white:hover,
 html[data-ngoma-theme="dark"] .ngoma-app-shell .hover-white:hover,
 html[data-ngoma-theme="dark"] .ngoma-app-shell .row-hover-white:hover {
-  background: #181c18 !important;
-  background-color: #181c18 !important;
-  color: #f6f3ea !important;
+  background: #e6ad00 !important;
+  background-color: #e6ad00 !important;
+  color: #050505 !important;
+}
+
+/* Light mode is intentionally super white: page and card-like boxes stay pure #FFFFFF. */
+html[data-ngoma-theme="light"] {
+  --ngoma-page-bg: #FFFFFF;
+  --ngoma-card-bg: #FFFFFF;
+  --ngoma-soft-bg: #FFFFFF;
+}
+
+html[data-ngoma-theme="light"] body,
+html[data-ngoma-theme="light"] #root,
+html[data-ngoma-theme="light"] .ngoma-app-shell,
+html[data-ngoma-theme="light"] .ngoma-app-shell main,
+html[data-ngoma-theme="light"] .ngoma-app-shell .page,
+html[data-ngoma-theme="light"] .ngoma-app-shell .page-content,
+html[data-ngoma-theme="light"] .ngoma-app-shell [data-page] {
+  background: #FFFFFF !important;
+  background-color: #FFFFFF !important;
+}
+
+html[data-ngoma-theme="light"] .ngoma-app-shell :is(
+  .card,
+  .ngoma-card,
+  .stat-card,
+  .feature-card,
+  .news-card,
+  .analytics-card,
+  .record-card,
+  .summary-card,
+  .leader-card,
+  .chart-card,
+  .premium-card,
+  .table-card,
+  [class*="card"],
+  [class*="Card"]
+),
+html[data-ngoma-theme="light"] .ngoma-app-shell [style*="background:#FAFAF8" i],
+html[data-ngoma-theme="light"] .ngoma-app-shell [style*="background: #FAFAF8" i],
+html[data-ngoma-theme="light"] .ngoma-app-shell [style*="background:#FAFAF6" i],
+html[data-ngoma-theme="light"] .ngoma-app-shell [style*="background: #FAFAF6" i],
+html[data-ngoma-theme="light"] .ngoma-app-shell [style*="background:#FAFAF7" i],
+html[data-ngoma-theme="light"] .ngoma-app-shell [style*="background: #FAFAF7" i],
+html[data-ngoma-theme="light"] .ngoma-app-shell [style*="background:#FAF9F5" i],
+html[data-ngoma-theme="light"] .ngoma-app-shell [style*="background: #FAF9F5" i],
+html[data-ngoma-theme="light"] .ngoma-app-shell [style*="background:#FBFAF7" i],
+html[data-ngoma-theme="light"] .ngoma-app-shell [style*="background: #FBFAF7" i],
+html[data-ngoma-theme="light"] .ngoma-app-shell [style*="background:#F7F7F7" i],
+html[data-ngoma-theme="light"] .ngoma-app-shell [style*="background: #F7F7F7" i],
+html[data-ngoma-theme="light"] .ngoma-app-shell [style*="background:#F2F2F2" i],
+html[data-ngoma-theme="light"] .ngoma-app-shell [style*="background: #F2F2F2" i],
+html[data-ngoma-theme="light"] .ngoma-app-shell [style*="background:#F8FAFD" i],
+html[data-ngoma-theme="light"] .ngoma-app-shell [style*="background: #F8FAFD" i],
+html[data-ngoma-theme="light"] .ngoma-app-shell [style*="background:#EEF5FF" i],
+html[data-ngoma-theme="light"] .ngoma-app-shell [style*="background: #EEF5FF" i],
+html[data-ngoma-theme="light"] .ngoma-app-shell [style*="background:#FFF7E6" i],
+html[data-ngoma-theme="light"] .ngoma-app-shell [style*="background: #FFF7E6" i],
+html[data-ngoma-theme="light"] .ngoma-app-shell [style*="background:#fff7e6" i],
+html[data-ngoma-theme="light"] .ngoma-app-shell [style*="background: #fff7e6" i],
+html[data-ngoma-theme="light"] .ngoma-app-shell [style*="background: rgb(250, 250, 248)" i],
+html[data-ngoma-theme="light"] .ngoma-app-shell [style*="background-color: rgb(250, 250, 248)" i],
+html[data-ngoma-theme="light"] .ngoma-app-shell [style*="background: rgb(251, 250, 247)" i],
+html[data-ngoma-theme="light"] .ngoma-app-shell [style*="background-color: rgb(251, 250, 247)" i],
+html[data-ngoma-theme="light"] .ngoma-app-shell [style*="linear-gradient" i][style*="#FFFFFF" i],
+html[data-ngoma-theme="light"] .ngoma-app-shell [style*="linear-gradient" i][style*="#FAFAF8" i],
+html[data-ngoma-theme="light"] .ngoma-app-shell [style*="linear-gradient" i][style*="#FAF5EA" i] {
+  background: #FFFFFF !important;
+  background-color: #FFFFFF !important;
+  background-image: none !important;
+}
+
+/* Gold dark-mode surfaces need dark text, including content previously corrected for black cards. */
+html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
+  .card,
+  .ngoma-card,
+  .stat-card,
+  .feature-card,
+  .news-card,
+  .analytics-card,
+  .record-card,
+  .summary-card,
+  .leader-card,
+  .chart-card,
+  .premium-card,
+  .table-card,
+  tr,
+  .chart-row,
+  .ranking-row,
+  .song-row,
+  .album-row,
+  .artist-row,
+  .record-row,
+  .table-row,
+  .list-row,
+  .chart-item,
+  .ranking-item,
+  .song-item,
+  .album-item,
+  .artist-item,
+  .record-item,
+  [class*="card"],
+  [class*="Card"],
+  [class*="row"],
+  [class*="Row"],
+  [class*="item"],
+  [class*="Item"],
+  [style*="background:#FFF" i],
+  [style*="background: #FFF" i],
+  [style*="background:#ffffff" i],
+  [style*="background: #ffffff" i],
+  [style*="background:#FFFFFF" i],
+  [style*="background: #FFFFFF" i],
+  [style*="background: rgb(255, 255, 255)" i],
+  [style*="background:#FAFAF8" i],
+  [style*="background: #FAFAF8" i],
+  [style*="background:#FAFAF6" i],
+  [style*="background: #FAFAF6" i],
+  [style*="background:#FBFAF7" i],
+  [style*="background: #FBFAF7" i],
+  [style*="background:#F8FAFD" i],
+  [style*="background: #F8FAFD" i],
+  [style*="background:#EEF5FF" i],
+  [style*="background: #EEF5FF" i],
+  [style*="background:#FFF7E6" i],
+  [style*="background: #FFF7E6" i],
+  [style*="background:#fff7e6" i],
+  [style*="background: #fff7e6" i]
+) :where(h1,h2,h3,h4,h5,h6,p,label,summary,li,td,th,strong,b,em,small,span,div,button,a):not([style*="color" i]) {
+  color: #050505 !important;
+}
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
+  .card,
+  .ngoma-card,
+  .stat-card,
+  .feature-card,
+  .news-card,
+  .analytics-card,
+  .record-card,
+  .summary-card,
+  .leader-card,
+  .chart-card,
+  .premium-card,
+  .table-card,
+  tr,
+  .chart-row,
+  .ranking-row,
+  .song-row,
+  .album-row,
+  .artist-row,
+  .record-row,
+  .table-row,
+  .list-row,
+  .chart-item,
+  .ranking-item,
+  .song-item,
+  .album-item,
+  .artist-item,
+  .record-item,
+  [class*="card"],
+  [class*="Card"],
+  [class*="row"],
+  [class*="Row"],
+  [class*="item"],
+  [class*="Item"],
+  [style*="background:#FFF" i],
+  [style*="background: #FFF" i],
+  [style*="background:#ffffff" i],
+  [style*="background: #ffffff" i],
+  [style*="background:#FFFFFF" i],
+  [style*="background: #FFFFFF" i],
+  [style*="background: rgb(255, 255, 255)" i],
+  [style*="background:#FAFAF8" i],
+  [style*="background: #FAFAF8" i],
+  [style*="background:#FAFAF6" i],
+  [style*="background: #FAFAF6" i],
+  [style*="background:#FBFAF7" i],
+  [style*="background: #FBFAF7" i],
+  [style*="background:#F8FAFD" i],
+  [style*="background: #F8FAFD" i],
+  [style*="background:#EEF5FF" i],
+  [style*="background: #EEF5FF" i],
+  [style*="background:#FFF7E6" i],
+  [style*="background: #FFF7E6" i],
+  [style*="background:#fff7e6" i],
+  [style*="background: #fff7e6" i]
+) :is(
+  [style*="color:#050505" i],
+  [style*="color: #050505" i],
+  [style*="color:#111" i],
+  [style*="color: #111" i],
+  [style*="color:#1A1A1A" i],
+  [style*="color: #1A1A1A" i],
+  [style*="color:#1F241F" i],
+  [style*="color: #1F241F" i],
+  [style*="color:#FFBF00" i],
+  [style*="color: #FFBF00" i],
+  [style*="color: rgb(5, 5, 5)" i],
+  [style*="color:rgb(5, 5, 5)" i],
+  [style*="color: rgb(26, 26, 26)" i],
+  [style*="color:rgb(26, 26, 26)" i]
+) {
+  color: #050505 !important;
+}
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
+  .card,
+  .ngoma-card,
+  .stat-card,
+  .feature-card,
+  .news-card,
+  .analytics-card,
+  .record-card,
+  .summary-card,
+  .leader-card,
+  .chart-card,
+  .premium-card,
+  .table-card,
+  tr,
+  .chart-row,
+  .ranking-row,
+  .song-row,
+  .album-row,
+  .artist-row,
+  .record-row,
+  .table-row,
+  .list-row,
+  .chart-item,
+  .ranking-item,
+  .song-item,
+  .album-item,
+  .artist-item,
+  .record-item,
+  [class*="card"],
+  [class*="Card"],
+  [class*="row"],
+  [class*="Row"],
+  [class*="item"],
+  [class*="Item"]
+) :is(
+  [style*="color:#4E5851" i],
+  [style*="color: #4E5851" i],
+  [style*="color:#59645D" i],
+  [style*="color: #59645D" i],
+  [style*="color:#69716B" i],
+  [style*="color: #69716B" i],
+  [style*="color:#777" i],
+  [style*="color: #777" i],
+  [style*="color:#999" i],
+  [style*="color: #999" i],
+  [style*="color: rgb(79, 87, 81)" i],
+  [style*="color:rgb(79, 87, 81)" i],
+  [style*="color: rgb(89, 100, 93)" i],
+  [style*="color:rgb(89, 100, 93)" i],
+  [style*="color: rgb(105, 113, 107)" i],
+  [style*="color:rgb(105, 113, 107)" i],
+  [style*="color: rgb(153, 153, 153)" i],
+  [style*="color:rgb(153, 153, 153)" i]
+) {
+  color: #4b3a00 !important;
+}
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
+  .card,
+  .ngoma-card,
+  .analytics-card,
+  .chart-card,
+  .premium-card,
+  .table-card,
+  [class*="card"],
+  [class*="Card"]
+) :is(svg text, .recharts-text, .recharts-cartesian-axis-tick-value) {
+  fill: #050505 !important;
 }
