@@ -3012,3 +3012,18 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell .ngoma-platform-cell {
 html[data-ngoma-theme="dark"] .ngoma-app-shell .ngoma-platform-cell * {
   color: #050505 !important;
 }
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell select,
+html[data-ngoma-theme="dark"] .ngoma-app-shell select:focus,
+html[data-ngoma-theme="dark"] .ngoma-app-shell select option,
+html[data-ngoma-theme="dark"] .ngoma-app-shell select optgroup {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  color: #050505 !important;
+}
+
+@media (max-width: 640px) {
+  .ngoma-app-shell .ngoma-analytics-chart-scroll {
+    overflow-x: visible !important;
+  }
+}

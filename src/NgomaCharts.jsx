@@ -268,6 +268,34 @@ const defaultComparisonKey = (chartType, index) => {
   return entry ? `${entry.title} — ${entry.artist}` : "";
 };
 
+const comparisonDefaultKeys = (chartType, throughMonth = CURRENT_MONTH) => {
+  const cutoffIndex = Math.max(0, monthIndex(throughMonth));
+  const includedMonths = MONTHS.slice(0, cutoffIndex + 1);
+  const groups = new Map();
+
+  includedMonths.forEach((monthLabel) => {
+    getCombined(chartType, monthLabel).forEach((entry) => {
+      const key = `${entry.title} — ${entry.artist}`;
+      const current = groups.get(key) || {
+        key,
+        title: entry.title,
+        artist: entry.artist,
+        months: new Set(),
+        totalPts: 0,
+        peak: Number.POSITIVE_INFINITY,
+      };
+      current.months.add(monthLabel);
+      current.totalPts += Number(entry.pts) || 0;
+      current.peak = Math.min(current.peak, Number(entry.rank) || Number.POSITIVE_INFINITY);
+      groups.set(key, current);
+    });
+  });
+
+  return [...groups.values()]
+    .sort((a, b) => b.months.size - a.months.size || b.totalPts - a.totalPts || a.peak - b.peak || a.title.localeCompare(b.title))
+    .map((entry) => entry.key);
+};
+
 const buildCombinedYearEnd = (chartType) => {
   const releases = new Map();
 
@@ -583,13 +611,14 @@ export default function NgomaCharts(){
   const [selA,setSelA]=useState(null);
   const [selR,setSelR]=useState(null);
   const [selNews,setSelNews]=useState(null);
-  const [cmpA1,setCmpA1]=useState("Bensoul");
-  const [cmpA2,setCmpA2]=useState("Dyana Cods");
-  const [cmpS1,setCmpS1]=useState(() => defaultComparisonKey("singles", 0));
-  const [cmpS2,setCmpS2]=useState(() => defaultComparisonKey("singles", 1));
+  const [cmpA1,setCmpA1]=useState("");
+  const [cmpA2,setCmpA2]=useState("");
+  const [cmpS1,setCmpS1]=useState(() => comparisonDefaultKeys("singles", CURRENT_MONTH)[0] || defaultComparisonKey("singles", 0));
+  const [cmpS2,setCmpS2]=useState(() => comparisonDefaultKeys("singles", CURRENT_MONTH)[1] || defaultComparisonKey("singles", 1));
   const [anMonth,setAnMonth]=useState(CURRENT_MONTH);
   const [artistMonth,setArtistMonth]=useState(CURRENT_MONTH);
   const [rankJourneyView,setRankJourneyView]=useState("table");
+  const [viewModes,setViewModes]=useState({});
   const [loaded,setLd]=useState(false);
   // Live backend (optional) — falls back to baked-in data if unreachable
   const API_BASE = import.meta.env.VITE_API_BASE || "";
@@ -788,7 +817,9 @@ const display = data.slice(0, Math.min(vc, data.length));
 
 const top = data[0];
 
-  const themeToggle = (extra={}) => (
+  const themeToggle = (extra={}) => {
+    const { hideDot = false, ...extraStyle } = extra;
+    return (
     <button
       type="button"
       onClick={() => setTheme((current) => (current === "dark" ? "light" : "dark"))}
@@ -814,10 +845,10 @@ const top = data[0];
         cursor:"pointer",
         whiteSpace:"nowrap",
         boxShadow:isDark?"0 0 0 1px rgba(255,255,255,0.02)":"0 4px 14px rgba(0,0,0,0.035)",
-        ...extra,
+        ...extraStyle,
       }}
     >
-      <span
+      {!hideDot && <span
         aria-hidden="true"
         style={{
           width:"8px",
@@ -827,10 +858,11 @@ const top = data[0];
           boxShadow:`0 0 0 3px ${isDark?"rgba(246,243,234,0.10)":"rgba(26,26,26,0.08)"}`,
           flexShrink:0,
         }}
-      />
+      />}
       {isDark ? "Light" : "Dark"}
     </button>
-  );
+    );
+  };
 
   // ALL data flattened for search
   const allEntries=useMemo(()=>{
@@ -850,8 +882,11 @@ const top = data[0];
   const artists = buildCombinedArtists(ct, artistCutoffMonth);
   useEffect(() => {
     if (!artists.length) return;
-    if (!artists.some((item) => item.n === cmpA1)) setCmpA1(artists[0].n);
-    if (!artists.some((item) => item.n === cmpA2)) setCmpA2((artists[1] || artists[0]).n);
+    const defaults = [...artists].sort((a, b) => b.m - a.m || b.p - a.p || a.rank - b.rank || a.n.localeCompare(b.n));
+    const first = artists.some((item) => item.n === cmpA1) ? cmpA1 : defaults[0]?.n;
+    const second = artists.some((item) => item.n === cmpA2) && cmpA2 !== first ? cmpA2 : (defaults.find((item) => item.n !== first) || defaults[0])?.n;
+    if (first && first !== cmpA1) setCmpA1(first);
+    if (second && second !== cmpA2) setCmpA2(second);
   }, [ct, artistCutoffMonth, artists, cmpA1, cmpA2]);
   const prepareDetailNavigation = () => {
     if (!detailOpenRef.current) {
@@ -972,6 +1007,101 @@ const top = data[0];
       };
     })
     .filter((entry) => entry.entries > 0) : [];
+
+  const uniquePlatformData = analyticsActive ? currentPlatformKeys.map((platform) => {
+    const otherIndexes = currentPlatformKeys
+      .filter((item) => item !== platform)
+      .map((item) => getRawPlatformIndex(ct, item, anMonth));
+    const uniqueEntries = rawPlatform(ct, platform, anMonth)
+      .filter((entry) => !otherIndexes.some((index) => index.has(entryKey(entry))))
+      .map((entry) => ({
+        title: entry.t,
+        artist: formatArtistCredit(entry.a, entry.fa),
+        primary_artist: entry.a,
+        featured_artists: entry.fa || "",
+        rank: entry.r,
+        pts: entry.p,
+      }));
+    return {
+      platform,
+      label: PLAT_LABEL[platform] || platform,
+      count: uniqueEntries.length,
+      color: PC[platform] || "#888",
+      entries: uniqueEntries.slice(0, 6),
+    };
+  }) : [];
+
+  const topCountryData = analyticsActive ? (() => {
+    const countryMap = new Map();
+    getCombined(ct, anMonth).forEach((entry) => {
+      const country = getArtistCountry(entry);
+      const code = country.code || "—";
+      const current = countryMap.get(code) || {
+        code,
+        country: country.country || code,
+        entries: 0,
+        points: 0,
+        color: COUNTRY_ACCENTS[code] || GOLD,
+      };
+      current.entries += 1;
+      current.points += Number(entry.pts) || 0;
+      countryMap.set(code, current);
+    });
+    return [...countryMap.values()]
+      .sort((a, b) => b.entries - a.entries || b.points - a.points || a.code.localeCompare(b.code))
+      .slice(0, 5);
+  })() : [];
+
+  const featureAnalytics = analyticsActive ? (() => {
+    const releaseMap = new Map();
+    const artistMap = new Map();
+    const monthly = analysisMonths.map((monthLabel) => {
+      let entries = 0;
+      let points = 0;
+      getCombined(ct, monthLabel).forEach((entry) => {
+        const featuredArtists = String(entry.featured_artists || entry.fa || "").split(/\s*,\s*|\s*&\s*/).map((item) => item.trim()).filter(Boolean);
+        if (!featuredArtists.length) return;
+        entries += 1;
+        points += Number(entry.pts) || 0;
+        const key = entryKey(entry);
+        const release = releaseMap.get(key) || {
+          title: entry.title,
+          artist: entry.artist,
+          primary_artist: entry.primary_artist,
+          featured_artists: entry.featured_artists,
+          entries: 0,
+          points: 0,
+          peak: Number.POSITIVE_INFINITY,
+          months: new Set(),
+        };
+        release.entries += 1;
+        release.points += Number(entry.pts) || 0;
+        release.peak = Math.min(release.peak, Number(entry.rank) || Number.POSITIVE_INFINITY);
+        release.months.add(monthLabel);
+        releaseMap.set(key, release);
+        featuredArtists.forEach((artistName) => {
+          const artistKey = artistName.toLowerCase();
+          const artist = artistMap.get(artistKey) || { name: artistName, points: 0, credits: 0, releases: new Set() };
+          artist.points += Number(entry.pts) || 0;
+          artist.credits += 1;
+          artist.releases.add(key);
+          artistMap.set(artistKey, artist);
+        });
+      });
+      return { month: monthLabel.split(" ")[0].slice(0, 3), entries, points };
+    });
+    return {
+      monthly,
+      releases: [...releaseMap.values()]
+        .map((item) => ({ ...item, months: item.months.size, peak: Number.isFinite(item.peak) ? item.peak : null }))
+        .sort((a, b) => b.points - a.points || a.peak - b.peak)
+        .slice(0, 8),
+      artists: [...artistMap.values()]
+        .map((item) => ({ ...item, releases: item.releases.size }))
+        .sort((a, b) => b.points - a.points || b.credits - a.credits || a.name.localeCompare(b.name))
+        .slice(0, 8),
+    };
+  })() : { monthly: [], releases: [], artists: [] };
 
   const buildMovementData = (chartType, targetMonth) => {
     const currentIndex = monthIndex(targetMonth);
@@ -1263,6 +1393,38 @@ const top = data[0];
     </div>
   );
 
+  const setViewMode = (key, value) => setViewModes((current) => ({ ...current, [key]: value }));
+  const viewMode = (key, fallback = "graph") => viewModes[key] || fallback;
+  const ViewToggle = ({ id, value = viewMode(id), onChange = (next) => setViewMode(id, next) }) => (
+    <div style={{display:"flex",padding:"3px",borderRadius:"999px",background:isDark?"#181C18":"#F2F2EE",border:"1px solid "+(isDark?"#2F352F":"#E3E0D8"),flexShrink:0}}>
+      {["table","graph"].map((mode)=>{
+        const active = value === mode;
+        return (
+          <button
+            key={mode}
+            type="button"
+            onClick={()=>onChange(mode)}
+            style={{
+              border:0,
+              borderRadius:"999px",
+              background:active?(isDark?GOLD:"#1A1A1A"):(isDark?"#FFF":"transparent"),
+              color:active?"#FFF":(isDark?"#050505":"#59645D"),
+              padding:"7px 12px",
+              fontFamily:F,
+              fontSize:"9.5px",
+              fontWeight:900,
+              letterSpacing:"1px",
+              textTransform:"uppercase",
+              cursor:"pointer",
+            }}
+          >
+            {mode}
+          </button>
+        );
+      })}
+    </div>
+  );
+
   // === ANALYTICS COMPUTATIONS — all from full Top-50 data ===
   const analysisMonths = analyticsActive ? MONTHS.slice(0, Math.max(0, monthIndex(anMonth)) + 1) : MONTHS;
   const top10sData=analyticsActive?getCombined(ct,anMonth).slice(0,10).map(e=>({...e,name:e.title.length>16?e.title.slice(0,14)+"…":e.title,title:e.title,artist:e.artist,pts:e.pts})):[];
@@ -1277,9 +1439,10 @@ const top = data[0];
     };
   }):[];
 
+  const topArtistTrajectoryArtists = analyticsActive ? artists.slice(0,3) : [];
   const topArtistsLine=analyticsActive?analysisMonths.map(m=>{
     const obj={month:m.split(" ")[0].slice(0,3)};
-    artists.slice(0,6).forEach(a=>{
+    topArtistTrajectoryArtists.forEach(a=>{
       obj[a.n]=a.mp[m]||0;
     });
     return obj;
@@ -1339,6 +1502,13 @@ const top = data[0];
     if(cd[0])setCmpS1(cd[0].title+" — "+cd[0].artist);
     if(cd[1])setCmpS2(cd[1].title+" — "+cd[1].artist);
   },[analyticsActive,ct,anMonth]);
+  useEffect(()=>{
+    if(!analyticsActive||!allTitles.length)return;
+    const available = new Set(allTitles.map((item) => item.key));
+    const defaults = comparisonDefaultKeys(ct, anMonth).filter((key) => available.has(key));
+    if(defaults[0])setCmpS1(defaults[0]);
+    if(defaults[1]||defaults[0])setCmpS2(defaults[1]||defaults[0]);
+  },[analyticsActive,ct,anMonth,allTitles]);
   const [sp1,sp2]=useMemo(()=>{
     if(!analyticsActive)return [null,null];
     return [
@@ -1510,6 +1680,23 @@ const top = data[0];
       .map((entry) => ({...entry, month: monthLabel}))
   ) : [];
   const selectedArtistReleases = selA ? [...new Map(selectedArtistEntries.map((entry) => [entryKey(entry), entry])).values()] : [];
+  const selectedArtistEntryGroups = selA ? [...selectedArtistEntries.reduce((map, entry) => {
+    const key = entryKey(entry);
+    const current = map.get(key) || {
+      title: entry.title,
+      artist: entry.artist,
+      primary_artist: entry.primary_artist,
+      featured_artists: entry.featured_artists,
+      totalPoints: 0,
+      peak: Number.POSITIVE_INFINITY,
+      rows: [],
+    };
+    current.totalPoints += Number(entry.pts) || 0;
+    current.peak = Math.min(current.peak, Number(entry.rank) || Number.POSITIVE_INFINITY);
+    current.rows.push(entry);
+    map.set(key, current);
+    return map;
+  }, new Map()).values()].sort((a, b) => b.totalPoints - a.totalPoints || a.peak - b.peak || a.title.localeCompare(b.title)) : [];
   const selectedArtistRankData = selA ? MONTHS.map((monthLabel) => ({
     month: monthLabel.split(" ")[0].slice(0, 3),
     rank: selA.rh?.[monthLabel] || null,
@@ -1632,7 +1819,7 @@ const top = data[0];
                     <span key={t} onClick={()=>navTo(t)} style={{cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"13px",fontWeight:page===t?800:600,letterSpacing:"1px",textTransform:"uppercase",color:page===t?themeColors.text:themeColors.muted,background:page===t?themeColors.active:"transparent",border:page===t?"1px solid #D4B65E":"1px solid transparent"}}>{navLabel(t)}</span>
                   ))}
                   <span onClick={()=>{setMNav(false);setSOpen(true);}} style={{cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"13px",fontWeight:600,letterSpacing:"1px",textTransform:"uppercase",color:themeColors.muted}}>Search</span>
-                  {themeToggle({width:"100%",justifyContent:"space-between",borderRadius:"12px",minHeight:"44px",padding:"0 14px",marginTop:"4px"})}
+                  {themeToggle({hideDot:true,width:"100%",justifyContent:"flex-start",borderRadius:"12px",minHeight:"44px",padding:"0 14px",marginTop:"4px",fontSize:"13px",fontWeight:600,letterSpacing:"1px"})}
                 </div>
               )}
             </>
@@ -1764,7 +1951,7 @@ const top = data[0];
               <div key={m} style={{marginBottom:"14px",padding:"16px",background:"#FAFAF8",borderRadius:"8px",border:"1px solid #EAEAE6"}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"10px"}}>
                   <span style={{fontWeight:700,fontFamily:SF}}>{m}</span>
-                  {combined?<span style={{fontFamily:F,fontSize:"13px",fontWeight:700,color:GOLD}}>#{combined.rank} Combined · {combined.pts.toLocaleString()} pts · {combined.plat} platforms</span>:<span style={{fontFamily:F,fontSize:"12px",color:"#CCC"}}>Not on combined chart</span>}
+                  {combined?<span style={{fontFamily:F,fontSize:"13px",fontWeight:700,color:GOLD}}>#{combined.rank} Combined · {combined.pts.toLocaleString()} pts · {combined.plat} platforms</span>:<span style={{fontFamily:F,fontSize:"12px",color:isDark?"#AEB6AE":"#8A928B",fontWeight:800}}>Not charted this month</span>}
                 </div>
                 <div style={{display:"flex",gap:"6px",flexWrap:"wrap"}}>
                   {platforms.map(p=>(
@@ -1772,7 +1959,7 @@ const top = data[0];
                       {p.platform} #{p.rank}
                     </span>
                   ))}
-                  {platforms.length===0&&<span style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:"#CCC"}}>Not in tracked Top 50 this month</span>}
+                  {platforms.length===0&&<span style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#AEB6AE":"#8A928B",fontWeight:750}}>No tracked platform chart entry this month</span>}
                 </div>
               </div>
             ))}
@@ -1818,7 +2005,7 @@ const top = data[0];
                 <LineChart data={selectedArtistRankData} margin={{top:8,right:12,left:0,bottom:0}}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#F0F0EC"/>
                   <XAxis dataKey="month" tick={{fontSize:10.5,fontFamily:F,fill:"#59645D"}}/>
-                  <YAxis reversed domain={[1,"dataMax"]} allowDecimals={false} tick={{fontSize:10,fontFamily:F,fill:"#59645D"}} tickFormatter={v=>`#${v}`}/>
+                  <YAxis reversed domain={[1,"dataMax"]} allowDecimals={false} tickCount={8} tick={{fontSize:10,fontFamily:F,fill:"#59645D"}} tickFormatter={v=>`#${v}`}/>
                   <Tooltip formatter={v=>[`#${v}`,"Artist Rank"]} contentStyle={{fontFamily:F,fontSize:11}}/>
                   <Line type="monotone" dataKey="rank" stroke="#1565C0" strokeWidth={3} connectNulls dot={{r:4}}/>
                 </LineChart>
@@ -1834,7 +2021,35 @@ const top = data[0];
             ].map((stat)=><div key={stat.label} style={{padding:"12px 13px",border:"1px solid #ECE9E1",borderRadius:"10px",background:"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:"#7B857D"}}>{stat.label}</div><div style={{fontFamily:F,fontSize:"19px",fontWeight:900,marginTop:"5px"}}>{stat.value}</div></div>)}
           </div>
           <h3 style={secLbl()}>Charted Entries Across Months</h3>
-          {(()=>{
+          {selectedArtistEntryGroups.map((group)=>{
+            const certification = getCertificationForEntry(group, isSingles ? "single" : "album");
+            const bestRow = [...group.rows].sort((a,b)=>Number(a.rank)-Number(b.rank))[0];
+            return (
+              <details key={`${group.title}-${group.artist}`} style={{borderBottom:"1px solid #F2F2EE",fontFamily:F}}>
+                <summary style={{display:"grid",gridTemplateColumns:isMobile?"minmax(0,1fr)":"minmax(0,1fr) 150px 90px",gap:"12px",alignItems:"center",padding:"11px 0",cursor:"pointer",listStyle:"none"}}>
+                  <div style={{minWidth:0}}>
+                    <div style={{display:"flex",alignItems:"center",gap:"7px",flexWrap:"wrap"}}>
+                      <button type="button" onClick={(event)=>{event.preventDefault();openReleaseDetails(bestRow,isSingles?"single":"album");}} style={{fontWeight:800,fontSize:TXT.cardTitle,fontFamily:SF,border:0,background:"transparent",padding:0,cursor:"pointer",textAlign:"left",color:isDark?"#F6F3EA":"#050505"}}>{group.title}</button>
+                      {certification&&<CertificationTag cert={certification} compact />}
+                    </div>
+                    <span style={{display:"block",marginTop:"3px",color:isDark?"#AEB6AE":"#7B857D",fontSize:TXT.micro,fontFamily:F}}>{group.rows.length} {group.rows.length===1?"month":"months"} charted · peak #{group.peak}</span>
+                  </div>
+                  <div style={{fontFamily:F,fontSize:TXT.cardMeta,fontWeight:900,color:GOLD,whiteSpace:"nowrap",textAlign:isMobile?"left":"right"}}>{group.totalPoints.toLocaleString()} pts</div>
+                  <div style={{fontFamily:F,fontSize:"10px",fontWeight:850,color:isDark?"#AEB6AE":"#69716B",textAlign:isMobile?"left":"right",textTransform:"uppercase",letterSpacing:"1px"}}>Months</div>
+                </summary>
+                <div style={{padding:"0 0 10px 0",display:"grid",gap:"6px"}}>
+                  {[...group.rows].sort((a,b)=>monthIndex(a.month)-monthIndex(b.month)).map((row)=>(
+                    <div key={row.month} style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) 56px 70px",gap:"8px",alignItems:"center",padding:"7px 10px",borderRadius:"9px",background:isDark?"#121612":"#FAFAF8"}}>
+                      <span style={{fontFamily:F,fontSize:"11px",fontWeight:800,color:isDark?"#D7DBD7":"#59645D"}}>{row.month}</span>
+                      <span style={{fontFamily:F,fontSize:"11px",fontWeight:900,color:GOLD,textAlign:"right"}}>#{row.rank}</span>
+                      <span style={{fontFamily:F,fontSize:"11px",fontWeight:850,color:isDark?"#F6F3EA":"#1A1A1A",textAlign:"right"}}>{Number(row.pts||0).toLocaleString()} pts</span>
+                    </div>
+                  ))}
+                </div>
+              </details>
+            );
+          })}
+          {false&&(()=>{
             return selectedArtistEntries.sort((a,b)=>a.rank-b.rank).map((s,i)=>{
               const certification = getCertificationForEntry(s, isSingles ? "single" : "album");
               return (
@@ -2132,7 +2347,25 @@ liveStatus={liveStatus}
               {/* Platform-by-platform peak ranks */}
               <div style={{marginTop:isMobile?"14px":"16px"}}>
                 <div style={{fontFamily:F,fontSize:isMobile?"10px":"9.5px",fontWeight:800,letterSpacing:"1.4px",textTransform:"uppercase",color:"#59645D",marginBottom:"10px"}}>Peak Rank by Platform</div>
-                <div style={{border:"1px solid #EFEDE7",borderRadius:"10px",overflow:"hidden",background:"#FFF"}}>
+                <div style={{border:"1px solid "+(isDark?"#2F352F":"#E4E1D8"),borderRadius:"12px",overflow:"hidden",background:isDark?"#0F120F":"#FFF"}}>
+                  <div style={{display:"grid",gridTemplateColumns:isMobile?"minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)":"minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)",gap:"8px",padding:isMobile?"10px 9px":"12px 16px",background:"#1F241F",fontFamily:F,fontSize:isMobile?"9px":"9.5px",fontWeight:850,letterSpacing:"1px",textTransform:"uppercase",color:"#C9CEC9"}}>
+                    <div style={{color:"#E4BE55",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{sp1.title.length>16?sp1.title.slice(0,14)+"…":sp1.title}</div>
+                    <div style={{textAlign:"center"}}>Platform</div>
+                    <div style={{textAlign:"right",color:"#72A7E8",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{sp2.title.length>16?sp2.title.slice(0,14)+"…":sp2.title}</div>
+                  </div>
+                  {PLATS_FOR.map((pl,i)=>{
+                    const a=sp1.platforms[pl],b=sp2.platforms[pl];
+                    const lbl=PLAT_LABEL[pl]||pl;
+                    return(
+                      <div key={pl} style={{display:"grid",gridTemplateColumns:isMobile?"minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)":"minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)",alignItems:"stretch",gap:0,background:isDark?(i%2?"#121612":"#0F120F"):(i%2?"#FBFAF7":"#FFF"),borderBottom:i===PLATS_FOR.length-1?"none":"1px solid "+(isDark?"#2F352F":"#EEEAE1")}}>
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:isMobile?"9px 6px":"11px 12px",fontFamily:F,fontSize:isMobile?"12px":"13px",fontWeight:900,color:a?GOLD:(isDark?"#68716B":"#B8BDB8")}}>{a?"#"+a:"—"}</div>
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"9px 5px":"11px 10px",borderLeft:"1px solid "+(isDark?"#2F352F":"#EEEAE1"),borderRight:"1px solid "+(isDark?"#2F352F":"#EEEAE1"),fontFamily:F,fontSize:isMobile?"9px":"9.5px",fontWeight:850,color:PC[pl]||GOLD,letterSpacing:"0.6px",textTransform:"uppercase",lineHeight:1.25}}>{lbl}</div>
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:isMobile?"9px 6px":"11px 12px",fontFamily:F,fontSize:isMobile?"12px":"13px",fontWeight:900,color:b?(isDark?"#72A7E8":"#1565C0"):(isDark?"#68716B":"#B8BDB8")}}>{b?"#"+b:"—"}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+                {false&&<div style={{border:"1px solid #EFEDE7",borderRadius:"10px",overflow:"hidden",background:"#FFF"}}>
                   <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"8px",padding:isMobile?"8px 10px":"8px 12px",background:"#FAFAF7",borderBottom:"1px solid #EFEDE7",fontFamily:F,fontSize:isMobile?"9px":"9.5px",fontWeight:850,letterSpacing:"1px",textTransform:"uppercase",color:"#69716B"}}>
                     <div>{sp1.title.length>16?sp1.title.slice(0,14)+"…":sp1.title}</div>
                     <div style={{textAlign:"center"}}>Platform</div>
@@ -2149,7 +2382,7 @@ liveStatus={liveStatus}
                       </div>
                     );
                   })}
-                </div>
+                </div>}
               </div>
             </>)}
           </div>
@@ -2167,8 +2400,11 @@ liveStatus={liveStatus}
           {/* Top 10 + Platform #1s */}
           <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:isMobile?"18px":"14px",marginBottom:"20px"}} className="anl-2col">
             <div style={card()}>
-              <div style={secLbl()}><SecMark/>Top 10 {releaseLabel} — {anMonth}</div>
-              {isMobile ? (
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",marginBottom:"14px",flexWrap:"wrap"}}>
+                <div style={{...secLbl(),marginBottom:0}}><SecMark/>Top 10 {releaseLabel} — {anMonth}</div>
+                <ViewToggle id="topReleases" />
+              </div>
+              {viewMode("topReleases")==="table" || isMobile ? (
                 <div style={{display:"flex",flexDirection:"column",gap:"8px"}}>
                   {top10sData.map((e,i)=>(
                     <div key={e.name} style={{display:"grid",gridTemplateColumns:"28px minmax(0,1fr) 86px",alignItems:"center",gap:"10px",padding:"9px 0",borderBottom:"1px solid #F0F0EC"}}>
@@ -2209,9 +2445,24 @@ liveStatus={liveStatus}
           {/* Top artists points line chart */}
           <AnalyticsDeepSection label="View artist trajectory" isMobile={isMobile}>
           <div style={{...card(),marginBottom:"20px"}}>
-            <div style={secLbl()}><SecMark/>Top 5 Artists — Points Trajectory ({chartTypeLabel})</div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",marginBottom:"14px",flexWrap:"wrap"}}>
+              <div style={{...secLbl(),marginBottom:0}}><SecMark/>Top 3 Artists — Points Trajectory ({chartTypeLabel})</div>
+              <ViewToggle id="artistTrajectory" />
+            </div>
+            {viewMode("artistTrajectory")==="table" ? (
+              <div style={{display:"grid",gap:"8px"}}>
+                {topArtistTrajectoryArtists.map((artist,i)=>(
+                  <div key={artist.n} style={{display:"grid",gridTemplateColumns:isMobile?"minmax(0,1fr) 82px":"minmax(0,1fr) repeat(3,80px)",gap:"8px",alignItems:"center",padding:"9px 0",borderBottom:"1px solid "+(isDark?"#2F352F":"#F0F0EC")}}>
+                    <button type="button" onClick={()=>openArtistDetails(artist.n)} style={{border:0,background:"transparent",padding:0,textAlign:"left",fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:850,color:CC[i],cursor:"pointer",whiteSpace:"normal",overflowWrap:"anywhere"}}>{artist.n}</button>
+                    <span style={{fontFamily:F,fontSize:"12px",fontWeight:900,color:GOLD,textAlign:isMobile?"right":"center"}}>{artist.p.toLocaleString()}</span>
+                    {!isMobile&&<span style={{fontFamily:F,fontSize:"12px",fontWeight:850,color:isDark?"#D7DBD7":"#59645D",textAlign:"center"}}>{artist.m} mo</span>}
+                    {!isMobile&&<span style={{fontFamily:F,fontSize:"12px",fontWeight:850,color:isDark?"#D7DBD7":"#59645D",textAlign:"center"}}>Peak #{artist.pk}</span>}
+                  </div>
+                ))}
+              </div>
+            ) : (
             <div className="ngoma-analytics-chart-scroll" aria-label="Scrollable artist trajectory chart">
-              <div style={{minWidth:isMobile?"720px":"100%",height:isMobile?270:240}}>
+              <div style={{minWidth:"100%",height:isMobile?270:240}}>
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={topArtistsLine} margin={{top:10,right:24,left:8,bottom:4}}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#F0F0EC"/>
@@ -2219,13 +2470,14 @@ liveStatus={liveStatus}
                     <YAxis tick={{fontSize:10.5,fontFamily:F,fill:"#59645D",fontWeight:650}} tickFormatter={v=>v.toLocaleString()} axisLine={false} tickLine={false}/>
                     <Tooltip formatter={(v,n)=>[v.toLocaleString()+" pts",n]} contentStyle={{fontFamily:F,fontSize:11}}/>
                     <Legend wrapperStyle={{fontFamily:F,fontSize:isMobile?11:10.5,color:"#59645D"}}/>
-                    {artists.slice(0,5).map((a,i)=>(
+                    {topArtistTrajectoryArtists.map((a,i)=>(
                       <Line key={a.n} type="monotone" dataKey={a.n} stroke={CC[i]} strokeWidth={2} dot={{r:4}} activeDot={{r:6}}/>
                     ))}
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             </div>
+            )}
           </div>
           </AnalyticsDeepSection>
           {/* Cross-platform overlap + Coverage pie */}
@@ -2281,6 +2533,17 @@ liveStatus={liveStatus}
             <AnalyticsDeepSection label="View platform totals" isMobile={isMobile}>
             <div style={{...card(),marginBottom:"20px"}}>
               <div style={secLbl()}><SecMark/>Combined Top 50 Entries Contributed Per Platform — {anMonth}</div>
+              <div style={{display:"flex",justifyContent:"flex-end",margin:"-4px 0 12px"}}><ViewToggle id="platformTotals" /></div>
+              {viewMode("platformTotals")==="table" ? (
+                <div style={{display:"grid",gap:"8px"}}>
+                  {platTotalsData.map((entry)=>(
+                    <div key={entry.platform} style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) 70px",gap:"10px",alignItems:"center",padding:"9px 0",borderBottom:"1px solid "+(isDark?"#2F352F":"#F0F0EC")}}>
+                      <div style={{display:"flex",alignItems:"center",gap:"8px",minWidth:0}}><span style={{width:"10px",height:"10px",borderRadius:"3px",background:entry.color,flexShrink:0}}/><span style={{fontFamily:F,fontSize:"12px",fontWeight:850,color:isDark?"#F6F3EA":"#1A1A1A",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{entry.platform}</span></div>
+                      <span style={{fontFamily:F,fontSize:"13px",fontWeight:900,color:GOLD,textAlign:"right"}}>{entry.entries}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
               <ResponsiveContainer width="100%" height={isMobile?230:200}>
                 <BarChart data={platTotalsData} margin={{top:12,right:isMobile?16:20,left:isMobile?0:8,bottom:isMobile?6:0}}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#F0F0EC"/>
@@ -2290,10 +2553,103 @@ liveStatus={liveStatus}
                   <Bar dataKey="entries" radius={[4,4,0,0]}>{platTotalsData.map((e,i)=><Cell key={i} fill={e.color}/>)}</Bar>
                 </BarChart>
               </ResponsiveContainer>
+              )}
               {isMobile&&<div style={{display:"flex",justifyContent:"center",gap:"8px 12px",flexWrap:"wrap",marginTop:"10px"}}>{platTotalsData.map((entry)=><div key={entry.platform} style={{display:"inline-flex",alignItems:"center",gap:"5px",fontFamily:F,fontSize:"10px",fontWeight:750,color:"#59645D"}}><span style={{width:"9px",height:"9px",borderRadius:"3px",background:entry.color,flexShrink:0}}/>{entry.platform}</div>)}</div>}
             </div>
             </AnalyticsDeepSection>
           )}
+          {/* Feature + unique platform + country analytics */}
+          <AnalyticsDeepSection label="View feature analytics" isMobile={isMobile}>
+          <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px",marginBottom:"20px"}}>
+            <div style={card()}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",marginBottom:"14px",flexWrap:"wrap"}}>
+                <div style={{...secLbl(),marginBottom:0}}><SecMark/>Feature Impact — {chartTypeLabel}</div>
+                <ViewToggle id="features" />
+              </div>
+              {viewMode("features")==="table" ? (
+                <div style={{display:"grid",gap:"8px"}}>
+                  {featureAnalytics.releases.slice(0,6).map((entry)=>(
+                    <div key={`${entry.title}-${entry.artist}`} style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) 70px",gap:"10px",alignItems:"center",padding:"9px 0",borderBottom:"1px solid "+(isDark?"#2F352F":"#F0F0EC")}}>
+                      <div style={{minWidth:0}}><button type="button" onClick={()=>openReleaseDetails(entry,isSingles?"single":"album")} style={{border:0,background:"transparent",padding:0,textAlign:"left",fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:850,color:isDark?"#F6F3EA":"#050505",cursor:"pointer",whiteSpace:"normal",overflowWrap:"anywhere"}}>{entry.title}</button><div style={{fontFamily:F,fontSize:"10.5px",color:isDark?"#AEB6AE":"#69716B",marginTop:"2px"}}>{entry.featured_artists}</div></div>
+                      <span style={{fontFamily:F,fontSize:"13px",fontWeight:900,color:GOLD,textAlign:"right"}}>{entry.points.toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={220}>
+                  <BarChart data={featureAnalytics.monthly} margin={{top:10,right:18,left:0,bottom:0}}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#F0F0EC"/>
+                    <XAxis dataKey="month" tick={{fontSize:10.5,fontFamily:F,fill:"#59645D"}}/>
+                    <YAxis allowDecimals={false} tick={{fontSize:10,fontFamily:F,fill:"#59645D"}}/>
+                    <Tooltip contentStyle={{fontFamily:F,fontSize:11}} formatter={(v,n)=>[v,n==="entries"?"Featured entries":"Feature points"]}/>
+                    <Bar dataKey="entries" fill={GOLD} radius={[4,4,0,0]}/>
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+              <div style={{marginTop:"12px",fontFamily:F,fontSize:"10.5px",color:isDark?"#AEB6AE":"#69716B",lineHeight:1.45}}>Top featured artists: {featureAnalytics.artists.slice(0,3).map((item)=>`${item.name} (${item.points.toLocaleString()} pts)`).join(" · ") || "No features recorded"}</div>
+            </div>
+            <div style={card()}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",marginBottom:"14px",flexWrap:"wrap"}}>
+                <div style={{...secLbl(),marginBottom:0}}><SecMark/>Top 5 Countries — {anMonth}</div>
+                <ViewToggle id="topCountries" />
+              </div>
+              {viewMode("topCountries")==="table" ? (
+                <div style={{display:"grid",gap:"8px"}}>
+                  {topCountryData.map((country)=>(
+                    <div key={country.code} style={{display:"grid",gridTemplateColumns:"54px minmax(0,1fr) 72px",gap:"10px",alignItems:"center",padding:"9px 0",borderBottom:"1px solid "+(isDark?"#2F352F":"#F0F0EC")}}>
+                      <span style={{fontFamily:F,fontSize:"11px",fontWeight:950,color:country.color}}>{country.code}</span>
+                      <span style={{fontFamily:F,fontSize:"12px",fontWeight:850,color:isDark?"#F6F3EA":"#1A1A1A",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{country.country}</span>
+                      <span style={{fontFamily:F,fontSize:"12px",fontWeight:900,color:GOLD,textAlign:"right"}}>{country.entries}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={220}>
+                  <BarChart data={topCountryData} layout="vertical" margin={{left:8,right:16,top:0,bottom:0}}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#F0F0EC" horizontal={false}/>
+                    <XAxis type="number" allowDecimals={false} tick={{fontSize:10,fontFamily:F,fill:"#59645D"}}/>
+                    <YAxis type="category" dataKey="code" width={38} tick={{fontSize:11,fontFamily:F,fill:"#59645D",fontWeight:850}}/>
+                    <Tooltip contentStyle={{fontFamily:F,fontSize:11}} formatter={(v,n)=>[v,n==="entries"?"Entries":"Points"]}/>
+                    <Bar dataKey="entries" radius={[0,4,4,0]}>{topCountryData.map((entry)=><Cell key={entry.code} fill={entry.color}/>)}</Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </div>
+          </AnalyticsDeepSection>
+          <AnalyticsDeepSection label="View unique platform entries" isMobile={isMobile}>
+          <div style={{...card(),marginBottom:"20px"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",marginBottom:"14px",flexWrap:"wrap"}}>
+              <div style={{...secLbl(),marginBottom:0}}><SecMark/>Platform-Unique Entries — {anMonth}</div>
+              <ViewToggle id="uniquePlatforms" />
+            </div>
+            {viewMode("uniquePlatforms")==="table" ? (
+              <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"12px"}}>
+                {uniquePlatformData.map((platform)=>(
+                  <div key={platform.platform} style={{padding:"12px",border:"1px solid "+(isDark?"#2F352F":"#EFEDE7"),borderRadius:"12px",background:isDark?"#0F120F":"#FAFAF8"}}>
+                    <div style={{fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:platform.color,marginBottom:"8px"}}>{platform.label} · {platform.count}</div>
+                    {platform.entries.slice(0,4).map((entry)=>(
+                      <div key={`${entry.title}-${entry.artist}`} style={{padding:"6px 0",borderBottom:"1px solid "+(isDark?"#2F352F":"#F0F0EC")}}>
+                        <button type="button" onClick={()=>openReleaseDetails(entry,isSingles?"single":"album")} style={{border:0,background:"transparent",padding:0,textAlign:"left",fontFamily:SF,fontSize:"12px",fontWeight:850,color:isDark?"#F6F3EA":"#050505",cursor:"pointer"}}>{entry.title}</button>
+                        <div style={{fontFamily:F,fontSize:"10px",color:isDark?"#AEB6AE":"#69716B"}}>#{entry.rank} · {entry.artist}</div>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={uniquePlatformData} margin={{top:10,right:18,left:0,bottom:0}}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F0F0EC"/>
+                  <XAxis dataKey="label" tick={isMobile?false:{fontSize:10,fontFamily:F,fill:"#59645D"}}/>
+                  <YAxis allowDecimals={false} tick={{fontSize:10,fontFamily:F,fill:"#59645D"}}/>
+                  <Tooltip contentStyle={{fontFamily:F,fontSize:11}} formatter={v=>[v,"Unique entries"]}/>
+                  <Bar dataKey="count" radius={[4,4,0,0]}>{uniquePlatformData.map((entry)=><Cell key={entry.platform} fill={entry.color}/>)}</Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+          </AnalyticsDeepSection>
           {/* Local vs International */}
           {(()=>{
             const cd=getCombined(ct,anMonth);
@@ -2305,6 +2661,18 @@ liveStatus={liveStatus}
               <div style={{...card(),marginBottom:"20px"}}>
                 <div style={secLbl()}><SecMark/>Local vs International — {anMonth}</div>
                 <p style={{fontFamily:F,fontSize:TXT.note,color:"#69716B",margin:"-6px 0 14px",lineHeight:1.45}}>Share of the current Top 50 entries by primary artist country.</p>
+                <div style={{display:"flex",justifyContent:"flex-end",margin:"-4px 0 12px"}}><ViewToggle id="localMix" /></div>
+                {viewMode("localMix")==="table" ? (
+                  <div style={{display:"grid",gap:"8px"}}>
+                    {[{l:"Kenyan Artists",c:local,p:localPts,col:GOLD},{l:"International",c:intl,p:intlPts,col:"#37474F"}].map((r)=>(
+                      <div key={r.l} style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) 58px 88px",gap:"10px",alignItems:"center",padding:"9px 0",borderBottom:"1px solid "+(isDark?"#2F352F":"#F0F0EC")}}>
+                        <div style={{display:"flex",alignItems:"center",gap:"7px",minWidth:0}}><span style={{width:"11px",height:"11px",borderRadius:"3px",background:r.col,flexShrink:0}}/><span style={{fontFamily:F,fontSize:"12px",fontWeight:850,color:isDark?"#F6F3EA":"#1A1A1A",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{r.l}</span></div>
+                        <span style={{fontFamily:F,fontSize:"12px",fontWeight:900,color:r.col,textAlign:"right"}}>{r.c}</span>
+                        <span style={{fontFamily:F,fontSize:"12px",fontWeight:850,color:isDark?"#D7DBD7":"#59645D",textAlign:"right"}}>{r.p.toLocaleString()} pts</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
                 <div style={{display:"flex",alignItems:"center",gap:"24px",flexWrap:"wrap"}}>
                   <ResponsiveContainer width={160} height={160}>
                     <PieChart>
@@ -2327,6 +2695,7 @@ liveStatus={liveStatus}
                     ))}
                   </div>
                 </div>
+                )}
               </div>
               </AnalyticsDeepSection>
             );
@@ -2392,13 +2761,11 @@ liveStatus={liveStatus}
           <div style={card()}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",marginBottom:"14px",flexWrap:"wrap"}}>
               <div style={{...secLbl(),marginBottom:0}}><SecMark/>{isSingles?"Top Songs Rank Journey Across Months":"Top Albums Rank Journey Across Months"}</div>
-              <div style={{display:"flex",padding:"3px",borderRadius:"999px",background:"#F2F2EE",border:"1px solid #E3E0D8"}}>
-                {["table","graph"].map((view)=><button key={view} type="button" onClick={()=>setRankJourneyView(view)} style={{border:0,borderRadius:"999px",background:rankJourneyView===view?"#1A1A1A":"transparent",color:rankJourneyView===view?"#FFF":"#59645D",padding:"7px 12px",fontFamily:F,fontSize:"9.5px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",cursor:"pointer"}}>{view}</button>)}
-              </div>
+              <ViewToggle value={rankJourneyView} onChange={setRankJourneyView} />
             </div>
             {rankJourneyView==="graph" ? (
               <div className="ngoma-analytics-chart-scroll" aria-label="Scrollable rank journey graph">
-                <div style={{minWidth:isMobile?"720px":"100%",height:320}}>
+                <div style={{minWidth:"100%",height:320}}>
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={rankJourneyMonths.map((m)=>{const row={month:m.split(" ")[0].slice(0,3)};tracked.forEach((title)=>{row[title]=getCombined(ct,m).find((entry)=>entry.title===title)?.rank||null;});return row;})} margin={{top:10,right:24,left:8,bottom:8}}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#F0F0EC"/>
@@ -2411,6 +2778,23 @@ liveStatus={liveStatus}
                   </ResponsiveContainer>
                 </div>
               </div>
+            ) : (
+            isMobile ? (
+            <div style={{display:"grid",gap:"12px"}}>
+            {tracked.map(title=>{
+              const hasAny=rankJourneyMonths.some(m=>getCombined(ct,m).find(e=>e.title===title));
+              if(!hasAny)return null;
+              return(<div key={title} style={{padding:"12px",border:"1px solid "+(isDark?"#2F352F":"#EFEDE7"),borderRadius:"12px",background:isDark?"#0F120F":"#FAFAF8"}}>
+                <button type="button" onClick={()=>{const e=rankJourneyMonths.flatMap(m=>getCombined(ct,m)).find(x=>x.title===title);if(e)openReleaseDetails(e,isSingles?"single":"album");}} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:"13px",fontWeight:850,lineHeight:1.2,color:GOLD,cursor:"pointer",textAlign:"left",whiteSpace:"normal",overflowWrap:"anywhere"}}>{title}</button>
+                <div style={{display:"flex",flexWrap:"wrap",gap:"7px",marginTop:"10px"}}>
+                  {rankJourneyMonths.map(m=>{const e=getCombined(ct,m).find(x=>x.title===title);return(<div key={m} style={{minWidth:"44px",padding:"6px 7px",borderRadius:"9px",background:isDark?"#121612":"#FFF",border:"1px solid "+(isDark?"#2F352F":"#EFEDE7"),textAlign:"center",fontFamily:F}}>
+                    <div style={{fontSize:"8.5px",color:isDark?"#AEB6AE":"#69716B",fontWeight:800}}>{m.split(" ")[0].slice(0,3)}</div>
+                    {e?<div style={{fontSize:"12px",fontWeight:900,color:e.rank===1?GOLD:isDark?"#F6F3EA":"#1A1A1A"}}>#{e.rank}</div>:<div style={{fontSize:"11px",color:isDark?"#68716B":"#C9CEC9"}}>—</div>}
+                  </div>);})}
+                </div>
+              </div>);
+            })}
+            </div>
             ) : (
             <div className="ngoma-analytics-chart-scroll" aria-label="Scrollable rank journey table">
             <div style={{minWidth:isMobile?"760px":"100%"}}>
@@ -2430,6 +2814,7 @@ liveStatus={liveStatus}
             })}
             </div>
             </div>
+            )
             )}
           </div>
           </AnalyticsDeepSection>
