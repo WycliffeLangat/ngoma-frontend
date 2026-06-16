@@ -564,6 +564,14 @@ const NEWS=[
 
 export default function NgomaCharts(){
   const [page,setPage]=useState("charts");
+  const [theme,setTheme]=useState(()=>{
+    if(typeof window==="undefined") return "light";
+    try {
+      return window.localStorage.getItem("ngoma-theme")==="dark" ? "dark" : "light";
+    } catch {
+      return "light";
+    }
+  });
   const [ct,setCt]=useState("singles");
   const [month,setMonth]=useState(CURRENT_MONTH);
   const [plat,setPlat]=useState("Combined");
@@ -595,6 +603,39 @@ export default function NgomaCharts(){
   const [expandedTrendingRows, setExpandedTrendingRows] = useState({});
   const detailOpenRef = useRef(false);
   const detailReturnScrollRef = useRef(0);
+  const isDark = theme === "dark";
+  const themeColors = isDark
+    ? {
+        page: "#050505",
+        surface: "#0F1110",
+        elevated: "#151815",
+        text: "#F6F3EA",
+        muted: "#B8BDB8",
+        border: "#2B302B",
+        active: "rgba(184,134,11,0.22)",
+        hover: "#1A1F1A",
+      }
+    : {
+        page: "#FFFFFF",
+        surface: "#FFFFFF",
+        elevated: "#FFFFFF",
+        text: "#1A1A1A",
+        muted: "#6B6B6B",
+        border: "#E5E0D4",
+        active: "#F1E3BF",
+        hover: "#FAF5EA",
+      };
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    document.documentElement.dataset.ngomaTheme = theme;
+    document.body.dataset.ngomaTheme = theme;
+    try {
+      if (typeof window !== "undefined") window.localStorage.setItem("ngoma-theme", theme);
+    } catch {
+      // Theme still works for the current session if storage is unavailable.
+    }
+  }, [theme]);
 
   const toggleYearEndRow = (rowKey) => {
     setExpandedYearEndRows((current) => ({
@@ -746,6 +787,50 @@ const data = sourceData.filter((entry) => Number(entry.rank) <= 50).slice(0, 50)
 const display = data.slice(0, Math.min(vc, data.length));
 
 const top = data[0];
+
+  const themeToggle = (extra={}) => (
+    <button
+      type="button"
+      onClick={() => setTheme((current) => (current === "dark" ? "light" : "dark"))}
+      aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
+      title={`Switch to ${isDark ? "light" : "dark"} mode`}
+      className="ngoma-theme-toggle"
+      style={{
+        display:"inline-flex",
+        alignItems:"center",
+        justifyContent:"center",
+        gap:"7px",
+        minHeight:isMobile?"38px":"30px",
+        padding:isMobile?"0 12px":"6px 11px",
+        border:`1px solid ${themeColors.border}`,
+        borderRadius:"999px",
+        background:themeColors.elevated,
+        color:themeColors.text,
+        fontFamily:F,
+        fontSize:isMobile?"10px":"10px",
+        fontWeight:850,
+        letterSpacing:"1px",
+        textTransform:"uppercase",
+        cursor:"pointer",
+        whiteSpace:"nowrap",
+        boxShadow:isDark?"0 0 0 1px rgba(255,255,255,0.02)":"0 4px 14px rgba(0,0,0,0.035)",
+        ...extra,
+      }}
+    >
+      <span
+        aria-hidden="true"
+        style={{
+          width:"8px",
+          height:"8px",
+          borderRadius:"50%",
+          background:isDark?"#F6F3EA":"#1A1A1A",
+          boxShadow:`0 0 0 3px ${isDark?"rgba(246,243,234,0.10)":"rgba(26,26,26,0.08)"}`,
+          flexShrink:0,
+        }}
+      />
+      {isDark ? "Light" : "Dark"}
+    </button>
+  );
 
   // ALL data flattened for search
   const allEntries=useMemo(()=>{
@@ -1427,7 +1512,7 @@ const top = data[0];
   })) : [];
 
   return(
-    <div style={{fontFamily:SF,background:"#FFF",color:"#1A1A1A",minHeight:"100vh",width:"100%",overflowX:"hidden"}}>
+    <div className="ngoma-app-shell" data-theme={theme} style={{fontFamily:SF,background:themeColors.page,color:themeColors.text,minHeight:"100vh",width:"100%",overflowX:"hidden"}}>
       <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700;800;900&family=Instrument+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
       <style>{`
         html, body, #root{max-width:100%;overflow-x:hidden;}
@@ -1479,7 +1564,7 @@ const top = data[0];
       `}</style>
 
       {/* HEADER */}
-      <header style={{background:"#FFF",borderBottom:"3px solid #1A1A1A",position:"sticky",top:0,zIndex:50}}>
+      <header style={{background:themeColors.surface,borderBottom:`3px solid ${themeColors.text}`,position:"sticky",top:0,zIndex:50}}>
         <div style={{background:"#1A1A1A",color:"#FFF"}}>
           <div style={{...pageFrame({display:"flex",justifyContent:"flex-end",alignItems:"center",gap:"10px",padding:isMobile?"6px 16px":"5px 28px"}),fontFamily:F,fontSize:isMobile?"8px":"9.5px",letterSpacing:isMobile?"1px":"2px",textTransform:"uppercase"}}>
             <span style={{color:"rgba(255,255,255,0.68)",fontSize:isMobile?"8px":"9.5px",letterSpacing:isMobile?"0.5px":"1px",fontFamily:"inherit",whiteSpace:"nowrap"}}>
@@ -1487,13 +1572,13 @@ const top = data[0];
             </span>
           </div>
         </div>
-        <div style={{...pageFrame({display:"flex",justifyContent:"space-between",alignItems:"center",padding:isMobile?"14px 16px":"18px 28px 22px"}),columnGap:isMobile?"16px":"60px",rowGap:"16px",flexWrap:"wrap"}}>
+          <div style={{...pageFrame({display:"flex",justifyContent:"space-between",alignItems:"center",padding:isMobile?"14px 16px":"18px 28px 22px"}),columnGap:isMobile?"16px":"60px",rowGap:"16px",flexWrap:"wrap"}}>
           <div onClick={()=>navTo("charts")} style={{display:"flex",alignItems:"center",gap:"14px",cursor:"pointer"}}>
             <svg width={isMobile?"24":"32"} height={isMobile?"26":"34"} viewBox="0 0 22 24" style={{flexShrink:0}}>
-              <rect x="0" y="15" width="3.5" height="9" fill="#1A1A1A" rx="0.5"/>
-              <rect x="5.5" y="10" width="3.5" height="14" fill="#1A1A1A" rx="0.5"/>
+              <rect x="0" y="15" width="3.5" height="9" fill={themeColors.text} rx="0.5"/>
+              <rect x="5.5" y="10" width="3.5" height="14" fill={themeColors.text} rx="0.5"/>
               <rect x="11" y="5" width="3.5" height="19" fill="#B8860B" rx="0.5"/>
-              <rect x="16.5" y="0" width="3.5" height="24" fill="#1A1A1A" rx="0.5"/>
+              <rect x="16.5" y="0" width="3.5" height="24" fill={themeColors.text} rx="0.5"/>
             </svg>
             <div style={{display:"flex",flexDirection:"column",lineHeight:1,cursor:"pointer"}}>
               <span
@@ -1502,7 +1587,7 @@ const top = data[0];
                   fontSize:isMobile?"20px":"28px",
                   fontWeight:950,
                   letterSpacing:isMobile?"2px":"4px",
-                  color:"#1A1A1A",
+                  color:themeColors.text,
                   textTransform:"uppercase",
                 }}
               >
@@ -1515,7 +1600,7 @@ const top = data[0];
                   fontSize:isMobile?"9.5px":"13px",
                   fontWeight:900,
                   letterSpacing:isMobile?"1.4px":"2.2px",
-                  color:"#777777",
+                  color:themeColors.muted,
                   textTransform:"uppercase",
                   whiteSpace:"nowrap",
                 }}
@@ -1526,36 +1611,37 @@ const top = data[0];
           </div>
           {isMobile ? (
             <>
+              {themeToggle({marginLeft:"auto"})}
               <button
                 onClick={()=>setMNav(o=>!o)}
                 aria-label="Toggle menu"
                 aria-expanded={mNav}
-                style={{marginLeft:"auto",display:"flex",flexDirection:"column",justifyContent:"center",gap:"4px",width:"42px",height:"38px",border:"1px solid #E5E0D4",borderRadius:"11px",background:"#FFF",cursor:"pointer",padding:"0 10px",flexShrink:0}}
+                style={{display:"flex",flexDirection:"column",justifyContent:"center",gap:"4px",width:"42px",height:"38px",border:`1px solid ${themeColors.border}`,borderRadius:"11px",background:themeColors.elevated,cursor:"pointer",padding:"0 10px",flexShrink:0}}
               >
-                <span style={{display:"block",height:"2px",background:"#1A1A1A",borderRadius:"2px",transition:"all .2s",transform:mNav?"translateY(6px) rotate(45deg)":"none"}}/>
-                <span style={{display:"block",height:"2px",background:"#1A1A1A",borderRadius:"2px",opacity:mNav?0:1,transition:"opacity .2s"}}/>
-                <span style={{display:"block",height:"2px",background:"#1A1A1A",borderRadius:"2px",transition:"all .2s",transform:mNav?"translateY(-6px) rotate(-45deg)":"none"}}/>
+                <span style={{display:"block",height:"2px",background:themeColors.text,borderRadius:"2px",transition:"all .2s",transform:mNav?"translateY(6px) rotate(45deg)":"none"}}/>
+                <span style={{display:"block",height:"2px",background:themeColors.text,borderRadius:"2px",opacity:mNav?0:1,transition:"opacity .2s"}}/>
+                <span style={{display:"block",height:"2px",background:themeColors.text,borderRadius:"2px",transition:"all .2s",transform:mNav?"translateY(-6px) rotate(-45deg)":"none"}}/>
               </button>
               {mNav&&(
                 <div style={{width:"100%",display:"flex",flexDirection:"column",gap:"2px",marginTop:"8px",borderTop:"1px solid #EEE",paddingTop:"10px"}}>
                   {navItems.map(t=>(
-                    <span key={t} onClick={()=>navTo(t)} style={{cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"13px",fontWeight:page===t?800:600,letterSpacing:"1px",textTransform:"uppercase",color:page===t?"#1A1A1A":"#555",background:page===t?"#F1E3BF":"transparent",border:page===t?"1px solid #D4B65E":"1px solid transparent"}}>{navLabel(t)}</span>
+                    <span key={t} onClick={()=>navTo(t)} style={{cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"13px",fontWeight:page===t?800:600,letterSpacing:"1px",textTransform:"uppercase",color:page===t?themeColors.text:themeColors.muted,background:page===t?themeColors.active:"transparent",border:page===t?"1px solid #D4B65E":"1px solid transparent"}}>{navLabel(t)}</span>
                   ))}
-                  <span onClick={()=>{setMNav(false);setSOpen(true);}} style={{cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"13px",fontWeight:600,letterSpacing:"1px",textTransform:"uppercase",color:"#555"}}>Search</span>
+                  <span onClick={()=>{setMNav(false);setSOpen(true);}} style={{cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"13px",fontWeight:600,letterSpacing:"1px",textTransform:"uppercase",color:themeColors.muted}}>Search</span>
                 </div>
               )}
             </>
           ) : (
             <nav style={{display:"flex",gap:"22px",fontFamily:F,fontSize:isMobile?"12px":"11px",fontWeight:700,letterSpacing:"1.5px",textTransform:"uppercase",alignItems:"center",flexShrink:0}}>
               {navItems.map(t=>(
-                <span key={t} onClick={()=>navTo(t)} style={{color:page===t?"#1A1A1A":"#6B6B6B",cursor:"pointer",whiteSpace:"nowrap",padding:"6px 12px",borderRadius:"20px",background:page===t?"#F1E3BF":"transparent",fontWeight:page===t?800:700,transition:"all 0.15s",border:page===t?"1px solid #D4B65E":"1px solid transparent"}}
-                  onMouseEnter={e=>{if(page!==t)e.currentTarget.style.color="#1A1A1A";}} onMouseLeave={e=>{if(page!==t)e.currentTarget.style.color="#6B6B6B";}}>{navLabel(t)}</span>
+                <span key={t} onClick={()=>navTo(t)} style={{color:page===t?themeColors.text:themeColors.muted,cursor:"pointer",whiteSpace:"nowrap",padding:"6px 12px",borderRadius:"20px",background:page===t?themeColors.active:"transparent",fontWeight:page===t?800:700,transition:"all 0.15s",border:page===t?"1px solid #D4B65E":"1px solid transparent"}}
+                  onMouseEnter={e=>{if(page!==t)e.currentTarget.style.color=themeColors.text;}} onMouseLeave={e=>{if(page!==t)e.currentTarget.style.color=themeColors.muted;}}>{navLabel(t)}</span>
               ))}
               <span
                 onClick={()=>setSOpen(true)}
                 style={{
                   cursor:"pointer",
-                  color:"#6B6B6B",
+                  color:themeColors.muted,
                   whiteSpace:"nowrap",
                   padding:"6px 12px",
                   borderRadius:"20px",
@@ -1566,9 +1652,10 @@ const top = data[0];
                   textTransform:"uppercase",
                   border:"1px solid transparent",
                 }}
-                onMouseEnter={e=>{e.currentTarget.style.color="#1A1A1A";e.currentTarget.style.background="#FAF5EA";}}
-                onMouseLeave={e=>{e.currentTarget.style.color="#6B6B6B";e.currentTarget.style.background="transparent";}}
+                onMouseEnter={e=>{e.currentTarget.style.color=themeColors.text;e.currentTarget.style.background=themeColors.hover;}}
+                onMouseLeave={e=>{e.currentTarget.style.color=themeColors.muted;e.currentTarget.style.background="transparent";}}
               >Search</span>
+              {themeToggle()}
             </nav>
           )}
         </div>

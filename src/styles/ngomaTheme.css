@@ -1487,6 +1487,134 @@ textarea:focus,
 }
 
 /* =========================================================
+   LIGHT / DARK MODE
+   Light mode is intentionally pure white. Dark mode overrides the older
+   inline light surfaces without changing chart data or platform colors.
+   ========================================================= */
+
+html[data-ngoma-theme="light"],
+body[data-ngoma-theme="light"],
+html[data-ngoma-theme="light"] #root,
+html[data-ngoma-theme="light"] .ngoma-app-shell,
+html[data-ngoma-theme="light"] .ngoma-app-shell main {
+  background: #ffffff !important;
+  background-image: none !important;
+  color-scheme: light;
+}
+
+html[data-ngoma-theme="dark"] {
+  background: #050505 !important;
+  color-scheme: dark;
+}
+
+body[data-ngoma-theme="dark"],
+html[data-ngoma-theme="dark"] #root,
+html[data-ngoma-theme="dark"] .ngoma-app-shell,
+html[data-ngoma-theme="dark"] .ngoma-app-shell main,
+html[data-ngoma-theme="dark"] .ngoma-app-shell .main,
+html[data-ngoma-theme="dark"] .ngoma-app-shell .main-content,
+html[data-ngoma-theme="dark"] .ngoma-app-shell .page,
+html[data-ngoma-theme="dark"] .ngoma-app-shell .page-content,
+html[data-ngoma-theme="dark"] .ngoma-app-shell [data-page] {
+  background: #050505 !important;
+  background-image: none !important;
+  color: #f6f3ea !important;
+}
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell header,
+html[data-ngoma-theme="dark"] .ngoma-app-shell section,
+html[data-ngoma-theme="dark"] .ngoma-app-shell article,
+html[data-ngoma-theme="dark"] .ngoma-app-shell aside,
+html[data-ngoma-theme="dark"] .ngoma-app-shell details,
+html[data-ngoma-theme="dark"] .ngoma-app-shell .ngoma-mobile-collapsible {
+  background: #0f1110 !important;
+  color: #f6f3ea !important;
+  border-color: #2b302b !important;
+}
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background:#FFF" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: #FFF" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background:#ffffff" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: #ffffff" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background:#FAFAF8" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: #FAFAF8" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background:#FAFAF6" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: #FAFAF6" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background:#FAF9F5" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: #FAF9F5" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background:#FBFAF7" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: #FBFAF7" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background:#F7F7F7" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: #F7F7F7" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background:#F2F2F2" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: #F2F2F2" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: rgb(255, 255, 255)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background-color: rgb(255, 255, 255)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: rgb(250, 250, 248)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background-color: rgb(250, 250, 248)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: rgb(251, 250, 247)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background-color: rgb(251, 250, 247)" i] {
+  background: #111411 !important;
+  background-image: none !important;
+  color: #f6f3ea !important;
+  border-color: #2b302b !important;
+}
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="#1A1A1A" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="#050505" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="#1F241F" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="#37413A" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="#4E5851" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="#505850" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="#555" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="#59645D" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="#626962" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="#6B6B6B" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="#777777" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="rgb(26, 26, 26)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="rgb(80, 88, 80)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="rgb(107, 107, 107)" i] {
+  color: #f6f3ea !important;
+}
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell input,
+html[data-ngoma-theme="dark"] .ngoma-app-shell select,
+html[data-ngoma-theme="dark"] .ngoma-app-shell textarea,
+html[data-ngoma-theme="dark"] .ngoma-app-shell option {
+  background: #111411 !important;
+  color: #f6f3ea !important;
+  border-color: #2b302b !important;
+}
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell table,
+html[data-ngoma-theme="dark"] .ngoma-app-shell thead,
+html[data-ngoma-theme="dark"] .ngoma-app-shell tbody,
+html[data-ngoma-theme="dark"] .ngoma-app-shell tr,
+html[data-ngoma-theme="dark"] .ngoma-app-shell td,
+html[data-ngoma-theme="dark"] .ngoma-app-shell th {
+  background-color: transparent !important;
+  border-color: #2b302b !important;
+  color: #f6f3ea !important;
+}
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell .ngoma-theme-toggle {
+  background: #151815 !important;
+  color: #f6f3ea !important;
+  border-color: #343a34 !important;
+}
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell ::placeholder {
+  color: #8f968f !important;
+}
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell .recharts-cartesian-axis-tick text,
+html[data-ngoma-theme="dark"] .ngoma-app-shell .recharts-label,
+html[data-ngoma-theme="dark"] .ngoma-app-shell .recharts-legend-item-text {
+  fill: #d7dbd7 !important;
+  color: #d7dbd7 !important;
+}
+
+/* =========================================================
    FINAL SAFETY OVERRIDES
    Keep this at the very bottom.
    This protects the Charts page from returning to black.
@@ -2132,4 +2260,81 @@ ranking-item *,
     padding-left: 14px !important;
     padding-right: 14px !important;
   }
+}
+
+/* Actual final theme pass: keep below every legacy page override. */
+html[data-ngoma-theme="dark"] body,
+html[data-ngoma-theme="dark"] #root,
+html[data-ngoma-theme="dark"] .ngoma-app-shell,
+html[data-ngoma-theme="dark"] .ngoma-app-shell main,
+html[data-ngoma-theme="dark"] .ngoma-app-shell .main,
+html[data-ngoma-theme="dark"] .ngoma-app-shell .main-content,
+html[data-ngoma-theme="dark"] .ngoma-app-shell .page,
+html[data-ngoma-theme="dark"] .ngoma-app-shell .page-content,
+html[data-ngoma-theme="dark"] .ngoma-app-shell [data-page],
+html[data-ngoma-theme="dark"] .ngoma-app-shell .charts-page,
+html[data-ngoma-theme="dark"] .ngoma-app-shell .chart-page,
+html[data-ngoma-theme="dark"] .ngoma-app-shell .ngoma-charts-page {
+  background: #050505 !important;
+  background-image: none !important;
+  color: #f6f3ea !important;
+}
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell header,
+html[data-ngoma-theme="dark"] .ngoma-app-shell section,
+html[data-ngoma-theme="dark"] .ngoma-app-shell article,
+html[data-ngoma-theme="dark"] .ngoma-app-shell aside,
+html[data-ngoma-theme="dark"] .ngoma-app-shell details,
+html[data-ngoma-theme="dark"] .ngoma-app-shell .ngoma-mobile-collapsible,
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background:#FFF" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: #FFF" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background:#ffffff" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: #ffffff" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background:#FAFAF8" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: #FAFAF8" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background:#FAFAF6" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: #FAFAF6" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background:#FAF9F5" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: #FAF9F5" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background:#FBFAF7" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: #FBFAF7" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background:#F7F7F7" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: #F7F7F7" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background:#F2F2F2" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: #F2F2F2" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: rgb(255, 255, 255)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background-color: rgb(255, 255, 255)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: rgb(250, 250, 248)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background-color: rgb(250, 250, 248)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: rgb(251, 250, 247)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background-color: rgb(251, 250, 247)" i] {
+  background: #111411 !important;
+  background-image: none !important;
+  color: #f6f3ea !important;
+  border-color: #2b302b !important;
+}
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="#1A1A1A" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="#050505" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="#1F241F" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="#37413A" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="#4E5851" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="#505850" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="#555" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="#59645D" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="#626962" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="#6B6B6B" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="#777777" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="rgb(26, 26, 26)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="rgb(80, 88, 80)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="rgb(107, 107, 107)" i] {
+  color: #f6f3ea !important;
+}
+
+html[data-ngoma-theme="light"] body,
+html[data-ngoma-theme="light"] #root,
+html[data-ngoma-theme="light"] .ngoma-app-shell,
+html[data-ngoma-theme="light"] .ngoma-app-shell main {
+  background: #ffffff !important;
+  background-image: none !important;
 }
