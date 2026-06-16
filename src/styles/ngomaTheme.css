@@ -2338,3 +2338,128 @@ html[data-ngoma-theme="light"] .ngoma-app-shell main {
   background: #ffffff !important;
   background-image: none !important;
 }
+
+/* Dark-mode contrast: convert legacy black/gray text into readable light text. */
+html[data-ngoma-theme="dark"] {
+  --ngoma-text: #f6f3ea;
+  --ngoma-text-soft: #d7dbd7;
+  --ngoma-muted: #aeb6ae;
+  --ngoma-muted-light: #8f968f;
+  --ngoma-page-bg: #050505;
+  --ngoma-card-bg: #111411;
+  --ngoma-soft-bg: #111411;
+  --ngoma-border-light: #2b302b;
+  --ngoma-border-medium: #343a34;
+}
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell :where(h1,h2,h3,h4,h5,h6,p,label,summary,li,td,th,strong,b,em,small,caption,figcaption):not([style*="color" i]) {
+  color: #f6f3ea !important;
+}
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell :where(button,a):not([style*="color" i]) {
+  color: inherit;
+}
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell :where(.title,.name,.song-title,.artist-name,.entry-title,.track-title,.mobile-entry-title,.card-title,.section-title,.page-title,.rank,.position,.points,.pts,.score,.value,.metric-value,.total-points) {
+  color: #f6f3ea !important;
+}
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell :where(.meta,.muted,.subtitle,.description,.caption,.note,.song-meta,.artist-meta,.chart-meta,.card-meta,.metric-label,.ngoma-analytics-muted,.ngoma-analytics-metric-label) {
+  color: #aeb6ae !important;
+}
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:#050505" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: #050505" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:#090909" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: #090909" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:#111" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: #111" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:#111111" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: #111111" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:#1A1A1A" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: #1A1A1A" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:#1F241F" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: #1F241F" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: rgb(5, 5, 5)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:rgb(5, 5, 5)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: rgb(9, 9, 9)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:rgb(9, 9, 9)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: rgb(17, 17, 17)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:rgb(17, 17, 17)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: rgb(26, 26, 26)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:rgb(26, 26, 26)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: rgb(31, 36, 31)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:rgb(31, 36, 31)" i] {
+  color: #f6f3ea !important;
+}
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:#3a3a3a" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: #3a3a3a" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:#4b5563" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: #4b5563" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:#4E5851" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: #4E5851" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:#4F5751" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: #4F5751" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:#555" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: #555" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:#555555" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: #555555" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:#59645D" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: #59645D" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:#626A64" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: #626A64" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:#68716B" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: #68716B" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:#69716B" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: #69716B" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:#69716b" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: #69716b" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:#6B6B6B" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: #6B6B6B" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:#6b7280" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: #6b7280" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:#777" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: #777" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:#777777" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: #777777" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:#7B857D" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: #7B857D" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:#7C8A80" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: #7C8A80" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:#8A928B" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: #8A928B" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:#999" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: #999" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: rgb(58, 58, 58)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:rgb(58, 58, 58)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: rgb(75, 85, 99)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:rgb(75, 85, 99)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: rgb(79, 87, 81)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:rgb(79, 87, 81)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: rgb(85, 85, 85)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:rgb(85, 85, 85)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: rgb(89, 100, 93)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:rgb(89, 100, 93)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: rgb(98, 106, 100)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:rgb(98, 106, 100)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: rgb(104, 113, 107)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:rgb(104, 113, 107)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: rgb(105, 113, 107)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:rgb(105, 113, 107)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: rgb(107, 107, 107)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:rgb(107, 107, 107)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: rgb(119, 119, 119)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:rgb(119, 119, 119)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: rgb(123, 133, 125)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:rgb(123, 133, 125)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: rgb(153, 153, 153)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:rgb(153, 153, 153)" i] {
+  color: #aeb6ae !important;
+}
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell svg text,
+html[data-ngoma-theme="dark"] .ngoma-app-shell .recharts-text,
+html[data-ngoma-theme="dark"] .ngoma-app-shell .recharts-cartesian-axis-tick-value {
+  fill: #d7dbd7 !important;
+}
