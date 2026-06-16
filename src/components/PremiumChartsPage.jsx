@@ -671,7 +671,7 @@ export default function PremiumChartsPage({
     if (m.type === "new") {
       return {
         color: GOLD,
-        background: "rgba(255,191,0,0.14)",
+        background: "rgba(184,134,11,0.14)",
       };
     }
 
@@ -1504,7 +1504,7 @@ const styles = {
   },
 
   eyebrowDivider: {
-    color: "#ffbf00",
+    color: "#c89116",
   },
 
   heroMain: {
@@ -1581,7 +1581,7 @@ const styles = {
     marginTop: "12px",
     lineHeight: 0.85,
     fontWeight: 950,
-    color: "#ffbf00",
+    color: "#c89116",
   },
 
   numberOneTitle: {
@@ -1615,8 +1615,8 @@ const styles = {
     marginTop: "18px",
     padding: "8px 13px",
     borderRadius: "999px",
-    background: "rgba(255,191,0,0.14)",
-    color: "#ffbf00",
+    background: "rgba(200,145,22,0.14)",
+    color: "#c89116",
     fontSize: "12px",
     fontWeight: 900,
   },
@@ -1772,8 +1772,8 @@ const styles = {
   tableRange: {
     padding: "10px 14px",
     borderRadius: "999px",
-    background: "rgba(255,191,0,0.14)",
-    color: "#ffbf00",
+    background: "rgba(200,145,22,0.14)",
+    color: "#c89116",
     fontSize: "13px",
     fontWeight: 900,
     letterSpacing: "1px",
