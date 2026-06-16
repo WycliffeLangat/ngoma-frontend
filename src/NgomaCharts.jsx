@@ -1427,7 +1427,7 @@ const top = data[0];
   })) : [];
 
   return(
-    <div style={{fontFamily:SF,background:"linear-gradient(180deg,#FBFAF7 0%,#F7F5F0 100%)",color:"#1A1A1A",minHeight:"100vh",width:"100%",overflowX:"hidden"}}>
+    <div style={{fontFamily:SF,background:"#FFF",color:"#1A1A1A",minHeight:"100vh",width:"100%",overflowX:"hidden"}}>
       <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700;800;900&family=Instrument+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
       <style>{`
         html, body, #root{max-width:100%;overflow-x:hidden;}

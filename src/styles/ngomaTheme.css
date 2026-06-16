@@ -20,7 +20,7 @@
 
   --ngoma-white: #ffffff;
   --ngoma-off-white: #f8f7f3;
-  --ngoma-page-bg: #f7f5ef;
+  --ngoma-page-bg: #ffffff;
   --ngoma-card-bg: #ffffff;
   --ngoma-soft-bg: #fbfaf7;
   --ngoma-soft-gold-bg: #fff7e6;
@@ -1608,7 +1608,7 @@ main,
 .main-content,
 .page,
 .page-content {
-  background: #f7f5ef !important;
+  background: #ffffff !important;
   color: #050505 !important;
 }
 
@@ -1637,7 +1637,7 @@ main,
 [class*="premium-wrapper"],
 [class*="chart-page"],
 [class*="charts-page"] {
-  background: #f7f5ef !important;
+  background: #ffffff !important;
   color: #050505 !important;
   background-image: none !important;
 }
@@ -1656,7 +1656,7 @@ main,
 [class*="Hero"],
 [class*="summary"],
 [class*="Summary"] {
-  background: #f7f5ef !important;
+  background: #ffffff !important;
   color: #050505 !important;
   background-image: none !important;
   box-shadow: none !important;
@@ -1767,7 +1767,7 @@ main,
 [class*="Filters"],
 [class*="controls"],
 [class*="Controls"] {
-  background: #f7f5ef !important;
+  background: #ffffff !important;
   color: #050505 !important;
   border-color: rgba(0, 0, 0, 0.08) !important;
 }

@@ -1466,7 +1466,7 @@ function MiniBars({ GOLD }) {
 
 const styles = {
   page: {
-    background: "#f7f5ef",
+    background: "#ffffff",
     color: "#050505",
     minHeight: "60vh",
     width: "100%",
@@ -1477,7 +1477,7 @@ const styles = {
   hero: {
     position: "relative",
     overflow: "hidden",
-    background: "#f7f5ef",
+    background: "#ffffff",
     borderBottom: "1px solid rgba(0,0,0,0.08)",
     transition: "all 0.5s ease-out",
     width: "100%",
