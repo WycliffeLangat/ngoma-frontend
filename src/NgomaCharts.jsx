@@ -1611,23 +1611,23 @@ const top = data[0];
           </div>
           {isMobile ? (
             <>
-              {themeToggle({marginLeft:"auto"})}
               <button
                 onClick={()=>setMNav(o=>!o)}
                 aria-label="Toggle menu"
                 aria-expanded={mNav}
-                style={{display:"flex",flexDirection:"column",justifyContent:"center",gap:"4px",width:"42px",height:"38px",border:`1px solid ${themeColors.border}`,borderRadius:"11px",background:themeColors.elevated,cursor:"pointer",padding:"0 10px",flexShrink:0}}
+                style={{display:"flex",flexDirection:"column",justifyContent:"center",gap:"4px",width:"42px",height:"38px",border:`1px solid ${themeColors.border}`,borderRadius:"11px",background:themeColors.elevated,cursor:"pointer",padding:"0 10px",flexShrink:0,marginLeft:"auto"}}
               >
                 <span style={{display:"block",height:"2px",background:themeColors.text,borderRadius:"2px",transition:"all .2s",transform:mNav?"translateY(6px) rotate(45deg)":"none"}}/>
                 <span style={{display:"block",height:"2px",background:themeColors.text,borderRadius:"2px",opacity:mNav?0:1,transition:"opacity .2s"}}/>
                 <span style={{display:"block",height:"2px",background:themeColors.text,borderRadius:"2px",transition:"all .2s",transform:mNav?"translateY(-6px) rotate(-45deg)":"none"}}/>
               </button>
               {mNav&&(
-                <div style={{width:"100%",display:"flex",flexDirection:"column",gap:"2px",marginTop:"8px",borderTop:"1px solid #EEE",paddingTop:"10px"}}>
+                <div style={{width:"100%",display:"flex",flexDirection:"column",gap:"2px",marginTop:"8px",borderTop:`1px solid ${themeColors.border}`,paddingTop:"10px"}}>
                   {navItems.map(t=>(
                     <span key={t} onClick={()=>navTo(t)} style={{cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"13px",fontWeight:page===t?800:600,letterSpacing:"1px",textTransform:"uppercase",color:page===t?themeColors.text:themeColors.muted,background:page===t?themeColors.active:"transparent",border:page===t?"1px solid #D4B65E":"1px solid transparent"}}>{navLabel(t)}</span>
                   ))}
                   <span onClick={()=>{setMNav(false);setSOpen(true);}} style={{cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"13px",fontWeight:600,letterSpacing:"1px",textTransform:"uppercase",color:themeColors.muted}}>Search</span>
+                  {themeToggle({width:"100%",justifyContent:"space-between",borderRadius:"12px",minHeight:"44px",padding:"0 14px",marginTop:"4px"})}
                 </div>
               )}
             </>
