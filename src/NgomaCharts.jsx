@@ -1009,28 +1009,49 @@ const top = data[0];
     })
     .filter((entry) => entry.entries > 0) : [];
 
-  const uniquePlatformData = analyticsActive ? currentPlatformKeys.map((platform) => {
-    const otherIndexes = currentPlatformKeys
-      .filter((item) => item !== platform)
-      .map((item) => getRawPlatformIndex(ct, item, anMonth));
-    const uniqueEntries = rawPlatform(ct, platform, anMonth)
-      .filter((entry) => !otherIndexes.some((index) => index.has(entryKey(entry))))
-      .map((entry) => ({
-        title: entry.t,
-        artist: formatArtistCredit(entry.a, entry.fa),
-        primary_artist: entry.a,
-        featured_artists: entry.fa || "",
-        rank: entry.r,
-        pts: entry.p,
-      }));
-    return {
-      platform,
-      label: PLAT_LABEL[platform] || platform,
-      count: uniqueEntries.length,
-      color: PC[platform] || "#888",
-      entries: uniqueEntries.slice(0, 6),
-    };
-  }) : [];
+  const uniquePlatformData = analyticsActive ? (() => {
+    const top50RowsByPlatform = new Map(
+      currentPlatformKeys.map((platform) => [
+        platform,
+        rawPlatform(ct, platform, anMonth)
+          .filter((entry) => Number(entry.r) <= 50)
+          .slice(0, 50),
+      ])
+    );
+    const top50IndexesByPlatform = new Map(
+      currentPlatformKeys.map((platform) => {
+        const index = new Map();
+        (top50RowsByPlatform.get(platform) || []).forEach((entry) => {
+          const key = entryKey(entry);
+          if (!index.has(key)) index.set(key, entry);
+        });
+        return [platform, index];
+      })
+    );
+
+    return currentPlatformKeys.map((platform) => {
+      const otherIndexes = currentPlatformKeys
+        .filter((item) => item !== platform)
+        .map((item) => top50IndexesByPlatform.get(item));
+      const uniqueEntries = (top50RowsByPlatform.get(platform) || [])
+        .filter((entry) => !otherIndexes.some((index) => index?.has(entryKey(entry))))
+        .map((entry) => ({
+          title: entry.t,
+          artist: formatArtistCredit(entry.a, entry.fa),
+          primary_artist: entry.a,
+          featured_artists: entry.fa || "",
+          rank: entry.r,
+          pts: entry.p,
+        }));
+      return {
+        platform,
+        label: PLAT_LABEL[platform] || platform,
+        count: uniqueEntries.length,
+        color: PC[platform] || "#888",
+        entries: uniqueEntries.slice(0, 6),
+      };
+    });
+  })() : [];
 
   const topCountryData = analyticsActive ? (() => {
     const countryMap = new Map();
