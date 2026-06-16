@@ -953,6 +953,7 @@ const top = data[0];
   const platformKeysFor = (chartType = ct) => (chartType === "singles" ? S_PLATS : A_PLATS).filter((platform) => platform !== "Combined");
   const currentPlatformKeys = platformKeysFor(ct);
   const analyticsActive = page === "analytics";
+  const analysisMonths = analyticsActive ? MONTHS.slice(0, Math.max(0, monthIndex(anMonth)) + 1) : MONTHS;
   const recordsActive = page === "records";
   const recordsCoverageTargetFor = (chartType = ct) => (chartType === "albums" ? 2 : platformKeysFor(chartType).length);
   const currentRecordsCoverageTarget = recordsCoverageTargetFor(ct);
@@ -1426,7 +1427,6 @@ const top = data[0];
   );
 
   // === ANALYTICS COMPUTATIONS — all from full Top-50 data ===
-  const analysisMonths = analyticsActive ? MONTHS.slice(0, Math.max(0, monthIndex(anMonth)) + 1) : MONTHS;
   const top10sData=analyticsActive?getCombined(ct,anMonth).slice(0,10).map(e=>({...e,name:e.title.length>16?e.title.slice(0,14)+"…":e.title,title:e.title,artist:e.artist,pts:e.pts})):[];
   const monthlyComp=analyticsActive?analysisMonths.map(m=>{
     const rows=getCombined(ct,m);
