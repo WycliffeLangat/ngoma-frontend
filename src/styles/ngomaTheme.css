@@ -3001,3 +3001,14 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell select option {
   background: #ffffff !important;
   color: #050505 !important;
 }
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell .ngoma-platform-cell {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  color: #050505 !important;
+  border-color: rgba(0, 0, 0, 0.16) !important;
+}
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell .ngoma-platform-cell * {
+  color: #050505 !important;
+}

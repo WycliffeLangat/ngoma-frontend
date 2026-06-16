@@ -1352,6 +1352,11 @@ const top = data[0];
   const yearEnd=isSingles?COMBINED_YEAR_END.singles:COMBINED_YEAR_END.albums;
 
   const tracked=getCombined(ct,analyticsActive?anMonth:CURRENT_MONTH).slice(0,5).map(entry=>entry.title);
+  const rankJourneyStartIndex=tracked.reduce((earliest,title)=>{
+    const idx=analysisMonths.findIndex(m=>getCombined(ct,m).some(e=>e.title===title));
+    return idx>=0?Math.min(earliest,idx):earliest;
+  },analysisMonths.length);
+  const rankJourneyMonths=rankJourneyStartIndex<analysisMonths.length?analysisMonths.slice(rankJourneyStartIndex):analysisMonths;
 
   const certs=buildCertifications(yearEnd);
   const certIcons=CERTIFICATION_LEVELS.reduce((acc, item) => {
@@ -1921,15 +1926,15 @@ liveStatus={liveStatus}
             </div>
             <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:isMobile?"10px":"12px",marginBottom:isMobile?"12px":"14px"}}>
               {[{d:cmp1,c:GOLD},{d:cmp2,c:"#1565C0"}].map(({d,c},i)=>(
-                <button key={i} type="button" onClick={()=>openArtistDetails(d.n)} style={{padding:isMobile?"13px":"15px",background:c+"0D",borderRadius:"10px",border:"none",borderLeft:"3px solid "+c,cursor:"pointer",minWidth:0,textAlign:"left"}}>
+                <button key={i} type="button" onClick={()=>openArtistDetails(d.n)} style={{padding:isMobile?"13px":"15px",background:isDark?(i===0?"rgba(200,145,22,0.16)":"rgba(21,101,192,0.20)"):c+"0D",borderRadius:"10px",border:isDark?"1px solid "+c+"55":"none",borderLeft:"3px solid "+c,cursor:"pointer",minWidth:0,textAlign:"left"}}>
                   <div style={{display:"flex",alignItems:"center",gap:"8px",minWidth:0}}>
                     <CountryBadge artist={d.n} compact />
-                    <div style={{fontFamily:SF,fontSize:isMobile?"15px":"16px",fontWeight:850,lineHeight:1.2,whiteSpace:"normal",overflowWrap:"anywhere",color:"#1F241F"}}>{d.n}</div>
+                    <div style={{fontFamily:SF,fontSize:isMobile?"15px":"16px",fontWeight:850,lineHeight:1.2,whiteSpace:"normal",overflowWrap:"anywhere",color:isDark?"#F6F3EA":"#1F241F"}}>{d.n}</div>
                   </div>
                 </button>
               ))}
             </div>
-            <div style={{width:"100%",maxWidth:isMobile?"360px":"none",margin:"0 auto",border:"1px solid #E4E1D8",borderRadius:"12px",overflow:"hidden",background:"#FFF",boxShadow:"0 8px 24px rgba(31,36,31,0.05)"}}>
+            <div style={{width:"100%",maxWidth:isMobile?"360px":"none",margin:"0 auto",border:"1px solid "+(isDark?"#2F352F":"#E4E1D8"),borderRadius:"12px",overflow:"hidden",background:isDark?"#0F120F":"#FFF",boxShadow:isDark?"none":"0 8px 24px rgba(31,36,31,0.05)"}}>
               <div style={{display:"grid",gridTemplateColumns:isMobile?"minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)":"minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)",gap:"8px",alignItems:"center",padding:isMobile?"10px 9px":"12px 16px",background:"#1F241F",color:"#FFF"}}>
                 <div style={{fontFamily:F,fontSize:isMobile?"10px":"11px",fontWeight:850,textAlign:"center",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",color:"#E4BE55"}}>{cmp1.n}</div>
                 <div style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.4px",textAlign:"center",textTransform:"uppercase",color:"#C9CEC9"}}>Metric</div>
@@ -1943,10 +1948,10 @@ liveStatus={liveStatus}
               ].map((row,i)=>{
                 const aWins=row.hi==="max"?row.a>row.b:row.a<row.b;
                 const bWins=row.hi==="max"?row.b>row.a:row.b<row.a;
-                return <div key={row.label} style={{display:"grid",gridTemplateColumns:isMobile?"minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)":"minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)",alignItems:"stretch",background:i%2?"#FBFAF7":"#FFF",borderBottom:i===3?"none":"1px solid #EEEAE1"}}>
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:isMobile?"9px 6px":"11px 12px",fontFamily:F,fontSize:isMobile?"13px":"14px",fontWeight:aWins?900:700,color:aWins?GOLD:"#4E5851",background:aWins?GOLD+"0D":"transparent"}}>{row.fmt(row.a)}</div>
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"9px 5px":"11px 10px",borderLeft:"1px solid #EEEAE1",borderRight:"1px solid #EEEAE1",fontFamily:F,fontSize:isMobile?"8.6px":"9.5px",letterSpacing:"0.8px",textTransform:"uppercase",color:"#59645D",fontWeight:850,lineHeight:1.25}}>{row.label}</div>
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:isMobile?"9px 6px":"11px 12px",fontFamily:F,fontSize:isMobile?"13px":"14px",fontWeight:bWins?900:700,color:bWins?"#1565C0":"#4E5851",background:bWins?"#1565C00D":"transparent"}}>{row.fmt(row.b)}</div>
+                return <div key={row.label} style={{display:"grid",gridTemplateColumns:isMobile?"minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)":"minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)",alignItems:"stretch",background:isDark?(i%2?"#121612":"#0F120F"):(i%2?"#FBFAF7":"#FFF"),borderBottom:i===3?"none":"1px solid "+(isDark?"#2F352F":"#EEEAE1")}}>
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:isMobile?"9px 6px":"11px 12px",fontFamily:F,fontSize:isMobile?"13px":"14px",fontWeight:aWins?900:800,color:GOLD,background:"transparent"}}>{row.fmt(row.a)}</div>
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"9px 5px":"11px 10px",borderLeft:"1px solid "+(isDark?"#2F352F":"#EEEAE1"),borderRight:"1px solid "+(isDark?"#2F352F":"#EEEAE1"),fontFamily:F,fontSize:isMobile?"8.6px":"9.5px",letterSpacing:"0.8px",textTransform:"uppercase",color:isDark?"#C9CEC9":"#59645D",fontWeight:850,lineHeight:1.25}}>{row.label}</div>
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:isMobile?"9px 6px":"11px 12px",fontFamily:F,fontSize:isMobile?"13px":"14px",fontWeight:bWins?900:800,color:"#1565C0",background:"transparent"}}>{row.fmt(row.b)}</div>
                 </div>;
               })}
             </div>
@@ -1979,8 +1984,8 @@ liveStatus={liveStatus}
                         <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:"8px"}}>
                           {artistStats.map((stat)=>(
                             <div key={stat.label} style={{background:"#FFF",border:"1px solid rgba(0,0,0,0.06)",borderRadius:"12px",padding:"9px 7px",minWidth:0}}>
-                              <span style={{display:"block",fontFamily:F,fontSize:"9px",color:"#777",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",textAlign:"center"}}>{stat.label}</span>
-                              <span style={{display:"block",marginTop:"4px",fontFamily:F,color:"#050505",fontSize:"12px",fontWeight:900,textAlign:"center",whiteSpace:"normal",overflowWrap:"anywhere"}}>{stat.value}</span>
+                              <span style={{display:"block",fontFamily:F,fontSize:"9px",color:isDark?"#AEB6AE":"#777",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",textAlign:"center"}}>{stat.label}</span>
+                              <span style={{display:"block",marginTop:"4px",fontFamily:F,color:isDark?"#D7DBD7":"#050505",fontSize:"12px",fontWeight:850,textAlign:"center",whiteSpace:"normal",overflowWrap:"anywhere"}}>{stat.value}</span>
                             </div>
                           ))}
                         </div>
@@ -2000,7 +2005,7 @@ liveStatus={liveStatus}
                 onMouseEnter={e=>e.currentTarget.style.background="#FAFAF6"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
                 <div style={{fontSize:i<3?"17px":"13.5px",fontWeight:900,color:i<3?MEDALS[i]:"#B8BDB8",textAlign:"center",fontFamily:F}}>{i+1}</div>
                 <CountryBadge artist={a.n} compact />
-                <div style={{minWidth:0}}><button type="button" onClick={()=>openArtistDetails(a.n)} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:"15.5px",fontWeight:850,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",lineHeight:1.15,cursor:"pointer",maxWidth:"100%",textAlign:"left"}}>{a.n}</button><div style={{fontSize:"12px",color:"#59645D",fontFamily:F,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",marginTop:"4px",lineHeight:1.35}}>{a.t} {a.t===1?"entry":"entries"} · Artist peak: #{a.pk} · {a.m} {a.m===1?"month":"months"}</div></div>
+                <div style={{minWidth:0}}><button type="button" onClick={()=>openArtistDetails(a.n)} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:"15.5px",fontWeight:850,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",lineHeight:1.15,cursor:"pointer",maxWidth:"100%",textAlign:"left"}}>{a.n}</button><div style={{fontSize:"12px",color:isDark?"#AEB6AE":"#59645D",fontFamily:F,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",marginTop:"4px",lineHeight:1.35}}>{a.t} {a.t===1?"entry":"entries"} · Artist peak: #{a.pk} · {a.m} {a.m===1?"month":"months"}</div></div>
                 <div title={trend.label} style={{textAlign:"center",fontFamily:F,fontSize:"14px",fontWeight:900,color:trend.color}}>{trend.symbol}</div>
                 <div style={{textAlign:"center",fontFamily:F,fontSize:"16px",fontWeight:900,color:GOLD,whiteSpace:"nowrap"}}>{a.p.toLocaleString()}</div>
               </div>
@@ -2083,9 +2088,9 @@ liveStatus={liveStatus}
                     const bWins=r.hi==="max"?r.b>r.a:r.b<r.a;
                     return(
                       <div key={i} style={{display:"grid",gridTemplateColumns:isMobile?"minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)":"minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)",alignItems:"stretch",background:isDark?(i%2?"#121612":"#0F120F"):(i%2?"#FBFAF7":"#FFF"),borderBottom:i===rows.length-1?"none":"1px solid "+(isDark?"#2F352F":"#EEEAE1"),gap:0}}>
-                        <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"9px 6px":"11px 12px",fontFamily:F,fontSize:isMobile?"13px":"14px",fontWeight:aWins?900:800,color:aWins?GOLD:(isDark?"#F6F3EA":"#4E5851"),background:aWins?(isDark?"rgba(200,145,22,0.18)":GOLD+"0D"):"transparent"}}>{r.fmt(r.a)}</div>
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"9px 6px":"11px 12px",fontFamily:F,fontSize:isMobile?"13px":"14px",fontWeight:aWins?900:800,color:GOLD,background:"transparent"}}>{r.fmt(r.a)}</div>
                         <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"9px 5px":"11px 10px",borderLeft:"1px solid "+(isDark?"#2F352F":"#EEEAE1"),borderRight:"1px solid "+(isDark?"#2F352F":"#EEEAE1"),fontFamily:F,fontSize:isMobile?"8.6px":"9.5px",letterSpacing:"0.8px",textTransform:"uppercase",color:isDark?"#F6F3EA":"#59645D",fontWeight:850,lineHeight:1.25}}>{r.label}</div>
-                        <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"9px 6px":"11px 12px",fontFamily:F,fontSize:isMobile?"13px":"14px",fontWeight:bWins?900:800,color:bWins?(isDark?"#72A7E8":"#1565C0"):(isDark?"#F6F3EA":"#4E5851"),background:bWins?(isDark?"rgba(21,101,192,0.24)":"#1565C00D"):"transparent"}}>{r.fmt(r.b)}</div>
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"9px 6px":"11px 12px",fontFamily:F,fontSize:isMobile?"13px":"14px",fontWeight:bWins?900:800,color:isDark?"#72A7E8":"#1565C0",background:"transparent"}}>{r.fmt(r.b)}</div>
                       </div>
                     );
                   });
@@ -2395,7 +2400,7 @@ liveStatus={liveStatus}
               <div className="ngoma-analytics-chart-scroll" aria-label="Scrollable rank journey graph">
                 <div style={{minWidth:isMobile?"720px":"100%",height:320}}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={analysisMonths.map((m)=>{const row={month:m.split(" ")[0].slice(0,3)};tracked.forEach((title)=>{row[title]=getCombined(ct,m).find((entry)=>entry.title===title)?.rank||null;});return row;})} margin={{top:10,right:24,left:8,bottom:8}}>
+                    <LineChart data={rankJourneyMonths.map((m)=>{const row={month:m.split(" ")[0].slice(0,3)};tracked.forEach((title)=>{row[title]=getCombined(ct,m).find((entry)=>entry.title===title)?.rank||null;});return row;})} margin={{top:10,right:24,left:8,bottom:8}}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#F0F0EC"/>
                       <XAxis dataKey="month" tick={{fontSize:10.5,fontFamily:F,fill:"#59645D"}}/>
                       <YAxis reversed domain={[1,50]} tick={{fontSize:10,fontFamily:F,fill:"#59645D"}} tickFormatter={v=>`#${v}`}/>
@@ -2410,14 +2415,14 @@ liveStatus={liveStatus}
             <div className="ngoma-analytics-chart-scroll" aria-label="Scrollable rank journey table">
             <div style={{minWidth:isMobile?"760px":"100%"}}>
             {tracked.map(title=>{
-              const hasAny=analysisMonths.some(m=>getCombined(ct,m).find(e=>e.title===title));
+              const hasAny=rankJourneyMonths.some(m=>getCombined(ct,m).find(e=>e.title===title));
               if(!hasAny)return null;
-              return(<div key={title} style={{display:"grid",gridTemplateColumns:`minmax(${isMobile?180:220}px,1fr) repeat(${analysisMonths.length},44px)`,alignItems:"center",padding:"8px 0",borderBottom:"1px solid #F0F0EC",gap:"8px"}}>
+              return(<div key={title} style={{display:"grid",gridTemplateColumns:`minmax(${isMobile?180:220}px,1fr) repeat(${rankJourneyMonths.length},44px)`,alignItems:"center",padding:"8px 0",borderBottom:"1px solid #F0F0EC",gap:"8px"}}>
                 <div style={{minWidth:0,display:"flex",alignItems:"center",gap:"7px"}}>
-                  <button type="button" onClick={()=>{const e=analysisMonths.flatMap(m=>getCombined(ct,m)).find(x=>x.title===title);if(e)openReleaseDetails(e,isSingles?"single":"album");}} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:isMobile?"12.5px":"11.5px",fontWeight:800,lineHeight:1.2,color:GOLD,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",cursor:"pointer"}}>{title}</button>
-                  {(()=>{const e=analysisMonths.flatMap(m=>getCombined(ct,m)).find(x=>x.title===title);const certification=e?getCertificationForEntry(e,isSingles?"single":"album"):null;return certification?<CertificationTag cert={certification} compact />:null;})()}
+                  <button type="button" onClick={()=>{const e=rankJourneyMonths.flatMap(m=>getCombined(ct,m)).find(x=>x.title===title);if(e)openReleaseDetails(e,isSingles?"single":"album");}} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:isMobile?"12.5px":"11.5px",fontWeight:800,lineHeight:1.2,color:GOLD,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",cursor:"pointer"}}>{title}</button>
+                  {(()=>{const e=rankJourneyMonths.flatMap(m=>getCombined(ct,m)).find(x=>x.title===title);const certification=e?getCertificationForEntry(e,isSingles?"single":"album"):null;return certification?<CertificationTag cert={certification} compact />:null;})()}
                 </div>
-                {analysisMonths.map(m=>{const e=getCombined(ct,m).find(x=>x.title===title);return(<div key={m} style={{width:"44px",textAlign:"center",fontFamily:F}}>
+                {rankJourneyMonths.map(m=>{const e=getCombined(ct,m).find(x=>x.title===title);return(<div key={m} style={{width:"44px",textAlign:"center",fontFamily:F}}>
                   <div style={{fontSize:isMobile?"9px":"8.5px",color:"#69716B",fontWeight:700}}>{m.split(" ")[0].slice(0,3)}</div>
                   {e?<div style={{fontSize:"14px",fontWeight:800,color:e.rank===1?GOLD:e.rank<=3?"#1A1A1A":"#888"}}>#{e.rank}</div>:<div style={{fontSize:"11px",color:"#E0E0DC"}}>—</div>}
                 </div>);})}
@@ -2446,12 +2451,12 @@ liveStatus={liveStatus}
               </div>
             </div>
 
-            <div style={{...card({background:"linear-gradient(135deg,#F4FBF5,#FFFFFF)",borderColor:"#2DB04A22",padding:isMobile?"18px":"24px"}),marginBottom:isMobile?"16px":"20px"}}>
+            <div style={{...card({background:isDark?"#0F120F":"linear-gradient(135deg,#F4FBF5,#FFFFFF)",borderColor:isDark?"#2DB04A55":"#2DB04A22",padding:isMobile?"18px":"24px"}),marginBottom:isMobile?"16px":"20px"}}>
               <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"6px"}}>
                 <span style={{fontSize:"22px"}}>🔥</span>
                 <div>
                   <div style={{fontFamily:F,fontSize:isMobile?"10.5px":"11px",fontWeight:800,letterSpacing:"1px",textTransform:"uppercase",color:"#2DB04A"}}>Biggest Climb</div>
-                  <div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:"#68746C"}}>Most Combined chart places gained in {latestMonth}</div>
+                  <div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#D7DBD7":"#68746C"}}>Most Combined chart places gained in {latestMonth}</div>
                 </div>
               </div>
               {(()=>{const list=uniqueByMomentumIdentity(currentTrending.rising);const hot=list[0];if(!hot)return null;
@@ -2459,14 +2464,14 @@ liveStatus={liveStatus}
                   <div style={{display:"flex",flexDirection:isMobile?"column":"row",alignItems:isMobile?"stretch":"center",gap:isMobile?"18px":"28px",marginTop:"14px"}}>
                     <div style={{flex:1,minWidth:isMobile?"0":"260px"}}>
                       <div style={{display:"flex",alignItems:"center",gap:"9px",flexWrap:"wrap"}}>
-                        <div style={{fontFamily:SF,fontSize:isMobile?"23px":"28px",fontWeight:850,cursor:"pointer",lineHeight:1.08}} onClick={()=>openMomentumRelease(hot)}>{hot.t}</div>
+                        <div style={{fontFamily:SF,fontSize:isMobile?"23px":"28px",fontWeight:850,cursor:"pointer",lineHeight:1.08,color:isDark?"#F6F3EA":"#1A1A1A"}} onClick={()=>openMomentumRelease(hot)}>{hot.t}</div>
                         {getCertificationForEntry(hot, isSingles ? "single" : "album")&&<CertificationTag cert={getCertificationForEntry(hot, isSingles ? "single" : "album")} compact={false} />}
                       </div>
-                      <div style={{fontFamily:F,fontSize:isMobile?"15px":"15px",color:"#69716B",marginTop:"6px",fontWeight:700}}>{hot.a}</div>
+                      <div style={{fontFamily:F,fontSize:isMobile?"15px":"15px",color:isDark?"#D7DBD7":"#69716B",marginTop:"6px",fontWeight:700}}>{hot.a}</div>
                       <div style={{display:"flex",gap:isMobile?"14px":"20px",marginTop:"12px",flexWrap:"wrap"}}>
-                        <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"20px",fontWeight:900,color:"#2DB04A"}}>+{hot.places}</div><div style={{fontFamily:F,fontSize:"10px",letterSpacing:"1px",textTransform:"uppercase",color:"#7B857D",fontWeight:800}}>Places</div></div>
-                        <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"20px",fontWeight:900,color:"#1A1A1A"}}>#{hot.fromRank}</div><div style={{fontFamily:F,fontSize:"10px",letterSpacing:"1px",textTransform:"uppercase",color:"#7B857D",fontWeight:800}}>Previous Rank</div></div>
-                        <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"20px",fontWeight:900,color:GOLD}}>#{hot.decRank}</div><div style={{fontFamily:F,fontSize:"10px",letterSpacing:"1px",textTransform:"uppercase",color:"#7B857D",fontWeight:800}}>{latestMonthShort} Rank</div></div>
+                        <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"20px",fontWeight:900,color:"#2DB04A"}}>+{hot.places}</div><div style={{fontFamily:F,fontSize:"10px",letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#AEB6AE":"#7B857D",fontWeight:800}}>Places</div></div>
+                        <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"20px",fontWeight:900,color:isDark?"#F6F3EA":"#1A1A1A"}}>#{hot.fromRank}</div><div style={{fontFamily:F,fontSize:"10px",letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#AEB6AE":"#7B857D",fontWeight:800}}>Previous Rank</div></div>
+                        <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"20px",fontWeight:900,color:GOLD}}>#{hot.decRank}</div><div style={{fontFamily:F,fontSize:"10px",letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#AEB6AE":"#7B857D",fontWeight:800}}>{latestMonthShort} Rank</div></div>
                       </div>
                     </div>
                     <div style={{minWidth:isMobile?"100%":"180px",display:"flex",justifyContent:isMobile?"flex-start":"flex-end"}}>
@@ -2645,11 +2650,11 @@ liveStatus={liveStatus}
                   if(!e)return <div key={i}/>;
                   const certification = getCertificationForEntry(e, isSingles ? "single" : "album");
                   return(<div key={`${pos}-${e.t}-${e.a}`} style={{textAlign:"center"}}>
-                    <div style={{background:featured?"linear-gradient(180deg,#FFF9E8 0%,#FFFDF8 100%)":medal+"12",border:(featured?"2.5px":"2px")+" solid "+medal,borderRadius:isMobile?"12px":"13px",padding:featured?(isMobile?"18px 12px":"18px 14px"):(isMobile?"15px 12px":"16px 12px"),boxShadow:featured?"0 14px 36px rgba(184,134,11,0.16)":"none",transform:(!isMobile&&featured)?"translateY(-2px)":"none"}}>
+                    <div style={{background:isDark?"#0F120F":featured?"linear-gradient(180deg,#FFF9E8 0%,#FFFDF8 100%)":medal+"12",border:(featured?"2.5px":"2px")+" solid "+medal,borderRadius:isMobile?"12px":"13px",padding:featured?(isMobile?"18px 12px":"18px 14px"):(isMobile?"15px 12px":"16px 12px"),boxShadow:isDark?"none":featured?"0 14px 36px rgba(184,134,11,0.16)":"none",transform:(!isMobile&&featured)?"translateY(-2px)":"none"}}>
                       <div style={{fontSize:featured?(isMobile?"33px":"38px"):"32px",fontWeight:950,color:medal,lineHeight:1}}>#{pos}</div>
                       <CountryBadge artist={e.a} style={{margin:"10px auto 0",minWidth:isMobile?"34px":"38px",height:isMobile?"30px":"34px",borderRadius:"11px",padding:"0 7px"}} />
-                      <button type="button" onClick={()=>openReleaseDetails(e,isSingles?"single":"album")} style={{display:"block",width:"100%",border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:featured?(isMobile?"16px":"16px"):TXT.cardTitle,fontWeight:850,margin:"8px 0 4px",lineHeight:1.18,cursor:"pointer"}}>{e.t}</button>
-                      <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(e.a);}} style={{display:"block",width:"100%",fontSize:TXT.cardMeta,color:"#59645D",fontFamily:F,fontWeight:750,marginBottom:"6px",padding:0,border:0,background:"transparent",cursor:"pointer"}}>{e.a}</button>
+                      <button type="button" onClick={()=>openReleaseDetails(e,isSingles?"single":"album")} style={{display:"block",width:"100%",border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:featured?(isMobile?"16px":"16px"):TXT.cardTitle,fontWeight:850,margin:"8px 0 4px",lineHeight:1.18,cursor:"pointer",color:isDark?"#F6F3EA":"#050505"}}>{e.t}</button>
+                      <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(e.a);}} style={{display:"block",width:"100%",fontSize:TXT.cardMeta,color:isDark?"#D7DBD7":"#59645D",fontFamily:F,fontWeight:750,marginBottom:"6px",padding:0,border:0,background:"transparent",cursor:"pointer"}}>{e.a}</button>
                       {certification&&<CertificationTag cert={certification} compact style={{margin:"0 auto 8px"}} />}
                       <div style={{fontSize:featured?(isMobile?"18px":"20px"):"18px",fontWeight:850,color:medal}}>{e.totalPts.toLocaleString()}</div>
                     </div>
@@ -3005,25 +3010,25 @@ liveStatus={liveStatus}
       {/* NEWS PAGE */}
       {page==="news"&&!selNews&&!selA&&!selR&&(
         <div style={{padding:PAD,background:"transparent",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden",maxWidth:"1040px",margin:"0 auto"}}>
-          <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px"}}>Chart News</h2>
-          <p style={{fontFamily:F,fontSize:isMobile?"11.5px":TXT.lead,color:"#59645D",margin:isMobile?"0 0 20px":"0 0 24px",lineHeight:1.6}}>Analysis and stories from Kenya's music charts</p>
+          <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px",color:isDark?"#F6F3EA":"#050505"}}>Chart News</h2>
+          <p style={{fontFamily:F,fontSize:isMobile?"11.5px":TXT.lead,color:isDark?"#D7DBD7":"#59645D",margin:isMobile?"0 0 20px":"0 0 24px",lineHeight:1.6}}>Analysis and stories from Kenya's music charts</p>
           <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(2,minmax(0,1fr))",gap:isMobile?"18px":"16px"}}>
             {NEWS.map((n,i)=>{
               return (
-              <div key={n.id} onClick={()=>setSelNews(n)} style={{...card({cursor:"pointer",padding:isMobile?"15px 16px":"20px",transition:"transform .2s ease, box-shadow .2s ease",gridColumn:!isMobile&&i===0?"1 / -1":"auto"}),...((i===0)?{background:"#FAF5EA",borderColor:GOLD+"44"}:{})}}
-                onMouseEnter={e=>{if(!isMobile){e.currentTarget.style.boxShadow="0 12px 30px rgba(31,36,31,0.10)";e.currentTarget.style.transform="translateY(-2px)";}}}
-                onMouseLeave={e=>{e.currentTarget.style.boxShadow="0 1px 3px rgba(0,0,0,0.02),0 8px 24px rgba(0,0,0,0.02)";e.currentTarget.style.transform="none";}}>
+              <div key={n.id} onClick={()=>setSelNews(n)} style={{...card({cursor:"pointer",padding:isMobile?"15px 16px":"20px",transition:"transform .2s ease, box-shadow .2s ease",gridColumn:!isMobile&&i===0?"1 / -1":"auto",background:isDark?"#0F120F":"#FFF",borderColor:isDark?"#2F352F":"#EFEDE7",boxShadow:isDark?"none":"0 1px 3px rgba(0,0,0,0.02),0 8px 24px rgba(0,0,0,0.02)"}),...((i===0)?{background:isDark?"#111411":"#FAF5EA",borderColor:GOLD+"44"}:{})}}
+                onMouseEnter={e=>{if(!isMobile){e.currentTarget.style.boxShadow=isDark?"0 0 0 1px rgba(184,134,11,0.22)":"0 12px 30px rgba(31,36,31,0.10)";e.currentTarget.style.transform="translateY(-2px)";}}}
+                onMouseLeave={e=>{e.currentTarget.style.boxShadow=isDark?"none":"0 1px 3px rgba(0,0,0,0.02),0 8px 24px rgba(0,0,0,0.02)";e.currentTarget.style.transform="none";}}>
                 <div style={{display:"flex",gap:isMobile?"10px":"14px",alignItems:"center",minWidth:0}}>
                   {i===0&&n.emoji&&<div style={{fontSize:isMobile?"27px":"34px",flexShrink:0,alignSelf:"flex-start"}}>{n.emoji}</div>}
                   <div style={{flex:1,minWidth:0,maxWidth:!isMobile&&i===0?"780px":"none"}}>
                     <div style={{display:"flex",gap:"8px",alignItems:"center",marginBottom:isMobile?"8px":"7px",flexWrap:"wrap"}}>
-                      <span style={{display:"inline-flex",alignItems:"center",height:"22px",fontFamily:F,fontSize:"9px",fontWeight:850,letterSpacing:"1.3px",textTransform:"uppercase",color:GOLD,background:"#F7EFD9",padding:"0 9px",borderRadius:"999px"}}>{n.cat}</span>
-                      <span style={{fontFamily:F,fontSize:"10px",fontWeight:650,color:"#59645D"}}>{n.date}</span>
+                      <span style={{display:"inline-flex",alignItems:"center",height:"22px",fontFamily:F,fontSize:"9px",fontWeight:850,letterSpacing:"1.3px",textTransform:"uppercase",color:isDark?"#E4BE55":GOLD,background:isDark?"rgba(184,134,11,0.16)":"#F7EFD9",border:isDark?"1px solid rgba(184,134,11,0.28)":"1px solid transparent",padding:"0 9px",borderRadius:"999px"}}>{n.cat}</span>
+                      <span style={{fontFamily:F,fontSize:"10px",fontWeight:650,color:isDark?"#C9CEC9":"#59645D"}}>{n.date}</span>
                     </div>
-                    <h3 style={{fontSize:i===0?(isMobile?"16px":"18px"):TXT.cardTitle,fontWeight:800,margin:isMobile?"0 0 7px":"0 0 6px",lineHeight:1.28}}>{n.title}</h3>
-                    <p style={{fontFamily:F,fontSize:TXT.body,color:"#59645D",margin:0,lineHeight:isMobile?1.68:1.6}}>{n.excerpt}</p>
+                    <h3 style={{fontSize:i===0?(isMobile?"16px":"18px"):TXT.cardTitle,fontWeight:800,margin:isMobile?"0 0 7px":"0 0 6px",lineHeight:1.28,color:isDark?"#F6F3EA":"#050505"}}>{n.title}</h3>
+                    <p style={{fontFamily:F,fontSize:TXT.body,color:isDark?"#D7DBD7":"#59645D",margin:0,lineHeight:isMobile?1.68:1.6}}>{n.excerpt}</p>
                   </div>
-                  <span aria-hidden="true" style={{fontFamily:F,fontSize:isMobile?"22px":"20px",color:"#A5ACA6",flexShrink:0,padding:isMobile?"8px 0 8px 4px":"6px 2px 6px 8px"}}>›</span>
+                  <span aria-hidden="true" style={{fontFamily:F,fontSize:isMobile?"22px":"20px",color:isDark?"#C9CEC9":"#A5ACA6",flexShrink:0,padding:isMobile?"8px 0 8px 4px":"6px 2px 6px 8px"}}>›</span>
                 </div>
               </div>
               );
@@ -3032,15 +3037,15 @@ liveStatus={liveStatus}
         </div>
       )}
       {page==="news"&&selNews&&!selA&&!selR&&(
-        <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",maxWidth:"680px",margin:"0 auto",boxSizing:"border-box",overflow:"hidden"}}>
+        <div style={{padding:PAD,background:isDark?"#0F120F":"#FFF",border:isDark?"1px solid #2F352F":"1px solid transparent",borderRadius:isDark?"16px":"0",minHeight:"60vh",maxWidth:"680px",margin:"0 auto",boxSizing:"border-box",overflow:"hidden"}}>
           <span onClick={()=>setSelNews(null)} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:GOLD,cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>← All News</span>
           <div style={{marginTop:"20px"}}>
             <div style={{display:"flex",gap:"10px",alignItems:"center",marginBottom:"12px",flexWrap:"wrap"}}>
-              <span style={{fontFamily:F,fontSize:"9px",fontWeight:700,letterSpacing:"1.5px",textTransform:"uppercase",color:GOLD,background:"#FAF5EA",padding:"2px 8px",borderRadius:"10px"}}>{selNews.cat}</span>
-              <span style={{fontFamily:F,fontSize:"10px",fontWeight:650,color:"#59645D"}}>{selNews.date}</span>
+              <span style={{fontFamily:F,fontSize:"9px",fontWeight:700,letterSpacing:"1.5px",textTransform:"uppercase",color:isDark?"#E4BE55":GOLD,background:isDark?"rgba(184,134,11,0.16)":"#FAF5EA",border:isDark?"1px solid rgba(184,134,11,0.28)":"1px solid transparent",padding:"2px 8px",borderRadius:"10px"}}>{selNews.cat}</span>
+              <span style={{fontFamily:F,fontSize:"10px",fontWeight:650,color:isDark?"#C9CEC9":"#59645D"}}>{selNews.date}</span>
             </div>
-            <h1 style={{fontSize:isMobile?"24px":"26px",fontWeight:850,margin:"0 0 16px",lineHeight:1.18}}>{selNews.title}</h1>
-            {selNews.body.split("\n\n").map((p,i)=><p key={i} style={{fontFamily:F,fontSize:isMobile?"14px":"14px",color:"#444",lineHeight:1.8,margin:"0 0 16px"}}>{p}</p>)}
+            <h1 style={{fontSize:isMobile?"24px":"26px",fontWeight:850,margin:"0 0 16px",lineHeight:1.18,color:isDark?"#F6F3EA":"#050505"}}>{selNews.title}</h1>
+            {selNews.body.split("\n\n").map((p,i)=><p key={i} style={{fontFamily:F,fontSize:isMobile?"14px":"14px",color:isDark?"#D7DBD7":"#444",lineHeight:1.8,margin:"0 0 16px"}}>{p}</p>)}
           </div>
         </div>
       )}
@@ -3128,18 +3133,26 @@ liveStatus={liveStatus}
           </div>
           <div style={{display:"flex",gap:isMobile?"10px":"14px",alignItems:"center",justifyContent:"center"}}>
             {[
-              {label:"Facebook", href:"https://www.facebook.com/ngomacharts",
+              {label:"Facebook", href:"https://www.facebook.com/ngomacharts", bg:"#1877F2", color:"#FFF",
                path:"M14 8.5h2V5.8h-2.4C11.5 5.8 10.5 7 10.5 9v1.5H8.7V13h1.8v6h2.6v-6h2l.3-2.5h-2.3V9.1c0-.4.2-.6.7-.6Z"},
-              {label:"X", href:"https://x.com/Ngoma_Charts",
+              {label:"X", href:"https://x.com/Ngoma_Charts", bg:"#000", color:"#FFF", border:"1px solid rgba(255,255,255,0.18)",
                path:"M16.8 5h2.2l-4.8 5.5L20 19h-4.4l-3.5-4.6L8 19H5.8l5.1-5.9L5 5h4.5l3.1 4.2L16.8 5Zm-.8 12.6h1.2L9.1 6.3H7.8L16 17.6Z"},
-              {label:"Instagram", href:"https://www.instagram.com/ngoma_charts/",
+              {label:"Instagram", href:"https://www.instagram.com/ngoma_charts/", bg:"linear-gradient(135deg,#F58529 0%,#DD2A7B 45%,#8134AF 72%,#515BD4 100%)", color:"#FFF",
                path:"M12 7.3A4.7 4.7 0 1012 16.7 4.7 4.7 0 0012 7.3Zm0 7.7a3 3 0 110-6 3 3 0 010 6Zm4.9-7.9a1.1 1.1 0 11-2.2 0 1.1 1.1 0 012.2 0ZM16.5 5h-9A2.5 2.5 0 005 7.5v9A2.5 2.5 0 007.5 19h9a2.5 2.5 0 002.5-2.5v-9A2.5 2.5 0 0016.5 5Z"},
             ].map(s=>(
               <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label}
-                 style={{display:"flex",alignItems:"center",justifyContent:"center",width:isMobile?"44px":"38px",height:isMobile?"44px":"38px",borderRadius:"50%",color:"rgba(255,255,255,0.68)",transition:"color .2s, background .2s",background:"rgba(255,255,255,0.04)"}}
-                 onMouseEnter={e=>e.currentTarget.style.color="#B8860B"}
-                 onMouseLeave={e=>e.currentTarget.style.color="rgba(255,255,255,0.62)"}>
-                <svg width={isMobile?"22":"20"} height={isMobile?"22":"20"} viewBox="0 0 24 24" fill="currentColor"><path d={s.path}/></svg>
+                 style={{display:"flex",alignItems:"center",justifyContent:"center",width:isMobile?"44px":"38px",height:isMobile?"44px":"38px",borderRadius:"50%",color:s.color,transition:"transform .2s, box-shadow .2s, background .2s",background:s.bg,border:s.border||"1px solid transparent",boxShadow:"0 8px 18px rgba(0,0,0,0.16)"}}
+                 onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px) scale(1.04)";e.currentTarget.style.boxShadow="0 12px 26px rgba(0,0,0,0.24)";}}
+                 onMouseLeave={e=>{e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow="0 8px 18px rgba(0,0,0,0.16)";}}>
+                {s.label==="Instagram"?(
+                  <svg width={isMobile?"22":"20"} height={isMobile?"22":"20"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="5" y="5" width="14" height="14" rx="4.2" />
+                    <circle cx="12" cy="12" r="3.2" />
+                    <circle cx="16.4" cy="7.6" r="1" fill="currentColor" stroke="none" />
+                  </svg>
+                ):(
+                  <svg width={isMobile?"22":"20"} height={isMobile?"22":"20"} viewBox="0 0 24 24" fill="currentColor"><path d={s.path}/></svg>
+                )}
               </a>
             ))}
           </div>

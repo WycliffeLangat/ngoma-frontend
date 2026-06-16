@@ -798,52 +798,6 @@ export default function PremiumChartsPage({
     return sort.dir === "asc" ? " ▲" : " ▼";
   }
 
-
-  // ----- CSV / report export ---------------------------------------------
-  function exportCsv() {
-    const header = [
-      "Rank",
-      isSingles ? "Song" : "Album",
-      "Artist",
-      "Country",
-      "Country Code",
-      "Last Month",
-      "Peak",
-      ...(isCombinedChart ? ["Platforms"] : []),
-    ];
-    const escape = (value) => {
-      const s = String(value ?? "");
-      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-    };
-    const rows = shown.map((item) => {
-      const profile = getReleaseProfile(item);
-      const country = getArtistCountry(item);
-      return [
-        item.rank,
-        item.title,
-        item.artist,
-        country.country,
-        country.code,
-        profile.lastMonth,
-        profile.peak,
-        ...(isCombinedChart ? [item.plat || "—"] : []),
-      ]
-        .map(escape)
-        .join(",");
-    });
-    const csv = [header.join(","), ...rows].join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-    link.href = url;
-    link.download = `ngoma-top-${shown.length}-${slug(month)}-${slug(platformLabel)}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  }
-
   function getMobileRowKey(item, index) {
     return `${item.title}-${item.artist}-${item.rank}-${index}`;
   }
@@ -890,7 +844,7 @@ export default function PremiumChartsPage({
 
   function MobileStat({ label, value }) {
     return (
-      <div style={styles.mobileMiniStat}>
+      <div className={label === "Plat." ? "ngoma-platform-cell" : undefined} style={styles.mobileMiniStat}>
         <span style={styles.mobileMiniStatLabel}>{label}</span>
         <span style={styles.mobileMiniStatValue}>{value}</span>
       </div>
@@ -1195,15 +1149,7 @@ export default function PremiumChartsPage({
             </div>
           </div>
 
-          <div data-share-action-area="true" style={styles.tableTopActions}>
-            <button
-              type="button"
-              onClick={exportCsv}
-              style={styles.exportButton}
-              title="Download this chart as a CSV report"
-            >
-              ↓ Export CSV
-            </button>
+          <div style={styles.tableTopActions}>
             <div style={{...styles.tableRange,background:`${chartAccent}18`,color:chartAccentInk}}>Top {Math.min(vc, data.length)}</div>
           </div>
         </div>
@@ -1438,7 +1384,7 @@ export default function PremiumChartsPage({
 
                 <div style={styles.metaNumber}>{profile.lastMonth}</div>
                 <div style={styles.metaNumber}>{profile.peak}</div>
-                {isCombinedChart&&<div style={styles.platformCell}>{item.plat || "—"}</div>}
+                {isCombinedChart&&<div className="ngoma-platform-cell" style={styles.platformCell}>{item.plat || "—"}</div>}
               </div>
             );
           })}
@@ -2080,20 +2026,6 @@ const styles = {
     gap: "10px",
     flexShrink: 0,
     flexWrap: "wrap",
-  },
-
-  exportButton: {
-    border: "1px solid rgba(0,0,0,0.16)",
-    borderRadius: "999px",
-    background: "#ffffff",
-    color: "#3a3a3a",
-    padding: "9px 16px",
-    fontSize: "12px",
-    fontWeight: 900,
-    letterSpacing: "0.6px",
-    textTransform: "uppercase",
-    cursor: "pointer",
-    whiteSpace: "nowrap",
   },
 
   pillFade: {
