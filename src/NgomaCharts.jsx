@@ -2024,9 +2024,9 @@ liveStatus={liveStatus}
             </div>
           </div>
           {/* SONG / ALBUM COMPARISON */}
-          <div style={{...card(),padding:isMobile?"16px":"18px",marginBottom:isMobile?"18px":"20px",background:"linear-gradient(135deg,#FAFAF8,#FFFFFF)"}}>
+          <div style={{...card(),padding:isMobile?"16px":"18px",marginBottom:isMobile?"18px":"20px",background:isDark?"#0F120F":"linear-gradient(135deg,#FAFAF8,#FFFFFF)",borderColor:isDark?"#2F352F":"#EFEDE7"}}>
             <div style={secLbl()}><SecMark/>{isSingles?"Song":"Album"} Head-to-Head</div>
-            <p style={{fontFamily:F,fontSize:TXT.note,color:"#69716B",margin:"-8px 0 14px",lineHeight:1.45}}>Compare two {isSingles?"songs":"albums"} across points, rank, platforms, and chart history.</p>
+            <p style={{fontFamily:F,fontSize:TXT.note,color:isDark?"#F6F3EA":"#69716B",margin:"-8px 0 14px",lineHeight:1.45}}>Compare two {isSingles?"songs":"albums"} across points, rank, platforms, and chart history.</p>
             <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"minmax(0,1fr) auto minmax(0,1fr)",gap:isMobile?"10px":"12px",alignItems:"center",marginBottom:isMobile?"14px":"14px"}}>
               <div style={{minWidth:0}}>
                 {isMobile&&<div style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:GOLD,marginBottom:"6px"}}>{isSingles?"Song":"Album"} One</div>}
@@ -2048,21 +2048,21 @@ liveStatus={liveStatus}
               {/* Title cards */}
               <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:isMobile?"10px":"12px",marginBottom:isMobile?"12px":"14px"}}>
                 {[{d:sp1,c:GOLD},{d:sp2,c:"#1565C0"}].map(({d,c},i)=>(
-                  <div key={i} style={{padding:isMobile?"13px":"15px",background:c+"0D",borderRadius:"10px",borderLeft:"3px solid "+c,minWidth:0}}>
+                  <div key={i} style={{padding:isMobile?"13px":"15px",background:isDark?(i===0?"rgba(200,145,22,0.16)":"rgba(21,101,192,0.20)"):c+"0D",borderRadius:"10px",border:isDark?"1px solid "+c+"55":"1px solid transparent",borderLeft:"3px solid "+c,minWidth:0}}>
                     <div style={{display:"flex",alignItems:"center",gap:"7px",flexWrap:"wrap",minWidth:0}}>
-                      <button type="button" onClick={()=>openReleaseDetails(d,isSingles?"single":"album")} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:isMobile?"15px":"16px",fontWeight:800,lineHeight:1.2,whiteSpace:isMobile?"normal":"nowrap",overflow:isMobile?"visible":"hidden",textOverflow:isMobile?"clip":"ellipsis",overflowWrap:"anywhere",minWidth:0,cursor:"pointer",textAlign:"left"}}>{d.title}</button>
+                      <button type="button" onClick={()=>openReleaseDetails(d,isSingles?"single":"album")} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:isMobile?"15px":"16px",fontWeight:800,lineHeight:1.2,whiteSpace:isMobile?"normal":"nowrap",overflow:isMobile?"visible":"hidden",textOverflow:isMobile?"clip":"ellipsis",overflowWrap:"anywhere",minWidth:0,cursor:"pointer",textAlign:"left",color:isDark?"#F6F3EA":"#1F241F"}}>{d.title}</button>
                       {getCertificationForEntry(d, isSingles ? "single" : "album")&&<CertificationTag cert={getCertificationForEntry(d, isSingles ? "single" : "album")} compact />}
                     </div>
-                    <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(d.artist);}} style={{display:"block",maxWidth:"100%",fontFamily:F,fontSize:isMobile?"11.5px":"11px",color:"#59645D",marginTop:"3px",padding:0,border:0,background:"transparent",fontWeight:700,whiteSpace:isMobile?"normal":"nowrap",overflow:isMobile?"visible":"hidden",textOverflow:isMobile?"clip":"ellipsis",overflowWrap:"anywhere",cursor:"pointer",textAlign:"left"}}>{d.artist}</button>
+                    <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(d.artist);}} style={{display:"block",maxWidth:"100%",fontFamily:F,fontSize:isMobile?"11.5px":"11px",color:isDark?"#F6F3EA":"#59645D",marginTop:"3px",padding:0,border:0,background:"transparent",fontWeight:700,whiteSpace:isMobile?"normal":"nowrap",overflow:isMobile?"visible":"hidden",textOverflow:isMobile?"clip":"ellipsis",overflowWrap:"anywhere",cursor:"pointer",textAlign:"left"}}>{d.artist}</button>
                     <div style={{display:"flex",gap:isMobile?"12px":"16px",marginTop:isMobile?"10px":"12px",flexWrap:"wrap"}}>
-                      <div><div style={{fontFamily:F,fontSize:isMobile?"18px":"20px",fontWeight:800,color:c}}>{d.totalPts.toLocaleString()}</div><div style={{fontFamily:F,fontSize:isMobile?"8.5px":"8.5px",letterSpacing:"1px",textTransform:"uppercase",color:"#69716B",fontWeight:700}}>Total Pts</div></div>
-                      <div><div style={{fontFamily:F,fontSize:isMobile?"18px":"20px",fontWeight:800,color:c}}>#{d.peak}</div><div style={{fontFamily:F,fontSize:isMobile?"8.5px":"8.5px",letterSpacing:"1px",textTransform:"uppercase",color:"#69716B",fontWeight:700}}>Peak</div></div>
+                      <div><div style={{fontFamily:F,fontSize:isMobile?"18px":"20px",fontWeight:800,color:isDark&&i===1?"#72A7E8":c}}>{d.totalPts.toLocaleString()}</div><div style={{fontFamily:F,fontSize:isMobile?"8.5px":"8.5px",letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#F6F3EA":"#69716B",fontWeight:700}}>Total Pts</div></div>
+                      <div><div style={{fontFamily:F,fontSize:isMobile?"18px":"20px",fontWeight:800,color:isDark&&i===1?"#72A7E8":c}}>#{d.peak}</div><div style={{fontFamily:F,fontSize:isMobile?"8.5px":"8.5px",letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#F6F3EA":"#69716B",fontWeight:700}}>Peak</div></div>
                     </div>
                   </div>
                 ))}
               </div>
               {/* Metric comparison table */}
-              <div style={{width:"100%",maxWidth:isMobile?"360px":"none",margin:"0 auto 16px",border:"1px solid #E4E1D8",borderRadius:"12px",overflow:"hidden",background:"#FFF",boxShadow:"0 8px 24px rgba(31,36,31,0.05)"}}>
+              <div style={{width:"100%",maxWidth:isMobile?"360px":"none",margin:"0 auto 16px",border:"1px solid "+(isDark?"#2F352F":"#E4E1D8"),borderRadius:"12px",overflow:"hidden",background:isDark?"#0F120F":"#FFF",boxShadow:isDark?"none":"0 8px 24px rgba(31,36,31,0.05)"}}>
                 <div style={{display:"grid",gridTemplateColumns:isMobile?"minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)":"minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)",gap:"8px",alignItems:"center",padding:isMobile?"10px 9px":"12px 16px",background:"#1F241F",color:"#FFF"}}>
                   <div style={{fontFamily:F,fontSize:isMobile?"10px":"11px",fontWeight:850,textAlign:"center",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",color:"#E4BE55"}}>{sp1.title}</div>
                   <div style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.4px",textAlign:"center",textTransform:"uppercase",color:"#C9CEC9"}}>Metric</div>
@@ -2082,10 +2082,10 @@ liveStatus={liveStatus}
                     const aWins=r.hi==="max"?r.a>r.b:r.a<r.b;
                     const bWins=r.hi==="max"?r.b>r.a:r.b<r.a;
                     return(
-                      <div key={i} style={{display:"grid",gridTemplateColumns:isMobile?"minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)":"minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)",alignItems:"stretch",background:i%2?"#FBFAF7":"#FFF",borderBottom:i===rows.length-1?"none":"1px solid #EEEAE1",gap:0}}>
-                        <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"9px 6px":"11px 12px",fontFamily:F,fontSize:isMobile?"13px":"14px",fontWeight:aWins?900:700,color:aWins?GOLD:"#4E5851",background:aWins?GOLD+"0D":"transparent"}}>{r.fmt(r.a)}</div>
-                        <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"9px 5px":"11px 10px",borderLeft:"1px solid #EEEAE1",borderRight:"1px solid #EEEAE1",fontFamily:F,fontSize:isMobile?"8.6px":"9.5px",letterSpacing:"0.8px",textTransform:"uppercase",color:"#59645D",fontWeight:850,lineHeight:1.25}}>{r.label}</div>
-                        <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"9px 6px":"11px 12px",fontFamily:F,fontSize:isMobile?"13px":"14px",fontWeight:bWins?900:700,color:bWins?"#1565C0":"#4E5851",background:bWins?"#1565C00D":"transparent"}}>{r.fmt(r.b)}</div>
+                      <div key={i} style={{display:"grid",gridTemplateColumns:isMobile?"minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)":"minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)",alignItems:"stretch",background:isDark?(i%2?"#121612":"#0F120F"):(i%2?"#FBFAF7":"#FFF"),borderBottom:i===rows.length-1?"none":"1px solid "+(isDark?"#2F352F":"#EEEAE1"),gap:0}}>
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"9px 6px":"11px 12px",fontFamily:F,fontSize:isMobile?"13px":"14px",fontWeight:aWins?900:800,color:aWins?GOLD:(isDark?"#F6F3EA":"#4E5851"),background:aWins?(isDark?"rgba(200,145,22,0.18)":GOLD+"0D"):"transparent"}}>{r.fmt(r.a)}</div>
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"9px 5px":"11px 10px",borderLeft:"1px solid "+(isDark?"#2F352F":"#EEEAE1"),borderRight:"1px solid "+(isDark?"#2F352F":"#EEEAE1"),fontFamily:F,fontSize:isMobile?"8.6px":"9.5px",letterSpacing:"0.8px",textTransform:"uppercase",color:isDark?"#F6F3EA":"#59645D",fontWeight:850,lineHeight:1.25}}>{r.label}</div>
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"9px 6px":"11px 12px",fontFamily:F,fontSize:isMobile?"13px":"14px",fontWeight:bWins?900:800,color:bWins?(isDark?"#72A7E8":"#1565C0"):(isDark?"#F6F3EA":"#4E5851"),background:bWins?(isDark?"rgba(21,101,192,0.24)":"#1565C00D"):"transparent"}}>{r.fmt(r.b)}</div>
                       </div>
                     );
                   });
