@@ -2749,6 +2749,7 @@ liveStatus={liveStatus}
             );
           })()}
           {/* Climbers & Fallers */}
+          <AnalyticsDeepSection label={isSingles ? "View top song climbers and biggest drops" : "View top album climbers and biggest drops"} isMobile={isMobile}>
           <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px",marginBottom:"20px"}}>
             <div style={card()}>
               <div style={secLbl("#2DB04A")}><SecMark c="#2DB04A"/>Top {releaseLabel} Climbers — {anMonth}</div>
@@ -2789,6 +2790,7 @@ liveStatus={liveStatus}
               {!mvData.fallers.length&&<div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:"#CCC",padding:"20px 0",textAlign:"center"}}>No drops (debut month)</div>}
             </div>
           </div>
+          </AnalyticsDeepSection>
           {/* Top 10 Artists Bar */}
           <AnalyticsDeepSection label="View top artists chart" isMobile={isMobile}>
           <div style={{...card(),marginBottom:"20px"}}>
