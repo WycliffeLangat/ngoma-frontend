@@ -3025,14 +3025,14 @@ liveStatus={liveStatus}
 
       {/* YEAR-END PAGE */}
       {page==="year-end"&&!selA&&!selR&&(
-        <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
+        <div style={{padding:PAD,background:isDark?"#050805":"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:isMobile?"16px":"20px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
             <div>
               <div style={{fontFamily:F,fontSize:isMobile?"10.5px":"11px",letterSpacing:isMobile?"1.8px":"2px",textTransform:"uppercase",color:GOLD,marginBottom:"6px",fontWeight:850}}>ANNUAL CHART</div>
-              <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0}}>Best of the Year</h2>
-              <p style={{fontFamily:F,fontSize:TXT.lead,color:"#59645D",margin:"4px 0 0",lineHeight:1.55}}>Aggregated Display Points across {DATA_PERIOD}</p>
+              <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0,color:isDark?"#F6F3EA":"#050505"}}>Best of the Year</h2>
+              <p style={{fontFamily:F,fontSize:TXT.lead,color:isDark?"#D7DBD7":"#59645D",margin:"4px 0 0",lineHeight:1.55}}>Aggregated Display Points across {DATA_PERIOD}</p>
             </div>
-            <div className="year-end-actions" data-share-action-area="true" style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap",position:isMobile?"sticky":"static",top:isMobile?"0":"auto",zIndex:isMobile?5:"auto",background:isMobile?"#FFF":"transparent",padding:isMobile?"8px 0 4px":"0"}}>
+            <div className="year-end-actions" data-share-action-area="true" style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap",position:isMobile?"sticky":"static",top:isMobile?"0":"auto",zIndex:isMobile?5:"auto",background:isMobile?(isDark?"#050805":"#FFF"):"transparent",padding:isMobile?"8px 0 4px":"0"}}>
               <Tog sm/>
             </div>
           </div>
@@ -3077,7 +3077,7 @@ liveStatus={liveStatus}
                 const rowKey = `${item.t}-${item.a}-${idx}`;
                 const expanded = Boolean(expandedYearEndRows[rowKey]);
                 const t3 = idx < 3;
-                const medalColor = t3 ? MEDALS[idx] : "#050505";
+                const medalColor = t3 ? MEDALS[idx] : (isDark?"#F6F3EA":"#050505");
                 const itemTypeLabel = isSingles ? "Single" : "Album";
                 const certification = getCertificationForEntry(item, isSingles ? "single" : "album");
                 const statItems = [
@@ -3093,11 +3093,11 @@ liveStatus={liveStatus}
                     key={rowKey}
                     style={{
                       padding:"15px 16px",
-                      border:"1px solid rgba(0,0,0,0.08)",
+                      border:"1px solid "+(isDark?"rgba(255,255,255,0.12)":"rgba(0,0,0,0.08)"),
                       borderRadius:"16px",
-                      background:"#FFF",
-                      color:"#050505",
-                      boxShadow:expanded ? "inset 4px 0 0 #C89116, 0 8px 22px rgba(0,0,0,0.045)" : "0 2px 10px rgba(0,0,0,0.025)",
+                      background:isDark?"#0F120F":"#FFF",
+                      color:isDark?"#F6F3EA":"#050505",
+                      boxShadow:expanded ? (isDark?"inset 4px 0 0 #C89116, 0 8px 22px rgba(0,0,0,0.26)":"inset 4px 0 0 #C89116, 0 8px 22px rgba(0,0,0,0.045)") : (isDark?"0 2px 10px rgba(0,0,0,0.16)":"0 2px 10px rgba(0,0,0,0.025)"),
                       transition:"background 180ms ease, box-shadow 180ms ease, transform 180ms ease",
                     }}
                   >
@@ -3134,7 +3134,7 @@ liveStatus={liveStatus}
                               fontSize:t3?"15.5px":"15px",
                               fontWeight:850,
                               lineHeight:1.15,
-                              color:"#050505",
+                              color:isDark?"#F6F3EA":"#050505",
                               whiteSpace:"nowrap",
                               overflow:"hidden",
                               textOverflow:"ellipsis",
@@ -3158,7 +3158,7 @@ liveStatus={liveStatus}
                               fontSize:"12.2px",
                               fontWeight:700,
                               lineHeight:1.35,
-                              color:"#59645D",
+                              color:isDark?"#D7DBD7":"#59645D",
                               whiteSpace:"nowrap",
                               overflow:"hidden",
                               textOverflow:"ellipsis",
@@ -3180,10 +3180,10 @@ liveStatus={liveStatus}
                           style={{
                             width:"38px",
                             height:"34px",
-                            border:"1px solid rgba(0,0,0,0.08)",
+                            border:"1px solid "+(isDark?"rgba(255,255,255,0.14)":"rgba(0,0,0,0.08)"),
                             borderRadius:"14px",
-                            background:"#FBFAF7",
-                            color:"#555",
+                            background:isDark?"#151915":"#FBFAF7",
+                            color:isDark?"#F6F3EA":"#555",
                             fontSize:"18px",
                             fontWeight:900,
                             lineHeight:1,
@@ -3204,15 +3204,15 @@ liveStatus={liveStatus}
                       <div style={{
                         marginTop:"14px",
                         padding:"14px 16px 12px",
-                        border:"1px solid rgba(0,0,0,0.06)",
+                        border:"1px solid "+(isDark?"rgba(255,255,255,0.12)":"rgba(0,0,0,0.06)"),
                         borderRadius:"16px",
-                        background:"#FBFAF7",
+                        background:isDark?"#0B0E0B":"#FBFAF7",
                       }}>
                         <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:"8px"}}>
                           {statItems.map((stat)=>(
-                            <div key={stat.label} style={{background:"#F7F7F7",border:"1px solid rgba(0,0,0,0.06)",borderRadius:"12px",padding:"8px 6px",minWidth:0,boxSizing:"border-box"}}>
-                              <span style={{display:"block",fontFamily:F,fontSize:"9px",color:"#777",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",textAlign:"center"}}>{stat.label}</span>
-                              <span style={{display:"block",marginTop:"4px",fontFamily:F,color:"#050505",fontSize:"12px",fontWeight:900,textAlign:"center",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{stat.value}</span>
+                            <div key={stat.label} style={{background:isDark?"#151915":"#F7F7F7",border:"1px solid "+(isDark?"rgba(255,255,255,0.12)":"rgba(0,0,0,0.06)"),borderRadius:"12px",padding:"8px 6px",minWidth:0,boxSizing:"border-box"}}>
+                              <span style={{display:"block",fontFamily:F,fontSize:"9px",color:isDark?"#AEB6AE":"#777",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",textAlign:"center"}}>{stat.label}</span>
+                              <span style={{display:"block",marginTop:"4px",fontFamily:F,color:isDark?"#F6F3EA":"#050505",fontSize:"12px",fontWeight:900,textAlign:"center",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{stat.value}</span>
                             </div>
                           ))}
                         </div>
@@ -3223,9 +3223,9 @@ liveStatus={liveStatus}
                           style={{
                             marginTop:"11px",
                             width:"100%",
-                            border:"1px solid rgba(184,134,11,0.22)",
+                            border:"1px solid "+(isDark?"rgba(200,145,22,0.42)":"rgba(184,134,11,0.22)"),
                             borderRadius:"13px",
-                            background:"#FFF",
+                            background:isDark?"#151915":"#FFF",
                             color:GOLD,
                             fontFamily:F,
                             fontSize:"10.5px",
