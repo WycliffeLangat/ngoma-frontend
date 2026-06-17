@@ -2444,6 +2444,7 @@ liveStatus={liveStatus}
             ))}
           </div>
           {/* Top 10 + Platform #1s */}
+          <AnalyticsDeepSection label={isSingles?"View top songs and platform #1s":"View top albums and platform #1s"} isMobile={isMobile}>
           <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:isMobile?"18px":"14px",marginBottom:"20px"}} className="anl-2col">
             <div style={card()}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",marginBottom:"14px",flexWrap:"wrap"}}>
@@ -2488,6 +2489,7 @@ liveStatus={liveStatus}
               </div>
             </div>
           </div>
+          </AnalyticsDeepSection>
           {/* Top artists points line chart */}
           <AnalyticsDeepSection label="View artist trajectory" isMobile={isMobile}>
           <div style={{...card(),marginBottom:"20px"}}>
