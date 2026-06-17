@@ -32,8 +32,8 @@ const CC = [GOLD,"#E53935","#2DB04A","#1565C0","#7B1FA2","#E65100","#00897B","#3
 const VO = [{l:"Top 10",c:10},{l:"Top 20",c:20},{l:"Top 50",c:50}];
 const CERTIFICATION_LEVELS = [
   { level: "diamond", label: "Diamond", icon: "💎", pts: 600, color: "#7B1FA2" },
-  { level: "platinum", label: "Platinum", icon: "◯", pts: 400, color: SILVER },
-  { level: "gold", label: "Gold", icon: "●", pts: 200, color: GOLD },
+  { level: "platinum", label: "Platinum", icon: "🪙", pts: 400, color: SILVER },
+  { level: "gold", label: "Gold", icon: "🥇", pts: 200, color: GOLD },
 ];
 const getCertificationLevel = (totalPts = 0) => {
   const points = Number(totalPts) || 0;
@@ -2337,6 +2337,7 @@ liveStatus={liveStatus}
                       {getCertificationForEntry(d, isSingles ? "single" : "album")&&<CertificationTag cert={getCertificationForEntry(d, isSingles ? "single" : "album")} compact />}
                     </div>
                     <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(d.artist);}} style={{display:"block",maxWidth:"100%",fontFamily:F,fontSize:isMobile?"11.5px":"11px",color:isDark?"#F6F3EA":"#59645D",marginTop:"3px",padding:0,border:0,background:"transparent",fontWeight:700,whiteSpace:isMobile?"normal":"nowrap",overflow:isMobile?"visible":"hidden",textOverflow:isMobile?"clip":"ellipsis",overflowWrap:"anywhere",cursor:"pointer",textAlign:"left"}}>{d.artist}</button>
+                    {isMobile&&<button type="button" onClick={()=>openReleaseDetails(d,isSingles?"single":"album")} style={{marginTop:"9px",border:"1px solid "+c+"55",borderRadius:"999px",background:isDark?"rgba(255,255,255,0.04)":"#FFF",color:isDark&&i===1?"#72A7E8":c,fontFamily:F,fontSize:"9.5px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",padding:"7px 10px",cursor:"pointer"}}>View Details</button>}
                     <div style={{display:"flex",gap:isMobile?"12px":"16px",marginTop:isMobile?"10px":"12px",flexWrap:"wrap"}}>
                       <div><div style={{fontFamily:F,fontSize:isMobile?"18px":"20px",fontWeight:800,color:isDark&&i===1?"#72A7E8":c}}>{d.totalPts.toLocaleString()}</div><div style={{fontFamily:F,fontSize:isMobile?"8.5px":"8.5px",letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#F6F3EA":"#69716B",fontWeight:700}}>Total Pts</div></div>
                       <div><div style={{fontFamily:F,fontSize:isMobile?"18px":"20px",fontWeight:800,color:isDark&&i===1?"#72A7E8":c}}>#{d.peak}</div><div style={{fontFamily:F,fontSize:isMobile?"8.5px":"8.5px",letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#F6F3EA":"#69716B",fontWeight:700}}>Peak</div></div>
@@ -2344,6 +2345,7 @@ liveStatus={liveStatus}
                   </div>
                 ))}
               </div>
+              <AnalyticsDeepSection label="View full H2H comparison details" isMobile={isMobile}>
               {/* Metric comparison table */}
               <div style={{width:"100%",maxWidth:isMobile?"360px":"none",margin:"0 auto 16px",border:"1px solid "+(isDark?"#2F352F":"#E4E1D8"),borderRadius:"12px",overflow:"hidden",background:isDark?"#0F120F":"#FFF",boxShadow:isDark?"none":"0 8px 24px rgba(31,36,31,0.05)"}}>
                 <div style={{display:"grid",gridTemplateColumns:isMobile?"minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)":"minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)",gap:"8px",alignItems:"center",padding:isMobile?"10px 9px":"12px 16px",background:"#1F241F",color:"#FFF"}}>
@@ -2375,10 +2377,9 @@ liveStatus={liveStatus}
                 })()}
               </div>
               {/* Points + Rank charts */}
-              <AnalyticsDeepSection label="View comparison charts" isMobile={isMobile}>
-              <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px"}}>
-                <div style={{width:"100%",maxWidth:isMobile?"360px":"none",margin:"0 auto",padding:isMobile?"14px 8px 10px":"0",background:isMobile?"#FFF":"transparent",border:isMobile?"1px solid #E9E5DC":"none",borderRadius:isMobile?"13px":"0",boxShadow:isMobile?"0 6px 20px rgba(31,36,31,0.04)":"none",overflow:"hidden"}}>
-                  <div style={{fontFamily:F,fontSize:isMobile?"10px":"9.5px",fontWeight:800,letterSpacing:"1.4px",textTransform:"uppercase",textAlign:isMobile?"center":"left",color:"#59645D",marginBottom:"8px"}}>Points by Month</div>
+              <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px",marginTop:isMobile?"14px":"0"}}>
+                <div style={{width:"100%",maxWidth:isMobile?"360px":"none",margin:"0 auto",padding:isMobile?"14px 8px 10px":"0",background:isMobile?(isDark?"#0F120F":"#FFF"):"transparent",border:isMobile?"1px solid "+(isDark?"#2F352F":"#E9E5DC"):"none",borderRadius:isMobile?"13px":"0",boxShadow:isMobile?(isDark?"none":"0 6px 20px rgba(31,36,31,0.04)"):"none",overflow:"hidden"}}>
+                  <div style={{fontFamily:F,fontSize:isMobile?"10px":"9.5px",fontWeight:800,letterSpacing:"1.4px",textTransform:"uppercase",textAlign:isMobile?"center":"left",color:isDark?"#D7DBD7":"#59645D",marginBottom:"8px"}}>Points by Month</div>
                   <div style={{width:"100%",maxWidth:isMobile?"340px":"none",margin:"0 auto"}}>
                     <ResponsiveContainer width="100%" height={isMobile?190:158}>
                       <BarChart data={songMonthlyData} margin={{top:14,right:isMobile?20:12,left:isMobile?8:4,bottom:4}}>
@@ -2391,8 +2392,8 @@ liveStatus={liveStatus}
                     </ResponsiveContainer>
                   </div>
                 </div>
-                <div style={{width:"100%",maxWidth:isMobile?"360px":"none",margin:"0 auto",padding:isMobile?"14px 8px 10px":"0",background:isMobile?"#FFF":"transparent",border:isMobile?"1px solid #E9E5DC":"none",borderRadius:isMobile?"13px":"0",boxShadow:isMobile?"0 6px 20px rgba(31,36,31,0.04)":"none",overflow:"hidden"}}>
-                  <div style={{fontFamily:F,fontSize:isMobile?"10px":"9.5px",fontWeight:800,letterSpacing:"1.4px",textTransform:"uppercase",textAlign:isMobile?"center":"left",color:"#59645D",marginBottom:"8px"}}>Rank Trajectory (lower = better)</div>
+                <div style={{width:"100%",maxWidth:isMobile?"360px":"none",margin:"0 auto",padding:isMobile?"14px 8px 10px":"0",background:isMobile?(isDark?"#0F120F":"#FFF"):"transparent",border:isMobile?"1px solid "+(isDark?"#2F352F":"#E9E5DC"):"none",borderRadius:isMobile?"13px":"0",boxShadow:isMobile?(isDark?"none":"0 6px 20px rgba(31,36,31,0.04)"):"none",overflow:"hidden"}}>
+                  <div style={{fontFamily:F,fontSize:isMobile?"10px":"9.5px",fontWeight:800,letterSpacing:"1.4px",textTransform:"uppercase",textAlign:isMobile?"center":"left",color:isDark?"#D7DBD7":"#59645D",marginBottom:"8px"}}>Rank Trajectory (lower = better)</div>
                   <div style={{width:"100%",maxWidth:isMobile?"340px":"none",margin:"0 auto"}}>
                     <ResponsiveContainer width="100%" height={isMobile?190:158}>
                       <LineChart data={songRankData} margin={{top:14,right:isMobile?20:14,left:isMobile?8:4,bottom:4}}>
@@ -2406,7 +2407,6 @@ liveStatus={liveStatus}
                   </div>
                 </div>
               </div>
-              </AnalyticsDeepSection>
               {/* Platform-by-platform peak ranks */}
               <div style={{marginTop:isMobile?"14px":"16px"}}>
                 <div style={{fontFamily:F,fontSize:isMobile?"10px":"9.5px",fontWeight:800,letterSpacing:"1.4px",textTransform:"uppercase",color:"#59645D",marginBottom:"10px"}}>Peak Rank by Platform</div>
@@ -2428,25 +2428,8 @@ liveStatus={liveStatus}
                     );
                   })}
                 </div>
-                {false&&<div style={{border:"1px solid #EFEDE7",borderRadius:"10px",overflow:"hidden",background:"#FFF"}}>
-                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"8px",padding:isMobile?"8px 10px":"8px 12px",background:"#FAFAF7",borderBottom:"1px solid #EFEDE7",fontFamily:F,fontSize:isMobile?"9px":"9.5px",fontWeight:850,letterSpacing:"1px",textTransform:"uppercase",color:"#69716B"}}>
-                    <div>{sp1.title.length>16?sp1.title.slice(0,14)+"…":sp1.title}</div>
-                    <div style={{textAlign:"center"}}>Platform</div>
-                    <div style={{textAlign:"right"}}>{sp2.title.length>16?sp2.title.slice(0,14)+"…":sp2.title}</div>
-                  </div>
-                  {PLATS_FOR.map(pl=>{
-                    const a=sp1.platforms[pl],b=sp2.platforms[pl];
-                    const lbl=PLAT_LABEL[pl]||pl;
-                    return(
-                      <div key={pl} style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",alignItems:"center",gap:"8px",padding:isMobile?"8px 10px":"8px 12px",borderBottom:"1px solid #F2F0EA"}}>
-                        <div style={{textAlign:"left",fontFamily:F,fontSize:isMobile?"12px":"12px",fontWeight:800,color:a?GOLD:"#B8BDB8"}}>{a?"#"+a:"—"}</div>
-                        <div style={{textAlign:"center",fontFamily:F,fontSize:isMobile?"10px":"10px",fontWeight:750,color:PC[pl]||"#59645D",letterSpacing:"0.4px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{lbl}</div>
-                        <div style={{textAlign:"right",fontFamily:F,fontSize:isMobile?"12px":"12px",fontWeight:800,color:b?"#1565C0":"#B8BDB8"}}>{b?"#"+b:"—"}</div>
-                      </div>
-                    );
-                  })}
-                </div>}
               </div>
+              </AnalyticsDeepSection>
             </>)}
           </div>
           {/* Stats row */}
@@ -3410,23 +3393,19 @@ liveStatus={liveStatus}
         <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:"24px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
             <div>
-              <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px",color:isDark?"#F6F3EA":"#050505"}}>Certifications</h2>
-              <p style={{fontFamily:F,fontSize:TXT.lead,color:isDark?"#D7DBD7":"#59645D",margin:0,lineHeight:1.6}}>Certifications highlight songs and albums with strong long-term chart performance on Ngoma Charts. We add the Combined chart points earned each month and award Gold, Platinum or Diamond once a release crosses the required threshold. These are chart-performance badges, not sales certifications.</p>
+              <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px"}}>Certifications</h2>
+              <p style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",margin:0,lineHeight:1.55}}>Awarded from cumulative Combined chart points earned across every month a song or album appears.</p>
             </div>
             <div style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap"}}>
               <Tog sm/>
             </div>
           </div>
-          <div style={{...card({marginBottom:"16px",background:isDark?"#0F120F":"#FAF8F2",borderColor:isDark?"#2F352F":"#EDE6D6"})}}>
-            <h3 style={{fontFamily:F,fontSize:TXT.micro,fontWeight:900,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 8px"}}>How to read this page</h3>
-            <p style={{fontFamily:F,fontSize:TXT.body,color:isDark?"#D7DBD7":"#555F59",lineHeight:1.68,margin:0}}>A release keeps collecting points every month it appears on the Combined Top 50. Higher ranks earn more points, so a long run near the top reaches certification faster. The badges below make it easier to spot the biggest chart performers across the full tracking period.</p>
-          </div>
           <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"12px",marginBottom:"28px"}}>
             {CERTIFICATION_LEVELS.map((c,i)=>(
-              <div key={i} style={{...card({textAlign:"center",background:isDark?"#0F120F":"#FFF",borderColor:isDark?"#2F352F":"#EFEDE7"}),borderTop:"3px solid "+c.color}}>
-                <div style={{fontSize:c.level==="diamond"?"28px":"32px",lineHeight:1,color:c.color}}>{c.icon}</div>
+              <div key={i} style={{...card({textAlign:"center"}),borderTop:"3px solid "+c.color}}>
+                <div style={{fontSize:"28px"}}>{c.icon}</div>
                 <div style={{fontWeight:800,fontSize:TXT.metric,margin:"6px 0 2px",color:c.color}}>{c.label}</div>
-                <div style={{fontFamily:F,fontSize:TXT.cardMeta,color:isDark?"#B8BDB8":"#69716B"}}>{c.pts.toLocaleString()}+ chart points</div>
+                <div style={{fontFamily:F,fontSize:TXT.cardMeta,color:"#69716B"}}>{c.pts.toLocaleString()}+ points</div>
               </div>
             ))}
           </div>
@@ -3438,11 +3417,11 @@ liveStatus={liveStatus}
                 <div style={{...secLbl(certColors[level]),marginBottom:"12px"}}>{certIcons[level]} {level.charAt(0).toUpperCase()+level.slice(1)} Certified ({filtered.length})</div>
                 <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:"8px"}}>
                   {filtered.map((c,i)=>(
-                    <div key={i} style={{display:"flex",alignItems:"center",gap:"12px",padding:"12px 14px",background:isDark?"#0F120F":certColors[level]+"0A",borderRadius:"8px",border:"1px solid "+certColors[level]+"22"}}>
+                    <div key={i} style={{display:"flex",alignItems:"center",gap:"12px",padding:"12px 14px",background:certColors[level]+"0A",borderRadius:"8px",border:"1px solid "+certColors[level]+"22"}}>
                       <div style={{fontSize:"22px"}}>{certIcons[level]}</div>
                       <div style={{flex:1}}>
-                        <button type="button" onClick={()=>openReleaseDetails(c,isSingles?"single":"album")} style={{display:"block",border:0,background:"transparent",padding:0,fontFamily:SF,fontWeight:800,fontSize:TXT.cardTitle,lineHeight:1.18,cursor:"pointer",textAlign:"left",color:isDark?"#F6F3EA":"#050505"}}>{c.t}</button>
-                        <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(c.a);}} style={{display:"block",fontFamily:F,fontSize:TXT.cardMeta,color:isDark?"#B8BDB8":"#69716B",fontWeight:750,marginTop:"3px",padding:0,border:0,background:"transparent",cursor:"pointer",textAlign:"left"}}>{c.a}</button>
+                        <button type="button" onClick={()=>openReleaseDetails(c,isSingles?"single":"album")} style={{display:"block",border:0,background:"transparent",padding:0,fontFamily:SF,fontWeight:800,fontSize:TXT.cardTitle,lineHeight:1.18,cursor:"pointer",textAlign:"left"}}>{c.t}</button>
+                        <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(c.a);}} style={{display:"block",fontFamily:F,fontSize:TXT.cardMeta,color:"#69716B",fontWeight:750,marginTop:"3px",padding:0,border:0,background:"transparent",cursor:"pointer",textAlign:"left"}}>{c.a}</button>
                         <CountryBadge artist={c.a} showName style={{marginTop:"7px"}} />
                       </div>
                       <div style={{textAlign:"right",fontFamily:F}}>
@@ -3518,7 +3497,7 @@ liveStatus={liveStatus}
             </div>
             <div style={card()}>
               <h3 style={{fontFamily:F,fontSize:TXT.micro,fontWeight:800,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 10px"}}>Platforms Tracked</h3>
-              <div style={{display:"flex",flexWrap:"wrap",gap:"7px"}}>{[["Apple Music","AM","#FC3C44"],["Audiomack","AU","#F68B1F"],["Boomplay","BP","#00FFFF"],["Spotify","SP","#1DB954"],["YouTube","▶","#FF0000"],["Shazam","SZ","#0088FF"]].map(([p,m,c])=><span key={p} style={{display:"inline-flex",alignItems:"center",gap:"7px",minHeight:"30px",padding:"5px 10px",background:c+"18",borderRadius:"999px",fontSize:TXT.note,fontFamily:F,fontWeight:750,color:p==="Boomplay"?"#007C7C":c,border:`1px solid ${c}35`}}><span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:"20px",height:"20px",borderRadius:"50%",background:c,color:p==="Boomplay"?"#003737":"#FFF",fontSize:m==="▶"?"9px":"7.5px",fontWeight:950,letterSpacing:"0.2px"}}>{m}</span>{p}</span>)}</div>
+              <div style={{display:"flex",flexWrap:"wrap",gap:"7px"}}>{[["Apple Music","#FC3C44"],["Audiomack","#F68B1F"],["Boomplay","#00FFFF"],["Spotify","#1DB954"],["YouTube","#FF0000"],["Shazam","#0088FF"]].map(([p,c])=><span key={p} style={{display:"inline-flex",alignItems:"center",minHeight:"28px",padding:"5px 10px",background:c+"18",borderRadius:"999px",fontSize:TXT.note,fontFamily:F,fontWeight:750,color:p==="Boomplay"?"#007C7C":c,border:`1px solid ${c}35`}}>{p}</span>)}</div>
             </div>
             <div style={card()}>
               <h3 style={{fontFamily:F,fontSize:TXT.micro,fontWeight:800,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 10px"}}>Singles Chart</h3>
