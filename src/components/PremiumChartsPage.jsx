@@ -610,10 +610,47 @@ export default function PremiumChartsPage({
   pageMax = "1240px",
   certificationForEntry = () => null,
   CertificationTag = () => null,
+  isDark = false,
 }) {
   const mobile = useRealMobile(isMobile);
   const safeGutter = mobile ? "clamp(20px, 5vw, 28px)" : "28px";
   const [expandedMobileRows, setExpandedMobileRows] = useState({});
+  const [detectedDarkMode, setDetectedDarkMode] = useState(() => {
+    if (typeof window === "undefined" || typeof document === "undefined") return false;
+    return (
+      document.documentElement?.dataset?.ngomaTheme === "dark" ||
+      document.body?.dataset?.ngomaTheme === "dark" ||
+      window.localStorage?.getItem("ngoma-theme") === "dark"
+    );
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof document === "undefined") return undefined;
+
+    const syncDarkMode = () => {
+      setDetectedDarkMode(
+        document.documentElement?.dataset?.ngomaTheme === "dark" ||
+          document.body?.dataset?.ngomaTheme === "dark" ||
+          window.localStorage?.getItem("ngoma-theme") === "dark"
+      );
+    };
+
+    syncDarkMode();
+
+    const observer = new MutationObserver(syncDarkMode);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-ngoma-theme"] });
+    if (document.body) {
+      observer.observe(document.body, { attributes: true, attributeFilter: ["data-ngoma-theme"] });
+    }
+    window.addEventListener("storage", syncDarkMode);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("storage", syncDarkMode);
+    };
+  }, []);
+
+  const darkMode = Boolean(isDark || detectedDarkMode);
 
   const chartTitle = "NGOMA TOP 50";
   const chartRegion = "(KENYA)";
@@ -844,9 +881,19 @@ export default function PremiumChartsPage({
 
   function MobileStat({ label, value }) {
     return (
-      <div className={label === "Plat." ? "ngoma-platform-cell" : undefined} style={styles.mobileMiniStat}>
-        <span style={styles.mobileMiniStatLabel}>{label}</span>
-        <span style={styles.mobileMiniStatValue}>{value}</span>
+      <div
+        className={label === "Plat." ? "ngoma-platform-cell" : undefined}
+        style={{
+          ...styles.mobileMiniStat,
+          ...(darkMode ? styles.mobileMiniStatDark : null),
+        }}
+      >
+        <span style={{ ...styles.mobileMiniStatLabel, ...(darkMode ? styles.mobileMiniStatLabelDark : null) }}>
+          {label}
+        </span>
+        <span style={{ ...styles.mobileMiniStatValue, ...(darkMode ? styles.mobileMiniStatValueDark : null) }}>
+          {value}
+        </span>
       </div>
     );
   }
@@ -1285,9 +1332,14 @@ export default function PremiumChartsPage({
                   </div>
 
                   {expanded && (
-                    <div style={styles.mobileExpandedDetails}>
+                    <div style={{ ...styles.mobileExpandedDetails, ...(darkMode ? styles.mobileExpandedDetailsDark : null) }}>
                       <div style={styles.mobileCountryRow}>
-                        <div style={{fontFamily:F,fontSize:"12px",fontWeight:800,color:"#4F5751"}}>
+                        <div style={{
+                          fontFamily:F,
+                          fontSize:"12px",
+                          fontWeight:800,
+                          color: darkMode ? "#D7DBD7" : "#4F5751",
+                        }}>
                           Country: <span style={{color:badge.accent}}>{artistCountry.code || "—"}</span>
                         </div>
                       </div>
@@ -1835,6 +1887,13 @@ const styles = {
     background: "#fbfaf7",
   },
 
+  mobileExpandedDetailsDark: {
+    border: "1px solid rgba(255,255,255,0.10)",
+    background: "#0f120f",
+    color: "#f6f3ea",
+    boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.02)",
+  },
+
   mobileCountryRow: {
     display: "flex",
     alignItems: "center",
@@ -1887,6 +1946,12 @@ const styles = {
     boxSizing: "border-box",
   },
 
+  mobileMiniStatDark: {
+    background: "#151815",
+    border: "1px solid rgba(255,255,255,0.10)",
+    color: "#f6f3ea",
+  },
+
   mobileMiniStatLabel: {
     display: "block",
     fontSize: "9px",
@@ -1895,6 +1960,10 @@ const styles = {
     letterSpacing: "1px",
     textTransform: "uppercase",
     textAlign: "center",
+  },
+
+  mobileMiniStatLabelDark: {
+    color: "#aeb6ae",
   },
 
   mobileMiniStatValue: {
@@ -1907,6 +1976,10 @@ const styles = {
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
+  },
+
+  mobileMiniStatValueDark: {
+    color: "#f6f3ea",
   },
 
   rank: {
