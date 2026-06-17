@@ -15,7 +15,9 @@ export default function RecordsPage({ ctx }) {
     getCertificationForEntry,
     isMobile,
     isSingles,
+    isArtists,
     openRecord,
+    openArtistDetails,
     openReleaseDetails,
     releaseLabelLower,
     setOpenRecord
@@ -36,13 +38,13 @@ export default function RecordsPage({ ctx }) {
           <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:isMobile?"14px":"16px"}}>
             {currentRecords.map((r,i)=>{
               const expanded = r.isCoverage && openRecord === i;
-              const recordCertification = r.certificationEntry ? getCertificationForEntry(r.certificationEntry, isSingles ? "single" : "album") : null;
+              const recordCertification = !isArtists && r.certificationEntry ? getCertificationForEntry(r.certificationEntry, isSingles ? "single" : "album") : null;
               return (
                 <div key={`${r.displayLabel}-${r.value}`} onClick={()=>{if(r.isCoverage)setOpenRecord(expanded?null:i);}} style={{...card({padding:isMobile?"19px":"24px"}),position:"relative",overflow:"hidden",cursor:r.isCoverage?"pointer":"default",gridColumn:expanded?"1 / -1":"auto"}}>
                   <div style={{position:"absolute",top:isMobile?"8px":"12px",right:isMobile?"10px":"14px",opacity:1}}><RecordIcon label={r.displayLabel} size={isMobile?54:66} muted /></div>
                   <div style={{marginBottom:"13px",position:"relative",zIndex:1}}><RecordIcon label={r.displayLabel} size={isMobile?28:30} /></div>
                   <div style={{fontFamily:F,fontSize:isMobile?"10px":"10.5px",fontWeight:850,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,marginBottom:"9px",position:"relative",zIndex:1,lineHeight:1.35}}>{r.displayLabel}</div>
-                  {r.certificationEntry ? <button type="button" onClick={(event)=>{event.stopPropagation();openReleaseDetails(r.certificationEntry,isSingles?"single":"album");}} style={{display:"block",border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:isMobile?"20px":"21px",fontWeight:850,lineHeight:1.12,marginBottom:recordCertification?"7px":"5px",position:"relative",zIndex:1,cursor:"pointer",textAlign:"left"}}>{r.value}</button> : <div style={{fontFamily:SF,fontSize:isMobile?"20px":"21px",fontWeight:850,lineHeight:1.12,marginBottom:"5px",position:"relative",zIndex:1}}>{r.value}</div>}
+                  {r.certificationEntry ? <button type="button" onClick={(event)=>{event.stopPropagation();isArtists ? openArtistDetails(r.value) : openReleaseDetails(r.certificationEntry,isSingles?"single":"album");}} style={{display:"block",border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:isMobile?"20px":"21px",fontWeight:850,lineHeight:1.12,marginBottom:recordCertification?"7px":"5px",position:"relative",zIndex:1,cursor:"pointer",textAlign:"left"}}>{r.value}</button> : <div style={{fontFamily:SF,fontSize:isMobile?"20px":"21px",fontWeight:850,lineHeight:1.12,marginBottom:"5px",position:"relative",zIndex:1}}>{r.value}</div>}
                   {recordCertification&&<CertificationTag cert={recordCertification} compact style={{marginBottom:"8px",position:"relative",zIndex:1}} />}
                   <div style={{fontFamily:F,fontSize:isMobile?"13px":"13px",color:"#59645D",lineHeight:1.45,position:"relative",zIndex:1,display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}>
                     <span>{r.displaySub}</span>
@@ -60,7 +62,7 @@ export default function RecordsPage({ ctx }) {
                           <span style={{fontSize:"10px",fontWeight:900,color:GOLD}}>#{idx+1}</span>
                           <span style={{minWidth:0}}>
                             <span style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
-                              <button type="button" onClick={(event)=>{event.stopPropagation();openReleaseDetails(song,isSingles?"single":"album");}} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:"12px",fontWeight:850,color:"#1A1A1A",cursor:"pointer",textAlign:"left"}}>{song.title}</button>
+                              <button type="button" onClick={(event)=>{event.stopPropagation();isArtists ? openArtistDetails(song.title) : openReleaseDetails(song,isSingles?"single":"album");}} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:"12px",fontWeight:850,color:"#1A1A1A",cursor:"pointer",textAlign:"left"}}>{song.title}</button>
                               {certification&&<CertificationTag cert={certification} compact />}
                             </span>
                             <span style={{display:"block",fontSize:"11px",color:"#59645D",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{song.artist} · {song.month}</span>

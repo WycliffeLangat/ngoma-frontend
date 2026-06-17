@@ -23,9 +23,7 @@ import NewsPage from "./pages/NewsPage";
 import CertificationsPage from "./pages/CertificationsPage";
 import YearEndPage from "./pages/YearEndPage";
 import RecordsPage from "./pages/RecordsPage";
-import TrendingPage from "./pages/TrendingPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
-import ArtistsPage from "./pages/ArtistsPage";
 import ChartsPage from "./pages/ChartsPage";
 import ArtistDetailPage from "./pages/ArtistDetailPage";
 import ReleaseDetailPage from "./pages/ReleaseDetailPage";
@@ -276,6 +274,19 @@ const getPlatform = (ct, pl, m) => {
   return platformEntryCache.get(cacheKey);
 };
 
+const top50Only = (rows = []) => rows.filter((entry) => Number(entry.rank ?? entry.r) <= 50).slice(0, 50);
+const artistTop50Points = (entry = {}) => {
+  const rank = Number(entry.rank ?? entry.r);
+  return Number.isFinite(rank) && rank >= 1 && rank <= 50 ? 51 - rank : 0;
+};
+
+const getArtistSourceCombined = (chartType, monthLabel) => {
+  if (chartType === "artists") {
+    return getArtistPlatformSource("Combined", monthLabel);
+  }
+  return getCombined(chartType, monthLabel);
+};
+
 const defaultComparisonKey = (chartType, index) => {
   const entry = getCombined(chartType, CURRENT_MONTH)[index];
   return entry ? `${entry.title} — ${entry.artist}` : "";
@@ -287,7 +298,7 @@ const comparisonDefaultKeys = (chartType, throughMonth = CURRENT_MONTH) => {
   const groups = new Map();
 
   includedMonths.forEach((monthLabel) => {
-    getCombined(chartType, monthLabel).forEach((entry) => {
+    getArtistSourceCombined(chartType, monthLabel).forEach((entry) => {
       const key = `${entry.title} — ${entry.artist}`;
       const current = groups.get(key) || {
         key,
@@ -298,7 +309,7 @@ const comparisonDefaultKeys = (chartType, throughMonth = CURRENT_MONTH) => {
         peak: Number.POSITIVE_INFINITY,
       };
       current.months.add(monthLabel);
-      current.totalPts += Number(entry.pts) || 0;
+      current.totalPts += chartType === "artists" ? artistTop50Points(entry) : Number(entry.pts) || 0;
       current.peak = Math.min(current.peak, Number(entry.rank) || Number.POSITIVE_INFINITY);
       groups.set(key, current);
     });
@@ -313,7 +324,7 @@ const buildCombinedYearEnd = (chartType) => {
   const releases = new Map();
 
   MONTHS.forEach((monthLabel) => {
-    getCombined(chartType, monthLabel).forEach((entry) => {
+    getArtistSourceCombined(chartType, monthLabel).forEach((entry) => {
       const key = entryKey(entry);
       const current = releases.get(key) || {
         t: entry.title,
@@ -328,7 +339,7 @@ const buildCombinedYearEnd = (chartType) => {
         best: Number.POSITIVE_INFINITY,
       };
 
-      current.totalPts += Number(entry.pts) || 0;
+      current.totalPts += chartType === "artists" ? artistTop50Points(entry) : Number(entry.pts) || 0;
       current.months += 1;
       current.best = Math.min(current.best, Number(entry.rank) || Number.POSITIVE_INFINITY);
       releases.set(key, current);
@@ -352,7 +363,7 @@ const buildCombinedArtists = (chartType, throughMonth = CURRENT_MONTH) => {
   const previousRanks = new Map();
 
   includedMonths.forEach((monthLabel, monthOffset) => {
-    getCombined(chartType, monthLabel).forEach((entry) => {
+    getArtistSourceCombined(chartType, monthLabel).forEach((entry) => {
       artistCreditMembers(entry).forEach((artistName) => {
         const key = artistName.toLowerCase();
         const current = artistMap.get(key) || {
@@ -369,11 +380,11 @@ const buildCombinedArtists = (chartType, throughMonth = CURRENT_MONTH) => {
           titles: new Set(),
         };
 
-        const points = Number(entry.pts) || 0;
+        const points = chartType === "artists" ? artistTop50Points(entry) : Number(entry.pts) || 0;
         current.p += points;
         current.mp[monthLabel] = (current.mp[monthLabel] || 0) + points;
         current.months.add(monthLabel);
-        current.titles.add(entryKey(entry));
+        current.titles.add(`${entry.sourceChartType || chartType}|${entryKey(entry)}`);
         artistMap.set(key, current);
         cumulativeTotals.set(key, (cumulativeTotals.get(key) || 0) + points);
       });
@@ -404,6 +415,178 @@ const buildCombinedArtists = (chartType, throughMonth = CURRENT_MONTH) => {
   combinedArtistsCache.set(cacheKey, result);
   return result;
 };
+
+
+const ARTIST_PLATS = S_PLATS.filter((platform) => platform !== "Combined");
+const artistPlatformSourceCache = new Map();
+const artistChartCache = new Map();
+
+const getArtistPlatformSource = (platform = "Combined", monthLabel = CURRENT_MONTH) => {
+  const cacheKey = `${platform}|${monthLabel}`;
+  if (artistPlatformSourceCache.has(cacheKey)) return artistPlatformSourceCache.get(cacheKey);
+
+  const rows = [];
+  const addPlatformTop50 = (chartType, sourcePlatform, releaseType) => {
+    top50Only(getPlatform(chartType, sourcePlatform, monthLabel)).forEach((entry) => {
+      rows.push({
+        ...entry,
+        sourceChartType: chartType,
+        sourcePlatform,
+        type: releaseType,
+      });
+    });
+  };
+
+  if (platform === "Combined") {
+    ARTIST_PLATS.forEach((sourcePlatform) => {
+      addPlatformTop50("singles", sourcePlatform, "single");
+      if (A_PLATS.includes(sourcePlatform)) {
+        addPlatformTop50("albums", sourcePlatform, "album");
+      }
+    });
+  } else {
+    addPlatformTop50("singles", platform, "single");
+    if (A_PLATS.includes(platform)) {
+      addPlatformTop50("albums", platform, "album");
+    }
+  }
+
+  artistPlatformSourceCache.set(cacheKey, rows);
+  return rows;
+};
+
+const getArtistPlatformHits = (artistName = "", monthLabel = CURRENT_MONTH) => {
+  const normalized = String(artistName || "").trim().toLowerCase();
+  if (!normalized) return [];
+  return ARTIST_PLATS.filter((platform) =>
+    getArtistPlatformSource(platform, monthLabel).some((entry) =>
+      artistCreditMembers(entry).some((member) => member.toLowerCase() === normalized)
+    )
+  );
+};
+
+const aggregateArtistsForMonth = (monthLabel = CURRENT_MONTH, platform = "Combined") => {
+  const artistMap = new Map();
+
+  getArtistPlatformSource(platform, monthLabel).forEach((entry) => {
+    artistCreditMembers(entry).forEach((artistName) => {
+      const key = artistName.toLowerCase();
+      const current = artistMap.get(key) || {
+        n: artistName,
+        p: 0,
+        entries: new Set(),
+        releases: [],
+        country: getArtistCountry({ artist: artistName }),
+      };
+      const releaseKey = `${entry.sourceChartType || entry.type || "release"}|${entryKey(entry)}`;
+      current.p += artistTop50Points(entry);
+      current.entries.add(releaseKey);
+      current.releases.push(entry);
+      artistMap.set(key, current);
+    });
+  });
+
+  return [...artistMap.entries()]
+    .map(([key, artist]) => ({
+      key,
+      ...artist,
+      entryCount: artist.entries.size,
+    }))
+    .sort((a, b) => b.p - a.p || b.entryCount - a.entryCount || a.n.localeCompare(b.n));
+};
+
+const buildArtistChart = (monthLabel = CURRENT_MONTH, platform = "Combined") => {
+  const cacheKey = `${platform}|${monthLabel}`;
+  if (artistChartCache.has(cacheKey)) return artistChartCache.get(cacheKey);
+
+  const currentIndex = monthIndex(monthLabel);
+  const historyMonths = currentIndex >= 0 ? MONTHS.slice(0, currentIndex + 1) : [];
+  const currentRows = aggregateArtistsForMonth(monthLabel, platform);
+  const previousMonth = currentIndex > 0 ? MONTHS[currentIndex - 1] : null;
+  const previousRows = previousMonth ? aggregateArtistsForMonth(previousMonth, platform) : [];
+  const previousRankByKey = new Map(previousRows.map((artist, index) => [artist.key, index + 1]));
+
+  const history = new Map();
+  historyMonths.forEach((historyMonth) => {
+    aggregateArtistsForMonth(historyMonth, platform).forEach((artist, index) => {
+      const stats = history.get(artist.key) || {
+        peak: Number.POSITIVE_INFINITY,
+        months: 0,
+        points: 0,
+        name: artist.n,
+      };
+      stats.peak = Math.min(stats.peak, index + 1);
+      stats.months += 1;
+      stats.points += Number(artist.p) || 0;
+      history.set(artist.key, stats);
+    });
+  });
+
+  const earlierKeys = new Set();
+  historyMonths.slice(0, -1).forEach((historyMonth) => {
+    aggregateArtistsForMonth(historyMonth, platform).forEach((artist) => earlierKeys.add(artist.key));
+  });
+
+  const result = currentRows.slice(0, 50).map((artist, index) => {
+    const rank = index + 1;
+    const previousRank = previousRankByKey.get(artist.key) || null;
+    const appearedBefore = earlierKeys.has(artist.key);
+    const stats = history.get(artist.key) || {};
+    const platformHits = platform === "Combined" ? getArtistPlatformHits(artist.n, monthLabel) : [platform];
+    const country = artist.country || getArtistCountry({ artist: artist.n });
+    return {
+      rank,
+      title: artist.n,
+      artist: "",
+      primary_artist: artist.n,
+      featured_artists: "",
+      pts: artist.p,
+      rawPts: null,
+      points_source: "Top 50 platform Singles + Albums",
+      plat: platform === "Combined" ? `${platformHits.length}/${ARTIST_PLATS.length}` : "",
+      prev: previousRank,
+      last_month: previousRank || "—",
+      is_new: !appearedBefore,
+      reentry: !previousRank && appearedBefore,
+      movement: previousRank ? undefined : appearedBefore ? "reentry" : "new",
+      peak_rank: Number.isFinite(stats.peak) ? stats.peak : rank,
+      weeks_on_chart: "—",
+      months_on_chart: stats.months || 1,
+      platform_count: platform === "Combined" ? platformHits.length : null,
+      platform_max: platform === "Combined" ? ARTIST_PLATS.length : null,
+      release_year: null,
+      confidence: "",
+      country: country.country || "",
+      country_code: country.code || "",
+      artist_country: country.country || "",
+      artist_country_code: country.code || "",
+      entries_count: platform === "Combined" ? artist.entryCount : null,
+      releases: artist.releases,
+      is_artist_entry: true,
+      type: "artist",
+    };
+  });
+
+  artistChartCache.set(cacheKey, result);
+  return result;
+};
+
+const buildArtistYearEndRows = () => buildCombinedArtists("artists", CURRENT_MONTH).slice(0, 50).map((artist) => {
+  const country = getArtistCountry({ artist: artist.n });
+  return {
+    t: artist.n,
+    a: "",
+    primary_artist: artist.n,
+    totalPts: Number(artist.p) || 0,
+    months: artist.m,
+    entries: artist.t,
+    best: artist.pk,
+    country_code: country.code || "",
+    country: country.country || "",
+    type: "artist",
+    is_artist_entry: true,
+  };
+});
 
 const buildCombinedTrending = (chartType) => {
   const latestMonth = MONTHS[MONTHS.length - 1];
@@ -464,6 +647,7 @@ const COMBINED_YEAR_END = {
 const COMBINED_ARTISTS = {
   singles: buildCombinedArtists("singles"),
   albums: buildCombinedArtists("albums"),
+  artists: buildCombinedArtists("artists"),
 };
 const COMBINED_TRENDING = {
   singles: buildCombinedTrending("singles"),
@@ -586,7 +770,7 @@ const NEWS=[
   {id:1,date:"June 15, 2026",cat:"CHART NEWS",emoji:"",title:"Finale Leads May After Collaboration Credits Are Unified",excerpt:"Bien & Alikiba's Finale ranks #1 with appearances on five of six tracked singles platforms.",body:"Equivalent Bien, Bien ft. Alikiba and Bien & Alikiba credits are treated as one release. Finale leads Apple Music, Spotify and YouTube for May."},
   {id:2,date:"June 14, 2026",cat:"CHART NEWS",emoji:"",title:"Finale Completes Back-to-Back Months at #1",excerpt:"Bien & Alikiba also lead the recalculated April Combined singles chart.",body:"The collaboration finishes ahead of Siaka and Pawa in April, then retains the summit in May."},
   {id:3,date:"June 13, 2026",cat:"ANALYTICS",emoji:"",title:"Pawa Remains the Period's Highest-Scoring Single",excerpt:"Mbosso's Pawa totals 436 display points across all nine tracked months.",body:"Pawa appeared in every monthly Combined chart and finished #1 in November and December 2025."},
-  {id:4,date:"June 12, 2026",cat:"ARTIST SPOTLIGHT",emoji:"",title:`${COMBINED_ARTISTS.singles[0].n} Leads the Singles Artist Ranking`,excerpt:`Credited appearances produce ${COMBINED_ARTISTS.singles[0].p.toLocaleString()} cumulative artist points through May 2026.`,body:"The artist ranking now credits every named primary and featured artist whenever a release contributes to the Combined Top 50."},
+  {id:4,date:"June 12, 2026",cat:"ARTIST SPOTLIGHT",emoji:"",title:`${COMBINED_ARTISTS.singles[0].n} Leads the Singles Artist Ranking`,excerpt:`Top 50 platform entries produce ${COMBINED_ARTISTS.singles[0].p.toLocaleString()} cumulative artist points through May 2026.`,body:"The artist ranking gives points to every named primary and featured artist from Top 50 platform Singles and Albums entries."},
   {id:5,date:"June 11, 2026",cat:"ANALYTICS",emoji:"",title:"Natafuta Doo Makes May's Biggest Singles Jump",excerpt:"ELISHA TOTO climbs twenty-three positions from #40 to #17.",body:"The 23-place gain is the largest positive move among returning singles in May's normalized Combined chart."},
   {id:6,date:"June 10, 2026",cat:"CHART NEWS",emoji:"",title:"Zuchu's I Love You Climbs Eighteen Places",excerpt:"I Love You moves from #36 in April to #18 in May.",body:"The release also leads Boomplay's May chart, giving Zuchu both a strong platform result and a Top 20 Combined finish."},
   {id:7,date:"June 9, 2026",cat:"CHART NEWS",emoji:"",title:"Chai ya saa kumi Surges to #2",excerpt:"Ywaya Tajiri gains seventeen places from April to May.",body:"Chai ya saa kumi rises from #19 to #2 and appears on five of the six tracked singles platforms."},
@@ -597,7 +781,7 @@ const NEWS=[
   {id:12,date:"June 4, 2026",cat:"ALBUMS",emoji:"",title:"Kehlani Makes May's Biggest Album Leap",excerpt:"Kehlani rises forty-five places from #50 to #5.",body:"No returning song or album makes a larger month-to-month move in the latest Combined rankings."},
   {id:13,date:"June 3, 2026",cat:"ALBUMS",emoji:"",title:"Fally Ipupa's XX Rockets to #4",excerpt:"XX gains thirty-one positions from its April rank of #35.",body:"The climb places Fally Ipupa immediately behind May's Top 3 albums and gives XX full Apple Music and Audiomack coverage."},
   {id:14,date:"June 2, 2026",cat:"ALBUMS",emoji:"",title:"GOLD Climbs Sixteen Places",excerpt:"GOLD moves from #31 in April to #15 in May.",body:"The album records one of May's strongest gains and returns to the upper half of the Combined Top 50."},
-  {id:15,date:"June 1, 2026",cat:"ARTIST SPOTLIGHT",emoji:"",title:`${COMBINED_ARTISTS.albums[0].n} Tops the Albums Artist Ranking`,excerpt:`Credited album appearances total ${COMBINED_ARTISTS.albums[0].p.toLocaleString()} cumulative artist points.`,body:"The albums artist ranking includes both primary and featured credits across every tracked Combined Top 50."},
+  {id:15,date:"June 1, 2026",cat:"ARTIST SPOTLIGHT",emoji:"",title:`${COMBINED_ARTISTS.albums[0].n} Tops the Albums Artist Ranking`,excerpt:`Top 50 album entries total ${COMBINED_ARTISTS.albums[0].p.toLocaleString()} cumulative artist points.`,body:"The albums artist ranking uses primary and featured credits from tracked Top 50 entries."},
   {id:16,date:"May 31, 2026",cat:"ALBUMS",emoji:"",title:"The Last Wun Leads the Nine-Month Albums Ranking",excerpt:"Gunna's album totals 414 display points across all nine months.",body:"The Last Wun finishes ahead of Bien's Alusa Why Are You Topless? and PARTYNEXTDOOR's $ome $exy $ongs 4 U."},
   {id:17,date:"May 30, 2026",cat:"ALBUMS",emoji:"",title:"Sixteen May Top 20 Albums Reach Both Platforms",excerpt:"Most of May's leading albums appear on both Apple Music and Audiomack.",body:"M$NEY, RNB, XX, Kehlani and twelve other Top 20 albums record full 2/2 platform coverage."},
   {id:18,date:"May 29, 2026",cat:"ANALYTICS",emoji:"",title:"Wrong Places Secures Platinum Status",excerpt:"Joshua Baraka & JAE5 total 408 points across nine months.",body:"Wrong Places appears in every tracked month and exceeds the new 400-point Platinum certification threshold."},
@@ -688,10 +872,7 @@ export default function NgomaCharts(){
   };
 
   const toggleArtistRow = (rowKey) => {
-    setExpandedArtistRows((current) => ({
-      ...current,
-      [rowKey]: !current[rowKey],
-    }));
+    setExpandedArtistRows((current) => (current[rowKey] ? {} : { [rowKey]: true }));
   };
 
   const toggleTrendingRow = (rowKey) => {
@@ -701,9 +882,12 @@ export default function NgomaCharts(){
     }));
   };
 
+  const isArtists = ct === "artists";
   const isSingles = ct === "singles";
-  const platList = isSingles ? S_PLATS : A_PLATS;
-  const tp = isSingles ? 6 : 2;
+  const isAlbums = ct === "albums";
+  const releaseCt = isAlbums ? "albums" : "singles";
+  const platList = isArtists ? S_PLATS : (isSingles ? S_PLATS : A_PLATS);
+  const tp = isArtists ? ARTIST_PLATS.length : (isSingles ? 6 : 2);
 
   useEffect(() => {
     if (!API_BASE) return;
@@ -720,6 +904,7 @@ export default function NgomaCharts(){
     setLiveChartEntries([]);
     setLiveChartMeta(null);
 
+    if (isArtists) return;
     if (!API_BASE) return;
 
     const { monthNumber, year } = getMonthYearParts(month);
@@ -729,7 +914,7 @@ export default function NgomaCharts(){
     const controller = new AbortController();
 
     const params = new URLSearchParams();
-    params.set("type", ct);
+    params.set("type", releaseCt);
     params.set("month", String(monthNumber));
     params.set("year", String(year));
     params.set("platform", platformToSlug(plat));
@@ -793,7 +978,7 @@ export default function NgomaCharts(){
       });
 
     return () => controller.abort();
-  }, [API_BASE, ct, month, plat, tp]);
+  }, [API_BASE, releaseCt, month, plat, tp, isArtists]);
   useEffect(()=>{setTimeout(()=>setLd(true),100);},[]);
 
   const [vw,setVw]=useState(typeof window!=="undefined"?window.innerWidth:1200);
@@ -819,8 +1004,10 @@ export default function NgomaCharts(){
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
-const getData = () =>
-  plat === "Combined" ? getCombined(ct, month) : getPlatform(ct, plat, month);
+const getData = () => {
+  if (isArtists) return buildArtistChart(month, plat);
+  return plat === "Combined" ? getCombined(releaseCt, month) : getPlatform(releaseCt, plat, month);
+};
 
 const staticData = getData();
 
@@ -891,8 +1078,8 @@ const top = data[0];
     e.title.toLowerCase().includes(srch.toLowerCase())||e.artist.toLowerCase().includes(srch.toLowerCase())
   ).map(e=>[e.type+e.title+e.artist+e.month,e])).values()].slice(0,16):[];
 
-  // Every credited artist receives the release's full chart contribution.
-  const artistCutoffMonth = page === "analytics" ? anMonth : page === "artists" ? artistMonth : CURRENT_MONTH;
+  // Every credited artist receives the release's full chart contribution from Top 50 source rows.
+  const artistCutoffMonth = page === "analytics" ? anMonth : artistMonth;
   const artists = buildCombinedArtists(ct, artistCutoffMonth);
   useEffect(() => {
     if (!artists.length) return;
@@ -937,6 +1124,10 @@ const top = data[0];
     prepareDetailNavigation();
   };
   const openReleaseDetails = (entry = {}, type = isSingles ? "single" : "album") => {
+    if (entry?.is_artist_entry || String(type || entry.type || "").toLowerCase().includes("artist")) {
+      openArtistDetails(entry.title || entry.primary_artist || entry.artist || entry.n);
+      return;
+    }
     const normalizedType = String(type || entry.type || "single").toLowerCase().includes("album") ? "album" : "single";
     const displayArtist = releaseArtist(entry);
     const primaryArtist = entry.primary_artist || entry.pa || artistCreditMembers({ artist: displayArtist })[0] || displayArtist;
@@ -960,25 +1151,34 @@ const top = data[0];
     return {symbol:"–",color:"#9AA19A",label:"No change",shortLabel:"No change"};
   };
 
-  const chartTypeLabel = isSingles ? "Singles" : "Albums";
-  const releaseLabel = isSingles ? "Songs" : "Albums";
-  const releaseLabelLower = isSingles ? "songs" : "albums";
-  const releaseSingularLower = isSingles ? "song" : "album";
-  const platformKeysFor = (chartType = ct) => (chartType === "singles" ? S_PLATS : A_PLATS).filter((platform) => platform !== "Combined");
+  const chartTypeLabel = isArtists ? "Artists" : (isSingles ? "Singles" : "Albums");
+  const releaseLabel = isArtists ? "Artists" : (isSingles ? "Songs" : "Albums");
+  const releaseLabelLower = isArtists ? "artists" : (isSingles ? "songs" : "albums");
+  const releaseSingularLower = isArtists ? "artist" : (isSingles ? "song" : "album");
+  const platformKeysFor = (chartType = releaseCt) => chartType === "artists" ? ARTIST_PLATS : (chartType === "singles" ? S_PLATS : A_PLATS).filter((platform) => platform !== "Combined");
   const currentPlatformKeys = platformKeysFor(ct);
+  const analyticsRowsFor = (targetMonth, targetPlatform = "Combined") => isArtists
+    ? buildArtistChart(targetMonth, targetPlatform)
+    : (targetPlatform === "Combined" ? getCombined(releaseCt, targetMonth) : getPlatform(releaseCt, targetPlatform, targetMonth));
   const analyticsActive = page === "analytics";
   const analysisMonths = analyticsActive ? MONTHS.slice(0, Math.max(0, monthIndex(anMonth)) + 1) : MONTHS;
   const recordsActive = page === "records";
-  const recordsCoverageTargetFor = (chartType = ct) => (chartType === "albums" ? 2 : platformKeysFor(chartType).length);
+  const recordsCoverageTargetFor = (chartType = releaseCt) => chartType === "artists" ? ARTIST_PLATS.length : (chartType === "albums" ? 2 : platformKeysFor(chartType).length);
   const currentRecordsCoverageTarget = recordsCoverageTargetFor(ct);
 
   const platformHitsFor = (chartType, targetMonth, title, artist) => {
+    if (chartType === "artists") {
+      const artistName = title || artist;
+      return platformKeysFor("artists").filter((platform) =>
+        buildArtistChart(targetMonth, platform).some((entry) => String(entry.title || "").toLowerCase() === String(artistName || "").toLowerCase())
+      );
+    }
     return platformKeysFor(chartType).filter((platform) =>
       getRawPlatformIndex(chartType, platform, targetMonth).has(entryKey({ title, artist }))
     );
   };
 
-  const crossPlatformRows = analyticsActive ? getCombined(ct, anMonth)
+  const crossPlatformRows = analyticsActive ? analyticsRowsFor(anMonth)
     .map((entry) => {
       const hits = platformHitsFor(ct, anMonth, entry.title, entry.primary_artist || entry.artist);
       const fallbackCount = Number(String(entry.plat || "").split("/")[0]) || 0;
@@ -1006,15 +1206,23 @@ const top = data[0];
 
   const platOnes = analyticsActive ? currentPlatformKeys
     .map((platform) => {
-      const entry = rawPlatform(ct, platform, anMonth)[0];
+      if (isArtists) {
+        const entry = buildArtistChart(anMonth, platform)[0];
+        return entry ? [platform, { t: entry.title, a: entry.artist, primary_artist: entry.primary_artist, featured_artists: "", p: entry.pts, is_artist_entry: true, type: "artist" }] : null;
+      }
+      const entry = rawPlatform(releaseCt, platform, anMonth)[0];
       return entry ? [platform, { t: entry.t, a: formatArtistCredit(entry.a, entry.fa), primary_artist: entry.a, featured_artists: entry.fa || "", p: entry.p }] : null;
     })
     .filter(Boolean) : [];
 
   const platTotalsData = analyticsActive ? currentPlatformKeys
     .map((platform) => {
-      const platformIndex = getRawPlatformIndex(ct, platform, anMonth);
-      const entries = getCombined(ct, anMonth).filter((entry) => platformIndex.has(entryKey(entry))).length;
+      const entries = isArtists
+        ? buildArtistChart(anMonth, platform).length
+        : (() => {
+            const platformIndex = getRawPlatformIndex(releaseCt, platform, anMonth);
+            return getCombined(releaseCt, anMonth).filter((entry) => platformIndex.has(entryKey(entry))).length;
+          })();
       return {
         platform: PLAT_LABEL[platform] || platform,
         entries,
@@ -1027,9 +1235,11 @@ const top = data[0];
     const top50RowsByPlatform = new Map(
       currentPlatformKeys.map((platform) => [
         platform,
-        rawPlatform(ct, platform, anMonth)
-          .filter((entry) => Number(entry.r) <= 50)
-          .slice(0, 50),
+        isArtists
+          ? buildArtistChart(anMonth, platform).slice(0, 50).map((entry) => ({ ...entry, t: entry.title, a: entry.primary_artist || entry.title, p: entry.pts, r: entry.rank }))
+          : rawPlatform(releaseCt, platform, anMonth)
+              .filter((entry) => Number(entry.r) <= 50)
+              .slice(0, 50),
       ])
     );
     const top50IndexesByPlatform = new Map(
@@ -1050,12 +1260,12 @@ const top = data[0];
       const uniqueEntries = (top50RowsByPlatform.get(platform) || [])
         .filter((entry) => !otherIndexes.some((index) => index?.has(entryKey(entry))))
         .map((entry) => ({
-          title: entry.t,
-          artist: formatArtistCredit(entry.a, entry.fa),
-          primary_artist: entry.a,
-          featured_artists: entry.fa || "",
-          rank: entry.r,
-          pts: entry.p,
+          title: entry.t || entry.title,
+          artist: isArtists ? (entry.artist || "") : formatArtistCredit(entry.a, entry.fa),
+          primary_artist: entry.a || entry.primary_artist || entry.t || entry.title,
+          featured_artists: entry.fa || entry.featured_artists || "",
+          rank: entry.r || entry.rank,
+          pts: entry.p || entry.pts,
         }));
       return {
         platform,
@@ -1069,7 +1279,7 @@ const top = data[0];
 
   const topCountryData = analyticsActive ? (() => {
     const countryMap = new Map();
-    getCombined(ct, anMonth).forEach((entry) => {
+    analyticsRowsFor(anMonth).forEach((entry) => {
       const country = getArtistCountry(entry);
       const code = country.code || "—";
       const current = countryMap.get(code) || {
@@ -1094,8 +1304,8 @@ const top = data[0];
     const monthly = analysisMonths.map((monthLabel) => {
       let entries = 0;
       let points = 0;
-      getCombined(ct, monthLabel).forEach((entry) => {
-        const featuredArtists = String(entry.featured_artists || entry.fa || "").split(/\s*,\s*|\s*&\s*/).map((item) => item.trim()).filter(Boolean);
+      analyticsRowsFor(monthLabel).forEach((entry) => {
+        const featuredArtists = isArtists ? [] : String(entry.featured_artists || entry.fa || "").split(/\s*,\s*|\s*&\s*/).map((item) => item.trim()).filter(Boolean);
         if (!featuredArtists.length) return;
         entries += 1;
         points += Number(entry.pts) || 0;
@@ -1141,9 +1351,9 @@ const top = data[0];
 
   const buildMovementData = (chartType, targetMonth) => {
     const currentIndex = monthIndex(targetMonth);
-    const currentRows = getCombined(chartType, targetMonth);
+    const currentRows = chartType === "artists" ? buildArtistChart(targetMonth, "Combined") : getCombined(chartType, targetMonth);
     const previousMonth = currentIndex > 0 ? MONTHS[currentIndex - 1] : null;
-    const previousRows = previousMonth ? getCombined(chartType, previousMonth) : [];
+    const previousRows = previousMonth ? (chartType === "artists" ? buildArtistChart(previousMonth, "Combined") : getCombined(chartType, previousMonth)) : [];
 
     const moves = currentRows
       .map((entry) => {
@@ -1181,7 +1391,7 @@ const top = data[0];
   const releaseGroupsFor = (chartType) => {
     const groups = new Map();
     MONTHS.forEach((m) => {
-      getCombined(chartType, m).forEach((entry) => {
+      (chartType === "artists" ? buildArtistChart(m, "Combined") : getCombined(chartType, m)).forEach((entry) => {
         const key = entryKey(entry);
         if (!groups.has(key)) {
           groups.set(key, {
@@ -1234,10 +1444,28 @@ const top = data[0];
   };
 
   const currentRecords = recordsActive ? (() => {
-    const groups = releaseGroupsFor(ct);
+    if (isArtists) {
+      const highestPoints = artists[0];
+      const mostMonths = [...artists].sort((a, b) => (b.m || 0) - (a.m || 0) || (b.p || 0) - (a.p || 0))[0];
+      const mostEntries = [...artists].sort((a, b) => (b.t || 0) - (a.t || 0) || (b.p || 0) - (a.p || 0))[0];
+      const bestPeak = [...artists].sort((a, b) => Number(a.pk || 999) - Number(b.pk || 999) || (b.p || 0) - (a.p || 0))[0];
+      const biggestClimb = [...artists]
+        .map((artist) => ({ ...artist, delta: artist.prevRank ? Number(artist.prevRank) - Number(artist.rank) : 0 }))
+        .filter((artist) => artist.delta > 0)
+        .sort((a, b) => b.delta - a.delta || (b.p || 0) - (a.p || 0))[0];
+      return [
+        { label: "Highest Artist Points", displayLabel: "Highest Artist Points", value: highestPoints?.n || "—", displaySub: highestPoints ? `${Number(highestPoints.p || 0).toLocaleString()} pts · #${highestPoints.rank}` : "No artist data found" },
+        { label: "Most Months Active", displayLabel: "Most Months Active", value: mostMonths?.n || "—", displaySub: mostMonths ? `${mostMonths.m} ${mostMonths.m === 1 ? "month" : "months"} active` : "No artist data found" },
+        { label: "Most Chart Entries", displayLabel: "Most Chart Entries", value: mostEntries?.n || "—", displaySub: mostEntries ? `${mostEntries.t} ${mostEntries.t === 1 ? "entry" : "entries"}` : "No artist data found" },
+        { label: "Best Artist Rank", displayLabel: "Best Artist Rank", value: bestPeak?.n || "—", displaySub: bestPeak ? `Peak artist rank #${bestPeak.pk}` : "No artist data found" },
+        { label: "Biggest Artist Climb", displayLabel: "Biggest Artist Climb", value: biggestClimb?.n || "—", displaySub: biggestClimb ? `Up ${biggestClimb.delta} places to #${biggestClimb.rank}` : "No monthly climb found", climbDelta: biggestClimb?.delta || null },
+        { label: "Total Charted Artists", displayLabel: "Total Charted Artists", value: artists.length, displaySub: `artists through ${artistCutoffMonth}` },
+      ];
+    }
+    const groups = releaseGroupsFor(releaseCt);
     const highestPoints = [...groups]
       .sort((a, b) => b.totalPoints - a.totalPoints || a.title.localeCompare(b.title))[0];
-    const biggestClimb = biggestClimbFor(ct);
+    const biggestClimb = biggestClimbFor(releaseCt);
     const mostNumberOnes = [...groups]
       .filter((group) => group.numberOneMonths.size > 0)
       .sort((a, b) => b.numberOneMonths.size - a.numberOneMonths.size || b.totalPoints - a.totalPoints)[0];
@@ -1303,8 +1531,8 @@ const top = data[0];
     if (!recordsActive) return [];
     const seen = new Map();
     MONTHS.forEach((m) => {
-      getCombined(ct, m).forEach((entry) => {
-        const hits = platformHitsFor(ct, m, entry.title, entry.primary_artist || entry.artist);
+      analyticsRowsFor(m).forEach((entry) => {
+        const hits = platformHitsFor(releaseCt, m, entry.title, entry.primary_artist || entry.artist);
         const fallbackCount = num(entry.platform_count) || num(String(entry.plat || "").split("/")[0]);
         const count = Math.max(hits.length, fallbackCount);
         if (count >= currentRecordsCoverageTarget) {
@@ -1314,11 +1542,11 @@ const top = data[0];
       });
     });
     return [...seen.values()].sort((a, b) => num(b.pts) - num(a.pts));
-  }, [ct, currentRecordsCoverageTarget, recordsActive]);
+  }, [releaseCt, currentRecordsCoverageTarget, recordsActive, isArtists]);
 
   const navTo=p=>{setPage(p);setSelA(null);setSelR(null);setSelNews(null);setMNav(false);setMoreOpen(false);};
-  const navItems=["charts","trending","artists","analytics","records","year-end","certifications","news","about"];
-  const primaryNavItems=["charts","trending","analytics","year-end","certifications"];
+  const navItems=["charts","analytics","records","year-end","certifications","news","about"];
+  const primaryNavItems=["charts","analytics","records","year-end","certifications"];
   const moreNavItems=navItems.filter((item)=>!primaryNavItems.includes(item));
   const navLabel=t=>t==="year-end"?"Year End":t;
   const card=(extra={})=>({background:"#FFF",borderRadius:"14px",border:"1px solid #EFEDE7",padding:isMobile?"18px":"22px",boxSizing:"border-box",maxWidth:"100%",boxShadow:"0 1px 3px rgba(0,0,0,0.02),0 8px 24px rgba(0,0,0,0.02)",...extra});
@@ -1346,7 +1574,7 @@ const top = data[0];
   const latestTrendMonths = MONTHS.slice(-3);
   const trendMonthShort = (label = "") => String(label).split(" ")[0].slice(0, 3);
   const trendLabelText = latestTrendMonths.map(trendMonthShort).join(" / ");
-  const currentTrending = isSingles ? COMBINED_TRENDING.singles : COMBINED_TRENDING.albums;
+  const currentTrending = isArtists ? { rising: [], debuts: [] } : (isSingles ? COMBINED_TRENDING.singles : COMBINED_TRENDING.albums);
   const formulaLabel = "Movement compares each release's Combined chart rank with the previous month";
   const getTrendPoints = (trend = []) => {
     const rawValues = Array.isArray(trend)
@@ -1408,7 +1636,7 @@ const top = data[0];
         maxWidth:"100%",
       }}
     >
-      {["singles","albums"].map(t=><button
+      {["singles","albums","artists"].map(t=><button
         key={t}
         onClick={()=>{setCt(t);setPlat("Combined");}}
         style={{
@@ -1464,9 +1692,9 @@ const top = data[0];
   );
 
   // === ANALYTICS COMPUTATIONS — all from full Top-50 data ===
-  const top10sData=analyticsActive?getCombined(ct,anMonth).slice(0,10).map(e=>({...e,name:e.title.length>16?e.title.slice(0,14)+"…":e.title,title:e.title,artist:e.artist,pts:e.pts})):[];
+  const top10sData=analyticsActive?analyticsRowsFor(anMonth).slice(0,10).map(e=>({...e,name:e.title.length>16?e.title.slice(0,14)+"…":e.title,title:e.title,artist:e.artist,pts:e.pts})):[];
   const monthlyComp=analyticsActive?analysisMonths.map(m=>{
-    const rows=getCombined(ct,m);
+    const rows=analyticsRowsFor(m);
     return {
       month:m.split(" ")[0].slice(0,3),
       singles:getCombined("singles",m).length,
@@ -1494,7 +1722,7 @@ const top = data[0];
   const allTitles=useMemo(()=>{
     if(!analyticsActive)return [];
     const map={};
-    analysisMonths.forEach(m=>getCombined(ct,m).forEach(e=>{const k=e.title+" — "+e.artist;if(!map[k])map[k]={key:k,title:e.title,artist:e.artist,primary_artist:e.primary_artist||e.artist};}));
+    analysisMonths.forEach(m=>analyticsRowsFor(m).forEach(e=>{const k=e.title+" — "+e.artist;if(!map[k])map[k]={key:k,title:e.title,artist:e.artist,primary_artist:e.primary_artist||e.artist,is_artist_entry:e.is_artist_entry};}));
     return Object.values(map).sort((a,b)=>a.title.localeCompare(b.title));
   },[analyticsActive,ct,anMonth]);
   // Build a full profile for a song key
@@ -1505,7 +1733,7 @@ const top = data[0];
     const prof={title,artist,primary_artist,monthly:{},platforms:{},totalPts:0,peak:999,months:0,debutMonth:null,bestCov:0,avgRank:0};
     let rankSum=0,rankCount=0;
     analysisMonths.forEach(m=>{
-      const e=getCombined(ct,m).find(x=>sameRelease(x,{title,primary_artist}));
+      const e=analyticsRowsFor(m).find(x=>entryKey(x)===entryKey({title,primary_artist}));
       if(e){
         prof.monthly[m]={rank:e.rank,pts:e.pts,cov:e.plat};
         prof.totalPts+=e.pts; prof.months+=1;
@@ -1520,13 +1748,13 @@ const top = data[0];
     const releaseKey=entryKey({title,primary_artist});
     PLATS_FOR.forEach(pl=>{
       let best=null;
-      analysisMonths.forEach(m=>{const pe=getRawPlatformIndex(ct,pl,m).get(releaseKey);if(pe&&(best===null||pe.r<best))best=pe.r;});
+      analysisMonths.forEach(m=>{const pe=isArtists ? buildArtistChart(m,pl).find(x=>entryKey(x)===releaseKey) : getRawPlatformIndex(releaseCt,pl,m).get(releaseKey);if(pe&&((pe.r||pe.rank)&&(best===null||Number(pe.r||pe.rank)<best)))best=Number(pe.r||pe.rank);});
       if(best!==null)prof.platforms[pl]=best;
     });
     prof.platformCount=Object.keys(prof.platforms).length;
     // weeks-equivalent: number of (platform×month) chart appearances
     let appearances=0;
-    PLATS_FOR.forEach(pl=>analysisMonths.forEach(m=>{if(getRawPlatformIndex(ct,pl,m).has(releaseKey))appearances+=1;}));
+    PLATS_FOR.forEach(pl=>analysisMonths.forEach(m=>{if(isArtists ? buildArtistChart(m,pl).some(x=>entryKey(x)===releaseKey) : getRawPlatformIndex(releaseCt,pl,m).has(releaseKey))appearances+=1;}));
     prof.appearances=appearances;
     // #1 count on combined
     prof.numberOnes=Object.values(prof.monthly).filter(x=>x.rank===1).length;
@@ -1535,7 +1763,7 @@ const top = data[0];
   // Default song selections to the current month's #1 and #2
   useEffect(()=>{
     if(!analyticsActive)return;
-    const cd=getCombined(ct,anMonth);
+    const cd=analyticsRowsFor(anMonth);
     if(cd[0])setCmpS1(cd[0].title+" — "+cd[0].artist);
     if(cd[1])setCmpS2(cd[1].title+" — "+cd[1].artist);
   },[analyticsActive,ct,anMonth]);
@@ -1556,11 +1784,11 @@ const top = data[0];
   const songMonthlyData=analyticsActive?analysisMonths.map(m=>({month:m.split(" ")[0].slice(0,3),A:sp1?.monthly[m]?.pts||0,B:sp2?.monthly[m]?.pts||0})):[];
   const songRankData=analyticsActive?analysisMonths.map(m=>({month:m.split(" ")[0].slice(0,3),A:sp1?.monthly[m]?.rank||null,B:sp2?.monthly[m]?.rank||null})):[];
 
-  const yearEnd=isSingles?COMBINED_YEAR_END.singles:COMBINED_YEAR_END.albums;
+  const yearEnd=isArtists?buildArtistYearEndRows():(isSingles?COMBINED_YEAR_END.singles:COMBINED_YEAR_END.albums);
 
-  const tracked=getCombined(ct,analyticsActive?anMonth:CURRENT_MONTH).slice(0,5).map(entry=>entry.title);
+  const tracked=analyticsRowsFor(analyticsActive?anMonth:CURRENT_MONTH).slice(0,5).map(entry=>entry.title);
   const rankJourneyStartIndex=tracked.reduce((earliest,title)=>{
-    const idx=analysisMonths.findIndex(m=>getCombined(ct,m).some(e=>e.title===title));
+    const idx=analysisMonths.findIndex(m=>analyticsRowsFor(m).some(e=>e.title===title));
     return idx>=0?Math.min(earliest,idx):earliest;
   },analysisMonths.length);
   const rankJourneyMonths=rankJourneyStartIndex<analysisMonths.length?analysisMonths.slice(rankJourneyStartIndex):analysisMonths;
@@ -1703,16 +1931,16 @@ const top = data[0];
   const releaseJourney=r=>{
     if(!r)return [];
     return MONTHS.map(m=>{
-      const sc=getCombined(ct,m).find(e=>sameRelease(e,r));
+      const sc=getCombined(releaseCt,m).find(e=>sameRelease(e,r));
       const platforms=isSingles?["APPLE MUSIC","AUDIOMACK","BOOMPLAY","SPOTIFY","YOUTUBE","SHAZAM"]:["APPLE MUSIC","AUDIOMACK"];
-      const entries=platforms.map(pl=>{const d=getPlatform(ct,pl,m).find(e=>sameRelease(e,r));return d?{platform:PLAT_LABEL[pl]||pl,rank:d.rank,pts:d.pts}:null;}).filter(Boolean);
+      const entries=platforms.map(pl=>{const d=getPlatform(releaseCt,pl,m).find(e=>sameRelease(e,r));return d?{platform:PLAT_LABEL[pl]||pl,rank:d.rank,pts:d.pts}:null;}).filter(Boolean);
       return {month:m,combined:sc||null,platforms:entries};
     });
   };
 
   const allArtistNames=[...new Set(artists.map(a=>a.n))].sort();
   const selectedArtistEntries = selA ? MONTHS.flatMap((monthLabel) =>
-    getCombined(ct, monthLabel)
+    getArtistSourceCombined(ct, monthLabel)
       .filter((entry) => artistCreditMembers(entry).some((name) => name.toLowerCase() === selA.n.toLowerCase()))
       .map((entry) => ({...entry, month: monthLabel}))
   ) : [];
@@ -1784,6 +2012,7 @@ const top = data[0];
     allArtistNames,
     allTitles,
     anMonth,
+    analyticsRowsFor,
     artistMonth,
     artistTrendFor,
     artists,
@@ -1819,7 +2048,10 @@ const top = data[0];
     hof,
     isDark,
     isMobile,
+    isArtists,
+    isAlbums,
     isSingles,
+    releaseCt,
     latestMonth,
     latestMonthName,
     latestMonthShort,
@@ -2113,14 +2345,8 @@ const top = data[0];
       {/* CHARTS PAGE */}
       {page === "charts" && !selA && !selR && <ChartsPage ctx={pageContext} />}
 
-      {/* ARTISTS PAGE */}
-      {page === "artists" && !selA && !selR && <ArtistsPage ctx={pageContext} />}
-
       {/* ANALYTICS PAGE */}
       {page === "analytics" && !selA && !selR && <AnalyticsPage ctx={pageContext} />}
-
-      {/* TRENDING / PREDICTIONS PAGE */}
-      {page === "trending" && !selA && !selR && <TrendingPage ctx={pageContext} />}
 
       {/* RECORDS & MILESTONES PAGE */}
       {page === "records" && !selA && !selR && <RecordsPage ctx={pageContext} />}

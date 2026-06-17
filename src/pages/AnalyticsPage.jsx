@@ -31,6 +31,7 @@ export default function AnalyticsPage({ ctx }) {
     YAxis,
     allTitles,
     anMonth,
+    analyticsRowsFor,
     artists,
     card,
     chartTypeLabel,
@@ -46,6 +47,7 @@ export default function AnalyticsPage({ ctx }) {
     getCombined,
     isDark,
     isMobile,
+    isArtists,
     isSingles,
     mvData,
     openArtistDetails,
@@ -90,11 +92,11 @@ export default function AnalyticsPage({ ctx }) {
           </div>
           {/* SONG / ALBUM COMPARISON */}
           <div style={{...card(),padding:isMobile?"16px":"18px",marginBottom:isMobile?"18px":"20px",background:isDark?"#0F120F":"linear-gradient(135deg,#FAFAF8,#FFFFFF)",borderColor:isDark?"#2F352F":"#EFEDE7"}}>
-            <div style={secLbl()}><SecMark/>{isSingles?"Song":"Album"} Head-to-Head</div>
-            <p style={{fontFamily:F,fontSize:TXT.note,color:isDark?"#F6F3EA":"#69716B",margin:"-8px 0 14px",lineHeight:1.45}}>Compare two {isSingles?"songs":"albums"} across points, rank, platforms, and chart history.</p>
+            <div style={secLbl()}><SecMark/>{isArtists ? "Artist" : (isSingles?"Song":"Album")} Head-to-Head</div>
+            <p style={{fontFamily:F,fontSize:TXT.note,color:isDark?"#F6F3EA":"#69716B",margin:"-8px 0 14px",lineHeight:1.45}}>Compare two {isArtists ? "artists" : (isSingles?"songs":"albums")} across points, rank, platforms, and chart history.</p>
             <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"minmax(0,1fr) auto minmax(0,1fr)",gap:isMobile?"10px":"12px",alignItems:"center",marginBottom:isMobile?"14px":"14px"}}>
               <div style={{minWidth:0}}>
-                {isMobile&&<div style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:GOLD,marginBottom:"6px"}}>{isSingles?"Song":"Album"} One</div>}
+                {isMobile&&<div style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:GOLD,marginBottom:"6px"}}>{isArtists ? "Artist" : (isSingles?"Song":"Album")} One</div>}
                 <select value={cmpS1} onChange={e=>setCmpS1(e.target.value)} title={sp1?`${sp1.title} — ${sp1.artist}`:""} style={{width:"100%",minWidth:0,padding:isMobile?"11px 12px":"8px 10px",border:"1.5px solid "+GOLD+"55",borderRadius:"8px",background:"#FFF",fontSize:isMobile?"12px":"11px",fontFamily:F,fontWeight:700,cursor:"pointer",outline:"none",color:"#1F241F"}}>
                   {allTitles.map(t=><option key={t.key} value={t.key}>{t.title} — {t.artist}</option>)}
                 </select>
@@ -102,7 +104,7 @@ export default function AnalyticsPage({ ctx }) {
               </div>
               <span style={{fontFamily:F,fontSize:isMobile?"10px":"12px",color:"#8A928B",fontWeight:900,textAlign:"center",textTransform:isMobile?"uppercase":"none",letterSpacing:isMobile?"1px":"normal"}}>vs</span>
               <div style={{minWidth:0}}>
-                {isMobile&&<div style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:"#1565C0",marginBottom:"6px"}}>{isSingles?"Song":"Album"} Two</div>}
+                {isMobile&&<div style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:"#1565C0",marginBottom:"6px"}}>{isArtists ? "Artist" : (isSingles?"Song":"Album")} Two</div>}
                 <select value={cmpS2} onChange={e=>setCmpS2(e.target.value)} title={sp2?`${sp2.title} — ${sp2.artist}`:""} style={{width:"100%",minWidth:0,padding:isMobile?"11px 12px":"8px 10px",border:"1.5px solid #1565C055",borderRadius:"8px",background:"#FFF",fontSize:isMobile?"12px":"11px",fontFamily:F,fontWeight:700,cursor:"pointer",outline:"none",color:"#1F241F"}}>
                   {allTitles.map(t=><option key={t.key} value={t.key}>{t.title} — {t.artist}</option>)}
                 </select>
@@ -115,11 +117,11 @@ export default function AnalyticsPage({ ctx }) {
                 {[{d:sp1,c:GOLD},{d:sp2,c:"#1565C0"}].map(({d,c},i)=>(
                   <div key={i} style={{padding:isMobile?"13px":"15px",background:isDark?(i===0?"rgba(200,145,22,0.16)":"rgba(21,101,192,0.20)"):c+"0D",borderRadius:"10px",border:isDark?"1px solid "+c+"55":"1px solid transparent",borderLeft:"3px solid "+c,minWidth:0}}>
                     <div style={{display:"flex",alignItems:"center",gap:"7px",flexWrap:"wrap",minWidth:0}}>
-                      <button type="button" onClick={()=>openReleaseDetails(d,isSingles?"single":"album")} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:isMobile?"15px":"16px",fontWeight:800,lineHeight:1.2,whiteSpace:isMobile?"normal":"nowrap",overflow:isMobile?"visible":"hidden",textOverflow:isMobile?"clip":"ellipsis",overflowWrap:"anywhere",minWidth:0,cursor:"pointer",textAlign:"left",color:isDark?"#F6F3EA":"#1F241F"}}>{d.title}</button>
-                      {getCertificationForEntry(d, isSingles ? "single" : "album")&&<CertificationTag cert={getCertificationForEntry(d, isSingles ? "single" : "album")} compact />}
+                      <button type="button" onClick={()=>openReleaseDetails(d,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:isMobile?"15px":"16px",fontWeight:800,lineHeight:1.2,whiteSpace:isMobile?"normal":"nowrap",overflow:isMobile?"visible":"hidden",textOverflow:isMobile?"clip":"ellipsis",overflowWrap:"anywhere",minWidth:0,cursor:"pointer",textAlign:"left",color:isDark?"#F6F3EA":"#1F241F"}}>{d.title}</button>
+                      {isArtists ? null : getCertificationForEntry(d, isSingles ? "single" : "album")&&<CertificationTag cert={isArtists ? null : getCertificationForEntry(d, isSingles ? "single" : "album")} compact />}
                     </div>
                     <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(d.artist);}} style={{display:"block",maxWidth:"100%",fontFamily:F,fontSize:isMobile?"11.5px":"11px",color:isDark?"#F6F3EA":"#59645D",marginTop:"3px",padding:0,border:0,background:"transparent",fontWeight:700,whiteSpace:isMobile?"normal":"nowrap",overflow:isMobile?"visible":"hidden",textOverflow:isMobile?"clip":"ellipsis",overflowWrap:"anywhere",cursor:"pointer",textAlign:"left"}}>{d.artist}</button>
-                    {isMobile&&<button type="button" onClick={()=>openReleaseDetails(d,isSingles?"single":"album")} style={{marginTop:"9px",border:"1px solid "+c+"55",borderRadius:"999px",background:isDark?"rgba(255,255,255,0.04)":"#FFF",color:isDark&&i===1?"#72A7E8":c,fontFamily:F,fontSize:"9.5px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",padding:"7px 10px",cursor:"pointer"}}>View Details</button>}
+                    {isMobile&&<button type="button" onClick={()=>openReleaseDetails(d,isArtists ? "artist" : (isSingles?"single":"album"))} style={{marginTop:"9px",border:"1px solid "+c+"55",borderRadius:"999px",background:isDark?"rgba(255,255,255,0.04)":"#FFF",color:isDark&&i===1?"#72A7E8":c,fontFamily:F,fontSize:"9.5px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",padding:"7px 10px",cursor:"pointer"}}>View Details</button>}
                     <div style={{display:"flex",gap:isMobile?"12px":"16px",marginTop:isMobile?"10px":"12px",flexWrap:"wrap"}}>
                       <div><div style={{fontFamily:F,fontSize:isMobile?"18px":"20px",fontWeight:800,color:isDark&&i===1?"#72A7E8":c}}>{d.totalPts.toLocaleString()}</div><div style={{fontFamily:F,fontSize:isMobile?"8.5px":"8.5px",letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#F6F3EA":"#69716B",fontWeight:700}}>Total Pts</div></div>
                       <div><div style={{fontFamily:F,fontSize:isMobile?"18px":"20px",fontWeight:800,color:isDark&&i===1?"#72A7E8":c}}>#{d.peak}</div><div style={{fontFamily:F,fontSize:isMobile?"8.5px":"8.5px",letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#F6F3EA":"#69716B",fontWeight:700}}>Peak</div></div>
@@ -217,7 +219,7 @@ export default function AnalyticsPage({ ctx }) {
           {/* Stats row */}
           <div className="anl-grid-4" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"10px",marginBottom:"20px"}}>
             {[
-              {l:"Chart Depth",v:getCombined(ct,anMonth).length,c:GOLD,s:`${releaseLabelLower} in Top 50 combined`},
+              {l:"Chart Depth",v:analyticsRowsFor(anMonth).length,c:GOLD,s:`${releaseLabelLower} in Top 50 combined`},
               {l:"New Entries",v:mvData.new,c:"#2DB04A",s:"not in prev month"},
               {l:"Re-Entries",v:mvData.ret,c:"#1565C0",s:"returned to chart"},
               {l:"Platforms",v:tp,c:"#7B1FA2",s:`tracked for ${chartTypeLabel.toLowerCase()}`},
@@ -226,7 +228,7 @@ export default function AnalyticsPage({ ctx }) {
             ))}
           </div>
           {/* Top 10 + Platform #1s */}
-          <AnalyticsDeepSection label={isSingles?"View top songs and platform #1s":"View top albums and platform #1s"} isMobile={isMobile}>
+          <AnalyticsDeepSection label={isArtists ? "View top artists and platform #1s" : (isSingles?"View top songs and platform #1s":"View top albums and platform #1s")} isMobile={isMobile}>
           <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:isMobile?"18px":"14px",marginBottom:"20px"}} className="anl-2col">
             <div style={card()}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",marginBottom:"14px",flexWrap:"wrap"}}>
@@ -238,7 +240,7 @@ export default function AnalyticsPage({ ctx }) {
                   {top10sData.map((e,i)=>(
                     <div key={e.name} style={{display:"grid",gridTemplateColumns:"28px minmax(0,1fr) 86px",alignItems:"center",gap:"10px",padding:"9px 0",borderBottom:"1px solid #F0F0EC"}}>
                       <div style={{fontFamily:F,fontSize:"12px",fontWeight:900,color:i<3?MEDALS[i]:"#B8BDB8",textAlign:"center"}}>{i+1}</div>
-                      <button type="button" onClick={()=>openReleaseDetails(e,isSingles?"single":"album")} style={{border:0,background:"transparent",padding:0,textAlign:"left",fontFamily:SF,fontSize:"13px",fontWeight:800,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",cursor:"pointer"}}>{e.name}</button>
+                      <button type="button" onClick={()=>openReleaseDetails(e,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,textAlign:"left",fontFamily:SF,fontSize:"13px",fontWeight:800,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",cursor:"pointer"}}>{e.name}</button>
                       <div style={{fontFamily:F,fontSize:"12px",fontWeight:900,color:GOLD,textAlign:"right",whiteSpace:"nowrap"}}>{e.pts.toLocaleString()} pts</div>
                     </div>
                   ))}
@@ -263,7 +265,7 @@ export default function AnalyticsPage({ ctx }) {
                   return(
                     <div key={pl} style={{padding:isMobile?"12px":"10px 12px",background:(PC[pl]||"#888")+"0D",borderRadius:"8px",borderLeft:"3px solid "+(PC[pl]||"#888")}}>
                       <div style={{fontSize:isMobile?"9.5px":"8.8px",fontFamily:F,letterSpacing:"1.5px",textTransform:"uppercase",color:PC[pl]||"#888",marginBottom:"5px",fontWeight:800}}>{lbl}</div>
-                      <button type="button" onClick={()=>openReleaseDetails({title:d.t,artist:d.a,primary_artist:d.primary_artist,featured_artists:d.featured_artists},isSingles?"single":"album")} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:isMobile?"13px":"11.5px",fontWeight:800,lineHeight:1.2,cursor:"pointer",textAlign:"left"}}>{d.t}</button>
+                      <button type="button" onClick={()=>openReleaseDetails({title:d.t,artist:d.a,primary_artist:d.primary_artist,featured_artists:d.featured_artists,is_artist_entry:d.is_artist_entry,type:d.type},isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:isMobile?"13px":"11.5px",fontWeight:800,lineHeight:1.2,cursor:"pointer",textAlign:"left"}}>{d.t}</button>
                       <div style={{fontSize:isMobile?"11px":"10px",color:"#59645D",fontFamily:F,marginTop:"3px"}}>{d.a}</div>
                     </div>
                   );
@@ -317,12 +319,12 @@ export default function AnalyticsPage({ ctx }) {
               <div style={secLbl()}><SecMark/>Cross-Platform Reach — {anMonth}</div>
               <p style={{fontFamily:F,fontSize:"10px",color:"#59645D",margin:"-4px 0 12px",lineHeight:1.45}}>{releaseLabel} charting on most platforms simultaneously.</p>
               {crossPlatformRows.slice(0,8).map((s,i)=>{
-                const certification = getCertificationForEntry(s, isSingles ? "single" : "album");
+                const certification = isArtists ? null : getCertificationForEntry(s, isSingles ? "single" : "album");
                 return (
                 <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:"7px 0",borderBottom:"1px solid #F0F0EC"}}>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
-                      <button type="button" onClick={()=>openReleaseDetails(s,isSingles?"single":"album")} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:isMobile?"13px":"12px",fontWeight:800,cursor:"pointer",textAlign:"left"}}>{s.t}</button>
+                      <button type="button" onClick={()=>openReleaseDetails(s,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:isMobile?"13px":"12px",fontWeight:800,cursor:"pointer",textAlign:"left"}}>{s.t}</button>
                       {certification&&<CertificationTag cert={certification} compact />}
                     </div>
                     <div style={{fontSize:isMobile?"11px":"10.5px",color:"#59645D",fontFamily:F,marginTop:"2px"}}>{s.a}</div>
@@ -482,7 +484,7 @@ export default function AnalyticsPage({ ctx }) {
           </AnalyticsDeepSection>
           {/* Local vs International */}
           {(()=>{
-            const cd=getCombined(ct,anMonth);
+            const cd=analyticsRowsFor(anMonth);
             let local=0,intl=0,localPts=0,intlPts=0;
             cd.forEach(e=>{if(getArtistCountry(e).code==="KE"){local++;localPts+=e.pts;}else{intl++;intlPts+=e.pts;}});
             const pieData=[{name:"Kenyan",value:local,color:GOLD},{name:"International",value:intl,color:"#37474F"}];
@@ -531,17 +533,17 @@ export default function AnalyticsPage({ ctx }) {
             );
           })()}
           {/* Climbers & Fallers */}
-          <AnalyticsDeepSection label={isSingles ? "View top song climbers and biggest drops" : "View top album climbers and biggest drops"} isMobile={isMobile}>
+          <AnalyticsDeepSection label={isArtists ? "View top artist climbers and biggest drops" : (isSingles ? "View top song climbers and biggest drops" : "View top album climbers and biggest drops")} isMobile={isMobile}>
           <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px",marginBottom:"20px"}}>
             <div style={card()}>
               <div style={secLbl("#2DB04A")}><SecMark c="#2DB04A"/>Top {releaseLabel} Climbers — {anMonth}</div>
               {mvData.risers.map((s,i)=>{
-                const certification = getCertificationForEntry(s, isSingles ? "single" : "album");
+                const certification = isArtists ? null : getCertificationForEntry(s, isSingles ? "single" : "album");
                 return (
                 <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:isMobile?"8px 0":"6px 0",borderBottom:"1px solid #F0F0EC"}}>
                   <div style={{minWidth:0}}>
                     <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
-                      <button type="button" onClick={()=>openReleaseDetails(s,isSingles?"single":"album")} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15,cursor:"pointer",textAlign:"left"}}>{s.t}</button>
+                      <button type="button" onClick={()=>openReleaseDetails(s,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15,cursor:"pointer",textAlign:"left"}}>{s.t}</button>
                       {certification&&<CertificationTag cert={certification} compact />}
                     </div>
                     <div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginTop:"3px"}}>{s.a}</div>
@@ -555,12 +557,12 @@ export default function AnalyticsPage({ ctx }) {
             <div style={card()}>
               <div style={secLbl("#E53935")}><SecMark c="#E53935"/>Biggest {releaseLabel} Drops — {anMonth}</div>
               {mvData.fallers.map((s,i)=>{
-                const certification = getCertificationForEntry(s, isSingles ? "single" : "album");
+                const certification = isArtists ? null : getCertificationForEntry(s, isSingles ? "single" : "album");
                 return (
                 <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:isMobile?"8px 0":"6px 0",borderBottom:"1px solid #F0F0EC"}}>
                   <div style={{minWidth:0}}>
                     <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
-                      <button type="button" onClick={()=>openReleaseDetails(s,isSingles?"single":"album")} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15,cursor:"pointer",textAlign:"left"}}>{s.t}</button>
+                      <button type="button" onClick={()=>openReleaseDetails(s,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15,cursor:"pointer",textAlign:"left"}}>{s.t}</button>
                       {certification&&<CertificationTag cert={certification} compact />}
                     </div>
                     <div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginTop:"3px"}}>{s.a}</div>
@@ -589,17 +591,17 @@ export default function AnalyticsPage({ ctx }) {
           </div>
           </AnalyticsDeepSection>
           {/* Tracked Song Journey */}
-          <AnalyticsDeepSection label={isSingles?"View song rank journey":"View album rank journey"} isMobile={isMobile}>
+          <AnalyticsDeepSection label={isArtists ? "View artist rank journey" : (isSingles?"View song rank journey":"View album rank journey")} isMobile={isMobile}>
           <div style={card()}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",marginBottom:"14px",flexWrap:"wrap"}}>
-              <div style={{...secLbl(),marginBottom:0}}><SecMark/>{isSingles?"Top Songs Rank Journey Across Months":"Top Albums Rank Journey Across Months"}</div>
+              <div style={{...secLbl(),marginBottom:0}}><SecMark/>{isArtists ? "Top Artists Rank Journey Across Months" : (isSingles?"Top Songs Rank Journey Across Months":"Top Albums Rank Journey Across Months")}</div>
               <ViewToggle value={rankJourneyView} onChange={setRankJourneyView} />
             </div>
             {rankJourneyView==="graph" ? (
               <div className="ngoma-analytics-chart-scroll" aria-label="Scrollable rank journey graph">
                 <div style={{minWidth:"100%",height:320}}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={rankJourneyMonths.map((m)=>{const row={month:m.split(" ")[0].slice(0,3)};tracked.forEach((title)=>{row[title]=getCombined(ct,m).find((entry)=>entry.title===title)?.rank||null;});return row;})} margin={{top:10,right:24,left:8,bottom:8}}>
+                    <LineChart data={rankJourneyMonths.map((m)=>{const row={month:m.split(" ")[0].slice(0,3)};tracked.forEach((title)=>{row[title]=analyticsRowsFor(m).find((entry)=>entry.title===title)?.rank||null;});return row;})} margin={{top:10,right:24,left:8,bottom:8}}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#F0F0EC"/>
                       <XAxis dataKey="month" tick={{fontSize:10.5,fontFamily:F,fill:"#59645D"}}/>
                       <YAxis reversed domain={[1,50]} tick={{fontSize:10,fontFamily:F,fill:"#59645D"}} tickFormatter={v=>`#${v}`}/>
@@ -614,12 +616,12 @@ export default function AnalyticsPage({ ctx }) {
             isMobile ? (
             <div style={{display:"grid",gap:"12px"}}>
             {tracked.map(title=>{
-              const hasAny=rankJourneyMonths.some(m=>getCombined(ct,m).find(e=>e.title===title));
+              const hasAny=rankJourneyMonths.some(m=>analyticsRowsFor(m).find(e=>e.title===title));
               if(!hasAny)return null;
               return(<div key={title} style={{padding:"12px",border:"1px solid "+(isDark?"#2F352F":"#EFEDE7"),borderRadius:"12px",background:isDark?"#0F120F":"#FAFAF8"}}>
-                <button type="button" onClick={()=>{const e=rankJourneyMonths.flatMap(m=>getCombined(ct,m)).find(x=>x.title===title);if(e)openReleaseDetails(e,isSingles?"single":"album");}} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:"13px",fontWeight:850,lineHeight:1.2,color:GOLD,cursor:"pointer",textAlign:"left",whiteSpace:"normal",overflowWrap:"anywhere"}}>{title}</button>
+                <button type="button" onClick={()=>{const e=rankJourneyMonths.flatMap(m=>analyticsRowsFor(m)).find(x=>x.title===title);if(e)openReleaseDetails(e,isArtists ? "artist" : (isSingles?"single":"album"));}} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:"13px",fontWeight:850,lineHeight:1.2,color:GOLD,cursor:"pointer",textAlign:"left",whiteSpace:"normal",overflowWrap:"anywhere"}}>{title}</button>
                 <div style={{display:"flex",flexWrap:"wrap",gap:"7px",marginTop:"10px"}}>
-                  {rankJourneyMonths.map(m=>{const e=getCombined(ct,m).find(x=>x.title===title);return(<div key={m} style={{minWidth:"44px",padding:"6px 7px",borderRadius:"9px",background:isDark?"#121612":"#FFF",border:"1px solid "+(isDark?"#2F352F":"#EFEDE7"),textAlign:"center",fontFamily:F}}>
+                  {rankJourneyMonths.map(m=>{const e=analyticsRowsFor(m).find(x=>x.title===title);return(<div key={m} style={{minWidth:"44px",padding:"6px 7px",borderRadius:"9px",background:isDark?"#121612":"#FFF",border:"1px solid "+(isDark?"#2F352F":"#EFEDE7"),textAlign:"center",fontFamily:F}}>
                     <div style={{fontSize:"8.5px",color:isDark?"#AEB6AE":"#69716B",fontWeight:800}}>{m.split(" ")[0].slice(0,3)}</div>
                     {e?<div style={{fontSize:"12px",fontWeight:900,color:e.rank===1?GOLD:isDark?"#F6F3EA":"#1A1A1A"}}>#{e.rank}</div>:<div style={{fontSize:"11px",color:isDark?"#68716B":"#C9CEC9"}}>—</div>}
                   </div>);})}
@@ -631,14 +633,14 @@ export default function AnalyticsPage({ ctx }) {
             <div className="ngoma-analytics-chart-scroll" aria-label="Scrollable rank journey table">
             <div style={{minWidth:isMobile?"760px":"100%"}}>
             {tracked.map(title=>{
-              const hasAny=rankJourneyMonths.some(m=>getCombined(ct,m).find(e=>e.title===title));
+              const hasAny=rankJourneyMonths.some(m=>analyticsRowsFor(m).find(e=>e.title===title));
               if(!hasAny)return null;
               return(<div key={title} style={{display:"grid",gridTemplateColumns:`minmax(${isMobile?180:220}px,1fr) repeat(${rankJourneyMonths.length},44px)`,alignItems:"center",padding:"8px 0",borderBottom:"1px solid #F0F0EC",gap:"8px"}}>
                 <div style={{minWidth:0,display:"flex",alignItems:"center",gap:"7px"}}>
-                  <button type="button" onClick={()=>{const e=rankJourneyMonths.flatMap(m=>getCombined(ct,m)).find(x=>x.title===title);if(e)openReleaseDetails(e,isSingles?"single":"album");}} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:isMobile?"12.5px":"11.5px",fontWeight:800,lineHeight:1.2,color:GOLD,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",cursor:"pointer"}}>{title}</button>
-                  {(()=>{const e=rankJourneyMonths.flatMap(m=>getCombined(ct,m)).find(x=>x.title===title);const certification=e?getCertificationForEntry(e,isSingles?"single":"album"):null;return certification?<CertificationTag cert={certification} compact />:null;})()}
+                  <button type="button" onClick={()=>{const e=rankJourneyMonths.flatMap(m=>analyticsRowsFor(m)).find(x=>x.title===title);if(e)openReleaseDetails(e,isArtists ? "artist" : (isSingles?"single":"album"));}} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:isMobile?"12.5px":"11.5px",fontWeight:800,lineHeight:1.2,color:GOLD,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",cursor:"pointer"}}>{title}</button>
+                  {(()=>{const e=rankJourneyMonths.flatMap(m=>analyticsRowsFor(m)).find(x=>x.title===title);const certification=e?isArtists ? null : getCertificationForEntry(e,isSingles?"single":"album"):null;return certification?<CertificationTag cert={certification} compact />:null;})()}
                 </div>
-                {rankJourneyMonths.map(m=>{const e=getCombined(ct,m).find(x=>x.title===title);return(<div key={m} style={{width:"44px",textAlign:"center",fontFamily:F}}>
+                {rankJourneyMonths.map(m=>{const e=analyticsRowsFor(m).find(x=>x.title===title);return(<div key={m} style={{width:"44px",textAlign:"center",fontFamily:F}}>
                   <div style={{fontSize:isMobile?"9px":"8.5px",color:"#69716B",fontWeight:700}}>{m.split(" ")[0].slice(0,3)}</div>
                   {e?<div style={{fontSize:"14px",fontWeight:800,color:e.rank===1?GOLD:e.rank<=3?"#1A1A1A":"#888"}}>#{e.rank}</div>:<div style={{fontSize:"11px",color:"#E0E0DC"}}>—</div>}
                 </div>);})}

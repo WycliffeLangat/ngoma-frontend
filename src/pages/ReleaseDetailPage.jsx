@@ -31,11 +31,11 @@ export default function ReleaseDetailPage({ ctx }) {
         const selectedCertification = getCertificationForEntry(selR, selR.type || (isSingles ? "single" : "album"));
         const journey = releaseJourney(selR);
         const combinedHistory = journey.filter((item) => item.combined);
+        const chartedJourney = journey.filter((item) => item.combined || item.platforms.length > 0);
         const platformNames = new Set(journey.flatMap((item) => item.platforms.map((entry) => entry.platform)));
         const totalPoints = combinedHistory.reduce((sum, item) => sum + Number(item.combined?.pts || 0), 0);
         const peakRank = combinedHistory.reduce((best, item) => Math.min(best, Number(item.combined?.rank || 999)), 999);
         const currentCombined = combinedHistory[combinedHistory.length - 1];
-        const averageRank = combinedHistory.length ? Math.round(combinedHistory.reduce((sum, item) => sum + Number(item.combined.rank || 0), 0) / combinedHistory.length) : null;
         const numberOneMonths = combinedHistory.filter((item) => Number(item.combined.rank) === 1).length;
         const bestCoverage = combinedHistory.reduce((best, item) => Math.max(best, Number(String(item.combined.plat || "0").split("/")[0]) || 0), 0);
         const releaseRankData = combinedHistory.map((item) => ({month:item.month.split(" ")[0].slice(0,3),rank:Number(item.combined.rank),points:Number(item.combined.pts)||0}));
@@ -64,7 +64,6 @@ export default function ReleaseDetailPage({ ctx }) {
                 {label:"Total Points",value:totalPoints.toLocaleString()},
                 {label:"Peak Rank",value:peakRank<999?`#${peakRank}`:"—"},
                 {label:"Current Rank",value:currentCombined?`#${currentCombined.combined.rank}`:"—"},
-                {label:"Average Rank",value:averageRank?`#${averageRank}`:"—"},
                 {label:"Months Charted",value:combinedHistory.length},
                 {label:"#1 Months",value:numberOneMonths},
                 {label:"Platforms",value:platformNames.size},
@@ -94,11 +93,13 @@ export default function ReleaseDetailPage({ ctx }) {
               </div>
             </div>
             <h3 style={secLbl()}><SecMark/>Cross-Platform Journey</h3>
-            {journey.map(({month:m,combined,platforms})=>(
+            {chartedJourney.map(({month:m,combined,platforms})=>(
               <div key={m} style={{marginBottom:"14px",padding:"16px",background:"#FAFAF8",borderRadius:"8px",border:"1px solid #EAEAE6"}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"10px"}}>
                   <span style={{fontWeight:700,fontFamily:SF}}>{m}</span>
-                  {combined?<span style={{fontFamily:F,fontSize:"13px",fontWeight:700,color:GOLD}}>#{combined.rank} Combined · {combined.pts.toLocaleString()} pts · {combined.plat} platforms</span>:<span style={{fontFamily:F,fontSize:"12px",color:isDark?"#AEB6AE":"#8A928B",fontWeight:800}}>Not charted this month</span>}
+                  {combined
+                    ? <span style={{fontFamily:F,fontSize:"13px",fontWeight:700,color:GOLD}}>#{combined.rank} Combined · {combined.pts.toLocaleString()} pts · {combined.plat} platforms</span>
+                    : <span style={{fontFamily:F,fontSize:"12px",fontWeight:800,color:isDark?"#F4EFE4":"#59645D"}}>Platform entries only</span>}
                 </div>
                 <div style={{display:"flex",gap:"6px",flexWrap:"wrap"}}>
                   {platforms.map(p=>(
@@ -106,7 +107,6 @@ export default function ReleaseDetailPage({ ctx }) {
                       {p.platform} #{p.rank}
                     </span>
                   ))}
-                  {platforms.length===0&&<span style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#AEB6AE":"#8A928B",fontWeight:750}}>No tracked platform chart entry this month</span>}
                 </div>
               </div>
             ))}

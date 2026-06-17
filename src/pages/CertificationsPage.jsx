@@ -13,10 +13,31 @@ export default function CertificationsPage({ ctx }) {
     certs,
     isMobile,
     isSingles,
+    isArtists,
     openArtistDetails,
     openReleaseDetails,
     secLbl
   } = ctx;
+
+  if (isArtists) {
+    return (
+      <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:"24px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
+          <div>
+            <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px"}}>Artist Certifications</h2>
+            <p style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",margin:0,lineHeight:1.55}}>Artist certification rules have not been activated yet. Song and album certifications remain based on cumulative Combined chart points.</p>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap"}}>
+            <Tog sm/>
+          </div>
+        </div>
+        <div style={{...card({textAlign:"center",padding:isMobile?"28px":"34px"})}}>
+          <div style={{fontFamily:SF,fontSize:isMobile?"22px":"26px",fontWeight:850,marginBottom:"8px"}}>No artist certifications yet</div>
+          <div style={{fontFamily:F,fontSize:TXT.body,color:"#69716B",lineHeight:1.6}}>Use the Artists toggle on Charts, Analytics, Records, and Year End to view artist rankings and comparisons.</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
 <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>

@@ -16,6 +16,7 @@ export default function YearEndPage({ ctx }) {
     getCertificationForEntry,
     isDark,
     isMobile,
+    isArtists,
     isSingles,
     openArtistDetails,
     openReleaseDetails,
@@ -53,13 +54,13 @@ export default function YearEndPage({ ctx }) {
               <div className="podium-grid" style={{display:"grid",gridTemplateColumns:"1fr 1.2fr 1fr",gap:isMobile?"10px":"12px",marginBottom:isMobile?"20px":"24px",alignItems:"end"}}>
                 {podiumItems.map(({e,pos,medal,featured},i)=>{
                   if(!e)return <div key={i}/>;
-                  const certification = getCertificationForEntry(e, isSingles ? "single" : "album");
+                  const certification = isArtists ? null : getCertificationForEntry(e, isSingles ? "single" : "album");
                   return(<div key={`${pos}-${e.t}-${e.a}`} style={{textAlign:"center"}}>
                     <div style={{background:isDark?"#0F120F":featured?"linear-gradient(180deg,#FFF9E8 0%,#FFFDF8 100%)":medal+"12",border:(featured?"2.5px":"2px")+" solid "+medal,borderRadius:isMobile?"12px":"13px",padding:featured?(isMobile?"18px 12px":"18px 14px"):(isMobile?"15px 12px":"16px 12px"),boxShadow:isDark?"none":featured?"0 14px 36px rgba(184,134,11,0.16)":"none",transform:(!isMobile&&featured)?"translateY(-2px)":"none"}}>
                       <div style={{fontSize:featured?(isMobile?"33px":"38px"):"32px",fontWeight:950,color:medal,lineHeight:1}}>#{pos}</div>
-                      <CountryBadge artist={e.a} style={{margin:"10px auto 0",minWidth:isMobile?"34px":"38px",height:isMobile?"30px":"34px",borderRadius:"11px",padding:"0 7px"}} />
-                      <button type="button" onClick={()=>openReleaseDetails(e,isSingles?"single":"album")} style={{display:"block",width:"100%",border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:featured?(isMobile?"16px":"16px"):TXT.cardTitle,fontWeight:850,margin:"8px 0 4px",lineHeight:1.18,cursor:"pointer",color:isDark?"#F6F3EA":"#050505"}}>{e.t}</button>
-                      <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(e.a);}} style={{display:"block",width:"100%",fontSize:TXT.cardMeta,color:isDark?"#D7DBD7":"#59645D",fontFamily:F,fontWeight:750,marginBottom:"6px",padding:0,border:0,background:"transparent",cursor:"pointer"}}>{e.a}</button>
+                      <CountryBadge artist={isArtists ? e.t : e.a} style={{margin:"10px auto 0",minWidth:isMobile?"34px":"38px",height:isMobile?"30px":"34px",borderRadius:"11px",padding:"0 7px"}} />
+                      <button type="button" onClick={()=>isArtists ? openArtistDetails(e.t) : openReleaseDetails(e,isSingles?"single":"album")} style={{display:"block",width:"100%",border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:featured?(isMobile?"16px":"16px"):TXT.cardTitle,fontWeight:850,margin:"8px 0 4px",lineHeight:1.18,cursor:"pointer",color:isDark?"#F6F3EA":"#050505"}}>{e.t}</button>
+                      <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(isArtists ? e.t : e.a);}} style={{display:"block",width:"100%",fontSize:TXT.cardMeta,color:isDark?"#D7DBD7":"#59645D",fontFamily:F,fontWeight:750,marginBottom:"6px",padding:0,border:0,background:"transparent",cursor:"pointer"}}>{e.a}</button>
                       {certification&&<CertificationTag cert={certification} compact style={{margin:"0 auto 8px"}} />}
                       <div style={{fontSize:featured?(isMobile?"18px":"20px"):"18px",fontWeight:850,color:medal}}>{e.totalPts.toLocaleString()}</div>
                     </div>
@@ -77,9 +78,16 @@ export default function YearEndPage({ ctx }) {
                 const expanded = Boolean(expandedYearEndRows[rowKey]);
                 const t3 = idx < 3;
                 const medalColor = t3 ? MEDALS[idx] : (isDark?"#F6F3EA":"#050505");
-                const itemTypeLabel = isSingles ? "Single" : "Album";
-                const certification = getCertificationForEntry(item, isSingles ? "single" : "album");
-                const statItems = [
+                const itemTypeLabel = isArtists ? "Artist" : (isSingles ? "Single" : "Album");
+                const certification = isArtists ? null : getCertificationForEntry(item, isSingles ? "single" : "album");
+                const statItems = isArtists ? [
+                  { label:"Total Pts", value:item.totalPts.toLocaleString() },
+                  { label:"Months", value:item.months },
+                  { label:"Entries", value:item.entries || "—" },
+                  { label:"Peak", value:item.best ? `#${item.best}` : "—" },
+                  { label:"Year-End Rank", value:`#${idx+1}` },
+                  { label:"Type", value:itemTypeLabel },
+                ] : [
                   { label:"Total Pts", value:item.totalPts.toLocaleString() },
                   { label:"Months", value:item.months },
                   { label:"Year-End Rank", value:`#${idx+1}` },
@@ -116,11 +124,11 @@ export default function YearEndPage({ ctx }) {
                       <div style={{fontSize:t3?"28px":"24px",fontWeight:950,lineHeight:1,color:medalColor,textAlign:"center",fontFamily:F}}>{idx+1}</div>
 
                       <div style={{display:"flex",alignItems:"center",gap:"11px",minWidth:0,maxWidth:"100%"}}>
-                        <CountryBadge artist={item.a} style={{minWidth:"42px",width:"42px",height:"42px",borderRadius:"12px",padding:0,flexShrink:0}} />
+                        <CountryBadge artist={isArtists ? item.t : item.a} style={{minWidth:"42px",width:"42px",height:"42px",borderRadius:"12px",padding:0,flexShrink:0}} />
                         <div style={{minWidth:0,flex:1}}>
                           <button
                             type="button"
-                            onClick={(event)=>{event.stopPropagation();openReleaseDetails(item,isSingles?"single":"album");}}
+                            onClick={(event)=>{event.stopPropagation();isArtists ? openArtistDetails(item.t) : openReleaseDetails(item,isSingles?"single":"album");}}
                             style={{
                               display:"block",
                               width:"100%",
@@ -144,7 +152,7 @@ export default function YearEndPage({ ctx }) {
                           </button>
                           <button
                             type="button"
-                            onClick={(event)=>{event.stopPropagation();openArtistDetails(item.a);}}
+                            onClick={(event)=>{event.stopPropagation();openArtistDetails(isArtists ? item.t : item.a);}}
                             style={{
                               display:"block",
                               width:"100%",
@@ -218,7 +226,7 @@ export default function YearEndPage({ ctx }) {
 
                         <button
                           type="button"
-                          onClick={()=>openReleaseDetails(item,isSingles?"single":"album")}
+                          onClick={()=>isArtists ? openArtistDetails(item.t) : openReleaseDetails(item,isSingles?"single":"album")}
                           style={{
                             marginTop:"11px",
                             width:"100%",
@@ -267,17 +275,17 @@ export default function YearEndPage({ ctx }) {
                   alignItems:"end"
                 }}>
                   <span style={{textAlign:"center"}}>#</span>
-                  <span>TITLE</span>
+                  <span>{isArtists ? "ARTIST" : "TITLE"}</span>
                   <span style={{textAlign:"center",justifySelf:"stretch",whiteSpace:"nowrap"}}>TOTAL PTS</span>
                   <span style={{textAlign:"center",justifySelf:"stretch",whiteSpace:"nowrap"}}>MONTHS</span>
                 </div>
 
                 {yearEnd.slice(0,50).map((item,idx)=>{
                   const t3=idx<3;
-                  const certification = getCertificationForEntry(item, isSingles ? "single" : "album");
+                  const certification = isArtists ? null : getCertificationForEntry(item, isSingles ? "single" : "album");
                   return(
                     <div
-                      key={item.t+item.a}
+                      key={item.t+(item.a || "")}
                       style={{
                         display:"grid",
                         gridTemplateColumns:"54px minmax(0,1fr) 148px 92px",
@@ -293,7 +301,7 @@ export default function YearEndPage({ ctx }) {
                       <div style={{textAlign:"center",fontSize:t3?"20px":"13px",fontWeight:850,color:t3?MEDALS[idx]:"#BFC4BF"}}>{idx+1}</div>
 
                       <div style={{display:"flex",alignItems:"center",gap:"12px",minWidth:0}}>
-                        <CountryBadge artist={item.a} style={{minWidth:"50px",width:"50px",height:"50px",borderRadius:"14px",padding:0,flexShrink:0}} />
+                        <CountryBadge artist={isArtists ? item.t : item.a} style={{minWidth:"50px",width:"50px",height:"50px",borderRadius:"14px",padding:0,flexShrink:0}} />
                         <div style={{minWidth:0}}>
                           <div style={{
                             display:"flex",
@@ -308,10 +316,10 @@ export default function YearEndPage({ ctx }) {
                             overflow:"visible",
                             textOverflow:"clip"
                           }}>
-                            <button type="button" onClick={()=>openReleaseDetails(item,isSingles?"single":"album")} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:"inherit",fontWeight:"inherit",lineHeight:"inherit",cursor:"pointer",textAlign:"left"}}>{item.t}</button>
+                            <button type="button" onClick={()=>isArtists ? openArtistDetails(item.t) : openReleaseDetails(item,isSingles?"single":"album")} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:"inherit",fontWeight:"inherit",lineHeight:"inherit",cursor:"pointer",textAlign:"left"}}>{item.t}</button>
                             {certification&&<CertificationTag cert={certification} compact />}
                           </div>
-                          <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(item.a);}} style={{
+                          <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(isArtists ? item.t : item.a);}} style={{
                             fontSize:TXT.cardMeta,
                             color:"#59645D",
                             fontFamily:F,

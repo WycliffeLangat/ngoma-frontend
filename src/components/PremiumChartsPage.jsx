@@ -568,8 +568,8 @@ export function getArtistCountry(item) {
   }
 
   return {
-    flag: String.fromCodePoint(0x1f30d),
-    country: "Country not set",
+    flag: "",
+    country: "",
     code: "",
   };
 }
@@ -614,7 +614,7 @@ export default function PremiumChartsPage({
 }) {
   const mobile = useRealMobile(isMobile);
   const safeGutter = mobile ? "clamp(20px, 5vw, 28px)" : "28px";
-  const [expandedMobileRows, setExpandedMobileRows] = useState({});
+  const [expandedRowKey, setExpandedRowKey] = useState(null);
   const [detectedDarkMode, setDetectedDarkMode] = useState(() => {
     if (typeof window === "undefined" || typeof document === "undefined") return false;
     return (
@@ -651,11 +651,12 @@ export default function PremiumChartsPage({
   }, []);
 
   const darkMode = Boolean(isDark || detectedDarkMode);
+  const isArtistsChart = ct === "artists";
 
   const chartTitle = "NGOMA TOP 50";
   const chartRegion = "(KENYA)";
   const chartDisplayTitle = `${chartTitle} ${chartRegion}`;
-  const chartLabel = isSingles ? "Singles" : "Albums";
+  const chartLabel = isArtistsChart ? "Artists" : (isSingles ? "Singles" : "Albums");
   const platformLabel =
     liveChartMeta?.platform || (plat === "Combined" ? "Combined" : PLAT_LABEL[plat] || plat);
   const chartAccent = plat === "Combined" ? GOLD : PC[plat] || GOLD;
@@ -743,6 +744,7 @@ export default function PremiumChartsPage({
   }
 
   function calculateStaticPeak(item) {
+    if (isArtistsChart || item?.is_artist_entry) return item.peak_rank || item.rank || "—";
     let peak = item.rank || "—";
 
     MONTHS.forEach((m) => {
@@ -769,6 +771,10 @@ export default function PremiumChartsPage({
   }
 
   function openRelease(item) {
+    if (isArtistsChart || item?.is_artist_entry) {
+      openArtist(item?.title || item?.primary_artist || item?.artist);
+      return;
+    }
     if (onOpenRelease) {
       onOpenRelease(item, isSingles ? "single" : "album");
       return;
@@ -777,6 +783,243 @@ export default function PremiumChartsPage({
       ...item,
       type: isSingles ? "single" : "album",
     });
+  }
+
+  function splitArtistTokens(artistText) {
+    const source = normalizeDetailValue(artistText, "");
+    if (!source) return [];
+
+    const separatorPattern = /(\s*(?:,|&|\+|\bfeat\.?\b|\bft\.?\b|\bfeaturing\b|\band\b|\bwith\b|\bx\b)\s*)/gi;
+    const pieces = source.split(separatorPattern).filter((piece) => piece !== "");
+
+    return pieces
+      .map((piece) => {
+        separatorPattern.lastIndex = 0;
+        const isSeparator = separatorPattern.test(piece);
+        separatorPattern.lastIndex = 0;
+        return isSeparator
+          ? { type: "separator", value: piece }
+          : { type: "artist", value: piece.trim() };
+      })
+      .filter((piece) => piece.value);
+  }
+
+  function ArtistLinks({ item }) {
+    const tokens = splitArtistTokens(item?.artist || item?.primary_artist || item?.artist_name);
+    if (!tokens.length) return null;
+
+    return (
+      <span style={styles.artistLinksWrap}>
+        {tokens.map((token, tokenIndex) => {
+          if (token.type === "separator") {
+            return (
+              <span
+                key={`${token.value}-${tokenIndex}`}
+                style={{ ...styles.artistSeparator, ...(darkMode ? styles.artistSeparatorDark : null) }}
+              >
+                {token.value}
+              </span>
+            );
+          }
+
+          return (
+            <button
+              key={`${token.value}-${tokenIndex}`}
+              onClick={(event) => {
+                event.stopPropagation();
+                openArtist(token.value);
+              }}
+              className="ngoma-artist-link"
+              style={{ ...styles.artistButton, ...(darkMode ? styles.artistButtonDark : null) }}
+              title={`Open ${token.value}`}
+            >
+              {token.value}
+            </button>
+          );
+        })}
+      </span>
+    );
+  }
+
+  function normalizeDetailValue(value, fallback = "—") {
+    if (value === null || value === undefined || value === "") return fallback;
+    if (Array.isArray(value)) {
+      const joined = value
+        .map((entry) => normalizeDetailValue(entry, ""))
+        .filter(Boolean)
+        .join(", ");
+      return joined || fallback;
+    }
+    if (typeof value === "object") {
+      return value.name || value.title || value.label || fallback;
+    }
+    return String(value).trim() || fallback;
+  }
+
+  function firstDetailValue(item, keys, fallback = "—") {
+    for (const key of keys) {
+      const value = item?.[key];
+      const normalized = normalizeDetailValue(value, "");
+      if (normalized) return normalized;
+    }
+    return fallback;
+  }
+
+  function getArtworkUrl(item) {
+    const value = firstDetailValue(
+      item,
+      [
+        "artwork",
+        "artwork_url",
+        "artworkUrl",
+        "cover",
+        "cover_url",
+        "coverUrl",
+        "cover_art",
+        "album_art",
+        "image",
+        "image_url",
+        "thumbnail",
+        "thumbnail_url",
+      ],
+      ""
+    );
+    return value && value !== "—" ? value : "";
+  }
+
+  function getArtworkLabel(item) {
+    const source = normalizeDetailValue(item?.title || item?.artist, "NG");
+    return source
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase() || "NG";
+  }
+
+  function getReleaseYear(item) {
+    const direct = firstDetailValue(
+      item,
+      ["year_of_release", "release_year", "year", "released", "releaseDate", "release_date", "date"],
+      ""
+    );
+    const match = String(direct || "").match(/(?:19|20)\d{2}/);
+    return match ? match[0] : "—";
+  }
+
+  function getPlatformDetails(item) {
+    if (!isCombinedChart) return platformLabel || "—";
+    return firstDetailValue(
+      item,
+      ["platforms", "platform_names", "platform_list", "plat", "platform_count"],
+      item?.plat || "—"
+    );
+  }
+
+  function getProducerDetails(item) {
+    return firstDetailValue(
+      item,
+      ["producers", "producer", "produced_by", "production", "producer_names"],
+      "—"
+    );
+  }
+
+  function getSongwriterDetails(item) {
+    return firstDetailValue(
+      item,
+      ["songwriters", "songwriter", "writers", "writer", "written_by", "composers", "composer"],
+      "—"
+    );
+  }
+
+  function ReleaseArtwork({ item, size = 50 }) {
+    const artworkUrl = getArtworkUrl(item);
+    const label = getArtworkLabel(item);
+
+    return (
+      <div
+        style={{
+          ...styles.releaseArtwork,
+          width: size,
+          height: size,
+          minWidth: size,
+          borderRadius: size <= 44 ? "13px" : "15px",
+          background: `linear-gradient(135deg, ${chartAccent} 0%, #111111 100%)`,
+        }}
+        title={`${item.title || "Release"} artwork`}
+      >
+        {artworkUrl ? (
+          <img
+            src={artworkUrl}
+            alt=""
+            style={styles.releaseArtworkImage}
+            loading="lazy"
+          />
+        ) : (
+          <span style={styles.releaseArtworkFallback}>{label}</span>
+        )}
+      </div>
+    );
+  }
+
+  function DetailCard({ label, value, wide = false, accent }) {
+    return (
+      <div
+        style={{
+          ...styles.detailCard,
+          ...(darkMode ? styles.detailCardDark : null),
+          ...(darkMode && label === "Platforms" ? styles.platformDetailCardDark : null),
+          ...(wide ? styles.detailCardWide : null),
+        }}
+      >
+        <span style={{ ...styles.detailCardLabel, ...(darkMode ? styles.detailCardLabelDark : null) }}>
+          {label}
+        </span>
+        <span
+          style={{
+            ...styles.detailCardValue,
+            ...(darkMode ? styles.detailCardValueDark : null),
+            ...(accent && !darkMode ? { color: accent } : null),
+          }}
+        >
+          {value || "—"}
+        </span>
+      </div>
+    );
+  }
+
+  function DetailPanel({ item, profile, artistCountry, badge, compact = false }) {
+    const hasCountry = Boolean(artistCountry.country || artistCountry.code);
+    const countryLabel = artistCountry.country
+      ? `${artistCountry.country}${artistCountry.code ? ` (${artistCountry.code})` : ""}`
+      : artistCountry.code || "";
+
+    if (isArtistsChart || item?.is_artist_entry) {
+      return (
+        <div style={compact ? styles.mobileDetailsGrid : styles.desktopDetailsGrid}>
+          {compact && <DetailCard label="L.M" value={profile.lastMonth} />}
+          {compact && <DetailCard label="Peak" value={profile.peak} />}
+          {hasCountry && <DetailCard label="Country" value={countryLabel} accent={badge.accent} />}
+          {isCombinedChart && <DetailCard label="Platforms" value={getPlatformDetails(item)} />}
+          {isCombinedChart && <DetailCard label="Points" value={Number(item.pts || 0).toLocaleString()} />}
+          {isCombinedChart && <DetailCard label="Entries" value={item.entries_count || "—"} />}
+          <DetailCard label="Months" value={item.months_on_chart || "—"} />
+        </div>
+      );
+    }
+
+    return (
+      <div style={compact ? styles.mobileDetailsGrid : styles.desktopDetailsGrid}>
+        {compact && <DetailCard label="L.M" value={profile.lastMonth} />}
+        {compact && <DetailCard label="Peak" value={profile.peak} />}
+        {hasCountry && <DetailCard label="Country" value={countryLabel} accent={badge.accent} />}
+        <DetailCard label="Platforms" value={getPlatformDetails(item)} />
+        <DetailCard label="Year" value={getReleaseYear(item)} />
+        <DetailCard label="Producer(s)" value={getProducerDetails(item)} wide />
+        <DetailCard label="Songwriter(s)" value={getSongwriterDetails(item)} wide />
+      </div>
+    );
   }
 
   // ----- Sortable columns -------------------------------------------------
@@ -835,25 +1078,22 @@ export default function PremiumChartsPage({
     return sort.dir === "asc" ? " ▲" : " ▼";
   }
 
-  function getMobileRowKey(item, index) {
-    return `${item.title}-${item.artist}-${item.rank}-${index}`;
+  function getRowKey(item, index) {
+    return `${ct}-${month}-${plat}-${item.title}-${item.primary_artist || item.artist}-${item.rank}-${index}`;
   }
 
-  function toggleMobileRow(rowKey) {
-    setExpandedMobileRows((current) => ({
-      ...current,
-      [rowKey]: !current[rowKey],
-    }));
+  function toggleRow(rowKey) {
+    setExpandedRowKey((current) => (current === rowKey ? null : rowKey));
   }
 
   useEffect(() => {
-    setExpandedMobileRows({});
+    setExpandedRowKey(null);
   }, [ct, month, plat, vc]);
 
   function ChartToggle() {
     return (
       <div style={styles.toggleWrap}>
-        {["singles", "albums"].map((item) => {
+        {["singles", "albums", "artists"].map((item) => {
           const active = ct === item;
 
           return (
@@ -913,7 +1153,19 @@ export default function PremiumChartsPage({
   const newEntriesCount = data.filter((item) => movement(item).type === "new").length;
 
   return (
-    <div style={{...styles.page, padding: mobile ? `0 ${safeGutter} 28px` : "0 28px 34px", boxSizing: "border-box"}}>
+    <>
+      <style>{`
+        .ngoma-premium-charts-dark .ngoma-title-link,
+        .ngoma-premium-charts-dark .ngoma-title-link:visited,
+        .ngoma-premium-charts-dark .ngoma-title-link:hover,
+        .ngoma-app-shell[data-theme="dark"] .ngoma-premium-charts .ngoma-title-link,
+        .ngoma-app-shell[data-theme="dark"] .ngoma-premium-charts .ngoma-title-link:visited,
+        .ngoma-app-shell[data-theme="dark"] .ngoma-premium-charts .ngoma-title-link:hover {
+          color: #FFFFFF !important;
+          -webkit-text-fill-color: #FFFFFF !important;
+        }
+      `}</style>
+      <div className={`ngoma-premium-charts ${darkMode ? "ngoma-premium-charts-dark" : ""}`} style={{...styles.page, padding: mobile ? `0 ${safeGutter} 28px` : "0 28px 34px", boxSizing: "border-box"}}>
       <section
         style={{
           ...styles.hero,
@@ -1022,10 +1274,10 @@ export default function PremiumChartsPage({
           {
             label: "Entries",
             value: 50,
-            sub: isSingles ? "songs" : "albums",
+            sub: isArtistsChart ? "artists" : (isSingles ? "songs" : "albums"),
           },
           ...(isCombinedChart ? [{
-            label: "Cross-Platform Hits",
+            label: isArtistsChart ? "Cross-Platform Artists" : "Cross-Platform Hits",
             value: crossPlatformHitsCount,
             sub: `on all ${tp} platforms`,
           }] : []),
@@ -1202,7 +1454,7 @@ export default function PremiumChartsPage({
         </div>
 
         {!mobile && (
-          <div style={{...styles.tableHeader,gridTemplateColumns:isCombinedChart?styles.tableHeader.gridTemplateColumns:"54px 84px minmax(0, 1fr) 84px 60px"}}>
+          <div style={styles.tableHeader}>
             <span
               style={{ ...styles.headerCell, cursor: "pointer" }}
               onClick={() => handleSort("rank")}
@@ -1211,7 +1463,7 @@ export default function PremiumChartsPage({
               #{sortArrow("rank")}
             </span>
             <span style={styles.headerCell}>Move</span>
-            <span style={styles.headerEntryCell}>{isSingles ? "Song" : "Album"}</span>
+            <span style={styles.headerEntryCell}>{isArtistsChart ? "Artist" : (isSingles ? "Song" : "Album")}</span>
             <span
               style={{ ...styles.headerCell, cursor: "pointer" }}
               onClick={() => handleSort("lastMonth")}
@@ -1226,13 +1478,7 @@ export default function PremiumChartsPage({
             >
               Peak{sortArrow("peak")}
             </span>
-            {isCombinedChart&&<span
-              style={{ ...styles.headerCell, cursor: "pointer" }}
-              onClick={() => handleSort("platforms")}
-              title="Sort by platform coverage"
-            >
-              Platforms{sortArrow("platforms")}
-            </span>}
+            <span style={styles.headerCell}>Details</span>
           </div>
         )}
 
@@ -1244,11 +1490,11 @@ export default function PremiumChartsPage({
             const medalColor = item.rank <= 3 ? MEDALS[item.rank - 1] : "#050505";
             const artistCountry = getArtistCountry(item);
             const badge = regionBadge(artistCountry.code);
-            const certification = certificationForEntry(item, isSingles ? "single" : "album");
+            const certification = isArtistsChart ? null : certificationForEntry(item, isSingles ? "single" : "album");
+            const rowKey = getRowKey(item, index);
+            const expanded = expandedRowKey === rowKey;
 
             if (mobile) {
-              const rowKey = getMobileRowKey(item, index);
-              const expanded = Boolean(expandedMobileRows[rowKey]);
 
               return (
                 <div
@@ -1264,17 +1510,18 @@ export default function PremiumChartsPage({
                     event.currentTarget.style.boxShadow = `inset 4px 0 0 ${chartAccent}`;
                   }}
                   onMouseLeave={(event) => {
-                    event.currentTarget.style.background = "#ffffff";
+                    event.currentTarget.style.background = darkMode ? "#0d0f0d" : "#ffffff";
                     event.currentTarget.style.boxShadow = "none";
                   }}
                 >
                   <div
                     style={{ ...styles.mobileCompactRow, cursor: "pointer" }}
-                    onClick={() => toggleMobileRow(rowKey)}
+                    onClick={() => toggleRow(rowKey)}
                     role="button"
                     aria-expanded={expanded}
                   >
                     <div style={{ ...styles.mobileRank, color: medalColor }}>{item.rank}</div>
+                    <ReleaseArtwork item={item} size={42} />
 
                     <div style={styles.mobileEntryMain}>
                       <button
@@ -1283,21 +1530,18 @@ export default function PremiumChartsPage({
                           openRelease(item);
                         }}
                         className="ngoma-title-link"
-                        style={styles.titleButton}
+                        style={{ ...styles.titleButton, ...(darkMode ? styles.titleButtonDark : null), color: darkMode ? "#FFFFFF" : "#050505" }}
                       >
                         {item.title}
                       </button>
 
-                      <button
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          openArtist(item.primary_artist || item.artist);
-                        }}
-                        className="ngoma-artist-link"
-                        style={styles.artistButton}
-                      >
-                        {item.artist}
-                      </button>
+                      {isArtistsChart ? (
+                        item.artist ? (
+                          <div style={{...styles.artistLinksWrap, ...(darkMode ? styles.artistButtonDark : null), cursor:"default"}}>
+                            {item.artist}
+                          </div>
+                        ) : null
+                      ) : <ArtistLinks item={item} />}
 
                       {certification && (
                         <CertificationTag cert={certification} compact style={{ marginTop: "6px" }} />
@@ -1320,9 +1564,9 @@ export default function PremiumChartsPage({
                         type="button"
                         onClick={(event) => {
                           event.stopPropagation();
-                          toggleMobileRow(rowKey);
+                          toggleRow(rowKey);
                         }}
-                        style={styles.mobileDetailsToggle}
+                        style={{ ...styles.mobileDetailsToggle, ...(darkMode ? styles.mobileDetailsToggleDark : null) }}
                         aria-label={expanded ? "Hide chart details" : "Show chart details"}
                         aria-expanded={expanded}
                       >
@@ -1333,22 +1577,13 @@ export default function PremiumChartsPage({
 
                   {expanded && (
                     <div style={{ ...styles.mobileExpandedDetails, ...(darkMode ? styles.mobileExpandedDetailsDark : null) }}>
-                      <div style={styles.mobileCountryRow}>
-                        <div style={{
-                          fontFamily:F,
-                          fontSize:"12px",
-                          fontWeight:800,
-                          color: darkMode ? "#D7DBD7" : "#4F5751",
-                        }}>
-                          Country: <span style={{color:badge.accent}}>{artistCountry.code || "—"}</span>
-                        </div>
-                      </div>
-
-                      <div style={styles.mobileStatsRow}>
-                        <MobileStat label="L.M" value={profile.lastMonth} />
-                        <MobileStat label="Peak" value={profile.peak} />
-                        {isCombinedChart&&<MobileStat label="Plat." value={item.plat || "—"} />}
-                      </div>
+                      <DetailPanel
+                        item={item}
+                        profile={profile}
+                        artistCountry={artistCountry}
+                        badge={badge}
+                        compact
+                      />
                     </div>
                   )}
                 </div>
@@ -1356,87 +1591,94 @@ export default function PremiumChartsPage({
             }
 
             return (
-              <div
-                key={`${item.title}-${item.artist}-${item.rank}-${index}`}
-                style={{
-                  ...styles.row,
-                  gridTemplateColumns:isCombinedChart?styles.row.gridTemplateColumns:"54px 84px minmax(0, 1fr) 84px 60px",
-                  animationDelay: `${Math.min(index * 20, 400)}ms`,
-                }}
-                onMouseEnter={(event) => {
-                  event.currentTarget.style.background = `${chartAccent}0B`;
-                  event.currentTarget.style.boxShadow = `inset 4px 0 0 ${chartAccent}`;
-                }}
-                onMouseLeave={(event) => {
-                  event.currentTarget.style.background = "#ffffff";
-                  event.currentTarget.style.boxShadow = "none";
-                }}
-              >
+              <div key={rowKey} style={styles.desktopRowWrap}>
                 <div
                   style={{
-                    ...styles.rank,
-                    color: medalColor,
-                    justifySelf: "center",
-                    textAlign: "center",
+                    ...styles.row,
+                    background: darkMode ? "#0d0f0d" : "#ffffff",
+                    color: darkMode ? "#fffdf7" : "#050505",
+                    animationDelay: `${Math.min(index * 20, 400)}ms`,
+                  }}
+                  onMouseEnter={(event) => {
+                    event.currentTarget.style.background = `${chartAccent}0B`;
+                    event.currentTarget.style.boxShadow = `inset 4px 0 0 ${chartAccent}`;
+                  }}
+                  onMouseLeave={(event) => {
+                    event.currentTarget.style.background = darkMode ? "#0d0f0d" : "#ffffff";
+                    event.currentTarget.style.boxShadow = "none";
                   }}
                 >
-                  {item.rank}
-                </div>
-
-                <div
-                  style={{
-                    ...styles.moveBadge,
-                    color: moveStyle.color,
-                    background: moveStyle.background,
-                    justifySelf: "center",
-                  }}
-                >
-                  {move.label || "—"}
-                </div>
-
-                <div style={styles.entryCell}>
                   <div
                     style={{
-                      ...styles.flagBox,
-                      background: `${badge.accent}12`,
-                      border: `1px solid ${badge.accent}45`,
-                      boxShadow: "none",
+                      ...styles.rank,
+                      color: medalColor,
+                      justifySelf: "center",
+                      textAlign: "center",
                     }}
-                    title={`${artistCountry.country}${
-                      artistCountry.code ? ` (${artistCountry.code})` : ""
-                    }`}
                   >
-                    <span style={{ ...styles.flagText, color: badge.accent }}>
-                      {artistCountry.code || "—"}
-                    </span>
+                    {item.rank}
                   </div>
 
-                  <div style={styles.entryText}>
-                    <button
-                      onClick={() => openRelease(item)}
-                      className="ngoma-title-link"
-                      style={styles.titleButton}
-                    >
-                      {item.title}
-                    </button>
-
-                    <button
-                      onClick={() => openArtist(item.primary_artist || item.artist)}
-                      className="ngoma-artist-link"
-                      style={styles.artistButton}
-                    >
-                      {item.artist}
-                    </button>
-
-                    {certification && (
-                      <CertificationTag cert={certification} compact style={{ marginTop: "6px" }} />
-                    )}
+                  <div
+                    style={{
+                      ...styles.moveBadge,
+                      color: moveStyle.color,
+                      background: moveStyle.background,
+                      justifySelf: "center",
+                    }}
+                  >
+                    {move.label || "—"}
                   </div>
+
+                  <div style={styles.entryCell}>
+                    <ReleaseArtwork item={item} size={50} />
+
+                    <div style={styles.entryText}>
+                      <button
+                        onClick={() => openRelease(item)}
+                        className="ngoma-title-link"
+                        style={{ ...styles.titleButton, ...(darkMode ? styles.titleButtonDark : null), color: darkMode ? "#FFFFFF" : "#050505" }}
+                      >
+                        {item.title}
+                      </button>
+
+                      {isArtistsChart ? (
+                        item.artist ? (
+                          <div style={{...styles.artistLinksWrap, ...(darkMode ? styles.artistButtonDark : null), cursor:"default"}}>
+                            {item.artist}
+                          </div>
+                        ) : null
+                      ) : <ArtistLinks item={item} />}
+
+                      {certification && (
+                        <CertificationTag cert={certification} compact style={{ marginTop: "6px" }} />
+                      )}
+                    </div>
+                  </div>
+
+                  <div style={{ ...styles.metaNumber, ...(darkMode ? styles.metaNumberDark : null) }}>{profile.lastMonth}</div>
+                  <div style={{ ...styles.metaNumber, ...(darkMode ? styles.metaNumberDark : null) }}>{profile.peak}</div>
+                  <button
+                    type="button"
+                    onClick={() => toggleRow(rowKey)}
+                    style={{ ...styles.desktopDetailsToggle, ...(darkMode ? styles.desktopDetailsToggleDark : null) }}
+                    aria-label={expanded ? "Hide chart details" : "Show chart details"}
+                    aria-expanded={expanded}
+                  >
+                    {expanded ? "▴" : "▾"}
+                  </button>
                 </div>
 
-                <div style={styles.metaNumber}>{profile.lastMonth}</div>
-                <div style={styles.metaNumber}>{profile.peak}</div>
-                {isCombinedChart&&<div className="ngoma-platform-cell" style={styles.platformCell}>{item.plat || "—"}</div>}
+                {expanded && (
+                  <div style={{ ...styles.desktopExpandedDetails, ...(darkMode ? styles.desktopExpandedDetailsDark : null) }}>
+                    <DetailPanel
+                      item={item}
+                      profile={profile}
+                      artistCountry={artistCountry}
+                      badge={badge}
+                    />
+                  </div>
+                )}
               </div>
             );
           })}
@@ -1447,7 +1689,8 @@ export default function PremiumChartsPage({
         </div>
       </section>
 
-    </div>
+      </div>
+    </>
   );
 }
 
@@ -1645,9 +1888,9 @@ const styles = {
     marginTop: "8px",
     fontWeight: 950,
     lineHeight: 1,
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
+    whiteSpace: "normal",
+    overflow: "visible",
+    textOverflow: "clip",
     color: "#050505",
   },
 
@@ -1780,7 +2023,7 @@ const styles = {
 
   tableHeader: {
     display: "grid",
-    gridTemplateColumns: "54px 84px minmax(0, 1fr) 84px 60px 86px",
+    gridTemplateColumns: "54px 84px minmax(0, 1fr) 84px 60px 58px",
     gap: "14px",
     alignItems: "center",
     justifyItems: "center",
@@ -1807,6 +2050,11 @@ const styles = {
     paddingLeft: "62px",
   },
 
+  desktopRowWrap: {
+    background: "#ffffff",
+    borderBottom: "1px solid rgba(0,0,0,0.08)",
+  },
+
   rows: {
     display: "flex",
     flexDirection: "column",
@@ -1815,7 +2063,7 @@ const styles = {
 
   row: {
     display: "grid",
-    gridTemplateColumns: "54px 84px minmax(0, 1fr) 84px 60px 86px",
+    gridTemplateColumns: "54px 84px minmax(0, 1fr) 84px 60px 58px",
     gap: "14px",
     alignItems: "center",
     padding: "16px 24px",
@@ -1844,7 +2092,7 @@ const styles = {
 
   mobileCompactRow: {
     display: "grid",
-    gridTemplateColumns: "34px minmax(0, 1fr) max-content",
+    gridTemplateColumns: "34px 42px minmax(0, 1fr) max-content",
     gap: "10px",
     alignItems: "center",
     minWidth: 0,
@@ -1879,6 +2127,13 @@ const styles = {
     transition: "background 160ms ease, transform 160ms ease, box-shadow 160ms ease",
   },
 
+  mobileDetailsToggleDark: {
+    border: "1px solid rgba(255,255,255,0.12)",
+    background: "#151815",
+    color: "#fffdf7",
+    boxShadow: "0 2px 10px rgba(0,0,0,0.22)",
+  },
+
   mobileExpandedDetails: {
     marginTop: "14px",
     padding: "14px 16px 12px",
@@ -1890,7 +2145,7 @@ const styles = {
   mobileExpandedDetailsDark: {
     border: "1px solid rgba(255,255,255,0.10)",
     background: "#0f120f",
-    color: "#f6f3ea",
+    color: "#fffdf7",
     boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.02)",
   },
 
@@ -1949,7 +2204,7 @@ const styles = {
   mobileMiniStatDark: {
     background: "#151815",
     border: "1px solid rgba(255,255,255,0.10)",
-    color: "#f6f3ea",
+    color: "#fffdf7",
   },
 
   mobileMiniStatLabel: {
@@ -1963,7 +2218,7 @@ const styles = {
   },
 
   mobileMiniStatLabelDark: {
-    color: "#aeb6ae",
+    color: "#c8d0c8",
   },
 
   mobileMiniStatValue: {
@@ -1973,13 +2228,146 @@ const styles = {
     fontSize: "12px",
     fontWeight: 900,
     textAlign: "center",
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
+    whiteSpace: "normal",
+    overflow: "visible",
+    textOverflow: "clip",
   },
 
+
   mobileMiniStatValueDark: {
-    color: "#f6f3ea",
+    color: "#fffdf7",
+  },
+
+  releaseArtwork: {
+    position: "relative",
+    flexShrink: 0,
+    overflow: "hidden",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    border: "1px solid rgba(0,0,0,0.08)",
+    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.28), 0 6px 18px rgba(0,0,0,0.10)",
+  },
+
+  releaseArtworkImage: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    display: "block",
+  },
+
+  releaseArtworkFallback: {
+    color: "#ffffff",
+    fontSize: "13px",
+    fontWeight: 950,
+    letterSpacing: "1px",
+    lineHeight: 1,
+    textShadow: "0 1px 6px rgba(0,0,0,0.35)",
+  },
+
+  desktopDetailsToggle: {
+    justifySelf: "center",
+    width: "40px",
+    height: "36px",
+    border: "1px solid rgba(0,0,0,0.08)",
+    borderRadius: "14px",
+    background: "#fbfaf7",
+    color: "#555555",
+    fontSize: "18px",
+    fontWeight: 900,
+    lineHeight: 1,
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "0 0 2px",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+  },
+
+  desktopDetailsToggleDark: {
+    border: "1px solid rgba(255,255,255,0.12)",
+    background: "#151815",
+    color: "#fffdf7",
+    boxShadow: "0 2px 10px rgba(0,0,0,0.22)",
+  },
+
+  desktopExpandedDetails: {
+    margin: "0 24px 16px 176px",
+    padding: "14px 16px",
+    border: "1px solid rgba(0,0,0,0.06)",
+    borderRadius: "16px",
+    background: "#fbfaf7",
+  },
+
+  desktopExpandedDetailsDark: {
+    border: "1px solid rgba(255,255,255,0.10)",
+    background: "#0f120f",
+    color: "#fffdf7",
+    boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.02)",
+  },
+
+  desktopDetailsGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+    gap: "10px",
+  },
+
+  mobileDetailsGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    gap: "8px",
+  },
+
+  detailCard: {
+    background: "#f7f7f7",
+    border: "1px solid rgba(0,0,0,0.06)",
+    borderRadius: "12px",
+    padding: "9px 10px",
+    minWidth: 0,
+    boxSizing: "border-box",
+  },
+
+  detailCardDark: {
+    background: "#151815",
+    border: "1px solid rgba(255,255,255,0.10)",
+    color: "#fffdf7",
+  },
+
+  platformDetailCardDark: {
+    background: "#101310",
+    border: "1px solid rgba(255,255,255,0.16)",
+    color: "#fffdf7",
+  },
+
+  detailCardWide: {
+    gridColumn: "1 / -1",
+  },
+
+  detailCardLabel: {
+    display: "block",
+    fontSize: "9px",
+    color: "#777777",
+    fontWeight: 900,
+    letterSpacing: "1px",
+    textTransform: "uppercase",
+  },
+
+  detailCardLabelDark: {
+    color: "#c8d0c8",
+  },
+
+  detailCardValue: {
+    display: "block",
+    marginTop: "4px",
+    color: "#050505",
+    fontSize: "12px",
+    fontWeight: 900,
+    lineHeight: 1.28,
+    overflowWrap: "anywhere",
+  },
+
+  detailCardValueDark: {
+    color: "#fffdf7",
   },
 
   rank: {
@@ -2032,6 +2420,29 @@ const styles = {
     minWidth: 0,
   },
 
+  artistLinksWrap: {
+    display: "flex",
+    flexWrap: "wrap",
+    alignItems: "baseline",
+    gap: "0 0",
+    minWidth: 0,
+    maxWidth: "100%",
+    marginTop: "5px",
+    lineHeight: 1.25,
+  },
+
+  artistSeparator: {
+    color: "#777777",
+    fontSize: "13px",
+    fontWeight: 700,
+    margin: "0 4px",
+    lineHeight: 1.25,
+  },
+
+  artistSeparatorDark: {
+    color: "#c8d0c8",
+  },
+
   titleButton: {
     display: "block",
     maxWidth: "100%",
@@ -2049,21 +2460,30 @@ const styles = {
     textOverflow: "ellipsis",
   },
 
+  titleButtonDark: {
+    color: "#FFFFFF",
+    WebkitTextFillColor: "#FFFFFF",
+  },
+
   artistButton: {
-    display: "block",
+    display: "inline",
     maxWidth: "100%",
     border: "none",
     background: "transparent",
     color: "#777777",
     padding: 0,
-    marginTop: "5px",
+    marginTop: 0,
     textAlign: "left",
     fontSize: "13px",
     fontWeight: 700,
     cursor: "pointer",
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
+    whiteSpace: "normal",
+    overflow: "visible",
+    textOverflow: "clip",
+  },
+
+  artistButtonDark: {
+    color: "#c8d0c8",
   },
 
   metaNumber: {
@@ -2071,6 +2491,10 @@ const styles = {
     fontSize: "15px",
     fontWeight: 900,
     textAlign: "center",
+  },
+
+  metaNumberDark: {
+    color: "#fffdf7",
   },
 
   platformCell: {
