@@ -574,6 +574,38 @@ export function getArtistCountry(item) {
   };
 }
 
+function releaseArtworkUrl(item = {}) {
+  return (
+    item.artwork_url ||
+    item.artworkUrl ||
+    item.cover_url ||
+    item.coverUrl ||
+    item.cover ||
+    item.image ||
+    item.image_url ||
+    item.thumbnail ||
+    ""
+  );
+}
+
+function releaseInitials(item = {}) {
+  const title = String(item.title || item.t || item.name || "").trim();
+  const artist = String(item.artist || item.a || item.primary_artist || "").trim();
+  const first = title[0] || "N";
+  const second = artist[0] || title[1] || "C";
+  return `${first}${second}`.toUpperCase();
+}
+
+const PLATFORM_MARKS = {
+  Combined: "Σ",
+  "APPLE MUSIC": "AM",
+  AUDIOMACK: "AU",
+  BOOMPLAY: "BP",
+  SPOTIFY: "SP",
+  YOUTUBE: "▶",
+  SHAZAM: "SZ",
+};
+
 export default function PremiumChartsPage({
   isMobile,
   loaded,
@@ -660,6 +692,73 @@ export default function PremiumChartsPage({
     liveChartMeta?.platform || (plat === "Combined" ? "Combined" : PLAT_LABEL[plat] || plat);
   const chartAccent = plat === "Combined" ? GOLD : PC[plat] || GOLD;
   const chartAccentInk = plat === "BOOMPLAY" ? "#007C7C" : chartAccent;
+
+  function PlatformMark({ platform, size = 20 }) {
+    const color = platform === "Combined" ? GOLD : PC[platform] || GOLD;
+    const mark = PLATFORM_MARKS[platform] || String(PLAT_LABEL[platform] || platform || "?").slice(0, 2).toUpperCase();
+    const darkText = platform === "BOOMPLAY";
+
+    return (
+      <span
+        aria-hidden="true"
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: size,
+          height: size,
+          borderRadius: "50%",
+          background: color,
+          color: darkText ? "#003737" : "#ffffff",
+          fontSize: mark === "▶" ? Math.max(8, size * 0.45) : Math.max(7, size * 0.38),
+          fontWeight: 950,
+          lineHeight: 1,
+          letterSpacing: mark.length > 1 ? "0.2px" : 0,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.14)",
+          flexShrink: 0,
+        }}
+      >
+        {mark}
+      </span>
+    );
+  }
+
+  function ReleaseArtwork({ item, size = mobile ? 38 : 46 }) {
+    const imageUrl = releaseArtworkUrl(item);
+    const country = getArtistCountry(item);
+    const accent = COUNTRY_ACCENTS[country.code] || chartAccent || GOLD;
+    const label = `${item.title || "Release"} artwork`;
+
+    return (
+      <div
+        title={label}
+        aria-label={label}
+        style={{
+          width: size,
+          height: size,
+          borderRadius: mobile ? "12px" : "14px",
+          flexShrink: 0,
+          overflow: "hidden",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: imageUrl
+            ? `center / cover no-repeat url(${imageUrl})`
+            : `linear-gradient(135deg, ${accent} 0%, ${chartAccent} 54%, ${darkMode ? "#0f120f" : "#f6efe1"} 100%)`,
+          border: darkMode ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(0,0,0,0.08)",
+          boxShadow: darkMode ? "0 8px 18px rgba(0,0,0,0.22)" : "0 8px 18px rgba(31,36,31,0.10)",
+          color: "#ffffff",
+          fontFamily: F,
+          fontSize: size <= 38 ? "10px" : "11px",
+          fontWeight: 950,
+          letterSpacing: "0.8px",
+          textShadow: "0 1px 6px rgba(0,0,0,0.36)",
+        }}
+      >
+        {!imageUrl && releaseInitials(item)}
+      </div>
+    );
+  }
 
   function movement(item) {
     const movementType = String(item.movement || item.movement_type || "").toLowerCase();
@@ -1112,15 +1211,20 @@ export default function PremiumChartsPage({
                 <button
                   key={item}
                   onClick={() => setPlat(item)}
+                  title={`${label} chart`}
                   style={{
                     ...styles.platformButton,
-                    padding: mobile ? "9px 15px" : "8px 12px",
-                    borderColor: active ? color : "rgba(0,0,0,0.12)",
-                    background: active ? `${color}18` : "#ffffff",
-                    color: active ? ink : "#6b7280",
+                    padding: mobile ? "8px 13px 8px 8px" : "7px 12px 7px 8px",
+                    borderColor: active ? color : (darkMode ? "rgba(255,255,255,0.14)" : "rgba(0,0,0,0.12)"),
+                    background: active ? `${color}18` : (darkMode ? "#0f120f" : "#ffffff"),
+                    color: active ? ink : (darkMode ? "#D7DBD7" : "#6b7280"),
                     flexShrink: 0,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "7px",
                   }}
                 >
+                  <PlatformMark platform={item} size={mobile ? 22 : 20} />
                   {label}
                 </button>
               );
@@ -1255,6 +1359,9 @@ export default function PremiumChartsPage({
                   key={rowKey}
                   style={{
                     ...styles.mobileRow,
+                    background: darkMode ? "#0f120f" : "#ffffff",
+                    color: darkMode ? "#f6f3ea" : "#050505",
+                    borderBottom: darkMode ? "1px solid rgba(255,255,255,0.10)" : "1px solid rgba(0,0,0,0.08)",
                     animationDelay: `${Math.min(index * 20, 400)}ms`,
                     maxWidth: "100%",
                     boxSizing: "border-box",
@@ -1264,7 +1371,7 @@ export default function PremiumChartsPage({
                     event.currentTarget.style.boxShadow = `inset 4px 0 0 ${chartAccent}`;
                   }}
                   onMouseLeave={(event) => {
-                    event.currentTarget.style.background = "#ffffff";
+                    event.currentTarget.style.background = darkMode ? "#0f120f" : "#ffffff";
                     event.currentTarget.style.boxShadow = "none";
                   }}
                 >
@@ -1275,6 +1382,7 @@ export default function PremiumChartsPage({
                     aria-expanded={expanded}
                   >
                     <div style={{ ...styles.mobileRank, color: medalColor }}>{item.rank}</div>
+                    <ReleaseArtwork item={item} size={38} />
 
                     <div style={styles.mobileEntryMain}>
                       <button
@@ -1283,7 +1391,7 @@ export default function PremiumChartsPage({
                           openRelease(item);
                         }}
                         className="ngoma-title-link"
-                        style={styles.titleButton}
+                        style={{ ...styles.titleButton, color: darkMode ? "#f6f3ea" : styles.titleButton.color }}
                       >
                         {item.title}
                       </button>
@@ -1294,7 +1402,7 @@ export default function PremiumChartsPage({
                           openArtist(item.primary_artist || item.artist);
                         }}
                         className="ngoma-artist-link"
-                        style={styles.artistButton}
+                        style={{ ...styles.artistButton, color: darkMode ? "#d7dbd7" : styles.artistButton.color }}
                       >
                         {item.artist}
                       </button>
@@ -1360,6 +1468,9 @@ export default function PremiumChartsPage({
                 key={`${item.title}-${item.artist}-${item.rank}-${index}`}
                 style={{
                   ...styles.row,
+                  background: darkMode ? "#0f120f" : "#ffffff",
+                  color: darkMode ? "#f6f3ea" : "#050505",
+                  borderBottom: darkMode ? "1px solid rgba(255,255,255,0.10)" : "1px solid rgba(0,0,0,0.08)",
                   gridTemplateColumns:isCombinedChart?styles.row.gridTemplateColumns:"54px 84px minmax(0, 1fr) 84px 60px",
                   animationDelay: `${Math.min(index * 20, 400)}ms`,
                 }}
@@ -1368,7 +1479,7 @@ export default function PremiumChartsPage({
                   event.currentTarget.style.boxShadow = `inset 4px 0 0 ${chartAccent}`;
                 }}
                 onMouseLeave={(event) => {
-                  event.currentTarget.style.background = "#ffffff";
+                  event.currentTarget.style.background = darkMode ? "#0f120f" : "#ffffff";
                   event.currentTarget.style.boxShadow = "none";
                 }}
               >
@@ -1395,6 +1506,7 @@ export default function PremiumChartsPage({
                 </div>
 
                 <div style={styles.entryCell}>
+                  <ReleaseArtwork item={item} size={46} />
                   <div
                     style={{
                       ...styles.flagBox,
@@ -1415,7 +1527,7 @@ export default function PremiumChartsPage({
                     <button
                       onClick={() => openRelease(item)}
                       className="ngoma-title-link"
-                      style={styles.titleButton}
+                      style={{ ...styles.titleButton, color: darkMode ? "#f6f3ea" : styles.titleButton.color }}
                     >
                       {item.title}
                     </button>
@@ -1423,7 +1535,7 @@ export default function PremiumChartsPage({
                     <button
                       onClick={() => openArtist(item.primary_artist || item.artist)}
                       className="ngoma-artist-link"
-                      style={styles.artistButton}
+                      style={{ ...styles.artistButton, color: darkMode ? "#d7dbd7" : styles.artistButton.color }}
                     >
                       {item.artist}
                     </button>
@@ -1718,6 +1830,7 @@ const styles = {
     fontWeight: 800,
     cursor: "pointer",
     whiteSpace: "nowrap",
+    transition: "background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease",
   },
 
   viewOptions: {
@@ -1804,7 +1917,7 @@ const styles = {
     width: "100%",
     textAlign: "left",
     justifySelf: "start",
-    paddingLeft: "62px",
+    paddingLeft: "118px",
   },
 
   rows: {
@@ -1844,7 +1957,7 @@ const styles = {
 
   mobileCompactRow: {
     display: "grid",
-    gridTemplateColumns: "34px minmax(0, 1fr) max-content",
+    gridTemplateColumns: "34px 38px minmax(0, 1fr) max-content",
     gap: "10px",
     alignItems: "center",
     minWidth: 0,
@@ -2001,7 +2114,7 @@ const styles = {
 
   entryCell: {
     display: "flex",
-    gap: "12px",
+    gap: "10px",
     alignItems: "center",
     minWidth: 0,
   },

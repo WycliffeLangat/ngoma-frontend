@@ -32,8 +32,8 @@ const CC = [GOLD,"#E53935","#2DB04A","#1565C0","#7B1FA2","#E65100","#00897B","#3
 const VO = [{l:"Top 10",c:10},{l:"Top 20",c:20},{l:"Top 50",c:50}];
 const CERTIFICATION_LEVELS = [
   { level: "diamond", label: "Diamond", icon: "💎", pts: 600, color: "#7B1FA2" },
-  { level: "platinum", label: "Platinum", icon: "🪙", pts: 400, color: SILVER },
-  { level: "gold", label: "Gold", icon: "🥇", pts: 200, color: GOLD },
+  { level: "platinum", label: "Platinum", icon: "◯", pts: 400, color: SILVER },
+  { level: "gold", label: "Gold", icon: "●", pts: 200, color: GOLD },
 ];
 const getCertificationLevel = (totalPts = 0) => {
   const points = Number(totalPts) || 0;
@@ -608,6 +608,7 @@ export default function NgomaCharts(){
   const [srch,setSrch]=useState("");
   const [sOpen,setSOpen]=useState(false);
   const [mNav,setMNav]=useState(false);
+  const [moreOpen,setMoreOpen]=useState(false);
   const [selA,setSelA]=useState(null);
   const [selR,setSelR]=useState(null);
   const [selNews,setSelNews]=useState(null);
@@ -1302,8 +1303,10 @@ const top = data[0];
     return [...seen.values()].sort((a, b) => num(b.pts) - num(a.pts));
   }, [ct, currentRecordsCoverageTarget, recordsActive]);
 
-  const navTo=p=>{setPage(p);setSelA(null);setSelR(null);setSelNews(null);setMNav(false);};
+  const navTo=p=>{setPage(p);setSelA(null);setSelR(null);setSelNews(null);setMNav(false);setMoreOpen(false);};
   const navItems=["charts","trending","artists","analytics","records","year-end","certifications","news","about"];
+  const primaryNavItems=["charts","trending","analytics","year-end","certifications"];
+  const moreNavItems=navItems.filter((item)=>!primaryNavItems.includes(item));
   const navLabel=t=>t==="year-end"?"Year End":t;
   const card=(extra={})=>({background:"#FFF",borderRadius:"14px",border:"1px solid #EFEDE7",padding:isMobile?"18px":"22px",boxSizing:"border-box",maxWidth:"100%",boxShadow:"0 1px 3px rgba(0,0,0,0.02),0 8px 24px rgba(0,0,0,0.02)",...extra});
   const TXT = {
@@ -1845,13 +1848,52 @@ const top = data[0];
               )}
             </>
           ) : (
-            <nav style={{display:"flex",gap:"22px",fontFamily:F,fontSize:isMobile?"12px":"11px",fontWeight:700,letterSpacing:"1.5px",textTransform:"uppercase",alignItems:"center",flexShrink:0}}>
-              {navItems.map(t=>(
+            <nav style={{display:"flex",gap:"14px",fontFamily:F,fontSize:"11px",fontWeight:700,letterSpacing:"1.5px",textTransform:"uppercase",alignItems:"center",flexShrink:0,position:"relative"}}>
+              {primaryNavItems.map(t=>(
                 <span key={t} onClick={()=>navTo(t)} style={{color:page===t?themeColors.text:themeColors.muted,cursor:"pointer",whiteSpace:"nowrap",padding:"6px 12px",borderRadius:"20px",background:page===t?themeColors.active:"transparent",fontWeight:page===t?800:700,transition:"all 0.15s",border:page===t?"1px solid #D4B65E":"1px solid transparent"}}
-                  onMouseEnter={e=>{if(page!==t)e.currentTarget.style.color=themeColors.text;}} onMouseLeave={e=>{if(page!==t)e.currentTarget.style.color=themeColors.muted;}}>{navLabel(t)}</span>
+                  onMouseEnter={e=>{if(page!==t)e.currentTarget.style.color=themeColors.text;}}
+                  onMouseLeave={e=>{if(page!==t)e.currentTarget.style.color=themeColors.muted;}}
+                >{navLabel(t)}</span>
               ))}
+              <div style={{position:"relative"}}>
+                <button
+                  type="button"
+                  onClick={()=>setMoreOpen((open)=>!open)}
+                  aria-haspopup="menu"
+                  aria-expanded={moreOpen}
+                  style={{
+                    cursor:"pointer",
+                    color:moreNavItems.includes(page)?themeColors.text:themeColors.muted,
+                    whiteSpace:"nowrap",
+                    padding:"6px 12px",
+                    borderRadius:"20px",
+                    background:moreNavItems.includes(page)?themeColors.active:"transparent",
+                    fontFamily:F,
+                    fontSize:"11px",
+                    fontWeight:moreNavItems.includes(page)?800:700,
+                    letterSpacing:"1.5px",
+                    textTransform:"uppercase",
+                    border:moreNavItems.includes(page)?"1px solid #D4B65E":"1px solid transparent",
+                    display:"inline-flex",
+                    alignItems:"center",
+                    gap:"6px",
+                  }}
+                  onMouseEnter={e=>{e.currentTarget.style.color=themeColors.text;e.currentTarget.style.background=moreNavItems.includes(page)?themeColors.active:themeColors.hover;}}
+                  onMouseLeave={e=>{e.currentTarget.style.color=moreNavItems.includes(page)?themeColors.text:themeColors.muted;e.currentTarget.style.background=moreNavItems.includes(page)?themeColors.active:"transparent";}}
+                >More <span style={{fontSize:"10px",lineHeight:1}}>{moreOpen?"▴":"▾"}</span></button>
+                {moreOpen&&(
+                  <div role="menu" style={{position:"absolute",right:0,top:"calc(100% + 10px)",minWidth:"176px",padding:"8px",borderRadius:"14px",background:themeColors.elevated,border:`1px solid ${themeColors.border}`,boxShadow:isDark?"0 18px 35px rgba(0,0,0,0.36)":"0 18px 35px rgba(31,36,31,0.14)",zIndex:80}}>
+                    {moreNavItems.map(t=>(
+                      <button key={t} type="button" role="menuitem" onClick={()=>navTo(t)} style={{display:"flex",width:"100%",alignItems:"center",justifyContent:"space-between",border:0,borderRadius:"10px",background:page===t?themeColors.active:"transparent",color:page===t?themeColors.text:themeColors.muted,padding:"10px 11px",fontFamily:F,fontSize:"11px",fontWeight:page===t?850:750,letterSpacing:"1.1px",textTransform:"uppercase",cursor:"pointer",textAlign:"left"}}
+                        onMouseEnter={e=>{e.currentTarget.style.color=themeColors.text;e.currentTarget.style.background=page===t?themeColors.active:themeColors.hover;}}
+                        onMouseLeave={e=>{e.currentTarget.style.color=page===t?themeColors.text:themeColors.muted;e.currentTarget.style.background=page===t?themeColors.active:"transparent";}}
+                      >{navLabel(t)}<span aria-hidden="true" style={{color:GOLD}}>›</span></button>
+                    ))}
+                  </div>
+                )}
+              </div>
               <span
-                onClick={()=>setSOpen(true)}
+                onClick={()=>{setMoreOpen(false);setSOpen(true);}}
                 style={{
                   cursor:"pointer",
                   color:themeColors.muted,
@@ -3368,19 +3410,23 @@ liveStatus={liveStatus}
         <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:"24px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
             <div>
-              <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px"}}>Certifications</h2>
-              <p style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",margin:0,lineHeight:1.55}}>Awarded from cumulative Combined chart points earned across every month a song or album appears.</p>
+              <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px",color:isDark?"#F6F3EA":"#050505"}}>Certifications</h2>
+              <p style={{fontFamily:F,fontSize:TXT.lead,color:isDark?"#D7DBD7":"#59645D",margin:0,lineHeight:1.6}}>Certifications highlight songs and albums with strong long-term chart performance on Ngoma Charts. We add the Combined chart points earned each month and award Gold, Platinum or Diamond once a release crosses the required threshold. These are chart-performance badges, not sales certifications.</p>
             </div>
             <div style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap"}}>
               <Tog sm/>
             </div>
           </div>
+          <div style={{...card({marginBottom:"16px",background:isDark?"#0F120F":"#FAF8F2",borderColor:isDark?"#2F352F":"#EDE6D6"})}}>
+            <h3 style={{fontFamily:F,fontSize:TXT.micro,fontWeight:900,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 8px"}}>How to read this page</h3>
+            <p style={{fontFamily:F,fontSize:TXT.body,color:isDark?"#D7DBD7":"#555F59",lineHeight:1.68,margin:0}}>A release keeps collecting points every month it appears on the Combined Top 50. Higher ranks earn more points, so a long run near the top reaches certification faster. The badges below make it easier to spot the biggest chart performers across the full tracking period.</p>
+          </div>
           <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"12px",marginBottom:"28px"}}>
             {CERTIFICATION_LEVELS.map((c,i)=>(
-              <div key={i} style={{...card({textAlign:"center"}),borderTop:"3px solid "+c.color}}>
-                <div style={{fontSize:"28px"}}>{c.icon}</div>
+              <div key={i} style={{...card({textAlign:"center",background:isDark?"#0F120F":"#FFF",borderColor:isDark?"#2F352F":"#EFEDE7"}),borderTop:"3px solid "+c.color}}>
+                <div style={{fontSize:c.level==="diamond"?"28px":"32px",lineHeight:1,color:c.color}}>{c.icon}</div>
                 <div style={{fontWeight:800,fontSize:TXT.metric,margin:"6px 0 2px",color:c.color}}>{c.label}</div>
-                <div style={{fontFamily:F,fontSize:TXT.cardMeta,color:"#69716B"}}>{c.pts.toLocaleString()}+ points</div>
+                <div style={{fontFamily:F,fontSize:TXT.cardMeta,color:isDark?"#B8BDB8":"#69716B"}}>{c.pts.toLocaleString()}+ chart points</div>
               </div>
             ))}
           </div>
@@ -3392,11 +3438,11 @@ liveStatus={liveStatus}
                 <div style={{...secLbl(certColors[level]),marginBottom:"12px"}}>{certIcons[level]} {level.charAt(0).toUpperCase()+level.slice(1)} Certified ({filtered.length})</div>
                 <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:"8px"}}>
                   {filtered.map((c,i)=>(
-                    <div key={i} style={{display:"flex",alignItems:"center",gap:"12px",padding:"12px 14px",background:certColors[level]+"0A",borderRadius:"8px",border:"1px solid "+certColors[level]+"22"}}>
+                    <div key={i} style={{display:"flex",alignItems:"center",gap:"12px",padding:"12px 14px",background:isDark?"#0F120F":certColors[level]+"0A",borderRadius:"8px",border:"1px solid "+certColors[level]+"22"}}>
                       <div style={{fontSize:"22px"}}>{certIcons[level]}</div>
                       <div style={{flex:1}}>
-                        <button type="button" onClick={()=>openReleaseDetails(c,isSingles?"single":"album")} style={{display:"block",border:0,background:"transparent",padding:0,fontFamily:SF,fontWeight:800,fontSize:TXT.cardTitle,lineHeight:1.18,cursor:"pointer",textAlign:"left"}}>{c.t}</button>
-                        <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(c.a);}} style={{display:"block",fontFamily:F,fontSize:TXT.cardMeta,color:"#69716B",fontWeight:750,marginTop:"3px",padding:0,border:0,background:"transparent",cursor:"pointer",textAlign:"left"}}>{c.a}</button>
+                        <button type="button" onClick={()=>openReleaseDetails(c,isSingles?"single":"album")} style={{display:"block",border:0,background:"transparent",padding:0,fontFamily:SF,fontWeight:800,fontSize:TXT.cardTitle,lineHeight:1.18,cursor:"pointer",textAlign:"left",color:isDark?"#F6F3EA":"#050505"}}>{c.t}</button>
+                        <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(c.a);}} style={{display:"block",fontFamily:F,fontSize:TXT.cardMeta,color:isDark?"#B8BDB8":"#69716B",fontWeight:750,marginTop:"3px",padding:0,border:0,background:"transparent",cursor:"pointer",textAlign:"left"}}>{c.a}</button>
                         <CountryBadge artist={c.a} showName style={{marginTop:"7px"}} />
                       </div>
                       <div style={{textAlign:"right",fontFamily:F}}>
@@ -3459,20 +3505,20 @@ liveStatus={liveStatus}
       {/* ABOUT PAGE */}
       {page==="about"&&!selA&&!selR&&(
         <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
-          <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px"}}>About Ngoma Charts</h2>
-          <p style={{fontFamily:F,fontSize:TXT.lead,color:"#59645D",margin:"0 0 24px",lineHeight:1.6}}>Ngoma Charts' multi-platform music ranking system, launched October 2024.</p>
+          <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px",color:isDark?"#F6F3EA":"#050505"}}>About Ngoma Charts</h2>
+          <p style={{fontFamily:F,fontSize:TXT.lead,color:isDark?"#D7DBD7":"#59645D",margin:"0 0 24px",lineHeight:1.7}}>Ngoma Charts tracks the music performing strongly in Kenya by comparing songs and albums across major digital platforms, then turning that activity into simple monthly Top 50 charts, artist rankings, analytics, records and certifications.</p>
           <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px"}}>
             <div style={card()}>
               <h3 style={{fontFamily:F,fontSize:TXT.micro,fontWeight:800,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 10px"}}>How It Works</h3>
-              <p style={{fontSize:TXT.body,color:"#555F59",lineHeight:1.68,margin:0,fontFamily:F}}>Chart data is collected from major platforms and combined using the existing ranking method. Once the monthly Top 50 order is set, Combined results are displayed on a 50-to-1 scale. Movement arrows compare each entry with the previous month.</p>
-              <div style={{marginTop:"15px",padding:"12px",background:"#FAF8F2",borderRadius:"12px",border:"1px solid #EDE6D6"}}>
+              <p style={{fontSize:TXT.body,color:isDark?"#D7DBD7":"#555F59",lineHeight:1.72,margin:0,fontFamily:F}}>Every month, Ngoma Charts reviews platform chart positions for singles and albums. Each platform ranking is normalized into points, the platform results are combined, and the highest-scoring releases form the Combined Top 50. Movement, peak, months on chart and platform coverage are then calculated from the release's full chart history.</p>
+              <div style={{marginTop:"15px",padding:"12px",background:isDark?"#151815":"#FAF8F2",borderRadius:"12px",border:isDark?"1px solid #2F352F":"1px solid #EDE6D6"}}>
                 <div style={{height:"8px",borderRadius:"999px",background:"linear-gradient(90deg,#B8860B 0%,#E7C86C 48%,#E9E7E0 100%)"}}></div>
-                <div style={{display:"flex",justifyContent:"space-between",marginTop:"7px",fontFamily:F,fontSize:"10px",fontWeight:850,color:"#59645D"}}><span>#1 = 50 pts</span><span>#50 = 1 pt</span></div>
+                <div style={{display:"flex",justifyContent:"space-between",marginTop:"7px",fontFamily:F,fontSize:"10px",fontWeight:850,color:isDark?"#B8BDB8":"#59645D"}}><span>Higher rank = more points</span><span>Top 50 tracked monthly</span></div>
               </div>
             </div>
             <div style={card()}>
               <h3 style={{fontFamily:F,fontSize:TXT.micro,fontWeight:800,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 10px"}}>Platforms Tracked</h3>
-              <div style={{display:"flex",flexWrap:"wrap",gap:"7px"}}>{[["Apple Music","#FC3C44"],["Audiomack","#F68B1F"],["Boomplay","#00FFFF"],["Spotify","#1DB954"],["YouTube","#FF0000"],["Shazam","#0088FF"]].map(([p,c])=><span key={p} style={{display:"inline-flex",alignItems:"center",minHeight:"28px",padding:"5px 10px",background:c+"18",borderRadius:"999px",fontSize:TXT.note,fontFamily:F,fontWeight:750,color:p==="Boomplay"?"#007C7C":c,border:`1px solid ${c}35`}}>{p}</span>)}</div>
+              <div style={{display:"flex",flexWrap:"wrap",gap:"7px"}}>{[["Apple Music","AM","#FC3C44"],["Audiomack","AU","#F68B1F"],["Boomplay","BP","#00FFFF"],["Spotify","SP","#1DB954"],["YouTube","▶","#FF0000"],["Shazam","SZ","#0088FF"]].map(([p,m,c])=><span key={p} style={{display:"inline-flex",alignItems:"center",gap:"7px",minHeight:"30px",padding:"5px 10px",background:c+"18",borderRadius:"999px",fontSize:TXT.note,fontFamily:F,fontWeight:750,color:p==="Boomplay"?"#007C7C":c,border:`1px solid ${c}35`}}><span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:"20px",height:"20px",borderRadius:"50%",background:c,color:p==="Boomplay"?"#003737":"#FFF",fontSize:m==="▶"?"9px":"7.5px",fontWeight:950,letterSpacing:"0.2px"}}>{m}</span>{p}</span>)}</div>
             </div>
             <div style={card()}>
               <h3 style={{fontFamily:F,fontSize:TXT.micro,fontWeight:800,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 10px"}}>Singles Chart</h3>
