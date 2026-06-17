@@ -1,0 +1,82 @@
+export default function ChartsPage({ ctx }) {
+  const {
+    CertificationTag,
+    F,
+    GOLD,
+    MEDALS,
+    MONTHS,
+    PAGE_MAX,
+    PC,
+    PLAT_LABEL,
+    PremiumChartsPage,
+    SF,
+    VO,
+    artists,
+    ct,
+    data,
+    display,
+    getCertificationForEntry,
+    getCombined,
+    isMobile,
+    isSingles,
+    liveChartLoading,
+    liveChartMeta,
+    liveStatus,
+    loaded,
+    month,
+    openArtistDetails,
+    openReleaseDetails,
+    plat,
+    platList,
+    setCt,
+    setMonth,
+    setPlat,
+    setSelA,
+    setSelR,
+    setVc,
+    top,
+    tp,
+    vc
+  } = ctx;
+
+  return (
+<PremiumChartsPage
+    isMobile={isMobile}
+    loaded={loaded}
+    F={F}
+    SF={SF}
+    GOLD={GOLD}
+    MEDALS={MEDALS}
+    MONTHS={MONTHS}
+    VO={VO}
+    PC={PC}
+    PLAT_LABEL={PLAT_LABEL}
+    ct={ct}
+    setCt={setCt}
+    month={month}
+    setMonth={setMonth}
+    plat={plat}
+    setPlat={setPlat}
+    platList={platList}
+    vc={vc}
+    setVc={setVc}
+    data={data}
+    display={display}
+    top={top}
+    tp={tp}
+    isSingles={isSingles}
+    artists={artists}
+    setSelA={setSelA}
+    setSelR={setSelR}
+    onOpenArtist={openArtistDetails}
+    onOpenRelease={openReleaseDetails}
+    getCombined={getCombined}
+    liveChartLoading={liveChartLoading}
+liveChartMeta={liveChartMeta}
+liveStatus={liveStatus}
+    pageMax={PAGE_MAX}
+    certificationForEntry={getCertificationForEntry}
+    CertificationTag={CertificationTag}
+  />
+  );
+}
