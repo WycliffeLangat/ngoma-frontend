@@ -824,6 +824,8 @@ export default function NgomaCharts(){
   const [liveChartEntries, setLiveChartEntries] = useState([]);
   const [liveChartMeta, setLiveChartMeta] = useState(null);
   const [liveChartLoading, setLiveChartLoading] = useState(false);
+  const [liveNews, setLiveNews] = useState(null);
+  const [liveCerts, setLiveCerts] = useState(null);
   const [openRecord, setOpenRecord] = useState(null);
   const [expandedYearEndRows, setExpandedYearEndRows] = useState({});
   const [expandedArtistRows, setExpandedArtistRows] = useState({});
@@ -898,6 +900,50 @@ export default function NgomaCharts(){
       .then((response) => (response.ok ? response.json() : Promise.reject()))
       .then(() => setLiveStatus("live"))
       .catch(() => setLiveStatus("static"));
+  }, [API_BASE]);
+
+  useEffect(() => {
+    if (!API_BASE) return;
+    const CAT_LABEL = {
+      chart_news:"CHART NEWS",milestones:"MILESTONES",new_releases:"NEW RELEASES",
+      industry_news:"INDUSTRY NEWS",artist_news:"ARTIST NEWS",awards:"AWARDS",
+      certifications:"CERTIFICATIONS",records:"RECORDS",interviews:"INTERVIEWS",
+      editorials:"EDITORIALS",artist_spotlight:"ARTIST SPOTLIGHT",albums:"ALBUMS",
+      analytics:"ANALYTICS",announcement:"ANNOUNCEMENT",
+    };
+    fetch(API_BASE + "/news/?page_size=100")
+      .then((r) => r.ok ? r.json() : Promise.reject())
+      .then((data) => {
+        const items = Array.isArray(data) ? data : (data.results || []);
+        setLiveNews(items.map((n) => ({
+          id: n.id,
+          date: n.published_at ? new Date(n.published_at).toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"}) : "",
+          cat: CAT_LABEL[n.category] || (n.category||"").toUpperCase().replace(/_/g," "),
+          emoji: n.emoji || "",
+          title: n.title || "",
+          excerpt: n.excerpt || "",
+          body: n.body || "",
+        })));
+      })
+      .catch(() => setLiveNews(null));
+  }, [API_BASE]);
+
+  useEffect(() => {
+    if (!API_BASE) return;
+    fetch(API_BASE + "/certifications/?page_size=200")
+      .then((r) => r.ok ? r.json() : Promise.reject())
+      .then((data) => {
+        const items = Array.isArray(data) ? data : (data.results || []);
+        setLiveCerts(items.map((c) => ({
+          t: c.title || "",
+          a: c.artist || "",
+          totalPts: Number(c.total_points) || 0,
+          level: c.level || getCertificationLevel(c.total_points),
+          country_code: c.country_code || "",
+          chart_type: c.chart_type || "singles",
+        })).filter((c) => c.level));
+      })
+      .catch(() => setLiveCerts(null));
   }, [API_BASE]);
 
   useEffect(() => {
@@ -1987,7 +2033,7 @@ const top = data[0];
     LineChart,
     MEDALS,
     MONTHS,
-    NEWS,
+    NEWS: liveNews || NEWS,
     PAD,
     PAGE_MAX,
     PC,
@@ -2019,7 +2065,7 @@ const top = data[0];
     card,
     certColors,
     certIcons,
-    certs,
+    certs: liveCerts || certs,
     chartTypeLabel,
     closeDetails,
     cmp1,
