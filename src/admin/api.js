@@ -1,8 +1,23 @@
 export const API_BASE = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_BASE || "/api/v1").replace(/\/$/, "");
 export const CMS_BASE = `${API_BASE}/cms`;
 
+let csrfToken = null;
+
+function setCsrfToken(token) { if (token) csrfToken = token; }
+
+async function fetchCsrfToken() {
+  try {
+    const res = await fetch(`${CMS_BASE}/csrf/`, { credentials: "include" });
+    const data = await res.json();
+    setCsrfToken(data?.csrfToken);
+  } catch {}
+}
+
 async function request(path, options = {}) {
+  const method = (options.method || "GET").toUpperCase();
+  const isMutation = ["POST", "PATCH", "PUT", "DELETE"].includes(method);
   const headers = options.body instanceof FormData ? {} : { "Content-Type": "application/json" };
+  if (isMutation && csrfToken) headers["X-CSRFToken"] = csrfToken;
   const response = await fetch(`${CMS_BASE}${path}`, {
     credentials: "include",
     ...options,
@@ -25,9 +40,19 @@ export const cmsApi = {
   patch: (path, body = {}) => request(path, { method: "PATCH", body: JSON.stringify(body) }),
   put: (path, body = {}) => request(path, { method: "PUT", body: JSON.stringify(body) }),
   delete: (path) => request(path, { method: "DELETE" }),
-  login: (username, password) => request("/auth/login/", { method: "POST", body: JSON.stringify({ username, password }) }),
+  login: async (username, password) => {
+    const data = await request("/auth/login/", { method: "POST", body: JSON.stringify({ username, password }) });
+    setCsrfToken(data?.csrfToken);
+    return data;
+  },
   logout: () => request("/auth/logout/", { method: "POST", body: JSON.stringify({}) }),
-  me: () => request("/auth/me/"),
+  me: async () => {
+    const [data] = await Promise.all([
+      request("/auth/me/"),
+      csrfToken ? Promise.resolve() : fetchCsrfToken(),
+    ]);
+    return data;
+  },
 };
 
 export function getResults(payload) {
