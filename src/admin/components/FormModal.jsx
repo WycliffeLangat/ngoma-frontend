@@ -77,25 +77,26 @@ function TagsInput({ value = "", onChange }) {
   );
 }
 
-function FileInput({ value, onChange }) {
-  const existingUrl = typeof value === "string" && value ? value : null;
-  const newFile = value instanceof File ? value : null;
-  const previewUrl = newFile ? URL.createObjectURL(newFile) : existingUrl;
-  return (
-    <div className="cms-file-input">
-      {previewUrl && (
-        <img src={previewUrl} alt="Preview" className="cms-file-preview" />
-      )}
-      <input
-        type="file"
-        accept="image/*"
-        onChange={(e) => onChange(e.target.files[0] || null)}
-      />
-      {existingUrl && !newFile && (
-        <small className="cms-help">Current image shown above. Choose a file to replace it.</small>
-      )}
-    </div>
+function renderField(field, form, set) {
+  const v = form[field.name];
+  if (field.type === "checkbox") return <input type="checkbox" checked={Boolean(v)} onChange={(e) => set(field.name, e.target.checked)} />;
+  if (field.type === "textarea") return <textarea value={v || ""} onChange={(e) => set(field.name, e.target.value)} rows={5} />;
+  if (field.type === "select") return (
+    <select value={v ?? ""} onChange={(e) => set(field.name, e.target.value)}>
+      <option value="">Select...</option>
+      {(field.options || []).map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+    </select>
   );
+  if (field.type === "ordered-multiselect") return <OrderedMultiSelect value={v} options={field.options || []} onChange={(val) => set(field.name, val)} />;
+  if (field.type === "json") return (
+    <textarea
+      value={typeof v === "string" ? v : JSON.stringify(v || {}, null, 2)}
+      onChange={(e) => { try { set(field.name, JSON.parse(e.target.value)); } catch { set(field.name, e.target.value); } }}
+      rows={6}
+    />
+  );
+  if (field.type === "tags") return <TagsInput value={v} onChange={(val) => set(field.name, val)} />;
+  return <input type={field.type || "text"} value={v ?? ""} onChange={(e) => set(field.name, field.type === "number" ? Number(e.target.value) : e.target.value)} />;
 }
 
 export default function FormModal({ open, title, fields = [], initial = {}, onSubmit, onClose }) {
@@ -104,41 +105,63 @@ export default function FormModal({ open, title, fields = [], initial = {}, onSu
   if (!open) return null;
   const set = (key, value) => setForm((current) => ({ ...current, [key]: value }));
   const wideTypes = ["textarea", "json", "ordered-multiselect", "tags"];
+
+  // Separate the file (image) field so it can be shown at the top as a visual upload box
+  const fileField = fields.find((f) => f.type === "file");
+  const nonFileFields = fields.filter((f) => f.type !== "file");
+  // Pair the image box with the first text field (title / artist name)
+  const titleField = fileField ? nonFileFields[0] : null;
+  const bodyFields = fileField ? nonFileFields.slice(1) : nonFileFields;
+
+  const fileValue = fileField ? form[fileField.name] : null;
+  const imgSrc = fileValue instanceof File
+    ? URL.createObjectURL(fileValue)
+    : (typeof fileValue === "string" && fileValue ? fileValue : null);
+
   return (
     <div className="cms-modal-backdrop">
       <form className="cms-modal" onSubmit={(e) => { e.preventDefault(); onSubmit?.(form); }}>
         <div className="cms-modal-head"><h3>{title}</h3><button type="button" onClick={onClose}>×</button></div>
+
+        {/* Image upload box pinned to top-left, title/name input alongside it */}
+        {fileField && (
+          <div className="cms-form-top">
+            <label className="cms-cover-upload" title={imgSrc ? "Click to replace image" : "Click to upload image"}>
+              {imgSrc
+                ? <img src={imgSrc} alt="" />
+                : (
+                  <span className="cms-cover-placeholder">
+                    <span className="cms-cover-plus">+</span>
+                    <small>{fileField.label}</small>
+                  </span>
+                )
+              }
+              <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => set(fileField.name, e.target.files[0] || null)} />
+            </label>
+            {titleField && (
+              <label className="cms-form-top-title">
+                <span>{titleField.label}</span>
+                <input type={titleField.type || "text"} value={form[titleField.name] ?? ""} onChange={(e) => set(titleField.name, e.target.value)} />
+                {titleField.help && <small className="cms-help">{titleField.help}</small>}
+              </label>
+            )}
+          </div>
+        )}
+
         <div className="cms-form-grid">
-          {fields.map((field) => (
+          {bodyFields.map((field) => (
             <label key={field.name} className={wideTypes.includes(field.type) ? "wide" : ""}>
               <span>{field.label}</span>
-              {field.type === "checkbox" ? (
-                <input type="checkbox" checked={Boolean(form[field.name])} onChange={(e) => set(field.name, e.target.checked)} />
-              ) : field.type === "textarea" ? (
-                <textarea value={form[field.name] || ""} onChange={(e) => set(field.name, e.target.value)} rows={5} />
-              ) : field.type === "select" ? (
-                <select value={form[field.name] ?? ""} onChange={(e) => set(field.name, e.target.value)}>
-                  <option value="">Select...</option>
-                  {(field.options || []).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-                </select>
-              ) : field.type === "ordered-multiselect" ? (
-                <OrderedMultiSelect value={form[field.name]} options={field.options || []} onChange={(value) => set(field.name, value)} />
-              ) : field.type === "json" ? (
-                <textarea value={typeof form[field.name] === "string" ? form[field.name] : JSON.stringify(form[field.name] || {}, null, 2)} onChange={(e) => {
-                  try { set(field.name, JSON.parse(e.target.value)); } catch { set(field.name, e.target.value); }
-                }} rows={6} />
-              ) : field.type === "tags" ? (
-                <TagsInput value={form[field.name]} onChange={(value) => set(field.name, value)} />
-              ) : field.type === "file" ? (
-                <FileInput value={form[field.name]} onChange={(value) => set(field.name, value)} />
-              ) : (
-                <input type={field.type || "text"} value={form[field.name] ?? ""} onChange={(e) => set(field.name, field.type === "number" ? Number(e.target.value) : e.target.value)} />
-              )}
+              {renderField(field, form, set)}
               {field.help && <small className="cms-help">{field.help}</small>}
             </label>
           ))}
         </div>
-        <div className="cms-actions right"><button type="button" className="cms-btn light" onClick={onClose}>Cancel</button><button className="cms-btn">Save</button></div>
+
+        <div className="cms-actions right">
+          <button type="button" className="cms-btn light" onClick={onClose}>Cancel</button>
+          <button className="cms-btn">Save</button>
+        </div>
       </form>
     </div>
   );
