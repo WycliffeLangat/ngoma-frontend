@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 function OrderedMultiSelect({ value = [], options = [], onChange }) {
   const selected = Array.isArray(value) ? value.map(Number).filter(Boolean) : [];
@@ -77,6 +77,38 @@ function TagsInput({ value = "", onChange }) {
   );
 }
 
+// Uses a div + ref so the global .cms-modal label CSS rule doesn't interfere
+function CoverUpload({ imgSrc, label, onChange }) {
+  const inputRef = useRef(null);
+  return (
+    <div
+      className="cms-cover-upload"
+      onClick={() => inputRef.current?.click()}
+      title={imgSrc ? "Click to replace image" : "Click to upload image"}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") inputRef.current?.click(); }}
+    >
+      {imgSrc
+        ? <img src={imgSrc} alt="Cover" />
+        : (
+          <div className="cms-cover-placeholder">
+            <span className="cms-cover-plus">+</span>
+            <span className="cms-cover-label">{label}</span>
+          </div>
+        )
+      }
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: "none" }}
+        onChange={onChange}
+      />
+    </div>
+  );
+}
+
 function renderField(field, form, set) {
   const v = form[field.name];
   if (field.type === "checkbox") return <input type="checkbox" checked={Boolean(v)} onChange={(e) => set(field.name, e.target.checked)} />;
@@ -106,10 +138,9 @@ export default function FormModal({ open, title, fields = [], initial = {}, onSu
   const set = (key, value) => setForm((current) => ({ ...current, [key]: value }));
   const wideTypes = ["textarea", "json", "ordered-multiselect", "tags"];
 
-  // Separate the file (image) field so it can be shown at the top as a visual upload box
+  // Pull out the file field and pair it with the first text field as an image upload header
   const fileField = fields.find((f) => f.type === "file");
   const nonFileFields = fields.filter((f) => f.type !== "file");
-  // Pair the image box with the first text field (title / artist name)
   const titleField = fileField ? nonFileFields[0] : null;
   const bodyFields = fileField ? nonFileFields.slice(1) : nonFileFields;
 
@@ -123,27 +154,24 @@ export default function FormModal({ open, title, fields = [], initial = {}, onSu
       <form className="cms-modal" onSubmit={(e) => { e.preventDefault(); onSubmit?.(form); }}>
         <div className="cms-modal-head"><h3>{title}</h3><button type="button" onClick={onClose}>×</button></div>
 
-        {/* Image upload box pinned to top-left, title/name input alongside it */}
+        {/* Image upload thumbnail + title field at the very top */}
         {fileField && (
           <div className="cms-form-top">
-            <label className="cms-cover-upload" title={imgSrc ? "Click to replace image" : "Click to upload image"}>
-              {imgSrc
-                ? <img src={imgSrc} alt="" />
-                : (
-                  <span className="cms-cover-placeholder">
-                    <span className="cms-cover-plus">+</span>
-                    <small>{fileField.label}</small>
-                  </span>
-                )
-              }
-              <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => set(fileField.name, e.target.files[0] || null)} />
-            </label>
+            <CoverUpload
+              imgSrc={imgSrc}
+              label={fileField.label}
+              onChange={(e) => set(fileField.name, e.target.files[0] || null)}
+            />
             {titleField && (
-              <label className="cms-form-top-title">
-                <span>{titleField.label}</span>
-                <input type={titleField.type || "text"} value={form[titleField.name] ?? ""} onChange={(e) => set(titleField.name, e.target.value)} />
+              <div className="cms-form-top-title">
+                <span className="cms-form-top-label">{titleField.label}</span>
+                <input
+                  type={titleField.type || "text"}
+                  value={form[titleField.name] ?? ""}
+                  onChange={(e) => set(titleField.name, e.target.value)}
+                />
                 {titleField.help && <small className="cms-help">{titleField.help}</small>}
-              </label>
+              </div>
             )}
           </div>
         )}
