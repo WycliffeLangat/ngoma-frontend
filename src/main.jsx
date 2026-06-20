@@ -15,7 +15,7 @@ async function loadPublicAppData() {
   if (!isPublicAppPath()) return;
 
   const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), 12000);
+  const timeout = window.setTimeout(() => controller.abort(), 25000);
   try {
     const response = await fetch(`${API_BASE}/app-data/`, {
       cache: "no-store",

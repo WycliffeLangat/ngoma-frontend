@@ -45,8 +45,11 @@ export default function ArtistDetailPage({ ctx }) {
   const [liveArtist, setLiveArtist] = useState(null);
 
   useEffect(() => {
-    const slug = artistMetadata.slug;
-    if (!slug || !API_BASE) return;
+    if (!API_BASE || !selA?.n) return;
+    // Prefer the managed slug from the bundle; fall back to a derived one so the fetch
+    // works even when loadPublicAppData timed out and window.__NGOMA_PUBLIC_DATA__ is empty.
+    const slug = artistMetadata.slug ||
+      String(selA.n).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     let cancelled = false;
     fetch(`${API_BASE}/app-data/artist/${slug}/`, { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
