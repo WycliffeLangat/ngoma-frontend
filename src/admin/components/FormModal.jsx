@@ -41,18 +41,76 @@ function OrderedMultiSelect({ value = [], options = [], onChange }) {
   );
 }
 
+function TagsInput({ value = "", onChange }) {
+  const tags = String(value || "").split(",").map((t) => t.trim()).filter(Boolean);
+  const [input, setInput] = useState("");
+  const add = () => {
+    const trimmed = input.trim();
+    if (trimmed && !tags.map((t) => t.toLowerCase()).includes(trimmed.toLowerCase())) {
+      onChange([...tags, trimmed].join(", "));
+    }
+    setInput("");
+  };
+  const remove = (tag) => onChange(tags.filter((t) => t !== tag).join(", "));
+  return (
+    <div className="cms-tags-input">
+      <div className="cms-tags-list">
+        {tags.map((tag) => (
+          <span key={tag} className="cms-tag">
+            {tag}
+            <button type="button" onClick={() => remove(tag)} aria-label={`Remove ${tag}`}>×</button>
+          </span>
+        ))}
+        {tags.length === 0 && <span className="cms-tags-empty">No entries yet</span>}
+      </div>
+      <div className="cms-tags-add">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === ",") { e.preventDefault(); add(); } }}
+          placeholder="Type a name and press Enter..."
+        />
+        <button type="button" onClick={add} className="cms-btn small">Add</button>
+      </div>
+    </div>
+  );
+}
+
+function FileInput({ value, onChange }) {
+  const existingUrl = typeof value === "string" && value ? value : null;
+  const newFile = value instanceof File ? value : null;
+  const previewUrl = newFile ? URL.createObjectURL(newFile) : existingUrl;
+  return (
+    <div className="cms-file-input">
+      {previewUrl && (
+        <img src={previewUrl} alt="Preview" className="cms-file-preview" />
+      )}
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => onChange(e.target.files[0] || null)}
+      />
+      {existingUrl && !newFile && (
+        <small className="cms-help">Current image shown above. Choose a file to replace it.</small>
+      )}
+    </div>
+  );
+}
+
 export default function FormModal({ open, title, fields = [], initial = {}, onSubmit, onClose }) {
   const [form, setForm] = useState(initial || {});
   useEffect(() => setForm(initial || {}), [initial, open]);
   if (!open) return null;
   const set = (key, value) => setForm((current) => ({ ...current, [key]: value }));
+  const wideTypes = ["textarea", "json", "ordered-multiselect", "tags"];
   return (
     <div className="cms-modal-backdrop">
       <form className="cms-modal" onSubmit={(e) => { e.preventDefault(); onSubmit?.(form); }}>
         <div className="cms-modal-head"><h3>{title}</h3><button type="button" onClick={onClose}>×</button></div>
         <div className="cms-form-grid">
           {fields.map((field) => (
-            <label key={field.name} className={["textarea", "json", "ordered-multiselect"].includes(field.type) ? "wide" : ""}>
+            <label key={field.name} className={wideTypes.includes(field.type) ? "wide" : ""}>
               <span>{field.label}</span>
               {field.type === "checkbox" ? (
                 <input type="checkbox" checked={Boolean(form[field.name])} onChange={(e) => set(field.name, e.target.checked)} />
@@ -69,6 +127,10 @@ export default function FormModal({ open, title, fields = [], initial = {}, onSu
                 <textarea value={typeof form[field.name] === "string" ? form[field.name] : JSON.stringify(form[field.name] || {}, null, 2)} onChange={(e) => {
                   try { set(field.name, JSON.parse(e.target.value)); } catch { set(field.name, e.target.value); }
                 }} rows={6} />
+              ) : field.type === "tags" ? (
+                <TagsInput value={form[field.name]} onChange={(value) => set(field.name, value)} />
+              ) : field.type === "file" ? (
+                <FileInput value={form[field.name]} onChange={(value) => set(field.name, value)} />
               ) : (
                 <input type={field.type || "text"} value={form[field.name] ?? ""} onChange={(e) => set(field.name, field.type === "number" ? Number(e.target.value) : e.target.value)} />
               )}
