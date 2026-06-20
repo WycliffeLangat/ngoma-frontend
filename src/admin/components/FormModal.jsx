@@ -77,58 +77,55 @@ function TagsInput({ value = "", onChange }) {
   );
 }
 
-// Uses a div + ref so the global .cms-modal label CSS rule doesn't interfere
-function CoverUpload({ imgSrc, label, onChange }) {
+// Standalone image upload box — rendered as a div to avoid .cms-modal label CSS interference
+function ImageUploadBox({ fieldName, label, form, set }) {
   const inputRef = useRef(null);
+  const raw = form[fieldName];
+  const src = raw instanceof File
+    ? URL.createObjectURL(raw)
+    : (typeof raw === "string" && raw ? raw : null);
   return (
-    <div
-      className="cms-cover-upload"
-      onClick={() => inputRef.current?.click()}
-      title={imgSrc ? "Click to replace image" : "Click to upload image"}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") inputRef.current?.click(); }}
-    >
-      {imgSrc
-        ? <img src={imgSrc} alt="Cover" />
-        : (
-          <div className="cms-cover-placeholder">
-            <span className="cms-cover-plus">+</span>
-            <span className="cms-cover-label">{label}</span>
-          </div>
-        )
-      }
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        style={{ display: "none" }}
-        onChange={onChange}
-      />
+    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+      <span style={{ fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: ".08em", color: "#5e625c" }}>{label}</span>
+      <div
+        onClick={() => inputRef.current?.click()}
+        style={{
+          width: "100%",
+          aspectRatio: "1",
+          maxWidth: "110px",
+          borderRadius: "12px",
+          border: "2px dashed #E8E1D2",
+          background: src ? "transparent" : "#faf8f2",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          overflow: "hidden",
+          position: "relative",
+          transition: "border-color .15s",
+          flexShrink: 0,
+        }}
+        title={src ? "Click to replace image" : "Click to upload image"}
+      >
+        {src
+          ? <img src={src} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+          : (
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", padding: "8px", textAlign: "center" }}>
+              <span style={{ fontSize: "28px", lineHeight: 1, color: "#bbb", fontWeight: 300 }}>+</span>
+              <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: ".06em", fontWeight: 700, color: "#999", lineHeight: 1.3 }}>{label}</span>
+            </div>
+          )
+        }
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: "none" }}
+          onChange={(e) => set(fieldName, e.target.files[0] || null)}
+        />
+      </div>
     </div>
   );
-}
-
-function renderField(field, form, set) {
-  const v = form[field.name];
-  if (field.type === "checkbox") return <input type="checkbox" checked={Boolean(v)} onChange={(e) => set(field.name, e.target.checked)} />;
-  if (field.type === "textarea") return <textarea value={v || ""} onChange={(e) => set(field.name, e.target.value)} rows={5} />;
-  if (field.type === "select") return (
-    <select value={v ?? ""} onChange={(e) => set(field.name, e.target.value)}>
-      <option value="">Select...</option>
-      {(field.options || []).map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-    </select>
-  );
-  if (field.type === "ordered-multiselect") return <OrderedMultiSelect value={v} options={field.options || []} onChange={(val) => set(field.name, val)} />;
-  if (field.type === "json") return (
-    <textarea
-      value={typeof v === "string" ? v : JSON.stringify(v || {}, null, 2)}
-      onChange={(e) => { try { set(field.name, JSON.parse(e.target.value)); } catch { set(field.name, e.target.value); } }}
-      rows={6}
-    />
-  );
-  if (field.type === "tags") return <TagsInput value={v} onChange={(val) => set(field.name, val)} />;
-  return <input type={field.type || "text"} value={v ?? ""} onChange={(e) => set(field.name, field.type === "number" ? Number(e.target.value) : e.target.value)} />;
 }
 
 export default function FormModal({ open, title, fields = [], initial = {}, onSubmit, onClose }) {
@@ -138,54 +135,56 @@ export default function FormModal({ open, title, fields = [], initial = {}, onSu
   const set = (key, value) => setForm((current) => ({ ...current, [key]: value }));
   const wideTypes = ["textarea", "json", "ordered-multiselect", "tags"];
 
-  // Pull out the file field and pair it with the first text field as an image upload header
-  const fileField = fields.find((f) => f.type === "file");
-  const nonFileFields = fields.filter((f) => f.type !== "file");
-  const titleField = fileField ? nonFileFields[0] : null;
-  const bodyFields = fileField ? nonFileFields.slice(1) : nonFileFields;
-
-  const fileValue = fileField ? form[fileField.name] : null;
-  const imgSrc = fileValue instanceof File
-    ? URL.createObjectURL(fileValue)
-    : (typeof fileValue === "string" && fileValue ? fileValue : null);
-
   return (
     <div className="cms-modal-backdrop">
       <form className="cms-modal" onSubmit={(e) => { e.preventDefault(); onSubmit?.(form); }}>
         <div className="cms-modal-head"><h3>{title}</h3><button type="button" onClick={onClose}>×</button></div>
-
-        {/* Image upload thumbnail + title field at the very top */}
-        {fileField && (
-          <div className="cms-form-top">
-            <CoverUpload
-              imgSrc={imgSrc}
-              label={fileField.label}
-              onChange={(e) => set(fileField.name, e.target.files[0] || null)}
-            />
-            {titleField && (
-              <div className="cms-form-top-title">
-                <span className="cms-form-top-label">{titleField.label}</span>
-                <input
-                  type={titleField.type || "text"}
-                  value={form[titleField.name] ?? ""}
-                  onChange={(e) => set(titleField.name, e.target.value)}
-                />
-                {titleField.help && <small className="cms-help">{titleField.help}</small>}
-              </div>
-            )}
-          </div>
-        )}
-
         <div className="cms-form-grid">
-          {bodyFields.map((field) => (
-            <label key={field.name} className={wideTypes.includes(field.type) ? "wide" : ""}>
-              <span>{field.label}</span>
-              {renderField(field, form, set)}
-              {field.help && <small className="cms-help">{field.help}</small>}
-            </label>
-          ))}
+          {fields.map((field) => {
+            // File fields render as a standalone div (not a label) so global label CSS doesn't interfere
+            if (field.type === "file") {
+              return (
+                <div key={field.name}>
+                  <ImageUploadBox fieldName={field.name} label={field.label} form={form} set={set} />
+                </div>
+              );
+            }
+            const wide = wideTypes.includes(field.type);
+            const v = form[field.name];
+            return (
+              <label key={field.name} className={wide ? "wide" : ""}>
+                <span>{field.label}</span>
+                {field.type === "checkbox" ? (
+                  <input type="checkbox" checked={Boolean(v)} onChange={(e) => set(field.name, e.target.checked)} />
+                ) : field.type === "textarea" ? (
+                  <textarea value={v || ""} onChange={(e) => set(field.name, e.target.value)} rows={5} />
+                ) : field.type === "select" ? (
+                  <select value={v ?? ""} onChange={(e) => set(field.name, e.target.value)}>
+                    <option value="">Select...</option>
+                    {(field.options || []).map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                  </select>
+                ) : field.type === "ordered-multiselect" ? (
+                  <OrderedMultiSelect value={v} options={field.options || []} onChange={(val) => set(field.name, val)} />
+                ) : field.type === "json" ? (
+                  <textarea
+                    value={typeof v === "string" ? v : JSON.stringify(v || {}, null, 2)}
+                    onChange={(e) => { try { set(field.name, JSON.parse(e.target.value)); } catch { set(field.name, e.target.value); } }}
+                    rows={6}
+                  />
+                ) : field.type === "tags" ? (
+                  <TagsInput value={v} onChange={(val) => set(field.name, val)} />
+                ) : (
+                  <input
+                    type={field.type || "text"}
+                    value={v ?? ""}
+                    onChange={(e) => set(field.name, field.type === "number" ? Number(e.target.value) : e.target.value)}
+                  />
+                )}
+                {field.help && <small className="cms-help">{field.help}</small>}
+              </label>
+            );
+          })}
         </div>
-
         <div className="cms-actions right">
           <button type="button" className="cms-btn light" onClick={onClose}>Cancel</button>
           <button className="cms-btn">Save</button>
