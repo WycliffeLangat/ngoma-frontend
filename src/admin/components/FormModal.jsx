@@ -78,7 +78,7 @@ function TagsInput({ value = "", onChange }) {
 }
 
 // Standalone image upload box — rendered as a div to avoid .cms-modal label CSS interference
-function ImageUploadBox({ fieldName, label, form, set }) {
+function ImageUploadBox({ fieldName, label, help, form, set }) {
   const inputRef = useRef(null);
   const raw = form[fieldName];
   const src = raw instanceof File
@@ -124,6 +124,7 @@ function ImageUploadBox({ fieldName, label, form, set }) {
           onChange={(e) => set(fieldName, e.target.files[0] || null)}
         />
       </div>
+      {help && <small style={{ fontSize: "11px", color: "#888", lineHeight: 1.4 }}>{help}</small>}
     </div>
   );
 }
@@ -145,7 +146,7 @@ export default function FormModal({ open, title, fields = [], initial = {}, onSu
             if (field.type === "file") {
               return (
                 <div key={field.name}>
-                  <ImageUploadBox fieldName={field.name} label={field.label} form={form} set={set} />
+                  <ImageUploadBox fieldName={field.name} label={field.label} help={field.help} form={form} set={set} />
                 </div>
               );
             }
