@@ -28,14 +28,124 @@ function releaseForm(chartType, artistOptions){ return [{name:"title",label:"Tit
 
 export default function ResourcePage({ type }) {
   const config = configs[type] || configs.artists;
-  const [rows, setRows] = useState([]), [search, setSearch] = useState(""), [loading, setLoading] = useState(true), [error, setError] = useState(""), [modal, setModal] = useState(false), [editing, setEditing] = useState(null);
+  const [rows, setRows] = useState([]);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [modal, setModal] = useState(false);
+  const [editing, setEditing] = useState(null);
   const [artistOptions, setArtistOptions] = useState([]);
+  const [imageModal, setImageModal] = useState(null);
+
   const params = useMemo(() => ({ ...(config.params || {}), search }), [config, search]);
   const formFields = useMemo(() => type === "songs" || type === "albums" ? releaseForm(type === "albums" ? "albums" : "singles", artistOptions) : (config.form || []), [type, config, artistOptions]);
-  async function load(){ setLoading(true); setError(""); try { setRows(getResults(await cmsApi.get(`${config.endpoint}${qs(params)}`))); } catch(e){ setError(e.message); } finally { setLoading(false); }}
-  useEffect(()=>{ load(); }, [type, search]);
-  useEffect(()=>{ if(type !== "songs" && type !== "albums") return; cmsApi.get("/artists/options/").then(setArtistOptions).catch((e)=>setError(e.message)); }, [type]);
-  async function save(form){ try { const hasFiles = Object.values(form).some((v) => v instanceof File); let payload = form; if (hasFiles) { const fd = new FormData(); Object.entries(form).forEach(([key, val]) => { if (val instanceof File) { fd.append(key, val); } else if (val !== null && val !== undefined && val !== "") { fd.append(key, Array.isArray(val) ? JSON.stringify(val) : String(val)); } }); payload = fd; } if(editing?.id) await cmsApi.patch(`${config.endpoint}${editing.id}/`, payload); else await cmsApi.post(config.endpoint, payload); setModal(false); setEditing(null); load(); } catch(e){ setError(e.message); }}
-  return <section><div className="cms-page-head"><div><h1>{config.title}</h1><p>Manage {config.title.toLowerCase()} from the CMS.</p></div>{!config.readOnly && <button className="cms-btn" onClick={()=>{setEditing(null);setModal(true);}}>Add new</button>}</div>{error && <div className="cms-alert error">{error}</div>}<div className="cms-toolbar"><SearchBar value={search} onChange={setSearch} placeholder={`Search ${config.title.toLowerCase()}...`} /></div>{loading ? <div className="cms-empty">Loading...</div> : <DataTable columns={config.columns} rows={rows} onRowClick={config.readOnly ? null : (row)=>{setEditing(row);setModal(true);}} />}<FormModal open={modal} title={`${editing ? "Edit" : "Create"} ${config.title}`} fields={formFields} initial={editing || defaultInitial(formFields)} onSubmit={save} onClose={()=>setModal(false)} /></section>;
+
+  async function load() {
+    setLoading(true); setError("");
+    try { setRows(getResults(await cmsApi.get(`${config.endpoint}${qs(params)}`))); }
+    catch(e) { setError(e.message); }
+    finally { setLoading(false); }
+  }
+
+  useEffect(() => { load(); }, [type, search]);
+  useEffect(() => {
+    if (type !== "songs" && type !== "albums") return;
+    cmsApi.get("/artists/options/").then(setArtistOptions).catch((e) => setError(e.message));
+  }, [type]);
+
+  async function save(form) {
+    try {
+      const hasFiles = Object.values(form).some((v) => v instanceof File);
+      let payload = form;
+      if (hasFiles) {
+        const fd = new FormData();
+        Object.entries(form).forEach(([key, val]) => {
+          if (val instanceof File) { fd.append(key, val); }
+          else if (val !== null && val !== undefined && val !== "") { fd.append(key, Array.isArray(val) ? JSON.stringify(val) : String(val)); }
+        });
+        payload = fd;
+      }
+      if (editing?.id) await cmsApi.patch(`${config.endpoint}${editing.id}/`, payload);
+      else await cmsApi.post(config.endpoint, payload);
+      setModal(false); setEditing(null); load();
+    } catch(e) { setError(e.message); }
+  }
+
+  async function saveImage(file) {
+    if (!file || !imageModal) return;
+    try {
+      const fd = new FormData();
+      fd.append(imageModal.field, file);
+      await cmsApi.patch(`${config.endpoint}${imageModal.id}/`, fd);
+      setImageModal(null); load();
+    } catch(e) { setError(e.message); }
+  }
+
+  const imageField = type === "artists" ? "image" : (type === "songs" || type === "albums") ? "cover_image" : null;
+  const titleKey = type === "artists" ? "name" : "title";
+
+  const tableColumns = imageField ? config.columns.map((col) => {
+    if (col.key !== titleKey) return col;
+    return {
+      ...col,
+      render: (row) => {
+        const imgUrl = row[imageField];
+        return (
+          <span style={{display:"flex",alignItems:"center",gap:"9px"}}>
+            <button
+              type="button"
+              className={"cms-img-thumb" + (imgUrl ? " has-img" : "")}
+              title={imgUrl ? "Replace image" : "Add image"}
+              onClick={(e) => { e.stopPropagation(); setImageModal({ id: row.id, name: row[titleKey], field: imageField, current: imgUrl || null }); }}
+            >
+              {imgUrl ? <img src={imgUrl} alt="" /> : <span>+</span>}
+            </button>
+            {row[col.key] || "—"}
+          </span>
+        );
+      },
+    };
+  }) : config.columns;
+
+  return (
+    <section>
+      <div className="cms-page-head">
+        <div><h1>{config.title}</h1><p>Manage {config.title.toLowerCase()} from the CMS.</p></div>
+        {!config.readOnly && <button className="cms-btn" onClick={() => { setEditing(null); setModal(true); }}>Add new</button>}
+      </div>
+      {error && <div className="cms-alert error">{error}</div>}
+      <div className="cms-toolbar">
+        <SearchBar value={search} onChange={setSearch} placeholder={`Search ${config.title.toLowerCase()}...`} />
+      </div>
+      {loading ? <div className="cms-empty">Loading...</div> : (
+        <DataTable columns={tableColumns} rows={rows} onRowClick={config.readOnly ? null : (row) => { setEditing(row); setModal(true); }} />
+      )}
+      <FormModal open={modal} title={`${editing ? "Edit" : "Create"} ${config.title}`} fields={formFields} initial={editing || defaultInitial(formFields)} onSubmit={save} onClose={() => setModal(false)} />
+      {imageModal && (
+        <div className="cms-modal-backdrop" onClick={() => setImageModal(null)}>
+          <div className="cms-modal cms-img-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="cms-modal-head">
+              <h3>{imageModal.current ? "Replace" : "Add"} image</h3>
+              <button type="button" onClick={() => setImageModal(null)}>×</button>
+            </div>
+            <p className="cms-img-modal-name">{imageModal.name}</p>
+            {imageModal.current && (
+              <img src={imageModal.current} alt="Current" className="cms-img-modal-preview" />
+            )}
+            <label style={{display:"flex",flexDirection:"column",gap:"7px",margin:"14px 0 0"}}>
+              <span>Choose new image</span>
+              <input type="file" accept="image/*" onChange={(e) => { if (e.target.files[0]) saveImage(e.target.files[0]); }} />
+            </label>
+            <div className="cms-actions right" style={{marginTop:"18px"}}>
+              <button type="button" className="cms-btn light" onClick={() => setImageModal(null)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  );
 }
-function defaultInitial(fields=[]){ return Object.fromEntries(fields.map(f=>[f.name, f.type==='ordered-multiselect'?[]:(f.name==='status'?'active':'')])); }
+
+function defaultInitial(fields = []) {
+  return Object.fromEntries(fields.map((f) => [f.name, f.type === "ordered-multiselect" ? [] : (f.name === "status" ? "active" : "")]));
+}
