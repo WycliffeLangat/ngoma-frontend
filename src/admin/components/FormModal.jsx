@@ -13,7 +13,9 @@ export default function FormModal({ open, title, fields = [], initial = {}, onSu
           {fields.map((field) => (
             <label key={field.name} className={field.type === "textarea" || field.type === "json" ? "wide" : ""}>
               <span>{field.label}</span>
-              {field.type === "textarea" ? (
+              {field.type === "checkbox" ? (
+                <input type="checkbox" checked={Boolean(form[field.name])} onChange={(e) => set(field.name, e.target.checked)} />
+              ) : field.type === "textarea" ? (
                 <textarea value={form[field.name] || ""} onChange={(e) => set(field.name, e.target.value)} rows={5} />
               ) : field.type === "select" ? (
                 <select value={form[field.name] ?? ""} onChange={(e) => set(field.name, e.target.value)}>

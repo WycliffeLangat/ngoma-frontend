@@ -544,12 +544,32 @@ export function countryCodeToFlag(countryCode) {
 
 export function getArtistCountry(item) {
   const directCode = String(item.artist_country_code || item.country_code || "").trim().toUpperCase();
+  const publicData = typeof window !== "undefined" ? (window.__NGOMA_PUBLIC_DATA__ || {}) : {};
+  const publicCountry = (code) => (publicData.countries || []).find(
+    (country) => String(country.code || "").trim().toUpperCase() === String(code || "").trim().toUpperCase()
+  );
 
   if (directCode) {
+    const managedCountry = publicCountry(directCode);
     return {
-      flag: countryCodeToFlag(directCode),
-      country: item.artist_country || item.country || "",
+      flag: managedCountry?.flag || countryCodeToFlag(directCode),
+      country: managedCountry?.name || item.artist_country || item.country || "",
       code: directCode,
+    };
+  }
+
+  const requestedArtist = String(item.primary_artist || item.artist || item.artist_name || "").trim().toLowerCase();
+  const managedArtist = (publicData.artists || []).find((artist) => {
+    const names = [artist.name, artist.display_name, artist.public_name, ...(artist.aliases || [])]
+      .map((name) => String(name || "").trim().toLowerCase());
+    return names.includes(requestedArtist);
+  });
+  if (managedArtist?.country_code) {
+    const managedCountry = publicCountry(managedArtist.country_code);
+    return {
+      flag: managedCountry?.flag || countryCodeToFlag(managedArtist.country_code),
+      country: managedCountry?.name || managedArtist.country || "",
+      code: managedArtist.country_code,
     };
   }
 

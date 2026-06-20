@@ -9,7 +9,7 @@ import NotificationBell from "./components/NotificationBell";
 import "./styles/admin.css";
 
 const nav = [
-  ["dashboard", "Dashboard"], ["charts", "Charts"], ["uploads", "Uploads"], ["songs", "Songs"], ["albums", "Albums"], ["artists", "Artists"], ["countries", "Countries"], ["platforms", "Platforms"], ["news", "News"], ["certifications", "Certifications"], ["records", "Records"], ["year-end", "Year End"], ["analytics", "Analytics"], ["social-cards", "Social Cards"], ["media", "Media Library"], ["submissions", "Submissions"], ["users", "Users & Roles"], ["reports", "Reports"], ["settings", "Settings"], ["audit", "Audit Logs"], ["backups", "Backups"],
+  ["dashboard", "Dashboard"], ["charts", "Charts"], ["uploads", "Uploads"], ["songs", "Songs"], ["albums", "Albums"], ["artists", "Artists"], ["countries", "Countries"], ["platforms", "Platforms"], ["news", "News"], ["certifications", "Certifications"], ["certification-rules", "Certification Rules"], ["methodology", "Methodology"], ["page-content", "Page Content"], ["records", "Records"], ["year-end", "Year End"], ["analytics", "Analytics"], ["social-cards", "Social Cards"], ["media", "Media Library"], ["submissions", "Submissions"], ["users", "Users & Roles"], ["reports", "Reports"], ["settings", "Settings"], ["audit", "Audit Logs"], ["backups", "Backups"],
 ];
 
 export default function AdminApp() {
@@ -35,7 +35,7 @@ function getInitialPage(){ const part = window.location.pathname.split("/cms/")[
 function renderPage(page, user){
   if(page === "dashboard") return <DashboardPage />;
   if(page === "uploads") return <UploadsPage />;
-  if(["artists","songs","albums","countries","platforms","news","charts","certifications","media","settings","users","reports","audit","backups"].includes(page)) return <ResourcePage type={page} user={user} />;
+  if(["artists","songs","albums","countries","platforms","news","charts","certifications","certification-rules","methodology","page-content","media","settings","users","reports","audit","backups"].includes(page)) return <ResourcePage type={page} user={user} />;
   const scaffolds = {
     "records": ["Highest monthly points", "Most #1s", "Longest charting", "Biggest debut", "Manual verification"],
     "year-end": ["Generate singles", "Generate albums", "Generate artists", "Eligible months", "Publish Year End"],

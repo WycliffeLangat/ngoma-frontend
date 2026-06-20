@@ -14,7 +14,7 @@ import {
   Pie,
   CartesianGrid,
 } from "recharts";
-import { FULL, MONTHS } from "./data/chartData";
+import { FULL, MONTHS } from "./data/liveChartData";
 import PremiumChartsPage, { getArtistCountry } from "./components/PremiumChartsPage";
 
 import AboutPage from "./pages/AboutPage";
@@ -28,23 +28,38 @@ import ChartsPage from "./pages/ChartsPage";
 import ArtistDetailPage from "./pages/ArtistDetailPage";
 import ReleaseDetailPage from "./pages/ReleaseDetailPage";
 
+const PUBLIC_DATA = typeof window !== "undefined" ? (window.__NGOMA_PUBLIC_DATA__ || {}) : {};
+const PUBLIC_RELEASES_BY_ID = new Map((PUBLIC_DATA.releases || []).map((release) => [Number(release.id), release]));
+const SITE_SETTINGS = PUBLIC_DATA.settings || {};
+const settingValue = (key, fallback = {}) => SITE_SETTINGS[key] ?? fallback;
+const siteNameSetting = settingValue("site_name", {});
+const SITE_NAME = typeof siteNameSetting === "string" ? siteNameSetting : (siteNameSetting.name || "Ngoma Charts");
+const THEME_SETTING = settingValue("theme", {});
+const SOCIAL_LINKS = settingValue("social_links", {});
+const FOOTER_SETTING = settingValue("footer", {});
+const DEFAULT_CHART_SETTING = settingValue("default_chart", {});
+const MAINTENANCE_SETTING = settingValue("maintenance_mode", {});
+
 // ===== FULL Top-50 dataset across all months and platforms =====
 const CURRENT_MONTH = MONTHS[MONTHS.length - 1];
 const DATA_PERIOD = `${MONTHS[0]} – ${CURRENT_MONTH}`;
-const S_PLATS = ["Combined","APPLE MUSIC","AUDIOMACK","BOOMPLAY","SPOTIFY","YOUTUBE","SHAZAM"];
-const A_PLATS = ["Combined","APPLE MUSIC","AUDIOMACK"];
-const PLAT_LABEL = {"APPLE MUSIC":"Apple Music","AUDIOMACK":"Audiomack","BOOMPLAY":"Boomplay","SPOTIFY":"Spotify","YOUTUBE":"YouTube","SHAZAM":"Shazam"};
-const PC = {"Apple Music":"#FC3C44","APPLE MUSIC":"#FC3C44","Audiomack":"#F68B1F","AUDIOMACK":"#F68B1F","Boomplay":"#00FFFF","BOOMPLAY":"#00FFFF","Spotify":"#1DB954","SPOTIFY":"#1DB954","YouTube":"#FF0000","YOUTUBE":"#FF0000","Shazam":"#0088FF","SHAZAM":"#0088FF"};
-const GOLD="#B8860B"; const SILVER="#8C8C8C"; const BRONZE="#CD7F32";
+const PUBLIC_PLATFORMS = PUBLIC_DATA.platforms || [];
+const platformKeys = (predicate) => PUBLIC_PLATFORMS.filter(predicate).map((item) => item.name.toUpperCase());
+const S_PLATS = ["Combined", ...(PUBLIC_PLATFORMS.length ? platformKeys((item) => item.supports_singles) : ["APPLE MUSIC","AUDIOMACK","BOOMPLAY","SPOTIFY","YOUTUBE","SHAZAM"])];
+const A_PLATS = ["Combined", ...(PUBLIC_PLATFORMS.length ? platformKeys((item) => item.supports_albums) : ["APPLE MUSIC","AUDIOMACK"])];
+const PLAT_LABEL = PUBLIC_PLATFORMS.reduce((result, item) => ({...result, [item.name.toUpperCase()]: item.name}), {"APPLE MUSIC":"Apple Music","AUDIOMACK":"Audiomack","BOOMPLAY":"Boomplay","SPOTIFY":"Spotify","YOUTUBE":"YouTube","SHAZAM":"Shazam"});
+const PC = PUBLIC_PLATFORMS.reduce((result, item) => ({...result, [item.name]: item.brand_color || item.color, [item.name.toUpperCase()]: item.brand_color || item.color}), {"Apple Music":"#FC3C44","APPLE MUSIC":"#FC3C44","Audiomack":"#F68B1F","AUDIOMACK":"#F68B1F","Boomplay":"#00FFFF","BOOMPLAY":"#00FFFF","Spotify":"#1DB954","SPOTIFY":"#1DB954","YouTube":"#FF0000","YOUTUBE":"#FF0000","Shazam":"#0088FF","SHAZAM":"#0088FF"});
+const GOLD=THEME_SETTING.primary || "#B8860B"; const SILVER="#8C8C8C"; const BRONZE="#CD7F32";
 const MEDALS=[GOLD,SILVER,BRONZE];
 const F = "'Instrument Sans',Helvetica,sans-serif";
 const SF = "'Source Serif 4',Georgia,serif";
 const CC = [GOLD,"#E53935","#2DB04A","#1565C0","#7B1FA2","#E65100","#00897B","#37474F","#AD1457","#558B2F"];
 const VO = [{l:"Top 10",c:10},{l:"Top 20",c:20},{l:"Top 50",c:50}];
+const certificationThresholds = Object.fromEntries((PUBLIC_DATA.certification_rules || []).map((item) => [item.level, Number(item.threshold)]));
 const CERTIFICATION_LEVELS = [
-  { level: "diamond", label: "Diamond", icon: "💎", pts: 600, color: "#7B1FA2" },
-  { level: "platinum", label: "Platinum", icon: "🪙", pts: 400, color: SILVER },
-  { level: "gold", label: "Gold", icon: "🥇", pts: 200, color: GOLD },
+  { level: "diamond", label: "Diamond", icon: "💎", pts: certificationThresholds.diamond || 600, color: "#7B1FA2" },
+  { level: "platinum", label: "Platinum", icon: "🪙", pts: certificationThresholds.platinum || 400, color: SILVER },
+  { level: "gold", label: "Gold", icon: "🥇", pts: certificationThresholds.gold || 200, color: GOLD },
 ];
 const getCertificationLevel = (totalPts = 0) => {
   const points = Number(totalPts) || 0;
@@ -223,6 +238,8 @@ function enrichChartEntries(entries, getRawEntries, currentMonth, totalPlatforms
     const featuredArtists = String(e.fa || "").trim();
 
     return {
+      ...(PUBLIC_RELEASES_BY_ID.get(Number(e.release_id)) || {}),
+      ...e,
       rank: e.r,
       title: e.t,
       artist: formatArtistCredit(primaryArtist, featuredArtists),
@@ -787,6 +804,33 @@ const NEWS=[
   {id:18,date:"May 29, 2026",cat:"ANALYTICS",emoji:"",title:"Wrong Places Secures Platinum Status",excerpt:"Joshua Baraka & JAE5 total 408 points across nine months.",body:"Wrong Places appears in every tracked month and exceeds the new 400-point Platinum certification threshold."},
 ];
 
+const NEWS_CATEGORY_LABELS = {
+  chart_news:"CHART NEWS",milestones:"MILESTONES",new_releases:"NEW RELEASES",
+  industry_news:"INDUSTRY NEWS",artist_news:"ARTIST NEWS",awards:"AWARDS",
+  certifications:"CERTIFICATIONS",records:"RECORDS",interviews:"INTERVIEWS",
+  editorials:"EDITORIALS",artist_spotlight:"ARTIST SPOTLIGHT",albums:"ALBUMS",
+  analytics:"ANALYTICS",announcement:"ANNOUNCEMENT",
+};
+const mapPublicNews = (items = []) => items.map((n) => ({
+  ...n,
+  id: n.id,
+  date: n.published_at ? new Date(n.published_at).toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"}) : "",
+  cat: NEWS_CATEGORY_LABELS[n.category] || (n.category||"").toUpperCase().replace(/_/g," "),
+  emoji: n.emoji || "",
+  title: n.title || "",
+  excerpt: n.excerpt || "",
+  body: n.body || "",
+}));
+const mapPublicCertifications = (items = []) => items.map((c) => ({
+  ...c,
+  t: c.title || "",
+  a: c.artist || "",
+  totalPts: Number(c.total_points) || 0,
+  level: c.level || getCertificationLevel(c.total_points),
+  country_code: c.country_code || "",
+  chart_type: c.chart_type || "singles",
+})).filter((c) => c.level);
+
 export default function NgomaCharts(){
   const [page,setPage]=useState("charts");
   const [theme,setTheme]=useState(()=>{
@@ -797,8 +841,8 @@ export default function NgomaCharts(){
       return "light";
     }
   });
-  const [ct,setCt]=useState("singles");
-  const [month,setMonth]=useState(CURRENT_MONTH);
+  const [ct,setCt]=useState(["singles","albums"].includes(DEFAULT_CHART_SETTING.chart_type) ? DEFAULT_CHART_SETTING.chart_type : "singles");
+  const [month,setMonth]=useState(MONTHS.includes(DEFAULT_CHART_SETTING.month) ? DEFAULT_CHART_SETTING.month : CURRENT_MONTH);
   const [plat,setPlat]=useState("Combined");
   const [vc,setVc]=useState(10);
   const [hr,setHr]=useState(null);
@@ -819,13 +863,13 @@ export default function NgomaCharts(){
   const [viewModes,setViewModes]=useState({});
   const [loaded,setLd]=useState(false);
   // Live backend (optional) — falls back to baked-in data if unreachable
-  const API_BASE = import.meta.env.VITE_API_BASE || "";
+  const API_BASE = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_BASE || "/api/v1").replace(/\/$/, "");
   const [liveStatus, setLiveStatus] = useState("static"); // "static" | "live" | "checking"
   const [liveChartEntries, setLiveChartEntries] = useState([]);
   const [liveChartMeta, setLiveChartMeta] = useState(null);
   const [liveChartLoading, setLiveChartLoading] = useState(false);
-  const [liveNews, setLiveNews] = useState(null);
-  const [liveCerts, setLiveCerts] = useState(null);
+  const [liveNews, setLiveNews] = useState(() => PUBLIC_DATA.news?.length ? mapPublicNews(PUBLIC_DATA.news) : null);
+  const [liveCerts, setLiveCerts] = useState(() => PUBLIC_DATA.certifications?.length ? mapPublicCertifications(PUBLIC_DATA.certifications) : null);
   const [openRecord, setOpenRecord] = useState(null);
   const [expandedYearEndRows, setExpandedYearEndRows] = useState({});
   const [expandedArtistRows, setExpandedArtistRows] = useState({});
@@ -845,9 +889,9 @@ export default function NgomaCharts(){
         hover: "#1A1F1A",
       }
     : {
-        page: "#FFFFFF",
-        surface: "#FFFFFF",
-        elevated: "#FFFFFF",
+        page: THEME_SETTING.background || "#FFFFFF",
+        surface: THEME_SETTING.cards || "#FFFFFF",
+        elevated: THEME_SETTING.cards || "#FFFFFF",
         text: "#1A1A1A",
         muted: "#6B6B6B",
         border: "#E5E0D4",
@@ -857,6 +901,7 @@ export default function NgomaCharts(){
 
   useEffect(() => {
     if (typeof document === "undefined") return;
+    document.title = SITE_NAME;
     document.documentElement.dataset.ngomaTheme = theme;
     document.body.dataset.ngomaTheme = theme;
     try {
@@ -865,6 +910,14 @@ export default function NgomaCharts(){
       // Theme still works for the current session if storage is unavailable.
     }
   }, [theme]);
+
+  useEffect(() => {
+    const refreshAfterCmsSave = (event) => {
+      if (event.key === "ngoma-cms-revision") window.location.reload();
+    };
+    window.addEventListener("storage", refreshAfterCmsSave);
+    return () => window.removeEventListener("storage", refreshAfterCmsSave);
+  }, []);
 
   const toggleYearEndRow = (rowKey) => {
     setExpandedYearEndRows((current) => ({
@@ -904,44 +957,22 @@ export default function NgomaCharts(){
 
   useEffect(() => {
     if (!API_BASE) return;
-    const CAT_LABEL = {
-      chart_news:"CHART NEWS",milestones:"MILESTONES",new_releases:"NEW RELEASES",
-      industry_news:"INDUSTRY NEWS",artist_news:"ARTIST NEWS",awards:"AWARDS",
-      certifications:"CERTIFICATIONS",records:"RECORDS",interviews:"INTERVIEWS",
-      editorials:"EDITORIALS",artist_spotlight:"ARTIST SPOTLIGHT",albums:"ALBUMS",
-      analytics:"ANALYTICS",announcement:"ANNOUNCEMENT",
-    };
-    fetch(API_BASE + "/news/?page_size=100")
+    fetch(API_BASE + "/news/?page_size=100", { cache:"no-store" })
       .then((r) => r.ok ? r.json() : Promise.reject())
       .then((data) => {
         const items = Array.isArray(data) ? data : (data.results || []);
-        setLiveNews(items.map((n) => ({
-          id: n.id,
-          date: n.published_at ? new Date(n.published_at).toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"}) : "",
-          cat: CAT_LABEL[n.category] || (n.category||"").toUpperCase().replace(/_/g," "),
-          emoji: n.emoji || "",
-          title: n.title || "",
-          excerpt: n.excerpt || "",
-          body: n.body || "",
-        })));
+        setLiveNews(mapPublicNews(items));
       })
       .catch(() => setLiveNews(null));
   }, [API_BASE]);
 
   useEffect(() => {
     if (!API_BASE) return;
-    fetch(API_BASE + "/certifications/?page_size=200")
+    fetch(API_BASE + "/certifications/?page_size=200", { cache:"no-store" })
       .then((r) => r.ok ? r.json() : Promise.reject())
       .then((data) => {
         const items = Array.isArray(data) ? data : (data.results || []);
-        setLiveCerts(items.map((c) => ({
-          t: c.title || "",
-          a: c.artist || "",
-          totalPts: Number(c.total_points) || 0,
-          level: c.level || getCertificationLevel(c.total_points),
-          country_code: c.country_code || "",
-          chart_type: c.chart_type || "singles",
-        })).filter((c) => c.level));
+        setLiveCerts(mapPublicCertifications(items));
       })
       .catch(() => setLiveCerts(null));
   }, [API_BASE]);
@@ -979,6 +1010,7 @@ export default function NgomaCharts(){
           const displayPoints = entry.total_points || 0;
 
           return {
+            ...entry,
             rank: entry.rank,
             title: entry.title,
             artist: formatArtistCredit(entry.primary_artist || entry.artist, entry.featured_artists),
@@ -2037,6 +2069,7 @@ const top = data[0];
     PAD,
     PAGE_MAX,
     PC,
+    PUBLIC_PLATFORMS,
     PLATS_FOR,
     PLAT_LABEL,
     Pie,
@@ -2046,6 +2079,7 @@ const top = data[0];
     ResponsiveContainer,
     SF,
     SILVER,
+    SITE_NAME,
     SecMark,
     TXT,
     Tog,
@@ -2167,6 +2201,11 @@ const top = data[0];
     yearEnd
   };
 
+  const managedSections = [
+    ...(PUBLIC_DATA.page_content?.[page] || []),
+    ...(page === "charts" ? (PUBLIC_DATA.page_content?.home || []) : []),
+  ];
+
   return(
     <div className="ngoma-app-shell" data-theme={theme} style={{fontFamily:SF,background:themeColors.page,color:themeColors.text,minHeight:"100vh",width:"100%",overflowX:"hidden"}}>
       <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700;800;900&family=Instrument+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -2219,6 +2258,8 @@ const top = data[0];
         @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
       `}</style>
 
+      {MAINTENANCE_SETTING.enabled&&<div role="status" style={{padding:"11px 18px",background:MAINTENANCE_SETTING.background || "#FFF3CD",color:MAINTENANCE_SETTING.color || "#5F4700",fontFamily:F,fontSize:"12px",fontWeight:800,textAlign:"center",borderBottom:`1px solid ${GOLD}55`}}>{MAINTENANCE_SETTING.message || `${SITE_NAME} is currently undergoing maintenance.`}</div>}
+
       {/* HEADER */}
       <header style={{background:themeColors.surface,borderBottom:`3px solid ${themeColors.text}`,position:"sticky",top:0,zIndex:50}}>
         <div style={{background:"#1A1A1A",color:"#FFF"}}>
@@ -2233,7 +2274,7 @@ const top = data[0];
             <svg width={isMobile?"24":"32"} height={isMobile?"26":"34"} viewBox="0 0 22 24" style={{flexShrink:0}}>
               <rect x="0" y="15" width="3.5" height="9" fill={themeColors.text} rx="0.5"/>
               <rect x="5.5" y="10" width="3.5" height="14" fill={themeColors.text} rx="0.5"/>
-              <rect x="11" y="5" width="3.5" height="19" fill="#B8860B" rx="0.5"/>
+              <rect x="11" y="5" width="3.5" height="19" fill={GOLD} rx="0.5"/>
               <rect x="16.5" y="0" width="3.5" height="24" fill={themeColors.text} rx="0.5"/>
             </svg>
             <div style={{display:"flex",flexDirection:"column",lineHeight:1,cursor:"pointer"}}>
@@ -2247,7 +2288,7 @@ const top = data[0];
                   textTransform:"uppercase",
                 }}
               >
-                NGOMA <span style={{color:"#B8860B",fontWeight:950}}>CHARTS</span>
+                <span style={{color:GOLD,fontWeight:950}}>{SITE_NAME}</span>
               </span>
               <span
                 style={{
@@ -2382,6 +2423,12 @@ const top = data[0];
       )}
 
       <main style={pageFrame({padding:isMobile?"0 4px":0,overflow:"hidden"})}>
+      {managedSections.map((section)=><section key={section.id || section.section} style={{margin:isMobile?"14px 18px":"18px 28px",padding:isMobile?"16px":"20px",border:`1px solid ${GOLD}33`,borderRadius:"14px",background:themeColors.elevated}}>
+        {section.title&&<h2 style={{margin:"0 0 8px",fontFamily:SF,fontSize:isMobile?"19px":"23px",color:themeColors.text}}>{section.title}</h2>}
+        {section.content&&<div style={{fontFamily:F,fontSize:"13px",lineHeight:1.75,color:themeColors.muted,whiteSpace:"pre-wrap"}}>{section.content}</div>}
+        {section.data?.image&&<img src={section.data.image} alt={section.data.alt || section.title || ""} style={{display:"block",marginTop:"12px",maxHeight:"360px",borderRadius:"10px",objectFit:"cover"}} />}
+        {section.data?.cta_url&&<a href={section.data.cta_url} style={{display:"inline-flex",marginTop:"12px",padding:"9px 14px",borderRadius:"999px",background:GOLD,color:"#FFF",fontFamily:F,fontSize:"11px",fontWeight:850,textDecoration:"none"}}>{section.data.cta_label || "Learn more"}</a>}
+      </section>)}
       {/* RELEASE DETAIL */}
       {selR && <ReleaseDetailPage ctx={pageContext} />}
 
@@ -2419,18 +2466,18 @@ const top = data[0];
             <svg width="16" height="18" viewBox="0 0 22 24" style={{flexShrink:0}}>
               <rect x="0" y="15" width="3.5" height="9" fill="#FFF" rx="0.5"/>
               <rect x="5.5" y="10" width="3.5" height="14" fill="#FFF" rx="0.5"/>
-              <rect x="11" y="5" width="3.5" height="19" fill="#B8860B" rx="0.5"/>
+              <rect x="11" y="5" width="3.5" height="19" fill={GOLD} rx="0.5"/>
               <rect x="16.5" y="0" width="3.5" height="24" fill="#FFF" rx="0.5"/>
             </svg>
-            <span style={{fontFamily:F,fontSize:isMobile?"12px":"11px",fontWeight:800,letterSpacing:"2.5px",color:"#FFF",textTransform:"uppercase"}}>Ngoma <span style={{color:"#B8860B"}}>Charts</span></span>
+            <span style={{fontFamily:F,fontSize:isMobile?"12px":"11px",fontWeight:800,letterSpacing:"2.5px",color:GOLD,textTransform:"uppercase"}}>{SITE_NAME}</span>
           </div>
           <div style={{display:"flex",gap:isMobile?"10px":"14px",alignItems:"center",justifyContent:"center"}}>
             {[
-              {label:"Facebook", href:"https://www.facebook.com/ngomacharts", bg:"#1877F2", color:"#FFF",
+              {label:"Facebook", href:SOCIAL_LINKS.facebook || "https://www.facebook.com/ngomacharts", bg:"#1877F2", color:"#FFF",
                path:"M14 8.5h2V5.8h-2.4C11.5 5.8 10.5 7 10.5 9v1.5H8.7V13h1.8v6h2.6v-6h2l.3-2.5h-2.3V9.1c0-.4.2-.6.7-.6Z"},
-              {label:"X", href:"https://x.com/Ngoma_Charts", bg:"#000", color:"#FFF", border:"1px solid rgba(255,255,255,0.18)",
+              {label:"X", href:SOCIAL_LINKS.x || "https://x.com/Ngoma_Charts", bg:"#000", color:"#FFF", border:"1px solid rgba(255,255,255,0.18)",
                path:"M16.8 5h2.2l-4.8 5.5L20 19h-4.4l-3.5-4.6L8 19H5.8l5.1-5.9L5 5h4.5l3.1 4.2L16.8 5Zm-.8 12.6h1.2L9.1 6.3H7.8L16 17.6Z"},
-              {label:"Instagram", href:"https://www.instagram.com/ngoma_charts/", bg:"linear-gradient(135deg,#F58529 0%,#DD2A7B 45%,#8134AF 72%,#515BD4 100%)", color:"#FFF",
+              {label:"Instagram", href:SOCIAL_LINKS.instagram || "https://www.instagram.com/ngoma_charts/", bg:"linear-gradient(135deg,#F58529 0%,#DD2A7B 45%,#8134AF 72%,#515BD4 100%)", color:"#FFF",
                path:"M12 7.3A4.7 4.7 0 1012 16.7 4.7 4.7 0 0012 7.3Zm0 7.7a3 3 0 110-6 3 3 0 010 6Zm4.9-7.9a1.1 1.1 0 11-2.2 0 1.1 1.1 0 012.2 0ZM16.5 5h-9A2.5 2.5 0 005 7.5v9A2.5 2.5 0 007.5 19h9a2.5 2.5 0 002.5-2.5v-9A2.5 2.5 0 0016.5 5Z"},
             ].map(s=>(
               <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label}
@@ -2466,7 +2513,7 @@ const top = data[0];
             textTransform: "uppercase",
           }}
         >
-          <span>© 2026 Ngoma Charts · A Ngoma Media Product</span>
+          <span>{FOOTER_SETTING.text || `© ${new Date().getFullYear()} ${SITE_NAME}`}</span>
         </div>
       </footer>
     </div>

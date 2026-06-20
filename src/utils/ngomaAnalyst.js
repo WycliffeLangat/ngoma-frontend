@@ -1,4 +1,4 @@
-import { FULL, MONTHS } from "../data/chartData";
+import { FULL, MONTHS } from "../data/liveChartData";
 
 const CURRENT_MONTH = MONTHS[MONTHS.length - 1];
 const PERIOD = `${MONTHS[0]} to ${CURRENT_MONTH}`;

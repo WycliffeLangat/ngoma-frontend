@@ -33,17 +33,27 @@ export default function ArtistDetailPage({ ctx }) {
     selectedArtistReleases
   } = ctx;
 
+  const publicData = typeof window !== "undefined" ? (window.__NGOMA_PUBLIC_DATA__ || {}) : {};
+  const artistMetadata = (publicData.artists || []).find((artist) =>
+    [artist.name, artist.display_name, artist.public_name, ...(artist.aliases || [])]
+      .some((name) => String(name || "").trim().toLowerCase() === String(selA?.n || "").trim().toLowerCase())
+  ) || {};
+  const artistLinks = Object.entries(artistMetadata.social_links || {}).filter(([, url]) => url);
+
   return (
 <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <span onClick={closeDetails} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:GOLD,cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>← Back</span>
           <div style={{marginTop:"20px",display:"flex",gap:"20px",alignItems:isMobile?"stretch":"flex-start",flexDirection:isMobile?"column":"row",minWidth:0}}>
-            <div style={{width:"80px",height:"80px",borderRadius:"50%",background:"linear-gradient(135deg,#FAF5EA,#EDE0C0)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"32px",fontWeight:900,color:GOLD,flexShrink:0,border:"2px solid "+GOLD+"22",boxShadow:"0 4px 16px rgba(184,134,11,0.12)"}}>{selA.n[0]}</div>
+            <div style={{width:"80px",height:"80px",borderRadius:"50%",background:"linear-gradient(135deg,#FAF5EA,#EDE0C0)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"32px",fontWeight:900,color:GOLD,flexShrink:0,border:"2px solid "+GOLD+"22",boxShadow:"0 4px 16px rgba(184,134,11,0.12)",overflow:"hidden"}}>{artistMetadata.image?<img src={artistMetadata.image} alt={selA.n} style={{width:"100%",height:"100%",objectFit:"cover"}} />:selA.n[0]}</div>
             <div style={{flex:1}}>
               <div style={{display:"flex",alignItems:"center",gap:"10px",flexWrap:"wrap"}}>
                 <h2 style={{margin:0,fontSize:isMobile?"24px":"26px",fontWeight:850,lineHeight:1.12}}>{selA.n}</h2>
                 <CountryBadge artist={selA.n} showName />
               </div>
               <div style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",marginTop:"6px",lineHeight:1.45}}>Credited on {selA.t} {isSingles?"songs":"albums"} across {selA.m} months</div>
+              {(artistMetadata.genre||artistMetadata.artist_type||artistMetadata.city_region||artistMetadata.verified)&&<div style={{display:"flex",gap:"7px",flexWrap:"wrap",marginTop:"10px"}}>{[["Genre",artistMetadata.genre],["Type",artistMetadata.artist_type],["From",artistMetadata.city_region],["Status",artistMetadata.verified?"Verified":""]].filter(([,value])=>value).map(([label,value])=><span key={label} style={{padding:"5px 8px",borderRadius:"999px",background:"#FAF5EA",border:`1px solid ${GOLD}33`,fontFamily:F,fontSize:"9.5px",fontWeight:800,color:"#59645D"}}>{label}: {value}</span>)}</div>}
+              {artistMetadata.biography&&<p style={{fontFamily:F,fontSize:"12.5px",lineHeight:1.7,color:"#59645D",margin:"12px 0 0",maxWidth:"760px"}}>{artistMetadata.biography}</p>}
+              {artistLinks.length>0&&<div style={{display:"flex",gap:"7px",flexWrap:"wrap",marginTop:"11px"}}>{artistLinks.map(([label,url])=><a key={label} href={url} target="_blank" rel="noopener noreferrer" style={{padding:"6px 9px",borderRadius:"999px",background:GOLD,color:"#FFF",fontFamily:F,fontSize:"9.5px",fontWeight:850,textDecoration:"none",textTransform:"capitalize"}}>{label.replace(/_/g," ")}</a>)}</div>}
               <div style={{display:"flex",gap:"24px",marginTop:"14px",fontFamily:F,flexWrap:"wrap"}}>
                 {[{v:"#"+selA.rank,l:"Current Rank",c:GOLD},{v:"#"+selA.pk,l:"Best Artist Rank"},{v:selA.p.toLocaleString(),l:"Total Points"},{v:selA.t,l:"Entries"},{v:selA.m,l:"Months Active"}].map((s,i)=>(
                   <div key={i}><div style={{fontSize:"22px",fontWeight:700,color:s.c||"#1A1A1A"}}>{s.v}</div><div style={{fontSize:"9px",letterSpacing:"1.5px",color:"#CCC",textTransform:"uppercase"}}>{s.l}</div></div>

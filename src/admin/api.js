@@ -31,6 +31,9 @@ async function request(path, options = {}) {
     err.data = data;
     throw err;
   }
+  if (isMutation && typeof window !== "undefined") {
+    try { window.localStorage.setItem("ngoma-cms-revision", String(Date.now())); } catch {}
+  }
   return data;
 }
 
