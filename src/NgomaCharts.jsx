@@ -2040,6 +2040,7 @@ const top = data[0];
   })) : [];
 
   const pageContext = {
+    API_BASE,
     AnalyticsDeepSection,
     BRONZE,
     Bar,
