@@ -1079,38 +1079,13 @@ export default function PremiumChartsPage({
 
     const primaryCredit = firstDetailValue(item, ["primary_artist_credit"], "");
     const featuredCredit = firstDetailValue(item, ["featured_artist_credit"], "");
-    const releaseLinks = {
-      spotify_url: item.spotify_url,
-      apple_music_url: item.apple_music_url,
-      youtube_url: item.youtube_url,
-      boomplay_url: item.boomplay_url,
-      audiomack_url: item.audiomack_url,
-      tiktok_url: item.tiktok_url,
-      shazam_url: item.shazam_url,
-    };
-    const hasReleaseLinks = Object.values(releaseLinks).some(Boolean);
     return (
       <div style={gridStyle}>
-        {compact && <DetailCard label="L.M" value={profile.lastMonth} />}
-        {compact && <DetailCard label="Peak" value={profile.peak} />}
-        {hasCountry && <DetailCard label="Country" value={countryLabel} accent={badge.accent} />}
-        <DetailCard label="Platforms" value={getPlatformDetails(item)} />
-        <DetailCard label="Year" value={getReleaseYear(item)} />
         {primaryCredit && <DetailCard label="Main artist(s)" value={primaryCredit} wide />}
         {featuredCredit && <DetailCard label="Featuring" value={featuredCredit} wide />}
-        {item.credited_artists && <DetailCard label="Other credits" value={item.credited_artists} wide />}
-        {item.release_date && <DetailCard label="Release date" value={item.release_date} />}
-        {item.genre && <DetailCard label="Genre" value={item.genre} />}
-        {item.label && <DetailCard label="Label" value={item.label} />}
-        {item.distributor && <DetailCard label="Distributor" value={item.distributor} />}
-        {item.number_of_tracks && <DetailCard label="Tracks" value={item.number_of_tracks} />}
-        {item.isrc && <DetailCard label="ISRC" value={item.isrc} />}
-        {item.upc && <DetailCard label="UPC" value={item.upc} />}
-        {item.confidence && <DetailCard label="Confidence" value={item.confidence} />}
-        {getProducerDetails(item) !== "—" && <DetailCard label="Producer(s)" value={getProducerDetails(item)} wide />}
         {getSongwriterDetails(item) !== "—" && <DetailCard label="Songwriter(s)" value={getSongwriterDetails(item)} wide />}
-        {item.radio_info && <DetailCard label="Radio information" value={item.radio_info} wide />}
-        {hasReleaseLinks && <DetailCard label="Listen / View" value={<DetailLinks links={releaseLinks} />} wide />}
+        {getProducerDetails(item) !== "—" && <DetailCard label="Producer(s)" value={getProducerDetails(item)} wide />}
+        <DetailCard label="Release year" value={getReleaseYear(item)} />
       </div>
     );
   }

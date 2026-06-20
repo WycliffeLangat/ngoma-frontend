@@ -46,8 +46,6 @@ export default function ArtistDetailPage({ ctx }) {
 
   useEffect(() => {
     if (!API_BASE || !selA?.n) return;
-    // Prefer the managed slug from the bundle; fall back to a derived one so the fetch
-    // works even when loadPublicAppData timed out and window.__NGOMA_PUBLIC_DATA__ is empty.
     const slug = artistMetadata.slug ||
       String(selA.n).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     let cancelled = false;
@@ -58,17 +56,12 @@ export default function ArtistDetailPage({ ctx }) {
     return () => { cancelled = true; };
   }, [selA?.n, API_BASE]);
 
-  // Merge priority: live CMS data > bundle data
   const profile = liveArtist || artistMetadata;
   const artistLinks = Object.entries(profile.social_links || {}).filter(([, url]) => url);
 
-  // Chart entries carry the authoritative country_code from the backend (cc field).
-  // Use the first entry as an additional fallback so the badge is correct even
-  // when the artist bundle lookup is empty or liveArtist hasn't loaded yet.
   const entryCountryCode = selectedArtistEntries[0]?.artist_country_code || selectedArtistEntries[0]?.country_code || "";
   const entryCountry = selectedArtistEntries[0]?.artist_country || selectedArtistEntries[0]?.country || "";
 
-  // Pass country fields directly so CountryBadge uses the live value, not a name lookup
   const countryItem = {
     artist_country_code: profile.country_code || entryCountryCode || "",
     artist_country: profile.country || entryCountry || "",
@@ -76,6 +69,36 @@ export default function ArtistDetailPage({ ctx }) {
     country: profile.country || entryCountry || "",
     artist: selA.n,
   };
+
+  const aliases = profile.aliases;
+  const aliasesDisplay = Array.isArray(aliases) && aliases.length
+    ? JSON.stringify(aliases)
+    : (typeof aliases === "string" && aliases) ? aliases : "[]";
+
+  const artistInfoRows = [
+    ["Artist name", selA.n],
+    ["Display name", profile.display_name],
+    ["Aliases", aliasesDisplay !== "[]" ? aliasesDisplay : null],
+    ["Country", profile.country || entryCountry],
+    ["Country code", profile.country_code || entryCountryCode],
+    ["City / Region", profile.city_region],
+    ["Genre", profile.genre],
+    ["Artist type", profile.artist_type],
+    ["Verified", profile.verified ? "Yes" : null],
+    ["Status", profile.status],
+    ["Spotify URL", profile.social_links?.spotify],
+    ["Apple Music URL", profile.social_links?.apple_music],
+    ["YouTube URL", profile.social_links?.youtube],
+    ["Boomplay URL", profile.social_links?.boomplay],
+    ["Audiomack URL", profile.social_links?.audiomack],
+    ["TikTok URL", profile.social_links?.tiktok],
+    ["Instagram URL", profile.social_links?.instagram],
+    ["X URL", profile.social_links?.x],
+    ["Facebook URL", profile.social_links?.facebook],
+    ["Website URL", profile.social_links?.website],
+  ].filter(([, value]) => value !== null && value !== undefined && value !== "");
+
+  const urlLabels = new Set(["Spotify URL", "Apple Music URL", "YouTube URL", "Boomplay URL", "Audiomack URL", "TikTok URL", "Instagram URL", "X URL", "Facebook URL", "Website URL"]);
 
   return (
 <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
@@ -88,9 +111,7 @@ export default function ArtistDetailPage({ ctx }) {
                 <CountryBadge item={countryItem} showName />
               </div>
               <div style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",marginTop:"6px",lineHeight:1.45}}>Credited on {selA.t} {isSingles?"songs":"albums"} across {selA.m} months</div>
-              {(profile.genre||profile.artist_type||profile.city_region||profile.verified)&&<div style={{display:"flex",gap:"7px",flexWrap:"wrap",marginTop:"10px"}}>{[["Genre",profile.genre],["Type",profile.artist_type],["From",profile.city_region],["Status",profile.verified?"Verified":""]].filter(([,value])=>value).map(([label,value])=><span key={label} style={{padding:"5px 8px",borderRadius:"999px",background:"#FAF5EA",border:`1px solid ${GOLD}33`,fontFamily:F,fontSize:"9.5px",fontWeight:800,color:"#59645D"}}>{label}: {value}</span>)}</div>}
               {profile.biography&&<p style={{fontFamily:F,fontSize:"12.5px",lineHeight:1.7,color:"#59645D",margin:"12px 0 0",maxWidth:"760px"}}>{profile.biography}</p>}
-              {artistLinks.length>0&&<div style={{display:"flex",gap:"7px",flexWrap:"wrap",marginTop:"11px"}}>{artistLinks.map(([label,url])=><a key={label} href={url} target="_blank" rel="noopener noreferrer" style={{padding:"6px 9px",borderRadius:"999px",background:GOLD,color:"#FFF",fontFamily:F,fontSize:"9.5px",fontWeight:850,textDecoration:"none",textTransform:"capitalize"}}>{label.replace(/_/g," ")}</a>)}</div>}
               <div style={{display:"flex",gap:"24px",marginTop:"14px",fontFamily:F,flexWrap:"wrap"}}>
                 {[{v:"#"+selA.rank,l:"Current Rank",c:GOLD},{v:"#"+selA.pk,l:"Best Artist Rank"},{v:selA.p.toLocaleString(),l:"Total Points"},{v:selA.t,l:"Entries"},{v:selA.m,l:"Months Active"}].map((s,i)=>(
                   <div key={i}><div style={{fontSize:"22px",fontWeight:700,color:s.c||"#1A1A1A"}}>{s.v}</div><div style={{fontSize:"9px",letterSpacing:"1.5px",color:"#CCC",textTransform:"uppercase"}}>{s.l}</div></div>
@@ -98,7 +119,21 @@ export default function ArtistDetailPage({ ctx }) {
               </div>
             </div>
           </div>
-          <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:"14px",marginTop:"24px",marginBottom:"20px"}}>
+
+          <div style={{margin:"20px 0 18px",border:"1px solid #ECE9E1",borderRadius:"12px",overflow:"hidden"}}>
+            {artistInfoRows.map(([label, value], idx) => (
+              <div key={label} style={{display:"grid",gridTemplateColumns:isMobile?"110px 1fr":"150px 1fr",gap:"12px",padding:"9px 14px",background:idx%2===0?"#FAFAF8":"#FFFFFF",borderTop:idx===0?"none":"1px solid #F0EDE6",alignItems:"center"}}>
+                <span style={{fontFamily:F,fontSize:"9.5px",fontWeight:700,letterSpacing:"0.4px",color:"#7B857D",textTransform:"uppercase"}}>{label}</span>
+                {urlLabels.has(label) ? (
+                  <a href={value} target="_blank" rel="noopener noreferrer" onClick={(e)=>e.stopPropagation()} style={{fontFamily:F,fontSize:"12px",fontWeight:700,color:GOLD,textDecoration:"none",wordBreak:"break-all"}}>{value} ↗</a>
+                ) : (
+                  <span style={{fontFamily:F,fontSize:"12px",fontWeight:600,color:"#1A1A1A",wordBreak:"break-word"}}>{value}</span>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:"14px",marginBottom:"20px"}}>
             <div style={card()}>
               <div style={secLbl()}><SecMark/>Monthly Credited Points</div>
               <ResponsiveContainer width="100%" height={190}>

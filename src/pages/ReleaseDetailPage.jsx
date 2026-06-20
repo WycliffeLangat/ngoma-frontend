@@ -27,6 +27,13 @@ export default function ReleaseDetailPage({ ctx }) {
     selR
   } = ctx;
 
+  function formatDate(dateStr) {
+    if (!dateStr) return "";
+    const parts = String(dateStr).split("-");
+    if (parts.length === 3 && parts[0].length === 4) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    return dateStr;
+  }
+
   return (()=>{
         const selectedCertification = getCertificationForEntry(selR, selR.type || (isSingles ? "single" : "album"));
         const journey = releaseJourney(selR);
@@ -49,12 +56,37 @@ export default function ReleaseDetailPage({ ctx }) {
         const releaseMetadata = combinedHistory.find((item) => item.combined?.release_year || item.combined?.confidence || item.combined?.genre || item.combined?.label)?.combined || {};
         const releaseDetails = {...releaseMetadata, ...selR};
         const releaseConfidence = selR.confidence || releaseMetadata.confidence;
-        const releaseLinks = [
-          ["Spotify", releaseDetails.spotify_url], ["Apple Music", releaseDetails.apple_music_url],
-          ["Boomplay", releaseDetails.boomplay_url], ["Audiomack", releaseDetails.audiomack_url],
-          ["YouTube", releaseDetails.youtube_url], ["TikTok", releaseDetails.tiktok_url],
-          ["Shazam", releaseDetails.shazam_url],
-        ].filter(([, url]) => url);
+        const isAlbum = selR.type === "album" || !isSingles;
+
+        const infoRows = [
+          ["Title", releaseDetails.title || selR.title],
+          ["Main artists", releaseDetails.primary_artist_credit || releaseDetails.primary_artist],
+          ["Featuring", releaseDetails.featured_artist_credit],
+          ["Songwriters", releaseDetails.songwriters],
+          ["Producers", releaseDetails.producers],
+          ["Release year", releaseDetails.release_year || releaseMetadata.release_year],
+          ["Release date", formatDate(releaseDetails.release_date)],
+          [isAlbum ? "ISRCs" : "ISRC", releaseDetails.isrc],
+          ["UPC", releaseDetails.upc],
+          ...(isAlbum ? [["Number of tracks", releaseDetails.number_of_tracks]] : []),
+          ["Country", releaseDetails.country],
+          ["Country code", releaseDetails.country_code],
+          ["Genre", releaseDetails.genre],
+          ["Label", releaseDetails.label],
+          ["Distributor", releaseDetails.distributor],
+          ["Spotify URL", releaseDetails.spotify_url],
+          ["Apple Music URL", releaseDetails.apple_music_url],
+          ["Boomplay URL", releaseDetails.boomplay_url],
+          ["Audiomack URL", releaseDetails.audiomack_url],
+          ["YouTube URL", releaseDetails.youtube_url],
+          ...(!isAlbum ? [["TikTok URL", releaseDetails.tiktok_url]] : []),
+          ...(!isAlbum ? [["Shazam URL", releaseDetails.shazam_url]] : []),
+          ["Radio info", releaseDetails.radio_info],
+          ["Status", releaseDetails.status],
+        ].filter(([, value]) => value !== null && value !== undefined && value !== "");
+
+        const urlLabels = new Set(["Spotify URL", "Apple Music URL", "Boomplay URL", "Audiomack URL", "YouTube URL", "TikTok URL", "Shazam URL"]);
+
         return (
         <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <span onClick={closeDetails} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:GOLD,cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>← Back</span>
@@ -79,19 +111,18 @@ export default function ReleaseDetailPage({ ctx }) {
                 {label:"Release Year",value:selR.release_year||releaseMetadata.release_year||"—"},
               ].map((stat)=><div key={stat.label} style={{padding:"12px 13px",border:"1px solid #ECE9E1",borderRadius:"10px",background:"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:"#7B857D"}}>{stat.label}</div><div style={{fontFamily:F,fontSize:"19px",fontWeight:900,color:"#1A1A1A",marginTop:"5px"}}>{stat.value}</div></div>)}
             </div>
-            {(releaseDetails.genre||releaseDetails.label||releaseDetails.distributor||releaseDetails.release_date||releaseDetails.number_of_tracks||releaseDetails.isrc||releaseDetails.upc)&&<div style={{display:"flex",gap:"8px",flexWrap:"wrap",margin:"-5px 0 18px"}}>
-              {[
-                ["Genre",releaseDetails.genre],["Label",releaseDetails.label],["Distributor",releaseDetails.distributor],
-                ["Released",releaseDetails.release_date],["Tracks",releaseDetails.number_of_tracks],
-                ["ISRC",releaseDetails.isrc],["UPC",releaseDetails.upc],
-              ].filter(([,value])=>value).map(([label,value])=><span key={label} style={{padding:"6px 9px",borderRadius:"9px",background:"#FAFAF8",border:"1px solid #ECE9E1",fontFamily:F,fontSize:"10px",color:"#59645D"}}><strong>{label}:</strong> {value}</span>)}
-            </div>}
-            {(releaseDetails.songwriters||releaseDetails.producers||releaseDetails.radio_info)&&<div style={{...card({marginBottom:"18px"}),fontFamily:F,fontSize:"12px",lineHeight:1.65,color:"#59645D"}}>
-              {releaseDetails.songwriters&&<div><strong>Songwriters:</strong> {releaseDetails.songwriters}</div>}
-              {releaseDetails.producers&&<div><strong>Producers:</strong> {releaseDetails.producers}</div>}
-              {releaseDetails.radio_info&&<div><strong>Radio:</strong> {releaseDetails.radio_info}</div>}
-            </div>}
-            {releaseLinks.length>0&&<div style={{display:"flex",gap:"7px",flexWrap:"wrap",margin:"-5px 0 18px"}}>{releaseLinks.map(([label,url])=><a key={label} href={url} target="_blank" rel="noopener noreferrer" style={{padding:"7px 10px",borderRadius:"999px",background:GOLD,color:"#FFF",fontFamily:F,fontSize:"10px",fontWeight:850,textDecoration:"none"}}>{label}</a>)}</div>}
+            <div style={{marginBottom:"18px",border:"1px solid #ECE9E1",borderRadius:"12px",overflow:"hidden"}}>
+              {infoRows.map(([label, value], idx) => (
+                <div key={label} style={{display:"grid",gridTemplateColumns:isMobile?"110px 1fr":"150px 1fr",gap:"12px",padding:"9px 14px",background:idx%2===0?"#FAFAF8":"#FFFFFF",borderTop:idx===0?"none":"1px solid #F0EDE6",alignItems:"center"}}>
+                  <span style={{fontFamily:F,fontSize:"9.5px",fontWeight:700,letterSpacing:"0.4px",color:"#7B857D",textTransform:"uppercase"}}>{label}</span>
+                  {urlLabels.has(label) ? (
+                    <a href={value} target="_blank" rel="noopener noreferrer" onClick={(e)=>e.stopPropagation()} style={{fontFamily:F,fontSize:"12px",fontWeight:700,color:GOLD,textDecoration:"none",wordBreak:"break-all"}}>{value} ↗</a>
+                  ) : (
+                    <span style={{fontFamily:F,fontSize:"12px",fontWeight:600,color:"#1A1A1A",wordBreak:"break-word"}}>{value}</span>
+                  )}
+                </div>
+              ))}
+            </div>
             {releaseConfidence&&<div style={{fontFamily:F,fontSize:"11px",color:"#68716B",margin:"-6px 0 18px"}}>Metadata confidence: <strong>{releaseConfidence}</strong></div>}
             <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1.4fr 0.8fr",gap:"14px",marginBottom:"20px"}}>
               <div style={card()}>
