@@ -87,42 +87,57 @@ function ImageUploadBox({ fieldName, label, help, form, set }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
       <span style={{ fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: ".08em", color: "#5e625c" }}>{label}</span>
-      <div
-        onClick={() => inputRef.current?.click()}
-        style={{
-          width: "100%",
-          aspectRatio: "1",
-          maxWidth: "110px",
-          borderRadius: "12px",
-          border: "2px dashed #E8E1D2",
-          background: src ? "transparent" : "#faf8f2",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          overflow: "hidden",
-          position: "relative",
-          transition: "border-color .15s",
-          flexShrink: 0,
-        }}
-        title={src ? "Click to replace image" : "Click to upload image"}
-      >
-        {src
-          ? <img src={src} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-          : (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", padding: "8px", textAlign: "center" }}>
-              <span style={{ fontSize: "28px", lineHeight: 1, color: "#bbb", fontWeight: 300 }}>+</span>
-              <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: ".06em", fontWeight: 700, color: "#999", lineHeight: 1.3 }}>{label}</span>
-            </div>
-          )
-        }
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/*"
-          style={{ display: "none" }}
-          onChange={(e) => set(fieldName, e.target.files[0] || null)}
-        />
+      <div style={{ position: "relative", display: "inline-block", flexShrink: 0 }}>
+        <div
+          onClick={() => inputRef.current?.click()}
+          style={{
+            width: "110px",
+            aspectRatio: "1",
+            borderRadius: "12px",
+            border: "2px dashed #E8E1D2",
+            background: src ? "transparent" : "#faf8f2",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            overflow: "hidden",
+            position: "relative",
+            transition: "border-color .15s",
+          }}
+          title={src ? "Click to replace image" : "Click to upload image"}
+        >
+          {src
+            ? <img src={src} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+            : (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", padding: "8px", textAlign: "center" }}>
+                <span style={{ fontSize: "28px", lineHeight: 1, color: "#bbb", fontWeight: 300 }}>+</span>
+                <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: ".06em", fontWeight: 700, color: "#999", lineHeight: 1.3 }}>{label}</span>
+              </div>
+            )
+          }
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={(e) => set(fieldName, e.target.files[0] || null)}
+          />
+        </div>
+        {src && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); set(fieldName, null); }}
+            title="Remove image"
+            style={{
+              position: "absolute", top: "-7px", right: "-7px",
+              width: "20px", height: "20px", borderRadius: "50%",
+              background: "#e53e3e", border: "2px solid #fff",
+              color: "#fff", fontSize: "11px", fontWeight: 900,
+              cursor: "pointer", display: "flex", alignItems: "center",
+              justifyContent: "center", lineHeight: 1, padding: 0,
+            }}
+          >×</button>
+        )}
       </div>
       {help && <small style={{ fontSize: "11px", color: "#888", lineHeight: 1.4 }}>{help}</small>}
     </div>

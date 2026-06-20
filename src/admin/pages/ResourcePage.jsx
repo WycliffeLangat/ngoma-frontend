@@ -55,8 +55,17 @@ export default function ResourcePage({ type }) {
 
   async function save(form) {
     try {
+      const fileFieldNames = new Set(formFields.filter(f => f.type === "file").map(f => f.name));
       const fileEntries = Object.entries(form).filter(([, v]) => v instanceof File);
-      const jsonForm = Object.fromEntries(Object.entries(form).filter(([, v]) => !(v instanceof File)));
+      const jsonForm = Object.fromEntries(
+        Object.entries(form).filter(([k, v]) => {
+          if (v instanceof File) return false;
+          // Don't re-send existing image URLs — DRF ImageField rejects plain strings
+          // null is allowed through so the user can explicitly clear an image
+          if (fileFieldNames.has(k) && typeof v === "string" && v) return false;
+          return true;
+        })
+      );
 
       // Step 1: save all non-file fields as JSON (avoids multipart parsing issues with complex fields)
       let savedId = editing?.id;

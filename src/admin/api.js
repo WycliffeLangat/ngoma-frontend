@@ -24,7 +24,10 @@ async function request(path, options = {}) {
     headers: { ...headers, ...(options.headers || {}) },
   });
   const text = await response.text();
-  const data = text ? JSON.parse(text) : null;
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; } catch {
+    if (!response.ok) throw new Error(`Server error (${response.status}) — check backend logs`);
+  }
   if (!response.ok) {
     const detail = data?.detail || data?.error || `Request failed (${response.status})`;
     const err = new Error(detail);
