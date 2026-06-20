@@ -889,6 +889,7 @@ export default function PremiumChartsPage({
     const value = firstDetailValue(
       item,
       [
+        "cover_image",
         "artwork",
         "artwork_url",
         "artworkUrl",
