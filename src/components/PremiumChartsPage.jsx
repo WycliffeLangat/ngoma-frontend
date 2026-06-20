@@ -825,7 +825,7 @@ export default function PremiumChartsPage({
   }
 
   function ArtistLinks({ item }) {
-    const tokens = splitArtistTokens(item?.artist || item?.primary_artist || item?.artist_name);
+    const tokens = splitArtistTokens(item?.artist_credit || item?.artist || item?.primary_artist || item?.artist_name);
     if (!tokens.length) return null;
 
     return (
@@ -1009,15 +1009,56 @@ export default function PremiumChartsPage({
     );
   }
 
+  function managedArtistForItem(item) {
+    if (item?.artist_profile) return item.artist_profile;
+    const publicData = typeof window !== "undefined" ? (window.__NGOMA_PUBLIC_DATA__ || {}) : {};
+    const requestedName = String(item?.title || item?.primary_artist || item?.artist || "").trim().toLowerCase();
+    return (publicData.artists || []).find((artist) =>
+      [artist.name, artist.display_name, artist.public_name, ...(artist.aliases || [])]
+        .some((name) => String(name || "").trim().toLowerCase() === requestedName)
+    ) || {};
+  }
+
+  function DetailLinks({ links = {} }) {
+    const entries = [
+      ["Spotify", links.spotify || links.spotify_url],
+      ["Apple Music", links.apple_music || links.apple_music_url],
+      ["YouTube", links.youtube || links.youtube_url],
+      ["Boomplay", links.boomplay || links.boomplay_url],
+      ["Audiomack", links.audiomack || links.audiomack_url],
+      ["TikTok", links.tiktok || links.tiktok_url],
+      ["Shazam", links.shazam || links.shazam_url],
+      ["Instagram", links.instagram || links.instagram_url],
+      ["X", links.x || links.x_url],
+      ["Facebook", links.facebook || links.facebook_url],
+      ["Website", links.website || links.website_url],
+    ].filter(([, url]) => Boolean(url));
+    if (!entries.length) return null;
+    return (
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "7px" }}>
+        {entries.map(([label, url]) => (
+          <a key={`${label}-${url}`} href={url} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()} style={{ color: chartAccent, fontWeight: 850, textDecoration: "none" }}>
+            {label} ↗
+          </a>
+        ))}
+      </div>
+    );
+  }
+
   function DetailPanel({ item, profile, artistCountry, badge, compact = false }) {
     const hasCountry = Boolean(artistCountry.country || artistCountry.code);
     const countryLabel = artistCountry.country
       ? `${artistCountry.country}${artistCountry.code ? ` (${artistCountry.code})` : ""}`
       : artistCountry.code || "";
+    const gridStyle = compact ? styles.mobileDetailsGrid : styles.desktopDetailsGrid;
 
     if (isArtistsChart || item?.is_artist_entry) {
+      const artistProfile = managedArtistForItem(item);
+      const aliases = normalizeDetailValue(artistProfile.aliases || item.aliases, "");
+      const artistLinks = artistProfile.social_links || item.social_links || {};
+      const hasArtistLinks = Object.values(artistLinks).some(Boolean);
       return (
-        <div style={compact ? styles.mobileDetailsGrid : styles.desktopDetailsGrid}>
+        <div style={gridStyle}>
           {compact && <DetailCard label="L.M" value={profile.lastMonth} />}
           {compact && <DetailCard label="Peak" value={profile.peak} />}
           {hasCountry && <DetailCard label="Country" value={countryLabel} accent={badge.accent} />}
@@ -1025,19 +1066,51 @@ export default function PremiumChartsPage({
           {isCombinedChart && <DetailCard label="Points" value={Number(item.pts || 0).toLocaleString()} />}
           {isCombinedChart && <DetailCard label="Entries" value={item.entries_count || "—"} />}
           <DetailCard label="Months" value={item.months_on_chart || "—"} />
+          {(artistProfile.city_region || item.city_region) && <DetailCard label="City / Region" value={artistProfile.city_region || item.city_region} />}
+          {(artistProfile.genre || item.genre) && <DetailCard label="Genre" value={artistProfile.genre || item.genre} />}
+          {(artistProfile.artist_type || item.artist_type) && <DetailCard label="Artist type" value={artistProfile.artist_type || item.artist_type} />}
+          {(artistProfile.verified || item.verified) && <DetailCard label="Verification" value="Verified artist" accent={badge.accent} />}
+          {aliases && <DetailCard label="Aliases" value={aliases} wide />}
+          {(artistProfile.biography || item.biography) && <DetailCard label="Biography" value={artistProfile.biography || item.biography} wide />}
+          {hasArtistLinks && <DetailCard label="Artist links" value={<DetailLinks links={artistLinks} />} wide />}
         </div>
       );
     }
 
+    const primaryCredit = firstDetailValue(item, ["primary_artist_credit"], "");
+    const featuredCredit = firstDetailValue(item, ["featured_artist_credit"], "");
+    const releaseLinks = {
+      spotify_url: item.spotify_url,
+      apple_music_url: item.apple_music_url,
+      youtube_url: item.youtube_url,
+      boomplay_url: item.boomplay_url,
+      audiomack_url: item.audiomack_url,
+      tiktok_url: item.tiktok_url,
+      shazam_url: item.shazam_url,
+    };
+    const hasReleaseLinks = Object.values(releaseLinks).some(Boolean);
     return (
-      <div style={compact ? styles.mobileDetailsGrid : styles.desktopDetailsGrid}>
+      <div style={gridStyle}>
         {compact && <DetailCard label="L.M" value={profile.lastMonth} />}
         {compact && <DetailCard label="Peak" value={profile.peak} />}
         {hasCountry && <DetailCard label="Country" value={countryLabel} accent={badge.accent} />}
         <DetailCard label="Platforms" value={getPlatformDetails(item)} />
         <DetailCard label="Year" value={getReleaseYear(item)} />
-        <DetailCard label="Producer(s)" value={getProducerDetails(item)} wide />
-        <DetailCard label="Songwriter(s)" value={getSongwriterDetails(item)} wide />
+        {primaryCredit && <DetailCard label="Main artist(s)" value={primaryCredit} wide />}
+        {featuredCredit && <DetailCard label="Featuring" value={featuredCredit} wide />}
+        {item.credited_artists && <DetailCard label="Other credits" value={item.credited_artists} wide />}
+        {item.release_date && <DetailCard label="Release date" value={item.release_date} />}
+        {item.genre && <DetailCard label="Genre" value={item.genre} />}
+        {item.label && <DetailCard label="Label" value={item.label} />}
+        {item.distributor && <DetailCard label="Distributor" value={item.distributor} />}
+        {item.number_of_tracks && <DetailCard label="Tracks" value={item.number_of_tracks} />}
+        {item.isrc && <DetailCard label="ISRC" value={item.isrc} />}
+        {item.upc && <DetailCard label="UPC" value={item.upc} />}
+        {item.confidence && <DetailCard label="Confidence" value={item.confidence} />}
+        {getProducerDetails(item) !== "—" && <DetailCard label="Producer(s)" value={getProducerDetails(item)} wide />}
+        {getSongwriterDetails(item) !== "—" && <DetailCard label="Songwriter(s)" value={getSongwriterDetails(item)} wide />}
+        {item.radio_info && <DetailCard label="Radio information" value={item.radio_info} wide />}
+        {hasReleaseLinks && <DetailCard label="Listen / View" value={<DetailLinks links={releaseLinks} />} wide />}
       </div>
     );
   }

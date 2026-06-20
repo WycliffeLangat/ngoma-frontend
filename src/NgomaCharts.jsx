@@ -30,6 +30,14 @@ import ReleaseDetailPage from "./pages/ReleaseDetailPage";
 
 const PUBLIC_DATA = typeof window !== "undefined" ? (window.__NGOMA_PUBLIC_DATA__ || {}) : {};
 const PUBLIC_RELEASES_BY_ID = new Map((PUBLIC_DATA.releases || []).map((release) => [Number(release.id), release]));
+const PUBLIC_ARTISTS_BY_NAME = new Map();
+(PUBLIC_DATA.artists || []).forEach((artist) => {
+  [artist.name, artist.display_name, artist.public_name, ...(artist.aliases || [])].forEach((name) => {
+    const key = String(name || "").trim().toLowerCase();
+    if (key && !PUBLIC_ARTISTS_BY_NAME.has(key)) PUBLIC_ARTISTS_BY_NAME.set(key, artist);
+  });
+});
+const publicArtistForName = (name = "") => PUBLIC_ARTISTS_BY_NAME.get(String(name || "").trim().toLowerCase()) || null;
 const SITE_SETTINGS = PUBLIC_DATA.settings || {};
 const settingValue = (key, fallback = {}) => SITE_SETTINGS[key] ?? fallback;
 const siteNameSetting = settingValue("site_name", {});
@@ -76,7 +84,7 @@ const buildCertifications = (items = []) => items
   }))
   .filter((item) => item.level);
 const releaseTitle = (item = {}) => item.t || item.title || item.release_title || item.name || "";
-const releaseArtist = (item = {}) => item.a || item.artist || item.artist_name || item.primary_artist || "";
+const releaseArtist = (item = {}) => item.artist_credit || item.a || item.artist || item.artist_name || item.primary_artist || "";
 const formatCreditMembers = (members = []) => {
   const unique = [...new Map(members
     .map((member) => String(member || "").trim())
@@ -86,22 +94,35 @@ const formatCreditMembers = (members = []) => {
   if (unique.length === 2) return unique.join(" & ");
   return `${unique.slice(0, -1).join(", ")} & ${unique[unique.length - 1]}`;
 };
+const profileNames = (profiles = []) => profiles
+  .map((artist) => artist?.public_name || artist?.display_name || artist?.name || artist)
+  .map((name) => String(name || "").trim())
+  .filter(Boolean);
+const splitCreditNames = (value = "") => String(value || "")
+  .split(/\s*,\s*|\s*&\s*|\s+ft\.?\s+|\s+feat\.?\s+|\s+featuring\s+/i)
+  .map((name) => name.trim())
+  .filter(Boolean);
 const artistCreditMembers = (item = {}) => {
-  const primaryArtist = String(item.primary_artist || item.pa || "").trim();
-  const featuredArtists = String(item.featured_artists || item.fa || "").trim();
-  const source = primaryArtist
-    ? [primaryArtist, ...featuredArtists.split(/\s*,\s*|\s*&\s*/)]
-    : String(item.artist || item.a || "").split(/\s*,\s*|\s*&\s*/);
+  const structuredPrimary = profileNames(item.primary_artists);
+  const structuredFeatured = profileNames(item.featured_artist_profiles);
+  const primaryArtist = String(item.primary_artist_credit || item.primary_artist || item.pa || "").trim();
+  const featuredArtists = String(item.featured_artist_credit || item.featured_artists || item.fa || "").trim();
+  const source = structuredPrimary.length || structuredFeatured.length
+    ? [...structuredPrimary, ...structuredFeatured]
+    : primaryArtist
+      ? [...splitCreditNames(primaryArtist), ...splitCreditNames(featuredArtists)]
+      : splitCreditNames(item.artist_credit || item.artist || item.a || "");
   return [...new Map(source
     .map((member) => String(member || "").trim())
     .filter(Boolean)
     .map((member) => [member.toLowerCase(), member])).values()];
 };
-const formatArtistCredit = (primaryArtist = "", featuredArtists = "") => {
-  const members = [primaryArtist, ...String(featuredArtists || "").split(/\s*,\s*|\s*&\s*/)]
-    .map((member) => String(member || "").trim())
-    .filter(Boolean);
-  return formatCreditMembers(members);
+const formatArtistCredit = (primaryArtist = "", featuredArtists = "", primaryArtists = [], featuredProfiles = []) => {
+  const primaryNames = profileNames(primaryArtists).length ? profileNames(primaryArtists) : splitCreditNames(primaryArtist);
+  const featuredNames = profileNames(featuredProfiles).length ? profileNames(featuredProfiles) : splitCreditNames(featuredArtists);
+  const primaryCredit = formatCreditMembers(primaryNames);
+  const featuredCredit = formatCreditMembers(featuredNames.filter((name) => !primaryNames.some((primary) => primary.toLowerCase() === name.toLowerCase())));
+  return featuredCredit ? `${primaryCredit} ft. ${featuredCredit}` : primaryCredit;
 };
 const firstFiniteNumber = (...values) => {
   for (const value of values) {
@@ -235,17 +256,26 @@ function enrichChartEntries(entries, getRawEntries, currentMonth, totalPlatforms
       ? Number(String(e.pl).split("/")[0]) || undefined
       : undefined;
 
+    const releaseDetails = PUBLIC_RELEASES_BY_ID.get(Number(e.release_id)) || {};
+    const primaryArtists = e.primary_artists || releaseDetails.primary_artists || [];
+    const featuredProfiles = e.featured_artist_profiles || releaseDetails.featured_artist_profiles || [];
     const primaryArtist = String(e.pa || e.a || "").trim();
     const featuredArtists = String(e.fa || "").trim();
+    const artistCredit = e.artist_credit || releaseDetails.artist_credit || formatArtistCredit(
+      primaryArtist, featuredArtists, primaryArtists, featuredProfiles
+    );
 
     return {
-      ...(PUBLIC_RELEASES_BY_ID.get(Number(e.release_id)) || {}),
+      ...releaseDetails,
       ...e,
       rank: e.r,
       title: e.t,
-      artist: formatArtistCredit(primaryArtist, featuredArtists),
-      primary_artist: primaryArtist,
+      artist: artistCredit,
+      artist_credit: artistCredit,
+      primary_artist: e.primary_artist_credit || releaseDetails.primary_artist_credit || primaryArtist,
       featured_artists: featuredArtists,
+      primary_artists: primaryArtists,
+      featured_artist_profiles: featuredProfiles,
       pts: e.p,
       rawPts: e.rp ?? null,
       plat: e.pl || (platformCount ? `${platformCount}/${totalPlatforms}` : ""),
@@ -552,6 +582,7 @@ const buildArtistChart = (monthLabel = CURRENT_MONTH, platform = "Combined") => 
     const stats = history.get(artist.key) || {};
     const platformHits = platform === "Combined" ? getArtistPlatformHits(artist.n, monthLabel) : [platform];
     const country = artist.country || getArtistCountry({ artist: artist.n });
+    const artistProfile = publicArtistForName(artist.n) || {};
     return {
       rank,
       title: artist.n,
@@ -582,6 +613,15 @@ const buildArtistChart = (monthLabel = CURRENT_MONTH, platform = "Combined") => 
       releases: artist.releases,
       is_artist_entry: true,
       type: "artist",
+      artist_profile: artistProfile,
+      image: artistProfile.image || "",
+      aliases: artistProfile.aliases || [],
+      city_region: artistProfile.city_region || "",
+      genre: artistProfile.genre || "",
+      biography: artistProfile.biography || "",
+      artist_type: artistProfile.artist_type || "",
+      verified: Boolean(artistProfile.verified),
+      social_links: artistProfile.social_links || {},
     };
   });
 
@@ -1006,8 +1046,9 @@ export default function NgomaCharts(){
             ...entry,
             rank: entry.rank,
             title: entry.title,
-            artist: formatArtistCredit(entry.primary_artist || entry.artist, entry.featured_artists),
-            primary_artist: entry.primary_artist || entry.artist,
+            artist: entry.artist_credit || formatArtistCredit(entry.primary_artist || entry.artist, entry.featured_artists, entry.primary_artists, entry.featured_artist_profiles),
+            artist_credit: entry.artist_credit || formatArtistCredit(entry.primary_artist || entry.artist, entry.featured_artists, entry.primary_artists, entry.featured_artist_profiles),
+            primary_artist: entry.primary_artist_credit || entry.primary_artist || entry.artist,
             featured_artists: entry.featured_artists || "",
             pts: displayPoints,
             rawPts: null,
@@ -1282,7 +1323,7 @@ const top = data[0];
         return entry ? [platform, { t: entry.title, a: entry.artist, primary_artist: entry.primary_artist, featured_artists: "", p: entry.pts, is_artist_entry: true, type: "artist" }] : null;
       }
       const entry = rawPlatform(releaseCt, platform, anMonth)[0];
-      return entry ? [platform, { t: entry.t, a: formatArtistCredit(entry.a, entry.fa), primary_artist: entry.a, featured_artists: entry.fa || "", p: entry.p }] : null;
+      return entry ? [platform, { t: entry.t, a: entry.artist_credit || formatArtistCredit(entry.a, entry.fa, entry.primary_artists, entry.featured_artist_profiles), primary_artist: entry.primary_artist_credit || entry.a, featured_artists: entry.fa || "", p: entry.p }] : null;
     })
     .filter(Boolean) : [];
 
@@ -1332,7 +1373,7 @@ const top = data[0];
         .filter((entry) => !otherIndexes.some((index) => index?.has(entryKey(entry))))
         .map((entry) => ({
           title: entry.t || entry.title,
-          artist: isArtists ? (entry.artist || "") : formatArtistCredit(entry.a, entry.fa),
+          artist: isArtists ? (entry.artist || "") : (entry.artist_credit || formatArtistCredit(entry.a, entry.fa, entry.primary_artists, entry.featured_artist_profiles)),
           primary_artist: entry.a || entry.primary_artist || entry.t || entry.title,
           featured_artists: entry.fa || entry.featured_artists || "",
           rank: entry.r || entry.rank,
