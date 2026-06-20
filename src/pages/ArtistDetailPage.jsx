@@ -59,12 +59,18 @@ export default function ArtistDetailPage({ ctx }) {
   const profile = liveArtist || artistMetadata;
   const artistLinks = Object.entries(profile.social_links || {}).filter(([, url]) => url);
 
+  // Chart entries carry the authoritative country_code from the backend (cc field).
+  // Use the first entry as an additional fallback so the badge is correct even
+  // when the artist bundle lookup is empty or liveArtist hasn't loaded yet.
+  const entryCountryCode = selectedArtistEntries[0]?.artist_country_code || selectedArtistEntries[0]?.country_code || "";
+  const entryCountry = selectedArtistEntries[0]?.artist_country || selectedArtistEntries[0]?.country || "";
+
   // Pass country fields directly so CountryBadge uses the live value, not a name lookup
   const countryItem = {
-    artist_country_code: profile.country_code || "",
-    artist_country: profile.country || "",
-    country_code: profile.country_code || "",
-    country: profile.country || "",
+    artist_country_code: profile.country_code || entryCountryCode || "",
+    artist_country: profile.country || entryCountry || "",
+    country_code: profile.country_code || entryCountryCode || "",
+    country: profile.country || entryCountry || "",
     artist: selA.n,
   };
 
