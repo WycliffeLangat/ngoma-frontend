@@ -39,6 +39,7 @@ const SOCIAL_LINKS = settingValue("social_links", {});
 const FOOTER_SETTING = settingValue("footer", {});
 const DEFAULT_CHART_SETTING = settingValue("default_chart", {});
 const MAINTENANCE_SETTING = settingValue("maintenance_mode", {});
+const PUBLIC_METHODOLOGY = (PUBLIC_DATA.methodology || [])[0] || null;
 
 // ===== FULL Top-50 dataset across all months and platforms =====
 const CURRENT_MONTH = MONTHS[MONTHS.length - 1];
@@ -910,14 +911,6 @@ export default function NgomaCharts(){
       // Theme still works for the current session if storage is unavailable.
     }
   }, [theme]);
-
-  useEffect(() => {
-    const refreshAfterCmsSave = (event) => {
-      if (event.key === "ngoma-cms-revision") window.location.reload();
-    };
-    window.addEventListener("storage", refreshAfterCmsSave);
-    return () => window.removeEventListener("storage", refreshAfterCmsSave);
-  }, []);
 
   const toggleYearEndRow = (rowKey) => {
     setExpandedYearEndRows((current) => ({
@@ -2070,6 +2063,7 @@ const top = data[0];
     PAGE_MAX,
     PC,
     PUBLIC_PLATFORMS,
+    PUBLIC_METHODOLOGY,
     PLATS_FOR,
     PLAT_LABEL,
     Pie,
