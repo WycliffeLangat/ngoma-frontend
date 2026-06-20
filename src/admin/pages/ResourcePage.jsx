@@ -55,18 +55,24 @@ export default function ResourcePage({ type }) {
 
   async function save(form) {
     try {
-      const hasFiles = Object.values(form).some((v) => v instanceof File);
-      let payload = form;
-      if (hasFiles) {
-        const fd = new FormData();
-        Object.entries(form).forEach(([key, val]) => {
-          if (val instanceof File) { fd.append(key, val); }
-          else if (val !== null && val !== undefined && val !== "") { fd.append(key, Array.isArray(val) ? JSON.stringify(val) : String(val)); }
-        });
-        payload = fd;
+      const fileEntries = Object.entries(form).filter(([, v]) => v instanceof File);
+      const jsonForm = Object.fromEntries(Object.entries(form).filter(([, v]) => !(v instanceof File)));
+
+      // Step 1: save all non-file fields as JSON (avoids multipart parsing issues with complex fields)
+      let savedId = editing?.id;
+      if (savedId) {
+        await cmsApi.patch(`${config.endpoint}${savedId}/`, jsonForm);
+      } else {
+        const created = await cmsApi.post(config.endpoint, jsonForm);
+        savedId = created?.id;
       }
-      if (editing?.id) await cmsApi.patch(`${config.endpoint}${editing.id}/`, payload);
-      else await cmsApi.post(config.endpoint, payload);
+
+      // Step 2: upload any files separately as multipart
+      if (fileEntries.length > 0 && savedId) {
+        const fd = new FormData();
+        fileEntries.forEach(([key, file]) => fd.append(key, file));
+        await cmsApi.patch(`${config.endpoint}${savedId}/`, fd);
+      }
       setModal(false); setEditing(null); load();
     } catch(e) { setError(e.message); }
   }
