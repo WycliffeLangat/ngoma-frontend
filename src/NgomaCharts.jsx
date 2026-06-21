@@ -1016,7 +1016,7 @@ export default function NgomaCharts(){
   const isSingles = ct === "singles";
   const isAlbums = ct === "albums";
   const releaseCt = isAlbums ? "albums" : "singles";
-  const platList = isArtists ? S_PLATS : (isSingles ? ["Combined", KENYAN_CHART, ...S_PLATS.slice(1)] : A_PLATS);
+  const platList = isArtists ? S_PLATS : (isSingles ? ["Combined", KENYAN_CHART, ...S_PLATS.slice(1)] : ["Combined", KENYAN_CHART, ...A_PLATS.slice(1)]);
   const tp = isArtists ? ARTIST_PLATS.length : (isSingles ? 6 : 2);
 
   useEffect(() => {
