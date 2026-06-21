@@ -1,16 +1,22 @@
-function normArtistKey(str) {
-  return String(str || "")
-    .trim()
-    .toLowerCase()
-    .replace(/\s*\|\s*.+$/, "")
-    .replace(/\s+(?:ft\.?|feat\.?|featuring|w\/)\s+.+$/i, "")
-    .replace(/\s+x\s+.+$/i, "")
-    .replace(/\s+&\s+.+$/i, "")
-    .trim();
+function artistSetKey(primaryStr, featuredStr) {
+  const seen = new Set();
+  const all = [];
+  [
+    ...String(primaryStr || "").split(/\s*(?:\||\bft\.?|\bfeat\.?|\bfeaturing\b|\bx\b|&|,)\s*/i),
+    ...String(featuredStr || "").split(/,\s*/),
+  ].forEach((name) => {
+    const n = String(name || "").trim().toLowerCase();
+    if (n && !seen.has(n)) { seen.add(n); all.push(n); }
+  });
+  return all.sort().join("+");
 }
 
-const releaseKey = (entry = {}) =>
-  `${String(entry.t || entry.title || "").trim().toLowerCase()}|||${normArtistKey(entry.a || entry.primary_artist || entry.artist || "")}`;
+const releaseKey = (entry = {}) => {
+  const title = String(entry.t || entry.title || "").trim().toLowerCase();
+  const primary = String(entry.a || entry.primary_artist || entry.artist || "").trim();
+  const featured = String(entry.fa || entry.featured_artists || "").trim();
+  return `${title}|||${artistSetKey(primary, featured)}`;
+};
 
 const hasValue = (value) => value !== undefined && value !== null && value !== "";
 

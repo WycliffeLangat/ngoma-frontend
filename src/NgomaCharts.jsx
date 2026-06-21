@@ -138,7 +138,7 @@ const formatArtistCredit = (primaryArtist = "", featuredArtists = "", primaryArt
   const featuredNames = profileNames(featuredProfiles).length ? profileNames(featuredProfiles) : splitCreditNames(featuredArtists);
   const primaryCredit = formatCreditMembers(primaryNames);
   const featuredCredit = formatCreditMembers(featuredNames.filter((name) => !primaryNames.some((primary) => primary.toLowerCase() === name.toLowerCase())));
-  return featuredCredit ? `${primaryCredit} ft. ${featuredCredit}` : primaryCredit;
+  return featuredCredit ? `${primaryCredit} & ${featuredCredit}` : primaryCredit;
 };
 const firstFiniteNumber = (...values) => {
   for (const value of values) {
@@ -205,9 +205,10 @@ function platformToSlug(platform) {
 }
 
 // Helpers — return entries from FULL with proper month-to-month chart history
-// Strip featuring/collaboration suffixes from the artist field so that
-// "Artist ft. X", "Artist & X", "Artist x X", "Artist|X" all key to "Artist".
-// Titles with "Remix", "Deluxe", "2.0" etc. remain distinct because the title is unchanged.
+
+// normArtistKey: strips separator suffixes, keeps only the first/primary name.
+// Used for artist LOOKUPS (CMS artist map, publicArtistForName) where we want
+// to resolve "Bien ft. Alikiba" → the CMS record for "Bien".
 function normArtistKey(str) {
   return String(str || "")
     .trim()
@@ -218,17 +219,44 @@ function normArtistKey(str) {
     .replace(/\s+&\s+.+$/i, "")
     .trim();
 }
-const entryKey = e => `${String(e.t || e.title || "").trim().toLowerCase()}|||${normArtistKey(e.primary_artist || e.a || e.artist || "")}`;
+
+// artistSetKey: produces a SORTED, DEDUPLICATED list of all artists as the key.
+// "Bien ft. Alikiba", "Alikiba ft. Bien", "Bien & Alikiba", "Alikiba & Bien"
+// all produce "alikiba+bien" — one canonical key for the same collaboration.
+// Titles with "Remix", "Deluxe", "2.0" etc. remain distinct (title is unchanged).
+function artistSetKey(primaryStr, featuredStr) {
+  const seen = new Set();
+  const all = [];
+  [
+    ...String(primaryStr || "").split(/\s*(?:\||\bft\.?|\bfeat\.?|\bfeaturing\b|\bx\b|&|,)\s*/i),
+    ...String(featuredStr || "").split(/,\s*/),
+  ].forEach((name) => {
+    const n = String(name || "").trim().toLowerCase();
+    if (n && !seen.has(n)) { seen.add(n); all.push(n); }
+  });
+  return all.sort().join("+");
+}
+
+const entryKey = (e) => {
+  const title = String(e.t || e.title || "").trim().toLowerCase();
+  const primary = String(e.primary_artist || e.a || e.artist || "").trim();
+  const featured = String(e.fa || e.featured_artists || "").trim();
+  return `${title}|||${artistSetKey(primary, featured)}`;
+};
 const sameRelease = (left, right) => entryKey(left) === entryKey(right);
 const monthIndex = m => MONTHS.indexOf(m);
 
-// Precise CMS release lookup keyed by title + normalized primary artist.
-// Preferred over the title-only map when available, avoiding false matches
-// on songs that share a title but have different artists.
+// Precise CMS release lookup keyed by title + full artist set.
+// Stores each release under BOTH its full-artist-set key and a primary-only
+// fallback key so chart entries with extra/different featured credits still match.
 const PUBLIC_RELEASES_BY_KEY = new Map();
 (PUBLIC_DATA.releases || []).forEach((release) => {
-  const key = entryKey({ t: release.title, a: release.primary_artist || release.artist || "" });
-  if (key && key !== "|||" && !PUBLIC_RELEASES_BY_KEY.has(key)) PUBLIC_RELEASES_BY_KEY.set(key, release);
+  const featured = release.featured_artists || release.featured_artist_credit || "";
+  const fullKey = entryKey({ t: release.title, a: release.primary_artist || release.artist || "", fa: featured });
+  if (fullKey && fullKey !== "|||" && !PUBLIC_RELEASES_BY_KEY.has(fullKey)) PUBLIC_RELEASES_BY_KEY.set(fullKey, release);
+  // Primary-only fallback: matches chart entries that don't list the same features as the CMS record
+  const primKey = `${String(release.title || "").trim().toLowerCase()}|||${normArtistKey(release.primary_artist || release.artist || "")}`;
+  if (primKey && primKey !== "|||" && !PUBLIC_RELEASES_BY_KEY.has(primKey)) PUBLIC_RELEASES_BY_KEY.set(primKey, release);
 });
 
 const rawCombined = (ct, m) => FULL[ct].combined[m] || [];
@@ -299,6 +327,7 @@ function enrichChartEntries(entries, getRawEntries, currentMonth, totalPlatforms
     const releaseDetails =
       PUBLIC_RELEASES_BY_ID.get(Number(e.release_id)) ||
       PUBLIC_RELEASES_BY_KEY.get(entryKey(e)) ||
+      PUBLIC_RELEASES_BY_KEY.get(`${String(e.t || "").trim().toLowerCase()}|||${normArtistKey(e.primary_artist || e.a || e.artist || "")}`) ||
       PUBLIC_RELEASES_BY_TITLE.get(String(e.t || "").trim().toLowerCase()) ||
       {};
     const primaryArtists = e.primary_artists || releaseDetails.primary_artists || [];
