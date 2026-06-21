@@ -84,7 +84,7 @@ const certificationThresholds = Object.fromEntries((PUBLIC_DATA.certification_ru
 const CERTIFICATION_LEVELS = [
   { level: "diamond", label: "Diamond", icon: "💎", pts: certificationThresholds.diamond || 600, color: "#7B1FA2" },
   { level: "platinum", label: "Platinum", icon: "🪙", pts: certificationThresholds.platinum || 400, color: SILVER },
-  { level: "gold", label: "Gold", icon: "🥇", pts: certificationThresholds.gold || 200, color: GOLD },
+  { level: "gold", label: "Gold", icon: "🏅", pts: certificationThresholds.gold || 200, color: GOLD },
 ];
 const getCertificationLevel = (totalPts = 0) => {
   const points = Number(totalPts) || 0;

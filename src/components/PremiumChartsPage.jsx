@@ -1639,7 +1639,13 @@ export default function PremiumChartsPage({
                         className="ngoma-title-link"
                         style={{ ...styles.titleButton, ...(darkMode ? styles.titleButtonDark : null), color: darkMode ? "#FFFFFF" : "#050505" }}
                       >
-                        {item.title}
+                        {item.title}{certification && (
+                          <span
+                            aria-label={`${certification.label} certified`}
+                            title={`${certification.label} certified · ${Number(certification.totalPts || 0).toLocaleString()} points`}
+                            style={{ marginLeft: "5px", opacity: 0.9 }}
+                          >({certification.icon})</span>
+                        )}
                       </button>
 
                       {isArtistsChart ? (
@@ -1649,10 +1655,6 @@ export default function PremiumChartsPage({
                           </div>
                         ) : null
                       ) : <ArtistLinks item={item} />}
-
-                      {certification && (
-                        <CertificationTag cert={certification} compact style={{ marginTop: "6px" }} />
-                      )}
                     </div>
 
                     <button
@@ -1733,7 +1735,13 @@ export default function PremiumChartsPage({
                         className="ngoma-title-link"
                         style={{ ...styles.titleButton, ...(darkMode ? styles.titleButtonDark : null), color: darkMode ? "#FFFFFF" : "#050505" }}
                       >
-                        {item.title}
+                        {item.title}{certification && (
+                          <span
+                            aria-label={`${certification.label} certified`}
+                            title={`${certification.label} certified · ${Number(certification.totalPts || 0).toLocaleString()} points`}
+                            style={{ marginLeft: "5px", opacity: 0.9 }}
+                          >({certification.icon})</span>
+                        )}
                       </button>
 
                       {isArtistsChart ? (
@@ -1743,10 +1751,6 @@ export default function PremiumChartsPage({
                           </div>
                         ) : null
                       ) : <ArtistLinks item={item} />}
-
-                      {certification && (
-                        <CertificationTag cert={certification} compact style={{ marginTop: "6px" }} />
-                      )}
                     </div>
                   </div>
 
