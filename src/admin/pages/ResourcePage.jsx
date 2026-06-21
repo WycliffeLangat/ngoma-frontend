@@ -16,7 +16,7 @@ const configs = {
   "certification-rules": { title: "Certification Rules", endpoint: "/certification-rules/", columns: [{key:"label",label:"Level"},{key:"threshold",label:"Points threshold"},{key:"active",label:"Active"},{key:"updated_at",label:"Updated",render:(r)=>new Date(r.updated_at).toLocaleDateString()}], form: [{name:"level",label:"Level",type:"select",options:[{value:"gold",label:"Gold"},{value:"platinum",label:"Platinum"},{value:"diamond",label:"Diamond"}]},{name:"threshold",label:"Points threshold",type:"number"},{name:"active",label:"Active",type:"checkbox"}] },
   methodology: { title: "Methodology", endpoint: "/methodology/", columns: [{key:"version",label:"Version"},{key:"name",label:"Name"},{key:"is_active",label:"Active"},{key:"created_at",label:"Created",render:(r)=>new Date(r.created_at).toLocaleDateString()}], form: [{name:"version",label:"Version"},{name:"name",label:"Name"},{name:"config",label:"Methodology JSON",type:"json"},{name:"is_active",label:"Active",type:"checkbox"}] },
   "page-content": { title: "Page Content", endpoint: "/page-content/", columns: [{key:"page",label:"Page"},{key:"section",label:"Section"},{key:"title",label:"Title"},{key:"is_visible",label:"Visible"},{key:"display_order",label:"Order"}], form: [{name:"page",label:"Page"},{name:"section",label:"Section"},{name:"title",label:"Title"},{name:"content",label:"Content",type:"textarea"},{name:"data",label:"Section data JSON",type:"json"},{name:"is_visible",label:"Visible",type:"checkbox"},{name:"display_order",label:"Display order",type:"number"}] },
-  media: { title: "Media Library", endpoint: "/media/", imageField: "image", columns: [{key:"title",label:"Title"},{key:"folder",label:"Folder"},{key:"alt_text",label:"Alt text"},{key:"uploaded_at",label:"Uploaded",render:(r)=>new Date(r.uploaded_at).toLocaleDateString()}], form: [{name:"image",label:"Image",type:"file",help:"JPEG, PNG, GIF or SVG. Max 5 MB."},{name:"title",label:"Title"},{name:"folder",label:"Folder"},{name:"alt_text",label:"Alt text"},{name:"usage_notes",label:"Usage notes",type:"textarea"}] },
+  media: { title: "Media Library", endpoint: "/media/", imageField: "file", columns: [{key:"title",label:"Title"},{key:"folder",label:"Folder"},{key:"alt_text",label:"Alt text"},{key:"uploaded_at",label:"Uploaded",render:(r)=>new Date(r.uploaded_at).toLocaleDateString()}], form: [{name:"file",label:"File",type:"file",help:"JPEG, PNG, GIF or SVG. Max 5 MB."},{name:"title",label:"Title"},{name:"folder",label:"Folder"},{name:"alt_text",label:"Alt text"},{name:"usage_notes",label:"Usage notes",type:"textarea"}] },
   settings: { title: "Settings", endpoint: "/settings/", columns: [{key:"key",label:"Key"},{key:"group",label:"Group"},{key:"value",label:"Value",render:(r)=>JSON.stringify(r.value)}], form: [{name:"key",label:"Key"},{name:"group",label:"Group"},{name:"description",label:"Description"},{name:"value",label:"Value JSON",type:"json"}] },
   users: { title: "Users & Roles", endpoint: "/users/", columns: [{key:"username",label:"Username"},{key:"email",label:"Email"},{key:"profile",label:"Role",render:(r)=>r.profile?.role_label || "—"},{key:"is_active",label:"Active"}], form: [{name:"username",label:"Username"},{name:"email",label:"Email"},{name:"first_name",label:"First name"},{name:"last_name",label:"Last name"},{name:"role",label:"Role",type:"select",options:["super_admin","admin","editor","data_editor","news_editor","reviewer","viewer"].map(v=>({value:v,label:v.replace(/_/g," ")}))},{name:"password",label:"Password"}] },
   reports: { title: "Reports", endpoint: "/reports/", columns: [{key:"module",label:"Module"},{key:"issue_type",label:"Issue"},{key:"severity",label:"Severity"},{key:"description",label:"Description"},{key:"status",label:"Status"}], form: [{name:"module",label:"Module"},{name:"issue_type",label:"Issue type"},{name:"severity",label:"Severity"},{name:"description",label:"Description",type:"textarea"},{name:"status",label:"Status"}] },
@@ -54,36 +54,49 @@ export default function ResourcePage({ type }) {
   }, [type]);
 
   async function save(form) {
-    try {
-      const fileFieldNames = new Set(formFields.filter(f => f.type === "file").map(f => f.name));
-      const fileEntries = Object.entries(form).filter(([, v]) => v instanceof File);
-      const jsonForm = Object.fromEntries(
-        Object.entries(form).filter(([k, v]) => {
-          if (v instanceof File) return false;
-          // Don't re-send existing image URLs — DRF ImageField rejects plain strings
-          // null is allowed through so the user can explicitly clear an image
-          if (fileFieldNames.has(k) && typeof v === "string" && v) return false;
-          return true;
-        })
-      );
+    setError("");
+    const fileFieldNames = new Set(formFields.filter(f => f.type === "file").map(f => f.name));
+    const fileEntries = Object.entries(form).filter(([, v]) => v instanceof File);
+    const jsonForm = Object.fromEntries(
+      Object.entries(form).filter(([k, v]) => {
+        if (v instanceof File) return false;
+        // Exclude all string values for file fields — DRF ImageField rejects plain strings
+        // (including empty string ""), which causes a 500. null is still allowed through
+        // so the user can explicitly clear an image.
+        if (fileFieldNames.has(k) && typeof v === "string") return false;
+        return true;
+      })
+    );
 
-      // Step 1: save all non-file fields as JSON (avoids multipart parsing issues with complex fields)
-      let savedId = editing?.id;
+    // Step 1: save all non-file fields as JSON
+    let savedId = editing?.id;
+    try {
       if (savedId) {
         await cmsApi.patch(`${config.endpoint}${savedId}/`, jsonForm);
       } else {
         const created = await cmsApi.post(config.endpoint, jsonForm);
         savedId = created?.id;
       }
+    } catch(e) {
+      setError(e.message);
+      return;
+    }
 
-      // Step 2: upload any files separately as multipart
-      if (fileEntries.length > 0 && savedId) {
+    // Step 2: upload any files separately as multipart
+    if (fileEntries.length > 0 && savedId) {
+      try {
         const fd = new FormData();
         fileEntries.forEach(([key, file]) => fd.append(key, file));
         await cmsApi.patch(`${config.endpoint}${savedId}/`, fd);
+      } catch(e) {
+        // Record was saved in Step 1 — close modal and reload, but surface the image error
+        setModal(false); setEditing(null); load();
+        setError(`Record saved, but image upload failed: ${e.message}`);
+        return;
       }
-      setModal(false); setEditing(null); load();
-    } catch(e) { setError(e.message); }
+    }
+
+    setModal(false); setEditing(null); load();
   }
 
   async function saveImage(file) {
