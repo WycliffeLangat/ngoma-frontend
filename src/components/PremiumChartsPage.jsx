@@ -542,34 +542,54 @@ export function countryCodeToFlag(countryCode) {
     .join("");
 }
 
+// Lazily builds a name→artist Map from PUBLIC_DATA.artists so lookups are O(1).
+// Rebuilt automatically when the revision changes (i.e. after a CMS-triggered page reload).
+let _cmsArtistMapRevision = null;
+let _cmsArtistMap = null;
+
+function findCmsArtist(artistName) {
+  const publicData = typeof window !== "undefined" ? (window.__NGOMA_PUBLIC_DATA__ || {}) : {};
+  const revision = publicData.revision || "";
+  if (_cmsArtistMap === null || _cmsArtistMapRevision !== revision) {
+    _cmsArtistMap = new Map();
+    _cmsArtistMapRevision = revision;
+    (publicData.artists || []).forEach((a) => {
+      [a.name, a.display_name, a.public_name, ...(a.aliases || [])].forEach((n) => {
+        const key = String(n || "").trim().toLowerCase();
+        if (key) _cmsArtistMap.set(key, a);
+      });
+    });
+  }
+  const key = String(artistName || "").trim().toLowerCase();
+  return key ? (_cmsArtistMap.get(key) || null) : null;
+}
+
 export function getArtistCountry(item) {
-  const directCode = String(item.artist_country_code || item.country_code || "").trim().toUpperCase();
   const publicData = typeof window !== "undefined" ? (window.__NGOMA_PUBLIC_DATA__ || {}) : {};
   const publicCountry = (code) => (publicData.countries || []).find(
     (country) => String(country.code || "").trim().toUpperCase() === String(code || "").trim().toUpperCase()
   );
 
+  // CMS artist record is the authoritative source — reflects live admin edits after page reload.
+  const requestedArtist = String(item.primary_artist || item.artist || item.artist_name || "").trim();
+  const managedArtist = requestedArtist ? findCmsArtist(requestedArtist) : null;
+  if (managedArtist?.country_code) {
+    const managedCountry = publicCountry(managedArtist.country_code);
+    return {
+      flag: managedCountry?.flag || countryCodeToFlag(managedArtist.country_code),
+      country: managedCountry?.name || managedArtist.country || "",
+      code: String(managedArtist.country_code).trim().toUpperCase(),
+    };
+  }
+
+  // Fall back to the country code embedded in the chart entry (from artist model at export time).
+  const directCode = String(item.artist_country_code || item.country_code || "").trim().toUpperCase();
   if (directCode) {
     const managedCountry = publicCountry(directCode);
     return {
       flag: managedCountry?.flag || countryCodeToFlag(directCode),
       country: managedCountry?.name || item.artist_country || item.country || "",
       code: directCode,
-    };
-  }
-
-  const requestedArtist = String(item.primary_artist || item.artist || item.artist_name || "").trim().toLowerCase();
-  const managedArtist = (publicData.artists || []).find((artist) => {
-    const names = [artist.name, artist.display_name, artist.public_name, ...(artist.aliases || [])]
-      .map((name) => String(name || "").trim().toLowerCase());
-    return names.includes(requestedArtist);
-  });
-  if (managedArtist?.country_code) {
-    const managedCountry = publicCountry(managedArtist.country_code);
-    return {
-      flag: managedCountry?.flag || countryCodeToFlag(managedArtist.country_code),
-      country: managedCountry?.name || managedArtist.country || "",
-      code: managedArtist.country_code,
     };
   }
 

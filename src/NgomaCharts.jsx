@@ -31,6 +31,12 @@ import ReleaseDetailPage from "./pages/ReleaseDetailPage";
 
 const PUBLIC_DATA = typeof window !== "undefined" ? (window.__NGOMA_PUBLIC_DATA__ || {}) : {};
 const PUBLIC_RELEASES_BY_ID = new Map((PUBLIC_DATA.releases || []).map((release) => [Number(release.id), release]));
+// Fallback index by normalised title — used when chart entries lack release_id.
+const PUBLIC_RELEASES_BY_TITLE = new Map();
+(PUBLIC_DATA.releases || []).forEach((release) => {
+  const key = String(release.title || "").trim().toLowerCase();
+  if (key && !PUBLIC_RELEASES_BY_TITLE.has(key)) PUBLIC_RELEASES_BY_TITLE.set(key, release);
+});
 const PUBLIC_ARTISTS_BY_NAME = new Map();
 (PUBLIC_DATA.artists || []).forEach((artist) => {
   [artist.name, artist.display_name, artist.public_name, ...(artist.aliases || [])].forEach((name) => {
@@ -260,7 +266,10 @@ function enrichChartEntries(entries, getRawEntries, currentMonth, totalPlatforms
       ? Number(String(e.pl).split("/")[0]) || undefined
       : undefined;
 
-    const releaseDetails = PUBLIC_RELEASES_BY_ID.get(Number(e.release_id)) || {};
+    const releaseDetails =
+      PUBLIC_RELEASES_BY_ID.get(Number(e.release_id)) ||
+      PUBLIC_RELEASES_BY_TITLE.get(String(e.t || "").trim().toLowerCase()) ||
+      {};
     const primaryArtists = e.primary_artists || releaseDetails.primary_artists || [];
     const featuredProfiles = e.featured_artist_profiles || releaseDetails.featured_artist_profiles || [];
     const primaryArtist = String(e.pa || e.a || "").trim();
