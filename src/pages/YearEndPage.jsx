@@ -41,13 +41,13 @@ export default function YearEndPage({ ctx }) {
           {(()=>{
             const podiumItems = isMobile
               ? [
-                  { e: yearEnd[0], pos: 1, medal: GOLD, featured: true },
+                  { e: yearEnd[0], pos: 1, medal: MEDALS[0], featured: true },
                   { e: yearEnd[1], pos: 2, medal: SILVER, featured: false },
                   { e: yearEnd[2], pos: 3, medal: BRONZE, featured: false },
                 ]
               : [
                   { e: yearEnd[1], pos: 2, medal: SILVER, featured: false },
-                  { e: yearEnd[0], pos: 1, medal: GOLD, featured: true },
+                  { e: yearEnd[0], pos: 1, medal: MEDALS[0], featured: true },
                   { e: yearEnd[2], pos: 3, medal: BRONZE, featured: false },
                 ];
             return (
@@ -104,7 +104,7 @@ export default function YearEndPage({ ctx }) {
                       borderRadius:"16px",
                       background:isDark?"#0F120F":"#FFF",
                       color:isDark?"#F6F3EA":"#050505",
-                      boxShadow:expanded ? (isDark?"inset 4px 0 0 #C89116, 0 8px 22px rgba(0,0,0,0.26)":"inset 4px 0 0 #C89116, 0 8px 22px rgba(0,0,0,0.045)") : (isDark?"0 2px 10px rgba(0,0,0,0.16)":"0 2px 10px rgba(0,0,0,0.025)"),
+                      boxShadow:expanded ? (isDark?"inset 4px 0 0 #B8860B, 0 8px 22px rgba(0,0,0,0.26)":"inset 4px 0 0 #B8860B, 0 8px 22px rgba(0,0,0,0.045)") : (isDark?"0 2px 10px rgba(0,0,0,0.16)":"0 2px 10px rgba(0,0,0,0.025)"),
                       transition:"background 180ms ease, box-shadow 180ms ease, transform 180ms ease",
                     }}
                   >
@@ -230,7 +230,7 @@ export default function YearEndPage({ ctx }) {
                           style={{
                             marginTop:"11px",
                             width:"100%",
-                            border:"1px solid "+(isDark?"rgba(200,145,22,0.42)":"rgba(184,134,11,0.22)"),
+                            border:"1px solid "+(isDark?"rgba(184,134,11,0.42)":"rgba(184,134,11,0.22)"),
                             borderRadius:"13px",
                             background:isDark?"#151915":"#FFF",
                             color:GOLD,

@@ -15,6 +15,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { FULL, MONTHS } from "./data/liveChartData";
+import { buildRegionalCombinedRows } from "./data/regionalCombinedChart";
 import PremiumChartsPage, { getArtistCountry } from "./components/PremiumChartsPage";
 
 import AboutPage from "./pages/AboutPage";
@@ -56,6 +57,7 @@ const PUBLIC_PLATFORMS = PUBLIC_DATA.platforms || [];
 const platformKeys = (predicate) => PUBLIC_PLATFORMS.filter(predicate).map((item) => item.name.toUpperCase());
 const S_PLATS = ["Combined", ...(PUBLIC_PLATFORMS.length ? platformKeys((item) => item.supports_singles) : ["APPLE MUSIC","AUDIOMACK","BOOMPLAY","SPOTIFY","YOUTUBE","SHAZAM"])];
 const A_PLATS = ["Combined", ...(PUBLIC_PLATFORMS.length ? platformKeys((item) => item.supports_albums) : ["APPLE MUSIC","AUDIOMACK"])];
+const KENYAN_CHART = "Kenyan";
 const PLAT_LABEL = PUBLIC_PLATFORMS.reduce((result, item) => ({...result, [item.name.toUpperCase()]: item.name}), {"APPLE MUSIC":"Apple Music","AUDIOMACK":"Audiomack","BOOMPLAY":"Boomplay","SPOTIFY":"Spotify","YOUTUBE":"YouTube","SHAZAM":"Shazam"});
 const PC = PUBLIC_PLATFORMS.reduce((result, item) => ({...result, [item.name]: item.brand_color || item.color, [item.name.toUpperCase()]: item.brand_color || item.color}), {"Apple Music":"#FC3C44","APPLE MUSIC":"#FC3C44","Audiomack":"#F68B1F","AUDIOMACK":"#F68B1F","Boomplay":"#00FFFF","BOOMPLAY":"#00FFFF","Spotify":"#1DB954","SPOTIFY":"#1DB954","YouTube":"#FF0000","YOUTUBE":"#FF0000","Shazam":"#0088FF","SHAZAM":"#0088FF"});
 const GOLD=THEME_SETTING.primary || "#B8860B"; const SILVER="#8C8C8C"; const BRONZE="#CD7F32";
@@ -196,6 +198,8 @@ const monthIndex = m => MONTHS.indexOf(m);
 const rawCombined = (ct, m) => FULL[ct].combined[m] || [];
 const rawPlatform = (ct, pl, m) => ((FULL[ct].platforms[pl] || {})[m] || []);
 const combinedEntryCache = new Map();
+const kenyanRawCache = new Map();
+const kenyanEntryCache = new Map();
 const platformEntryCache = new Map();
 const rawPlatformIndexCache = new Map();
 
@@ -309,6 +313,35 @@ const getCombined = (ct, m) => {
     );
   }
   return combinedEntryCache.get(cacheKey);
+};
+
+const rawKenyanCombined = (ct, m) => {
+  const cacheKey = `${ct}|${m}`;
+  if (!kenyanRawCache.has(cacheKey)) {
+    kenyanRawCache.set(cacheKey, buildRegionalCombinedRows({
+      full: FULL,
+      chartType: ct,
+      month: m,
+      countryCode: "KE",
+      resolveCountryCode: (entry) => getArtistCountry({
+        country_code: entry.cc,
+        primary_artist: entry.a,
+        artist: entry.a,
+      }).code,
+    }));
+  }
+  return kenyanRawCache.get(cacheKey);
+};
+
+const getKenyanCombined = (ct, m) => {
+  const cacheKey = `${ct}|${m}`;
+  if (!kenyanEntryCache.has(cacheKey)) {
+    kenyanEntryCache.set(
+      cacheKey,
+      enrichChartEntries(rawKenyanCombined(ct, m), (monthLabel) => rawKenyanCombined(ct, monthLabel), m, ct === "albums" ? 2 : 6)
+    );
+  }
+  return kenyanEntryCache.get(cacheKey);
 };
 
 const getPlatform = (ct, pl, m) => {
@@ -974,7 +1007,7 @@ export default function NgomaCharts(){
   const isSingles = ct === "singles";
   const isAlbums = ct === "albums";
   const releaseCt = isAlbums ? "albums" : "singles";
-  const platList = isArtists ? S_PLATS : (isSingles ? S_PLATS : A_PLATS);
+  const platList = isArtists ? S_PLATS : (isSingles ? ["Combined", KENYAN_CHART, ...S_PLATS.slice(1)] : A_PLATS);
   const tp = isArtists ? ARTIST_PLATS.length : (isSingles ? 6 : 2);
 
   useEffect(() => {
@@ -1013,8 +1046,9 @@ export default function NgomaCharts(){
   useEffect(() => {
     setLiveChartEntries([]);
     setLiveChartMeta(null);
+    setLiveChartLoading(false);
 
-    if (isArtists) return;
+    if (isArtists || plat === KENYAN_CHART) return;
     if (!API_BASE) return;
 
     const { monthNumber, year } = getMonthYearParts(month);
@@ -1118,6 +1152,7 @@ export default function NgomaCharts(){
 
 const getData = () => {
   if (isArtists) return buildArtistChart(month, plat);
+  if (plat === KENYAN_CHART) return getKenyanCombined(releaseCt, month);
   return plat === "Combined" ? getCombined(releaseCt, month) : getPlatform(releaseCt, plat, month);
 };
 
@@ -2161,6 +2196,7 @@ const top = data[0];
     getArtistCountry,
     getCertificationForEntry,
     getCombined,
+    getChartHistory: plat === KENYAN_CHART ? getKenyanCombined : getCombined,
     hof,
     isDark,
     isMobile,

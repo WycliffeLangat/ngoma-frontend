@@ -8,7 +8,7 @@
    2. Charts hero section is now light/white.
    3. Chart table/container is now light/white.
    4. Rows no longer turn white and hide text on hover.
-   5. Hover uses a soft gold highlight.
+   5. Hover uses a soft dark-gold highlight.
    6. Footer remains dark.
    ========================================================= */
 
@@ -30,10 +30,10 @@
   --ngoma-muted: #777777;
   --ngoma-muted-light: #b8b8b8;
 
-  --ngoma-gold: #c89116;
-  --ngoma-gold-bright: #f0b429;
-  --ngoma-gold-soft: rgba(200, 145, 22, 0.14);
-  --ngoma-gold-border: rgba(200, 145, 22, 0.42);
+  --ngoma-gold: #b8860b;
+  --ngoma-gold-bright: #d4a017;
+  --ngoma-gold-soft: rgba(184, 134, 11, 0.14);
+  --ngoma-gold-border: rgba(184, 134, 11, 0.42);
 
   --ngoma-green: #2fb153;
   --ngoma-blue: #1f6fd1;
@@ -181,7 +181,7 @@ main {
 .ngoma-nav .active {
   color: var(--ngoma-text);
   border-color: var(--ngoma-gold);
-  background: rgba(200, 145, 22, 0.12);
+  background: rgba(184, 134, 11, 0.12);
 }
 
 .nav-pill,
@@ -415,7 +415,7 @@ small,
 .summary-card:hover,
 .leader-card:hover {
   background: var(--ngoma-white);
-  border-color: rgba(200, 145, 22, 0.32);
+  border-color: rgba(184, 134, 11, 0.32);
 }
 
 .card h1,
@@ -544,7 +544,7 @@ small,
 .month-filter:hover {
   color: var(--ngoma-gold);
   border-color: var(--ngoma-gold-border);
-  background: rgba(200, 145, 22, 0.08);
+  background: rgba(184, 134, 11, 0.08);
 }
 
 .tab.active,
@@ -1258,7 +1258,7 @@ select:focus,
 textarea:focus,
 .search-input:focus {
   border-color: var(--ngoma-gold);
-  box-shadow: 0 0 0 3px rgba(200, 145, 22, 0.16);
+  box-shadow: 0 0 0 3px rgba(184, 134, 11, 0.16);
 }
 
 .search-icon,
@@ -1337,7 +1337,7 @@ textarea:focus,
 
 .dropdown-item:hover,
 .menu-item:hover {
-  background: rgba(200, 145, 22, 0.1);
+  background: rgba(184, 134, 11, 0.1);
   color: var(--ngoma-text);
 }
 
@@ -1882,7 +1882,7 @@ main,
 .metric-card .rank,
 [class*="leader"] .rank,
 [class*="Leader"] .rank {
-  color: #c89116 !important;
+  color: #b8860b !important;
 }
 
 /* Filters area */
@@ -1924,9 +1924,9 @@ button[class*="Tab"] {
 .platform-filter.active,
 .month-filter.active,
 button.active {
-  background: #c89116 !important;
+  background: #b8860b !important;
   color: #050505 !important;
-  border-color: #c89116 !important;
+  border-color: #b8860b !important;
 }
 
 /* Main chart/table containers should be white */
@@ -2031,7 +2031,7 @@ tr:hover,
 [class*="Item"]:hover {
   background: #fff7e6 !important;
   color: #050505 !important;
-  box-shadow: inset 4px 0 0 #c89116 !important;
+  box-shadow: inset 4px 0 0 #b8860b !important;
 }
 
 /* Make all text inside rows readable */
@@ -2109,7 +2109,7 @@ ranking-item *,
 [class*="Points"],
 [class*="score"],
 [class*="Score"] {
-  color: #c89116 !important;
+  color: #b8860b !important;
 }
 
 /* Platform badges */
@@ -2152,7 +2152,7 @@ ranking-item *,
 .footer .gold-text,
 .site-footer .gold-text,
 .ngoma-footer .gold-text {
-  color: #c89116 !important;
+  color: #b8860b !important;
 }
 /* =========================================================
    MOBILE ANALYTICS CARD + CHART CENTERING FIX
@@ -2473,7 +2473,7 @@ html[data-ngoma-theme="dark"] {
   --ngoma-control-bg: #151815;
   --ngoma-control-hover: #1e241e;
   --ngoma-dark-shadow: rgba(0, 0, 0, 0.38);
-  --ngoma-soft-gold-bg: rgba(200, 145, 22, 0.18);
+  --ngoma-soft-gold-bg: rgba(184, 134, 11, 0.18);
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
@@ -2593,7 +2593,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
   background-color: #181c18 !important;
   color: #f6f3ea !important;
   border-color: #343a34 !important;
-  box-shadow: inset 4px 0 0 #c89116 !important;
+  box-shadow: inset 4px 0 0 #b8860b !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
@@ -2653,9 +2653,9 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
   summary,
   [role="button"]
 ):focus-visible {
-  outline: 2px solid rgba(200, 145, 22, 0.78) !important;
+  outline: 2px solid rgba(184, 134, 11, 0.78) !important;
   outline-offset: 2px !important;
-  box-shadow: 0 0 0 4px rgba(200, 145, 22, 0.16) !important;
+  box-shadow: 0 0 0 4px rgba(184, 134, 11, 0.16) !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
@@ -2666,9 +2666,9 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
   [data-active="true"],
   [data-selected="true"]
 ) {
-  background-color: rgba(200, 145, 22, 0.20) !important;
+  background-color: rgba(184, 134, 11, 0.20) !important;
   color: #f6f3ea !important;
-  border-color: rgba(200, 145, 22, 0.42) !important;
+  border-color: rgba(184, 134, 11, 0.42) !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background:#FAFAF6" i],
@@ -2994,7 +2994,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
   background-color: #181c18 !important;
   color: #f6f3ea !important;
   border-color: #3a423a !important;
-  box-shadow: inset 4px 0 0 #c89116 !important;
+  box-shadow: inset 4px 0 0 #b8860b !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell select option {

@@ -672,14 +672,14 @@ export default function PremiumChartsPage({
 
   const darkMode = Boolean(isDark || detectedDarkMode);
   const isArtistsChart = ct === "artists";
+  const isKenyanChart = plat === "Kenyan";
 
   const chartTitle = "NGOMA TOP 50";
-  const chartRegion = "(KENYA)";
+  const chartRegion = isKenyanChart ? "(KENYAN SONGS)" : "(KENYA)";
   const chartDisplayTitle = `${chartTitle} ${chartRegion}`;
   const chartLabel = isArtistsChart ? "Artists" : (isSingles ? "Singles" : "Albums");
-  const platformLabel =
-    liveChartMeta?.platform || (plat === "Combined" ? "Combined" : PLAT_LABEL[plat] || plat);
-  const chartAccent = plat === "Combined" ? GOLD : PC[plat] || GOLD;
+  const platformLabel = liveChartMeta?.platform || (isKenyanChart ? "Kenyan Songs" : (plat === "Combined" ? "Combined" : PLAT_LABEL[plat] || plat));
+  const chartAccent = isKenyanChart ? COUNTRY_ACCENTS.KE : (plat === "Combined" ? GOLD : PC[plat] || GOLD);
   const chartAccentInk = plat === "BOOMPLAY" ? "#007C7C" : chartAccent;
 
   function movement(item) {
@@ -1214,7 +1214,7 @@ export default function PremiumChartsPage({
     year: "numeric",
   });
 
-  const isCombinedChart = plat === "Combined";
+  const isCombinedChart = plat === "Combined" || isKenyanChart;
   const crossPlatformHitsCount = data.filter((item) => {
     const count = Number(String(item.plat || item.platform_count || "").split("/")[0]);
     return count >= tp;
@@ -1425,9 +1425,9 @@ export default function PremiumChartsPage({
           >
             {platList.map((item) => {
               const active = plat === item;
-              const color = item === "Combined" ? GOLD : PC[item] || GOLD;
+              const color = item === "Kenyan" ? COUNTRY_ACCENTS.KE : (item === "Combined" ? GOLD : PC[item] || GOLD);
               const ink = item === "BOOMPLAY" ? "#007C7C" : color;
-              const label = item === "Combined" ? item : PLAT_LABEL[item] || item;
+              const label = item === "Kenyan" ? "Kenyan Top 50" : (item === "Combined" ? item : PLAT_LABEL[item] || item);
 
               return (
                 <button
@@ -1814,7 +1814,7 @@ const styles = {
   },
 
   eyebrowDivider: {
-    color: "#c89116",
+    color: "#B8860B",
   },
 
   heroMain: {
@@ -1891,7 +1891,7 @@ const styles = {
     marginTop: "12px",
     lineHeight: 0.85,
     fontWeight: 950,
-    color: "#c89116",
+    color: "#B8860B",
   },
 
   numberOneTitle: {
@@ -1925,8 +1925,8 @@ const styles = {
     marginTop: "18px",
     padding: "8px 13px",
     borderRadius: "999px",
-    background: "rgba(200,145,22,0.14)",
-    color: "#c89116",
+    background: "rgba(184,134,11,0.14)",
+    color: "#B8860B",
     fontSize: "12px",
     fontWeight: 900,
   },
@@ -2082,8 +2082,8 @@ const styles = {
   tableRange: {
     padding: "10px 14px",
     borderRadius: "999px",
-    background: "rgba(200,145,22,0.14)",
-    color: "#c89116",
+    background: "rgba(184,134,11,0.14)",
+    color: "#B8860B",
     fontSize: "13px",
     fontWeight: 900,
     letterSpacing: "1px",

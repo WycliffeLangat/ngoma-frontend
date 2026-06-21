@@ -28,7 +28,7 @@ export default function AboutPage({ ctx }) {
               <p style={{fontSize:TXT.body,color:isDark?"#D7DBD7":"#555F59",lineHeight:1.72,margin:0,fontFamily:F}}>{PUBLIC_METHODOLOGY?.config?.description || "Every month, Ngoma Charts reviews platform chart positions for singles and albums. Each platform ranking is normalized into points, the platform results are combined, and the highest-scoring releases form the Combined Top 50. Movement, peak, months on chart and platform coverage are then calculated from the release's full chart history."}</p>
               {PUBLIC_METHODOLOGY&&<div style={{marginTop:"10px",fontFamily:F,fontSize:"10px",fontWeight:800,color:GOLD}}>Methodology: {PUBLIC_METHODOLOGY.name} ({PUBLIC_METHODOLOGY.version})</div>}
               <div style={{marginTop:"15px",padding:"12px",background:isDark?"#151815":"#FAF8F2",borderRadius:"12px",border:isDark?"1px solid #2F352F":"1px solid #EDE6D6"}}>
-                <div style={{height:"8px",borderRadius:"999px",background:"linear-gradient(90deg,#B8860B 0%,#E7C86C 48%,#E9E7E0 100%)"}}></div>
+                <div style={{height:"8px",borderRadius:"999px",background:"linear-gradient(90deg,#B8860B 0%,#D4A017 48%,#E9E7E0 100%)"}}></div>
                 <div style={{display:"flex",justifyContent:"space-between",marginTop:"7px",fontFamily:F,fontSize:"10px",fontWeight:850,color:isDark?"#B8BDB8":"#59645D"}}><span>Higher rank = more points</span><span>Top 50 tracked monthly</span></div>
               </div>
             </div>

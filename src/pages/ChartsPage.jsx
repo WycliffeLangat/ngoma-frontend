@@ -16,6 +16,7 @@ export default function ChartsPage({ ctx }) {
     data,
     display,
     getCertificationForEntry,
+    getChartHistory,
     getCombined,
     isMobile,
     isSingles,
@@ -70,7 +71,7 @@ export default function ChartsPage({ ctx }) {
     setSelR={setSelR}
     onOpenArtist={openArtistDetails}
     onOpenRelease={openReleaseDetails}
-    getCombined={getCombined}
+    getCombined={getChartHistory || getCombined}
     liveChartLoading={liveChartLoading}
 liveChartMeta={liveChartMeta}
 liveStatus={liveStatus}
