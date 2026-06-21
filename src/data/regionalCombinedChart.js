@@ -1,5 +1,16 @@
+function normArtistKey(str) {
+  return String(str || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s*\|\s*.+$/, "")
+    .replace(/\s+(?:ft\.?|feat\.?|featuring|w\/)\s+.+$/i, "")
+    .replace(/\s+x\s+.+$/i, "")
+    .replace(/\s+&\s+.+$/i, "")
+    .trim();
+}
+
 const releaseKey = (entry = {}) =>
-  `${String(entry.t || entry.title || "").trim().toLowerCase()}|||${String(entry.a || entry.primary_artist || entry.artist || "").trim().toLowerCase()}`;
+  `${String(entry.t || entry.title || "").trim().toLowerCase()}|||${normArtistKey(entry.a || entry.primary_artist || entry.artist || "")}`;
 
 const hasValue = (value) => value !== undefined && value !== null && value !== "";
 

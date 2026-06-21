@@ -201,7 +201,20 @@ function platformToSlug(platform) {
 }
 
 // Helpers — return entries from FULL with proper month-to-month chart history
-const entryKey = e => `${String(e.t || e.title || "").trim().toLowerCase()}|||${String(e.primary_artist || e.a || e.artist || "").trim().toLowerCase()}`;
+// Strip featuring/collaboration suffixes from the artist field so that
+// "Artist ft. X", "Artist & X", "Artist x X", "Artist|X" all key to "Artist".
+// Titles with "Remix", "Deluxe", "2.0" etc. remain distinct because the title is unchanged.
+function normArtistKey(str) {
+  return String(str || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s*\|\s*.+$/, "")
+    .replace(/\s+(?:ft\.?|feat\.?|featuring|w\/)\s+.+$/i, "")
+    .replace(/\s+x\s+.+$/i, "")
+    .replace(/\s+&\s+.+$/i, "")
+    .trim();
+}
+const entryKey = e => `${String(e.t || e.title || "").trim().toLowerCase()}|||${normArtistKey(e.primary_artist || e.a || e.artist || "")}`;
 const sameRelease = (left, right) => entryKey(left) === entryKey(right);
 const monthIndex = m => MONTHS.indexOf(m);
 
