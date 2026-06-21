@@ -18,6 +18,10 @@ import { FULL, MONTHS } from "./data/liveChartData";
 import { buildRegionalCombinedRows } from "./data/regionalCombinedChart";
 import PremiumChartsPage, { getArtistCountry } from "./components/PremiumChartsPage";
 
+// Persists cover images fetched from the live API so the Kenyan chart
+// (which never calls the API directly) can still show artwork.
+const coverImageCache = new Map();
+
 import AboutPage from "./pages/AboutPage";
 import NewsDetailPage from "./pages/NewsDetailPage";
 import NewsPage from "./pages/NewsPage";
@@ -1118,6 +1122,9 @@ export default function NgomaCharts(){
           };
         });
 
+        entries.forEach((e) => {
+          if (e.cover_image) coverImageCache.set(entryKey(e), e.cover_image);
+        });
         setLiveChartEntries(entries);
         setLiveChartMeta(chartData);
         setLiveStatus("live");
@@ -1161,7 +1168,15 @@ export default function NgomaCharts(){
 
 const getData = () => {
   if (isArtists) return buildArtistChart(month, plat);
-  if (plat === KENYAN_CHART) return getKenyanCombined(releaseCt, month);
+  if (plat === KENYAN_CHART) {
+    const kenyan = getKenyanCombined(releaseCt, month);
+    if (!coverImageCache.size) return kenyan;
+    return kenyan.map((e) => {
+      if (e.cover_image) return e;
+      const img = coverImageCache.get(entryKey(e));
+      return img ? { ...e, cover_image: img } : e;
+    });
+  }
   return plat === "Combined" ? getCombined(releaseCt, month) : getPlatform(releaseCt, plat, month);
 };
 

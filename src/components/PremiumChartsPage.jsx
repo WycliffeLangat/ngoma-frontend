@@ -1078,8 +1078,11 @@ export default function PremiumChartsPage({
       const aliases = normalizeDetailValue(artistProfile.aliases || item.aliases, "");
       const artistLinks = artistProfile.social_links || item.social_links || {};
       const hasArtistLinks = Object.values(artistLinks).some(Boolean);
+      const compactMove = compact ? movement(item) : null;
+      const compactMoveStyle = compact ? movementStyle(item) : null;
       return (
         <div style={gridStyle}>
+          {compact && <DetailCard label="Move" value={compactMove.label || "—"} accent={compactMoveStyle.color} />}
           {compact && <DetailCard label="L.M" value={profile.lastMonth} />}
           {compact && <DetailCard label="Peak" value={profile.peak} />}
           {hasCountry && <DetailCard label="Country" value={countryLabel} accent={badge.accent} />}
@@ -1100,8 +1103,13 @@ export default function PremiumChartsPage({
 
     const primaryCredit = firstDetailValue(item, ["primary_artist_credit"], "");
     const featuredCredit = firstDetailValue(item, ["featured_artist_credit"], "");
+    const compactMove = compact ? movement(item) : null;
+    const compactMoveStyle = compact ? movementStyle(item) : null;
     return (
       <div style={gridStyle}>
+        {compact && <DetailCard label="Move" value={compactMove.label || "—"} accent={compactMoveStyle.color} />}
+        {compact && <DetailCard label="L.M" value={profile.lastMonth} />}
+        {compact && <DetailCard label="Peak" value={profile.peak} />}
         {primaryCredit && <DetailCard label="Main artist(s)" value={primaryCredit} wide />}
         {featuredCredit && <DetailCard label="Featuring" value={featuredCredit} wide />}
         {getSongwriterDetails(item) !== "—" && <DetailCard label="Songwriter(s)" value={getSongwriterDetails(item)} wide />}
@@ -1637,31 +1645,18 @@ export default function PremiumChartsPage({
                       )}
                     </div>
 
-                    <div style={styles.mobileMovementWrap}>
-                      <div
-                        style={{
-                          ...styles.moveBadge,
-                          color: moveStyle.color,
-                          background: moveStyle.background,
-                          minWidth: "46px",
-                        }}
-                      >
-                        {move.label || "—"}
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          toggleRow(rowKey);
-                        }}
-                        style={{ ...styles.mobileDetailsToggle, ...(darkMode ? styles.mobileDetailsToggleDark : null) }}
-                        aria-label={expanded ? "Hide chart details" : "Show chart details"}
-                        aria-expanded={expanded}
-                      >
-                        {expanded ? "▴" : "▾"}
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        toggleRow(rowKey);
+                      }}
+                      style={{ ...styles.mobileDetailsToggle, ...(darkMode ? styles.mobileDetailsToggleDark : null) }}
+                      aria-label={expanded ? "Hide chart details" : "Show chart details"}
+                      aria-expanded={expanded}
+                    >
+                      {expanded ? "▴" : "▾"}
+                    </button>
                   </div>
 
                   {expanded && (

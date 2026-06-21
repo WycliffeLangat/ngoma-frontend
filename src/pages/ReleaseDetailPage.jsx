@@ -42,7 +42,8 @@ export default function ReleaseDetailPage({ ctx }) {
         const platformNames = new Set(journey.flatMap((item) => item.platforms.map((entry) => entry.platform)));
         const totalPoints = combinedHistory.reduce((sum, item) => sum + Number(item.combined?.pts || 0), 0);
         const peakRank = combinedHistory.reduce((best, item) => Math.min(best, Number(item.combined?.rank || 999)), 999);
-        const currentCombined = combinedHistory[combinedHistory.length - 1];
+        const latestJourney = journey[journey.length - 1];
+        const currentCombined = latestJourney?.combined ? latestJourney : null;
         const numberOneMonths = combinedHistory.filter((item) => Number(item.combined.rank) === 1).length;
         const bestCoverage = combinedHistory.reduce((best, item) => Math.max(best, Number(String(item.combined.plat || "0").split("/")[0]) || 0), 0);
         const releaseRankData = combinedHistory.map((item) => ({month:item.month.split(" ")[0].slice(0,3),rank:Number(item.combined.rank),points:Number(item.combined.pts)||0}));
@@ -107,7 +108,7 @@ export default function ReleaseDetailPage({ ctx }) {
                 {label:"Months Charted",value:combinedHistory.length},
                 {label:"#1 Months",value:numberOneMonths},
                 {label:"Platforms",value:platformNames.size},
-                {label:"Best Coverage",value:`${bestCoverage}/${isSingles?6:2}`},
+                {label:"Best Coverage",value:`${bestCoverage}/${isAlbum?2:6}`},
                 {label:"Release Year",value:selR.release_year||releaseMetadata.release_year||"—"},
               ].map((stat)=><div key={stat.label} style={{padding:"12px 13px",border:"1px solid #ECE9E1",borderRadius:"10px",background:"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:"#7B857D"}}>{stat.label}</div><div style={{fontFamily:F,fontSize:"19px",fontWeight:900,color:"#1A1A1A",marginTop:"5px"}}>{stat.value}</div></div>)}
             </div>
