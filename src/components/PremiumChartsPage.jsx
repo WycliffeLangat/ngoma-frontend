@@ -547,6 +547,15 @@ export function countryCodeToFlag(countryCode) {
 let _cmsArtistMapRevision = null;
 let _cmsArtistMap = null;
 
+function normArtistKeyLocal(str) {
+  return String(str || "").trim().toLowerCase()
+    .replace(/\s*\|\s*.+$/, "")
+    .replace(/\s+(?:ft\.?|feat\.?|featuring|w\/)\s+.+$/i, "")
+    .replace(/\s+x\s+.+$/i, "")
+    .replace(/\s+&\s+.+$/i, "")
+    .trim();
+}
+
 function findCmsArtist(artistName) {
   const publicData = typeof window !== "undefined" ? (window.__NGOMA_PUBLIC_DATA__ || {}) : {};
   const revision = publicData.revision || "";
@@ -561,7 +570,8 @@ function findCmsArtist(artistName) {
     });
   }
   const key = String(artistName || "").trim().toLowerCase();
-  return key ? (_cmsArtistMap.get(key) || null) : null;
+  if (!key) return null;
+  return _cmsArtistMap.get(key) || _cmsArtistMap.get(normArtistKeyLocal(key)) || null;
 }
 
 export function getArtistCountry(item) {

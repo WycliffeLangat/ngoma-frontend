@@ -48,7 +48,11 @@ const PUBLIC_ARTISTS_BY_NAME = new Map();
     if (key && !PUBLIC_ARTISTS_BY_NAME.has(key)) PUBLIC_ARTISTS_BY_NAME.set(key, artist);
   });
 });
-const publicArtistForName = (name = "") => PUBLIC_ARTISTS_BY_NAME.get(String(name || "").trim().toLowerCase()) || null;
+const publicArtistForName = (name = "") => {
+  const key = String(name || "").trim().toLowerCase();
+  if (!key) return null;
+  return PUBLIC_ARTISTS_BY_NAME.get(key) || PUBLIC_ARTISTS_BY_NAME.get(normArtistKey(key)) || null;
+};
 const SITE_SETTINGS = PUBLIC_DATA.settings || {};
 const settingValue = (key, fallback = {}) => SITE_SETTINGS[key] ?? fallback;
 const siteNameSetting = settingValue("site_name", {});
@@ -218,6 +222,15 @@ const entryKey = e => `${String(e.t || e.title || "").trim().toLowerCase()}|||${
 const sameRelease = (left, right) => entryKey(left) === entryKey(right);
 const monthIndex = m => MONTHS.indexOf(m);
 
+// Precise CMS release lookup keyed by title + normalized primary artist.
+// Preferred over the title-only map when available, avoiding false matches
+// on songs that share a title but have different artists.
+const PUBLIC_RELEASES_BY_KEY = new Map();
+(PUBLIC_DATA.releases || []).forEach((release) => {
+  const key = entryKey({ t: release.title, a: release.primary_artist || release.artist || "" });
+  if (key && key !== "|||" && !PUBLIC_RELEASES_BY_KEY.has(key)) PUBLIC_RELEASES_BY_KEY.set(key, release);
+});
+
 const rawCombined = (ct, m) => FULL[ct].combined[m] || [];
 const rawPlatform = (ct, pl, m) => ((FULL[ct].platforms[pl] || {})[m] || []);
 const combinedEntryCache = new Map();
@@ -285,6 +298,7 @@ function enrichChartEntries(entries, getRawEntries, currentMonth, totalPlatforms
 
     const releaseDetails =
       PUBLIC_RELEASES_BY_ID.get(Number(e.release_id)) ||
+      PUBLIC_RELEASES_BY_KEY.get(entryKey(e)) ||
       PUBLIC_RELEASES_BY_TITLE.get(String(e.t || "").trim().toLowerCase()) ||
       {};
     const primaryArtists = e.primary_artists || releaseDetails.primary_artists || [];
