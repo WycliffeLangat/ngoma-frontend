@@ -57,12 +57,12 @@ export default function YearEndPage({ ctx }) {
                   const certification = isArtists ? null : getCertificationForEntry(e, isSingles ? "single" : "album");
                   return(<div key={`${pos}-${e.t}-${e.a}`} style={{textAlign:"center"}}>
                     <div style={{background:isDark?"#0F120F":featured?"linear-gradient(180deg,#FFF9E8 0%,#FFFDF8 100%)":medal+"12",border:(featured?"2.5px":"2px")+" solid "+medal,borderRadius:isMobile?"12px":"13px",padding:featured?(isMobile?"18px 12px":"18px 14px"):(isMobile?"15px 12px":"16px 12px"),boxShadow:isDark?"none":featured?"0 14px 36px rgba(184,134,11,0.16)":"none",transform:(!isMobile&&featured)?"translateY(-2px)":"none"}}>
-                      <div style={{fontSize:featured?(isMobile?"33px":"38px"):"32px",fontWeight:950,color:medal,lineHeight:1}}>#{pos}</div>
+                      <div style={{fontSize:featured?(isMobile?"33px":"38px"):"32px",fontWeight:950,color:medal,lineHeight:1,letterSpacing:"-1px"}}>#{pos}</div>
                       <CountryBadge artist={isArtists ? e.t : e.a} style={{margin:"10px auto 0",minWidth:isMobile?"34px":"38px",height:isMobile?"30px":"34px",borderRadius:"11px",padding:"0 7px"}} />
                       <button type="button" onClick={()=>isArtists ? openArtistDetails(e.t) : openReleaseDetails(e,isSingles?"single":"album")} style={{display:"block",width:"100%",border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:featured?(isMobile?"16px":"16px"):TXT.cardTitle,fontWeight:850,margin:"8px 0 4px",lineHeight:1.18,cursor:"pointer",color:isDark?"#F6F3EA":"#050505"}}>{e.t}</button>
                       <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(isArtists ? e.t : e.a);}} style={{display:"block",width:"100%",fontSize:TXT.cardMeta,color:isDark?"#D7DBD7":"#59645D",fontFamily:F,fontWeight:750,marginBottom:"6px",padding:0,border:0,background:"transparent",cursor:"pointer"}}>{e.a}</button>
                       {certification&&<CertificationTag cert={certification} compact style={{margin:"0 auto 8px"}} />}
-                      <div style={{fontSize:featured?(isMobile?"18px":"20px"):"18px",fontWeight:850,color:medal}}>{e.totalPts.toLocaleString()}</div>
+                      <div style={{fontSize:featured?(isMobile?"18px":"20px"):"16px",fontWeight:900,color:medal}}>{e.totalPts.toLocaleString()}</div>
                     </div>
                   </div>);
                 })}
@@ -298,7 +298,7 @@ export default function YearEndPage({ ctx }) {
                       onMouseEnter={e=>e.currentTarget.style.background="#FAFAF6"}
                       onMouseLeave={e=>e.currentTarget.style.background="transparent"}
                     >
-                      <div style={{textAlign:"center",fontSize:t3?"20px":"13px",fontWeight:850,color:t3?MEDALS[idx]:"#BFC4BF"}}>{idx+1}</div>
+                      <div style={{textAlign:"center",fontSize:t3?"20px":"14px",fontWeight:900,color:t3?MEDALS[idx]:"#B0B5B0",letterSpacing:"-0.3px"}}>{idx+1}</div>
 
                       <div style={{display:"flex",alignItems:"center",gap:"12px",minWidth:0}}>
                         <CountryBadge artist={isArtists ? item.t : item.a} style={{minWidth:"50px",width:"50px",height:"50px",borderRadius:"14px",padding:0,flexShrink:0}} />
@@ -342,9 +342,9 @@ export default function YearEndPage({ ctx }) {
                         textAlign:"center",
                         justifySelf:"stretch",
                         fontFamily:F,
-                        fontSize:t3?"14px":TXT.cardMeta,
-                        fontWeight:850,
-                        color:t3?GOLD:"#59645D",
+                        fontSize:t3?"15px":"13px",
+                        fontWeight:900,
+                        color:t3?GOLD:"#8a9288",
                         whiteSpace:"nowrap"
                       }}>
                         {item.totalPts.toLocaleString()}
@@ -354,9 +354,9 @@ export default function YearEndPage({ ctx }) {
                         textAlign:"center",
                         justifySelf:"stretch",
                         fontFamily:F,
-                        fontSize:"11px",
-                        color:"#7B817B",
-                        fontWeight:750,
+                        fontSize:"12px",
+                        color:"#8a9288",
+                        fontWeight:800,
                         whiteSpace:"nowrap"
                       }}>
                         {item.months}
