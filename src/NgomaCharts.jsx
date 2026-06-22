@@ -2118,6 +2118,15 @@ const top = data[0];
   const CertificationTag = ({ cert, compact = true, style = {} }) => {
     if (!cert) return null;
     const certificationLabel = `${cert.label} certified · ${Number(cert.totalPts || 0).toLocaleString()} points`;
+    if (compact) return (
+      <span
+        style={{ display: "inline-flex", alignItems: "center", fontSize: "11px", lineHeight: 1, verticalAlign: "middle", ...style }}
+        title={certificationLabel}
+        aria-label={certificationLabel}
+      >
+        <span aria-hidden="true">{cert.icon}</span>
+      </span>
+    );
     return (
       <span
         style={{
@@ -2126,15 +2135,15 @@ const top = data[0];
           justifyContent: "center",
           width: "fit-content",
           maxWidth: "100%",
-          minWidth: compact ? "24px" : "30px",
-          minHeight: compact ? "24px" : "30px",
-          padding: compact ? "2px 5px" : "4px 6px",
+          minWidth: "24px",
+          minHeight: "24px",
+          padding: "3px 5px",
           borderRadius: "999px",
           background: `${cert.color}14`,
           border: `1px solid ${cert.color}40`,
           color: cert.color,
           fontFamily: F,
-          fontSize: compact ? "13px" : "17px",
+          fontSize: "14px",
           lineHeight: 1.1,
           whiteSpace: "nowrap",
           verticalAlign: "middle",
