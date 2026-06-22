@@ -94,8 +94,8 @@ export default function ReleaseDetailPage({ ctx }) {
           <div style={{marginTop:"20px"}}>
             {releaseDetails.cover_image&&<img src={releaseDetails.cover_image} alt={`${selR.title} cover`} style={{width:isMobile?"120px":"150px",aspectRatio:"1",objectFit:"cover",borderRadius:"14px",marginBottom:"16px",boxShadow:"0 10px 28px rgba(0,0,0,0.12)"}} />}
             <div style={{fontFamily:F,fontSize:"10px",letterSpacing:"2px",textTransform:"uppercase",color:GOLD,marginBottom:"6px"}}>{selR.type||"single"}</div>
-            <h1 style={{fontSize:isMobile?"24px":"30px",fontWeight:850,margin:"0 0 4px",lineHeight:1.12}}>
-              {selR.title}{selectedCertification&&<span aria-label={`${selectedCertification.label} certified`} title={`${selectedCertification.label} certified · ${Number(selectedCertification.totalPts||0).toLocaleString()} points`} style={{marginLeft:"6px",fontSize:isMobile?"12px":"18px",opacity:0.85,display:"inline-flex",alignItems:"center",lineHeight:1,verticalAlign:"middle",position:"relative",top:"-0.3em"}}>{selectedCertification.icon}</span>}
+            <h1 style={{display:"flex",alignItems:"center",fontSize:isMobile?"24px":"30px",fontWeight:850,margin:"0 0 4px",lineHeight:1.12}}>
+              {selR.title}{selectedCertification&&<span aria-label={`${selectedCertification.label} certified`} title={`${selectedCertification.label} certified · ${Number(selectedCertification.totalPts||0).toLocaleString()} points`} style={{marginLeft:"6px",fontSize:isMobile?"12px":"18px",opacity:0.85,lineHeight:1}}>{selectedCertification.icon}</span>}
             </h1>
             <div style={{display:"flex",alignItems:"center",gap:"9px",flexWrap:"wrap",margin:"0 0 16px"}}>
               <button type="button" onClick={()=>openArtistDetails(selR.primary_artist||selR.artist)} style={{fontSize:isMobile?"15px":"18px",color:"#4E5851",margin:0,padding:0,border:0,background:"transparent",fontFamily:F,cursor:"pointer",fontWeight:800}}>{selR.artist}</button>

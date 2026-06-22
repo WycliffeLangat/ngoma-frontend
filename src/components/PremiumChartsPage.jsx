@@ -1668,7 +1668,7 @@ export default function PremiumChartsPage({
                           <span
                             aria-label={`${certification.label} certified`}
                             title={`${certification.label} certified · ${Number(certification.totalPts || 0).toLocaleString()} points`}
-                            style={{ marginLeft: "4px", fontSize: "12px", opacity: 0.85, display: "inline-flex", alignItems: "center", lineHeight: 1, verticalAlign: "middle", position: "relative", top: "-0.3em" }}
+                            style={{ marginLeft: "4px", fontSize: "12px", opacity: 0.85, lineHeight: 1 }}
                           >{certification.icon}</span>
                         )}
                       </button>
@@ -1767,7 +1767,7 @@ export default function PremiumChartsPage({
                           <span
                             aria-label={`${certification.label} certified`}
                             title={`${certification.label} certified · ${Number(certification.totalPts || 0).toLocaleString()} points`}
-                            style={{ marginLeft: "4px", fontSize: "12px", opacity: 0.85, display: "inline-flex", alignItems: "center", lineHeight: 1, verticalAlign: "middle", position: "relative", top: "-0.3em" }}
+                            style={{ marginLeft: "4px", fontSize: "12px", opacity: 0.85, lineHeight: 1 }}
                           >{certification.icon}</span>
                         )}
                       </button>
@@ -2573,7 +2573,8 @@ const styles = {
   },
 
   titleButton: {
-    display: "block",
+    display: "flex",
+    alignItems: "center",
     maxWidth: "100%",
     border: "none",
     background: "transparent",

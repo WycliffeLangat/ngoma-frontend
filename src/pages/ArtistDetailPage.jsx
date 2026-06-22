@@ -210,8 +210,8 @@ export default function ArtistDetailPage({ ctx }) {
                 <summary style={{display:"grid",gridTemplateColumns:isMobile?"minmax(0,1fr)":"minmax(0,1fr) 150px 90px",gap:"12px",alignItems:"center",padding:"11px 0",cursor:"pointer",listStyle:"none"}}>
                   <div style={{minWidth:0}}>
                     <div style={{display:"flex",alignItems:"center",gap:"7px",flexWrap:"wrap"}}>
-                      <button type="button" onClick={(event)=>{event.preventDefault();openReleaseDetails(bestRow,isSingles?"single":"album");}} style={{fontWeight:800,fontSize:TXT.cardTitle,fontFamily:SF,border:0,background:"transparent",padding:0,cursor:"pointer",textAlign:"left",color:isDark?"#F6F3EA":"#050505"}}>
-                        {group.title}{certification&&<span aria-label={`${certification.label} certified`} title={`${certification.label} certified · ${Number(certification.totalPts||0).toLocaleString()} points`} style={{marginLeft:"4px",fontSize:"12px",opacity:0.85,display:"inline-flex",alignItems:"center",lineHeight:1,verticalAlign:"middle",position:"relative",top:"-0.3em"}}>{certification.icon}</span>}
+                      <button type="button" onClick={(event)=>{event.preventDefault();openReleaseDetails(bestRow,isSingles?"single":"album");}} style={{display:"flex",alignItems:"center",fontWeight:800,fontSize:TXT.cardTitle,fontFamily:SF,border:0,background:"transparent",padding:0,cursor:"pointer",textAlign:"left",color:isDark?"#F6F3EA":"#050505"}}>
+                        {group.title}{certification&&<span aria-label={`${certification.label} certified`} title={`${certification.label} certified · ${Number(certification.totalPts||0).toLocaleString()} points`} style={{marginLeft:"4px",fontSize:"12px",opacity:0.85,lineHeight:1}}>{certification.icon}</span>}
                       </button>
                     </div>
                     <span style={{display:"block",marginTop:"3px",color:isDark?"#AEB6AE":"#7B857D",fontSize:TXT.micro,fontFamily:F}}>{group.rows.length} {group.rows.length===1?"month":"months"} charted · peak #{group.peak}</span>
