@@ -76,8 +76,8 @@ const PLAT_LABEL = PUBLIC_PLATFORMS.reduce((result, item) => ({...result, [item.
 const PC = PUBLIC_PLATFORMS.reduce((result, item) => ({...result, [item.name]: item.brand_color || item.color, [item.name.toUpperCase()]: item.brand_color || item.color}), {"Apple Music":"#FC3C44","APPLE MUSIC":"#FC3C44","Audiomack":"#F68B1F","AUDIOMACK":"#F68B1F","Boomplay":"#00FFFF","BOOMPLAY":"#00FFFF","Spotify":"#1DB954","SPOTIFY":"#1DB954","YouTube":"#FF0000","YOUTUBE":"#FF0000","Shazam":"#0088FF","SHAZAM":"#0088FF"});
 const GOLD=THEME_SETTING.primary || "#B8860B"; const SILVER="#8C8C8C"; const BRONZE="#CD7F32";
 const MEDALS=[GOLD,SILVER,BRONZE];
-const F = "'Instrument Sans',Helvetica,sans-serif";
-const SF = "'Source Serif 4',Georgia,serif";
+const F = "'IBM Plex Sans Condensed',Helvetica,sans-serif";
+const SF = "'IBM Plex Sans',Helvetica,sans-serif";
 const CC = [GOLD,"#E53935","#2DB04A","#1565C0","#7B1FA2","#E65100","#00897B","#37474F","#AD1457","#558B2F"];
 const VO = [{l:"Top 10",c:10},{l:"Top 20",c:20},{l:"Top 50",c:50}];
 const certificationThresholds = Object.fromEntries((PUBLIC_DATA.certification_rules || []).map((item) => [item.level, Number(item.threshold)]));
