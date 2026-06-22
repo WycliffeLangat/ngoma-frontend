@@ -1950,21 +1950,21 @@ const top = data[0];
   const allTitles=useMemo(()=>{
     if(!analyticsActive)return [];
     const map={};
-    analysisMonths.forEach(m=>analyticsRowsFor(m).forEach(e=>{const k=e.title+" — "+e.artist;if(!map[k])map[k]={key:k,title:e.title,artist:e.artist,primary_artist:e.primary_artist||e.artist,is_artist_entry:e.is_artist_entry};}));
+    analysisMonths.forEach(m=>analyticsRowsFor(m).forEach(e=>{const k=e.title+" — "+e.artist;if(!map[k])map[k]={key:k,title:e.title,artist:e.artist,primary_artist:e.primary_artist||e.artist,featured_artists:e.featured_artists||"",is_artist_entry:e.is_artist_entry,eKey:entryKey(e)};}));
     return Object.values(map).sort((a,b)=>a.title.localeCompare(b.title));
   },[analyticsActive,ct,anMonth]);
   // Build a full profile for a song key
   const songProfile=(key)=>{
     const meta=allTitles.find(t=>t.key===key);
     if(!meta)return null;
-    const {title,artist,primary_artist}=meta;
+    const {title,artist,primary_artist,eKey:releaseKey}=meta;
     const prof={title,artist,primary_artist,monthly:{},platforms:{},totalPts:0,peak:999,months:0,debutMonth:null,bestCov:0,avgRank:0};
     let rankSum=0,rankCount=0;
     analysisMonths.forEach(m=>{
-      const e=analyticsRowsFor(m).find(x=>entryKey(x)===entryKey({title,primary_artist}));
+      const e=analyticsRowsFor(m).find(x=>entryKey(x)===releaseKey);
       if(e){
         prof.monthly[m]={rank:e.rank,pts:e.pts,cov:e.plat};
-        prof.totalPts+=e.pts; prof.months+=1;
+        prof.totalPts+=Number(e.pts)||0; prof.months+=1;
         if(e.rank<prof.peak)prof.peak=e.rank;
         if(!prof.debutMonth)prof.debutMonth=m;
         const covNum=parseInt((e.plat||"0/0").split("/")[0],10)||0;
@@ -1973,7 +1973,6 @@ const top = data[0];
       }
     });
     prof.avgRank=rankCount?Math.round(rankSum/rankCount):0;
-    const releaseKey=entryKey({title,primary_artist});
     PLATS_FOR.forEach(pl=>{
       let best=null;
       analysisMonths.forEach(m=>{const pe=isArtists ? buildArtistChart(m,pl).find(x=>entryKey(x)===releaseKey) : getRawPlatformIndex(releaseCt,pl,m).get(releaseKey);if(pe&&((pe.r||pe.rank)&&(best===null||Number(pe.r||pe.rank)<best)))best=Number(pe.r||pe.rank);});
