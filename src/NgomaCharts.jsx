@@ -83,7 +83,7 @@ const VO = [{l:"Top 10",c:10},{l:"Top 20",c:20},{l:"Top 50",c:50}];
 const certificationThresholds = Object.fromEntries((PUBLIC_DATA.certification_rules || []).map((item) => [item.level, Number(item.threshold)]));
 const CERTIFICATION_LEVELS = [
   { level: "diamond", label: "Diamond", icon: "💎", pts: certificationThresholds.diamond || 600, color: "#7B1FA2" },
-  { level: "platinum", label: "Platinum", icon: "🎵", iconFilter: "grayscale(0.3) brightness(1.3) saturate(0.7) hue-rotate(185deg)", pts: certificationThresholds.platinum || 400, color: SILVER },
+  { level: "platinum", label: "Platinum", icon: "🎵", iconFilter: "brightness(4) grayscale(0.85) contrast(0.7) drop-shadow(0 0 2px rgba(255,255,255,0.9))", pts: certificationThresholds.platinum || 400, color: SILVER },
   { level: "gold", label: "Gold", icon: "📀", pts: certificationThresholds.gold || 200, color: GOLD },
 ];
 const getCertificationLevel = (totalPts = 0) => {
