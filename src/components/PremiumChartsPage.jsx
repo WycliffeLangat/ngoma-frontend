@@ -733,8 +733,8 @@ export default function PremiumChartsPage({
 
     const diff = Number(item.prev) - Number(item.rank);
 
-    if (diff > 0) return { type: "up", label: `▲ ${diff}` };
-    if (diff < 0) return { type: "down", label: `▼ ${Math.abs(diff)}` };
+    if (diff > 0) return { type: "up", label: `▲${diff}` };
+    if (diff < 0) return { type: "down", label: `▼${Math.abs(diff)}` };
 
     return { type: "same", label: "—" };
   }
@@ -848,7 +848,7 @@ export default function PremiumChartsPage({
         const isSeparator = separatorPattern.test(piece);
         separatorPattern.lastIndex = 0;
         return isSeparator
-          ? { type: "separator", value: piece }
+          ? { type: "separator", value: piece.replace(/\bft\./gi, "ft") }
           : { type: "artist", value: piece.trim() };
       })
       .filter((piece) => piece.value);
@@ -1271,6 +1271,12 @@ export default function PremiumChartsPage({
           color: #FFFFFF !important;
           -webkit-text-fill-color: #FFFFFF !important;
         }
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-6px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .ngoma-chart-row-stripe:nth-child(even) { background: #faf9f6 !important; }
+        .ngoma-chart-row-stripe:nth-child(odd)  { background: #ffffff !important; }
       `}</style>
       <div className={`ngoma-premium-charts ${darkMode ? "ngoma-premium-charts-dark" : ""}`} style={{...styles.page, padding: mobile ? `0 ${safeGutter} 28px` : "0 28px 34px", boxSizing: "border-box"}}>
       <section
@@ -1367,6 +1373,25 @@ export default function PremiumChartsPage({
           </div>
         </div>
       </section>
+
+      <div style={{ maxWidth: pageMax, margin: "0 auto", boxSizing: "border-box" }}>
+        <hr style={{ border: "none", borderTop: "1.5px solid rgba(184,134,11,0.32)", margin: 0 }} />
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: mobile ? "8px 0" : "9px 0",
+          gap: "12px",
+        }}>
+          <span className="chart-dateline" style={{ fontSize: mobile ? "9px" : "10px" }}>
+            {new Date().toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}
+          </span>
+          <span style={{ fontSize: mobile ? "9px" : "10px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#9a9a9a" }}>
+            {platformLabel}
+          </span>
+        </div>
+        <hr style={{ border: "none", borderTop: "1px solid rgba(0,0,0,0.07)", margin: 0 }} />
+      </div>
 
       <section
         style={{
@@ -1687,21 +1712,22 @@ export default function PremiumChartsPage({
             }
 
             return (
-              <div key={rowKey} style={styles.desktopRowWrap}>
+              <div key={rowKey} className="ngoma-chart-row-stripe" style={styles.desktopRowWrap}>
                 <div
                   style={{
                     ...styles.row,
-                    background: darkMode ? "#0d0f0d" : "#ffffff",
+                    background: darkMode ? "#0d0f0d" : (index % 2 === 1 ? "#faf9f6" : "#ffffff"),
                     color: darkMode ? "#fffdf7" : "#050505",
                     animationDelay: `${Math.min(index * 20, 400)}ms`,
+                    ...(item.rank === 1 ? { borderLeft: `3px solid ${chartAccent}` } : {}),
                   }}
                   onMouseEnter={(event) => {
                     event.currentTarget.style.background = `${chartAccent}0B`;
                     event.currentTarget.style.boxShadow = `inset 4px 0 0 ${chartAccent}`;
                   }}
                   onMouseLeave={(event) => {
-                    event.currentTarget.style.background = darkMode ? "#0d0f0d" : "#ffffff";
-                    event.currentTarget.style.boxShadow = "none";
+                    event.currentTarget.style.background = darkMode ? "#0d0f0d" : (index % 2 === 1 ? "#faf9f6" : "#ffffff");
+                    event.currentTarget.style.boxShadow = item.rank === 1 ? "none" : "none";
                   }}
                 >
                   <div
@@ -1710,6 +1736,8 @@ export default function PremiumChartsPage({
                       color: medalColor,
                       justifySelf: "center",
                       textAlign: "center",
+                      fontSize: item.rank === 1 ? "26px" : item.rank <= 3 ? "22px" : undefined,
+                      fontWeight: item.rank <= 3 ? 950 : 900,
                     }}
                   >
                     {item.rank}
@@ -1805,7 +1833,7 @@ function MiniBars({ GOLD }) {
 
 const styles = {
   page: {
-    background: "#ffffff",
+    background: "#f8f7f3",
     color: "#050505",
     minHeight: "60vh",
     width: "100%",
@@ -1816,8 +1844,8 @@ const styles = {
   hero: {
     position: "relative",
     overflow: "hidden",
-    background: "#ffffff",
-    borderBottom: "1px solid rgba(0,0,0,0.08)",
+    background: "#f8f7f3",
+    borderBottom: "none",
     transition: "all 0.5s ease-out",
     width: "100%",
     maxWidth: "100%",
@@ -1837,9 +1865,9 @@ const styles = {
     gap: "10px",
     flexWrap: "wrap",
     fontWeight: 800,
-    letterSpacing: "2.6px",
+    letterSpacing: "1.1px",
     textTransform: "uppercase",
-    color: "#555555",
+    color: "#69716b",
   },
 
   eyebrowDivider: {
@@ -1881,7 +1909,8 @@ const styles = {
   heroTitle: {
     margin: 0,
     lineHeight: 0.92,
-    fontWeight: 950,
+    fontWeight: 900,
+    fontFamily: "'IBM Plex Serif', Georgia, serif",
     textTransform: "uppercase",
     color: "#050505",
     maxWidth: "100%",
@@ -1962,9 +1991,9 @@ const styles = {
 
   statsBand: {
     display: "grid",
-    background: "#ffffff",
-    borderTop: "1px solid rgba(0,0,0,0.08)",
-    borderBottom: "1px solid rgba(0,0,0,0.08)",
+    background: "#f8f7f3",
+    borderTop: "none",
+    borderBottom: "1px solid rgba(0,0,0,0.07)",
     width: "100%",
     maxWidth: "100%",
   },
@@ -2125,14 +2154,14 @@ const styles = {
     gap: "14px",
     alignItems: "center",
     justifyItems: "center",
-    padding: "14px 24px",
-    background: "#f4f3ef",
-    color: "#555555",
-    fontSize: "10.5px",
+    padding: "12px 24px",
+    background: "#f0ede6",
+    color: "#3d4440",
+    fontSize: "10px",
     fontWeight: 900,
-    letterSpacing: "1.6px",
+    letterSpacing: "0.9px",
     textTransform: "uppercase",
-    borderBottom: "1px solid rgba(0,0,0,0.08)",
+    borderBottom: "2px solid rgba(184,134,11,0.20)",
   },
 
   headerCell: {
@@ -2233,11 +2262,13 @@ const styles = {
   },
 
   mobileExpandedDetails: {
-    marginTop: "14px",
+    margin: "8px 4px 12px",
     padding: "14px 16px 12px",
-    border: "1px solid rgba(0,0,0,0.06)",
-    borderRadius: "16px",
-    background: "#fbfaf7",
+    border: "1px solid rgba(0,0,0,0.08)",
+    borderRadius: "14px",
+    background: "#ffffff",
+    boxShadow: "0 8px 28px rgba(0,0,0,0.07)",
+    animation: "slideDown 220ms ease both",
   },
 
   mobileExpandedDetailsDark: {

@@ -100,38 +100,73 @@ export default function ArtistDetailPage({ ctx }) {
 
   const urlLabels = new Set(["Spotify URL", "Apple Music URL", "YouTube URL", "Boomplay URL", "Audiomack URL", "TikTok URL", "Instagram URL", "X URL", "Facebook URL", "Website URL"]);
 
+  const socialPlatforms = [
+    { key: "Spotify URL", label: "Spotify", icon: "♫" },
+    { key: "Apple Music URL", label: "Apple Music", icon: "♪" },
+    { key: "YouTube URL", label: "YouTube", icon: "▶" },
+    { key: "Instagram URL", label: "Instagram", icon: "◎" },
+    { key: "TikTok URL", label: "TikTok", icon: "♬" },
+    { key: "X URL", label: "X", icon: "✕" },
+    { key: "Boomplay URL", label: "Boomplay", icon: "◉" },
+    { key: "Audiomack URL", label: "Audiomack", icon: "◈" },
+    { key: "Website URL", label: "Website", icon: "⊕" },
+  ];
+  const socialLinks = artistInfoRows.filter(([label]) => urlLabels.has(label));
+  const metaRows = artistInfoRows.filter(([label]) => !urlLabels.has(label));
+
   return (
-<div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
-          <span onClick={closeDetails} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:GOLD,cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>← Back</span>
-          <div style={{marginTop:"20px",display:"flex",gap:"20px",alignItems:isMobile?"stretch":"flex-start",flexDirection:isMobile?"column":"row",minWidth:0}}>
-            <div style={{width:"80px",height:"80px",borderRadius:"50%",background:"linear-gradient(135deg,#FAF5EA,#EDE0C0)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"32px",fontWeight:900,color:GOLD,flexShrink:0,border:"2px solid "+GOLD+"22",boxShadow:"0 4px 16px rgba(184,134,11,0.12)",overflow:"hidden"}}>{profile.image?<img src={profile.image} alt={selA.n} style={{width:"100%",height:"100%",objectFit:"cover"}} />:selA.n[0]}</div>
-            <div style={{flex:1}}>
+<div style={{padding:PAD,background:"#f8f7f3",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
+          <span onClick={closeDetails} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:GOLD,cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:700}}>← Back</span>
+
+          {/* Profile header */}
+          <div style={{marginTop:"22px",display:"flex",gap:isMobile?"16px":"24px",alignItems:"flex-start",flexDirection:isMobile?"column":"row",minWidth:0}}>
+            <div style={{width:isMobile?"88px":"120px",height:isMobile?"88px":"120px",borderRadius:"50%",background:"linear-gradient(135deg,#FAF5EA,#EDE0C0)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:isMobile?"36px":"48px",fontWeight:900,color:GOLD,flexShrink:0,border:"3px solid "+GOLD+"22",boxShadow:"0 8px 28px rgba(184,134,11,0.14)",overflow:"hidden"}}>{profile.image?<img src={profile.image} alt={selA.n} style={{width:"100%",height:"100%",objectFit:"cover"}} />:selA.n[0]}</div>
+            <div style={{flex:1,minWidth:0}}>
               <div style={{display:"flex",alignItems:"center",gap:"10px",flexWrap:"wrap"}}>
-                <h2 style={{margin:0,fontSize:isMobile?"24px":"26px",fontWeight:850,lineHeight:1.12}}>{selA.n}</h2>
+                <h2 style={{margin:0,fontFamily:SF,fontSize:isMobile?"26px":"32px",fontWeight:800,lineHeight:1.08,letterSpacing:"-0.5px"}}>{selA.n}</h2>
                 <CountryBadge item={countryItem} showName />
               </div>
-              <div style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",marginTop:"6px",lineHeight:1.45}}>Credited on {selA.t} {isSingles?"songs":"albums"} across {selA.m} months</div>
-              {profile.biography&&<p style={{fontFamily:F,fontSize:"12.5px",lineHeight:1.7,color:"#59645D",margin:"12px 0 0",maxWidth:"760px"}}>{profile.biography}</p>}
-              <div style={{display:"flex",gap:"24px",marginTop:"14px",fontFamily:F,flexWrap:"wrap"}}>
-                {[{v:"#"+selA.rank,l:"Current Rank",c:GOLD},{v:"#"+selA.pk,l:"Best Artist Rank"},{v:selA.p.toLocaleString(),l:"Total Points"},{v:selA.t,l:"Entries"},{v:selA.m,l:"Months Active"}].map((s,i)=>(
-                  <div key={i}><div style={{fontSize:"22px",fontWeight:700,color:s.c||"#1A1A1A"}}>{s.v}</div><div style={{fontSize:"9px",letterSpacing:"1.5px",color:"#CCC",textTransform:"uppercase"}}>{s.l}</div></div>
+              <div style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",marginTop:"6px",lineHeight:1.5}}>Credited on {selA.t} {isSingles?"songs":"albums"} across {selA.m} months</div>
+              {profile.biography&&<p className="bio-text" style={{fontFamily:F,fontSize:"13px",lineHeight:1.72,color:"#4a534c",margin:"12px 0 0",maxWidth:"680px"}}>{profile.biography}</p>}
+
+              {/* Social icon links */}
+              {socialLinks.length > 0 && (
+                <div style={{display:"flex",flexWrap:"wrap",gap:"8px",marginTop:"14px"}}>
+                  {socialLinks.map(([label, url]) => {
+                    const platform = socialPlatforms.find(p => p.key === label);
+                    return (
+                      <a key={label} href={url} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()} className="artist-social-link">
+                        <span>{platform?.icon || "↗"}</span>
+                        <span>{platform?.label || label.replace(" URL", "")}</span>
+                      </a>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Stats strip */}
+              <div className="artist-stat-strip">
+                {[{v:"#"+selA.rank,l:"Current Rank",c:GOLD},{v:"#"+selA.pk,l:"Best Rank"},{v:selA.p.toLocaleString(),l:"Total Points"},{v:selA.t,l:"Entries"},{v:selA.m,l:"Months"}].map((s,i)=>(
+                  <div key={i} className="artist-stat-item">
+                    <div className="stat-value" style={{color:s.c||"#1A1A1A"}}>{s.v}</div>
+                    <div className="stat-label">{s.l}</div>
+                  </div>
                 ))}
               </div>
             </div>
           </div>
 
-          <div style={{margin:"20px 0 18px",border:"1px solid #ECE9E1",borderRadius:"12px",overflow:"hidden"}}>
-            {artistInfoRows.map(([label, value], idx) => (
-              <div key={label} style={{display:"grid",gridTemplateColumns:isMobile?"110px 1fr":"150px 1fr",gap:"12px",padding:"9px 14px",background:idx%2===0?"#FAFAF8":"#FFFFFF",borderTop:idx===0?"none":"1px solid #F0EDE6",alignItems:"center"}}>
-                <span style={{fontFamily:F,fontSize:"9.5px",fontWeight:700,letterSpacing:"0.4px",color:"#7B857D",textTransform:"uppercase"}}>{label}</span>
-                {urlLabels.has(label) ? (
-                  <a href={value} target="_blank" rel="noopener noreferrer" onClick={(e)=>e.stopPropagation()} style={{fontFamily:F,fontSize:"12px",fontWeight:700,color:GOLD,textDecoration:"none",wordBreak:"break-all"}}>{value} ↗</a>
-                ) : (
-                  <span style={{fontFamily:F,fontSize:"12px",fontWeight:600,color:"#1A1A1A",wordBreak:"break-word"}}>{value}</span>
-                )}
+          {/* Meta table — exclude social links (shown as pill buttons above) */}
+          {metaRows.length > 0 && (
+          <div style={{margin:"22px 0 18px",border:"1px solid #E8E5DC",borderRadius:"14px",overflow:"hidden",background:"#fff"}}>
+            {metaRows.map(([label, value], idx) => (
+              <div key={label} style={{display:"grid",gridTemplateColumns:isMobile?"110px 1fr":"150px 1fr",gap:"12px",padding:"10px 16px",background:idx%2===0?"#FAFAF8":"#FFFFFF",borderTop:idx===0?"none":"1px solid #F0EDE6",alignItems:"center"}}>
+                <span style={{fontFamily:F,fontSize:"9.5px",fontWeight:800,letterSpacing:"0.5px",color:"#7B857D",textTransform:"uppercase"}}>{label}</span>
+                <span style={{fontFamily:F,fontSize:"12px",fontWeight:600,color:"#1A1A1A",wordBreak:"break-word"}}>{value}</span>
               </div>
             ))}
           </div>
+          )}
 
           <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:"14px",marginBottom:"20px"}}>
             <div style={card()}>

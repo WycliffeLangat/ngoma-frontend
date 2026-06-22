@@ -100,7 +100,8 @@ const buildCertifications = (items = []) => items
   }))
   .filter((item) => item.level);
 const releaseTitle = (item = {}) => item.t || item.title || item.release_title || item.name || "";
-const releaseArtist = (item = {}) => item.artist_credit || item.a || item.artist || item.artist_name || item.primary_artist || "";
+const normFt = (s) => String(s || "").replace(/\bft\./gi, "ft");
+const releaseArtist = (item = {}) => normFt(item.artist_credit || item.a || item.artist || item.artist_name || item.primary_artist || "");
 const formatCreditMembers = (members = []) => {
   const unique = [...new Map(members
     .map((member) => String(member || "").trim())
@@ -927,7 +928,7 @@ const RecordIcon = ({ label = "", size = 30, muted = false }) => {
 };
 
 const NEWS=[
-  {id:1,date:"June 15, 2026",cat:"CHART NEWS",emoji:"",title:"Finale Leads May After Collaboration Credits Are Unified",excerpt:"Bien & Alikiba's Finale ranks #1 with appearances on five of six tracked singles platforms.",body:"Equivalent Bien, Bien ft. Alikiba and Bien & Alikiba credits are treated as one release. Finale leads Apple Music, Spotify and YouTube for May."},
+  {id:1,date:"June 15, 2026",cat:"CHART NEWS",emoji:"",title:"Finale Leads May After Collaboration Credits Are Unified",excerpt:"Bien & Alikiba's Finale ranks #1 with appearances on five of six tracked singles platforms.",body:"Equivalent Bien, Bien ft Alikiba and Bien & Alikiba credits are treated as one release. Finale leads Apple Music, Spotify and YouTube for May."},
   {id:2,date:"June 14, 2026",cat:"CHART NEWS",emoji:"",title:"Finale Completes Back-to-Back Months at #1",excerpt:"Bien & Alikiba also lead the recalculated April Combined singles chart.",body:"The collaboration finishes ahead of Siaka and Pawa in April, then retains the summit in May."},
   {id:3,date:"June 13, 2026",cat:"ANALYTICS",emoji:"",title:"Pawa Remains the Period's Highest-Scoring Single",excerpt:"Mbosso's Pawa totals 436 display points across all nine tracked months.",body:"Pawa appeared in every monthly Combined chart and finished #1 in November and December 2025."},
   {id:4,date:"June 12, 2026",cat:"ARTIST SPOTLIGHT",emoji:"",title:`${COMBINED_ARTISTS.singles[0].n} Leads the Singles Artist Ranking`,excerpt:`Top 50 platform entries produce ${COMBINED_ARTISTS.singles[0].p.toLocaleString()} cumulative artist points through May 2026.`,body:"The artist ranking gives points to every named primary and featured artist from Top 50 platform Singles and Albums entries."},

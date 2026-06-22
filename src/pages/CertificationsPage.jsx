@@ -59,24 +59,26 @@ export default function CertificationsPage({ ctx }) {
               </div>
             ))}
           </div>
-          <div style={{marginTop:"16px"}}>
+          <div style={{marginTop:"20px"}}>
             {CERTIFICATION_LEVELS.map(({ level })=>{
               const filtered=certs.filter(c=>c.level===level);
               if(!filtered.length)return null;
-              return(<div key={level} style={{marginBottom:"24px"}}>
-                <div style={{...secLbl(certColors[level]),marginBottom:"12px"}}>{certIcons[level]} {level.charAt(0).toUpperCase()+level.slice(1)} Certified ({filtered.length})</div>
-                <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:"8px"}}>
+              return(<div key={level} style={{marginBottom:"32px"}}>
+                <div style={{...secLbl(certColors[level]),marginBottom:"16px",fontSize:"11px",letterSpacing:"1.2px"}}>{certIcons[level]} {level.charAt(0).toUpperCase()+level.slice(1)} Certified ({filtered.length})</div>
+                <div className="cert-wall">
                   {filtered.map((c,i)=>(
-                    <div key={i} style={{display:"flex",alignItems:"center",gap:"12px",padding:"12px 14px",background:certColors[level]+"0A",borderRadius:"8px",border:"1px solid "+certColors[level]+"22"}}>
-                      <div style={{fontSize:"22px"}}>{certIcons[level]}</div>
-                      <div style={{flex:1}}>
-                        <button type="button" onClick={()=>openReleaseDetails(c,isSingles?"single":"album")} style={{display:"block",border:0,background:"transparent",padding:0,fontFamily:SF,fontWeight:800,fontSize:TXT.cardTitle,lineHeight:1.18,cursor:"pointer",textAlign:"left"}}>{c.t}</button>
-                        <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(c.a);}} style={{display:"block",fontFamily:F,fontSize:TXT.cardMeta,color:"#69716B",fontWeight:750,marginTop:"3px",padding:0,border:0,background:"transparent",cursor:"pointer",textAlign:"left"}}>{c.a}</button>
-                        <CountryBadge artist={c.a} showName style={{marginTop:"7px"}} />
+                    <div key={i} className={`cert-wall-card ${level}`} style={{borderTop:"3px solid "+certColors[level],background:certColors[level]+"06"}}>
+                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                        <span className="cert-icon">{certIcons[level]}</span>
+                        <div style={{textAlign:"right",fontFamily:F}}>
+                          <div style={{fontSize:"15px",fontWeight:900,color:certColors[level]}}>{c.totalPts.toLocaleString()}</div>
+                          <div style={{fontSize:"9px",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.8px",color:"#9a9a9a"}}>pts</div>
+                        </div>
                       </div>
-                      <div style={{textAlign:"right",fontFamily:F}}>
-                        <div style={{fontSize:"13px",fontWeight:700,color:certColors[level]}}>{c.totalPts.toLocaleString()}</div>
-                        <div style={{fontSize:"9px",color:"#CCC"}}>pts</div>
+                      <button type="button" onClick={()=>openReleaseDetails(c,isSingles?"single":"album")} style={{display:"block",border:0,background:"transparent",padding:0,fontFamily:SF,fontWeight:800,fontSize:"14px",lineHeight:1.2,cursor:"pointer",textAlign:"left",color:"#050505"}}>{c.t}</button>
+                      <div>
+                        <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(c.a);}} style={{display:"block",fontFamily:F,fontSize:"11.5px",color:"#69716B",fontWeight:700,padding:0,border:0,background:"transparent",cursor:"pointer",textAlign:"left"}}>{c.a}</button>
+                        <CountryBadge artist={c.a} showName style={{marginTop:"6px"}} />
                       </div>
                     </div>
                   ))}
