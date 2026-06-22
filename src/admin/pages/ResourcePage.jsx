@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { cmsApi, getResults, qs } from "../api";
 import DataTable from "../components/DataTable";
 import SearchBar from "../components/SearchBar";
@@ -36,18 +36,39 @@ export default function ResourcePage({ type }) {
   const [editing, setEditing] = useState(null);
   const [artistOptions, setArtistOptions] = useState([]);
   const [imageModal, setImageModal] = useState(null);
+  const abortRef = useRef(null);
 
   const params = useMemo(() => ({ ...(config.params || {}), search }), [config, search]);
   const formFields = useMemo(() => type === "songs" || type === "albums" ? releaseForm(type === "albums" ? "albums" : "singles", artistOptions) : (config.form || []), [type, config, artistOptions]);
 
+  // Used after save/delete to reload without debounce
   async function load() {
+    if (abortRef.current) abortRef.current.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
     setLoading(true); setError("");
-    try { setRows(getResults(await cmsApi.get(`${config.endpoint}${qs(params)}`))); }
-    catch(e) { setError(e.message); }
-    finally { setLoading(false); }
+    try { setRows(getResults(await cmsApi.get(`${config.endpoint}${qs(params)}`, { signal: controller.signal }))); }
+    catch(e) { if (e.name !== "AbortError") setError(e.message); }
+    finally { if (!controller.signal.aborted) setLoading(false); }
   }
 
-  useEffect(() => { load(); }, [type, search]);
+  // Reset search when switching resource types
+  useEffect(() => { setSearch(""); }, [type]);
+
+  // Debounced search: instant for navigation (empty search), 280ms for typed queries
+  useEffect(() => {
+    if (abortRef.current) abortRef.current.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const delay = search ? 280 : 0;
+    const timer = setTimeout(async () => {
+      setLoading(true); setError("");
+      try { setRows(getResults(await cmsApi.get(`${config.endpoint}${qs(params)}`, { signal: controller.signal }))); }
+      catch(e) { if (e.name !== "AbortError") setError(e.message); }
+      finally { if (!controller.signal.aborted) setLoading(false); }
+    }, delay);
+    return () => clearTimeout(timer);
+  }, [type, search]);
   useEffect(() => {
     if (type !== "songs" && type !== "albums") return;
     cmsApi.get("/artists/options/").then(setArtistOptions).catch((e) => setError(e.message));
