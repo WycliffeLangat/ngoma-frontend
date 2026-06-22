@@ -19,6 +19,8 @@ export default function CertificationsPage({ ctx }) {
     secLbl
   } = ctx;
 
+  const certIconFilters = Object.fromEntries(CERTIFICATION_LEVELS.map(l => [l.level, l.iconFilter || null]));
+
   if (isArtists) {
     return (
       <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
@@ -53,7 +55,7 @@ export default function CertificationsPage({ ctx }) {
           <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"12px",marginBottom:"28px"}}>
             {CERTIFICATION_LEVELS.map((c,i)=>(
               <div key={i} style={{...card({textAlign:"center"}),borderTop:"3px solid "+c.color}}>
-                <div style={{fontSize:"28px"}}>{c.icon}</div>
+                <div style={{fontSize:"28px"}}><span style={c.iconFilter?{filter:c.iconFilter}:undefined}>{c.icon}</span></div>
                 <div style={{fontWeight:800,fontSize:TXT.metric,margin:"6px 0 2px",color:c.color}}>{c.label}</div>
                 <div style={{fontFamily:F,fontSize:TXT.cardMeta,color:"#69716B"}}>{c.pts.toLocaleString()}+ points</div>
               </div>
@@ -64,12 +66,12 @@ export default function CertificationsPage({ ctx }) {
               const filtered=certs.filter(c=>c.level===level);
               if(!filtered.length)return null;
               return(<div key={level} style={{marginBottom:"32px"}}>
-                <div style={{...secLbl(certColors[level]),marginBottom:"16px",fontSize:"11px",letterSpacing:"1.2px"}}>{certIcons[level]} {level.charAt(0).toUpperCase()+level.slice(1)} Certified ({filtered.length})</div>
+                <div style={{...secLbl(certColors[level]),marginBottom:"16px",fontSize:"11px",letterSpacing:"1.2px"}}><span style={certIconFilters[level]?{filter:certIconFilters[level]}:undefined}>{certIcons[level]}</span> {level.charAt(0).toUpperCase()+level.slice(1)} Certified ({filtered.length})</div>
                 <div className="cert-wall">
                   {filtered.map((c,i)=>(
                     <div key={i} className={`cert-wall-card ${level}`} style={{borderTop:"3px solid "+certColors[level],background:certColors[level]+"06"}}>
                       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                        <span className="cert-icon">{certIcons[level]}</span>
+                        <span className="cert-icon"><span style={certIconFilters[level]?{filter:certIconFilters[level]}:undefined}>{certIcons[level]}</span></span>
                         <div style={{textAlign:"right",fontFamily:F}}>
                           <div style={{fontSize:"15px",fontWeight:900,color:certColors[level]}}>{c.totalPts.toLocaleString()}</div>
                           <div style={{fontSize:"9px",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.8px",color:"#9a9a9a"}}>pts</div>
