@@ -99,7 +99,15 @@ export default function ResourcePage({ type }) {
         savedId = created?.id;
       }
     } catch(e) {
-      setError(e.message);
+      // DRF returns field-level errors as {field: [msg, ...]} — flatten them for display
+      if (e.data && typeof e.data === "object" && !e.data.detail && !e.data.error) {
+        const lines = Object.entries(e.data).map(([field, msgs]) =>
+          `${field}: ${Array.isArray(msgs) ? msgs.join(", ") : msgs}`
+        );
+        setError(lines.join(" | "));
+      } else {
+        setError(e.message);
+      }
       return;
     }
 
