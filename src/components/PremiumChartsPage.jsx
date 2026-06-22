@@ -1669,7 +1669,7 @@ export default function PremiumChartsPage({
                             aria-label={`${certification.label} certified`}
                             title={`${certification.label} certified · ${Number(certification.totalPts || 0).toLocaleString()} points`}
                             style={{ marginLeft: "4px", fontSize: "12px", opacity: 0.85, lineHeight: 1 }}
-                          >{certification.icon}</span>
+                          ><span style={certification.iconFilter ? { filter: certification.iconFilter } : undefined}>{certification.icon}</span></span>
                         )}
                       </button>
 
@@ -1768,7 +1768,7 @@ export default function PremiumChartsPage({
                             aria-label={`${certification.label} certified`}
                             title={`${certification.label} certified · ${Number(certification.totalPts || 0).toLocaleString()} points`}
                             style={{ marginLeft: "4px", fontSize: "12px", opacity: 0.85, lineHeight: 1 }}
-                          >{certification.icon}</span>
+                          ><span style={certification.iconFilter ? { filter: certification.iconFilter } : undefined}>{certification.icon}</span></span>
                         )}
                       </button>
 
