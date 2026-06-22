@@ -2120,7 +2120,7 @@ const top = data[0];
     const certificationLabel = `${cert.label} certified · ${Number(cert.totalPts || 0).toLocaleString()} points`;
     if (compact) return (
       <span
-        style={{ display: "inline-flex", alignItems: "center", fontSize: "11px", lineHeight: 1, verticalAlign: "middle", ...style }}
+        style={{ display: "inline-flex", alignItems: "center", fontSize: "8px", lineHeight: 1, verticalAlign: "middle", ...style }}
         title={certificationLabel}
         aria-label={certificationLabel}
       >
