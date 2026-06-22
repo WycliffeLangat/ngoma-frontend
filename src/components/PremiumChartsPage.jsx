@@ -1910,7 +1910,7 @@ const styles = {
     margin: 0,
     lineHeight: 0.92,
     fontWeight: 900,
-    fontFamily: "'IBM Plex Serif', Georgia, serif",
+    fontFamily: "'IBM Plex Sans', Helvetica, sans-serif",
     textTransform: "uppercase",
     color: "#050505",
     maxWidth: "100%",

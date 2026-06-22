@@ -13,7 +13,7 @@ export default function NewsPage({ ctx }) {
 
   return (
 <div style={{padding:PAD,background:"transparent",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden",maxWidth:"1040px",margin:"0 auto"}}>
-          <h2 style={{fontFamily:"'IBM Plex Serif',Georgia,serif",fontSize:TXT.pageTitle,fontWeight:700,margin:"0 0 4px",letterSpacing:"-0.3px",color:isDark?"#F6F3EA":"#050505"}}>Chart News</h2>
+          <h2 style={{fontFamily:F,fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px",color:isDark?"#F6F3EA":"#050505"}}>Chart News</h2>
           <p style={{fontFamily:F,fontSize:isMobile?"11.5px":TXT.lead,color:isDark?"#D7DBD7":"#69716b",margin:isMobile?"0 0 22px":"0 0 28px",lineHeight:1.6}}>Analysis and stories from Kenya's music charts</p>
           <div className="news-grid" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(2,minmax(0,1fr))",gap:isMobile?"16px":"20px"}}>
             {NEWS.map((n,i)=>{
@@ -32,7 +32,7 @@ export default function NewsPage({ ctx }) {
                       <span style={{display:"inline-flex",alignItems:"center",height:"20px",fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.1px",textTransform:"uppercase",color:isDark?"#E4BE55":GOLD,background:isDark?"rgba(184,134,11,0.16)":"rgba(184,134,11,0.11)",border:"1px solid rgba(184,134,11,0.22)",padding:"0 8px",borderRadius:"999px"}}>{n.cat}</span>
                       <span style={{fontFamily:F,fontSize:"10px",fontWeight:600,color:isDark?"#9a9a9a":"#9a9a9a"}}>{n.date}</span>
                     </div>
-                    <h3 style={{fontFamily:"'IBM Plex Serif',Georgia,serif",fontSize:i===0?(isMobile?"17px":"20px"):(isMobile?"14px":"15px"),fontWeight:700,margin:isMobile?"0 0 8px":"0 0 7px",lineHeight:1.28,letterSpacing:"-0.2px",color:isDark?"#F6F3EA":"#050505"}}>{n.title}</h3>
+                    <h3 style={{fontFamily:F,fontSize:i===0?(isMobile?"17px":"18px"):(isMobile?"14px":"14.5px"),fontWeight:800,margin:isMobile?"0 0 8px":"0 0 7px",lineHeight:1.28,color:isDark?"#F6F3EA":"#050505"}}>{n.title}</h3>
                     <p style={{fontFamily:F,fontSize:isMobile?"12px":TXT.body,color:isDark?"#B8BEB8":"#59645D",margin:0,lineHeight:1.65}}>{n.excerpt}</p>
                   </div>
                   <span aria-hidden="true" style={{fontFamily:F,fontSize:isMobile?"20px":"18px",color:isDark?"#555":"#C0C7C1",flexShrink:0,padding:isMobile?"6px 0 6px 4px":"4px 0 4px 10px",marginTop:"2px"}}>›</span>
