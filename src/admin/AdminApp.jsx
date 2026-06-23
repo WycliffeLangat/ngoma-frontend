@@ -7,6 +7,7 @@ import DuplicateReviewPage from "./pages/DuplicateReviewPage";
 import UploadsPage from "./pages/UploadsPage";
 import ScaffoldPage from "./pages/ScaffoldPage";
 import NotificationBell from "./components/NotificationBell";
+import GlobalSearch from "./components/GlobalSearch";
 import "./styles/admin.css";
 
 const nav = [
@@ -14,10 +15,18 @@ const nav = [
 ];
 
 export default function AdminApp() {
-  const [user, setUser] = useState(null), [checking, setChecking] = useState(true), [page, setPage] = useState(getInitialPage()), [sidebar, setSidebar] = useState(false), [globalSearch, setGlobalSearch] = useState(""), [searchResults, setSearchResults] = useState([]);
+  const [user, setUser] = useState(null), [checking, setChecking] = useState(true), [page, setPage] = useState(getInitialPage()), [sidebar, setSidebar] = useState(false);
+  // searchJump: when the user clicks a global search result, navigate to the right page
+  // and pre-fill that resource page's search bar with the result title.
+  const [searchJump, setSearchJump] = useState(null); // { page, term, id, ts }
+
   useEffect(() => { cmsApi.me().then((d)=>setUser(d.user)).catch(()=>setUser(null)).finally(()=>setChecking(false)); }, []);
   useEffect(() => { const url = new URL(window.location.href); url.pathname = `/cms/${page === "dashboard" ? "" : page}`; window.history.replaceState({}, "", url); }, [page]);
-  useEffect(() => { if(!globalSearch.trim()) { setSearchResults([]); return; } const t=setTimeout(()=>cmsApi.get(`/search/?q=${encodeURIComponent(globalSearch)}`).then((d)=>setSearchResults(d.results || [])).catch(()=>{}), 250); return ()=>clearTimeout(t); }, [globalSearch]);
+
+  function handleGlobalNavigate(targetPage, term, id) {
+    setPage(targetPage);
+    setSearchJump({ page: targetPage, term, id, ts: Date.now() });
+  }
   const unread = useMemo(()=>0, []);
   if (checking) return <div className="cms-boot">Loading CMS...</div>;
   if (!user) return <LoginPage onLogin={setUser} />;
@@ -26,18 +35,18 @@ export default function AdminApp() {
     <div className="cms-shell">
       <aside className={`cms-sidebar ${sidebar ? "open" : ""}`}><div className="cms-brand"><b>NGOMA</b><span>Admin CMS</span></div><nav>{nav.map(([key,label])=><button key={key} className={page===key?"active":""} onClick={()=>{setPage(key);setSidebar(false);}}>{label}</button>)}</nav></aside>
       <div className="cms-main">
-        <header className="cms-topbar"><button className="cms-menu" onClick={()=>setSidebar(!sidebar)}>☰</button><div className="cms-global"><input value={globalSearch} onChange={(e)=>setGlobalSearch(e.target.value)} placeholder="Search songs, artists, news, charts..." />{searchResults.length>0 && <div className="cms-search-pop">{searchResults.map((r,i)=><button key={i} onClick={()=>{setGlobalSearch(""); setPage(r.type === "artist" ? "artists" : r.type === "news" ? "news" : "songs");}}><b>{r.title}</b><span>{r.type} · {r.subtitle}</span></button>)}</div>}</div><NotificationBell count={unread} /><div className="cms-user"><span>{user.first_name || user.username}</span><small>{user.role_label}</small></div><button className="cms-btn light small" onClick={signOut}>Logout</button></header>
-        <main className="cms-content">{renderPage(page, user)}</main>
+        <header className="cms-topbar"><button className="cms-menu" onClick={()=>setSidebar(!sidebar)}>☰</button><div className="cms-global"><GlobalSearch onNavigate={handleGlobalNavigate} /></div><NotificationBell count={unread} /><div className="cms-user"><span>{user.first_name || user.username}</span><small>{user.role_label}</small></div><button className="cms-btn light small" onClick={signOut}>Logout</button></header>
+        <main className="cms-content">{renderPage(page, user, searchJump)}</main>
       </div>
     </div>
   );
 }
 function getInitialPage(){ const part = window.location.pathname.split("/cms/")[1]?.replace(/^\//, "") || "dashboard"; return part || "dashboard"; }
-function renderPage(page, user){
+function renderPage(page, user, searchJump){
   if(page === "dashboard") return <DashboardPage />;
   if(page === "uploads") return <UploadsPage />;
   if(page === "duplicate-review") return <DuplicateReviewPage />;
-  if(["artists","songs","albums","countries","platforms","news","charts","certifications","certification-rules","methodology","page-content","media","settings","users","reports","audit","backups"].includes(page)) return <ResourcePage type={page} user={user} />;
+  if(["artists","songs","albums","countries","platforms","news","charts","certifications","certification-rules","methodology","page-content","media","settings","users","reports","audit","backups"].includes(page)) return <ResourcePage type={page} user={user} searchJump={searchJump} />;
   const scaffolds = {
     "records": ["Highest monthly points", "Most #1s", "Longest charting", "Biggest debut", "Manual verification"],
     "year-end": ["Generate singles", "Generate albums", "Generate artists", "Eligible months", "Publish Year End"],

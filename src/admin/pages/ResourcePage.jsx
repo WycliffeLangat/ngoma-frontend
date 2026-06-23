@@ -26,10 +26,20 @@ const configs = {
 
 function releaseForm(chartType, artistOptions){ return [{name:"cover_image",label:"Cover image",type:"file",help:"Square image, min 1000×1000 px. JPEG or PNG, max 2 MB."},{name:"title",label:"Title"},{name:"primary_artist_ids",label:"Main artists (ordered)",type:"ordered-multiselect",options:artistOptions,help:"The first artist is the lead. Two artists display with &, while three or more use commas and & before the last."},{name:"featured_artist_ids",label:"Featuring (ordered)",type:"ordered-multiselect",options:artistOptions,help:"Featured artists display after ft and may include more than one artist."},{name:"chart_type",label:"Chart type",type:"select",options:[{value:chartType,label:chartType}]},{name:"canonical_title",label:"Canonical title"},{name:"featured_artists",label:"Unlinked featured names",help:"Fallback for a featured artist who does not yet have an Artist record."},{name:"credited_artists",label:"Other credited artists / notes"},{name:"songwriters",label:"Songwriters",type:"tags"},{name:"producers",label:"Producers",type:"tags"},{name:"release_year",label:"Release year",type:"number"},{name:"release_date",label:"Release date",type:"date"},{name:"isrc",label:"ISRC"},{name:"upc",label:"UPC"},{name:"number_of_tracks",label:"Number of tracks",type:"number"},{name:"country",label:"Country"},{name:"country_code",label:"Country code"},{name:"genre",label:"Genre"},{name:"label",label:"Label"},{name:"distributor",label:"Distributor"},{name:"spotify_url",label:"Spotify URL"},{name:"apple_music_url",label:"Apple Music URL"},{name:"boomplay_url",label:"Boomplay URL"},{name:"audiomack_url",label:"Audiomack URL"},{name:"youtube_url",label:"YouTube URL"},{name:"tiktok_url",label:"TikTok URL"},{name:"shazam_url",label:"Shazam URL"},{name:"radio_info",label:"Radio info",type:"textarea"},{name:"status",label:"Status"}]; }
 
-export default function ResourcePage({ type }) {
+// Resources that support status filtering and ordering in the CMS toolbar
+const STATUS_TYPES    = new Set(["songs", "albums", "artists"]);
+const ORDERING_OPTIONS = {
+  songs:   [["","Default"],["title","Title A–Z"],["-title","Title Z–A"],["-release_year","Newest first"],["release_year","Oldest first"],["-updated_at","Recently updated"]],
+  albums:  [["","Default"],["title","Title A–Z"],["-title","Title Z–A"],["-release_year","Newest first"],["release_year","Oldest first"],["-updated_at","Recently updated"]],
+  artists: [["","Default"],["name","Name A–Z"],["-name","Name Z–A"],["country","Country A–Z"],["-updated_at","Recently updated"]],
+};
+
+export default function ResourcePage({ type, searchJump }) {
   const config = configs[type] || configs.artists;
   const [rows, setRows] = useState([]);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");   // "" = all, "active", "archived"
+  const [ordering, setOrdering] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [modal, setModal] = useState(false);
@@ -42,7 +52,19 @@ export default function ResourcePage({ type }) {
   const [actionBusy, setActionBusy] = useState(false);
   const abortRef = useRef(null);
 
-  const params = useMemo(() => ({ ...(config.params || {}), search }), [config, search]);
+  // Apply search term from global search result click
+  useEffect(() => {
+    if (searchJump && searchJump.page === type && searchJump.term) {
+      setSearch(searchJump.term);
+    }
+  }, [searchJump]);
+
+  const params = useMemo(() => ({
+    ...(config.params || {}),
+    search,
+    ...(statusFilter ? { status: statusFilter } : {}),
+    ...(ordering ? { ordering } : {}),
+  }), [config, search, statusFilter, ordering]);
   const formFields = useMemo(() => type === "songs" || type === "albums" ? releaseForm(type === "albums" ? "albums" : "singles", artistOptions) : (config.form || []), [type, config, artistOptions]);
 
   // Used after save/delete to reload without debounce
@@ -56,8 +78,8 @@ export default function ResourcePage({ type }) {
     finally { if (!controller.signal.aborted) setLoading(false); }
   }
 
-  // Reset search when switching resource types
-  useEffect(() => { setSearch(""); }, [type]);
+  // Reset search and filters when switching resource types
+  useEffect(() => { setSearch(""); setStatusFilter(""); setOrdering(""); }, [type]);
 
   // Debounced search: instant for navigation (empty search), 280ms for typed queries
   useEffect(() => {
@@ -272,7 +294,33 @@ export default function ResourcePage({ type }) {
       </div>
       {error && <div className="cms-alert error">{error}</div>}
       <div className="cms-toolbar">
-        <SearchBar value={search} onChange={setSearch} placeholder={`Search ${config.title.toLowerCase()}...`} />
+        <SearchBar value={search} onChange={setSearch} placeholder={`Search ${config.title.toLowerCase()}…`} />
+        {STATUS_TYPES.has(type) && (
+          <select
+            className="cms-select"
+            value={statusFilter}
+            onChange={e => setStatusFilter(e.target.value)}
+            title="Filter by status"
+            style={{ fontSize: 13, padding: "4px 8px" }}
+          >
+            <option value="">All statuses</option>
+            <option value="active">Active</option>
+            <option value="archived">Archived</option>
+          </select>
+        )}
+        {ORDERING_OPTIONS[type] && (
+          <select
+            className="cms-select"
+            value={ordering}
+            onChange={e => setOrdering(e.target.value)}
+            title="Sort order"
+            style={{ fontSize: 13, padding: "4px 8px" }}
+          >
+            {ORDERING_OPTIONS[type].map(([val, label]) => (
+              <option key={val} value={val}>{label}</option>
+            ))}
+          </select>
+        )}
         {isActionable && (
           <button className="cms-btn light" onClick={dupGroups === null ? loadDuplicates : () => setDupGroups(null)}>
             {dupGroups === null ? "Find duplicates" : "Hide duplicates"}

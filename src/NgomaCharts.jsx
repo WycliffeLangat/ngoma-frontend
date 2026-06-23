@@ -890,6 +890,7 @@ export default function NgomaCharts(){
   const [hr,setHr]=useState(null);
   const [srch,setSrch]=useState("");
   const [sOpen,setSOpen]=useState(false);
+  const [sActiveIdx,setSActiveIdx]=useState(-1);
   const [mNav,setMNav]=useState(false);
   const [moreOpen,setMoreOpen]=useState(false);
   const [selA,setSelA]=useState(null);
@@ -1085,7 +1086,7 @@ export default function NgomaCharts(){
   const PAGE_MAX="1240px";
   const pageFrame=(extra={})=>({maxWidth:PAGE_MAX,width:"100%",margin:"0 auto",boxSizing:"border-box",minWidth:0,...extra});
   const responsiveStack=(desktop="row")=>({flexDirection:isMobile?"column":desktop,alignItems:isMobile?"stretch":"center"});
-  useEffect(()=>{const h=e=>{if(e.key==="Escape"){setSOpen(false);setSrch("");}};window.addEventListener("keydown",h);return()=>window.removeEventListener("keydown",h);},[]);
+  useEffect(()=>{const h=e=>{if(e.key==="Escape"){setSOpen(false);setSrch("");setSActiveIdx(-1);}};window.addEventListener("keydown",h);return()=>window.removeEventListener("keydown",h);},[]);
   useEffect(() => {
     detailOpenRef.current = Boolean(selA || selR);
   }, [selA, selR]);
@@ -1171,18 +1172,52 @@ const top = data[0];
     );
   };
 
-  // ALL data flattened for search
-  const allEntries=useMemo(()=>{
-    const out=[];
+  // Deduplicated search indices — best rank and month across all history
+  const songSearchIndex=useMemo(()=>{
+    const map=new Map();
     MONTHS.forEach(m=>{
-      getCombined("singles",m).forEach(e=>out.push({...e,type:"single",month:m}));
-      getCombined("albums",m).forEach(e=>out.push({...e,type:"album",month:m}));
+      getCombined("singles",m).forEach(e=>{
+        const k=`${String(e.title||"").trim().toLowerCase()}|||${String(e.artist||"").trim().toLowerCase()}`;
+        const ex=map.get(k); const rank=Number(e.rank);
+        if(!ex) map.set(k,{...e,_type:"single",_months:1,_bestRank:rank,_bestMonth:m});
+        else { ex._months++; if(rank<ex._bestRank){ex._bestRank=rank;ex._bestMonth=m;} }
+      });
     });
-    return out;
+    return [...map.values()].sort((a,b)=>a._bestRank-b._bestRank);
   },[]);
-  const sRes=srch.length>1?[...new Map(allEntries.filter(e=>
-    e.title.toLowerCase().includes(srch.toLowerCase())||e.artist.toLowerCase().includes(srch.toLowerCase())
-  ).map(e=>[e.type+e.title+e.artist+e.month,e])).values()].slice(0,16):[];
+  const albumSearchIndex=useMemo(()=>{
+    const map=new Map();
+    MONTHS.forEach(m=>{
+      getCombined("albums",m).forEach(e=>{
+        const k=`${String(e.title||"").trim().toLowerCase()}|||${String(e.artist||"").trim().toLowerCase()}`;
+        const ex=map.get(k); const rank=Number(e.rank);
+        if(!ex) map.set(k,{...e,_type:"album",_months:1,_bestRank:rank,_bestMonth:m});
+        else { ex._months++; if(rank<ex._bestRank){ex._bestRank=rank;ex._bestMonth=m;} }
+      });
+    });
+    return [...map.values()].sort((a,b)=>a._bestRank-b._bestRank);
+  },[]);
+  const sResults=useMemo(()=>{
+    const q=srch.trim().toLowerCase();
+    if(q.length<2) return null;
+    const songs=songSearchIndex.filter(e=>String(e.title||"").toLowerCase().includes(q)||String(e.artist||"").toLowerCase().includes(q)).slice(0,7);
+    const albums=albumSearchIndex.filter(e=>String(e.title||"").toLowerCase().includes(q)||String(e.artist||"").toLowerCase().includes(q)).slice(0,5);
+    const chartArtistKeys=new Set([...COMBINED_ARTISTS.singles,...COMBINED_ARTISTS.albums].map(a=>a.n.toLowerCase()));
+    const artists=(PUBLIC_DATA.artists||[]).filter(a=>(chartArtistKeys.has(String(a.name||"").toLowerCase()))&&(
+      String(a.name||"").toLowerCase().includes(q)||String(a.display_name||"").toLowerCase().includes(q)||(a.aliases||[]).some(al=>String(al||"").toLowerCase().includes(q))
+    )).slice(0,5);
+    const newsItems=(liveNews||NEWS).filter(n=>String(n.title||"").toLowerCase().includes(q)||String(n.excerpt||n.body||"").toLowerCase().includes(q)).slice(0,4);
+    return {songs,albums,artists,news:newsItems};
+  },[srch,songSearchIndex,albumSearchIndex,liveNews]);
+  const sFlatResults=useMemo(()=>{
+    if(!sResults) return [];
+    return [
+      ...sResults.songs.map(e=>({...e,_kind:"song"})),
+      ...sResults.albums.map(e=>({...e,_kind:"album"})),
+      ...sResults.artists.map(a=>({...a,_kind:"artist"})),
+      ...sResults.news.map(n=>({...n,_kind:"news"})),
+    ];
+  },[sResults]);
 
   // Every credited artist receives the release's full chart contribution from Top 50 source rows.
   const artistCutoffMonth = page === "analytics" ? anMonth : artistMonth;
@@ -1228,6 +1263,14 @@ const top = data[0];
     setSelR(null);
     setSelA(profile);
     prepareDetailNavigation();
+  };
+  const closeSearch=()=>{setSOpen(false);setSrch("");setSActiveIdx(-1);};
+  const selectSearchResult=(item)=>{
+    closeSearch();
+    if(item._kind==="song"){setPage("charts");setMonth(item._bestMonth||CURRENT_MONTH);openReleaseDetails(item,"single");}
+    else if(item._kind==="album"){setPage("charts");setMonth(item._bestMonth||CURRENT_MONTH);openReleaseDetails(item,"album");}
+    else if(item._kind==="artist"){openArtistDetails(item.name);}
+    else if(item._kind==="news"){navTo("news");setSelNews(item);}
   };
   const openReleaseDetails = (entry = {}, type = isSingles ? "single" : "album") => {
     if (entry?.is_artist_entry || String(type || entry.type || "").toLowerCase().includes("artist")) {
@@ -2330,7 +2373,7 @@ const top = data[0];
                   {navItems.map(t=>(
                     <span key={t} onClick={()=>navTo(t)} style={{cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"13px",fontWeight:page===t?800:600,letterSpacing:"1px",textTransform:"uppercase",color:page===t?themeColors.text:themeColors.muted,background:page===t?themeColors.active:"transparent",border:page===t?"1px solid #D4B65E":"1px solid transparent"}}>{navLabel(t)}</span>
                   ))}
-                  <span onClick={()=>{setMNav(false);setSOpen(true);}} style={{cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"13px",fontWeight:600,letterSpacing:"1px",textTransform:"uppercase",color:themeColors.muted}}>Search</span>
+                  <span onClick={()=>{setMNav(false);setSOpen(true);setSActiveIdx(-1);}} style={{cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"13px",fontWeight:600,letterSpacing:"1px",textTransform:"uppercase",color:themeColors.muted}}>Search</span>
                   {themeToggle({hideDot:true,width:"100%",justifyContent:"flex-start",borderRadius:"12px",minHeight:"44px",padding:"0 14px",marginTop:"4px",fontSize:"13px",fontWeight:600,letterSpacing:"1px"})}
                 </div>
               )}
@@ -2381,7 +2424,7 @@ const top = data[0];
                 )}
               </div>
               <span
-                onClick={()=>{setMoreOpen(false);setSOpen(true);}}
+                onClick={()=>{setMoreOpen(false);setSOpen(true);setSActiveIdx(-1);}}
                 style={{
                   cursor:"pointer",
                   color:themeColors.muted,
@@ -2404,26 +2447,135 @@ const top = data[0];
         </div>
       </header>
 
-      {/* SHARE IMAGE PREVIEW */}
       {/* SEARCH */}
       {sOpen&&(
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",zIndex:100,display:"flex",justifyContent:"center",paddingTop:"70px"}} onClick={()=>{setSOpen(false);setSrch("");}}>
-          <div onClick={e=>e.stopPropagation()} style={{background:"#FFF",borderRadius:"12px",width:isMobile?"calc(100vw - 32px)":"560px",maxWidth:"100%",maxHeight:"560px",overflow:"hidden",boxShadow:"0 20px 60px rgba(0,0,0,0.25)",boxSizing:"border-box"}}>
-            <div style={{padding:"16px 20px",borderBottom:"1px solid #EEE",display:"flex",alignItems:"center",gap:"10px"}}>
-              <span style={{fontSize:"18px",color:"#CCC"}}>⌕</span>
-              <input value={srch} onChange={e=>setSrch(e.target.value)} placeholder="Search across all songs, albums, artists..." autoFocus style={{flex:1,border:"none",outline:"none",fontSize:"16px",fontFamily:SF}}/>
-              <span onClick={()=>{setSOpen(false);setSrch("");}} style={{cursor:"pointer",color:"#CCC"}}>✕</span>
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.52)",zIndex:100,display:"flex",justifyContent:"center",paddingTop:isMobile?"12px":"70px"}} onClick={closeSearch}>
+          <div onClick={e=>e.stopPropagation()} style={{background:isDark?"#1a1e1a":"#FFF",borderRadius:"16px",width:isMobile?"calc(100vw - 20px)":"600px",maxWidth:"100%",maxHeight:"80vh",overflow:"hidden",boxShadow:"0 24px 64px rgba(0,0,0,0.28)",boxSizing:"border-box",display:"flex",flexDirection:"column"}}>
+            {/* Input row */}
+            <div style={{padding:"14px 18px",borderBottom:`1px solid ${isDark?"#2b302b":"#EBEBEB"}`,display:"flex",alignItems:"center",gap:"10px",flexShrink:0}}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={isDark?"#888":"#AAA"} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input
+                value={srch}
+                onChange={e=>{setSrch(e.target.value);setSActiveIdx(-1);}}
+                onKeyDown={e=>{
+                  if(e.key==="ArrowDown"){e.preventDefault();setSActiveIdx(i=>Math.min(i+1,sFlatResults.length-1));}
+                  else if(e.key==="ArrowUp"){e.preventDefault();setSActiveIdx(i=>Math.max(i-1,0));}
+                  else if(e.key==="Enter"&&sActiveIdx>=0){e.preventDefault();selectSearchResult(sFlatResults[sActiveIdx]);}
+                }}
+                placeholder="Search songs, albums, artists, news…"
+                autoFocus
+                style={{flex:1,border:"none",outline:"none",fontSize:"16px",fontFamily:SF,background:"transparent",color:isDark?"#F6F3EA":"#1A1A1A"}}
+              />
+              {srch&&<button type="button" onClick={()=>{setSrch("");setSActiveIdx(-1);}} style={{border:"none",background:"none",cursor:"pointer",color:isDark?"#666":"#CCC",fontSize:"18px",lineHeight:1,padding:"0 2px"}}>×</button>}
+              <button type="button" onClick={closeSearch} style={{border:`1px solid ${isDark?"#333":"#E0E0E0"}`,borderRadius:"7px",background:"none",cursor:"pointer",color:isDark?"#888":"#999",fontFamily:F,fontSize:"10px",fontWeight:700,letterSpacing:"1px",padding:"4px 8px",whiteSpace:"nowrap"}}>ESC</button>
             </div>
-            <div style={{maxHeight:"480px",overflow:"auto"}}>
-              {sRes.map((e,i)=>(
-                <div key={i} style={{padding:"11px 20px",borderBottom:"1px solid #F5F5F3",display:"flex",justifyContent:"space-between",alignItems:"center"}}
-                  onMouseEnter={x=>x.currentTarget.style.background="#FAFAF6"} onMouseLeave={x=>x.currentTarget.style.background="transparent"}>
-                  <div><button type="button" onClick={()=>{setSOpen(false);setSrch("");setPage("charts");setMonth(e.month);openReleaseDetails(e,e.type);}} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:"14px",fontWeight:700,cursor:"pointer",textAlign:"left"}}>{e.title}</button><div style={{fontSize:"10.5px",color:"#999",fontFamily:F}}>{e.artist} · <span style={{color:GOLD}}>{e.type} · {e.month}</span></div></div>
-                  <div style={{fontFamily:F,fontSize:"10.5px",color:GOLD,fontWeight:600}}>#{e.rank} · {e.pts.toLocaleString()} pts</div>
+            {/* Results */}
+            <div style={{overflowY:"auto",flex:1}}>
+              {/* Empty / hint states */}
+              {!sResults&&<div style={{padding:"28px 20px",textAlign:"center",color:isDark?"#555":"#CCC",fontFamily:F,fontSize:"13px"}}>Search songs, albums, artists and news</div>}
+              {sResults&&sFlatResults.length===0&&<div style={{padding:"28px 20px",textAlign:"center",color:isDark?"#666":"#BBB",fontFamily:F,fontSize:"13px"}}>No results for "{srch}"</div>}
+              {/* Songs */}
+              {sResults&&sResults.songs.length>0&&(
+                <>
+                  <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#5a7abf":"#2d7dd2",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>Songs</div>
+                  {sResults.songs.map((e,i)=>{
+                    const flatIdx=i;
+                    const cert=liveCerts?liveCerts.find(c=>String(c.t||"").toLowerCase()===String(e.title||"").toLowerCase()&&String(c.a||"").toLowerCase()===String(e.artist||"").toLowerCase()):null;
+                    const certMeta=cert?certificationMetaForLevel(cert.level):null;
+                    return(
+                      <button key={`s-${i}`} type="button"
+                        onMouseEnter={()=>setSActiveIdx(flatIdx)}
+                        onClick={()=>selectSearchResult(e)}
+                        style={{display:"flex",alignItems:"center",gap:"12px",width:"100%",textAlign:"left",padding:"10px 18px",border:"none",borderBottom:`1px solid ${isDark?"#1c2320":"#F8F8F5"}`,cursor:"pointer",background:flatIdx===sActiveIdx?(isDark?"#1a2518":"#F0F7FF"):(isDark?"transparent":"transparent")}}>
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{fontSize:"13px",fontWeight:700,color:isDark?"#F6F3EA":"#1A1A1A",display:"flex",alignItems:"center",gap:"5px",overflow:"hidden"}}>
+                            <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.title}</span>
+                            {certMeta&&<span title={`${certMeta.label} certified`} style={{fontSize:"12px",flexShrink:0}}><span style={certMeta.iconFilter?{filter:certMeta.iconFilter}:{}}>{certMeta.icon}</span></span>}
+                          </div>
+                          <div style={{fontSize:"11px",color:isDark?"#7a8a7a":"#888",marginTop:"1px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.artist}</div>
+                        </div>
+                        <div style={{textAlign:"right",flexShrink:0,fontFamily:F}}>
+                          <div style={{fontSize:"11px",fontWeight:700,color:GOLD}}>#{e._bestRank}</div>
+                          <div style={{fontSize:"10px",color:isDark?"#666":"#BBB"}}>{e._months} mo</div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </>
+              )}
+              {/* Albums */}
+              {sResults&&sResults.albums.length>0&&(
+                <>
+                  <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#3a9a6a":"#1a8a5a",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>Albums</div>
+                  {sResults.albums.map((e,i)=>{
+                    const flatIdx=sResults.songs.length+i;
+                    return(
+                      <button key={`a-${i}`} type="button"
+                        onMouseEnter={()=>setSActiveIdx(flatIdx)}
+                        onClick={()=>selectSearchResult(e)}
+                        style={{display:"flex",alignItems:"center",gap:"12px",width:"100%",textAlign:"left",padding:"10px 18px",border:"none",borderBottom:`1px solid ${isDark?"#1c2320":"#F8F8F5"}`,cursor:"pointer",background:flatIdx===sActiveIdx?(isDark?"#1a2518":"#F0F7FF"):"transparent"}}>
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{fontSize:"13px",fontWeight:700,color:isDark?"#F6F3EA":"#1A1A1A",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.title}</div>
+                          <div style={{fontSize:"11px",color:isDark?"#7a8a7a":"#888",marginTop:"1px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.artist}</div>
+                        </div>
+                        <div style={{textAlign:"right",flexShrink:0,fontFamily:F}}>
+                          <div style={{fontSize:"11px",fontWeight:700,color:GOLD}}>#{e._bestRank}</div>
+                          <div style={{fontSize:"10px",color:isDark?"#666":"#BBB"}}>{e._months} mo</div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </>
+              )}
+              {/* Artists */}
+              {sResults&&sResults.artists.length>0&&(
+                <>
+                  <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:"#7c5cbf",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>Artists</div>
+                  {sResults.artists.map((a,i)=>{
+                    const flatIdx=sResults.songs.length+sResults.albums.length+i;
+                    const accent=COUNTRY_ACCENTS[a.country_code]||"#69716B";
+                    return(
+                      <button key={`ar-${i}`} type="button"
+                        onMouseEnter={()=>setSActiveIdx(flatIdx)}
+                        onClick={()=>selectSearchResult({...a,_kind:"artist"})}
+                        style={{display:"flex",alignItems:"center",gap:"12px",width:"100%",textAlign:"left",padding:"10px 18px",border:"none",borderBottom:`1px solid ${isDark?"#1c2320":"#F8F8F5"}`,cursor:"pointer",background:flatIdx===sActiveIdx?(isDark?"#1a2518":"#F0F7FF"):"transparent"}}>
+                        {a.image?<img src={a.image} alt={a.name} style={{width:34,height:34,borderRadius:"50%",objectFit:"cover",flexShrink:0,border:`1px solid ${isDark?"#333":"#EEE"}`}}/>:<div style={{width:34,height:34,borderRadius:"50%",background:isDark?"#222":"#F0EDE7",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"14px",fontWeight:800,color:isDark?"#666":"#CCC"}}>{String(a.name||"").charAt(0)}</div>}
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{fontSize:"13px",fontWeight:700,color:isDark?"#F6F3EA":"#1A1A1A",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{a.display_name||a.name}</div>
+                          <div style={{fontSize:"11px",color:isDark?"#7a8a7a":"#888",marginTop:"1px"}}>{a.genre||""}{a.genre&&a.country?" · ":""}{a.country||""}</div>
+                        </div>
+                        {a.country_code&&<span style={{fontSize:"9px",fontWeight:800,letterSpacing:"0.8px",color:accent,border:`1px solid ${accent}55`,borderRadius:"6px",padding:"2px 6px",flexShrink:0,background:`${accent}12`}}>{a.country_code}</span>}
+                      </button>
+                    );
+                  })}
+                </>
+              )}
+              {/* News */}
+              {sResults&&sResults.news.length>0&&(
+                <>
+                  <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:"#c05c00",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>News</div>
+                  {sResults.news.map((n,i)=>{
+                    const flatIdx=sResults.songs.length+sResults.albums.length+sResults.artists.length+i;
+                    return(
+                      <button key={`n-${i}`} type="button"
+                        onMouseEnter={()=>setSActiveIdx(flatIdx)}
+                        onClick={()=>selectSearchResult({...n,_kind:"news"})}
+                        style={{display:"flex",alignItems:"center",gap:"12px",width:"100%",textAlign:"left",padding:"10px 18px",border:"none",borderBottom:`1px solid ${isDark?"#1c2320":"#F8F8F5"}`,cursor:"pointer",background:flatIdx===sActiveIdx?(isDark?"#1a2518":"#F0F7FF"):"transparent"}}>
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{fontSize:"13px",fontWeight:700,color:isDark?"#F6F3EA":"#1A1A1A",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{n.title}</div>
+                          <div style={{fontSize:"11px",color:isDark?"#7a8a7a":"#888",marginTop:"1px"}}><span style={{color:"#c05c00",fontWeight:700}}>{n.cat}</span>{n.date?" · "+n.date:""}</div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </>
+              )}
+              {/* Footer keyboard hint */}
+              {sResults&&sFlatResults.length>0&&(
+                <div style={{padding:"8px 18px",fontSize:"10px",color:isDark?"#444":"#CCC",fontFamily:F,borderTop:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`,textAlign:"right"}}>
+                  ↑↓ navigate &nbsp;·&nbsp; Enter select &nbsp;·&nbsp; Esc close
                 </div>
-              ))}
-              {srch.length>1&&!sRes.length&&<div style={{padding:"24px",textAlign:"center",color:"#CCC",fontFamily:F}}>No results across all months</div>}
-              {srch.length<=1&&<div style={{padding:"24px",textAlign:"center",color:"#DDD",fontFamily:F,fontSize:"13px"}}>Type to search across all 50+ entries from each platform</div>}
+              )}
             </div>
           </div>
         </div>
