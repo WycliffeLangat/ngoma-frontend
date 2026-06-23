@@ -1,4 +1,17 @@
 import { useState, useEffect, useMemo, useRef } from "react";
+import { API_BASE } from "./api/config.js";
+import {
+  checkApiStatus, fetchNews, fetchCertifications, fetchChartImageData,
+} from "./api/public.js";
+import {
+  releaseTitle, normFt, releaseArtist,
+  formatCreditMembers, profileNames, splitCreditNames,
+  artistCreditMembers, formatArtistCredit,
+  firstFiniteNumber, certificationKey,
+  getMonthYearParts, platformToSlug,
+  normArtistKey, artistSetKey, entryKey, sameRelease,
+  mv, mapPublicNews,
+} from "./utils/chartHelpers.js";
 import {
   BarChart,
   Bar,
@@ -99,58 +112,6 @@ const buildCertifications = (items = []) => items
     level: getCertificationLevel(item.totalPts),
   }))
   .filter((item) => item.level);
-const releaseTitle = (item = {}) => item.t || item.title || item.release_title || item.name || "";
-const normFt = (s) => String(s || "").replace(/\bft\./gi, "ft");
-const releaseArtist = (item = {}) => normFt(item.artist_credit || item.a || item.artist || item.artist_name || item.primary_artist || "");
-const formatCreditMembers = (members = []) => {
-  const unique = [...new Map(members
-    .map((member) => String(member || "").trim())
-    .filter(Boolean)
-    .map((member) => [member.toLowerCase(), member])).values()];
-  if (unique.length <= 1) return unique[0] || "";
-  if (unique.length === 2) return unique.join(" & ");
-  return `${unique.slice(0, -1).join(", ")} & ${unique[unique.length - 1]}`;
-};
-const profileNames = (profiles = []) => profiles
-  .map((artist) => artist?.public_name || artist?.display_name || artist?.name || artist)
-  .map((name) => String(name || "").trim())
-  .filter(Boolean);
-const splitCreditNames = (value = "") => String(value || "")
-  .split(/\s*,\s*|\s*&\s*|\s+ft\.?\s+|\s+feat\.?\s+|\s+featuring\s+/i)
-  .map((name) => name.trim())
-  .filter(Boolean);
-const artistCreditMembers = (item = {}) => {
-  const structuredPrimary = profileNames(item.primary_artists);
-  const structuredFeatured = profileNames(item.featured_artist_profiles);
-  const primaryArtist = String(item.primary_artist_credit || item.primary_artist || item.pa || "").trim();
-  const featuredArtists = String(item.featured_artist_credit || item.featured_artists || item.fa || "").trim();
-  const source = structuredPrimary.length || structuredFeatured.length
-    ? [...structuredPrimary, ...structuredFeatured]
-    : primaryArtist
-      ? [...splitCreditNames(primaryArtist), ...splitCreditNames(featuredArtists)]
-      : splitCreditNames(item.artist_credit || item.artist || item.a || "");
-  return [...new Map(source
-    .map((member) => String(member || "").trim())
-    .filter(Boolean)
-    .map((member) => [member.toLowerCase(), member])).values()];
-};
-const formatArtistCredit = (primaryArtist = "", featuredArtists = "", primaryArtists = [], featuredProfiles = []) => {
-  const primaryNames = profileNames(primaryArtists).length ? profileNames(primaryArtists) : splitCreditNames(primaryArtist);
-  const featuredNames = profileNames(featuredProfiles).length ? profileNames(featuredProfiles) : splitCreditNames(featuredArtists);
-  const primaryCredit = formatCreditMembers(primaryNames);
-  const featuredCredit = formatCreditMembers(featuredNames.filter((name) => !primaryNames.some((primary) => primary.toLowerCase() === name.toLowerCase())));
-  return featuredCredit ? `${primaryCredit} & ${featuredCredit}` : primaryCredit;
-};
-const firstFiniteNumber = (...values) => {
-  for (const value of values) {
-    if (value === undefined || value === null || value === "") continue;
-    const parsed = Number(String(value).replace(/,/g, ""));
-    if (Number.isFinite(parsed)) return parsed;
-  }
-  return null;
-};
-const certificationKey = (title = "", artist = "") =>
-  `${String(title).trim().toLowerCase()}|||${String(artist).trim().toLowerCase()}`;
 const certificationMetaForLevel = (level) => CERTIFICATION_LEVELS.find((item) => item.level === level) || null;
 const COUNTRY_ACCENTS = {
   BB:"#00267F",CA:"#D80621",CD:"#007FFF",CI:"#F77F00",CL:"#D52B1E",DE:"#FFCE00",FR:"#0055A4",GB:"#012169",
@@ -174,77 +135,8 @@ const CountryBadge = ({ artist, item, compact = false, style = {} }) => {
     </span>
   );
 };
-const MONTH_NUMBER = {
-  "January": 1,
-  "February": 2,
-  "March": 3,
-  "April": 4,
-  "May": 5,
-  "June": 6,
-  "July": 7,
-  "August": 8,
-  "September": 9,
-  "October": 10,
-  "November": 11,
-  "December": 12,
-};
-
-function getMonthYearParts(label) {
-  const [monthName, year] = label.split(" ");
-  return {
-    monthNumber: MONTH_NUMBER[monthName],
-    year,
-  };
-}
-
-function platformToSlug(platform) {
-  if (!platform || platform === "Combined") return "combined";
-
-  return platform
-    .toLowerCase()
-    .replace(/\s+/g, "-");
-}
 
 // Helpers — return entries from FULL with proper month-to-month chart history
-
-// normArtistKey: strips separator suffixes, keeps only the first/primary name.
-// Used for artist LOOKUPS (CMS artist map, publicArtistForName) where we want
-// to resolve "Bien ft. Alikiba" → the CMS record for "Bien".
-function normArtistKey(str) {
-  return String(str || "")
-    .trim()
-    .toLowerCase()
-    .replace(/\s*\|\s*.+$/, "")
-    .replace(/\s+(?:ft\.?|feat\.?|featuring|w\/)\s+.+$/i, "")
-    .replace(/\s+x\s+.+$/i, "")
-    .replace(/\s+&\s+.+$/i, "")
-    .trim();
-}
-
-// artistSetKey: produces a SORTED, DEDUPLICATED list of all artists as the key.
-// "Bien ft. Alikiba", "Alikiba ft. Bien", "Bien & Alikiba", "Alikiba & Bien"
-// all produce "alikiba+bien" — one canonical key for the same collaboration.
-// Titles with "Remix", "Deluxe", "2.0" etc. remain distinct (title is unchanged).
-function artistSetKey(primaryStr, featuredStr) {
-  const seen = new Set();
-  const all = [];
-  [
-    ...String(primaryStr || "").split(/\s*(?:\||\bft\.?|\bfeat\.?|\bfeaturing\b|\bx\b|&|,)\s*/i),
-    ...String(featuredStr || "").split(/,\s*/),
-  ].forEach((name) => {
-    const n = String(name || "").trim().toLowerCase();
-    if (n && !seen.has(n)) { seen.add(n); all.push(n); }
-  });
-  return all.sort().join("+");
-}
-
-const entryKey = (e) => {
-  const title = String(e.t || e.title || "").trim().toLowerCase();
-  const primary = String(e.primary_artist || e.a || e.artist || "").trim();
-  const featured = String(e.fa || e.featured_artists || "").trim();
-  return `${title}|||${artistSetKey(primary, featured)}`;
-};
-const sameRelease = (left, right) => entryKey(left) === entryKey(right);
 const monthIndex = m => MONTHS.indexOf(m);
 
 // Precise CMS release lookup keyed by title + full artist set.
@@ -831,17 +723,7 @@ function AnalyticsDeepSection({ label, isMobile, children }) {
   );
 }
 
-// Movement badge
-const mv = e => {
-  const movementType = String(e.movement || e.movement_type || "").toLowerCase();
-  if(e.reentry || movementType === "reentry" || movementType === "re-entry" || movementType === "re" || movementType === "r.e") return {t:"reentry"};
-  if(e.is_new || movementType === "new") return {t:"new"};
-  if(e.prev===null||e.prev===undefined||e.prev==="") return {t:"new"};
-  const d=e.prev-e.rank;
-  if(d>0) return {t:"up",v:d};
-  if(d<0) return {t:"down",v:Math.abs(d)};
-  return {t:"same"};
-};
+// Movement badge (mv imported from chartHelpers)
 
 
 const MvBadge=({e})=>{
@@ -948,23 +830,6 @@ const NEWS=[
   {id:18,date:"May 29, 2026",cat:"ANALYTICS",emoji:"",title:"Wrong Places Secures Platinum Status",excerpt:"Joshua Baraka & JAE5 total 408 points across nine months.",body:"Wrong Places appears in every tracked month and exceeds the new 400-point Platinum certification threshold."},
 ];
 
-const NEWS_CATEGORY_LABELS = {
-  chart_news:"CHART NEWS",milestones:"MILESTONES",new_releases:"NEW RELEASES",
-  industry_news:"INDUSTRY NEWS",artist_news:"ARTIST NEWS",awards:"AWARDS",
-  certifications:"CERTIFICATIONS",records:"RECORDS",interviews:"INTERVIEWS",
-  editorials:"EDITORIALS",artist_spotlight:"ARTIST SPOTLIGHT",albums:"ALBUMS",
-  analytics:"ANALYTICS",announcement:"ANNOUNCEMENT",
-};
-const mapPublicNews = (items = []) => items.map((n) => ({
-  ...n,
-  id: n.id,
-  date: n.published_at ? new Date(n.published_at).toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"}) : "",
-  cat: NEWS_CATEGORY_LABELS[n.category] || (n.category||"").toUpperCase().replace(/_/g," "),
-  emoji: n.emoji || "",
-  title: n.title || "",
-  excerpt: n.excerpt || "",
-  body: n.body || "",
-}));
 const mapPublicCertifications = (items = []) => items.map((c) => ({
   ...c,
   t: c.title || "",
@@ -974,6 +839,37 @@ const mapPublicCertifications = (items = []) => items.map((c) => ({
   country_code: c.country_code || "",
   chart_type: c.chart_type || "singles",
 })).filter((c) => c.level);
+
+// Defined at module scope so React does not recreate it on every render.
+const CertificationTag = ({ cert, compact = true, style = {} }) => {
+  if (!cert) return null;
+  const certificationLabel = `${cert.label} certified · ${Number(cert.totalPts || 0).toLocaleString()} points`;
+  if (compact) return (
+    <span
+      style={{ display: "inline-flex", alignItems: "center", fontSize: "8px", lineHeight: 1, verticalAlign: "middle", ...style }}
+      title={certificationLabel}
+      aria-label={certificationLabel}
+    >
+      <span aria-hidden="true" style={cert.iconFilter ? { filter: cert.iconFilter } : undefined}>{cert.icon}</span>
+    </span>
+  );
+  return (
+    <span
+      style={{
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+        width: "fit-content", maxWidth: "100%", minWidth: "24px", minHeight: "24px",
+        padding: "3px 5px", borderRadius: "999px",
+        background: `${cert.color}14`, border: `1px solid ${cert.color}40`,
+        color: cert.color, fontFamily: F, fontSize: "14px", lineHeight: 1.1,
+        whiteSpace: "nowrap", verticalAlign: "middle", ...style,
+      }}
+      title={certificationLabel}
+      aria-label={certificationLabel}
+    >
+      <span aria-hidden="true" style={cert.iconFilter ? { filter: cert.iconFilter } : undefined}>{cert.icon}</span>
+    </span>
+  );
+};
 
 export default function NgomaCharts(){
   const [page,setPage]=useState("charts");
@@ -1006,9 +902,8 @@ export default function NgomaCharts(){
   const [rankJourneyView,setRankJourneyView]=useState("table");
   const [viewModes,setViewModes]=useState({});
   const [loaded,setLd]=useState(false);
-  // Live backend (optional) — falls back to baked-in data if unreachable
-  const API_BASE = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_BASE || "/api/v1").replace(/\/$/, "");
   const [liveStatus, setLiveStatus] = useState("static"); // "static" | "live" | "checking"
+  const [apiChecked, setApiChecked] = useState(false); // true once the API ping has resolved
   const [liveChartEntries, setLiveChartEntries] = useState([]);
   const [liveChartMeta, setLiveChartMeta] = useState(null);
   const [liveChartLoading, setLiveChartLoading] = useState(false);
@@ -1081,37 +976,24 @@ export default function NgomaCharts(){
   const tp = isArtists ? ARTIST_PLATS.length : (isSingles ? 6 : 2);
 
   useEffect(() => {
-    if (!API_BASE) return;
-
     setLiveStatus("checking");
-
-    fetch(API_BASE + "/charts/latest/?chart_type=singles&platform=combined")
-      .then((response) => (response.ok ? response.json() : Promise.reject()))
+    checkApiStatus()
       .then(() => setLiveStatus("live"))
-      .catch(() => setLiveStatus("static"));
-  }, [API_BASE]);
+      .catch(() => setLiveStatus("static"))
+      .finally(() => setApiChecked(true));
+  }, []);
 
   useEffect(() => {
-    if (!API_BASE) return;
-    fetch(API_BASE + "/news/?page_size=100", { cache:"no-store" })
-      .then((r) => r.ok ? r.json() : Promise.reject())
-      .then((data) => {
-        const items = Array.isArray(data) ? data : (data.results || []);
-        setLiveNews(mapPublicNews(items));
-      })
+    fetchNews()
+      .then((items) => setLiveNews(mapPublicNews(items)))
       .catch(() => setLiveNews(null));
-  }, [API_BASE]);
+  }, []);
 
   useEffect(() => {
-    if (!API_BASE) return;
-    fetch(API_BASE + "/certifications/?page_size=200", { cache:"no-store" })
-      .then((r) => r.ok ? r.json() : Promise.reject())
-      .then((data) => {
-        const items = Array.isArray(data) ? data : (data.results || []);
-        setLiveCerts(mapPublicCertifications(items));
-      })
+    fetchCertifications()
+      .then((items) => setLiveCerts(mapPublicCertifications(items)))
       .catch(() => setLiveCerts(null));
-  }, [API_BASE]);
+  }, []);
 
   useEffect(() => {
     setLiveChartEntries([]);
@@ -1119,23 +1001,17 @@ export default function NgomaCharts(){
     setLiveChartLoading(false);
 
     if (isArtists || plat === KENYAN_CHART) return;
-    if (!API_BASE) return;
 
     const { monthNumber, year } = getMonthYearParts(month);
-
     if (!monthNumber || !year) return;
 
     const controller = new AbortController();
-
-    const params = new URLSearchParams();
-    params.set("type", releaseCt);
-    params.set("month", String(monthNumber));
-    params.set("year", String(year));
-    params.set("platform", platformToSlug(plat));
-
     setLiveChartLoading(true);
 
-    fetch(`${API_BASE}/export/chart-image-data/?${params.toString()}`, { signal: controller.signal })
+    fetchChartImageData(
+      { type: releaseCt, month: monthNumber, year, platform: platformToSlug(plat) },
+      controller.signal
+    )
       .then((response) => {
         if (!response.ok) throw new Error("Live chart unavailable");
         return response.json();
@@ -1197,7 +1073,7 @@ export default function NgomaCharts(){
       });
 
     return () => controller.abort();
-  }, [API_BASE, releaseCt, month, plat, tp, isArtists]);
+  }, [releaseCt, month, plat, tp, isArtists]);
   useEffect(()=>{setTimeout(()=>setLd(true),100);},[]);
 
   const [vw,setVw]=useState(typeof window!=="undefined"?window.innerWidth:1200);
@@ -2115,47 +1991,6 @@ const top = data[0];
     }).slice(0, limit);
   };
 
-  const CertificationTag = ({ cert, compact = true, style = {} }) => {
-    if (!cert) return null;
-    const certificationLabel = `${cert.label} certified · ${Number(cert.totalPts || 0).toLocaleString()} points`;
-    if (compact) return (
-      <span
-        style={{ display: "inline-flex", alignItems: "center", fontSize: "8px", lineHeight: 1, verticalAlign: "middle", ...style }}
-        title={certificationLabel}
-        aria-label={certificationLabel}
-      >
-        <span aria-hidden="true" style={cert.iconFilter ? { filter: cert.iconFilter } : undefined}>{cert.icon}</span>
-      </span>
-    );
-    return (
-      <span
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          width: "fit-content",
-          maxWidth: "100%",
-          minWidth: "24px",
-          minHeight: "24px",
-          padding: "3px 5px",
-          borderRadius: "999px",
-          background: `${cert.color}14`,
-          border: `1px solid ${cert.color}40`,
-          color: cert.color,
-          fontFamily: F,
-          fontSize: "14px",
-          lineHeight: 1.1,
-          whiteSpace: "nowrap",
-          verticalAlign: "middle",
-          ...style,
-        }}
-        title={certificationLabel}
-        aria-label={certificationLabel}
-      >
-        <span aria-hidden="true" style={cert.iconFilter ? { filter: cert.iconFilter } : undefined}>{cert.icon}</span>
-      </span>
-    );
-  };
 
   // Hall of Fame: #1 each month for both singles and albums
   const hof=MONTHS.flatMap(m=>{
@@ -2369,6 +2204,15 @@ const top = data[0];
 
   return(
     <div className="ngoma-app-shell" data-theme={theme} style={{fontFamily:SF,background:themeColors.page,color:themeColors.text,minHeight:"100vh",width:"100%",overflowX:"hidden"}}>
+      {apiChecked && liveStatus === "static" && (
+        <div style={{
+          position:"fixed",bottom:"14px",right:"14px",zIndex:9999,pointerEvents:"none",
+          background:"rgba(20,20,20,0.82)",backdropFilter:"blur(6px)",color:"#ccc",
+          fontSize:"10px",letterSpacing:"0.4px",padding:"5px 11px",borderRadius:"999px",
+        }}>
+          Using chart snapshot · live data unavailable
+        </div>
+      )}
       <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700;800;900&family=Instrument+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
       <style>{`
         html, body, #root{max-width:100%;overflow-x:hidden;}

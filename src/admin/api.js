@@ -1,4 +1,5 @@
-export const API_BASE = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_BASE || "/api/v1").replace(/\/$/, "");
+export { API_BASE } from "../api/config.js";
+import { API_BASE } from "../api/config.js";
 export const CMS_BASE = `${API_BASE}/cms`;
 
 let csrfToken = null;

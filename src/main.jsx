@@ -1,10 +1,10 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { applyPublicAppData } from "./data/liveChartData";
+import { API_BASE } from "./api/config.js";
+import { fetchAppData, fetchRevision } from "./api/public.js";
 import "./index.css";
 import "./styles/mobilePremiumFixes.css";
-
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_BASE || "/api/v1").replace(/\/$/, "");
 
 function isPublicAppPath() {
   const path = window.location.pathname.toLowerCase();
@@ -17,13 +17,7 @@ async function loadPublicAppData() {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), 25000);
   try {
-    const response = await fetch(`${API_BASE}/app-data/`, {
-      cache: "no-store",
-      headers: { "Cache-Control": "no-cache" },
-      signal: controller.signal,
-    });
-    if (!response.ok) throw new Error(`App data request failed (${response.status})`);
-    const payload = await response.json();
+    const payload = await fetchAppData(controller.signal);
     window.__NGOMA_PUBLIC_DATA__ = payload;
     window.__NGOMA_PUBLIC_REVISION__ = String(payload.revision || "");
     applyPublicAppData(payload);
@@ -44,12 +38,7 @@ function watchForCmsChanges() {
     if (checking || document.hidden) return;
     checking = true;
     try {
-      const response = await fetch(`${API_BASE}/app-data/revision/`, {
-        cache: "no-store",
-        headers: { "Cache-Control": "no-cache" },
-      });
-      if (!response.ok) return;
-      const payload = await response.json();
+      const payload = await fetchRevision();
       const nextRevision = String(payload.revision || "");
       if (!nextRevision) return;
       if (!knownRevision) {
