@@ -4,7 +4,7 @@ import {
   checkApiStatus, fetchNews, fetchCertifications, fetchChartImageData,
 } from "./api/public.js";
 import {
-  releaseTitle, normFt, releaseArtist,
+  releaseTitle, normFt, releaseArtist, cleanArtistDisplay,
   formatCreditMembers, profileNames, splitCreditNames,
   artistCreditMembers, formatArtistCredit,
   firstFiniteNumber, certificationKey,
@@ -1026,9 +1026,9 @@ export default function NgomaCharts(){
             ...entry,
             rank: entry.rank,
             title: entry.title,
-            artist: entry.artist_credit || formatArtistCredit(entry.primary_artist || entry.artist, entry.featured_artists, entry.primary_artists, entry.featured_artist_profiles),
-            artist_credit: entry.artist_credit || formatArtistCredit(entry.primary_artist || entry.artist, entry.featured_artists, entry.primary_artists, entry.featured_artist_profiles),
-            primary_artist: entry.primary_artist_credit || entry.primary_artist || entry.artist,
+            artist: cleanArtistDisplay(entry.artist_credit || formatArtistCredit(entry.primary_artist || entry.artist, entry.featured_artists, entry.primary_artists, entry.featured_artist_profiles)),
+            artist_credit: cleanArtistDisplay(entry.artist_credit || formatArtistCredit(entry.primary_artist || entry.artist, entry.featured_artists, entry.primary_artists, entry.featured_artist_profiles)),
+            primary_artist: cleanArtistDisplay(entry.primary_artist_credit || entry.primary_artist || entry.artist),
             featured_artists: entry.featured_artists || "",
             pts: displayPoints,
             rawPts: null,

@@ -10,10 +10,18 @@ export const releaseTitle = (item = {}) =>
 // Normalise "ft." → "ft" so "ft." and "ft" display consistently.
 export const normFt = (s) => String(s || "").replace(/\bft\./gi, "ft");
 
+// Strip pipe-separated internal aliases from artist names.
+// The backend uses "|" as an alias separator (e.g. "Toxic Lyrikali|Countree Hype")
+// for internal lookups, but only the canonical name before the pipe should
+// ever be shown to users.
+export const cleanArtistDisplay = (s) => String(s || "").split("|")[0].trim();
+
 export const releaseArtist = (item = {}) =>
   normFt(
-    item.artist_credit || item.a || item.artist ||
-    item.artist_name || item.primary_artist || ""
+    cleanArtistDisplay(
+      item.artist_credit || item.a || item.artist ||
+      item.artist_name || item.primary_artist || ""
+    )
   );
 
 // ── Artist credit formatting ───────────────────────────────────────────────
