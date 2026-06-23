@@ -144,7 +144,7 @@ function ImageUploadBox({ fieldName, label, help, form, set }) {
   );
 }
 
-export default function FormModal({ open, title, fields = [], initial = {}, onSubmit, onClose }) {
+export default function FormModal({ open, title, entityId, fields = [], initial = {}, onSubmit, onClose }) {
   const [form, setForm] = useState(initial || {});
   useEffect(() => setForm(initial || {}), [initial, open]);
   if (!open) return null;
@@ -154,7 +154,17 @@ export default function FormModal({ open, title, fields = [], initial = {}, onSu
   return (
     <div className="cms-modal-backdrop">
       <form className="cms-modal" onSubmit={(e) => { e.preventDefault(); onSubmit?.(form); }}>
-        <div className="cms-modal-head"><h3>{title}</h3><button type="button" onClick={onClose}>×</button></div>
+        <div className="cms-modal-head">
+          <h3>
+            {title}
+            {entityId != null && (
+              <span style={{ marginLeft: 10, fontSize: 11, fontWeight: 500, color: "#999", letterSpacing: ".04em", verticalAlign: "middle" }}>
+                ID&nbsp;{entityId}
+              </span>
+            )}
+          </h3>
+          <button type="button" onClick={onClose}>×</button>
+        </div>
         <div className="cms-form-grid">
           {fields.map((field) => {
             // File fields render as a standalone div (not a label) so global label CSS doesn't interfere

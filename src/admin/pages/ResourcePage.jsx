@@ -332,7 +332,7 @@ export default function ResourcePage({ type }) {
       {loading ? <div className="cms-empty">Loading...</div> : (
         <DataTable columns={finalColumns} rows={rows} onRowClick={config.readOnly ? null : (row) => { setEditing(row); setModal(true); }} />
       )}
-      <FormModal open={modal} title={`${editing ? "Edit" : "Create"} ${config.title}`} fields={formFields} initial={editing || defaultInitial(formFields)} onSubmit={save} onClose={() => setModal(false)} />
+      <FormModal open={modal} title={`${editing ? "Edit" : "Create"} ${config.title}`} entityId={editing?.id} fields={formFields} initial={editing || defaultInitial(formFields)} onSubmit={save} onClose={() => setModal(false)} />
       {imageModal && (
         <div className="cms-modal-backdrop" onClick={() => setImageModal(null)}>
           <div className="cms-modal cms-img-modal" onClick={(e) => e.stopPropagation()}>
