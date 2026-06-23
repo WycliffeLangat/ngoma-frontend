@@ -225,10 +225,12 @@ function enrichChartEntries(entries, getRawEntries, currentMonth, totalPlatforms
       {};
     const primaryArtists = e.primary_artists || releaseDetails.primary_artists || [];
     const featuredProfiles = e.featured_artist_profiles || releaseDetails.featured_artist_profiles || [];
-    const primaryArtist = String(e.pa || e.a || "").trim();
+    const primaryArtist = cleanArtistDisplay(String(e.pa || e.a || "").trim());
     const featuredArtists = String(e.fa || "").trim();
-    const artistCredit = e.artist_credit || releaseDetails.artist_credit || formatArtistCredit(
-      primaryArtist, featuredArtists, primaryArtists, featuredProfiles
+    const artistCredit = cleanArtistDisplay(
+      e.artist_credit || releaseDetails.artist_credit || formatArtistCredit(
+        primaryArtist, featuredArtists, primaryArtists, featuredProfiles
+      )
     );
 
     return {
@@ -238,7 +240,7 @@ function enrichChartEntries(entries, getRawEntries, currentMonth, totalPlatforms
       title: e.t,
       artist: artistCredit,
       artist_credit: artistCredit,
-      primary_artist: e.primary_artist_credit || releaseDetails.primary_artist_credit || primaryArtist,
+      primary_artist: cleanArtistDisplay(e.primary_artist_credit || releaseDetails.primary_artist_credit || primaryArtist),
       featured_artists: featuredArtists,
       primary_artists: primaryArtists,
       featured_artist_profiles: featuredProfiles,
