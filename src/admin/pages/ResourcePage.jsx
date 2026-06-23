@@ -133,6 +133,18 @@ export default function ResourcePage({ type }) {
   }
 
   const isRelease = type === "songs" || type === "albums";
+  const isArtist = type === "artists";
+  const isActionable = isRelease || isArtist;
+
+  // Artist merge API:   POST /artists/{KEEPER}/merge/  { artist_ids: [dup] }
+  // Release merge API:  POST /releases/{DUP}/merge/   { into_id: keeper }
+  async function callMergeApi(dupRow, keeperRow) {
+    if (isArtist) {
+      await cmsApi.post(`${config.endpoint}${keeperRow.id}/merge/`, { artist_ids: [dupRow.id] });
+    } else {
+      await cmsApi.post(`${config.endpoint}${dupRow.id}/merge/`, { into_id: keeperRow.id });
+    }
+  }
 
   async function hardDelete() {
     if (!deleteTarget || actionBusy) return;
@@ -162,7 +174,7 @@ export default function ResourcePage({ type }) {
     if (!mergeTarget?.keeper || actionBusy) return;
     setActionBusy(true);
     try {
-      await cmsApi.post(`${config.endpoint}${mergeTarget.dup.id}/merge/`, { into_id: mergeTarget.keeper.id });
+      await callMergeApi(mergeTarget.dup, mergeTarget.keeper);
       setMergeTarget(null);
       setDupGroups(null);
       load();
@@ -180,12 +192,12 @@ export default function ResourcePage({ type }) {
 
   async function mergeEntireGroup(group) {
     if (actionBusy) return;
-    const keeper = group[0]; // first = best (sorted by cover image, then entries)
+    const keeper = group[0];
     const dups = group.slice(1);
     setActionBusy(true);
     try {
       for (const dup of dups) {
-        await cmsApi.post(`${config.endpoint}${dup.id}/merge/`, { into_id: keeper.id });
+        await callMergeApi(dup, keeper);
       }
       loadDuplicates();
       load();
@@ -206,7 +218,7 @@ export default function ResourcePage({ type }) {
   const imageField = config.imageField || (type === "artists" ? "image" : (type === "songs" || type === "albums") ? "cover_image" : null);
   const titleKey = type === "artists" ? "name" : "title";
 
-  const actionsColumn = isRelease ? {
+  const actionsColumn = isActionable ? {
     key: "_actions",
     label: "",
     render: (row) => (
@@ -261,7 +273,7 @@ export default function ResourcePage({ type }) {
       {error && <div className="cms-alert error">{error}</div>}
       <div className="cms-toolbar">
         <SearchBar value={search} onChange={setSearch} placeholder={`Search ${config.title.toLowerCase()}...`} />
-        {isRelease && (
+        {isActionable && (
           <button className="cms-btn light" onClick={dupGroups === null ? loadDuplicates : () => setDupGroups(null)}>
             {dupGroups === null ? "Find duplicates" : "Hide duplicates"}
           </button>
@@ -269,7 +281,7 @@ export default function ResourcePage({ type }) {
       </div>
 
       {/* Duplicates panel */}
-      {isRelease && dupGroups !== null && (
+      {isActionable && dupGroups !== null && (
         <div style={{ border: "1px solid #e2c97e", borderRadius: 8, margin: "12px 0", padding: "14px 18px", background: "#fffdf4" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
             <strong style={{ fontSize: 13 }}>
@@ -277,55 +289,60 @@ export default function ResourcePage({ type }) {
             </strong>
             <button className="cms-btn light" style={{ fontSize: 11 }} onClick={loadDuplicates}>Refresh</button>
           </div>
-          {dupGroups.map((group, gi) => (
-            <div key={gi} style={{ borderTop: "1px solid #f0e4b4", paddingTop: 8, marginTop: 8 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                <span style={{ fontSize: 12, color: "#666" }}>
-                  <strong>{group[0]?.title}</strong> — {group[0]?.artist_display} ({group[0]?.chart_type})
-                </span>
-                <button
-                  className="cms-btn"
-                  style={{ fontSize: 11, padding: "2px 12px" }}
-                  disabled={actionBusy}
-                  onClick={() => mergeEntireGroup(group)}
-                  title={`Keep "${group[0]?.title}" (id ${group[0]?.id}, ${group[0]?.entry_count} entries) and delete the rest`}
-                >Merge all → keep best</button>
-              </div>
-              <table style={{ width: "100%", fontSize: 11, borderCollapse: "collapse" }}>
-                <thead>
-                  <tr style={{ color: "#999", textAlign: "left" }}>
-                    <th style={{ padding: "2px 6px" }}>ID</th>
-                    <th style={{ padding: "2px 6px" }}>Title</th>
-                    <th style={{ padding: "2px 6px" }}>Artist</th>
-                    <th style={{ padding: "2px 6px" }}>Entries</th>
-                    <th style={{ padding: "2px 6px" }}>Img</th>
-                    <th style={{ padding: "2px 6px" }}></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {group.map((r, ri) => (
-                    <tr key={r.id} style={{ background: ri === 0 ? "#f5fce8" : "transparent" }}>
-                      <td style={{ padding: "2px 6px", color: "#888" }}>{r.id}</td>
-                      <td style={{ padding: "2px 6px" }}>{r.title} {ri === 0 && <span style={{ color: "#5a9a2f", fontSize: 10 }}>◀ keep</span>}</td>
-                      <td style={{ padding: "2px 6px" }}>{r.artist_display}</td>
-                      <td style={{ padding: "2px 6px" }}>{r.entry_count}</td>
-                      <td style={{ padding: "2px 6px" }}>{r.cover_image ? "✓" : "—"}</td>
-                      <td style={{ padding: "2px 6px" }}>
-                        {ri > 0 && (
-                          <button
-                            className="cms-btn danger"
-                            style={{ fontSize: 10, padding: "1px 7px" }}
-                            disabled={actionBusy}
-                            onClick={() => setMergeTarget({ dup: r, keeperSearch: "", keeperResults: [], keeper: group[0] })}
-                          >Merge into #{group[0].id}</button>
-                        )}
-                      </td>
+          {dupGroups.map((group, gi) => {
+            const label = isArtist
+              ? `${group[0]?.name} (${group[0]?.release_count ?? 0} releases)`
+              : `${group[0]?.title} — ${group[0]?.artist_display} (${group[0]?.chart_type})`;
+            return (
+              <div key={gi} style={{ borderTop: "1px solid #f0e4b4", paddingTop: 8, marginTop: 8 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                  <span style={{ fontSize: 12, color: "#666" }}><strong>{label}</strong></span>
+                  <button
+                    className="cms-btn"
+                    style={{ fontSize: 11, padding: "2px 12px" }}
+                    disabled={actionBusy}
+                    onClick={() => mergeEntireGroup(group)}
+                  >Merge all → keep best</button>
+                </div>
+                <table style={{ width: "100%", fontSize: 11, borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ color: "#999", textAlign: "left" }}>
+                      <th style={{ padding: "2px 6px" }}>ID</th>
+                      <th style={{ padding: "2px 6px" }}>{isArtist ? "Name" : "Title"}</th>
+                      {!isArtist && <th style={{ padding: "2px 6px" }}>Artist</th>}
+                      <th style={{ padding: "2px 6px" }}>{isArtist ? "Releases" : "Entries"}</th>
+                      {!isArtist && <th style={{ padding: "2px 6px" }}>Img</th>}
+                      <th style={{ padding: "2px 6px" }}></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ))}
+                  </thead>
+                  <tbody>
+                    {group.map((r, ri) => (
+                      <tr key={r.id} style={{ background: ri === 0 ? "#f5fce8" : "transparent" }}>
+                        <td style={{ padding: "2px 6px", color: "#888" }}>{r.id}</td>
+                        <td style={{ padding: "2px 6px" }}>
+                          {isArtist ? r.name : r.title}
+                          {ri === 0 && <span style={{ color: "#5a9a2f", fontSize: 10, marginLeft: 4 }}>◀ keep</span>}
+                        </td>
+                        {!isArtist && <td style={{ padding: "2px 6px" }}>{r.artist_display}</td>}
+                        <td style={{ padding: "2px 6px" }}>{isArtist ? r.release_count : r.entry_count}</td>
+                        {!isArtist && <td style={{ padding: "2px 6px" }}>{r.cover_image ? "✓" : "—"}</td>}
+                        <td style={{ padding: "2px 6px" }}>
+                          {ri > 0 && (
+                            <button
+                              className="cms-btn danger"
+                              style={{ fontSize: 10, padding: "1px 7px" }}
+                              disabled={actionBusy}
+                              onClick={() => setMergeTarget({ dup: r, keeperSearch: "", keeperResults: [], keeper: group[0] })}
+                            >Merge into #{group[0].id}</button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            );
+          })}
         </div>
       )}
 
