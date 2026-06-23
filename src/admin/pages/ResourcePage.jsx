@@ -405,7 +405,7 @@ export default function ResourcePage({ type }) {
             </div>
             <p style={{ fontSize: 13, margin: "8px 0 14px" }}>
               <strong>Merging:</strong> "{mergeTarget.dup.title}" (id {mergeTarget.dup.id})
-              <br /><span style={{ color: "#888" }}>All its chart entries will move to the record you choose below. This record will be permanently deleted.</span>
+              <br /><span style={{ color: "#888" }}>Monthly chart points will be summed into the kept record. Weekly entries on the same chart in the same week are dropped. This record will be permanently deleted.</span>
             </p>
             {mergeTarget.keeper ? (
               <div style={{ background: "#f5fce8", border: "1px solid #b6dca0", borderRadius: 6, padding: "10px 14px", marginBottom: 14 }}>

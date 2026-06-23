@@ -256,7 +256,7 @@ export default function DuplicateReviewPage() {
                   <p style={{ fontSize: 12, color: "#888", margin: "0 0 16px" }}>
                     {isArtist
                       ? "The deleted artist's releases will be reassigned to the kept artist. Aliases are preserved."
-                      : "Chart entries from deleted records move to the kept record. Conflicts are dropped (not summed). Certifications are recalculated."}
+                      : "Monthly chart points are summed into the kept record. Weekly entries on the same chart in the same week are dropped (a song can only appear once per weekly chart). Certifications are recalculated."}
                   </p>
                   <div className="cms-actions right">
                     <button className="cms-btn light" onClick={() => setMergeModal(null)} disabled={!!busy}>Cancel</button>
