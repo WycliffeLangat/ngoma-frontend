@@ -36,6 +36,10 @@ export default function ResourcePage({ type }) {
   const [editing, setEditing] = useState(null);
   const [artistOptions, setArtistOptions] = useState([]);
   const [imageModal, setImageModal] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);   // release to hard-delete
+  const [mergeTarget, setMergeTarget] = useState(null);     // { dup, keeperSearch, keeperResults, keeper }
+  const [dupGroups, setDupGroups] = useState(null);         // null=hidden, []=loading, [...]=groups
+  const [actionBusy, setActionBusy] = useState(false);
   const abortRef = useRef(null);
 
   const params = useMemo(() => ({ ...(config.params || {}), search }), [config, search]);
@@ -128,6 +132,67 @@ export default function ResourcePage({ type }) {
     setModal(false); setEditing(null); load();
   }
 
+  const isRelease = type === "songs" || type === "albums";
+
+  async function hardDelete() {
+    if (!deleteTarget || actionBusy) return;
+    setActionBusy(true);
+    try {
+      await cmsApi.delete(`${config.endpoint}${deleteTarget.id}/hard_delete/`);
+      setDeleteTarget(null);
+      load();
+    } catch(e) { setError(e.message); }
+    finally { setActionBusy(false); }
+  }
+
+  async function searchForKeeper(q) {
+    if (!q.trim()) { setMergeTarget(t => ({ ...t, keeperResults: [] })); return; }
+    try {
+      const results = getResults(await cmsApi.get(
+        `${config.endpoint}${qs({ ...config.params, search: q, page_size: 8 })}`
+      ));
+      setMergeTarget(t => ({
+        ...t,
+        keeperResults: results.filter(r => r.id !== t.dup.id),
+      }));
+    } catch {}
+  }
+
+  async function doMerge() {
+    if (!mergeTarget?.keeper || actionBusy) return;
+    setActionBusy(true);
+    try {
+      await cmsApi.post(`${config.endpoint}${mergeTarget.dup.id}/merge/`, { into_id: mergeTarget.keeper.id });
+      setMergeTarget(null);
+      setDupGroups(null);
+      load();
+    } catch(e) { setError(e.message); }
+    finally { setActionBusy(false); }
+  }
+
+  async function loadDuplicates() {
+    setDupGroups([]);
+    try {
+      const data = await cmsApi.get(`${config.endpoint}duplicates/${qs(config.params || {})}`);
+      setDupGroups(data.groups || []);
+    } catch(e) { setError(e.message); setDupGroups(null); }
+  }
+
+  async function mergeEntireGroup(group) {
+    if (actionBusy) return;
+    const keeper = group[0]; // first = best (sorted by cover image, then entries)
+    const dups = group.slice(1);
+    setActionBusy(true);
+    try {
+      for (const dup of dups) {
+        await cmsApi.post(`${config.endpoint}${dup.id}/merge/`, { into_id: keeper.id });
+      }
+      loadDuplicates();
+      load();
+    } catch(e) { setError(e.message); }
+    finally { setActionBusy(false); }
+  }
+
   async function saveImage(file) {
     if (!file || !imageModal) return;
     try {
@@ -140,6 +205,27 @@ export default function ResourcePage({ type }) {
 
   const imageField = config.imageField || (type === "artists" ? "image" : (type === "songs" || type === "albums") ? "cover_image" : null);
   const titleKey = type === "artists" ? "name" : "title";
+
+  const actionsColumn = isRelease ? {
+    key: "_actions",
+    label: "",
+    render: (row) => (
+      <span style={{ display: "flex", gap: "5px" }} onClick={e => e.stopPropagation()}>
+        <button
+          className="cms-btn light"
+          style={{ fontSize: "11px", padding: "2px 9px" }}
+          title="Merge this into another record"
+          onClick={() => setMergeTarget({ dup: row, keeperSearch: "", keeperResults: [], keeper: null })}
+        >Merge</button>
+        <button
+          className="cms-btn danger"
+          style={{ fontSize: "11px", padding: "2px 9px" }}
+          title="Permanently delete this release and all its chart entries"
+          onClick={() => setDeleteTarget(row)}
+        >Delete</button>
+      </span>
+    ),
+  } : null;
 
   const tableColumns = imageField ? config.columns.map((col) => {
     if (col.key !== titleKey) return col;
@@ -164,6 +250,8 @@ export default function ResourcePage({ type }) {
     };
   }) : config.columns;
 
+  const finalColumns = actionsColumn ? [...tableColumns, actionsColumn] : tableColumns;
+
   return (
     <section>
       <div className="cms-page-head">
@@ -173,9 +261,76 @@ export default function ResourcePage({ type }) {
       {error && <div className="cms-alert error">{error}</div>}
       <div className="cms-toolbar">
         <SearchBar value={search} onChange={setSearch} placeholder={`Search ${config.title.toLowerCase()}...`} />
+        {isRelease && (
+          <button className="cms-btn light" onClick={dupGroups === null ? loadDuplicates : () => setDupGroups(null)}>
+            {dupGroups === null ? "Find duplicates" : "Hide duplicates"}
+          </button>
+        )}
       </div>
+
+      {/* Duplicates panel */}
+      {isRelease && dupGroups !== null && (
+        <div style={{ border: "1px solid #e2c97e", borderRadius: 8, margin: "12px 0", padding: "14px 18px", background: "#fffdf4" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+            <strong style={{ fontSize: 13 }}>
+              {dupGroups.length === 0 ? "No duplicates found" : `${dupGroups.length} duplicate group(s)`}
+            </strong>
+            <button className="cms-btn light" style={{ fontSize: 11 }} onClick={loadDuplicates}>Refresh</button>
+          </div>
+          {dupGroups.map((group, gi) => (
+            <div key={gi} style={{ borderTop: "1px solid #f0e4b4", paddingTop: 8, marginTop: 8 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                <span style={{ fontSize: 12, color: "#666" }}>
+                  <strong>{group[0]?.title}</strong> — {group[0]?.artist_display} ({group[0]?.chart_type})
+                </span>
+                <button
+                  className="cms-btn"
+                  style={{ fontSize: 11, padding: "2px 12px" }}
+                  disabled={actionBusy}
+                  onClick={() => mergeEntireGroup(group)}
+                  title={`Keep "${group[0]?.title}" (id ${group[0]?.id}, ${group[0]?.entry_count} entries) and delete the rest`}
+                >Merge all → keep best</button>
+              </div>
+              <table style={{ width: "100%", fontSize: 11, borderCollapse: "collapse" }}>
+                <thead>
+                  <tr style={{ color: "#999", textAlign: "left" }}>
+                    <th style={{ padding: "2px 6px" }}>ID</th>
+                    <th style={{ padding: "2px 6px" }}>Title</th>
+                    <th style={{ padding: "2px 6px" }}>Artist</th>
+                    <th style={{ padding: "2px 6px" }}>Entries</th>
+                    <th style={{ padding: "2px 6px" }}>Img</th>
+                    <th style={{ padding: "2px 6px" }}></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {group.map((r, ri) => (
+                    <tr key={r.id} style={{ background: ri === 0 ? "#f5fce8" : "transparent" }}>
+                      <td style={{ padding: "2px 6px", color: "#888" }}>{r.id}</td>
+                      <td style={{ padding: "2px 6px" }}>{r.title} {ri === 0 && <span style={{ color: "#5a9a2f", fontSize: 10 }}>◀ keep</span>}</td>
+                      <td style={{ padding: "2px 6px" }}>{r.artist_display}</td>
+                      <td style={{ padding: "2px 6px" }}>{r.entry_count}</td>
+                      <td style={{ padding: "2px 6px" }}>{r.cover_image ? "✓" : "—"}</td>
+                      <td style={{ padding: "2px 6px" }}>
+                        {ri > 0 && (
+                          <button
+                            className="cms-btn danger"
+                            style={{ fontSize: 10, padding: "1px 7px" }}
+                            disabled={actionBusy}
+                            onClick={() => setMergeTarget({ dup: r, keeperSearch: "", keeperResults: [], keeper: group[0] })}
+                          >Merge into #{group[0].id}</button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ))}
+        </div>
+      )}
+
       {loading ? <div className="cms-empty">Loading...</div> : (
-        <DataTable columns={tableColumns} rows={rows} onRowClick={config.readOnly ? null : (row) => { setEditing(row); setModal(true); }} />
+        <DataTable columns={finalColumns} rows={rows} onRowClick={config.readOnly ? null : (row) => { setEditing(row); setModal(true); }} />
       )}
       <FormModal open={modal} title={`${editing ? "Edit" : "Create"} ${config.title}`} fields={formFields} initial={editing || defaultInitial(formFields)} onSubmit={save} onClose={() => setModal(false)} />
       {imageModal && (
@@ -195,6 +350,88 @@ export default function ResourcePage({ type }) {
             </label>
             <div className="cms-actions right" style={{marginTop:"18px"}}>
               <button type="button" className="cms-btn light" onClick={() => setImageModal(null)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Delete confirm modal */}
+      {deleteTarget && (
+        <div className="cms-modal-backdrop" onClick={() => !actionBusy && setDeleteTarget(null)}>
+          <div className="cms-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 420 }}>
+            <div className="cms-modal-head">
+              <h3>Delete permanently?</h3>
+              <button type="button" onClick={() => setDeleteTarget(null)} disabled={actionBusy}>×</button>
+            </div>
+            <p style={{ margin: "10px 0 4px", fontSize: 14 }}>
+              <strong>"{deleteTarget.title}"</strong> by {deleteTarget.artist_display}
+            </p>
+            <p style={{ fontSize: 13, color: "#c0392b", margin: "0 0 16px" }}>
+              This will permanently delete the release and all its chart entries and certifications. This cannot be undone.
+            </p>
+            <div className="cms-actions right">
+              <button className="cms-btn light" onClick={() => setDeleteTarget(null)} disabled={actionBusy}>Cancel</button>
+              <button className="cms-btn danger" onClick={hardDelete} disabled={actionBusy}>
+                {actionBusy ? "Deleting…" : "Delete permanently"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Merge modal */}
+      {mergeTarget && (
+        <div className="cms-modal-backdrop" onClick={() => !actionBusy && setMergeTarget(null)}>
+          <div className="cms-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 500 }}>
+            <div className="cms-modal-head">
+              <h3>Merge release</h3>
+              <button type="button" onClick={() => setMergeTarget(null)} disabled={actionBusy}>×</button>
+            </div>
+            <p style={{ fontSize: 13, margin: "8px 0 14px" }}>
+              <strong>Merging:</strong> "{mergeTarget.dup.title}" (id {mergeTarget.dup.id})
+              <br /><span style={{ color: "#888" }}>All its chart entries will move to the record you choose below. This record will be permanently deleted.</span>
+            </p>
+            {mergeTarget.keeper ? (
+              <div style={{ background: "#f5fce8", border: "1px solid #b6dca0", borderRadius: 6, padding: "10px 14px", marginBottom: 14 }}>
+                <strong style={{ fontSize: 13 }}>Keep:</strong>{" "}
+                <span style={{ fontSize: 13 }}>{mergeTarget.keeper.title} (id {mergeTarget.keeper.id}) — {mergeTarget.keeper.artist_display}</span>
+                <button className="cms-btn light" style={{ fontSize: 11, marginLeft: 10 }} onClick={() => setMergeTarget(t => ({ ...t, keeper: null }))}>Change</button>
+              </div>
+            ) : (
+              <>
+                <input
+                  className="cms-search-input"
+                  placeholder="Search for the record to keep…"
+                  style={{ width: "100%", boxSizing: "border-box", marginBottom: 8 }}
+                  value={mergeTarget.keeperSearch}
+                  autoFocus
+                  onChange={e => {
+                    const q = e.target.value;
+                    setMergeTarget(t => ({ ...t, keeperSearch: q, keeperResults: [] }));
+                    searchForKeeper(q);
+                  }}
+                />
+                {mergeTarget.keeperResults.length > 0 && (
+                  <div style={{ border: "1px solid #e5e5e5", borderRadius: 6, marginBottom: 14, maxHeight: 180, overflowY: "auto" }}>
+                    {mergeTarget.keeperResults.map(r => (
+                      <button
+                        key={r.id}
+                        type="button"
+                        style={{ display: "block", width: "100%", textAlign: "left", padding: "8px 12px", fontSize: 13, border: "none", borderBottom: "1px solid #f0f0f0", background: "transparent", cursor: "pointer" }}
+                        onClick={() => setMergeTarget(t => ({ ...t, keeper: r, keeperSearch: r.title, keeperResults: [] }))}
+                      >
+                        <strong>{r.title}</strong> — {r.artist_display}
+                        <span style={{ fontSize: 11, color: "#aaa", marginLeft: 8 }}>id {r.id}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+            <div className="cms-actions right">
+              <button className="cms-btn light" onClick={() => setMergeTarget(null)} disabled={actionBusy}>Cancel</button>
+              <button className="cms-btn" onClick={doMerge} disabled={!mergeTarget.keeper || actionBusy}>
+                {actionBusy ? "Merging…" : "Merge and delete duplicate"}
+              </button>
             </div>
           </div>
         </div>
