@@ -3,13 +3,14 @@ import { cmsApi } from "./api";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import ResourcePage from "./pages/ResourcePage";
+import DuplicateReviewPage from "./pages/DuplicateReviewPage";
 import UploadsPage from "./pages/UploadsPage";
 import ScaffoldPage from "./pages/ScaffoldPage";
 import NotificationBell from "./components/NotificationBell";
 import "./styles/admin.css";
 
 const nav = [
-  ["dashboard", "Dashboard"], ["charts", "Charts"], ["uploads", "Uploads"], ["songs", "Songs"], ["albums", "Albums"], ["artists", "Artists"], ["countries", "Countries"], ["platforms", "Platforms"], ["news", "News"], ["certifications", "Certifications"], ["certification-rules", "Certification Rules"], ["methodology", "Methodology"], ["page-content", "Page Content"], ["records", "Records"], ["year-end", "Year End"], ["analytics", "Analytics"], ["social-cards", "Social Cards"], ["media", "Media Library"], ["submissions", "Submissions"], ["users", "Users & Roles"], ["reports", "Reports"], ["settings", "Settings"], ["audit", "Audit Logs"], ["backups", "Backups"],
+  ["dashboard", "Dashboard"], ["charts", "Charts"], ["uploads", "Uploads"], ["songs", "Songs"], ["albums", "Albums"], ["duplicate-review", "Duplicate Review"], ["artists", "Artists"], ["countries", "Countries"], ["platforms", "Platforms"], ["news", "News"], ["certifications", "Certifications"], ["certification-rules", "Certification Rules"], ["methodology", "Methodology"], ["page-content", "Page Content"], ["records", "Records"], ["year-end", "Year End"], ["analytics", "Analytics"], ["social-cards", "Social Cards"], ["media", "Media Library"], ["submissions", "Submissions"], ["users", "Users & Roles"], ["reports", "Reports"], ["settings", "Settings"], ["audit", "Audit Logs"], ["backups", "Backups"],
 ];
 
 export default function AdminApp() {
@@ -35,6 +36,7 @@ function getInitialPage(){ const part = window.location.pathname.split("/cms/")[
 function renderPage(page, user){
   if(page === "dashboard") return <DashboardPage />;
   if(page === "uploads") return <UploadsPage />;
+  if(page === "duplicate-review") return <DuplicateReviewPage />;
   if(["artists","songs","albums","countries","platforms","news","charts","certifications","certification-rules","methodology","page-content","media","settings","users","reports","audit","backups"].includes(page)) return <ResourcePage type={page} user={user} />;
   const scaffolds = {
     "records": ["Highest monthly points", "Most #1s", "Longest charting", "Biggest debut", "Manual verification"],
