@@ -12,54 +12,74 @@ function movement(entry) {
 }
 
 const FIELD_DEFS = [
-  { key: "rank",            label: "Rank",             type: "number" },
-  { key: "total_points",    label: "Total points",     type: "number" },
-  { key: "weeks_on_chart",  label: "Weeks on chart",   type: "number" },
-  { key: "peak_rank",       label: "Peak rank",        type: "number" },
-  { key: "prev_rank",       label: "Prev rank",        type: "number" },
-  { key: "featured_artists",label: "Featured artists", type: "text"   },
-  { key: "confidence",      label: "Confidence",       type: "text"   },
+  { key: "rank",             label: "Rank",             type: "number" },
+  { key: "total_points",     label: "Total points",     type: "number" },
+  { key: "weeks_on_chart",   label: "Weeks on chart",   type: "number" },
+  { key: "peak_rank",        label: "Peak rank",        type: "number" },
+  { key: "prev_rank",        label: "Prev rank",        type: "number" },
+  { key: "featured_artists", label: "Featured artists", type: "text"   },
+  { key: "confidence",       label: "Confidence",       type: "text"   },
 ];
 
+const COMBINED = "combined";
+
 export default function ChartEntriesPage() {
-  const [charts, setCharts]     = useState([]);
-  const [chartType, setChartType] = useState("singles");
-  const [chartId, setChartId]   = useState("");
-  const [entries, setEntries]   = useState([]);
-  const [loading, setLoading]   = useState(false);
-  const [error, setError]       = useState("");
-  const [selected, setSelected] = useState(null);
-  const [form, setForm]         = useState({});
-  const [saving, setSaving]     = useState(false);
-  const [imageFile, setImageFile] = useState(null);
+  const [charts, setCharts]         = useState([]);
+  const [platforms, setPlatforms]   = useState([]);
+  const [chartType, setChartType]   = useState("singles");
+  const [chartId, setChartId]       = useState("");
+  const [platformId, setPlatformId] = useState(COMBINED);
+  const [entries, setEntries]       = useState([]);
+  const [loading, setLoading]       = useState(false);
+  const [error, setError]           = useState("");
+  const [selected, setSelected]     = useState(null);
+  const [form, setForm]             = useState({});
+  const [saving, setSaving]         = useState(false);
+  const [imageFile, setImageFile]   = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const imgInputRef = useRef();
 
-  // Load all chart months once
+  // Load chart months + platforms once
   useEffect(() => {
     cmsApi.get("/charts/?ordering=-year,-month&page_size=200")
       .then(d => setCharts(getResults(d)))
       .catch(e => setError(e.message));
+    cmsApi.get("/platforms/?active=true&page_size=100")
+      .then(d => setPlatforms(getResults(d)))
+      .catch(() => {});
   }, []);
 
   const typedCharts = charts.filter(c => c.chart_type === chartType);
 
-  // Auto-select most recent chart when type changes
+  // Platforms relevant to the current chart type
+  const relevantPlatforms = platforms.filter(p =>
+    chartType === "singles" ? p.supports_singles : p.supports_albums
+  );
+
+  // Auto-select most recent chart when type changes; reset platform to Combined
   useEffect(() => {
     const first = typedCharts[0];
     setChartId(first ? String(first.id) : "");
+    setPlatformId(COMBINED);
     setSelected(null);
   }, [chartType, charts]); // eslint-disable-line
 
-  // Load entries when chart selection changes
+  // Reset platform to Combined when chart month changes
+  useEffect(() => {
+    setPlatformId(COMBINED);
+    setSelected(null);
+  }, [chartId]);
+
+  // Load entries whenever chart or platform changes
   useEffect(() => {
     if (!chartId) { setEntries([]); return; }
     setLoading(true); setError(""); setSelected(null);
-    cmsApi.get(`/chart-entries/?chart=${chartId}&platform=combined&ordering=rank&page_size=200`)
+    const platformParam = platformId === COMBINED ? "combined" : platformId;
+    cmsApi.get(`/chart-entries/?chart=${chartId}&platform=${platformParam}&ordering=rank&page_size=200`)
       .then(d => setEntries(getResults(d)))
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
-  }, [chartId]);
+  }, [chartId, platformId]);
 
   function pickEntry(entry) {
     setSelected(entry);
@@ -97,12 +117,11 @@ export default function ChartEntriesPage() {
       };
       const updated = await cmsApi.patch(`/chart-entries/${selected.id}/`, payload);
 
-      // Upload cover image to the release if changed
       if (imageFile && selected.release) {
         const fd = new FormData();
         fd.append("cover_image", imageFile);
         await cmsApi.patch(`/releases/${selected.release}/`, fd);
-        updated.cover_image = imagePreview; // optimistic local update
+        updated.cover_image = imagePreview;
       }
 
       setEntries(prev => prev.map(e => e.id === selected.id ? { ...e, ...updated } : e));
@@ -112,42 +131,69 @@ export default function ChartEntriesPage() {
     finally { setSaving(false); }
   }
 
-  const selectedChart = charts.find(c => String(c.id) === chartId);
-  const isLocked = !!selectedChart?.locked;
+  const selectedChart   = charts.find(c => String(c.id) === chartId);
+  const isLocked        = !!selectedChart?.locked;
+  const activePlatform  = platformId === COMBINED
+    ? { name: "Combined", color: "#B8860B" }
+    : platforms.find(p => String(p.id) === String(platformId));
 
   const panelLabel = (label) => (
-    <span style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", color: "#5e625c", display: "block", marginBottom: 5 }}>{label}</span>
+    <span style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", color: "#5e625c", display: "block", marginBottom: 5 }}>
+      {label}
+    </span>
   );
+
+  const pillBtn = (key, label, color) => {
+    const active = String(platformId) === String(key);
+    return (
+      <button
+        key={key}
+        type="button"
+        onClick={() => setPlatformId(String(key))}
+        style={{
+          border: active ? `2px solid ${color || "#111"}` : "2px solid #E8E1D2",
+          borderRadius: 999,
+          padding: "4px 14px",
+          fontSize: 12,
+          fontWeight: 750,
+          cursor: "pointer",
+          background: active ? (color || "#111") : "#fff",
+          color: active ? "#fff" : "#555",
+          whiteSpace: "nowrap",
+          transition: "all .12s",
+        }}
+      >{label}</button>
+    );
+  };
 
   return (
     <section>
       <div className="cms-page-head">
         <div>
           <h1>Chart Entries</h1>
-          <p>Browse and edit the Combined Top 50 for any chart month.</p>
+          <p>Browse and edit chart entries by month and platform.</p>
         </div>
       </div>
 
       {error && <div className="cms-alert error">{error}</div>}
 
-      {/* Toolbar */}
+      {/* ── Toolbar: chart type + month ── */}
       <div className="cms-toolbar" style={{ flexWrap: "wrap" }}>
-        {/* Singles / Albums toggle */}
         <div style={{ display: "flex", gap: 6, background: "#f0ece5", borderRadius: 12, padding: 4 }}>
           {["singles", "albums"].map(t => (
             <button
               key={t}
+              type="button"
               onClick={() => setChartType(t)}
               style={{
                 border: 0, borderRadius: 9, padding: "5px 16px", fontSize: 13, fontWeight: 750, cursor: "pointer",
                 background: chartType === t ? "#111" : "transparent",
-                color: chartType === t ? "#fff" : "#666",
+                color:      chartType === t ? "#fff"  : "#666",
               }}
             >{t === "singles" ? "Singles" : "Albums"}</button>
           ))}
         </div>
 
-        {/* Month selector */}
         <select
           className="cms-select"
           value={chartId}
@@ -162,16 +208,29 @@ export default function ChartEntriesPage() {
 
         {isLocked && (
           <span style={{ fontSize: 12, color: "#C62828", fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}>
-            🔒 Chart is locked — read only
+            🔒 Locked — read only
           </span>
         )}
 
         {chartId && entries.length > 0 && (
-          <span style={{ marginLeft: "auto", fontSize: 12, color: "#888" }}>{entries.length} entr{entries.length === 1 ? "y" : "ies"}</span>
+          <span style={{ marginLeft: "auto", fontSize: 12, color: "#888" }}>
+            {entries.length} entr{entries.length === 1 ? "y" : "ies"}
+            {activePlatform ? ` · ${activePlatform.name}` : ""}
+          </span>
         )}
       </div>
 
-      {/* Body */}
+      {/* ── Platform pill bar ── */}
+      {chartId && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16, alignItems: "center" }}>
+          {pillBtn(COMBINED, "Combined", "#B8860B")}
+          {relevantPlatforms.map(p =>
+            pillBtn(p.id, p.short_name || p.name, p.color || "#555")
+          )}
+        </div>
+      )}
+
+      {/* ── Body ── */}
       {!chartId ? (
         <div className="cms-empty">Select a chart month above to view its entries.</div>
       ) : loading ? (
@@ -179,7 +238,7 @@ export default function ChartEntriesPage() {
       ) : (
         <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
 
-          {/* ── Entry table ── */}
+          {/* Entry table */}
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="cms-table-wrap">
               <table className="cms-table">
@@ -196,7 +255,7 @@ export default function ChartEntriesPage() {
                 </thead>
                 <tbody>
                   {entries.map(entry => {
-                    const mv = movement(entry);
+                    const mv     = movement(entry);
                     const active = selected?.id === entry.id;
                     return (
                       <tr
@@ -227,7 +286,9 @@ export default function ChartEntriesPage() {
                   })}
                   {!entries.length && (
                     <tr>
-                      <td colSpan={7} style={{ textAlign: "center", color: "#bbb", padding: 36 }}>No entries for this chart</td>
+                      <td colSpan={7} style={{ textAlign: "center", color: "#bbb", padding: 36 }}>
+                        No entries for this chart{activePlatform ? ` on ${activePlatform.name}` : ""}
+                      </td>
                     </tr>
                   )}
                 </tbody>
@@ -235,23 +296,27 @@ export default function ChartEntriesPage() {
             </div>
           </div>
 
-          {/* ── Edit panel ── */}
+          {/* Edit panel */}
           {selected && (
             <div style={{ width: 300, flexShrink: 0, background: "#fff", border: "1px solid #E8E1D2", borderRadius: 20, padding: 20, position: "sticky", top: 90 }}>
-              {/* Header */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
-                <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 18 }}>
+                <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: 15, fontWeight: 800, lineHeight: 1.2 }}>{selected.title}</div>
                   <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>{selected.artist_display || selected.artist}</div>
+                  {activePlatform?.name && activePlatform.name !== "Combined" && (
+                    <div style={{ fontSize: 10, fontWeight: 700, color: activePlatform.color || "#555", marginTop: 3, textTransform: "uppercase", letterSpacing: ".04em" }}>
+                      {activePlatform.name}
+                    </div>
+                  )}
                 </div>
                 <button
                   type="button"
                   onClick={() => setSelected(null)}
-                  style={{ border: 0, background: "#f1eee7", borderRadius: 8, width: 30, height: 30, fontSize: 18, cursor: "pointer", lineHeight: 1, flexShrink: 0 }}
+                  style={{ border: 0, background: "#f1eee7", borderRadius: 8, width: 30, height: 30, fontSize: 18, cursor: "pointer", lineHeight: 1, flexShrink: 0, marginLeft: 8 }}
                 >×</button>
               </div>
 
-              {/* Cover image */}
+              {/* Cover image — only meaningful on Combined; platform rows share the same release */}
               <div style={{ marginBottom: 18 }}>
                 {panelLabel("Cover image")}
                 <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
@@ -267,7 +332,10 @@ export default function ChartEntriesPage() {
                     }
                   </button>
                   <div style={{ fontSize: 11, color: "#888", lineHeight: 1.5 }}>
-                    {imageFile ? <span style={{ color: "#1B7F3A", fontWeight: 700 }}>✓ {imageFile.name}</span> : "Click thumbnail to replace"}
+                    {imageFile
+                      ? <span style={{ color: "#1B7F3A", fontWeight: 700 }}>✓ {imageFile.name}</span>
+                      : "Click thumbnail to replace"
+                    }
                   </div>
                   <input
                     ref={imgInputRef}
@@ -279,7 +347,6 @@ export default function ChartEntriesPage() {
                 </div>
               </div>
 
-              {/* Fields */}
               {FIELD_DEFS.map(({ key, label, type }) => (
                 <label key={key} style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 12 }}>
                   {panelLabel(label)}
@@ -296,12 +363,7 @@ export default function ChartEntriesPage() {
               {isLocked
                 ? <div className="cms-alert" style={{ marginTop: 8, fontSize: 12 }}>This chart is locked. Unlock it first to make changes.</div>
                 : (
-                  <button
-                    className="cms-btn full"
-                    disabled={saving}
-                    onClick={save}
-                    style={{ marginTop: 6 }}
-                  >
+                  <button className="cms-btn full" disabled={saving} onClick={save} style={{ marginTop: 6 }}>
                     {saving ? "Saving…" : "Save changes"}
                   </button>
                 )
