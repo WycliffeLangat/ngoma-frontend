@@ -3,6 +3,7 @@ import { cmsApi, getResults, qs } from "../api";
 import DataTable from "../components/DataTable";
 import SearchBar from "../components/SearchBar";
 import FormModal from "../components/FormModal";
+import StatusBadge from "../components/StatusBadge";
 
 const configs = {
   artists: { title: "Artists", endpoint: "/artists/", search: true, fields: ["name", "display_name", "country", "country_code", "genre", "artist_type", "status"], columns: [{key:"name",label:"Artist"},{key:"country_code",label:"Country"},{key:"genre",label:"Genre"},{key:"total_releases",label:"Releases"},{key:"status",label:"Status"}], form: [{name:"image",label:"Artist image",type:"file",help:"Square image, min 800×800 px. JPEG or PNG, max 2 MB."},{name:"name",label:"Artist name"},{name:"display_name",label:"Display name"},{name:"aliases",label:"Aliases JSON",type:"json"},{name:"country",label:"Country"},{name:"country_code",label:"Country code"},{name:"city_region",label:"City/region"},{name:"genre",label:"Genre"},{name:"biography",label:"Biography",type:"textarea"},{name:"artist_type",label:"Artist type"},{name:"verified",label:"Verified",type:"checkbox"},{name:"spotify_url",label:"Spotify URL"},{name:"apple_music_url",label:"Apple Music URL"},{name:"youtube_url",label:"YouTube URL"},{name:"boomplay_url",label:"Boomplay URL"},{name:"audiomack_url",label:"Audiomack URL"},{name:"tiktok_url",label:"TikTok URL"},{name:"instagram_url",label:"Instagram URL"},{name:"x_url",label:"X URL"},{name:"facebook_url",label:"Facebook URL"},{name:"website_url",label:"Website URL"},{name:"status",label:"Status"}] },
@@ -50,6 +51,7 @@ export default function ResourcePage({ type, searchJump }) {
   const [mergeTarget, setMergeTarget] = useState(null);     // { dup, keeperSearch, keeperResults, keeper }
   const [dupGroups, setDupGroups] = useState(null);         // null=hidden, []=loading, [...]=groups
   const [actionBusy, setActionBusy] = useState(false);
+  const [detailRow, setDetailRow] = useState(null);
   const abortRef = useRef(null);
 
   // Apply search term from global search result click
@@ -395,9 +397,172 @@ export default function ResourcePage({ type, searchJump }) {
       )}
 
       {loading ? <div className="cms-empty">Loading...</div> : (
-        <DataTable columns={finalColumns} rows={rows} onRowClick={config.readOnly ? null : (row) => { setEditing(row); setModal(true); }} />
+        <DataTable columns={finalColumns} rows={rows} onRowClick={(row) => setDetailRow(row)} />
       )}
       <FormModal open={modal} title={`${editing ? "Edit" : "Create"} ${config.title}`} entityId={editing?.id} fields={formFields} initial={editing || defaultInitial(formFields)} onSubmit={save} onClose={() => setModal(false)} />
+
+      {/* Detail panel */}
+      {detailRow && (() => {
+        const r = detailRow;
+        const statBox = (label, value) => (
+          <div key={label} style={{ background: "#f8f8f8", borderRadius: 8, padding: "10px 12px", textAlign: "center" }}>
+            <div style={{ fontSize: 20, fontWeight: 700 }}>{value ?? "—"}</div>
+            <div style={{ fontSize: 10, color: "#888", marginTop: 2, textTransform: "uppercase", letterSpacing: ".04em" }}>{label}</div>
+          </div>
+        );
+        const metaRow = (label, value) => value ? (
+          <div key={label} style={{ display: "flex", gap: 8, padding: "5px 0", borderBottom: "1px solid #f5f5f5", fontSize: 12 }}>
+            <span style={{ color: "#aaa", minWidth: 110, flexShrink: 0 }}>{label}</span>
+            <span style={{ color: "#333", fontWeight: 500, wordBreak: "break-word" }}>{value}</span>
+          </div>
+        ) : null;
+        const linkPill = (href, label) => href ? (
+          <a key={label} href={href} target="_blank" rel="noreferrer"
+            style={{ fontSize: 11, padding: "4px 10px", borderRadius: 6, border: "1px solid #ddd", color: "#444", textDecoration: "none", background: "#fafafa" }}>
+            {label} ↗
+          </a>
+        ) : null;
+
+        return (
+          <div className="cms-modal-backdrop" onClick={() => setDetailRow(null)}>
+            <div className="cms-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 680, width: "95vw" }}>
+              {/* Header */}
+              <div className="cms-modal-head">
+                <h3 style={{ fontSize: 15 }}>
+                  {isRelease ? r.title : isArtist ? (r.display_name || r.name) : String(r[config.columns[0]?.key] || "Detail")}
+                </h3>
+                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  {!config.readOnly && (
+                    <button className="cms-btn light" style={{ fontSize: 12, padding: "4px 12px" }}
+                      onClick={() => { setDetailRow(null); setEditing(r); setModal(true); }}>
+                      Edit
+                    </button>
+                  )}
+                  <button type="button" onClick={() => setDetailRow(null)} style={{ fontSize: 20, lineHeight: 1 }}>×</button>
+                </div>
+              </div>
+
+              <div style={{ overflowY: "auto", maxHeight: "74vh", padding: "2px 0" }}>
+                {isRelease ? (
+                  <>
+                    {/* Identity row */}
+                    <div style={{ display: "flex", gap: 16, marginBottom: 18 }}>
+                      {r.cover_image
+                        ? <img src={r.cover_image} alt="" style={{ width: 96, height: 96, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} />
+                        : <div style={{ width: 96, height: 96, borderRadius: 8, background: "#f0f0f0", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32 }}>{type === "albums" ? "💿" : "🎵"}</div>
+                      }
+                      <div>
+                        <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 4 }}>{r.title}</div>
+                        <div style={{ fontSize: 13, color: "#555", marginBottom: 8 }}>{r.artist_credit || r.artist_display}</div>
+                        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                          <StatusBadge value={r.status} />
+                          <span style={{ fontSize: 11, color: "#aaa" }}>{r.chart_type} · id {r.id}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Stats */}
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginBottom: 16 }}>
+                      {statBox("Total Points", r.total_points?.toLocaleString() ?? 0)}
+                      {statBox("Peak Rank", r.peak_rank ? `#${r.peak_rank}` : "—")}
+                      {statBox("Months on Chart", r.months_on_chart ?? 0)}
+                      {statBox("Chart Entries", r.entry_count ?? "—")}
+                    </div>
+
+                    {/* Certifications */}
+                    {r.certifications?.length > 0 && (
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center", marginBottom: 14 }}>
+                        <span style={{ fontSize: 11, color: "#888" }}>Certifications:</span>
+                        {r.certifications.map((c, i) => {
+                          const lvl = typeof c === "string" ? c : c.level;
+                          const colors = { gold: ["#fef9e7","#b8860b"], platinum: ["#f4f4f4","#777"], diamond: ["#eef6ff","#1d6fa4"] };
+                          const [bg, fg] = colors[lvl] || ["#f0f0f0","#555"];
+                          return <span key={i} style={{ fontSize: 11, fontWeight: 700, background: bg, color: fg, border: `1px solid ${fg}`, borderRadius: 4, padding: "2px 9px", textTransform: "capitalize" }}>{lvl}</span>;
+                        })}
+                      </div>
+                    )}
+
+                    {/* Metadata */}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 20px", marginBottom: 14 }}>
+                      {metaRow("ISRC", r.isrc)}
+                      {metaRow("UPC", r.upc)}
+                      {metaRow("Label", r.label)}
+                      {metaRow("Distributor", r.distributor)}
+                      {metaRow("Year", r.release_year)}
+                      {metaRow("Genre", r.genre)}
+                      {metaRow("Country", [r.country, r.country_code].filter(Boolean).join(" · "))}
+                      {metaRow("Canonical title", r.canonical_title)}
+                      {metaRow("Songwriters", Array.isArray(r.songwriters) ? r.songwriters.join(", ") : r.songwriters)}
+                      {metaRow("Producers", Array.isArray(r.producers) ? r.producers.join(", ") : r.producers)}
+                    </div>
+
+                    {/* Streaming links */}
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      {[["spotify_url","Spotify"],["apple_music_url","Apple Music"],["youtube_url","YouTube"],["boomplay_url","Boomplay"],["audiomack_url","Audiomack"],["tiktok_url","TikTok"],["shazam_url","Shazam"]].map(([k,l]) => linkPill(r[k],l))}
+                    </div>
+                  </>
+                ) : isArtist ? (
+                  <>
+                    {/* Identity row */}
+                    <div style={{ display: "flex", gap: 16, marginBottom: 18 }}>
+                      {r.image
+                        ? <img src={r.image} alt="" style={{ width: 96, height: 96, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+                        : <div style={{ width: 96, height: 96, borderRadius: "50%", background: "#f0f0f0", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36 }}>👤</div>
+                      }
+                      <div>
+                        <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 2 }}>{r.display_name || r.name}</div>
+                        {r.display_name && r.display_name !== r.name && <div style={{ fontSize: 12, color: "#888", marginBottom: 4 }}>aka {r.name}</div>}
+                        <div style={{ fontSize: 13, color: "#555", marginBottom: 8 }}>
+                          {[r.country, r.genre, r.artist_type].filter(Boolean).join(" · ")}
+                        </div>
+                        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                          <StatusBadge value={r.status} />
+                          {r.verified && <span style={{ fontSize: 11, background: "#e8f4fd", color: "#1d6fa4", borderRadius: 4, padding: "2px 7px", fontWeight: 600 }}>✓ Verified</span>}
+                          <span style={{ fontSize: 11, color: "#aaa" }}>id {r.id}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Stats */}
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginBottom: 16 }}>
+                      {statBox("Total Points", r.total_points?.toLocaleString() ?? 0)}
+                      {statBox("Peak Rank", r.peak_rank ? `#${r.peak_rank}` : "—")}
+                      {statBox("Months on Chart", r.months_on_chart ?? 0)}
+                      {statBox("Total Releases", r.total_releases ?? 0)}
+                    </div>
+
+                    {/* Bio */}
+                    {r.biography && (
+                      <div style={{ fontSize: 13, color: "#555", lineHeight: 1.6, background: "#f9f9f9", borderRadius: 8, padding: "10px 14px", marginBottom: 14 }}>
+                        {r.biography}
+                      </div>
+                    )}
+
+                    {/* Metadata */}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 20px", marginBottom: 14 }}>
+                      {metaRow("City / Region", r.city_region)}
+                      {metaRow("Aliases", (r.aliases || []).join(", "))}
+                    </div>
+
+                    {/* Social links */}
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      {[["spotify_url","Spotify"],["apple_music_url","Apple Music"],["youtube_url","YouTube"],["boomplay_url","Boomplay"],["audiomack_url","Audiomack"],["tiktok_url","TikTok"],["instagram_url","Instagram"],["x_url","X"],["facebook_url","Facebook"],["website_url","Website"]].map(([k,l]) => linkPill(r[k],l))}
+                    </div>
+                  </>
+                ) : (
+                  /* Generic: show all columns + extra fields */
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 20px" }}>
+                    {config.columns.map(col => {
+                      const val = col.render ? null : r[col.key];
+                      return metaRow(col.label, val !== undefined && val !== null && val !== "" ? String(val) : null);
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
       {imageModal && (
         <div className="cms-modal-backdrop" onClick={() => setImageModal(null)}>
           <div className="cms-modal cms-img-modal" onClick={(e) => e.stopPropagation()}>
