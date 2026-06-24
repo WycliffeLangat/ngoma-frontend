@@ -993,7 +993,7 @@ export default function PremiumChartsPage({
           width: size,
           height: size,
           minWidth: size,
-          borderRadius: size <= 44 ? "13px" : "15px",
+          borderRadius: 0,
           background: `linear-gradient(135deg, ${chartAccent} 0%, #111111 100%)`,
         }}
         title={`${item.title || "Release"} artwork`}
@@ -1273,8 +1273,8 @@ export default function PremiumChartsPage({
           from { opacity: 0; transform: translateY(-6px); }
           to   { opacity: 1; transform: translateY(0); }
         }
-        .ngoma-chart-row-stripe:nth-child(even) { background: ${darkMode ? "#121612" : "#faf9f6"} !important; }
-        .ngoma-chart-row-stripe:nth-child(odd)  { background: ${darkMode ? "#0f120f" : "#ffffff"} !important; }
+        .ngoma-chart-row-stripe:nth-child(even) { background: ${darkMode ? "#121612" : "transparent"} !important; }
+        .ngoma-chart-row-stripe:nth-child(odd)  { background: ${darkMode ? "#0f120f" : "transparent"} !important; }
       `}</style>
       <div className={`ngoma-premium-charts ${darkMode ? "ngoma-premium-charts-dark" : ""}`} style={{...styles.page, padding: mobile ? `0 ${safeGutter} 28px` : "0 28px 34px", boxSizing: "border-box"}}>
       <section
@@ -1553,7 +1553,7 @@ export default function PremiumChartsPage({
           width: "100%",
           margin: mobile ? "16px auto 28px" : "24px auto 34px",
           boxSizing: "border-box",
-          borderRadius: mobile ? "20px" : "26px",
+          borderRadius: 0,
         }}
       >
         <div
@@ -1640,7 +1640,7 @@ export default function PremiumChartsPage({
                     event.currentTarget.style.boxShadow = `inset 4px 0 0 ${chartAccent}`;
                   }}
                   onMouseLeave={(event) => {
-                    event.currentTarget.style.background = darkMode ? "#0d0f0d" : "#ffffff";
+                    event.currentTarget.style.background = darkMode ? "#0d0f0d" : "transparent";
                     event.currentTarget.style.boxShadow = "none";
                   }}
                 >
@@ -1714,7 +1714,7 @@ export default function PremiumChartsPage({
                 <div
                   style={{
                     ...styles.row,
-                    background: darkMode ? "#0d0f0d" : (index % 2 === 1 ? "#faf9f6" : "#ffffff"),
+                    background: darkMode ? "#0d0f0d" : "transparent",
                     color: darkMode ? "#fffdf7" : "#050505",
                     animationDelay: `${Math.min(index * 20, 400)}ms`,
                     ...(item.rank === 1 ? { borderLeft: `3px solid ${chartAccent}` } : {}),
@@ -1724,7 +1724,7 @@ export default function PremiumChartsPage({
                     event.currentTarget.style.boxShadow = `inset 4px 0 0 ${chartAccent}`;
                   }}
                   onMouseLeave={(event) => {
-                    event.currentTarget.style.background = darkMode ? "#0d0f0d" : (index % 2 === 1 ? "#faf9f6" : "#ffffff");
+                    event.currentTarget.style.background = darkMode ? "#0d0f0d" : "transparent";
                     event.currentTarget.style.boxShadow = item.rank === 1 ? "none" : "none";
                   }}
                 >
@@ -2103,11 +2103,8 @@ const styles = {
   },
 
   tableShell: {
-    background: "#ffffff",
     color: "#050505",
-    border: "1px solid rgba(0,0,0,0.08)",
     overflow: "hidden",
-    boxShadow: "0 14px 40px rgba(0,0,0,0.08)",
     maxWidth: "100%",
   },
 
@@ -2116,7 +2113,6 @@ const styles = {
     justifyContent: "space-between",
     gap: "20px",
     borderBottom: "1px solid rgba(0,0,0,0.08)",
-    background: "#ffffff",
     color: "#050505",
   },
 
@@ -2176,14 +2172,12 @@ const styles = {
   },
 
   desktopRowWrap: {
-    background: "#ffffff",
     borderBottom: "1px solid rgba(0,0,0,0.08)",
   },
 
   rows: {
     display: "flex",
     flexDirection: "column",
-    background: "#ffffff",
   },
 
   row: {
@@ -2193,7 +2187,6 @@ const styles = {
     alignItems: "center",
     padding: "16px 24px",
     borderBottom: "1px solid rgba(0,0,0,0.08)",
-    background: "#ffffff",
     color: "#050505",
     animation: "fadeUp 0.35s ease both",
     transition: "background 180ms ease, box-shadow 180ms ease",
@@ -2202,7 +2195,6 @@ const styles = {
   mobileRow: {
     padding: "16px 18px",
     borderBottom: "1px solid rgba(0,0,0,0.08)",
-    background: "#ffffff",
     color: "#050505",
     animation: "fadeUp 0.35s ease both",
     transition: "background 180ms ease, box-shadow 180ms ease",
@@ -2372,8 +2364,6 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    border: "1px solid rgba(0,0,0,0.08)",
-    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.28), 0 6px 18px rgba(0,0,0,0.10)",
   },
 
   releaseArtworkImage: {
