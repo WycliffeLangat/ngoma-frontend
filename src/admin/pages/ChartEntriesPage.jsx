@@ -297,6 +297,7 @@ export default function ChartEntriesPage() {
           </div>
 
           {/* Edit panel */}
+          {selected && <div className="cms-entries-backdrop" onClick={() => setSelected(null)} />}
           {selected && (
             <div className="cms-entries-panel" style={{ width: 300, flexShrink: 0, background: "#fff", border: "1px solid #E8E1D2", borderRadius: 20, padding: 20, position: "sticky", top: 90 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 18 }}>
