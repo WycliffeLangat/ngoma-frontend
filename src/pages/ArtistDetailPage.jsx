@@ -115,7 +115,7 @@ export default function ArtistDetailPage({ ctx }) {
   const metaRows = artistInfoRows.filter(([label]) => !urlLabels.has(label));
 
   return (
-<div style={{padding:PAD,background:"#f8f7f3",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
+<div style={{padding:PAD,background:isDark?"#050505":"#f8f7f3",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <span onClick={closeDetails} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:GOLD,cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:700}}>← Back</span>
 
           {/* Profile header */}
@@ -158,11 +158,11 @@ export default function ArtistDetailPage({ ctx }) {
 
           {/* Meta table — exclude social links (shown as pill buttons above) */}
           {metaRows.length > 0 && (
-          <div style={{margin:"22px 0 18px",border:"1px solid #E8E5DC",borderRadius:"14px",overflow:"hidden",background:"#fff"}}>
+          <div style={{margin:"22px 0 18px",border:`1px solid ${isDark?"#2B302B":"#E8E5DC"}`,borderRadius:"14px",overflow:"hidden",background:isDark?"#0F1110":"#fff"}}>
             {metaRows.map(([label, value], idx) => (
-              <div key={label} style={{display:"grid",gridTemplateColumns:isMobile?"110px 1fr":"150px 1fr",gap:"12px",padding:"10px 16px",background:idx%2===0?"#FAFAF8":"#FFFFFF",borderTop:idx===0?"none":"1px solid #F0EDE6",alignItems:"center"}}>
-                <span style={{fontFamily:F,fontSize:"9.5px",fontWeight:800,letterSpacing:"0.5px",color:"#7B857D",textTransform:"uppercase"}}>{label}</span>
-                <span style={{fontFamily:F,fontSize:"12px",fontWeight:600,color:"#1A1A1A",wordBreak:"break-word"}}>{value}</span>
+              <div key={label} style={{display:"grid",gridTemplateColumns:isMobile?"110px 1fr":"150px 1fr",gap:"12px",padding:"10px 16px",background:isDark?(idx%2===0?"#121612":"#0F1110"):(idx%2===0?"#FAFAF8":"#FFFFFF"),borderTop:idx===0?"none":`1px solid ${isDark?"#2B302B":"#F0EDE6"}`,alignItems:"center"}}>
+                <span style={{fontFamily:F,fontSize:"9.5px",fontWeight:800,letterSpacing:"0.5px",color:isDark?"#8F968F":"#7B857D",textTransform:"uppercase"}}>{label}</span>
+                <span style={{fontFamily:F,fontSize:"12px",fontWeight:600,color:isDark?"#F6F3EA":"#1A1A1A",wordBreak:"break-word"}}>{value}</span>
               </div>
             ))}
           </div>
@@ -199,7 +199,7 @@ export default function ArtistDetailPage({ ctx }) {
               {label:"Top 10 Placements",value:selectedArtistEntries.filter((entry)=>Number(entry.rank)<=10).length},
               {label:"#1 Placements",value:selectedArtistEntries.filter((entry)=>Number(entry.rank)===1).length},
               {label:"Best Release Rank",value:selectedArtistEntries.length?`#${Math.min(...selectedArtistEntries.map((entry)=>Number(entry.rank)))}`:"—"},
-            ].map((stat)=><div key={stat.label} style={{padding:"12px 13px",border:"1px solid #ECE9E1",borderRadius:"10px",background:"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:"#7B857D"}}>{stat.label}</div><div style={{fontFamily:F,fontSize:"19px",fontWeight:900,marginTop:"5px"}}>{stat.value}</div></div>)}
+            ].map((stat)=><div key={stat.label} style={{padding:"12px 13px",border:"1px solid "+(isDark?"#2B302B":"#ECE9E1"),borderRadius:"10px",background:isDark?"#151815":"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#8F968F":"#7B857D"}}>{stat.label}</div><div style={{fontFamily:F,fontSize:"19px",fontWeight:900,color:isDark?"#F6F3EA":"#1A1A1A",marginTop:"5px"}}>{stat.value}</div></div>)}
           </div>
           <h3 style={secLbl()}>Charted Entries Across Months</h3>
           {selectedArtistEntryGroups.map((group)=>{

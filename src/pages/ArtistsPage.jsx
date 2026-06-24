@@ -31,28 +31,28 @@ export default function ArtistsPage({ ctx }) {
   } = ctx;
 
   return (
-<div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
+<div style={{padding:PAD,background:isDark?"#050505":"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:isMobile?"18px":"22px",gap:isMobile?"14px":"20px",flexDirection:isMobile?"column":"row"}}>
             <div>
               <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0}}>Top Artists</h2>
               <p style={{fontFamily:F,fontSize:isMobile?"12.5px":"11.5px",color:"#59645D",margin:"5px 0 0",lineHeight:1.6}}>Cumulative credited performance from {MONTHS[0]} through {artistMonth}</p>
             </div>
             <div style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap"}}>
-              <select value={artistMonth} onChange={e=>setArtistMonth(e.target.value)} style={{width:isMobile?"100%":"auto",padding:isMobile?"11px 12px":"8px 12px",border:"1.5px solid #DDD",borderRadius:"9px",background:"#FFF",fontSize:isMobile?"12.5px":"10.5px",fontFamily:F,fontWeight:750,cursor:"pointer",outline:"none"}}>
+              <select value={artistMonth} onChange={e=>setArtistMonth(e.target.value)} style={{width:isMobile?"100%":"auto",padding:isMobile?"11px 12px":"8px 12px",border:"1.5px solid "+(isDark?"#3A3F3A":"#DDD"),borderRadius:"9px",background:isDark?"#1A1E1A":"#FFF",color:isDark?"#F6F3EA":"inherit",fontSize:isMobile?"12.5px":"10.5px",fontFamily:F,fontWeight:750,cursor:"pointer",outline:"none"}}>
                 {MONTHS.map(m=><option key={m} value={m}>{m}</option>)}
               </select>
               <Tog sm/>
             </div>
           </div>
           {/* Comparison */}
-          <div style={{...card(),padding:isMobile?"18px":"22px",marginBottom:"22px",background:"#FAFAF8"}}>
+          <div style={{...card(),padding:isMobile?"18px":"22px",marginBottom:"22px",background:isDark?"#111411":"#FAFAF8"}}>
             <div style={{...secLbl(),marginBottom:isMobile?"14px":"16px"}}><SecMark/>Artist Comparison</div>
             <div style={{display:"flex",gap:isMobile?"9px":"12px",alignItems:"center",flexDirection:isMobile?"column":"row",marginBottom:"16px",flexWrap:"wrap"}}>
-              <select value={cmpA1} onChange={e=>setCmpA1(e.target.value)} style={{flex:isMobile?"none":1,width:isMobile?"100%":"auto",minWidth:0,padding:isMobile?"11px 12px":"9px 12px",border:"1.5px solid #D6D1C7",borderRadius:"8px",background:"#FFF",fontSize:isMobile?"12px":"11.5px",fontFamily:F,fontWeight:700,cursor:"pointer",outline:"none",color:"#1F241F"}}>
+              <select value={cmpA1} onChange={e=>setCmpA1(e.target.value)} style={{flex:isMobile?"none":1,width:isMobile?"100%":"auto",minWidth:0,padding:isMobile?"11px 12px":"9px 12px",border:"1.5px solid "+(isDark?"#3A3F3A":"#D6D1C7"),borderRadius:"8px",background:isDark?"#1A1E1A":"#FFF",fontSize:isMobile?"12px":"11.5px",fontFamily:F,fontWeight:700,cursor:"pointer",outline:"none",color:isDark?"#F6F3EA":"#1F241F"}}>
                 {allArtistNames.map(n=><option key={n} value={n}>{n}</option>)}
               </select>
               <span style={{fontFamily:F,fontSize:isMobile?"11px":"12px",color:"#7B857D",fontWeight:800,flexShrink:0}}>vs</span>
-              <select value={cmpA2} onChange={e=>setCmpA2(e.target.value)} style={{flex:isMobile?"none":1,width:isMobile?"100%":"auto",minWidth:0,padding:isMobile?"11px 12px":"9px 12px",border:"1.5px solid #D6D1C7",borderRadius:"8px",background:"#FFF",fontSize:isMobile?"12px":"11.5px",fontFamily:F,fontWeight:700,cursor:"pointer",outline:"none",color:"#1F241F"}}>
+              <select value={cmpA2} onChange={e=>setCmpA2(e.target.value)} style={{flex:isMobile?"none":1,width:isMobile?"100%":"auto",minWidth:0,padding:isMobile?"11px 12px":"9px 12px",border:"1.5px solid "+(isDark?"#3A3F3A":"#D6D1C7"),borderRadius:"8px",background:isDark?"#1A1E1A":"#FFF",fontSize:isMobile?"12px":"11.5px",fontFamily:F,fontWeight:700,cursor:"pointer",outline:"none",color:isDark?"#F6F3EA":"#1F241F"}}>
                 {allArtistNames.map(n=><option key={n} value={n}>{n}</option>)}
               </select>
             </div>
@@ -101,27 +101,27 @@ export default function ArtistsPage({ ctx }) {
                   {label:"Entries",value:a.t},
                 ];
                 return(
-                  <div key={rowKey} style={{padding:"15px 16px",border:"1px solid rgba(0,0,0,0.08)",borderRadius:"16px",background:"#FFF",boxShadow:expanded?"inset 4px 0 0 #B8860B, 0 8px 22px rgba(0,0,0,0.045)":"0 2px 10px rgba(0,0,0,0.025)"}}>
+                  <div key={rowKey} style={{padding:"15px 16px",border:"1px solid "+(isDark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.08)"),borderRadius:"16px",background:isDark?"#0F1110":"#FFF",boxShadow:expanded?"inset 4px 0 0 #B8860B, 0 8px 22px rgba(0,0,0,0.045)":"0 2px 10px rgba(0,0,0,0.025)"}}>
                     <div onClick={()=>toggleArtistRow(rowKey)} role="button" aria-expanded={expanded} style={{display:"grid",gridTemplateColumns:"34px 42px minmax(0,1fr) 38px",gap:"10px",alignItems:"center",cursor:"pointer",minWidth:0}}>
                       <div style={{fontSize:i<3?"28px":"24px",fontWeight:950,lineHeight:1,color:i<3?MEDALS[i]:"#050505",textAlign:"center",fontFamily:F}}>{i+1}</div>
                       <CountryBadge artist={a.n} style={{minWidth:"42px",width:"42px",height:"42px",borderRadius:"12px",padding:0,flexShrink:0}} />
                       <div style={{minWidth:0}}>
-                        <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(a.n);}} style={{display:"block",width:"100%",border:0,background:"transparent",padding:0,margin:0,textAlign:"left",fontFamily:SF,fontSize:"15.5px",fontWeight:850,lineHeight:1.2,color:"#050505",whiteSpace:"normal",overflowWrap:"anywhere",cursor:"pointer"}}>{a.n}</button>
+                        <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(a.n);}} style={{display:"block",width:"100%",border:0,background:"transparent",padding:0,margin:0,textAlign:"left",fontFamily:SF,fontSize:"15.5px",fontWeight:850,lineHeight:1.2,color:isDark?"#F6F3EA":"#050505",whiteSpace:"normal",overflowWrap:"anywhere",cursor:"pointer"}}>{a.n}</button>
                         <div style={{fontFamily:F,fontSize:"11.5px",fontWeight:800,color:trend.color,marginTop:"5px",lineHeight:1.25}}>{trend.symbol} {trend.shortLabel}</div>
                       </div>
-                      <button type="button" onClick={(event)=>{event.stopPropagation();toggleArtistRow(rowKey);}} aria-label={expanded?"Hide artist details":"Show artist details"} aria-expanded={expanded} style={{width:"38px",height:"34px",border:"1px solid rgba(0,0,0,0.08)",borderRadius:"14px",background:"#FBFAF7",color:"#555",fontSize:"18px",fontWeight:900,lineHeight:1,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",padding:"0 0 2px",boxShadow:"0 2px 8px rgba(0,0,0,0.04)"}}>{expanded?"▴":"▾"}</button>
+                      <button type="button" onClick={(event)=>{event.stopPropagation();toggleArtistRow(rowKey);}} aria-label={expanded?"Hide artist details":"Show artist details"} aria-expanded={expanded} style={{width:"38px",height:"34px",border:"1px solid "+(isDark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.08)"),borderRadius:"14px",background:isDark?"#1A1E1A":"#FBFAF7",color:isDark?"#C5C5C0":"#555",fontSize:"18px",fontWeight:900,lineHeight:1,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",padding:"0 0 2px",boxShadow:"0 2px 8px rgba(0,0,0,0.04)"}}>{expanded?"▴":"▾"}</button>
                     </div>
                     {expanded&&(
-                      <div style={{marginTop:"14px",padding:"14px 16px 12px",border:"1px solid rgba(0,0,0,0.06)",borderRadius:"16px",background:"#FBFAF7"}}>
+                      <div style={{marginTop:"14px",padding:"14px 16px 12px",border:"1px solid "+(isDark?"rgba(255,255,255,0.07)":"rgba(0,0,0,0.06)"),borderRadius:"16px",background:isDark?"#111411":"#FBFAF7"}}>
                         <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:"8px"}}>
                           {artistStats.map((stat)=>(
-                            <div key={stat.label} style={{background:"#FFF",border:"1px solid rgba(0,0,0,0.06)",borderRadius:"12px",padding:"9px 7px",minWidth:0}}>
+                            <div key={stat.label} style={{background:isDark?"#1A1E1A":"#FFF",border:"1px solid "+(isDark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.06)"),borderRadius:"12px",padding:"9px 7px",minWidth:0}}>
                               <span style={{display:"block",fontFamily:F,fontSize:"9px",color:isDark?"#AEB6AE":"#777",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",textAlign:"center"}}>{stat.label}</span>
                               <span style={{display:"block",marginTop:"4px",fontFamily:F,color:isDark?"#D7DBD7":"#050505",fontSize:"12px",fontWeight:900,textAlign:"center",whiteSpace:"normal",overflowWrap:"anywhere"}}>{stat.value}</span>
                             </div>
                           ))}
                         </div>
-                        <button type="button" onClick={()=>openArtistDetails(a.n)} style={{marginTop:"11px",width:"100%",border:"1px solid rgba(184,134,11,0.22)",borderRadius:"13px",background:"#FFF",color:GOLD,fontFamily:F,fontSize:"10.5px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",padding:"10px 12px",cursor:"pointer"}}>View Artist Profile</button>
+                        <button type="button" onClick={()=>openArtistDetails(a.n)} style={{marginTop:"11px",width:"100%",border:"1px solid rgba(184,134,11,0.22)",borderRadius:"13px",background:isDark?"#151815":"#FFF",color:GOLD,fontFamily:F,fontSize:"10.5px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",padding:"10px 12px",cursor:"pointer"}}>View Artist Profile</button>
                       </div>
                     )}
                   </div>

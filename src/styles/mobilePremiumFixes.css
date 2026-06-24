@@ -12,7 +12,7 @@
     overflow-x: hidden;
   }
 
-  body {
+  body:not([data-ngoma-theme="dark"]) {
     background: #ffffff;
   }
 
@@ -296,6 +296,15 @@
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.045) !important;
   }
 
+  html[data-ngoma-theme="dark"] .mobile-chart-card,
+  html[data-ngoma-theme="dark"] .mobile-ranking-card,
+  html[data-ngoma-theme="dark"] .chart-entry-card,
+  html[data-ngoma-theme="dark"] .mobile-entry-card,
+  html[data-ngoma-theme="dark"] .ranking-mobile-card {
+    background: #111411 !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3) !important;
+  }
+
   .mobile-entry-title,
   .entry-title,
   .song-title,
@@ -311,6 +320,13 @@
     font-size: 11px !important;
     line-height: 1.2 !important;
     color: #6f6a5f !important;
+  }
+
+  html[data-ngoma-theme="dark"] .mobile-entry-artist,
+  html[data-ngoma-theme="dark"] .entry-artist,
+  html[data-ngoma-theme="dark"] .song-artist,
+  html[data-ngoma-theme="dark"] .track-artist {
+    color: #aeb6ae !important;
   }
 
   .mobile-metrics-grid,
@@ -367,5 +383,17 @@
   .metrics-grid,
   .ranking-metrics {
     gap: 6px !important;
+  }
+}
+
+/* Dark mode overrides — must come last */
+@media (max-width: 768px) {
+  html[data-ngoma-theme="dark"] .premium-stat-card,
+  html[data-ngoma-theme="dark"] .stat-card,
+  html[data-ngoma-theme="dark"] .summary-card,
+  html[data-ngoma-theme="dark"] .chart-stat,
+  html[data-ngoma-theme="dark"] .quick-stat {
+    border-right-color: #2b302b !important;
+    border-bottom-color: #2b302b !important;
   }
 }

@@ -1197,7 +1197,7 @@ export default function PremiumChartsPage({
 
   function ChartToggle() {
     return (
-      <div style={styles.toggleWrap}>
+      <div style={{...styles.toggleWrap, background: darkMode ? "#181C18" : "#f2f2f2", border: `1px solid ${darkMode ? "#2F352F" : "rgba(0,0,0,0.08)"}`}}>
         {["singles", "albums", "artists"].map((item) => {
           const active = ct === item;
 
@@ -1210,9 +1210,9 @@ export default function PremiumChartsPage({
               }}
               style={{
                 ...styles.toggleButton,
-                background: active ? chartAccent : "#ffffff",
-                color: active ? "#090909" : "#111111",
-                borderColor: active ? chartAccent : "rgba(0,0,0,0.14)",
+                background: active ? chartAccent : (darkMode ? "transparent" : "#ffffff"),
+                color: active ? (darkMode ? "#F6F3EA" : "#090909") : (darkMode ? "#B8BDB8" : "#111111"),
+                borderColor: active ? chartAccent : (darkMode ? "transparent" : "rgba(0,0,0,0.14)"),
                 flex: mobile ? 1 : "initial",
               }}
             >
@@ -1273,8 +1273,8 @@ export default function PremiumChartsPage({
           from { opacity: 0; transform: translateY(-6px); }
           to   { opacity: 1; transform: translateY(0); }
         }
-        .ngoma-chart-row-stripe:nth-child(even) { background: #faf9f6 !important; }
-        .ngoma-chart-row-stripe:nth-child(odd)  { background: #ffffff !important; }
+        .ngoma-chart-row-stripe:nth-child(even) { background: ${darkMode ? "#121612" : "#faf9f6"} !important; }
+        .ngoma-chart-row-stripe:nth-child(odd)  { background: ${darkMode ? "#0f120f" : "#ffffff"} !important; }
       `}</style>
       <div className={`ngoma-premium-charts ${darkMode ? "ngoma-premium-charts-dark" : ""}`} style={{...styles.page, padding: mobile ? `0 ${safeGutter} 28px` : "0 28px 34px", boxSizing: "border-box"}}>
       <section
@@ -1497,9 +1497,9 @@ export default function PremiumChartsPage({
                   style={{
                     ...styles.platformButton,
                     padding: mobile ? "9px 15px" : "8px 12px",
-                    borderColor: active ? color : "rgba(0,0,0,0.12)",
-                    background: active ? `${color}18` : "#ffffff",
-                    color: active ? ink : "#6b7280",
+                    borderColor: active ? color : (darkMode ? "#2F352F" : "rgba(0,0,0,0.12)"),
+                    background: active ? `${color}18` : (darkMode ? "#151815" : "#ffffff"),
+                    color: active ? ink : (darkMode ? "#B8BDB8" : "#6b7280"),
                     flexShrink: 0,
                   }}
                 >
@@ -1530,9 +1530,9 @@ export default function PremiumChartsPage({
                 style={{
                   ...styles.viewButton,
                   padding: mobile ? "11px 12px" : "8px 12px",
-                  background: active ? "#ffffff" : "#f6f6f3",
-                  color: active ? chartAccentInk : "#4b5563",
-                  border: active ? `2px solid ${chartAccent}` : "1px solid #e5e7eb",
+                  background: active ? (darkMode ? "#1A1E1A" : "#ffffff") : (darkMode ? "#111411" : "#f6f6f3"),
+                  color: active ? (darkMode ? "#F6F3EA" : chartAccentInk) : (darkMode ? "#B8BDB8" : "#4b5563"),
+                  border: active ? `2px solid ${chartAccent}` : `1px solid ${darkMode ? "#2F352F" : "#e5e7eb"}`,
                   fontWeight: active ? 900 : 800,
                   opacity: disabled ? 0.4 : 1,
                   flex: mobile ? 1 : "initial",

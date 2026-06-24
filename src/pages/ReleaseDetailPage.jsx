@@ -89,7 +89,7 @@ export default function ReleaseDetailPage({ ctx }) {
         const urlLabels = new Set(["Spotify URL", "Apple Music URL", "Boomplay URL", "Audiomack URL", "YouTube URL", "TikTok URL", "Shazam URL"]);
 
         return (
-        <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
+        <div style={{padding:PAD,background:isDark?"#050505":"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <span onClick={closeDetails} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:GOLD,cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>← Back</span>
           <div style={{marginTop:"20px"}}>
             {releaseDetails.cover_image&&<img src={releaseDetails.cover_image} alt={`${selR.title} cover`} style={{width:isMobile?"120px":"150px",aspectRatio:"1",objectFit:"cover",borderRadius:"14px",marginBottom:"16px",boxShadow:"0 10px 28px rgba(0,0,0,0.12)"}} />}
@@ -111,16 +111,16 @@ export default function ReleaseDetailPage({ ctx }) {
                 {label:"Platforms",value:platformNames.size},
                 {label:"Best Coverage",value:`${bestCoverage}/${isAlbum?2:6}`},
                 {label:"Release Year",value:selR.release_year||releaseMetadata.release_year||"—"},
-              ].map((stat)=><div key={stat.label} style={{padding:"12px 13px",border:"1px solid #ECE9E1",borderRadius:"10px",background:"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:"#7B857D"}}>{stat.label}</div><div style={{fontFamily:F,fontSize:"19px",fontWeight:900,color:"#1A1A1A",marginTop:"5px"}}>{stat.value}</div></div>)}
+              ].map((stat)=><div key={stat.label} style={{padding:"12px 13px",border:"1px solid "+(isDark?"#2B302B":"#ECE9E1"),borderRadius:"10px",background:isDark?"#151815":"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#8F968F":"#7B857D"}}>{stat.label}</div><div style={{fontFamily:F,fontSize:"19px",fontWeight:900,color:isDark?"#F6F3EA":"#1A1A1A",marginTop:"5px"}}>{stat.value}</div></div>)}
             </div>
-            <div style={{marginBottom:"18px",border:"1px solid #ECE9E1",borderRadius:"12px",overflow:"hidden"}}>
+            <div style={{marginBottom:"18px",border:`1px solid ${isDark?"#2B302B":"#ECE9E1"}`,borderRadius:"12px",overflow:"hidden"}}>
               {infoRows.map(([label, value], idx) => (
-                <div key={label} style={{display:"grid",gridTemplateColumns:isMobile?"110px 1fr":"150px 1fr",gap:"12px",padding:"9px 14px",background:idx%2===0?"#FAFAF8":"#FFFFFF",borderTop:idx===0?"none":"1px solid #F0EDE6",alignItems:"center"}}>
-                  <span style={{fontFamily:F,fontSize:"9.5px",fontWeight:700,letterSpacing:"0.4px",color:"#7B857D",textTransform:"uppercase"}}>{label}</span>
+                <div key={label} style={{display:"grid",gridTemplateColumns:isMobile?"110px 1fr":"150px 1fr",gap:"12px",padding:"9px 14px",background:isDark?(idx%2===0?"#121612":"#0F1110"):(idx%2===0?"#FAFAF8":"#FFFFFF"),borderTop:idx===0?"none":`1px solid ${isDark?"#2B302B":"#F0EDE6"}`,alignItems:"center"}}>
+                  <span style={{fontFamily:F,fontSize:"9.5px",fontWeight:700,letterSpacing:"0.4px",color:isDark?"#8F968F":"#7B857D",textTransform:"uppercase"}}>{label}</span>
                   {urlLabels.has(label) ? (
                     <a href={value} target="_blank" rel="noopener noreferrer" onClick={(e)=>e.stopPropagation()} style={{fontFamily:F,fontSize:"12px",fontWeight:700,color:GOLD,textDecoration:"none",wordBreak:"break-all"}}>{value} ↗</a>
                   ) : (
-                    <span style={{fontFamily:F,fontSize:"12px",fontWeight:600,color:"#1A1A1A",wordBreak:"break-word"}}>{value}</span>
+                    <span style={{fontFamily:F,fontSize:"12px",fontWeight:600,color:isDark?"#F6F3EA":"#1A1A1A",wordBreak:"break-word"}}>{value}</span>
                   )}
                 </div>
               ))}
@@ -148,9 +148,9 @@ export default function ReleaseDetailPage({ ctx }) {
             </div>
             <h3 style={secLbl()}><SecMark/>Cross-Platform Journey</h3>
             {chartedJourney.map(({month:m,combined,platforms})=>(
-              <div key={m} style={{marginBottom:"14px",padding:"16px",background:"#FAFAF8",borderRadius:"8px",border:"1px solid #EAEAE6"}}>
+              <div key={m} style={{marginBottom:"14px",padding:"16px",background:isDark?"#111411":"#FAFAF8",borderRadius:"8px",border:"1px solid "+(isDark?"#2B302B":"#EAEAE6")}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"10px"}}>
-                  <span style={{fontWeight:700,fontFamily:SF}}>{m}</span>
+                  <span style={{fontWeight:700,fontFamily:SF,color:isDark?"#F6F3EA":"inherit"}}>{m}</span>
                   {combined
                     ? <span style={{fontFamily:F,fontSize:"13px",fontWeight:700,color:GOLD}}>#{combined.rank} Combined · {combined.pts.toLocaleString()} pts · {combined.plat} platforms</span>
                     : <span style={{fontFamily:F,fontSize:"12px",fontWeight:800,color:isDark?"#F4EFE4":"#59645D"}}>Platform entries only</span>}

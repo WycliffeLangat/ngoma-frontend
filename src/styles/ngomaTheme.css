@@ -2394,6 +2394,9 @@ html[data-ngoma-theme="dark"] {
   --ngoma-soft-bg: #111411;
   --ngoma-border-light: #2b302b;
   --ngoma-border-medium: #343a34;
+  --ngoma-shadow-soft: 0 4px 16px rgba(0,0,0,0.4);
+  --ngoma-shadow-card: 0 8px 28px rgba(0,0,0,0.5);
+  --ngoma-shadow-raised: 0 16px 48px rgba(0,0,0,0.6);
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell :where(h1,h2,h3,h4,h5,h6,p,label,summary,li,td,th,strong,b,em,small,caption,figcaption):not([style*="color" i]) {
@@ -3047,14 +3050,14 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell select option {
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell .ngoma-platform-cell {
-  background: #ffffff !important;
-  background-color: #ffffff !important;
-  color: #050505 !important;
-  border-color: rgba(0, 0, 0, 0.16) !important;
+  background: #1a1e1a !important;
+  background-color: #1a1e1a !important;
+  color: #f6f3ea !important;
+  border-color: #2b302b !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell .ngoma-platform-cell * {
-  color: #050505 !important;
+  color: inherit !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell select,
@@ -3314,4 +3317,153 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell select optgroup {
   text-transform: uppercase;
   color: var(--ngoma-muted);
   margin-top: 2px;
+}
+
+/* =========================================================
+   DARK MODE SURFACE PATCH
+   Covers elements the earlier rules miss because the
+   "FORCE LIGHT THEME" block uses broad selectors that
+   target these classes without a .ngoma-app-shell scope.
+   Must stay at the very end of this file.
+   ========================================================= */
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
+  .hero, .premium-hero, .premium-chart-hero, .chart-hero,
+  .charts-hero, .ngoma-hero, .hero-section, .top-section,
+  [class*="hero"], [class*="Hero"]
+) {
+  background: #0f1110 !important;
+  background-image: none !important;
+  color: #f6f3ea !important;
+  box-shadow: none !important;
+}
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
+  .summary-section, .chart-summary,
+  [class*="summary"], [class*="Summary"]
+):not([class*="card"]):not([class*="Card"]) {
+  background: #0f1110 !important;
+  background-image: none !important;
+  color: #f6f3ea !important;
+}
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
+  [class*="hero"], [class*="Hero"]
+) :where(h1, h2, h3, h4) {
+  color: #f6f3ea !important;
+}
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
+  [class*="hero"], [class*="Hero"]
+) :where(p, small) {
+  color: #aeb6ae !important;
+}
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
+  .chart-list, .ranking-list,
+  [class*="chart-list"], [class*="ChartList"],
+  [class*="ranking-list"], [class*="RankingList"],
+  .table-container, [class*="table-container"], [class*="TableContainer"]
+) {
+  background: #0f1110 !important;
+  color: #f6f3ea !important;
+  border-color: #2b302b !important;
+}
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
+  .filters, .filter-bar, .controls, .chart-controls, .premium-controls,
+  [class*="filters"], [class*="Filters"],
+  [class*="controls"], [class*="Controls"]
+):not(button):not(input) {
+  background: #111411 !important;
+  color: #f6f3ea !important;
+  border-color: #2b302b !important;
+}
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
+  .filter, .pill, .tab,
+  .platform-filter, .month-filter,
+  button[class*="filter"], button[class*="Filter"],
+  button[class*="pill"], button[class*="Pill"],
+  button[class*="tab"], button[class*="Tab"]
+):not(.active):not([data-active="true"]) {
+  background: #151815 !important;
+  color: #c5c5c0 !important;
+  border-color: #2b302b !important;
+}
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
+  .platform-count,
+  [class*="platform-count"]
+) {
+  background: #1f2420 !important;
+  color: #f6f3ea !important;
+}
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell .badge-green {
+  color: #6fd98a !important;
+  background: rgba(45,176,74,0.16) !important;
+  border-color: rgba(45,176,74,0.28) !important;
+}
+html[data-ngoma-theme="dark"] .ngoma-app-shell .badge-blue {
+  color: #7bb8ff !important;
+  background: rgba(21,101,192,0.16) !important;
+  border-color: rgba(21,101,192,0.28) !important;
+}
+html[data-ngoma-theme="dark"] .ngoma-app-shell .badge-red {
+  color: #ff8a80 !important;
+  background: rgba(229,57,53,0.16) !important;
+  border-color: rgba(229,57,53,0.28) !important;
+}
+html[data-ngoma-theme="dark"] .ngoma-app-shell .badge-muted {
+  color: #aeb6ae !important;
+  background: rgba(255,255,255,0.06) !important;
+  border-color: rgba(255,255,255,0.1) !important;
+}
+html[data-ngoma-theme="dark"] .ngoma-app-shell .move-chip.same {
+  color: #aeb6ae !important;
+  background: rgba(255,255,255,0.08) !important;
+}
+
+/* Catch light hex backgrounds Chrome normalises to rgb() that aren't in the
+   main attribute-selector list above. Each entry covers a specific light shade
+   used by page/chart components via inline styles. */
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: rgb(248, 247, 243)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background-color: rgb(248, 247, 243)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: rgb(242, 242, 242)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background-color: rgb(242, 242, 242)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: rgb(250, 249, 246)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background-color: rgb(250, 249, 246)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: rgb(247, 247, 247)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background-color: rgb(247, 247, 247)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: rgb(250, 249, 245)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background-color: rgb(250, 249, 245)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: rgb(241, 232, 214)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background-color: rgb(241, 232, 214)" i] {
+  background: #111411 !important;
+  background-color: #111411 !important;
+  background-image: none !important;
+  color: #f6f3ea !important;
+  border-color: #2b302b !important;
+}
+
+/* Table header row: #f0ede6 → rgb(240, 237, 230) */
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: rgb(240, 237, 230)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background-color: rgb(240, 237, 230)" i] {
+  background: #1a1e1a !important;
+  background-color: #1a1e1a !important;
+  background-image: none !important;
+  color: #8f968f !important;
+}
+
+/* Extra light shades: #f4f3ef → rgb(244, 243, 239), #fafaf8 → rgb(250, 250, 248) */
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: rgb(244, 243, 239)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background-color: rgb(244, 243, 239)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: rgb(250, 250, 248)" i],
+html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background-color: rgb(250, 250, 248)" i] {
+  background: #111411 !important;
+  background-color: #111411 !important;
+  background-image: none !important;
+  color: #f6f3ea !important;
+  border-color: #2b302b !important;
 }
