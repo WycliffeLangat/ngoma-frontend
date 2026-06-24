@@ -43,7 +43,7 @@ export default function AdminApp() {
 }
 function getInitialPage(){ const part = window.location.pathname.split("/cms/")[1]?.replace(/^\//, "") || "dashboard"; return part || "dashboard"; }
 function renderPage(page, user, searchJump){
-  if(page === "dashboard") return <DashboardPage />;
+  if(page === "dashboard") return <DashboardPage onNavigate={setPage} />;
   if(page === "uploads") return <UploadsPage />;
   if(page === "duplicate-review") return <DuplicateReviewPage />;
   if(["artists","songs","albums","countries","platforms","news","charts","certifications","certification-rules","methodology","page-content","media","settings","users","reports","audit","backups"].includes(page)) return <ResourcePage type={page} user={user} searchJump={searchJump} />;

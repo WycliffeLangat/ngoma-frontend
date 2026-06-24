@@ -164,6 +164,58 @@ export default function ResourcePage({ type, searchJump }) {
   const isRelease = type === "songs" || type === "albums";
   const isArtist = type === "artists";
   const isActionable = isRelease || isArtist;
+  const isCertifications = type === "certifications";
+
+  // Canonical thresholds: Diamond ≥600, Platinum ≥400, Gold ≥200
+  function correctCertLevel(points) {
+    const p = Number(points) || 0;
+    if (p >= 600) return "diamond";
+    if (p >= 400) return "platinum";
+    if (p >= 200) return "gold";
+    return null;
+  }
+
+  async function recalcCertLevels() {
+    if (actionBusy) return;
+    setActionBusy(true);
+    setError("");
+    try {
+      const all = getResults(await cmsApi.get("/certifications/?page_size=2000"));
+      let fixed = 0;
+      for (const cert of all) {
+        const correct = correctCertLevel(cert.total_points);
+        if (correct && cert.level !== correct) {
+          await cmsApi.patch(`/certifications/${cert.id}/`, { level: correct });
+          fixed++;
+        }
+      }
+      if (fixed === 0) {
+        setError("All certification levels are already correct.");
+      } else {
+        setError(`Fixed ${fixed} certification level${fixed !== 1 ? "s" : ""} — refresh the dashboard to clear the alert.`);
+        load();
+      }
+    } catch(e) { setError(e.message); }
+    finally { setActionBusy(false); }
+  }
+
+  async function markAllOfficial() {
+    if (actionBusy) return;
+    if (!window.confirm("Mark all non-official certifications as official? This makes them fully public.")) return;
+    setActionBusy(true);
+    setError("");
+    try {
+      const all = getResults(await cmsApi.get("/certifications/?page_size=2000"));
+      const unofficial = all.filter(c => !c.is_official);
+      if (unofficial.length === 0) { setError("No unofficial certifications found."); return; }
+      for (const cert of unofficial) {
+        await cmsApi.patch(`/certifications/${cert.id}/`, { is_official: true });
+      }
+      setError(`Marked ${unofficial.length} certification${unofficial.length !== 1 ? "s" : ""} as official — refresh the dashboard to clear the alert.`);
+      load();
+    } catch(e) { setError(e.message); }
+    finally { setActionBusy(false); }
+  }
 
   // Artist merge API:   POST /artists/{KEEPER}/merge/  { artist_ids: [dup] }
   // Release merge API:  POST /releases/{DUP}/merge/   { into_id: keeper }
@@ -332,6 +384,26 @@ export default function ResourcePage({ type, searchJump }) {
           <button className="cms-btn light" onClick={dupGroups === null ? loadDuplicates : () => setDupGroups(null)}>
             {dupGroups === null ? "Find duplicates" : "Hide duplicates"}
           </button>
+        )}
+        {isCertifications && (
+          <>
+            <button
+              className="cms-btn light"
+              disabled={actionBusy}
+              title="Recalculate every certification's level from its total points (💎 ≥600, 🎵 ≥400, 📀 ≥200)"
+              onClick={recalcCertLevels}
+            >
+              {actionBusy ? "Fixing…" : "Recalculate levels"}
+            </button>
+            <button
+              className="cms-btn light"
+              disabled={actionBusy}
+              title="Mark all unofficial certifications as is_official=true"
+              onClick={markAllOfficial}
+            >
+              Mark all official
+            </button>
+          </>
         )}
       </div>
 
