@@ -7,8 +7,8 @@
 export const releaseTitle = (item = {}) =>
   item.t || item.title || item.release_title || item.name || "";
 
-// Normalise "ft." → "ft" so "ft." and "ft" display consistently.
-export const normFt = (s) => String(s || "").replace(/\bft\./gi, "ft");
+// Normalise "ft"/"ft." → "ft." so both display consistently with a period.
+export const normFt = (s) => String(s || "").replace(/\bft\.?(?!\w)/gi, "ft.");
 
 // Strip pipe-separated internal aliases from artist names.
 // The backend uses "|" as an alias separator (e.g. "Toxic Lyrikali|Countree Hype")

@@ -837,7 +837,7 @@ export default function PremiumChartsPage({
     const source = normalizeDetailValue(artistText, "");
     if (!source) return [];
 
-    const separatorPattern = /(\s*(?:,|&|\+|\bfeat\.?\b|\bft\.?\b|\bfeaturing\b|\band\b|\bwith\b|\bx\b)\s*)/gi;
+    const separatorPattern = /(\s*(?:,|&|\+|\bfeat\.?(?!\w)|\bft\.?(?!\w)|\bfeaturing\b|\band\b|\bwith\b|\bx\b)\s*)/gi;
     const pieces = source.split(separatorPattern).filter((piece) => piece !== "");
 
     return pieces
@@ -846,7 +846,7 @@ export default function PremiumChartsPage({
         const isSeparator = separatorPattern.test(piece);
         separatorPattern.lastIndex = 0;
         return isSeparator
-          ? { type: "separator", value: piece.replace(/\bft\./gi, "ft") }
+          ? { type: "separator", value: piece.replace(/\bft\.?(?!\w)/gi, "ft.").replace(/\bfeat\.?(?!\w)/gi, "ft.") }
           : { type: "artist", value: piece.trim() };
       })
       .filter((piece) => piece.value);
