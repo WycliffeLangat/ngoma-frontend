@@ -208,68 +208,97 @@ export default function DuplicateReviewPage() {
       })}
 
       {/* Merge confirm modal */}
-      {mergeModal && (
-        <div className="cms-modal-backdrop" onClick={() => !busy && setMergeModal(null)}>
-          <div className="cms-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 520 }}>
-            <div className="cms-modal-head">
-              <h3>Confirm merge</h3>
-              <button type="button" onClick={() => setMergeModal(null)} disabled={!!busy}>×</button>
-            </div>
-            {(() => {
-              const { group, pickedKeeper } = mergeModal;
-              const isArtist = pickedKeeper._type === "artist";
-              const dups = group.filter(r => r.id !== pickedKeeper.id);
-              return (
-                <>
-                  <p style={{ fontSize: 13, margin: "10px 0 4px" }}><strong>Keep:</strong></p>
-                  <div style={{ background: "#f5fce8", border: "1px solid #b6dca0", borderRadius: 6, padding: "8px 14px", marginBottom: 12, fontSize: 13 }}>
-                    {isArtist ? pickedKeeper.name : pickedKeeper.title} (id {pickedKeeper.id})
-                    {isArtist ? ` — ${pickedKeeper.release_count} release(s)` : ` — ${pickedKeeper.artist_display} · ${pickedKeeper.entry_count} entries${pickedKeeper.cover_image ? " · has cover" : ""}`}
-                  </div>
+      {mergeModal && (() => {
+        const { group, pickedKeeper } = mergeModal;
+        const isArtist = pickedKeeper._type === "artist";
+        const dups = group.filter(r => r.id !== pickedKeeper.id);
+        const rLabel = r => isArtist ? (r.name || "") : (r.title || "");
+        const rSub   = r => isArtist ? [r.country, r.country_code].filter(Boolean).join(" · ") : (r.artist_display || "");
+        const rMeta  = r => isArtist
+          ? `${r.release_count ?? 0} release(s)`
+          : [r.entry_count && `${r.entry_count} entries`, r.cover_image && "has cover"].filter(Boolean).join(" · ");
+        return (
+          <div className="cms-modal-backdrop" onClick={() => !busy && setMergeModal(null)}>
+            <div className="cms-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 540 }}>
+              <div className="cms-modal-head">
+                <h3>Confirm merge</h3>
+                <button type="button" onClick={() => setMergeModal(null)} disabled={!!busy}>×</button>
+              </div>
 
-                  <p style={{ fontSize: 13, margin: "0 0 6px" }}><strong>Delete ({dups.length}):</strong></p>
-                  <div style={{ fontSize: 13, marginBottom: 14 }}>
-                    {dups.map(r => (
-                      <div key={r.id} style={{ color: "#c0392b", padding: "2px 0" }}>
-                        id {r.id} — {isArtist ? r.name : `"${r.title}"`}
-                        {isArtist ? ` · ${r.release_count} release(s)` : ` · ${r.entry_count} entries`}
+              {dups.length === 1 ? (
+                /* ── 2-record group: side-by-side DELETE / KEEP cards ── */
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, margin: "14px 0" }}>
+                  {/* DELETE card */}
+                  <div style={{ border: "1.5px solid #fca5a5", borderRadius: 10, padding: "12px 14px", background: "#fff5f5", display: "flex", flexDirection: "column", gap: 3 }}>
+                    <div style={{ fontSize: 9, fontWeight: 800, color: "#dc2626", textTransform: "uppercase", letterSpacing: ".09em", marginBottom: 2 }}>Delete</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.35 }}>{rLabel(dups[0])}</div>
+                    {rSub(dups[0]) && <div style={{ fontSize: 11, color: "#666" }}>{rSub(dups[0])}</div>}
+                    {rMeta(dups[0]) && <div style={{ fontSize: 10, color: "#aaa" }}>{rMeta(dups[0])}</div>}
+                    <div style={{ fontSize: 10, color: "#ccc" }}>id {dups[0].id}</div>
+                    <button
+                      type="button"
+                      className="cms-btn light"
+                      style={{ marginTop: 8, fontSize: 11, padding: "5px 10px" }}
+                      disabled={!!busy}
+                      onClick={() => setMergeModal(m => ({ ...m, pickedKeeper: dups[0] }))}
+                    >⇄ Keep this instead</button>
+                  </div>
+                  {/* KEEP card */}
+                  <div style={{ border: "1.5px solid #86efac", borderRadius: 10, padding: "12px 14px", background: "#f0fdf4", display: "flex", flexDirection: "column", gap: 3 }}>
+                    <div style={{ fontSize: 9, fontWeight: 800, color: "#16a34a", textTransform: "uppercase", letterSpacing: ".09em", marginBottom: 2 }}>✓ Keep</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.35 }}>{rLabel(pickedKeeper)}</div>
+                    {rSub(pickedKeeper) && <div style={{ fontSize: 11, color: "#666" }}>{rSub(pickedKeeper)}</div>}
+                    {rMeta(pickedKeeper) && <div style={{ fontSize: 10, color: "#aaa" }}>{rMeta(pickedKeeper)}</div>}
+                    <div style={{ fontSize: 10, color: "#ccc" }}>id {pickedKeeper.id}</div>
+                  </div>
+                </div>
+              ) : (
+                /* ── 3+ record group: keeper card + deletions list ── */
+                <div style={{ margin: "14px 0 10px" }}>
+                  <div style={{ border: "1.5px solid #86efac", borderRadius: 10, padding: "12px 14px", background: "#f0fdf4", marginBottom: 8 }}>
+                    <div style={{ fontSize: 9, fontWeight: 800, color: "#16a34a", textTransform: "uppercase", letterSpacing: ".09em", marginBottom: 4 }}>✓ Keep</div>
+                    <div style={{ fontSize: 13, fontWeight: 700 }}>{rLabel(pickedKeeper)}</div>
+                    {rSub(pickedKeeper) && <div style={{ fontSize: 11, color: "#666", marginTop: 2 }}>{rSub(pickedKeeper)}</div>}
+                    {rMeta(pickedKeeper) && <div style={{ fontSize: 10, color: "#aaa", marginTop: 1 }}>{rMeta(pickedKeeper)}</div>}
+                    <div style={{ fontSize: 10, color: "#ccc" }}>id {pickedKeeper.id}</div>
+                  </div>
+                  <div style={{ border: "1.5px solid #fca5a5", borderRadius: 10, padding: "12px 14px", background: "#fff5f5" }}>
+                    <div style={{ fontSize: 9, fontWeight: 800, color: "#dc2626", textTransform: "uppercase", letterSpacing: ".09em", marginBottom: 8 }}>Delete ({dups.length})</div>
+                    {dups.map((r, ri) => (
+                      <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 8, paddingTop: ri > 0 ? 8 : 0, marginTop: ri > 0 ? 8 : 0, borderTop: ri > 0 ? "1px solid #fecaca" : "none" }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 13, fontWeight: 600 }}>{rLabel(r)}</div>
+                          {rSub(r) && <div style={{ fontSize: 11, color: "#888" }}>{rSub(r)}</div>}
+                          <div style={{ fontSize: 10, color: "#ccc" }}>id {r.id} · {rMeta(r)}</div>
+                        </div>
+                        <button
+                          type="button"
+                          className="cms-btn light"
+                          style={{ fontSize: 10, padding: "4px 8px", flexShrink: 0 }}
+                          disabled={!!busy}
+                          onClick={() => setMergeModal(m => ({ ...m, pickedKeeper: r }))}
+                        >⇄ Keep this</button>
                       </div>
                     ))}
                   </div>
+                </div>
+              )}
 
-                  <details style={{ marginBottom: 14, fontSize: 12 }}>
-                    <summary style={{ cursor: "pointer", color: "#666", marginBottom: 6 }}>Change which record to keep</summary>
-                    <div style={{ border: "1px solid #e5e5e5", borderRadius: 6, overflow: "hidden" }}>
-                      {group.map((r, ri) => (
-                        <button key={r.id} type="button"
-                          style={{ display: "block", width: "100%", textAlign: "left", padding: "8px 12px", fontSize: 12, border: "none", borderBottom: ri < group.length - 1 ? "1px solid #f0f0f0" : "none", background: r.id === pickedKeeper.id ? "#f5fce8" : "transparent", cursor: "pointer" }}
-                          onClick={() => setMergeModal(m => ({ ...m, pickedKeeper: r }))}
-                        >
-                          {r.id === pickedKeeper.id ? "◀ " : "  "}
-                          id {r.id} — {isArtist ? r.name : r.title}
-                          {isArtist ? ` · ${r.release_count} releases` : ` · ${r.entry_count} entries${r.cover_image ? " · ✓ cover" : ""}`}
-                        </button>
-                      ))}
-                    </div>
-                  </details>
-
-                  <p style={{ fontSize: 12, color: "#888", margin: "0 0 16px" }}>
-                    {isArtist
-                      ? "The deleted artist's releases will be reassigned to the kept artist. Aliases are preserved."
-                      : "Monthly chart points are summed into the kept record. Weekly entries on the same chart in the same week are dropped (a song can only appear once per weekly chart). Certifications are recalculated."}
-                  </p>
-                  <div className="cms-actions right">
-                    <button className="cms-btn light" onClick={() => setMergeModal(null)} disabled={!!busy}>Cancel</button>
-                    <button className="cms-btn" onClick={() => mergeGroup(group, pickedKeeper)} disabled={!!busy}>
-                      {busy === groupKey(group) ? "Merging…" : "Confirm merge"}
-                    </button>
-                  </div>
-                </>
-              );
-            })()}
+              <p style={{ fontSize: 12, color: "#888", margin: "0 0 14px" }}>
+                {isArtist
+                  ? "The deleted artist's releases will be reassigned to the kept artist. Aliases are preserved."
+                  : "Monthly chart points are summed into the kept record. Weekly entries on the same chart in the same week are dropped. Certifications are recalculated."}
+              </p>
+              <div className="cms-actions right">
+                <button className="cms-btn light" onClick={() => setMergeModal(null)} disabled={!!busy}>Cancel</button>
+                <button className="cms-btn" onClick={() => mergeGroup(group, pickedKeeper)} disabled={!!busy}>
+                  {busy === groupKey(group) ? "Merging…" : "Confirm merge"}
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </section>
   );
 }
