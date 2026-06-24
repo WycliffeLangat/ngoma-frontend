@@ -29,6 +29,9 @@ function releaseForm(chartType, artistOptions){ return [{name:"cover_image",labe
 
 // Resources that support status filtering and ordering in the CMS toolbar
 const STATUS_TYPES    = new Set(["songs", "albums", "artists"]);
+// Resources that show the A–Z alphabet bar
+const ALPHA_TYPES     = new Set(["artists", "songs", "albums", "news", "countries"]);
+const ALPHABET        = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const ORDERING_OPTIONS = {
   songs:   [["","Default"],["title","Title A–Z"],["-title","Title Z–A"],["-release_year","Newest first"],["release_year","Oldest first"],["-updated_at","Recently updated"]],
   albums:  [["","Default"],["title","Title A–Z"],["-title","Title Z–A"],["-release_year","Newest first"],["release_year","Oldest first"],["-updated_at","Recently updated"]],
@@ -41,6 +44,7 @@ export default function ResourcePage({ type, searchJump }) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");   // "" = all, "active", "archived"
   const [ordering, setOrdering] = useState("");
+  const [alphaFilter, setAlphaFilter] = useState("");     // "" = all, "A"–"Z"
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [modal, setModal] = useState(false);
@@ -66,7 +70,8 @@ export default function ResourcePage({ type, searchJump }) {
     search,
     ...(statusFilter ? { status: statusFilter } : {}),
     ...(ordering ? { ordering } : {}),
-  }), [config, search, statusFilter, ordering]);
+    ...(alphaFilter ? { starts_with: alphaFilter } : {}),
+  }), [config, search, statusFilter, ordering, alphaFilter]);
   const formFields = useMemo(() => type === "songs" || type === "albums" ? releaseForm(type === "albums" ? "albums" : "singles", artistOptions) : (config.form || []), [type, config, artistOptions]);
 
   // Used after save/delete to reload without debounce
@@ -81,9 +86,9 @@ export default function ResourcePage({ type, searchJump }) {
   }
 
   // Reset search and filters when switching resource types
-  useEffect(() => { setSearch(""); setStatusFilter(""); setOrdering(""); }, [type]);
+  useEffect(() => { setSearch(""); setStatusFilter(""); setOrdering(""); setAlphaFilter(""); }, [type]);
 
-  // Debounced search: instant for navigation (empty search), 280ms for typed queries
+  // Debounced load — re-runs when any filter changes; typed search gets 280ms debounce
   useEffect(() => {
     if (abortRef.current) abortRef.current.abort();
     const controller = new AbortController();
@@ -96,7 +101,7 @@ export default function ResourcePage({ type, searchJump }) {
       finally { if (!controller.signal.aborted) setLoading(false); }
     }, delay);
     return () => clearTimeout(timer);
-  }, [type, search]);
+  }, [type, params]);
   useEffect(() => {
     if (type !== "songs" && type !== "albums") return;
     cmsApi.get("/artists/options/").then(setArtistOptions).catch((e) => setError(e.message));
@@ -296,7 +301,7 @@ export default function ResourcePage({ type, searchJump }) {
       </div>
       {error && <div className="cms-alert error">{error}</div>}
       <div className="cms-toolbar">
-        <SearchBar value={search} onChange={setSearch} placeholder={`Search ${config.title.toLowerCase()}…`} />
+        <SearchBar value={search} onChange={v => { setSearch(v); if (v) setAlphaFilter(""); }} placeholder={`Search ${config.title.toLowerCase()}…`} />
         {STATUS_TYPES.has(type) && (
           <select
             className="cms-select"
@@ -329,6 +334,25 @@ export default function ResourcePage({ type, searchJump }) {
           </button>
         )}
       </div>
+
+      {/* A–Z alphabet bar */}
+      {ALPHA_TYPES.has(type) && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 3, padding: "6px 0 2px", alignItems: "center" }}>
+          <button
+            type="button"
+            style={{ minWidth: 38, height: 26, padding: "0 8px", border: "none", borderRadius: 5, fontSize: 11, fontWeight: 700, cursor: "pointer", background: !alphaFilter ? "#b8860b" : "#f0f0f0", color: !alphaFilter ? "#fff" : "#666" }}
+            onClick={() => setAlphaFilter("")}
+          >All</button>
+          {ALPHABET.map(letter => (
+            <button
+              key={letter}
+              type="button"
+              style={{ width: 26, height: 26, border: "none", borderRadius: 5, fontSize: 12, fontWeight: 600, cursor: "pointer", background: alphaFilter === letter ? "#b8860b" : "#f0f0f0", color: alphaFilter === letter ? "#fff" : "#555" }}
+              onClick={() => { const next = alphaFilter === letter ? "" : letter; setAlphaFilter(next); if (next) setSearch(""); }}
+            >{letter}</button>
+          ))}
+        </div>
+      )}
 
       {/* Duplicates panel */}
       {isActionable && dupGroups !== null && (
