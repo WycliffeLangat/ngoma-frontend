@@ -337,20 +337,27 @@ export default function ResourcePage({ type, searchJump }) {
 
       {/* A–Z alphabet bar */}
       {ALPHA_TYPES.has(type) && (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 3, padding: "6px 0 2px", alignItems: "center" }}>
+        <div style={{ background: "#f7f5f0", border: "1px solid #e8e0cc", borderRadius: 8, padding: "8px 12px", margin: "0 0 12px", display: "flex", flexWrap: "wrap", gap: 4, alignItems: "center" }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: "#999", textTransform: "uppercase", letterSpacing: ".05em", marginRight: 4 }}>A–Z:</span>
           <button
             type="button"
-            style={{ minWidth: 38, height: 26, padding: "0 8px", border: "none", borderRadius: 5, fontSize: 11, fontWeight: 700, cursor: "pointer", background: !alphaFilter ? "#b8860b" : "#f0f0f0", color: !alphaFilter ? "#fff" : "#666" }}
+            style={{ minWidth: 40, height: 28, padding: "0 10px", border: "none", borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: "pointer", background: !alphaFilter ? "#b8860b" : "#fff", color: !alphaFilter ? "#fff" : "#555", boxShadow: !alphaFilter ? "0 1px 4px rgba(184,134,11,.35)" : "0 1px 2px rgba(0,0,0,.08)" }}
             onClick={() => setAlphaFilter("")}
           >All</button>
           {ALPHABET.map(letter => (
             <button
               key={letter}
               type="button"
-              style={{ width: 26, height: 26, border: "none", borderRadius: 5, fontSize: 12, fontWeight: 600, cursor: "pointer", background: alphaFilter === letter ? "#b8860b" : "#f0f0f0", color: alphaFilter === letter ? "#fff" : "#555" }}
+              style={{ width: 28, height: 28, border: "none", borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer", background: alphaFilter === letter ? "#b8860b" : "#fff", color: alphaFilter === letter ? "#fff" : "#555", boxShadow: alphaFilter === letter ? "0 1px 4px rgba(184,134,11,.35)" : "0 1px 2px rgba(0,0,0,.08)" }}
               onClick={() => { const next = alphaFilter === letter ? "" : letter; setAlphaFilter(next); if (next) setSearch(""); }}
             >{letter}</button>
           ))}
+          {alphaFilter && (
+            <span style={{ marginLeft: 6, fontSize: 11, color: "#b8860b", fontWeight: 600 }}>
+              Showing: {alphaFilter} &nbsp;
+              <button type="button" onClick={() => setAlphaFilter("")} style={{ border: "none", background: "none", color: "#b8860b", cursor: "pointer", fontSize: 12, padding: 0, fontWeight: 700 }}>✕ Clear</button>
+            </span>
+          )}
         </div>
       )}
 
