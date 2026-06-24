@@ -120,8 +120,8 @@ export default function ChartEntriesPage() {
       if (imageFile && selected.release) {
         const fd = new FormData();
         fd.append("cover_image", imageFile);
-        await cmsApi.patch(`/releases/${selected.release}/`, fd);
-        updated.cover_image = imagePreview;
+        const updatedRelease = await cmsApi.patch(`/releases/${selected.release}/`, fd);
+        updated.cover_image = updatedRelease?.cover_image || imagePreview;
       }
 
       setEntries(prev => prev.map(e => e.id === selected.id ? { ...e, ...updated } : e));

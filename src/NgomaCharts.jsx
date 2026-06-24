@@ -1015,10 +1015,6 @@ export default function NgomaCharts(){
       { type: releaseCt, month: monthNumber, year, platform: platformToSlug(plat) },
       controller.signal
     )
-      .then((response) => {
-        if (!response.ok) throw new Error("Live chart unavailable");
-        return response.json();
-      })
       .then((chartData) => {
         const entries = (chartData.entries || []).map((entry) => {
           const movementType = String(entry.movement || "").toLowerCase();
