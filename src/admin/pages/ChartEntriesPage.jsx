@@ -222,7 +222,7 @@ export default function ChartEntriesPage() {
 
       {/* ── Platform pill bar ── */}
       {chartId && (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16, alignItems: "center" }}>
+        <div className="cms-pill-bar" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16, alignItems: "center" }}>
           {pillBtn(COMBINED, "Combined", "#B8860B")}
           {relevantPlatforms.map(p =>
             pillBtn(p.id, p.short_name || p.name, p.color || "#555")
@@ -236,10 +236,10 @@ export default function ChartEntriesPage() {
       ) : loading ? (
         <div className="cms-empty">Loading entries…</div>
       ) : (
-        <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+        <div className="cms-entries-layout" style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
 
           {/* Entry table */}
-          <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="cms-entries-table" style={{ flex: 1, minWidth: 0 }}>
             <div className="cms-table-wrap">
               <table className="cms-table">
                 <thead>
@@ -298,7 +298,7 @@ export default function ChartEntriesPage() {
 
           {/* Edit panel */}
           {selected && (
-            <div style={{ width: 300, flexShrink: 0, background: "#fff", border: "1px solid #E8E1D2", borderRadius: 20, padding: 20, position: "sticky", top: 90 }}>
+            <div className="cms-entries-panel" style={{ width: 300, flexShrink: 0, background: "#fff", border: "1px solid #E8E1D2", borderRadius: 20, padding: 20, position: "sticky", top: 90 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 18 }}>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: 15, fontWeight: 800, lineHeight: 1.2 }}>{selected.title}</div>
