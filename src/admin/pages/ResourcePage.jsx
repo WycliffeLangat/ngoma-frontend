@@ -444,63 +444,113 @@ export default function ResourcePage({ type, searchJump }) {
       )}
 
       {/* Merge modal */}
-      {mergeTarget && (
-        <div className="cms-modal-backdrop" onClick={() => !actionBusy && setMergeTarget(null)}>
-          <div className="cms-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 500 }}>
-            <div className="cms-modal-head">
-              <h3>Merge release</h3>
-              <button type="button" onClick={() => setMergeTarget(null)} disabled={actionBusy}>×</button>
-            </div>
-            <p style={{ fontSize: 13, margin: "8px 0 14px" }}>
-              <strong>Merging:</strong> "{mergeTarget.dup.title}" (id {mergeTarget.dup.id})
-              <br /><span style={{ color: "#888" }}>Monthly chart points will be summed into the kept record. Weekly entries on the same chart in the same week are dropped. This record will be permanently deleted.</span>
-            </p>
-            {mergeTarget.keeper ? (
-              <div style={{ background: "#f5fce8", border: "1px solid #b6dca0", borderRadius: 6, padding: "10px 14px", marginBottom: 14 }}>
-                <strong style={{ fontSize: 13 }}>Keep:</strong>{" "}
-                <span style={{ fontSize: 13 }}>{mergeTarget.keeper.title} (id {mergeTarget.keeper.id}) — {mergeTarget.keeper.artist_display}</span>
-                <button className="cms-btn light" style={{ fontSize: 11, marginLeft: 10 }} onClick={() => setMergeTarget(t => ({ ...t, keeper: null }))}>Change</button>
+      {mergeTarget && (() => {
+        const isArtistType = type === "artists";
+        const rLabel = r => isArtistType ? (r.name || "") : (r.title || "");
+        const rSub   = r => isArtistType ? [r.country, r.country_code].filter(Boolean).join(" · ") : (r.artist_display || "");
+        const rMeta  = r => isArtistType ? `${r.total_releases ?? 0} release(s)` : [r.release_year, r.isrc].filter(Boolean).join(" · ");
+        const typeLabel = isArtistType ? "artist" : type === "albums" ? "album" : "song";
+        const { dup, keeper } = mergeTarget;
+        return (
+          <div className="cms-modal-backdrop" onClick={() => !actionBusy && setMergeTarget(null)}>
+            <div className="cms-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 540 }}>
+              <div className="cms-modal-head">
+                <h3>Merge {typeLabel}</h3>
+                <button type="button" onClick={() => setMergeTarget(null)} disabled={actionBusy}>×</button>
               </div>
-            ) : (
-              <>
-                <input
-                  className="cms-search-input"
-                  placeholder="Search for the record to keep…"
-                  style={{ width: "100%", boxSizing: "border-box", marginBottom: 8 }}
-                  value={mergeTarget.keeperSearch}
-                  autoFocus
-                  onChange={e => {
-                    const q = e.target.value;
-                    setMergeTarget(t => ({ ...t, keeperSearch: q, keeperResults: [] }));
-                    searchForKeeper(q);
-                  }}
-                />
-                {mergeTarget.keeperResults.length > 0 && (
-                  <div style={{ border: "1px solid #e5e5e5", borderRadius: 6, marginBottom: 14, maxHeight: 180, overflowY: "auto" }}>
-                    {mergeTarget.keeperResults.map(r => (
+
+              {keeper ? (
+                /* ── Both records known: show DELETE / KEEP comparison ── */
+                <>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, margin: "14px 0" }}>
+                    {/* DELETE card */}
+                    <div style={{ border: "1.5px solid #fca5a5", borderRadius: 10, padding: "12px 14px", background: "#fff5f5", display: "flex", flexDirection: "column", gap: 3 }}>
+                      <div style={{ fontSize: 9, fontWeight: 800, color: "#dc2626", textTransform: "uppercase", letterSpacing: ".09em", marginBottom: 2 }}>Delete</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.35 }}>{rLabel(dup)}</div>
+                      {rSub(dup) && <div style={{ fontSize: 11, color: "#666" }}>{rSub(dup)}</div>}
+                      {rMeta(dup) && <div style={{ fontSize: 10, color: "#aaa" }}>{rMeta(dup)}</div>}
+                      <div style={{ fontSize: 10, color: "#ccc" }}>id {dup.id}</div>
                       <button
-                        key={r.id}
                         type="button"
-                        style={{ display: "block", width: "100%", textAlign: "left", padding: "8px 12px", fontSize: 13, border: "none", borderBottom: "1px solid #f0f0f0", background: "transparent", cursor: "pointer" }}
-                        onClick={() => setMergeTarget(t => ({ ...t, keeper: r, keeperSearch: r.title, keeperResults: [] }))}
-                      >
-                        <strong>{r.title}</strong> — {r.artist_display}
-                        <span style={{ fontSize: 11, color: "#aaa", marginLeft: 8 }}>id {r.id}</span>
-                      </button>
-                    ))}
+                        className="cms-btn light"
+                        style={{ marginTop: 8, fontSize: 11, padding: "5px 10px" }}
+                        disabled={actionBusy}
+                        onClick={() => setMergeTarget(t => ({ ...t, dup: t.keeper, keeper: t.dup }))}
+                      >⇄ Keep this instead</button>
+                    </div>
+                    {/* KEEP card */}
+                    <div style={{ border: "1.5px solid #86efac", borderRadius: 10, padding: "12px 14px", background: "#f0fdf4", display: "flex", flexDirection: "column", gap: 3 }}>
+                      <div style={{ fontSize: 9, fontWeight: 800, color: "#16a34a", textTransform: "uppercase", letterSpacing: ".09em", marginBottom: 2 }}>✓ Keep</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.35 }}>{rLabel(keeper)}</div>
+                      {rSub(keeper) && <div style={{ fontSize: 11, color: "#666" }}>{rSub(keeper)}</div>}
+                      {rMeta(keeper) && <div style={{ fontSize: 10, color: "#aaa" }}>{rMeta(keeper)}</div>}
+                      <div style={{ fontSize: 10, color: "#ccc" }}>id {keeper.id}</div>
+                      <button
+                        type="button"
+                        className="cms-btn light"
+                        style={{ marginTop: 8, fontSize: 11, padding: "5px 10px" }}
+                        disabled={actionBusy}
+                        onClick={() => setMergeTarget(t => ({ ...t, keeper: null, keeperSearch: "", keeperResults: [] }))}
+                      >Change keeper…</button>
+                    </div>
                   </div>
-                )}
-              </>
-            )}
-            <div className="cms-actions right">
-              <button className="cms-btn light" onClick={() => setMergeTarget(null)} disabled={actionBusy}>Cancel</button>
-              <button className="cms-btn" onClick={doMerge} disabled={!mergeTarget.keeper || actionBusy}>
-                {actionBusy ? "Merging…" : "Merge and delete duplicate"}
-              </button>
+                  <p style={{ fontSize: 12, color: "#888", margin: "0 0 14px" }}>
+                    {isArtistType
+                      ? "The deleted artist's releases move to the kept artist. Aliases are preserved."
+                      : "Monthly chart points are summed into the kept record. Weekly entries on the same chart in the same week are dropped. Certifications are recalculated."}
+                  </p>
+                </>
+              ) : (
+                /* ── Keeper not yet chosen: show search ── */
+                <>
+                  <p style={{ fontSize: 13, margin: "10px 0 12px", color: "#555" }}>
+                    <strong>Record to delete:</strong> {rLabel(dup)}{" "}
+                    <span style={{ fontSize: 11, color: "#aaa" }}>id {dup.id}</span>
+                  </p>
+                  <label style={{ display: "block", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".07em", color: "#666", marginBottom: 6 }}>
+                    Search for the {typeLabel} to keep
+                  </label>
+                  <input
+                    className="cms-search"
+                    placeholder={`Search ${typeLabel}s…`}
+                    style={{ width: "100%", boxSizing: "border-box", marginBottom: 8 }}
+                    value={mergeTarget.keeperSearch}
+                    autoFocus
+                    onChange={e => {
+                      const q = e.target.value;
+                      setMergeTarget(t => ({ ...t, keeperSearch: q, keeperResults: [] }));
+                      searchForKeeper(q);
+                    }}
+                  />
+                  {mergeTarget.keeperResults.length > 0 && (
+                    <div style={{ border: "1px solid #e5e5e5", borderRadius: 8, marginBottom: 14, maxHeight: 200, overflowY: "auto" }}>
+                      {mergeTarget.keeperResults.map(r => (
+                        <button
+                          key={r.id}
+                          type="button"
+                          style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", textAlign: "left", padding: "9px 12px", fontSize: 13, border: "none", borderBottom: "1px solid #f0f0f0", background: "transparent", cursor: "pointer" }}
+                          onClick={() => setMergeTarget(t => ({ ...t, keeper: r, keeperSearch: rLabel(r), keeperResults: [] }))}
+                        >
+                          <span style={{ fontWeight: 700, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{rLabel(r)}</span>
+                          {rSub(r) && <span style={{ fontSize: 11, color: "#777", flexShrink: 0 }}>{rSub(r)}</span>}
+                          <span style={{ fontSize: 10, color: "#ccc", flexShrink: 0 }}>id {r.id}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+
+              <div className="cms-actions right">
+                <button className="cms-btn light" onClick={() => setMergeTarget(null)} disabled={actionBusy}>Cancel</button>
+                <button className="cms-btn" onClick={doMerge} disabled={!keeper || actionBusy}>
+                  {actionBusy ? "Merging…" : `Delete "${rLabel(dup)}" →`}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </section>
   );
 }
