@@ -17,8 +17,12 @@ const WARN_IF_NONZERO = new Set([
   "certifications_unofficial", "errors_warnings",
 ]);
 
+const HEALTH_OK = new Set(["ok", "OK", "healthy", "HEALTHY", "good", "GOOD"]);
+
 function cardClass(key, value) {
   if (WARN_IF_NONZERO.has(key) && Number(value) > 0) return "warn";
+  if (key === "system_health" && value && !HEALTH_OK.has(String(value))) return "warn";
+  if (key === "system_health" && HEALTH_OK.has(String(value))) return "good";
   return "";
 }
 
@@ -71,6 +75,11 @@ function format(v){
   if(/^\d{4}-\d{2}-\d{2}T/.test(s)){
     const d = new Date(s);
     return isNaN(d.getTime()) ? s : d.toLocaleString();
+  }
+  // Humanise ALL_CAPS_ENUM strings from the backend
+  if(/^[A-Z][A-Z0-9_]+$/.test(s)){
+    return s.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()).toLowerCase()
+            .replace(/\b\w/g, c => c.toUpperCase());
   }
   return s;
 }
