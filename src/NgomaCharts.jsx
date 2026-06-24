@@ -2187,7 +2187,7 @@ const top = data[0];
     card,
     certColors,
     certIcons,
-    certs: liveCerts || certs,
+    certs: liveCerts ? liveCerts.filter(c => c.chart_type === ct) : certs,
     chartTypeLabel,
     closeDetails,
     cmp1,
