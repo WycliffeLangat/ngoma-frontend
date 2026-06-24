@@ -36,13 +36,13 @@ export default function AdminApp() {
       <aside className={`cms-sidebar ${sidebar ? "open" : ""}`}><div className="cms-brand"><b>NGOMA</b><span>Admin CMS</span></div><nav>{nav.map(([key,label])=><button key={key} className={page===key?"active":""} onClick={()=>{setPage(key);setSidebar(false);}}>{label}</button>)}</nav></aside>
       <div className="cms-main">
         <header className="cms-topbar"><button className="cms-menu" onClick={()=>setSidebar(!sidebar)}>☰</button><div className="cms-global"><GlobalSearch onNavigate={handleGlobalNavigate} /></div><NotificationBell count={unread} /><div className="cms-user"><span>{user.first_name || user.username}</span><small>{user.role_label}</small></div><button className="cms-btn light small" onClick={signOut}>Logout</button></header>
-        <main className="cms-content">{renderPage(page, user, searchJump)}</main>
+        <main className="cms-content">{renderPage(page, user, searchJump, setPage)}</main>
       </div>
     </div>
   );
 }
 function getInitialPage(){ const part = window.location.pathname.split("/cms/")[1]?.replace(/^\//, "") || "dashboard"; return part || "dashboard"; }
-function renderPage(page, user, searchJump){
+function renderPage(page, user, searchJump, setPage){
   if(page === "dashboard") return <DashboardPage onNavigate={setPage} />;
   if(page === "uploads") return <UploadsPage />;
   if(page === "duplicate-review") return <DuplicateReviewPage />;
