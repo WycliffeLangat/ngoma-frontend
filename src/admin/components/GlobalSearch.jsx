@@ -121,21 +121,23 @@ export default function GlobalSearch({ onNavigate }) {
                     onMouseEnter={() => setActiveIdx(r._idx)}
                     onClick={() => select(r)}
                     style={{
-                      display: "flex", alignItems: "baseline", gap: 8, width: "100%",
-                      textAlign: "left", padding: "8px 14px", border: "none", cursor: "pointer",
+                      display: "flex", flexDirection: "column", gap: 2, width: "100%",
+                      textAlign: "left", padding: "9px 14px", border: "none", cursor: "pointer",
                       background: r._idx === activeIdx ? "#f0f7ff" : "transparent",
                       borderBottom: "1px solid #f9f9f9",
                     }}
                   >
-                    <span style={{ fontSize: 13, fontWeight: 500, color: "#1a1a1a", flexShrink: 0 }}>{r.title}</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "#1a1a1a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{r.title}</span>
+                      {r.meta && (
+                        <span style={{ fontSize: 10, color: "#bbb", flexShrink: 0, fontFamily: "monospace" }}>
+                          {r.meta}
+                        </span>
+                      )}
+                    </div>
                     {r.subtitle && (
-                      <span style={{ fontSize: 12, color: "#777", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      <span style={{ fontSize: 11, color: "#888", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {r.subtitle}
-                      </span>
-                    )}
-                    {r.meta && (
-                      <span style={{ fontSize: 11, color: "#bbb", marginLeft: "auto", flexShrink: 0 }}>
-                        {r.meta}
                       </span>
                     )}
                   </button>

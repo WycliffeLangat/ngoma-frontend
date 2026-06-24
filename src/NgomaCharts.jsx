@@ -1172,16 +1172,29 @@ const top = data[0];
     );
   };
 
-  // Deduplicated search indices — best rank and month across all history
+  // Deduplicated search indices — best rank/month + full release metadata merged in
   const songSearchIndex=useMemo(()=>{
     const map=new Map();
     MONTHS.forEach(m=>{
       getCombined("singles",m).forEach(e=>{
         const k=`${String(e.title||"").trim().toLowerCase()}|||${String(e.artist||"").trim().toLowerCase()}`;
+        const rel=PUBLIC_RELEASES_BY_ID.get(Number(e.release_id))||PUBLIC_RELEASES_BY_TITLE.get(String(e.title||"").trim().toLowerCase())||{};
         const ex=map.get(k); const rank=Number(e.rank);
-        if(!ex) map.set(k,{...e,_type:"single",_months:1,_bestRank:rank,_bestMonth:m});
-        else { ex._months++; if(rank<ex._bestRank){ex._bestRank=rank;ex._bestMonth=m;} }
+        if(!ex){
+          const merged={...rel,...e,_type:"single",_months:1,_bestRank:rank,_bestMonth:m};
+          merged._searchText=[merged.title,merged.artist,rel.featured_artists,rel.isrc,rel.upc,rel.label,rel.canonical_title,rel.songwriters,rel.producers,rel.distributor].filter(Boolean).join(" ").toLowerCase();
+          map.set(k,merged);
+        } else { ex._months++; if(rank<ex._bestRank){ex._bestRank=rank;ex._bestMonth=m;} }
       });
+    });
+    // Also add releases from PUBLIC_DATA not yet in chart (ISRC/UPC lookup utility)
+    (PUBLIC_DATA.releases||[]).filter(r=>r.chart_type==="singles").forEach(r=>{
+      const k=`${String(r.title||"").trim().toLowerCase()}|||${String(r.primary_artist||r.artist||"").trim().toLowerCase()}`;
+      if(!map.has(k)){
+        const merged={...r,title:r.title,artist:r.primary_artist||r.artist||"",_type:"single",_months:0,_bestRank:999,_bestMonth:CURRENT_MONTH};
+        merged._searchText=[r.title,r.primary_artist,r.artist,r.featured_artists,r.isrc,r.upc,r.label,r.canonical_title,r.songwriters,r.producers].filter(Boolean).join(" ").toLowerCase();
+        map.set(k,merged);
+      }
     });
     return [...map.values()].sort((a,b)=>a._bestRank-b._bestRank);
   },[]);
@@ -1190,25 +1203,38 @@ const top = data[0];
     MONTHS.forEach(m=>{
       getCombined("albums",m).forEach(e=>{
         const k=`${String(e.title||"").trim().toLowerCase()}|||${String(e.artist||"").trim().toLowerCase()}`;
+        const rel=PUBLIC_RELEASES_BY_ID.get(Number(e.release_id))||PUBLIC_RELEASES_BY_TITLE.get(String(e.title||"").trim().toLowerCase())||{};
         const ex=map.get(k); const rank=Number(e.rank);
-        if(!ex) map.set(k,{...e,_type:"album",_months:1,_bestRank:rank,_bestMonth:m});
-        else { ex._months++; if(rank<ex._bestRank){ex._bestRank=rank;ex._bestMonth=m;} }
+        if(!ex){
+          const merged={...rel,...e,_type:"album",_months:1,_bestRank:rank,_bestMonth:m};
+          merged._searchText=[merged.title,merged.artist,rel.featured_artists,rel.isrc,rel.upc,rel.label,rel.canonical_title,rel.songwriters,rel.producers,rel.distributor].filter(Boolean).join(" ").toLowerCase();
+          map.set(k,merged);
+        } else { ex._months++; if(rank<ex._bestRank){ex._bestRank=rank;ex._bestMonth=m;} }
       });
+    });
+    (PUBLIC_DATA.releases||[]).filter(r=>r.chart_type==="albums").forEach(r=>{
+      const k=`${String(r.title||"").trim().toLowerCase()}|||${String(r.primary_artist||r.artist||"").trim().toLowerCase()}`;
+      if(!map.has(k)){
+        const merged={...r,title:r.title,artist:r.primary_artist||r.artist||"",_type:"album",_months:0,_bestRank:999,_bestMonth:CURRENT_MONTH};
+        merged._searchText=[r.title,r.primary_artist,r.artist,r.featured_artists,r.isrc,r.upc,r.label,r.canonical_title].filter(Boolean).join(" ").toLowerCase();
+        map.set(k,merged);
+      }
     });
     return [...map.values()].sort((a,b)=>a._bestRank-b._bestRank);
   },[]);
   const sResults=useMemo(()=>{
     const q=srch.trim().toLowerCase();
     if(q.length<2) return null;
-    const songs=songSearchIndex.filter(e=>String(e.title||"").toLowerCase().includes(q)||String(e.artist||"").toLowerCase().includes(q)).slice(0,7);
-    const albums=albumSearchIndex.filter(e=>String(e.title||"").toLowerCase().includes(q)||String(e.artist||"").toLowerCase().includes(q)).slice(0,5);
-    const chartArtistKeys=new Set([...COMBINED_ARTISTS.singles,...COMBINED_ARTISTS.albums].map(a=>a.n.toLowerCase()));
-    const artists=(PUBLIC_DATA.artists||[]).filter(a=>(chartArtistKeys.has(String(a.name||"").toLowerCase()))&&(
-      String(a.name||"").toLowerCase().includes(q)||String(a.display_name||"").toLowerCase().includes(q)||(a.aliases||[]).some(al=>String(al||"").toLowerCase().includes(q))
-    )).slice(0,5);
-    const newsItems=(liveNews||NEWS).filter(n=>String(n.title||"").toLowerCase().includes(q)||String(n.excerpt||n.body||"").toLowerCase().includes(q)).slice(0,4);
-    return {songs,albums,artists,news:newsItems};
-  },[srch,songSearchIndex,albumSearchIndex,liveNews]);
+    const songs=songSearchIndex.filter(e=>e._searchText?e._searchText.includes(q):(String(e.title||"").toLowerCase().includes(q)||String(e.artist||"").toLowerCase().includes(q))).slice(0,8);
+    const albums=albumSearchIndex.filter(e=>e._searchText?e._searchText.includes(q):(String(e.title||"").toLowerCase().includes(q)||String(e.artist||"").toLowerCase().includes(q))).slice(0,6);
+    const artists=(PUBLIC_DATA.artists||[]).filter(a=>{
+      const fields=[a.name,a.display_name,a.genre,a.city_region,a.country,...(a.aliases||[])].map(s=>String(s||"").toLowerCase());
+      return fields.some(f=>f.includes(q))||(a.country_code||"").toLowerCase()===q;
+    }).slice(0,6);
+    const newsItems=(liveNews||NEWS).filter(n=>[n.title,n.excerpt,n.body,n.cat].map(s=>String(s||"").toLowerCase()).some(f=>f.includes(q))).slice(0,4);
+    const certs=(liveCerts||[]).filter(c=>[String(c.t||""),String(c.a||""),String(c.level||"")].map(s=>s.toLowerCase()).some(f=>f.includes(q))).slice(0,4);
+    return {songs,albums,artists,news:newsItems,certs};
+  },[srch,songSearchIndex,albumSearchIndex,liveNews,liveCerts]);
   const sFlatResults=useMemo(()=>{
     if(!sResults) return [];
     return [
@@ -1216,6 +1242,7 @@ const top = data[0];
       ...sResults.albums.map(e=>({...e,_kind:"album"})),
       ...sResults.artists.map(a=>({...a,_kind:"artist"})),
       ...sResults.news.map(n=>({...n,_kind:"news"})),
+      ...sResults.certs.map(c=>({...c,_kind:"cert"})),
     ];
   },[sResults]);
 
@@ -1267,10 +1294,31 @@ const top = data[0];
   const closeSearch=()=>{setSOpen(false);setSrch("");setSActiveIdx(-1);};
   const selectSearchResult=(item)=>{
     closeSearch();
-    if(item._kind==="song"){setPage("charts");setMonth(item._bestMonth||CURRENT_MONTH);openReleaseDetails(item,"single");}
-    else if(item._kind==="album"){setPage("charts");setMonth(item._bestMonth||CURRENT_MONTH);openReleaseDetails(item,"album");}
-    else if(item._kind==="artist"){openArtistDetails(item.name);}
-    else if(item._kind==="news"){navTo("news");setSelNews(item);}
+    if(item._kind==="song"){
+      setPage("charts"); setMonth(item._bestMonth||CURRENT_MONTH);
+      openReleaseDetails(item,"single");
+    } else if(item._kind==="album"){
+      setPage("charts"); setMonth(item._bestMonth||CURRENT_MONTH);
+      openReleaseDetails(item,"album");
+    } else if(item._kind==="artist"){
+      // Try chart-based artist detail; fall back to profile-only panel for non-chart artists
+      const chartEntry=[...COMBINED_ARTISTS.singles,...COMBINED_ARTISTS.albums].find(a=>a.n.toLowerCase()===String(item.name||"").toLowerCase());
+      if(chartEntry){
+        openArtistDetails(item.name);
+      } else {
+        setSelR(null);
+        setSelA({n:item.name||item.display_name||"",rh:{},mp:{},pk:"—",rank:"—",p:0,m:0,t:0,prevRank:null});
+        prepareDetailNavigation();
+      }
+    } else if(item._kind==="news"){
+      navTo("news"); setSelNews(item);
+    } else if(item._kind==="cert"){
+      // Open the song's release detail if it's in chart history; otherwise go to certifications page
+      const entry=songSearchIndex.find(e=>String(e.title||"").toLowerCase()===String(item.t||"").toLowerCase()&&String(e.artist||"").toLowerCase()===String(item.a||"").toLowerCase())
+        ||albumSearchIndex.find(e=>String(e.title||"").toLowerCase()===String(item.t||"").toLowerCase()&&String(e.artist||"").toLowerCase()===String(item.a||"").toLowerCase());
+      if(entry){ setPage("charts"); setMonth(entry._bestMonth||CURRENT_MONTH); openReleaseDetails(entry,entry._type==="album"?"album":"single"); }
+      else { navTo("certifications"); }
+    }
   };
   const openReleaseDetails = (entry = {}, type = isSingles ? "single" : "album") => {
     if (entry?.is_artist_entry || String(type || entry.type || "").toLowerCase().includes("artist")) {
@@ -2565,6 +2613,31 @@ const top = data[0];
                           <div style={{fontSize:"13px",fontWeight:700,color:isDark?"#F6F3EA":"#1A1A1A",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{n.title}</div>
                           <div style={{fontSize:"11px",color:isDark?"#7a8a7a":"#888",marginTop:"1px"}}><span style={{color:"#c05c00",fontWeight:700}}>{n.cat}</span>{n.date?" · "+n.date:""}</div>
                         </div>
+                      </button>
+                    );
+                  })}
+                </>
+              )}
+              {/* Certifications */}
+              {sResults&&sResults.certs.length>0&&(
+                <>
+                  <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:"#b7980f",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>Certifications</div>
+                  {sResults.certs.map((c,i)=>{
+                    const flatIdx=sResults.songs.length+sResults.albums.length+sResults.artists.length+sResults.news.length+i;
+                    const certMeta=certificationMetaForLevel(c.level);
+                    return(
+                      <button key={`c-${i}`} type="button"
+                        onMouseEnter={()=>setSActiveIdx(flatIdx)}
+                        onClick={()=>selectSearchResult({...c,_kind:"cert"})}
+                        style={{display:"flex",alignItems:"center",gap:"12px",width:"100%",textAlign:"left",padding:"10px 18px",border:"none",borderBottom:`1px solid ${isDark?"#1c2320":"#F8F8F5"}`,cursor:"pointer",background:flatIdx===sActiveIdx?(isDark?"#1a2518":"#F0F7FF"):"transparent"}}>
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{fontSize:"13px",fontWeight:700,color:isDark?"#F6F3EA":"#1A1A1A",display:"flex",alignItems:"center",gap:"6px",overflow:"hidden"}}>
+                            {certMeta&&<span style={certMeta.iconFilter?{filter:certMeta.iconFilter,fontSize:"12px"}:{fontSize:"12px"}}>{certMeta.icon}</span>}
+                            <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.t}</span>
+                          </div>
+                          <div style={{fontSize:"11px",color:isDark?"#7a8a7a":"#888",marginTop:"1px"}}>{c.a}{certMeta?" · "+certMeta.label+" Certified":""}</div>
+                        </div>
+                        <div style={{fontSize:"11px",fontWeight:700,color:GOLD,flexShrink:0,fontFamily:F}}>{Number(c.totalPts||0).toLocaleString()} pts</div>
                       </button>
                     );
                   })}
