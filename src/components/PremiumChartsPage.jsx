@@ -1666,7 +1666,7 @@ export default function PremiumChartsPage({
                           <span
                             aria-label={`${certification.label} certified`}
                             title={`${certification.label} certified · ${Number(certification.totalPts || 0).toLocaleString()} points`}
-                            style={{ marginLeft: "4px", fontSize: "12px", opacity: 0.85, lineHeight: 1 }}
+                            style={{ marginLeft: "4px", fontSize: "12px", opacity: 0.85, lineHeight: 1, verticalAlign: "middle" }}
                           ><span style={certification.iconFilter ? { filter: certification.iconFilter } : undefined}>{certification.icon}</span></span>
                         )}
                       </button>
@@ -1765,7 +1765,7 @@ export default function PremiumChartsPage({
                           <span
                             aria-label={`${certification.label} certified`}
                             title={`${certification.label} certified · ${Number(certification.totalPts || 0).toLocaleString()} points`}
-                            style={{ marginLeft: "4px", fontSize: "12px", opacity: 0.85, lineHeight: 1 }}
+                            style={{ marginLeft: "4px", fontSize: "12px", opacity: 0.85, lineHeight: 1, verticalAlign: "middle" }}
                           ><span style={certification.iconFilter ? { filter: certification.iconFilter } : undefined}>{certification.icon}</span></span>
                         )}
                       </button>
@@ -2377,6 +2377,8 @@ const styles = {
   },
 
   releaseArtworkImage: {
+    position: "absolute",
+    inset: 0,
     width: "100%",
     height: "100%",
     objectFit: "cover",
@@ -2571,11 +2573,12 @@ const styles = {
   },
 
   titleButton: {
-    display: "flex",
-    alignItems: "center",
+    display: "block",
     maxWidth: "100%",
     border: "none",
     background: "transparent",
+    WebkitAppearance: "none",
+    appearance: "none",
     color: "#050505",
     padding: 0,
     textAlign: "left",
