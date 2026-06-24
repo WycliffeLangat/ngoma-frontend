@@ -301,7 +301,7 @@ export default function ResourcePage({ type, searchJump }) {
       </div>
       {error && <div className="cms-alert error">{error}</div>}
       <div className="cms-toolbar">
-        <SearchBar value={search} onChange={v => { setSearch(v); if (v) setAlphaFilter(""); }} placeholder={`Search ${config.title.toLowerCase()}…`} />
+        <SearchBar value={search} onChange={v => setSearch(v)} placeholder={`Search ${config.title.toLowerCase()}…`} />
         {STATUS_TYPES.has(type) && (
           <select
             className="cms-select"
@@ -349,13 +349,15 @@ export default function ResourcePage({ type, searchJump }) {
               key={letter}
               type="button"
               style={{ width: 28, height: 28, border: "none", borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer", background: alphaFilter === letter ? "#b8860b" : "#fff", color: alphaFilter === letter ? "#fff" : "#555", boxShadow: alphaFilter === letter ? "0 1px 4px rgba(184,134,11,.35)" : "0 1px 2px rgba(0,0,0,.08)" }}
-              onClick={() => { const next = alphaFilter === letter ? "" : letter; setAlphaFilter(next); if (next) setSearch(""); }}
+              onClick={() => setAlphaFilter(alphaFilter === letter ? "" : letter)}
             >{letter}</button>
           ))}
-          {alphaFilter && (
+          {(alphaFilter || search) && (
             <span style={{ marginLeft: 6, fontSize: 11, color: "#b8860b", fontWeight: 600 }}>
-              Showing: {alphaFilter} &nbsp;
-              <button type="button" onClick={() => setAlphaFilter("")} style={{ border: "none", background: "none", color: "#b8860b", cursor: "pointer", fontSize: 12, padding: 0, fontWeight: 700 }}>✕ Clear</button>
+              {alphaFilter && search ? `${alphaFilter}… + "${search}"` : alphaFilter ? `Showing: ${alphaFilter}` : `"${search}"`}
+              {alphaFilter && (
+                <button type="button" onClick={() => setAlphaFilter("")} style={{ border: "none", background: "none", color: "#b8860b", cursor: "pointer", fontSize: 12, padding: "0 0 0 6px", fontWeight: 700 }}>✕ letter</button>
+              )}
             </span>
           )}
         </div>
