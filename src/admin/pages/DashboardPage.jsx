@@ -17,12 +17,18 @@ const WARN_IF_NONZERO = new Set([
   "certifications_unofficial", "errors_warnings",
 ]);
 
-const HEALTH_OK = new Set(["ok", "OK", "healthy", "HEALTHY", "good", "GOOD"]);
+// Exact values returned by the backend (cms_views.py line 106)
+// 'ACTION_REQUIRED' → error alerts exist
+// 'NEEDS_ATTENTION' → warning alerts exist
+// 'OK'             → no alerts
 
 function cardClass(key, value) {
   if (WARN_IF_NONZERO.has(key) && Number(value) > 0) return "warn";
-  if (key === "system_health" && value && !HEALTH_OK.has(String(value))) return "warn";
-  if (key === "system_health" && HEALTH_OK.has(String(value))) return "good";
+  if (key === "system_health") {
+    if (value === "ACTION_REQUIRED") return "danger";
+    if (value === "NEEDS_ATTENTION") return "warn";
+    if (value === "OK") return "good";
+  }
   return "";
 }
 
