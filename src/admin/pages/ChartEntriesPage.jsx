@@ -46,27 +46,31 @@ export default function ChartEntriesPage() {
       .catch(() => {});
   }, []);
 
-  // Reload charts whenever chart type changes so we get the full list for each type
+  // Reload charts when chart type changes.
+  // Clear stale state immediately so singles entries never bleed into the albums view.
   useEffect(() => {
+    setCharts([]);
+    setChartId("");
+    setEntries([]);
+    setSelected(null);
+    setPlatformId(COMBINED);
     cmsApi.get(`/charts/?chart_type=${chartType}&ordering=-year,-month&page_size=200`)
-      .then(d => setCharts(getResults(d)))
+      .then(d => {
+        const results = getResults(d);
+        setCharts(results);
+        if (results.length) setChartId(String(results[0].id));
+      })
       .catch(e => setError(e.message));
-  }, [chartType]);
+  }, [chartType]); // eslint-disable-line
 
   const typedCharts = charts;
 
-  // Show all active platforms — the API returns empty if no entries exist for that platform/chart combo
-  const relevantPlatforms = platforms;
+  // Platforms relevant to the selected chart type
+  const relevantPlatforms = platforms.filter(p =>
+    chartType === "singles" ? p.supports_singles : p.supports_albums
+  );
 
-  // Auto-select most recent chart when type changes; reset platform to Combined
-  useEffect(() => {
-    const first = typedCharts[0];
-    setChartId(first ? String(first.id) : "");
-    setPlatformId(COMBINED);
-    setSelected(null);
-  }, [chartType, charts]); // eslint-disable-line
-
-  // Reset platform to Combined when chart month changes
+  // Reset platform pill when chart month changes
   useEffect(() => {
     setPlatformId(COMBINED);
     setSelected(null);
