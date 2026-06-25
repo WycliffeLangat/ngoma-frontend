@@ -1447,30 +1447,6 @@ export default function PremiumChartsPage({
           borderRadius: 0,
         }}
       >
-        <div
-          style={{
-            ...styles.tableTop,
-            flexDirection: mobile ? "column" : "row",
-            alignItems: mobile ? "flex-start" : "center",
-            padding: mobile ? "20px 18px" : "24px 26px",
-          }}
-        >
-          <div>
-            <div
-              style={{
-                ...styles.tableTitle,
-                fontSize: mobile ? "21px" : "24px",
-              }}
-            >
-              {chartDisplayTitle}
-            </div>
-            <div style={styles.tableSub}>
-              {chartLabel} · {platformLabel} · {month}
-            </div>
-          </div>
-
-        </div>
-
         {!mobile && (
           <div style={styles.tableHeader}>
             <span
