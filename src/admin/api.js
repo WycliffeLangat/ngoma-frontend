@@ -3,8 +3,32 @@ import { API_BASE } from "../api/config.js";
 export const CMS_BASE = `${API_BASE}/cms`;
 
 let csrfToken = null;
-
 function setCsrfToken(token) { if (token) csrfToken = token; }
+
+// ── GET response cache ────────────────────────────────────────────────────────
+// Caches successful GET responses for 30 seconds. Prevents the CMS from making
+// repeated network calls for the same data (e.g. ChartEntriesPage makes N×M
+// parallel calls for artist rankings and the Kenya chart — these return instantly
+// from cache on subsequent tab switches).
+//
+// Any mutation (POST/PATCH/PUT/DELETE) clears the entire cache so the next GET
+// always fetches fresh data.
+const _getCache = new Map(); // path → { data, ts }
+const GET_CACHE_TTL = 30_000; // 30 seconds
+
+function getCached(path) {
+  const entry = _getCache.get(path);
+  if (entry && Date.now() - entry.ts < GET_CACHE_TTL) return entry.data;
+  _getCache.delete(path);
+  return null;
+}
+
+function setCached(path, data) {
+  _getCache.set(path, { data, ts: Date.now() });
+}
+
+export function clearCmsCache() { _getCache.clear(); }
+// ─────────────────────────────────────────────────────────────────────────────
 
 async function fetchCsrfToken() {
   try {
@@ -17,36 +41,54 @@ async function fetchCsrfToken() {
 async function request(path, options = {}) {
   const method = (options.method || "GET").toUpperCase();
   const isMutation = ["POST", "PATCH", "PUT", "DELETE"].includes(method);
+  const isAuth = path.startsWith("/auth/");
+
+  // Return cached response for non-auth GET requests
+  if (!isMutation && !isAuth) {
+    const cached = getCached(path);
+    if (cached !== null) return cached;
+  }
+
   const headers = options.body instanceof FormData ? {} : { "Content-Type": "application/json" };
   if (isMutation && csrfToken) headers["X-CSRFToken"] = csrfToken;
+
   const response = await fetch(`${CMS_BASE}${path}`, {
     credentials: "include",
     ...options,
     headers: { ...headers, ...(options.headers || {}) },
   });
+
   const text = await response.text();
   let data = null;
   try { data = text ? JSON.parse(text) : null; } catch {
     if (!response.ok) throw new Error(`Server error (${response.status}) — check backend logs`);
   }
+
   if (!response.ok) {
     const detail = data?.detail || data?.error || `Request failed (${response.status})`;
     const err = new Error(detail);
     err.data = data;
     throw err;
   }
-  if (isMutation && typeof window !== "undefined") {
+
+  // Cache successful GET responses; clear everything on mutations
+  if (!isMutation && !isAuth) {
+    setCached(path, data);
+  } else if (isMutation) {
+    clearCmsCache();
+    // Keep the revision timestamp so the public page can detect changes
     try { window.localStorage.setItem("ngoma-cms-revision", String(Date.now())); } catch {}
   }
+
   return data;
 }
 
 export const cmsApi = {
-  get: (path, options = {}) => request(path, options),
-  post: (path, body = {}) => request(path, { method: "POST", body: body instanceof FormData ? body : JSON.stringify(body) }),
-  patch: (path, body = {}) => request(path, { method: "PATCH", body: body instanceof FormData ? body : JSON.stringify(body) }),
-  put: (path, body = {}) => request(path, { method: "PUT", body: JSON.stringify(body) }),
-  delete: (path) => request(path, { method: "DELETE" }),
+  get:    (path, options = {}) => request(path, options),
+  post:   (path, body = {})   => request(path, { method: "POST",   body: body instanceof FormData ? body : JSON.stringify(body) }),
+  patch:  (path, body = {})   => request(path, { method: "PATCH",  body: body instanceof FormData ? body : JSON.stringify(body) }),
+  put:    (path, body = {})   => request(path, { method: "PUT",    body: JSON.stringify(body) }),
+  delete: (path)              => request(path, { method: "DELETE" }),
   login: async (username, password) => {
     const data = await request("/auth/login/", { method: "POST", body: JSON.stringify({ username, password }) });
     setCsrfToken(data?.csrfToken);

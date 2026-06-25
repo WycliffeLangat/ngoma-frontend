@@ -97,7 +97,7 @@ function releaseEntryKey(e) {
 }
 
 const COMBINED = "combined";
-const KENYA    = "kenya";
+const KENYA    = "kenya"; // internal key — displayed as "Kenyan Top Charts"
 
 export default function ChartEntriesPage() {
   const [allCharts, setAllCharts]       = useState([]);
@@ -478,8 +478,8 @@ export default function ChartEntriesPage() {
   // ──────────────────────────────────────────────────────────────────────────
 
   const activePlatform =
-    platformId === COMBINED ? { name: "Combined", color: "#B8860B" } :
-    platformId === KENYA    ? { name: "Kenya",    color: "#006633" } :
+    platformId === COMBINED ? { name: "Combined",          color: "#B8860B" } :
+    platformId === KENYA    ? { name: "Kenyan Top Charts", color: "#006633" } :
     platforms.find(p => String(p.id) === String(platformId));
 
   // Entries to display in the table (Kenya view vs regular view)
@@ -601,7 +601,7 @@ export default function ChartEntriesPage() {
         {chartType !== "artists" && chartId && displayEntries.length > 0 && (
           <span style={{ marginLeft: "auto", fontSize: 12, color: "#888" }}>
             {displayEntries.length} entr{displayEntries.length === 1 ? "y" : "ies"}
-            {isKenyaView ? " · Kenya (all eligible)" : activePlatform ? ` · ${activePlatform.name}` : ""}
+            {isKenyaView ? " · Kenyan Top Charts (all eligible)" : activePlatform ? ` · ${activePlatform.name}` : ""}
           </span>
         )}
       </div>
@@ -609,8 +609,8 @@ export default function ChartEntriesPage() {
       {/* ── Platform pill bar (singles/albums only) ── */}
       {chartType !== "artists" && chartId && (
         <div className="cms-pill-bar" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16, alignItems: "center" }}>
-          {pillBtn(COMBINED, "Combined", "#B8860B")}
-          {pillBtn(KENYA,    "Kenya",    "#006633")}
+          {pillBtn(COMBINED, "Combined",          "#B8860B")}
+          {pillBtn(KENYA,    "Kenyan Top Charts", "#006633")}
           {platforms.map(p =>
             pillBtn(p.id, p.short_name || p.name, p.color || "#555")
           )}
@@ -620,7 +620,7 @@ export default function ChartEntriesPage() {
       {/* ── Body ── */}
       {displayLoading || (chartType === "artists" && loading) ? (
         <div className="cms-empty">
-          {isKenyaView ? "Building Kenya chart…" : "Loading…"}
+          {isKenyaView ? "Building Kenyan Top Charts…" : "Loading…"}
         </div>
 
       ) : chartType === "artists" ? (
@@ -836,7 +836,7 @@ export default function ChartEntriesPage() {
                 {isKenyaView ? (
                   <div>
                     <div style={{ fontSize: 11, color: "#888", lineHeight: 1.6, background: "#f9f7f2", borderRadius: 10, padding: "10px 12px", marginBottom: 12 }}>
-                      Kenya chart entry — aggregated from {selected._platformCount || "multiple"} platform{selected._platformCount !== 1 ? "s" : ""}.
+                      Kenyan Top Charts entry — aggregated from {selected._platformCount || "multiple"} platform{selected._platformCount !== 1 ? "s" : ""}.
                       Edit the release or artist record using the buttons above.
                     </div>
                     <div style={{ display: "flex", gap: 16 }}>
