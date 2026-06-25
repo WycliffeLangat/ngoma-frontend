@@ -993,33 +993,55 @@ export default function NgomaCharts(){
       .finally(() => setApiChecked(true));
   }, []);
 
-  // When the window regains focus, check whether the CMS revision changed.
-  // Only run the expensive fetchAppData() when it actually did — this avoids
-  // a large payload fetch on every tab-switch when nothing was edited.
+  // Three-layer sync — keeps the Kenyan Top 50 current whenever artist country
+  // data changes in the CMS, without requiring a page reload:
   //
-  // Revision unchanged → just re-run the live chart fetch (chartRefreshKey).
-  // Revision changed   → full app data re-fetch, then clear kenyan caches so
-  //   the Kenyan Top 50 recomputes with updated artist country_code values.
+  //  1. storage event  — api.js writes "ngoma-cms-revision" to localStorage on every
+  //                      CMS mutation; other tabs on the same origin receive this event
+  //                      instantly, so an artist country change propagates in < 1 s.
+  //  2. focus event    — catches the case where the user switches back to this tab
+  //                      after making CMS edits (no localStorage cross-tab needed).
+  //  3. 60 s poll      — fallback for same-tab scenarios or any other data change.
+  //
+  // All three paths call doRevisionSync, which:
+  //   - skips when the tab is hidden (interval fires in the background)
+  //   - fetches the lightweight revision endpoint first
+  //   - if revision changed: fetches full app data, updates __NGOMA_PUBLIC_DATA__,
+  //     clears kenyan caches so getArtistCountry() reads the new country_code,
+  //     then increments chartRefreshKey to force a re-render + chart recompute
   useEffect(() => {
-    const onFocus = () => {
+    const doRevisionSync = () => {
+      if (document.hidden) return; // tab is backgrounded — skip; focus event handles return
       fetchRevision()
         .then(rev => {
           const latest = String(rev?.revision || rev?.stamp || rev || "");
-          if (!latest || latest === _syncedRevision) return; // nothing changed
+          if (!latest || latest === _syncedRevision) return;
           _syncedRevision = latest;
           return fetchAppData().then(freshData => {
             if (freshData && typeof freshData === "object") {
               window.__NGOMA_PUBLIC_DATA__ = { ...(window.__NGOMA_PUBLIC_DATA__ || {}), ...freshData };
-              kenyanRawCache.clear();
+              kenyanRawCache.clear();  // force recompute with new artist countries
               kenyanEntryCache.clear();
             }
           });
         })
-        .catch(() => {}) // silent — chartRefreshKey still increments below
+        .catch(() => {})
         .finally(() => setChartRefreshKey(k => k + 1));
     };
-    window.addEventListener("focus", onFocus);
-    return () => window.removeEventListener("focus", onFocus);
+
+    const onStorageChange = (e) => {
+      // api.js stamps this key on every CMS mutation — fires in the public tab instantly
+      if (e.key === "ngoma-cms-revision") doRevisionSync();
+    };
+
+    window.addEventListener("focus", doRevisionSync);
+    window.addEventListener("storage", onStorageChange);
+    const pollId = setInterval(doRevisionSync, 60_000);
+    return () => {
+      window.removeEventListener("focus", doRevisionSync);
+      window.removeEventListener("storage", onStorageChange);
+      clearInterval(pollId);
+    };
   }, []);
 
   useEffect(() => {
