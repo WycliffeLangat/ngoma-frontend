@@ -1446,9 +1446,9 @@ export default function PremiumChartsPage({
             const textSub     = darkMode ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.55)";
 
             const dotInactive = darkMode ? "rgba(255,255,255,0.28)" : "rgba(0,0,0,0.18)";
-            const arrowBorder = darkMode ? "rgba(255,255,255,0.22)" : "rgba(0,0,0,0.15)";
-            const arrowBg     = darkMode ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)";
-            const arrowColor  = darkMode ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.6)";
+            const arrowBorder = `${chartAccent}55`;
+            const arrowBg     = `${chartAccent}22`;
+            const arrowColor  = chartAccent;
             const mvFallbackBg = darkMode ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.06)";
 
             return (
