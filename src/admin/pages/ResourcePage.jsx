@@ -217,6 +217,40 @@ export default function ResourcePage({ type, searchJump }) {
     finally { setActionBusy(false); }
   }
 
+  // Returns chart IDs that contain entries for the given release.
+  // Called BEFORE delete/merge while the entries still exist.
+  async function getAffectedChartIds(releaseId) {
+    try {
+      const data = await cmsApi.get(`/chart-entries/?release=${releaseId}&page_size=500`);
+      return [...new Set(getResults(data).map(e => e.chart).filter(Boolean))];
+    } catch { return []; }
+  }
+
+  // Re-ranks all entries in chartIds by total_points DESC for every platform
+  // (combined + each active platform) to close rank gaps after delete/merge.
+  async function reRankAffectedCharts(chartIds) {
+    if (!chartIds.length) return;
+    let platformKeys = ["combined"];
+    try {
+      const pd = await cmsApi.get("/platforms/?active=true&page_size=100");
+      platformKeys = ["combined", ...getResults(pd).map(p => p.id)];
+    } catch {}
+    for (const chartId of chartIds) {
+      for (const platform of platformKeys) {
+        try {
+          const entries = getResults(await cmsApi.get(
+            `/chart-entries/?chart=${chartId}&platform=${platform}&ordering=-total_points&page_size=200`
+          ));
+          for (let i = 0; i < entries.length; i++) {
+            if (entries[i].rank !== i + 1) {
+              await cmsApi.patch(`/chart-entries/${entries[i].id}/`, { rank: i + 1 });
+            }
+          }
+        } catch {}
+      }
+    }
+  }
+
   // Artist merge API:   POST /artists/{KEEPER}/merge/  { artist_ids: [dup] }
   // Release merge API:  POST /releases/{DUP}/merge/   { into_id: keeper }
   async function callMergeApi(dupRow, keeperRow) {
@@ -231,7 +265,14 @@ export default function ResourcePage({ type, searchJump }) {
     if (!deleteTarget || actionBusy) return;
     setActionBusy(true);
     try {
+      const isRelease = type === "songs" || type === "albums";
+      const affectedChartIds = isRelease
+        ? await getAffectedChartIds(deleteTarget.id)
+        : [];
       await cmsApi.delete(`${config.endpoint}${deleteTarget.id}/hard_delete/`);
+      if (affectedChartIds.length) {
+        await reRankAffectedCharts(affectedChartIds);
+      }
       setDeleteTarget(null);
       load();
     } catch(e) { setError(e.message); }
@@ -255,7 +296,14 @@ export default function ResourcePage({ type, searchJump }) {
     if (!mergeTarget?.keeper || actionBusy) return;
     setActionBusy(true);
     try {
+      const isRelease = type === "songs" || type === "albums";
+      const affectedChartIds = isRelease
+        ? await getAffectedChartIds(mergeTarget.dup.id)
+        : [];
       await callMergeApi(mergeTarget.dup, mergeTarget.keeper);
+      if (affectedChartIds.length) {
+        await reRankAffectedCharts(affectedChartIds);
+      }
       setMergeTarget(null);
       setDupGroups(null);
       load();

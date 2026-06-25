@@ -37,6 +37,7 @@ export default function ChartEntriesPage() {
   const [saving, setSaving]           = useState(false);
   const [imageFile, setImageFile]     = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [recalcBusy, setRecalcBusy]   = useState(false);
   const imgInputRef = useRef();
 
   // Load ALL chart records (both types) and platforms once.
@@ -158,6 +159,33 @@ export default function ChartEntriesPage() {
     finally { setSaving(false); }
   }
 
+  // Re-rank entries by total_points DESC for the current chart + platform.
+  // Closes gaps left by deleted/merged releases.
+  async function reRankCurrentChart() {
+    if (!chartId || recalcBusy || isLocked) return;
+    setRecalcBusy(true);
+    setError("");
+    try {
+      const platformParam = platformId === COMBINED ? "combined" : platformId;
+      const all = getResults(await cmsApi.get(
+        `/chart-entries/?chart=${chartId}&platform=${platformParam}&ordering=-total_points&page_size=200`
+      ));
+      let changed = 0;
+      for (let i = 0; i < all.length; i++) {
+        if (all[i].rank !== i + 1) {
+          await cmsApi.patch(`/chart-entries/${all[i].id}/`, { rank: i + 1 });
+          changed++;
+        }
+      }
+      const updated = getResults(await cmsApi.get(
+        `/chart-entries/?chart=${chartId}&platform=${platformParam}&ordering=rank&page_size=200`
+      ));
+      setEntries(updated);
+      if (changed === 0) setError("Ranks are already in order — no changes made.");
+    } catch(e) { setError(e.message); }
+    finally { setRecalcBusy(false); }
+  }
+
   const activePlatform = platformId === COMBINED
     ? { name: "Combined", color: "#B8860B" }
     : platforms.find(p => String(p.id) === String(platformId));
@@ -241,6 +269,19 @@ export default function ChartEntriesPage() {
           <span style={{ fontSize: 12, color: "#C62828", fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}>
             🔒 Locked — read only
           </span>
+        )}
+
+        {chartId && !isLocked && (
+          <button
+            type="button"
+            className="cms-btn light"
+            style={{ fontSize: 12 }}
+            disabled={recalcBusy}
+            onClick={reRankCurrentChart}
+            title="Re-rank entries by total points (fixes gaps after a release is deleted or merged)"
+          >
+            {recalcBusy ? "Recalculating…" : "↻ Recalculate ranks"}
+          </button>
         )}
 
         {chartId && entries.length > 0 && (
