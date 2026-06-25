@@ -1,3 +1,5 @@
+import { useState, useEffect } from "react";
+
 export default function ReleaseDetailPage({ ctx }) {
   const {
     CartesianGrid,
@@ -33,6 +35,30 @@ export default function ReleaseDetailPage({ ctx }) {
     if (parts.length === 3 && parts[0].length === 4) return `${parts[2]}/${parts[1]}/${parts[0]}`;
     return dateStr;
   }
+
+  const [accentRgb, setAccentRgb] = useState(null);
+  useEffect(() => {
+    const url = selR?.cover_image;
+    if (!url) { setAccentRgb(null); return; }
+    setAccentRgb(null);
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = 6; canvas.height = 6;
+        const c = canvas.getContext("2d");
+        c.drawImage(img, 0, 0, 6, 6);
+        const d = c.getImageData(0, 0, 6, 6).data;
+        let r = 0, g = 0, b = 0;
+        const n = d.length / 4;
+        for (let i = 0; i < d.length; i += 4) { r += d[i]; g += d[i+1]; b += d[i+2]; }
+        setAccentRgb(`${Math.round(r/n)},${Math.round(g/n)},${Math.round(b/n)}`);
+      } catch (_) { setAccentRgb(null); }
+    };
+    img.onerror = () => setAccentRgb(null);
+    img.src = url;
+  }, [selR?.cover_image]);
 
   return (()=>{
         const selectedCertification = getCertificationForEntry(selR, selR.type || (isSingles ? "single" : "album"));
@@ -89,7 +115,7 @@ export default function ReleaseDetailPage({ ctx }) {
         const urlLabels = new Set(["Spotify URL", "Apple Music URL", "Boomplay URL", "Audiomack URL", "YouTube URL", "TikTok URL", "Shazam URL"]);
 
         return (
-        <div style={{padding:PAD,background:isDark?"#050505":"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
+        <div style={{padding:PAD,background:isDark?"#050505":accentRgb?`linear-gradient(160deg,rgba(${accentRgb},0.13) 0%,#ffffff 38%)`:"#ffffff",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden",transition:"background 0.6s ease"}}>
           <span onClick={closeDetails} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:GOLD,cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>← Back</span>
           <div style={{marginTop:"20px"}}>
             {releaseDetails.cover_image&&<img src={releaseDetails.cover_image} alt={`${selR.title} cover`} style={{width:isMobile?"120px":"150px",aspectRatio:"1",objectFit:"cover",borderRadius:"14px",marginBottom:"16px",boxShadow:"0 10px 28px rgba(0,0,0,0.12)"}} />}
