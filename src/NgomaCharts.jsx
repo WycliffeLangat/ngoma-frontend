@@ -719,7 +719,7 @@ function AnalyticsDeepSection({ label, isMobile, children }) {
       className="ngoma-mobile-collapsible"
       onToggle={(event) => setIsOpen(event.currentTarget.open)}
     >
-      <summary>{label}<span>View</span></summary>
+      <summary>{label}<span className="anl-chev">›</span></summary>
       {isOpen && <div className="ngoma-mobile-collapsible-body">{children}</div>}
     </details>
   );
@@ -2317,7 +2317,7 @@ const top = data[0];
         .ngoma-analytics-metric-label{color:#59645D !important;}
         .ngoma-analytics-muted{color:#59645D !important;}
         .ngoma-analytics-page > *{content-visibility:auto;contain-intrinsic-size:auto 320px;}
-        .ngoma-mobile-collapsible{margin:0 0 20px;}
+        .ngoma-mobile-collapsible{margin:0 0 24px;}
         .ngoma-mobile-collapsible > summary{display:none;}
         @media (max-width: 860px){
           .anl-2col{grid-template-columns:1fr !important;}
@@ -2335,15 +2335,18 @@ const top = data[0];
           .ngoma-analytics-chart-scroll{margin-left:-2px;margin-right:-2px;padding-bottom:8px;}
           .ngoma-analytics-chart-inner{min-width:520px;}
           .ngoma-analytics-wide-chart{min-width:620px;}
-          .ngoma-mobile-collapsible{background:#FFF;border:1px solid #EFEDE7;border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,0.02),0 8px 24px rgba(0,0,0,0.02);overflow:hidden;}
-          .ngoma-mobile-collapsible > summary{display:flex;align-items:center;justify-content:space-between;gap:12px;list-style:none;padding:15px 16px;font-family:"Instrument Sans",Helvetica,sans-serif;font-size:10.5px;font-weight:850;letter-spacing:1.8px;text-transform:uppercase;color:#59645D;cursor:pointer;}
+          .ngoma-mobile-collapsible{background:#fff;border:1px solid #ECEAE3;border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,0.05);overflow:hidden;margin-bottom:12px !important;}
+          .ngoma-mobile-collapsible > summary{display:flex;align-items:center;justify-content:space-between;gap:10px;list-style:none;padding:17px 18px;font-family:"Instrument Sans",Helvetica,sans-serif;font-size:13.5px;font-weight:800;letter-spacing:-0.1px;color:#1A1A1A;cursor:pointer;user-select:none;-webkit-user-select:none;}
           .ngoma-mobile-collapsible > summary::-webkit-details-marker{display:none;}
-          .ngoma-mobile-collapsible > summary span{font-size:10px;letter-spacing:0.8px;color:#B8860B;text-transform:none;}
-          .ngoma-mobile-collapsible[open] > summary{border-bottom:1px solid #F2F0EA;}
-          .ngoma-mobile-collapsible[open] > summary span{font-size:0;}
-          .ngoma-mobile-collapsible[open] > summary span::after{content:"Hide";font-size:10px;color:#B8860B;}
+          .ngoma-mobile-collapsible > summary .anl-chev{font-size:20px;font-weight:300;color:#B8860B;transition:transform 0.22s ease;flex-shrink:0;line-height:1;display:inline-block;}
+          .ngoma-mobile-collapsible[open] > summary{border-bottom:1px solid #F0EDE6;background:#FAFAF8;}
+          .ngoma-mobile-collapsible[open] > summary .anl-chev{transform:rotate(90deg);}
+          .ngoma-mobile-collapsible-body{padding:0 0 4px;}
           .ngoma-mobile-collapsible-body > div{border:none !important;box-shadow:none !important;margin-bottom:0 !important;border-radius:0 !important;}
         }
+        html[data-ngoma-theme="dark"] .ngoma-mobile-collapsible{background:#0f1110 !important;border-color:#2b302b !important;}
+        html[data-ngoma-theme="dark"] .ngoma-mobile-collapsible > summary{color:#f6f3ea !important;}
+        html[data-ngoma-theme="dark"] .ngoma-mobile-collapsible[open] > summary{background:#131716 !important;border-bottom-color:#2b302b !important;}
         ::-webkit-scrollbar{height:5px;width:5px;}
         ::-webkit-scrollbar-thumb{background:#D8D2C4;border-radius:3px;}
         * { -webkit-tap-highlight-color: transparent; }

@@ -57,16 +57,31 @@ export default function AboutPage({ ctx }) {
           </div>
           {/* Hall of Fame */}
           <div style={{...card({marginTop:"14px"}),background:isDark?"#111208":"#FAF5EA",borderColor:GOLD+"44"}}>
-            <h3 style={{fontFamily:F,fontSize:"10px",fontWeight:700,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 14px"}}>{isMobile?"Monthly #1s":"Hall of Fame — Monthly #1s"}</h3>
-            <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"10px"}}>
-              {hof.map((e,i)=>(
-                <div key={i} style={{padding:"12px",background:isDark?"#1A1810":"#FFF",borderRadius:"8px",border:"1px solid "+GOLD+"33"}}>
-                  <div style={{fontFamily:F,fontSize:"9px",letterSpacing:"1.5px",textTransform:"uppercase",color:GOLD,marginBottom:"4px"}}>{e.month} · {e.type}</div>
-                  <button type="button" onClick={()=>openReleaseDetails(e,e.type)} style={{display:"block",border:0,background:"transparent",padding:0,fontFamily:SF,fontWeight:800,fontSize:TXT.cardTitle,marginBottom:"2px",lineHeight:1.2,cursor:"pointer",textAlign:"left",color:isDark?"#F6F3EA":"inherit"}}>{e.title}</button>
-                  <div style={{fontFamily:F,fontSize:TXT.cardMeta,color:isDark?"#AEB6AE":"#69716B"}}>{e.artist}</div>
+            <h3 style={{fontFamily:F,fontSize:"10px",fontWeight:700,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 18px"}}>{isMobile?"Monthly #1s":"Hall of Fame — Monthly #1s"}</h3>
+            {(()=>{
+              const singlesHof = hof.filter(e => e.type === "single");
+              const albumsHof = hof.filter(e => e.type === "album");
+              const HofSection = ({items, label}) => items.length === 0 ? null : (
+                <div style={{marginBottom:"20px"}}>
+                  <div style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.8px",textTransform:"uppercase",color:GOLD,marginBottom:"12px",paddingBottom:"6px",borderBottom:"1px solid "+GOLD+"33"}}>{label}</div>
+                  <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"10px"}}>
+                    {items.map((e,i)=>(
+                      <div key={i} style={{padding:"12px",background:isDark?"#1A1810":"#FFF",borderRadius:"8px",border:"1px solid "+GOLD+"33"}}>
+                        <div style={{fontFamily:F,fontSize:"9px",letterSpacing:"1.5px",textTransform:"uppercase",color:GOLD,marginBottom:"4px"}}>{e.month}</div>
+                        <button type="button" onClick={()=>openReleaseDetails(e,e.type)} style={{display:"block",border:0,background:"transparent",padding:0,fontFamily:SF,fontWeight:800,fontSize:TXT.cardTitle,marginBottom:"2px",lineHeight:1.2,cursor:"pointer",textAlign:"left",color:isDark?"#F6F3EA":"inherit"}}>{e.title}</button>
+                        <div style={{fontFamily:F,fontSize:TXT.cardMeta,color:isDark?"#AEB6AE":"#69716B"}}>{e.artist}</div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
-            </div>
+              );
+              return (
+                <>
+                  <HofSection items={singlesHof} label="Singles / Songs" />
+                  <HofSection items={albumsHof} label="Albums" />
+                </>
+              );
+            })()}
           </div>
           <div style={{display:"flex",justifyContent:"center",marginTop:"18px"}}><button type="button" onClick={()=>navTo("charts")} style={{padding:"12px 18px",borderRadius:"999px",border:"1px solid #B8860B55",background:"#B8860B",color:"#FFF",fontFamily:F,fontSize:"10.5px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",cursor:"pointer",boxShadow:"0 8px 20px rgba(184,134,11,0.18)"}}>Explore Current Charts</button></div>
           {/* Brand */}

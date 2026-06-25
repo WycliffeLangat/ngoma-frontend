@@ -3163,14 +3163,15 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell select optgroup {
 /* --- Certification award wall -------------------------- */
 .cert-wall {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
 }
 .cert-wall-card {
+  border-radius: 14px;
+  padding: 16px;
+  box-sizing: border-box;
   background: var(--ngoma-card-bg);
   border: 1px solid var(--ngoma-border-light);
-  border-radius: var(--ngoma-radius-md);
-  padding: 20px 18px 18px;
   box-shadow: var(--ngoma-shadow-soft);
   display: flex;
   flex-direction: column;

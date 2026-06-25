@@ -69,18 +69,18 @@ export default function CertificationsPage({ ctx }) {
                 <div style={{...secLbl(certColors[level]),marginBottom:"16px",fontSize:"11px",letterSpacing:"1.2px"}}><span style={certIconFilters[level]?{filter:certIconFilters[level]}:undefined}>{certIcons[level]}</span> {level.charAt(0).toUpperCase()+level.slice(1)} Certified ({filtered.length})</div>
                 <div className="cert-wall">
                   {filtered.map((c,i)=>(
-                    <div key={i} className={`cert-wall-card ${level}`} style={{borderTop:"3px solid "+certColors[level],background:certColors[level]+"06"}}>
-                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                        <span className="cert-icon"><span style={certIconFilters[level]?{filter:certIconFilters[level]}:undefined}>{certIcons[level]}</span></span>
-                        <div style={{textAlign:"right",fontFamily:F}}>
-                          <div style={{fontSize:"15px",fontWeight:900,color:certColors[level]}}>{c.totalPts.toLocaleString()}</div>
-                          <div style={{fontSize:"9px",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.8px",color:"#9a9a9a"}}>pts</div>
+                    <div key={i} className={`cert-wall-card ${level}`} style={{borderTop:"3px solid "+certColors[level],background:certColors[level]+"08",display:"flex",flexDirection:"column",gap:"10px"}}>
+                      <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:"8px"}}>
+                        <span className="cert-icon" style={{flexShrink:0}}><span style={certIconFilters[level]?{filter:certIconFilters[level]}:undefined}>{certIcons[level]}</span></span>
+                        <div style={{textAlign:"right",fontFamily:F,flexShrink:0}}>
+                          <div style={{fontSize:"16px",fontWeight:900,color:certColors[level],lineHeight:1}}>{c.totalPts.toLocaleString()}</div>
+                          <div style={{fontSize:"9px",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.8px",color:"#9a9a9a",marginTop:"2px"}}>pts</div>
                         </div>
                       </div>
-                      <button type="button" onClick={()=>openReleaseDetails(c,isSingles?"single":"album")} style={{display:"block",border:0,background:"transparent",padding:0,fontFamily:SF,fontWeight:800,fontSize:"14px",lineHeight:1.2,cursor:"pointer",textAlign:"left",color:"#050505"}}>{c.t}</button>
                       <div>
-                        <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(c.a);}} style={{display:"block",fontFamily:F,fontSize:"11.5px",color:"#69716B",fontWeight:700,padding:0,border:0,background:"transparent",cursor:"pointer",textAlign:"left"}}>{c.a}</button>
-                        <CountryBadge artist={c.a} showName style={{marginTop:"6px"}} />
+                        <button type="button" onClick={()=>openReleaseDetails(c,isSingles?"single":"album")} style={{display:"block",border:0,background:"transparent",padding:0,fontFamily:SF,fontWeight:800,fontSize:"13.5px",lineHeight:1.25,cursor:"pointer",textAlign:"left",color:"#050505",marginBottom:"4px",whiteSpace:"normal",wordBreak:"break-word"}}>{c.t}</button>
+                        <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(c.a);}} style={{display:"block",fontFamily:F,fontSize:"11px",color:"#69716B",fontWeight:700,padding:0,border:0,background:"transparent",cursor:"pointer",textAlign:"left",marginBottom:"6px"}}>{c.a}</button>
+                        <CountryBadge artist={c.a} showName style={{marginTop:"2px"}} />
                       </div>
                     </div>
                   ))}
