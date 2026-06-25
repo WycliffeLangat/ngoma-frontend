@@ -39,17 +39,21 @@ export default function ChartEntriesPage() {
   const [imagePreview, setImagePreview] = useState(null);
   const imgInputRef = useRef();
 
-  // Load chart months + platforms once
+  // Load platforms once
   useEffect(() => {
-    cmsApi.get("/charts/?ordering=-year,-month&page_size=200")
-      .then(d => setCharts(getResults(d)))
-      .catch(e => setError(e.message));
     cmsApi.get("/platforms/?active=true&page_size=100")
       .then(d => setPlatforms(getResults(d)))
       .catch(() => {});
   }, []);
 
-  const typedCharts = charts.filter(c => c.chart_type === chartType);
+  // Reload charts whenever chart type changes so we get the full list for each type
+  useEffect(() => {
+    cmsApi.get(`/charts/?chart_type=${chartType}&ordering=-year,-month&page_size=200`)
+      .then(d => setCharts(getResults(d)))
+      .catch(e => setError(e.message));
+  }, [chartType]);
+
+  const typedCharts = charts;
 
   // Platforms relevant to the current chart type
   const relevantPlatforms = platforms.filter(p =>
