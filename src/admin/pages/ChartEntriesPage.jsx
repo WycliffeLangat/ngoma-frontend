@@ -197,17 +197,19 @@ export default function ChartEntriesPage() {
 
   // Build the Kenya chart — identical algorithm to the public Kenyan Top 50, but no limit.
   //
-  // Uses the CMS artist database (country_code = KE) as the primary source of truth,
-  // exactly as the public page does via getArtistCountry(). Falls back to the
-  // country_code / artist_country_code field on the chart entry itself.
+  // Loads ALL artists from the database so we can build two sets:
+  //   keNames     — artists whose country_code is KE  → INCLUDE
+  //   allDbNames  — every artist in the database       → used for exclusion
   //
-  // Steps:
-  //  1. Load all KE artists from /artists/?country_code=KE
-  //  2. Load all individual platform entries for the selected month/chart in parallel
-  //  3. Flag each entry as Kenyan if: artist name matches a KE artist record OR
-  //     the entry's own country_code field is KE
-  //  4. Aggregate total_points per release across all platforms
-  //  5. Sort descending — no 50-entry cap
+  // isKenyanEntry logic:
+  //   1. Primary artist in keNames            → Kenyan (include)
+  //   2. Primary artist in allDbNames but NOT keNames
+  //                                           → definitively non-Kenyan (exclude),
+  //                                             even if artist_country_code on the
+  //                                             chart entry is stale "KE" from before
+  //                                             the country was changed.
+  //   3. Artist not in the database at all    → fall back to artist_country_code field
+  //      (handles entries added before the artist record existed)
   useEffect(() => {
     if (chartType === "artists" || platformId !== KENYA || !chartId || !platforms.length) {
       setKenyanEntries([]); return;
@@ -215,8 +217,8 @@ export default function ChartEntriesPage() {
     setKenyanLoading(true); setError(""); setSelected(null);
 
     Promise.all([
-      // KE artist name lookup — same source the public page uses
-      cmsApi.get("/artists/?country_code=KE&page_size=1000")
+      // Load ALL artists so we can both include KE and exclude non-KE definitively.
+      cmsApi.get("/artists/?page_size=2000")
         .then(d => getResults(d))
         .catch(() => []),
       // All platform entries for this month's chart
@@ -226,32 +228,29 @@ export default function ChartEntriesPage() {
           .catch(() => [])
       ),
     ]).then(([allArtists, ...platformArrays]) => {
-      // The backend may not support country_code as a filter parameter and can
-      // return all artists. Always client-side filter to KE before building the
-      // name set — this is the authoritative gate.
-      const keArtists = allArtists.filter(
-        a => (a.country_code || "").trim().toUpperCase() === "KE"
-      );
+      const artistNames = (a) =>
+        [a.name, a.display_name, a.public_name, ...(Array.isArray(a.aliases) ? a.aliases : [])]
+          .filter(Boolean).map(n => n.trim().toLowerCase());
+
+      // KE artists — names that ARE Kenyan
       const keNames = new Set(
-        keArtists.flatMap(a =>
-          [a.name, a.display_name, a.public_name, ...(Array.isArray(a.aliases) ? a.aliases : [])]
-            .filter(Boolean)
-            .map(n => n.trim().toLowerCase())
-        )
+        allArtists
+          .filter(a => (a.country_code || "").trim().toUpperCase() === "KE")
+          .flatMap(artistNames)
       );
+      // All database artists — names we know about (used to detect stale entries)
+      const allDbNames = new Set(allArtists.flatMap(artistNames));
 
       function isKenyanEntry(e) {
-        // Check the PRIMARY ARTIST's country only — never the release/entry country
-        // (entry.country_code can be the release's country, not the artist's, so using
-        // it would include non-Kenyan releases published in Kenya).
-        //
-        // Order of checks (most authoritative first):
-        // 1. Live CMS artist database — primary artist name matches a KE artist record.
-        // 2. artist_country_code field — explicitly the artist's country at export time.
-        const primary = primaryArtistName(e.artist_display || e.artist || "");
-        if (primary && keNames.has(primary.toLowerCase())) return true;
-        const artistCode = (e.artist_country_code || "").toUpperCase();
-        return artistCode === "KE";
+        const primary = primaryArtistName(e.artist_display || e.artist || "").toLowerCase();
+        if (!primary) return false;
+        // Artist record exists and is KE → include
+        if (keNames.has(primary)) return true;
+        // Artist record exists but is NOT KE → exclude, even if artist_country_code
+        // on the entry is stale "KE" from a previous country assignment.
+        if (allDbNames.has(primary)) return false;
+        // Artist not in DB — fall back to the field set at entry-import time.
+        return (e.artist_country_code || "").toUpperCase() === "KE";
       }
 
       const releaseMap = new Map();
@@ -481,9 +480,27 @@ export default function ChartEntriesPage() {
         const { image, ...rest } = formData;
         await cmsApi.patch(`/artists/${editArtist.id}/`, rest);
       }
+
+      // Cascade country change to every song/album where this artist is the
+      // primary artist. This keeps release.country_code in sync with the artist's
+      // country_code so chart eligibility is consistent across the whole system.
+      const oldCode = (editArtist.data?.country_code || "").toUpperCase();
+      const newCode = (formData.country_code || "").toUpperCase();
+      if (newCode && oldCode !== newCode) {
+        try {
+          const artistName = primaryArtistName(editArtist.data?.name || "").toLowerCase();
+          const relData = await cmsApi.get(`/releases/?primary_artist=${editArtist.id}&page_size=500`);
+          const releases = getResults(relData).filter(r =>
+            primaryArtistName(r.artist_display || r.primary_artist || "").toLowerCase() === artistName
+          );
+          await Promise.all(
+            releases.map(r => cmsApi.patch(`/releases/${r.id}/`, { country_code: newCode }))
+          );
+        } catch { /* best-effort — display is still correct via the artist DB lookup */ }
+      }
+
       setEditArtist(null);
-      // Trigger Kenya effect to re-fetch artist data so country changes
-      // are reflected immediately in Kenyan Top Charts.
+      // Re-run the Kenya effect with fresh artist data.
       setKenyaRevision(k => k + 1);
     } catch(e) { setError(e.message); }
     finally { setEditBusy(false); }
