@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { cmsApi, getResults, qs } from "../api";
+import { cmsApi, getResults, qs, clearCmsCache } from "../api";
 import DataTable from "../components/DataTable";
 import SearchBar from "../components/SearchBar";
 import FormModal from "../components/FormModal";
@@ -38,25 +38,38 @@ const ORDERING_OPTIONS = {
   artists: [["","Default"],["name","Name A–Z"],["-name","Name Z–A"],["country","Country A–Z"],["-updated_at","Recently updated"]],
 };
 
+const PAGE_SIZE = 50;
+
 export default function ResourcePage({ type, searchJump }) {
   const config = configs[type] || configs.artists;
   const [rows, setRows] = useState([]);
+  const [totalCount, setTotalCount] = useState(null);
+  const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");   // "" = all, "active", "archived"
+  const [statusFilter, setStatusFilter] = useState("");
   const [ordering, setOrdering] = useState("");
-  const [alphaFilter, setAlphaFilter] = useState("");     // "" = all, "A"–"Z"
+  const [alphaFilter, setAlphaFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [flash, setFlash] = useState("");
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [artistOptions, setArtistOptions] = useState([]);
   const [imageModal, setImageModal] = useState(null);
-  const [deleteTarget, setDeleteTarget] = useState(null);   // release to hard-delete
-  const [mergeTarget, setMergeTarget] = useState(null);     // { dup, keeperSearch, keeperResults, keeper }
-  const [dupGroups, setDupGroups] = useState(null);         // null=hidden, []=loading, [...]=groups
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [mergeTarget, setMergeTarget] = useState(null);
+  const [dupGroups, setDupGroups] = useState(null);
   const [actionBusy, setActionBusy] = useState(false);
   const [detailRow, setDetailRow] = useState(null);
   const abortRef = useRef(null);
+  const keeperSearchTimerRef = useRef(null);
+  const flashTimerRef = useRef(null);
+
+  function showFlash(msg) {
+    setFlash(msg);
+    clearTimeout(flashTimerRef.current);
+    flashTimerRef.current = setTimeout(() => setFlash(""), 5000);
+  }
 
   // Apply search term from global search result click
   useEffect(() => {
@@ -67,11 +80,13 @@ export default function ResourcePage({ type, searchJump }) {
 
   const params = useMemo(() => ({
     ...(config.params || {}),
+    page,
+    page_size: PAGE_SIZE,
     search,
     ...(statusFilter ? { status: statusFilter } : {}),
     ...(ordering ? { ordering } : {}),
     ...(alphaFilter ? { starts_with: alphaFilter } : {}),
-  }), [config, search, statusFilter, ordering, alphaFilter]);
+  }), [config, page, search, statusFilter, ordering, alphaFilter]);
   const formFields = useMemo(() => type === "songs" || type === "albums" ? releaseForm(type === "albums" ? "albums" : "singles", artistOptions) : (config.form || []), [type, config, artistOptions]);
 
   // Used after save/delete to reload without debounce
@@ -80,13 +95,19 @@ export default function ResourcePage({ type, searchJump }) {
     const controller = new AbortController();
     abortRef.current = controller;
     setLoading(true); setError("");
-    try { setRows(getResults(await cmsApi.get(`${config.endpoint}${qs(params)}`, { signal: controller.signal }))); }
+    try {
+      const data = await cmsApi.get(`${config.endpoint}${qs(params)}`, { signal: controller.signal });
+      setRows(getResults(data));
+      setTotalCount(typeof data?.count === "number" ? data.count : null);
+    }
     catch(e) { if (e.name !== "AbortError") setError(e.message); }
     finally { if (!controller.signal.aborted) setLoading(false); }
   }
 
   // Reset search and filters when switching resource types
-  useEffect(() => { setSearch(""); setStatusFilter(""); setOrdering(""); setAlphaFilter(""); }, [type]);
+  useEffect(() => { setSearch(""); setStatusFilter(""); setOrdering(""); setAlphaFilter(""); setPage(1); }, [type]);
+  // Reset to page 1 whenever filters/search change
+  useEffect(() => { setPage(1); }, [search, statusFilter, ordering, alphaFilter]);
 
   // Debounced load — re-runs when any filter changes; typed search gets 280ms debounce
   useEffect(() => {
@@ -96,7 +117,11 @@ export default function ResourcePage({ type, searchJump }) {
     const delay = search ? 280 : 0;
     const timer = setTimeout(async () => {
       setLoading(true); setError("");
-      try { setRows(getResults(await cmsApi.get(`${config.endpoint}${qs(params)}`, { signal: controller.signal }))); }
+      try {
+        const data = await cmsApi.get(`${config.endpoint}${qs(params)}`, { signal: controller.signal });
+        setRows(getResults(data));
+        setTotalCount(typeof data?.count === "number" ? data.count : null);
+      }
       catch(e) { if (e.name !== "AbortError") setError(e.message); }
       finally { if (!controller.signal.aborted) setLoading(false); }
     }, delay);
@@ -171,10 +196,15 @@ export default function ResourcePage({ type, searchJump }) {
           if (releases.length) {
             const updates = { country_code: newCode };
             if (form.country && form.country.trim()) updates.country = form.country.trim();
-            await Promise.allSettled(releases.map(r => cmsApi.patch(`/releases/${r.id}/`, updates)));
-            setError(`✓ Country cascaded to ${releases.length} release${releases.length !== 1 ? "s" : ""}.`);
+            const results = await Promise.allSettled(releases.map(r => cmsApi.patch(`/releases/${r.id}/`, updates)));
+            const failed = results.filter(r => r.status === "rejected").length;
+            if (failed > 0) {
+              showFlash(`Artist saved. Country cascaded to ${releases.length - failed}/${releases.length} releases (${failed} failed).`);
+            } else {
+              showFlash(`Artist saved. Country cascaded to ${releases.length} release${releases.length !== 1 ? "s" : ""}.`);
+            }
           }
-        } catch { /* best-effort — artist was saved regardless */ }
+        } catch(e) { showFlash(`Artist saved. Country cascade failed: ${e.message}`); }
       }
     }
 
@@ -210,9 +240,9 @@ export default function ResourcePage({ type, searchJump }) {
         }
       }
       if (fixed === 0) {
-        setError("All certification levels are already correct.");
+        showFlash("All certification levels are already correct.");
       } else {
-        setError(`Fixed ${fixed} certification level${fixed !== 1 ? "s" : ""} — refresh the dashboard to clear the alert.`);
+        showFlash(`Fixed ${fixed} certification level${fixed !== 1 ? "s" : ""}.`);
         load();
       }
     } catch(e) { setError(e.message); }
@@ -227,11 +257,11 @@ export default function ResourcePage({ type, searchJump }) {
     try {
       const all = getResults(await cmsApi.get("/certifications/?page_size=2000"));
       const unofficial = all.filter(c => !c.is_official);
-      if (unofficial.length === 0) { setError("No unofficial certifications found."); return; }
+      if (unofficial.length === 0) { showFlash("No unofficial certifications found."); return; }
       for (const cert of unofficial) {
         await cmsApi.patch(`/certifications/${cert.id}/`, { is_official: true });
       }
-      setError(`Marked ${unofficial.length} certification${unofficial.length !== 1 ? "s" : ""} as official — refresh the dashboard to clear the alert.`);
+      showFlash(`Marked ${unofficial.length} certification${unofficial.length !== 1 ? "s" : ""} as official.`);
       load();
     } catch(e) { setError(e.message); }
     finally { setActionBusy(false); }
@@ -284,6 +314,7 @@ export default function ResourcePage({ type, searchJump }) {
   async function hardDelete() {
     if (!deleteTarget || actionBusy) return;
     setActionBusy(true);
+    const targetName = deleteTarget.title || deleteTarget.name || `id ${deleteTarget.id}`;
     try {
       const isRelease = type === "songs" || type === "albums";
       const affectedChartIds = isRelease
@@ -293,7 +324,9 @@ export default function ResourcePage({ type, searchJump }) {
       if (affectedChartIds.length) {
         await reRankAffectedCharts(affectedChartIds);
       }
+      clearCmsCache();
       setDeleteTarget(null);
+      showFlash(`"${targetName}" deleted.`);
       load();
     } catch(e) { setError(e.message); }
     finally { setActionBusy(false); }
@@ -315,6 +348,8 @@ export default function ResourcePage({ type, searchJump }) {
   async function doMerge() {
     if (!mergeTarget?.keeper || actionBusy) return;
     setActionBusy(true);
+    const dupName = isArtist ? (mergeTarget.dup.display_name || mergeTarget.dup.name) : mergeTarget.dup.title;
+    const keepName = isArtist ? (mergeTarget.keeper.display_name || mergeTarget.keeper.name) : mergeTarget.keeper.title;
     try {
       const isRelease = type === "songs" || type === "albums";
       const affectedChartIds = isRelease
@@ -324,8 +359,10 @@ export default function ResourcePage({ type, searchJump }) {
       if (affectedChartIds.length) {
         await reRankAffectedCharts(affectedChartIds);
       }
+      clearCmsCache();
       setMergeTarget(null);
       setDupGroups(null);
+      showFlash(`"${dupName}" merged into "${keepName}".`);
       load();
     } catch(e) { setError(e.message); }
     finally { setActionBusy(false); }
@@ -343,11 +380,14 @@ export default function ResourcePage({ type, searchJump }) {
     if (actionBusy) return;
     const keeper = group[0];
     const dups = group.slice(1);
+    const keepName = isArtist ? (keeper.display_name || keeper.name) : keeper.title;
     setActionBusy(true);
     try {
       for (const dup of dups) {
         await callMergeApi(dup, keeper);
       }
+      clearCmsCache();
+      showFlash(`Merged ${dups.length} duplicate${dups.length !== 1 ? "s" : ""} into "${keepName}".`);
       loadDuplicates();
       load();
     } catch(e) { setError(e.message); }
@@ -419,6 +459,7 @@ export default function ResourcePage({ type, searchJump }) {
         <div><h1>{config.title}</h1><p>Manage {config.title.toLowerCase()} from the CMS.</p></div>
         {!config.readOnly && <button className="cms-btn" onClick={() => { setEditing(null); setModal(true); }}>Add new</button>}
       </div>
+      {flash && <div className="cms-alert" style={{ background:"#f0fdf4", color:"#15803d", border:"1px solid #bbf7d0", borderRadius:6, padding:"10px 14px", marginBottom:10 }}>{flash}</div>}
       {error && <div className="cms-alert error">{error}</div>}
       <div className="cms-toolbar">
         <SearchBar value={search} onChange={v => setSearch(v)} placeholder={`Search ${config.title.toLowerCase()}…`} />
@@ -571,6 +612,36 @@ export default function ResourcePage({ type, searchJump }) {
 
       {loading ? <div className="cms-empty">Loading...</div> : (
         <DataTable columns={finalColumns} rows={rows} onRowClick={(row) => setDetailRow(row)} />
+      )}
+      {totalCount !== null && (
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 2px", marginTop:4, borderTop:"1px solid #f0f0f0" }}>
+          <span style={{ fontSize:12, color:"#999" }}>
+            {totalCount === 0
+              ? "No results"
+              : rows.length === 0
+                ? `Page ${page} — no results (try going back)`
+                : `${((page - 1) * PAGE_SIZE + 1).toLocaleString()}–${((page - 1) * PAGE_SIZE + rows.length).toLocaleString()} of ${totalCount.toLocaleString()}`}
+          </span>
+          {totalCount > PAGE_SIZE && (
+            <div style={{ display:"flex", gap:6, alignItems:"center" }}>
+              <button
+                className="cms-btn light"
+                style={{ fontSize:12, padding:"3px 10px" }}
+                disabled={page === 1 || loading}
+                onClick={() => setPage(p => p - 1)}
+              >← Prev</button>
+              <span style={{ fontSize:12, color:"#666", minWidth:90, textAlign:"center" }}>
+                Page {page} / {Math.max(1, Math.ceil(totalCount / PAGE_SIZE))}
+              </span>
+              <button
+                className="cms-btn light"
+                style={{ fontSize:12, padding:"3px 10px" }}
+                disabled={rows.length < PAGE_SIZE || loading}
+                onClick={() => setPage(p => p + 1)}
+              >Next →</button>
+            </div>
+          )}
+        </div>
       )}
       <FormModal open={modal} title={`${editing ? "Edit" : "Create"} ${config.title}`} entityId={editing?.id} fields={formFields} initial={editing || defaultInitial(formFields)} onSubmit={save} onClose={() => setModal(false)} />
 
@@ -857,7 +928,8 @@ export default function ResourcePage({ type, searchJump }) {
                     onChange={e => {
                       const q = e.target.value;
                       setMergeTarget(t => ({ ...t, keeperSearch: q, keeperResults: [] }));
-                      searchForKeeper(q);
+                      clearTimeout(keeperSearchTimerRef.current);
+                      keeperSearchTimerRef.current = setTimeout(() => searchForKeeper(q), 280);
                     }}
                   />
                   {mergeTarget.keeperResults.length > 0 && (
