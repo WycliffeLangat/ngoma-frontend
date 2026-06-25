@@ -195,62 +195,69 @@ export default function ChartEntriesPage() {
       .finally(() => setLoading(false));
   }, [chartType, chartId, platformId]);
 
-  // Build the Kenya chart — identical algorithm to the public Kenyan Top 50, but no limit.
+  // Build the Kenya chart eagerly (regardless of which tab is active) so clicking
+  // the Kenya pill is always instant — the result is ready before the user gets there.
+  // Fetching all platform entries is a side-effect that primes the 60 s GET cache,
+  // making regular platform tab-switches instant too.
   //
-  // Loads ALL artists from the database so we can build two sets:
-  //   keNames     — artists whose country_code is KE  → INCLUDE
-  //   allDbNames  — every artist in the database       → used for exclusion
+  // KE detection — comprehensive, two-pass:
+  //   A Kenyan artist is one whose DB record has country_code="KE" OR country="Kenya".
+  //   Both fields are checked so artists stored with either convention are included.
   //
-  // isKenyanEntry logic:
-  //   1. Primary artist in keNames            → Kenyan (include)
-  //   2. Primary artist in allDbNames but NOT keNames
-  //                                           → definitively non-Kenyan (exclude),
-  //                                             even if artist_country_code on the
-  //                                             chart entry is stale "KE" from before
-  //                                             the country was changed.
-  //   3. Artist not in the database at all    → fall back to artist_country_code field
-  //      (handles entries added before the artist record existed)
+  // Filtering logic per chart entry:
+  //   1. Primary artist in keNames (KE artist DB)         → include
+  //   2. Primary artist in allDbNames but NOT keNames      → exclude
+  //      (only when keNames is non-empty — if KE detection found 0 artists we skip
+  //       the exclusion set entirely so a field-name mismatch can't wipe the chart)
+  //   3. Artist not in DB at all                          → fall back to entry-level
+  //      artist_country_code / cc field set at import time
   useEffect(() => {
-    if (chartType === "artists" || platformId !== KENYA || !chartId || !platforms.length) {
+    if (chartType === "artists" || !chartId || !platforms.length) {
       setKenyanEntries([]); return;
     }
-    setKenyanLoading(true); setError(""); setSelected(null);
+    setKenyanLoading(true);
 
     Promise.all([
-      // Load ALL artists so we can both include KE and exclude non-KE definitively.
       cmsApi.get("/artists/?page_size=2000")
         .then(d => getResults(d))
         .catch(() => []),
-      // All platform entries for this month's chart
       ...platforms.map(p =>
         cmsApi.get(`/chart-entries/?chart=${chartId}&platform=${p.id}&ordering=rank&page_size=500`)
           .then(d => getResults(d))
           .catch(() => [])
       ),
     ]).then(([allArtists, ...platformArrays]) => {
-      const artistNames = (a) =>
+      const artistNames = a =>
         [a.name, a.display_name, a.public_name, ...(Array.isArray(a.aliases) ? a.aliases : [])]
           .filter(Boolean).map(n => n.trim().toLowerCase());
 
-      // KE artists — names that ARE Kenyan
-      const keNames = new Set(
-        allArtists
-          .filter(a => (a.country_code || "").trim().toUpperCase() === "KE")
-          .flatMap(artistNames)
-      );
-      // All database artists — names we know about (used to detect stale entries)
-      const allDbNames = new Set(allArtists.flatMap(artistNames));
+      // Comprehensive KE check: country_code field OR country name field
+      const isKenyanArtist = a => {
+        const code = (a.country_code || a.cc || "").trim().toUpperCase();
+        if (code === "KE") return true;
+        const country = (a.country || "").trim().toLowerCase();
+        return country === "kenya";
+      };
+
+      const keArtists  = allArtists.filter(isKenyanArtist);
+      const keNames    = new Set(keArtists.flatMap(artistNames));
+      // Only build the exclusion set when KE detection found something — if keNames
+      // is empty (possible API field mismatch) we fall back to entry-level fields
+      // rather than incorrectly excluding every artist in the database.
+      const allDbNames = keNames.size > 0
+        ? new Set(allArtists.flatMap(artistNames))
+        : new Set();
 
       function isKenyanEntry(e) {
         const primary = primaryArtistName(e.artist_display || e.artist || "").toLowerCase();
         if (!primary) return false;
-        // Artist record exists and is KE → include
         if (keNames.has(primary)) return true;
-        // Artist record exists but is NOT KE → exclude, even if artist_country_code
-        // on the entry is stale "KE" from a previous country assignment.
-        if (allDbNames.has(primary)) return false;
-        // Artist not in DB — fall back to the field set at entry-import time.
-        return (e.artist_country_code || "").toUpperCase() === "KE";
+        if (allDbNames.has(primary)) return false; // in DB, definitively non-KE
+        // Not in DB — trust the entry-level country stamp set at import time
+        const code = (e.artist_country_code || e.cc || "").toUpperCase();
+        if (code === "KE") return true;
+        const country = (e.country || e.artist_country || "").toLowerCase();
+        return country === "kenya";
       }
 
       const releaseMap = new Map();
@@ -273,7 +280,7 @@ export default function ChartEntriesPage() {
     })
     .catch(e => setError(e.message))
     .finally(() => setKenyanLoading(false));
-  }, [chartType, chartId, platformId, platforms, kenyaRevision]);
+  }, [chartType, chartId, platforms, kenyaRevision]);
 
   // Compute cumulative artist rankings from ALL platform entries across ALL months
   // for both singles and albums. Credits ALL artists (primary + featured) on each entry.
@@ -650,9 +657,7 @@ export default function ChartEntriesPage() {
 
       {/* ── Body ── */}
       {displayLoading || (chartType === "artists" && loading) ? (
-        <div className="cms-empty">
-          {isKenyaView ? "Building Kenyan Top Charts…" : "Loading…"}
-        </div>
+        <div className="cms-empty">Loading…</div>
 
       ) : chartType === "artists" ? (
         /* ── Artists computed chart ─────────────────────────────────────── */
@@ -756,7 +761,7 @@ export default function ChartEntriesPage() {
         ) : displayEntries.length === 0 && !displayLoading ? (
           <div className="cms-empty">
             {isKenyaView
-              ? "No Kenyan entries found for this month. Confirm that primary artists have country code KE set in the Artists section."
+              ? "No chart data for this period."
               : `No entries for this chart${activePlatform ? ` on ${activePlatform.name}` : ""}.`}
           </div>
         ) : (
