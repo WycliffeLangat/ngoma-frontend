@@ -97,7 +97,6 @@ function releaseEntryKey(e) {
 }
 
 const COMBINED = "combined";
-const KENYA    = "kenya"; // internal key — displayed as "Kenyan Top Charts"
 
 export default function ChartEntriesPage() {
   const [allCharts, setAllCharts]       = useState([]);
@@ -106,8 +105,6 @@ export default function ChartEntriesPage() {
   const [selectedYM, setSelectedYM]     = useState("");
   const [platformId, setPlatformId]     = useState(COMBINED);
   const [entries, setEntries]           = useState([]);
-  const [kenyanEntries, setKenyanEntries] = useState([]);
-  const [kenyanLoading, setKenyanLoading] = useState(false);
   const [loading, setLoading]           = useState(false);
   const [error, setError]               = useState("");
   const [selected, setSelected]         = useState(null);
@@ -125,10 +122,6 @@ export default function ChartEntriesPage() {
   const [editRelease, setEditRelease] = useState(null);
   const [editArtist,  setEditArtist]  = useState(null);
   const [editBusy,    setEditBusy]    = useState(false);
-  // Incremented after saving an artist so the Kenya effect re-fetches fresh
-  // artist country data and recomputes which entries are eligible.
-  const [kenyaRevision, setKenyaRevision] = useState(0);
-
   const imgInputRef = useRef();
 
   // Load ALL chart records and platforms once
@@ -178,13 +171,12 @@ export default function ChartEntriesPage() {
     setSelected(null);
     setSelectedArtist(null);
     setEntries([]);
-    setKenyanEntries([]);
     if (chartType !== "artists") setArtistRankings([]);
   }, [chartType, selectedYM]);
 
-  // Load entries for singles/albums tabs (skips Artists tab and Kenya view)
+  // Load entries for singles/albums tabs (skips Artists tab)
   useEffect(() => {
-    if (chartType === "artists" || !chartId || platformId === KENYA) {
+    if (chartType === "artists" || !chartId) {
       setEntries([]); return;
     }
     setLoading(true); setError(""); setSelected(null);
@@ -194,93 +186,6 @@ export default function ChartEntriesPage() {
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
   }, [chartType, chartId, platformId]);
-
-  // Build the Kenya chart eagerly (regardless of which tab is active) so clicking
-  // the Kenya pill is always instant — the result is ready before the user gets there.
-  // Fetching all platform entries is a side-effect that primes the 60 s GET cache,
-  // making regular platform tab-switches instant too.
-  //
-  // KE detection — comprehensive, two-pass:
-  //   A Kenyan artist is one whose DB record has country_code="KE" OR country="Kenya".
-  //   Both fields are checked so artists stored with either convention are included.
-  //
-  // Filtering logic per chart entry:
-  //   1. Primary artist in keNames (KE artist DB)         → include
-  //   2. Primary artist in allDbNames but NOT keNames      → exclude
-  //      (only when keNames is non-empty — if KE detection found 0 artists we skip
-  //       the exclusion set entirely so a field-name mismatch can't wipe the chart)
-  //   3. Artist not in DB at all                          → fall back to entry-level
-  //      artist_country_code / cc field set at import time
-  useEffect(() => {
-    if (chartType === "artists" || !chartId || !platforms.length) {
-      setKenyanEntries([]); return;
-    }
-    setKenyanLoading(true);
-
-    Promise.all([
-      cmsApi.get("/artists/?page_size=2000")
-        .then(d => getResults(d))
-        .catch(() => []),
-      ...platforms.map(p =>
-        cmsApi.get(`/chart-entries/?chart=${chartId}&platform=${p.id}&ordering=rank&page_size=500`)
-          .then(d => getResults(d))
-          .catch(() => [])
-      ),
-    ]).then(([allArtists, ...platformArrays]) => {
-      const artistNames = a =>
-        [a.name, a.display_name, a.public_name, ...(Array.isArray(a.aliases) ? a.aliases : [])]
-          .filter(Boolean).map(n => n.trim().toLowerCase());
-
-      // Comprehensive KE check: country_code field OR country name field
-      const isKenyanArtist = a => {
-        const code = (a.country_code || a.cc || "").trim().toUpperCase();
-        if (code === "KE") return true;
-        const country = (a.country || "").trim().toLowerCase();
-        return country === "kenya";
-      };
-
-      const keArtists  = allArtists.filter(isKenyanArtist);
-      const keNames    = new Set(keArtists.flatMap(artistNames));
-      // Only build the exclusion set when KE detection found something — if keNames
-      // is empty (possible API field mismatch) we fall back to entry-level fields
-      // rather than incorrectly excluding every artist in the database.
-      const allDbNames = keNames.size > 0
-        ? new Set(allArtists.flatMap(artistNames))
-        : new Set();
-
-      function isKenyanEntry(e) {
-        const primary = primaryArtistName(e.artist_display || e.artist || "").toLowerCase();
-        if (!primary) return false;
-        if (keNames.has(primary)) return true;
-        if (allDbNames.has(primary)) return false; // in DB, definitively non-KE
-        // Not in DB — trust the entry-level country stamp set at import time
-        const code = (e.artist_country_code || e.cc || "").toUpperCase();
-        if (code === "KE") return true;
-        const country = (e.country || e.artist_country || "").toLowerCase();
-        return country === "kenya";
-      }
-
-      const releaseMap = new Map();
-      platformArrays.flat().forEach(e => {
-        if (!isKenyanEntry(e)) return;
-        const key = releaseEntryKey(e);
-        if (!key || key === "|||") return;
-        if (releaseMap.has(key)) {
-          releaseMap.get(key).total_points += Number(e.total_points) || 0;
-          releaseMap.get(key)._platformCount += 1;
-        } else {
-          releaseMap.set(key, { ...e, total_points: Number(e.total_points) || 0, _platformCount: 1 });
-        }
-      });
-
-      const sorted = [...releaseMap.values()]
-        .sort((a, b) => b.total_points - a.total_points)
-        .map((e, i) => ({ ...e, rank: i + 1 }));
-      setKenyanEntries(sorted);
-    })
-    .catch(e => setError(e.message))
-    .finally(() => setKenyanLoading(false));
-  }, [chartType, chartId, platforms, kenyaRevision]);
 
   // Compute cumulative artist rankings from ALL platform entries across ALL months
   // for both singles and albums. Credits ALL artists (primary + featured) on each entry.
@@ -385,7 +290,7 @@ export default function ChartEntriesPage() {
   }
 
   async function reRankCurrentChart() {
-    if (!chartId || recalcBusy || isLocked || platformId === KENYA) return;
+    if (!chartId || recalcBusy || isLocked) return;
     setRecalcBusy(true); setError("");
     try {
       const platformParam = platformId === COMBINED ? "combined" : platformId;
@@ -442,7 +347,6 @@ export default function ChartEntriesPage() {
           : e
       );
       setEntries(refresh);
-      setKenyanEntries(refresh);
       if (selected?.release === editRelease.id)
         setSelected(prev => ({ ...prev, title: updated.title ?? prev.title, cover_image: updated.cover_image ?? prev.cover_image }));
       setEditRelease(null);
@@ -507,8 +411,6 @@ export default function ChartEntriesPage() {
       }
 
       setEditArtist(null);
-      // Re-run the Kenya effect with fresh artist data.
-      setKenyaRevision(k => k + 1);
     } catch(e) { setError(e.message); }
     finally { setEditBusy(false); }
   }
@@ -516,15 +418,8 @@ export default function ChartEntriesPage() {
   // ──────────────────────────────────────────────────────────────────────────
 
   const activePlatform =
-    platformId === COMBINED ? { name: "Combined",          color: "#B8860B" } :
-    platformId === KENYA    ? { name: "Kenyan Top Charts", color: "#006633" } :
+    platformId === COMBINED ? { name: "Combined", color: "#B8860B" } :
     platforms.find(p => String(p.id) === String(platformId));
-
-  // Entries to display in the table (Kenya view vs regular view)
-  const displayEntries = platformId === KENYA ? kenyanEntries : entries;
-  const displayLoading = platformId === KENYA ? kenyanLoading : loading;
-  // Kenya entries are computed/aggregated — chart entry fields are read-only
-  const isKenyaView   = platformId === KENYA;
 
   const panelLabel = (label) => (
     <span style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", color: "#5e625c", display: "block", marginBottom: 5 }}>
@@ -617,7 +512,7 @@ export default function ChartEntriesPage() {
           </span>
         )}
 
-        {chartType !== "artists" && chartId && !isLocked && !isKenyaView && (
+        {chartType !== "artists" && chartId && !isLocked && (
           <button
             type="button"
             className="cms-btn light"
@@ -636,10 +531,10 @@ export default function ChartEntriesPage() {
           </span>
         )}
 
-        {chartType !== "artists" && chartId && displayEntries.length > 0 && (
+        {chartType !== "artists" && chartId && entries.length > 0 && (
           <span style={{ marginLeft: "auto", fontSize: 12, color: "#888" }}>
-            {displayEntries.length} entr{displayEntries.length === 1 ? "y" : "ies"}
-            {isKenyaView ? " · Kenyan Top Charts (all eligible)" : activePlatform ? ` · ${activePlatform.name}` : ""}
+            {entries.length} entr{entries.length === 1 ? "y" : "ies"}
+            {activePlatform ? ` · ${activePlatform.name}` : ""}
           </span>
         )}
       </div>
@@ -647,8 +542,7 @@ export default function ChartEntriesPage() {
       {/* ── Platform pill bar (singles/albums only) ── */}
       {chartType !== "artists" && chartId && (
         <div className="cms-pill-bar" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16, alignItems: "center" }}>
-          {pillBtn(COMBINED, "Combined",          "#B8860B")}
-          {pillBtn(KENYA,    "Kenyan Top Charts", "#006633")}
+          {pillBtn(COMBINED, "Combined", "#B8860B")}
           {platforms.map(p =>
             pillBtn(p.id, p.short_name || p.name, p.color || "#555")
           )}
@@ -656,7 +550,7 @@ export default function ChartEntriesPage() {
       )}
 
       {/* ── Body ── */}
-      {displayLoading || (chartType === "artists" && loading) ? (
+      {loading || (chartType === "artists" && loading) ? (
         <div className="cms-empty">Loading…</div>
 
       ) : chartType === "artists" ? (
@@ -758,11 +652,9 @@ export default function ChartEntriesPage() {
               ? `No ${chartType} chart found for this month.`
               : "Select a chart month above to view its entries."}
           </div>
-        ) : displayEntries.length === 0 && !displayLoading ? (
+        ) : entries.length === 0 && !loading ? (
           <div className="cms-empty">
-            {isKenyaView
-              ? "No chart data for this period."
-              : `No entries for this chart${activePlatform ? ` on ${activePlatform.name}` : ""}.`}
+            {`No entries for this chart${activePlatform ? ` on ${activePlatform.name}` : ""}.`}
           </div>
         ) : (
           <div className="cms-entries-layout" style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
@@ -779,11 +671,11 @@ export default function ChartEntriesPage() {
                       <th style={{ width: 80 }}>Points</th>
                       <th style={{ width: 52 }}>Wks</th>
                       <th style={{ width: 52 }}>Peak</th>
-                      {!isKenyaView && <th style={{ width: 52 }}>Chg</th>}
+                      <th style={{ width: 52 }}>Chg</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {displayEntries.map(entry => {
+                    {entries.map(entry => {
                       const mv     = movement(entry);
                       const active = selected?.id === entry.id;
                       return (
@@ -807,11 +699,9 @@ export default function ChartEntriesPage() {
                           <td style={{ fontSize: 13, fontWeight: 600 }}>{(entry.total_points || 0).toLocaleString()}</td>
                           <td style={{ fontSize: 13, color: "#666" }}>{entry.weeks_on_chart ?? "—"}</td>
                           <td style={{ fontSize: 13, color: "#666" }}>{entry.peak_rank ?? "—"}</td>
-                          {!isKenyaView && (
-                            <td>
-                              <span style={{ fontSize: 11, fontWeight: 800, color: mv.color }}>{mv.label}</span>
-                            </td>
-                          )}
+                          <td>
+                            <span style={{ fontSize: 11, fontWeight: 800, color: mv.color }}>{mv.label}</span>
+                          </td>
                         </tr>
                       );
                     })}
@@ -868,26 +758,7 @@ export default function ChartEntriesPage() {
                   >{editBusy ? "…" : "Edit artist"}</button>
                 </div>
 
-                {/* Kenya chart: read-only summary — chart entry fields don't apply to aggregated entries */}
-                {isKenyaView ? (
-                  <div>
-                    <div style={{ fontSize: 11, color: "#888", lineHeight: 1.6, background: "#f9f7f2", borderRadius: 10, padding: "10px 12px", marginBottom: 12 }}>
-                      Kenyan Top Charts entry — aggregated from {selected._platformCount || "multiple"} platform{selected._platformCount !== 1 ? "s" : ""}.
-                      Edit the release or artist record using the buttons above.
-                    </div>
-                    <div style={{ display: "flex", gap: 16 }}>
-                      <div>
-                        <div style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", color: "#aaa", marginBottom: 2 }}>Aggregated pts</div>
-                        <div style={{ fontSize: 18, fontWeight: 800 }}>{(selected.total_points || 0).toLocaleString()}</div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", color: "#aaa", marginBottom: 2 }}>Kenya rank</div>
-                        <div style={{ fontSize: 18, fontWeight: 800 }}>#{selected.rank}</div>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <>
+                <>
                     {/* Cover image */}
                     <div style={{ marginBottom: 18 }}>
                       {panelLabel("Cover image")}
@@ -972,8 +843,7 @@ export default function ChartEntriesPage() {
                         </button>
                       )
                     }
-                  </>
-                )}
+                </>
               </div>
             )}
           </div>
