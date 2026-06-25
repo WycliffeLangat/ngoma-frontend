@@ -2,7 +2,6 @@ export default function YearEndPage({ ctx }) {
   const {
     BRONZE,
     CertificationTag,
-    CountryBadge,
     DATA_PERIOD,
     F,
     GOLD,
@@ -94,7 +93,7 @@ export default function YearEndPage({ ctx }) {
                         <div style={{width:"46px",height:"46px",minWidth:"46px",borderRadius:"10px",overflow:"hidden",flexShrink:0,background:isDark?"#1A1E1A":"#F0EDE7",position:"relative"}}>
                           {item.cover_image
                             ? <img src={item.cover_image} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",display:"block"}} loading="lazy"/>
-                            : <CountryBadge artist={isArtists ? item.t : item.a} style={{position:"absolute",inset:0,width:"100%",height:"100%",borderRadius:0,padding:0}} />
+                            : <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:isDark?"#1e221e":"#e8e5de"}}><svg viewBox="0 0 24 24" width="40%" height="40%" fill="none"><circle cx="12" cy="12" r="3" fill={isDark?"#4a524a":"#a8a09a"}/><path d="M9 12a3 3 0 1 0 6 0V6l4-1" stroke={isDark?"#4a524a":"#a8a09a"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
                           }
                         </div>
                         <div style={{minWidth:0,flex:1}}>
@@ -274,7 +273,7 @@ export default function YearEndPage({ ctx }) {
                         <div style={{width:"52px",height:"52px",minWidth:"52px",borderRadius:"10px",overflow:"hidden",flexShrink:0,background:isDark?"#1A1E1A":"#F0EDE7",position:"relative"}}>
                           {item.cover_image
                             ? <img src={item.cover_image} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",display:"block"}} loading="lazy"/>
-                            : <CountryBadge artist={isArtists ? item.t : item.a} style={{position:"absolute",inset:0,width:"100%",height:"100%",borderRadius:0,padding:0}} />
+                            : <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:isDark?"#1e221e":"#e8e5de"}}><svg viewBox="0 0 24 24" width="40%" height="40%" fill="none"><circle cx="12" cy="12" r="3" fill={isDark?"#4a524a":"#a8a09a"}/><path d="M9 12a3 3 0 1 0 6 0V6l4-1" stroke={isDark?"#4a524a":"#a8a09a"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
                           }
                         </div>
                         <div style={{minWidth:0}}>
