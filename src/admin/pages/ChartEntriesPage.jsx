@@ -65,10 +65,9 @@ export default function ChartEntriesPage() {
 
   const typedCharts = charts;
 
-  // Platforms relevant to the selected chart type
-  const relevantPlatforms = platforms.filter(p =>
-    chartType === "singles" ? p.supports_singles : p.supports_albums
-  );
+  // Show all active platforms — admin must set supports_singles / supports_albums flags
+  // in the Platforms section to restrict which pills show per chart type.
+  const relevantPlatforms = platforms;
 
   // Reset platform pill when chart month changes
   useEffect(() => {
@@ -81,7 +80,7 @@ export default function ChartEntriesPage() {
     if (!chartId) { setEntries([]); return; }
     setLoading(true); setError(""); setSelected(null);
     const platformParam = platformId === COMBINED ? "combined" : platformId;
-    cmsApi.get(`/chart-entries/?chart=${chartId}&platform=${platformParam}&ordering=rank&page_size=200`)
+    cmsApi.get(`/chart-entries/?chart=${chartId}&chart_type=${chartType}&platform=${platformParam}&ordering=rank&page_size=200`)
       .then(d => setEntries(getResults(d)))
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
