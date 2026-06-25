@@ -158,6 +158,27 @@ export default function ResourcePage({ type, searchJump }) {
       }
     }
 
+    // Step 3: if an existing artist's country changed, cascade country_code (and country
+    // name) to all releases where this artist is the primary artist — best-effort.
+    if (type === "artists" && savedId && editing?.id) {
+      const oldCode = (editing.country_code || "").trim().toUpperCase();
+      const newCode = (form.country_code || "").trim().toUpperCase();
+      if (newCode && oldCode !== newCode) {
+        try {
+          const artistName = (editing.name || "").trim().toLowerCase();
+          // Extract primary (first) artist from display strings like "A & B" or "A, B"
+          const primaryOf = s => String(s || "").split(/\s*[,&]\s*/)[0].trim().toLowerCase();
+          const relData = await cmsApi.get(`/releases/?primary_artist=${savedId}&page_size=500`);
+          const releases = getResults(relData).filter(r =>
+            primaryOf(r.artist_display || r.primary_artist || "") === artistName
+          );
+          const updates = { country_code: newCode };
+          if (form.country && form.country.trim()) updates.country = form.country.trim();
+          await Promise.all(releases.map(r => cmsApi.patch(`/releases/${r.id}/`, updates)));
+        } catch { /* best-effort — artist was saved regardless */ }
+      }
+    }
+
     setModal(false); setEditing(null); load();
   }
 
