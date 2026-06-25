@@ -1228,9 +1228,9 @@ const top = data[0];
       return fields.some(f=>f.includes(q))||(a.country_code||"").toLowerCase()===q;
     }).slice(0,6);
     const newsItems=(liveNews||NEWS).filter(n=>[n.title,n.excerpt,n.body,n.cat].map(s=>String(s||"").toLowerCase()).some(f=>f.includes(q))).slice(0,4);
-    const certs=(normalizedLiveCerts||[]).filter(c=>[String(c.t||""),String(c.a||""),String(c.level||"")].map(s=>s.toLowerCase()).some(f=>f.includes(q))).slice(0,4);
+    const certs=(liveCerts||[]).filter(c=>[String(c.t||""),String(c.a||""),String(c.level||"")].map(s=>s.toLowerCase()).some(f=>f.includes(q))).slice(0,4);
     return {songs,albums,artists,news:newsItems,certs};
-  },[srch,songSearchIndex,albumSearchIndex,liveNews,normalizedLiveCerts]);
+  },[srch,songSearchIndex,albumSearchIndex,liveNews,liveCerts]);
   const sFlatResults=useMemo(()=>{
     if(!sResults) return [];
     return [
