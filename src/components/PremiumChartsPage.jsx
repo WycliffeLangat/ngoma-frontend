@@ -1308,6 +1308,7 @@ export default function PremiumChartsPage({
       <section
         style={{
           ...styles.hero,
+          background: darkMode ? "#0b0e0b" : "#ffffff",
           maxWidth: pageMax,
           margin: "0 auto",
           boxSizing: "border-box",
@@ -1321,6 +1322,7 @@ export default function PremiumChartsPage({
         <div
           style={{
             ...styles.eyebrowRow,
+            color: darkMode ? "#8a9e8d" : "#69716b",
             fontSize: mobile ? "10px" : "11px",
             marginBottom: 0,
           }}
@@ -1360,6 +1362,7 @@ export default function PremiumChartsPage({
               aria-label={chartDisplayTitle}
               style={{
                 ...styles.heroTitle,
+                color: darkMode ? "#E8E4DA" : "#050505",
                 fontSize: mobile ? "30px" : "72px",
                 letterSpacing: mobile ? "-0.45px" : "-2.6px",
                 lineHeight: mobile ? 0.96 : 0.9,
@@ -1395,7 +1398,7 @@ export default function PremiumChartsPage({
                   fontSize: mobile ? "20px" : "24px",
                   fontWeight: 850,
                   letterSpacing: "-0.5px",
-                  color: "#050505",
+                  color: darkMode ? "#9eab9f" : "#050505",
                 }}
               >
                 {month}
@@ -1440,11 +1443,13 @@ export default function PremiumChartsPage({
                   position: "relative",
                   borderRadius: "20px",
                   overflow: "hidden",
-                  background: darkMode ? "#0A0D0B" : "#111311",
+                  background: darkMode ? "#141814" : "#0f130f",
                   display: "flex",
                   flexDirection: "column",
                   cursor: "pointer",
-                  boxShadow: `0 24px 60px rgba(0,0,0,${darkMode ? "0.55" : "0.22"}), 0 0 0 1px rgba(255,255,255,0.04)`,
+                  boxShadow: darkMode
+                    ? `0 0 0 1px rgba(255,255,255,0.12), 0 8px 32px rgba(0,0,0,0.55)`
+                    : `0 24px 60px rgba(0,0,0,0.22), 0 0 0 1px rgba(255,255,255,0.04)`,
                 }}
                 onMouseEnter={pauseTimer}
                 onMouseLeave={resumeTimer}
@@ -1464,7 +1469,9 @@ export default function PremiumChartsPage({
                 {/* Rich gradient overlay — accent-tinted at top, deep black at bottom */}
                 <div style={{
                   position: "absolute", inset: 0, pointerEvents: "none",
-                  background: `linear-gradient(145deg, ${chartAccent}22 0%, rgba(10,13,11,0.72) 50%, rgba(5,6,5,0.95) 100%)`,
+                  background: darkMode
+                    ? `linear-gradient(145deg, ${chartAccent}18 0%, rgba(20,24,20,0.78) 50%, rgba(10,13,10,0.97) 100%)`
+                    : `linear-gradient(145deg, ${chartAccent}22 0%, rgba(10,13,11,0.72) 50%, rgba(5,6,5,0.95) 100%)`,
                 }} />
 
                 {/* Left accent stripe */}
@@ -1558,7 +1565,8 @@ export default function PremiumChartsPage({
                     {/* Subtitle */}
                     {cardSub && (
                       <div style={{
-                        fontSize: "12px", color: "rgba(255,255,255,0.55)",
+                        fontSize: "12px",
+                        color: darkMode ? "rgba(255,255,255,0.72)" : "rgba(255,255,255,0.62)",
                         marginBottom: "12px",
                         overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                         fontFamily: "'IBM Plex Sans', Helvetica, sans-serif",
@@ -1581,7 +1589,7 @@ export default function PremiumChartsPage({
                       <span style={{
                         fontSize: "10px", fontWeight: 800,
                         color: mvStyle.color,
-                        background: mvStyle.background || "rgba(255,255,255,0.06)",
+                        background: mvStyle.background || (darkMode ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.08)"),
                         borderRadius: "5px", padding: "2px 7px",
                         fontFamily: "'IBM Plex Sans Condensed', Helvetica, sans-serif",
                       }}>{mvmt.label}</span>
