@@ -393,8 +393,8 @@ export default function ChartEntriesPage() {
       }
 
       // Cascade country change to every song/album where this artist is the
-      // primary artist. This keeps release.country_code in sync with the artist's
-      // country_code so chart eligibility is consistent across the whole system.
+      // primary artist — keeps release.country_code (and country name) in sync so
+      // the release detail and chart eligibility are consistent across the system.
       const oldCode = (editArtist.data?.country_code || "").toUpperCase();
       const newCode = (formData.country_code || "").toUpperCase();
       if (newCode && oldCode !== newCode) {
@@ -404,10 +404,10 @@ export default function ChartEntriesPage() {
           const releases = getResults(relData).filter(r =>
             primaryArtistName(r.artist_display || r.primary_artist || "").toLowerCase() === artistName
           );
-          await Promise.all(
-            releases.map(r => cmsApi.patch(`/releases/${r.id}/`, { country_code: newCode }))
-          );
-        } catch { /* best-effort — display is still correct via the artist DB lookup */ }
+          const updates = { country_code: newCode };
+          if (formData.country && formData.country.trim()) updates.country = formData.country.trim();
+          await Promise.all(releases.map(r => cmsApi.patch(`/releases/${r.id}/`, updates)));
+        } catch { /* best-effort */ }
       }
 
       setEditArtist(null);

@@ -152,7 +152,7 @@ export default function ResourcePage({ type, searchJump }) {
         await cmsApi.patch(`${config.endpoint}${savedId}/`, fd);
       } catch(e) {
         // Record was saved in Step 1 — close modal and reload, but surface the image error
-        setModal(false); setEditing(null); load();
+        setModal(false); setEditing(null); setDetailRow(null); load();
         setError(`Record saved, but image upload failed: ${e.message}`);
         return;
       }
@@ -179,7 +179,7 @@ export default function ResourcePage({ type, searchJump }) {
       }
     }
 
-    setModal(false); setEditing(null); load();
+    setModal(false); setEditing(null); setDetailRow(null); load();
   }
 
   const isRelease = type === "songs" || type === "albums";
