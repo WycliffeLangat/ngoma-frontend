@@ -1498,12 +1498,13 @@ export default function PremiumChartsPage({
                 <div
                   key={`wm-${slideIdx}`}
                   style={{
-                    position: "absolute", right: "14px", bottom: "8px",
-                    fontSize: "120px", fontWeight: 900, lineHeight: 1,
+                    position: "absolute", right: "18px", top: "50%",
+                    transform: "translateY(-50%)",
+                    fontSize: "100px", fontWeight: 900, lineHeight: 1,
                     fontFamily: "'IBM Plex Sans Condensed', Helvetica, sans-serif",
                     color: chartAccent,
                     pointerEvents: "none", userSelect: "none",
-                    letterSpacing: "-6px",
+                    letterSpacing: "-4px",
                     zIndex: 20,
                   }}
                 >{rank}</div>
