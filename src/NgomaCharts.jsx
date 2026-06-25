@@ -385,11 +385,13 @@ const buildCombinedYearEnd = (chartType) => {
         release_year: entry.release_year,
         confidence: entry.confidence,
         country_code: entry.country_code,
+        cover_image: entry.cover_image || "",
         totalPts: 0,
         months: 0,
         best: Number.POSITIVE_INFINITY,
       };
 
+      if (!current.cover_image && entry.cover_image) current.cover_image = entry.cover_image;
       current.totalPts += chartType === "artists" ? artistTop50Points(entry) : Number(entry.pts) || 0;
       current.months += 1;
       current.best = Math.min(current.best, Number(entry.rank) || Number.POSITIVE_INFINITY);
@@ -2034,7 +2036,8 @@ const top = data[0];
   const songMonthlyData=analyticsActive?analysisMonths.map(m=>({month:m.split(" ")[0].slice(0,3),A:sp1?.monthly[m]?.pts||0,B:sp2?.monthly[m]?.pts||0})):[];
   const songRankData=analyticsActive?analysisMonths.map(m=>({month:m.split(" ")[0].slice(0,3),A:sp1?.monthly[m]?.rank||null,B:sp2?.monthly[m]?.rank||null})):[];
 
-  const yearEnd=isArtists?buildArtistYearEndRows():(isSingles?COMBINED_YEAR_END.singles:COMBINED_YEAR_END.albums);
+  const yearEndRaw=isArtists?buildArtistYearEndRows():(isSingles?COMBINED_YEAR_END.singles:COMBINED_YEAR_END.albums);
+  const yearEnd=coverImageCache.size?yearEndRaw.map(e=>{if(e.cover_image)return e;const img=coverImageCache.get(entryKey(e));return img?{...e,cover_image:img}:e;}):yearEndRaw;
 
   const tracked=analyticsRowsFor(analyticsActive?anMonth:CURRENT_MONTH).slice(0,5).map(entry=>entry.title);
   const rankJourneyStartIndex=tracked.reduce((earliest,title)=>{
