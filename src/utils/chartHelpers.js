@@ -236,4 +236,5 @@ export const mapPublicNews = (items = []) =>
     title: n.title || "",
     excerpt: n.excerpt || "",
     body: n.body || "",
+    cover_image: n.cover_image || "",
   }));
