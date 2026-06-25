@@ -222,10 +222,15 @@ export default function ChartEntriesPage() {
           .then(d => getResults(d))
           .catch(() => [])
       ),
-    ]).then(([kenyanArtists, ...platformArrays]) => {
-      // Build a normalised name set from every alias/variant of every KE artist
+    ]).then(([allArtists, ...platformArrays]) => {
+      // The backend may not support country_code as a filter parameter and can
+      // return all artists. Always client-side filter to KE before building the
+      // name set — this is the authoritative gate.
+      const keArtists = allArtists.filter(
+        a => (a.country_code || "").trim().toUpperCase() === "KE"
+      );
       const keNames = new Set(
-        kenyanArtists.flatMap(a =>
+        keArtists.flatMap(a =>
           [a.name, a.display_name, a.public_name, ...(Array.isArray(a.aliases) ? a.aliases : [])]
             .filter(Boolean)
             .map(n => n.trim().toLowerCase())
