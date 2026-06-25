@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 // Flag-derived accent colors shared with the Year End country tags.
 const COUNTRY_ACCENTS = {
@@ -1131,6 +1131,23 @@ export default function PremiumChartsPage({
   // Default ("rank"/"asc") preserves the chart's natural order.
   const [sort, setSort] = useState({ key: "rank", dir: "asc" });
 
+  // Top-5 hero carousel ─────────────────────────────────────────────────────
+  const [slideIdx, setSlideIdx] = useState(0);
+  const slideTimerRef = useRef(null);
+  const top5 = useMemo(() => data.slice(0, 5), [data]);
+
+  useEffect(() => {
+    setSlideIdx(0);
+    clearInterval(slideTimerRef.current);
+    if (top5.length > 1) {
+      slideTimerRef.current = setInterval(
+        () => setSlideIdx(i => (i + 1) % top5.length),
+        3800
+      );
+    }
+    return () => clearInterval(slideTimerRef.current);
+  }, [data]); // eslint-disable-line react-hooks/exhaustive-deps
+
   function sortValue(item, key) {
     const profile = getReleaseProfile(item);
     const num = (v) => {
@@ -1268,6 +1285,22 @@ export default function PremiumChartsPage({
           from { opacity: 0; transform: translateY(-6px); }
           to   { opacity: 1; transform: translateY(0); }
         }
+        @keyframes ngoma-slide-in {
+          from { opacity: 0; transform: translateX(14px); }
+          to   { opacity: 1; transform: none; }
+        }
+        .ngoma-hero-slide { animation: ngoma-slide-in 0.38s cubic-bezier(.22,.68,0,1.2) both; }
+        .ngoma-dot-btn { transition: width 0.32s ease, background 0.32s ease; }
+        .ngoma-carousel-arrow {
+          width: 30px; height: 30px; border-radius: 50%;
+          border: 1px solid rgba(255,255,255,0.22);
+          background: rgba(255,255,255,0.08);
+          color: rgba(255,255,255,0.75);
+          cursor: pointer; font-size: 16px; line-height: 1;
+          display: flex; align-items: center; justify-content: center;
+          backdrop-filter: blur(8px); transition: background 0.2s;
+        }
+        .ngoma-carousel-arrow:hover { background: rgba(255,255,255,0.18); }
         .ngoma-chart-row-stripe:nth-child(even) { background: ${darkMode ? "#121612" : "transparent"} !important; }
         .ngoma-chart-row-stripe:nth-child(odd)  { background: ${darkMode ? "#0f120f" : "transparent"} !important; }
       `}</style>
@@ -1306,16 +1339,21 @@ export default function PremiumChartsPage({
         <div
           style={{
             ...styles.heroMain,
-            gridTemplateColumns: "1fr",
-            gap: 0,
+            gridTemplateColumns: mobile ? "1fr" : `minmax(260px, 44%) 1fr`,
+            gap: mobile ? 0 : "28px",
+            alignItems: "stretch",
           }}
         >
+          {/* ── Left: chart title ── */}
           <div
             style={{
               ...styles.heroLeft,
               paddingTop: 0,
               paddingBottom: 0,
               transform: "none",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
             }}
           >
             <h1
@@ -1364,6 +1402,234 @@ export default function PremiumChartsPage({
               </span>
             </div>
           </div>
+
+          {/* ── Right: Top-5 auto-sliding showcase ── */}
+          {!mobile && top5.length > 0 && (() => {
+            const item        = top5[slideIdx] || top5[0];
+            const isArtist    = isArtistsChart || !!item?.is_artist_entry;
+            const artProfile  = isArtist ? managedArtistForItem(item) : {};
+            const img         = isArtist
+              ? (artProfile?.image || getArtworkUrl(item))
+              : getArtworkUrl(item);
+            const cardTitle   = isArtist
+              ? (item.title || item.n || item.a || "")
+              : (item.title || item.t || "");
+            const cardSub     = isArtist
+              ? [artProfile?.genre || item.genre, artProfile?.city_region || item.city_region].filter(Boolean).join(" · ")
+              : (item.artist || item.a || "");
+            const pts         = Number(item.total_points || item.pts || 0);
+            const rank        = Number(item.rank || item.r || slideIdx + 1);
+            const mvmt        = movement(item);
+            const mvStyle     = movementStyle(item);
+            const medal       = rank === 1 ? "#B8860B" : rank === 2 ? "#8C8C8C" : rank === 3 ? "#CD7F32" : null;
+            const cert        = isArtist ? null : certificationForEntry(item, isSingles ? "single" : "album");
+            const pauseTimer  = () => clearInterval(slideTimerRef.current);
+            const resumeTimer = () => {
+              clearInterval(slideTimerRef.current);
+              if (top5.length > 1) {
+                slideTimerRef.current = setInterval(
+                  () => setSlideIdx(i => (i + 1) % top5.length),
+                  3800
+                );
+              }
+            };
+
+            return (
+              <div
+                style={{
+                  position: "relative",
+                  borderRadius: "20px",
+                  overflow: "hidden",
+                  background: darkMode ? "#0A0D0B" : "#111311",
+                  display: "flex",
+                  flexDirection: "column",
+                  cursor: "pointer",
+                  boxShadow: `0 24px 60px rgba(0,0,0,${darkMode ? "0.55" : "0.22"}), 0 0 0 1px rgba(255,255,255,0.04)`,
+                }}
+                onMouseEnter={pauseTimer}
+                onMouseLeave={resumeTimer}
+                onClick={() => openRelease(item)}
+              >
+                {/* Blurred art backdrop */}
+                {img && (
+                  <div style={{
+                    position: "absolute", inset: 0, pointerEvents: "none",
+                    backgroundImage: `url(${img})`,
+                    backgroundSize: "cover", backgroundPosition: "center",
+                    filter: "blur(32px) brightness(0.22) saturate(1.4)",
+                    transform: "scale(1.18)",
+                  }} />
+                )}
+
+                {/* Rich gradient overlay — accent-tinted at top, deep black at bottom */}
+                <div style={{
+                  position: "absolute", inset: 0, pointerEvents: "none",
+                  background: `linear-gradient(145deg, ${chartAccent}22 0%, rgba(10,13,11,0.72) 50%, rgba(5,6,5,0.95) 100%)`,
+                }} />
+
+                {/* Left accent stripe */}
+                <div style={{
+                  position: "absolute", top: 0, left: 0,
+                  width: "3px", height: "100%",
+                  background: `linear-gradient(to bottom, ${chartAccent}, ${chartAccent}55)`,
+                  zIndex: 2,
+                }} />
+
+                {/* Main content */}
+                <div
+                  key={`slide-${slideIdx}`}
+                  className="ngoma-hero-slide"
+                  style={{
+                    position: "relative", zIndex: 3,
+                    flex: 1, display: "flex", gap: "20px",
+                    padding: "22px 22px 16px 26px", alignItems: "center",
+                  }}
+                >
+                  {/* Cover art */}
+                  <div style={{
+                    width: "120px", height: "120px", minWidth: "120px",
+                    borderRadius: "12px", overflow: "hidden", flexShrink: 0,
+                    boxShadow: "0 12px 36px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06)",
+                    background: `linear-gradient(135deg, ${chartAccent}55 0%, #111 100%)`,
+                    position: "relative",
+                  }}>
+                    {img ? (
+                      <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                    ) : (
+                      <div style={{
+                        width: "100%", height: "100%",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: "28px", fontWeight: 900, color: `${chartAccent}88`,
+                        fontFamily: "'IBM Plex Sans Condensed', Helvetica, sans-serif",
+                      }}>#{rank}</div>
+                    )}
+                    {/* Rank pill on art */}
+                    <div style={{
+                      position: "absolute", top: "5px", left: "5px",
+                      minWidth: "22px", height: "22px", borderRadius: "11px",
+                      padding: "0 6px",
+                      background: medal || "rgba(0,0,0,0.78)",
+                      backdropFilter: "blur(6px)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: "10px", fontWeight: 900, color: "#FFF",
+                      fontFamily: "'IBM Plex Sans Condensed', Helvetica, sans-serif",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.5)",
+                      letterSpacing: "0.3px",
+                    }}>#{rank}</div>
+                  </div>
+
+                  {/* Text */}
+                  <div style={{ flex: 1, minWidth: 0, position: "relative" }}>
+                    {/* Ghost rank watermark */}
+                    <div style={{
+                      position: "absolute", right: "-6px", top: "50%",
+                      transform: "translateY(-52%)",
+                      fontSize: "100px", fontWeight: 900,
+                      fontFamily: "'IBM Plex Sans Condensed', Helvetica, sans-serif",
+                      color: "rgba(255,255,255,0.035)",
+                      lineHeight: 1, pointerEvents: "none", userSelect: "none",
+                      letterSpacing: "-4px",
+                    }}>{rank}</div>
+
+                    {/* Eyebrow */}
+                    <div style={{
+                      fontSize: "8.5px", fontWeight: 800, letterSpacing: "2px",
+                      textTransform: "uppercase", color: chartAccent,
+                      marginBottom: "7px",
+                      fontFamily: "'IBM Plex Sans Condensed', Helvetica, sans-serif",
+                      display: "flex", alignItems: "center", gap: "6px",
+                    }}>
+                      <span>{slideIdx + 1} / {top5.length}</span>
+                      <span style={{ width: "3px", height: "3px", borderRadius: "50%", background: `${chartAccent}88`, display: "inline-block" }} />
+                      <span>{isArtist ? "Artist" : isSingles ? "Single" : "Album"}</span>
+                    </div>
+
+                    {/* Title */}
+                    <div style={{
+                      fontSize: "18px", fontWeight: 800, color: "#FFFFFF",
+                      lineHeight: 1.2, marginBottom: "5px",
+                      fontFamily: "'IBM Plex Sans', Helvetica, sans-serif",
+                      overflow: "hidden",
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                    }}>{cardTitle || "—"}</div>
+
+                    {/* Subtitle */}
+                    {cardSub && (
+                      <div style={{
+                        fontSize: "12px", color: "rgba(255,255,255,0.55)",
+                        marginBottom: "12px",
+                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                        fontFamily: "'IBM Plex Sans', Helvetica, sans-serif",
+                      }}>{cardSub}</div>
+                    )}
+
+                    {/* Badges row */}
+                    <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
+                      {pts > 0 && (
+                        <span style={{
+                          fontSize: "10px", fontWeight: 700,
+                          color: chartAccent,
+                          background: `${chartAccent}1A`,
+                          border: `1px solid ${chartAccent}44`,
+                          borderRadius: "5px", padding: "2px 8px",
+                          fontFamily: "'IBM Plex Sans Condensed', Helvetica, sans-serif",
+                          letterSpacing: "0.3px",
+                        }}>{pts.toLocaleString()} pts</span>
+                      )}
+                      <span style={{
+                        fontSize: "10px", fontWeight: 800,
+                        color: mvStyle.color,
+                        background: mvStyle.background || "rgba(255,255,255,0.06)",
+                        borderRadius: "5px", padding: "2px 7px",
+                        fontFamily: "'IBM Plex Sans Condensed', Helvetica, sans-serif",
+                      }}>{mvmt.label}</span>
+                      {cert && <CertificationTag entry={item} />}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom bar: dots + arrows */}
+                <div style={{
+                  position: "relative", zIndex: 3,
+                  display: "flex", alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "0 18px 16px 26px",
+                }}>
+                  {/* Dot indicators */}
+                  <div style={{ display: "flex", gap: "5px", alignItems: "center" }}>
+                    {top5.map((_, i) => (
+                      <button
+                        key={i}
+                        className="ngoma-dot-btn"
+                        onClick={e => { e.stopPropagation(); setSlideIdx(i); }}
+                        style={{
+                          width: i === slideIdx ? "22px" : "7px",
+                          height: "7px",
+                          borderRadius: "4px",
+                          background: i === slideIdx ? chartAccent : "rgba(255,255,255,0.28)",
+                          border: "none", padding: 0, cursor: "pointer", flexShrink: 0,
+                        }}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Prev / Next */}
+                  <div style={{ display: "flex", gap: "6px" }}>
+                    <button
+                      className="ngoma-carousel-arrow"
+                      onClick={e => { e.stopPropagation(); setSlideIdx(i => (i - 1 + top5.length) % top5.length); }}
+                    >‹</button>
+                    <button
+                      className="ngoma-carousel-arrow"
+                      onClick={e => { e.stopPropagation(); setSlideIdx(i => (i + 1) % top5.length); }}
+                    >›</button>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </section>
 
