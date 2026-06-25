@@ -21,6 +21,19 @@ export default function CertificationsPage({ ctx }) {
 
   const certIconFilters = Object.fromEntries(CERTIFICATION_LEVELS.map(l => [l.level, l.iconFilter || null]));
 
+  // Each entry should only appear at its highest certification level.
+  // CERTIFICATION_LEVELS is ordered highest→lowest (index 0 = diamond, etc.).
+  const levelRank = Object.fromEntries(CERTIFICATION_LEVELS.map((l, i) => [l.level, i]));
+  const deduplicatedCerts = Object.values(
+    certs.reduce((acc, c) => {
+      const key = `${String(c.t||"").toLowerCase()}|||${String(c.a||"").toLowerCase()}`;
+      if (!acc[key] || (levelRank[c.level] ?? 99) < (levelRank[acc[key].level] ?? 99)) {
+        acc[key] = c;
+      }
+      return acc;
+    }, {})
+  );
+
   if (isArtists) {
     return (
       <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
@@ -63,7 +76,7 @@ export default function CertificationsPage({ ctx }) {
           </div>
           <div style={{marginTop:"20px"}}>
             {CERTIFICATION_LEVELS.map(({ level })=>{
-              const filtered=certs.filter(c=>c.level===level);
+              const filtered=deduplicatedCerts.filter(c=>c.level===level);
               if(!filtered.length)return null;
               return(<div key={level} style={{marginBottom:"32px"}}>
                 <div style={{...secLbl(certColors[level]),marginBottom:"16px",fontSize:"11px",letterSpacing:"1.2px"}}><span style={certIconFilters[level]?{filter:certIconFilters[level]}:undefined}>{certIcons[level]}</span> {level.charAt(0).toUpperCase()+level.slice(1)} Certified ({filtered.length})</div>
@@ -87,7 +100,7 @@ export default function CertificationsPage({ ctx }) {
                 </div>
               </div>);
             })}
-            {!certs.length&&<div style={{padding:"40px",textAlign:"center",fontFamily:F,color:"#CCC"}}>No certifications yet</div>}
+            {!deduplicatedCerts.length&&<div style={{padding:"40px",textAlign:"center",fontFamily:F,color:"#CCC"}}>No certifications yet</div>}
           </div>
         </div>
   );
