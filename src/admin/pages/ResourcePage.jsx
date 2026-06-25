@@ -56,6 +56,10 @@ export default function ResourcePage({ type, searchJump }) {
   const [dupGroups, setDupGroups] = useState(null);         // null=hidden, []=loading, [...]=groups
   const [actionBusy, setActionBusy] = useState(false);
   const [detailRow, setDetailRow] = useState(null);
+  const [inChartFilter, setInChartFilter]   = useState(null); // null|"combined"|platformId
+  const [chartRows, setChartRows]           = useState(null); // null = filter off
+  const [chartPlatforms, setChartPlatforms] = useState([]);
+  const [latestChartId, setLatestChartId]   = useState(null);
   const abortRef = useRef(null);
 
   // Apply search term from global search result click
@@ -73,6 +77,54 @@ export default function ResourcePage({ type, searchJump }) {
     ...(alphaFilter ? { starts_with: alphaFilter } : {}),
   }), [config, search, statusFilter, ordering, alphaFilter]);
   const formFields = useMemo(() => type === "songs" || type === "albums" ? releaseForm(type === "albums" ? "albums" : "singles", artistOptions) : (config.form || []), [type, config, artistOptions]);
+
+  // Load the latest chart ID + platforms once for the "In Top 50" filter
+  useEffect(() => {
+    if (type !== "songs" && type !== "albums" && type !== "artists") return;
+    const chartType = type === "albums" ? "albums" : "singles";
+    cmsApi.get(`/charts/?chart_type=${chartType}&ordering=-year,-month&page_size=1`)
+      .then(d => { const c = getResults(d); if (c.length) setLatestChartId(c[0].id); })
+      .catch(() => {});
+    cmsApi.get("/platforms/?active=true&page_size=100")
+      .then(d => setChartPlatforms(getResults(d)))
+      .catch(() => {});
+    // Reset when page type changes
+    setInChartFilter(null);
+    setChartRows(null);
+    setLatestChartId(null);
+  }, [type]);
+
+  // Fetch chart entries whenever the chart filter changes
+  useEffect(() => {
+    if (inChartFilter === null || !latestChartId) { setChartRows(null); return; }
+    const platform = String(inChartFilter);
+    cmsApi.get(`/chart-entries/?chart=${latestChartId}&platform=${platform}&ordering=rank&page_size=200`)
+      .then(d => {
+        const entries = getResults(d);
+        if (type === "artists") {
+          // For artists: load all artists and match by name against chart entries
+          const names = new Set(entries.flatMap(e =>
+            String(e.artist_display || "").split(/\bft\.?\s+|,\s*|\s+&\s+/i).map(n => n.trim().toLowerCase()).filter(Boolean)
+          ));
+          cmsApi.get("/artists/?page_size=500")
+            .then(ad => {
+              const all = getResults(ad);
+              setChartRows(all.filter(a =>
+                names.has(String(a.name || a.display_name || "").toLowerCase())
+              ).map(a => ({ ...a, _chartSource: platform })));
+            })
+            .catch(() => setChartRows([]));
+        } else {
+          setChartRows(entries.map(e => ({
+            ...e,
+            id: e.release || e.id,
+            _chartRank: e.rank,
+            _chartPoints: e.total_points,
+          })));
+        }
+      })
+      .catch(() => setChartRows([]));
+  }, [inChartFilter, latestChartId, type]);
 
   // Used after save/delete to reload without debounce
   async function load() {
@@ -391,7 +443,21 @@ export default function ResourcePage({ type, searchJump }) {
     };
   }) : config.columns;
 
-  const finalColumns = actionsColumn ? [...tableColumns, actionsColumn] : tableColumns;
+  const rankColumn = (inChartFilter !== null && chartRows !== null && type !== "artists")
+    ? [{
+        key: "_chartRank",
+        label: "#",
+        render: r => r._chartRank
+          ? <strong style={{ color: "#b8860b", fontSize: 13 }}>#{r._chartRank}</strong>
+          : "—",
+      }]
+    : [];
+
+  const finalColumns = [
+    ...rankColumn,
+    ...tableColumns,
+    ...(actionsColumn ? [actionsColumn] : []),
+  ];
 
   return (
     <section>
@@ -428,6 +494,33 @@ export default function ResourcePage({ type, searchJump }) {
             ))}
           </select>
         )}
+        {latestChartId && (
+          <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+            <button
+              type="button"
+              className={`cms-btn ${inChartFilter !== null ? "" : "light"}`}
+              style={{ fontSize: 12 }}
+              onClick={() => setInChartFilter(inChartFilter !== null ? null : "combined")}
+              title="Filter to releases currently in the Top 50 chart"
+            >
+              {inChartFilter !== null ? "✓ In Top 50" : "In Top 50"}
+            </button>
+            {inChartFilter !== null && (
+              <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                {[["combined", "Combined"], ...chartPlatforms.map(p => [String(p.id), p.short_name || p.name])].map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    className={`cms-btn ${String(inChartFilter) === String(key) ? "" : "light"}`}
+                    style={{ fontSize: 11, padding: "3px 10px" }}
+                    onClick={() => setInChartFilter(key)}
+                  >{label}</button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {isActionable && (
           <button className="cms-btn light" onClick={dupGroups === null ? loadDuplicates : () => setDupGroups(null)}>
             {dupGroups === null ? "Find duplicates" : "Hide duplicates"}
@@ -549,8 +642,13 @@ export default function ResourcePage({ type, searchJump }) {
         </div>
       )}
 
-      {loading ? <div className="cms-empty">Loading...</div> : (
-        <DataTable columns={finalColumns} rows={rows} onRowClick={(row) => setDetailRow(row)} />
+      {inChartFilter !== null && chartRows !== null && (
+        <div style={{ fontSize: 12, color: "#888", marginBottom: 8 }}>
+          Showing {chartRows.length} {type === "artists" ? "artist" : type === "albums" ? "album" : "song"}{chartRows.length !== 1 ? "s" : ""} in the current {inChartFilter === "combined" ? "Combined" : (chartPlatforms.find(p => String(p.id) === String(inChartFilter))?.name || inChartFilter)} Top 50
+        </div>
+      )}
+      {loading && inChartFilter === null ? <div className="cms-empty">Loading...</div> : (
+        <DataTable columns={finalColumns} rows={chartRows !== null ? chartRows : rows} onRowClick={(row) => setDetailRow(row)} />
       )}
       <FormModal open={modal} title={`${editing ? "Edit" : "Create"} ${config.title}`} entityId={editing?.id} fields={formFields} initial={editing || defaultInitial(formFields)} onSubmit={save} onClose={() => setModal(false)} />
 
