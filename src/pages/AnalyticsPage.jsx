@@ -82,19 +82,21 @@ export default function AnalyticsPage({ ctx }) {
 
   return (
 <div className="ngoma-analytics-page" style={{padding:PAD,background:"transparent",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:"20px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
-            <div><h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0}}>Analytics</h2><p style={{fontFamily:F,fontSize:isMobile?"12.5px":"11.5px",color:"#59645D",margin:"5px 0 0",lineHeight:1.6}}>Analytics are based on the full Top 50 across all platforms and months.</p></div>
-            <div style={{display:"flex",gap:isMobile?"10px":"8px",flexDirection:isMobile?"column":"row",alignItems:isMobile?"stretch":"center",width:isMobile?"100%":"auto"}}>
-              <select value={anMonth} onChange={e=>setAnMonth(e.target.value)} style={{width:isMobile?"100%":"auto",padding:isMobile?"12px 13px":"8px 12px",border:"1.5px solid #DDD",borderRadius:"9px",background:"#FFF",fontSize:isMobile?"13px":"10.5px",fontFamily:F,fontWeight:750,cursor:"pointer",outline:"none",minWidth:0}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"center",marginBottom:"28px",gap:isMobile?"14px":"24px",flexDirection:isMobile?"column":"row",paddingBottom:"20px",borderBottom:"1px solid "+(isDark?"#2F352F":"#EFEDE7")}}>
+            <div>
+              <div style={{display:"inline-block",width:"28px",height:"3px",background:GOLD,borderRadius:"2px",marginBottom:"10px"}}/>
+              <h2 style={{fontSize:isMobile?"22px":"28px",fontWeight:900,margin:"0 0 4px",letterSpacing:"-0.5px",color:isDark?"#F6F3EA":"#1A1A1A"}}>{isArtists?"Artist Analytics":isSingles?"Singles Analytics":"Albums Analytics"}</h2>
+              <p style={{fontFamily:F,fontSize:isMobile?"12px":"12px",color:isDark?"#8F968F":"#69716B",margin:0,lineHeight:1.6}}>Full Top 50 data across all platforms and months.</p>
+            </div>
+            <div style={{display:"flex",gap:isMobile?"10px":"10px",flexDirection:isMobile?"column":"row",alignItems:isMobile?"stretch":"center",flexShrink:0}}>
+              <select value={anMonth} onChange={e=>setAnMonth(e.target.value)} style={{width:isMobile?"100%":"auto",padding:isMobile?"11px 13px":"8px 14px",border:"1.5px solid "+(isDark?"#2F352F":"#DEDAD2"),borderRadius:"10px",background:isDark?"#1A1E1A":"#FAFAF8",fontSize:isMobile?"13px":"12px",fontFamily:F,fontWeight:750,cursor:"pointer",outline:"none",color:isDark?"#F6F3EA":"#1A1A1A",minWidth:isMobile?0:"160px"}}>
                 {MONTHS.map(m=><option key={m} value={m}>{m}</option>)}
               </select>
-              <div style={{display:"flex",alignItems:"center",gap:"10px",flexWrap:"wrap"}}>
-                <Tog sm/>
-              </div>
+              <div style={{display:"flex",alignItems:"center",gap:"10px"}}><Tog sm/></div>
             </div>
           </div>
           {/* SONG / ALBUM COMPARISON */}
-          <div style={{...card(),padding:isMobile?"16px":"18px",marginBottom:isMobile?"18px":"20px",background:isDark?"#0F120F":"linear-gradient(135deg,#FAFAF8,#FFFFFF)",borderColor:isDark?"#2F352F":"#EFEDE7"}}>
+          <div style={{...card(),padding:isMobile?"16px":"18px",marginBottom:isMobile?"20px":"28px",background:isDark?"#0F120F":"linear-gradient(135deg,#FAFAF8,#FFFFFF)",borderColor:isDark?"#2F352F":"#EFEDE7"}}>
             <div style={secLbl()}><SecMark/>{isArtists ? "Artist" : (isSingles?"Song":"Album")} Head-to-Head</div>
             <p style={{fontFamily:F,fontSize:TXT.note,color:isDark?"#F6F3EA":"#69716B",margin:"-8px 0 14px",lineHeight:1.45}}>Compare two {isArtists ? "artists" : (isSingles?"songs":"albums")} across points, rank, platforms, and chart history.</p>
             <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"minmax(0,1fr) auto minmax(0,1fr)",gap:isMobile?"10px":"12px",alignItems:"center",marginBottom:isMobile?"14px":"14px"}}>
@@ -105,7 +107,7 @@ export default function AnalyticsPage({ ctx }) {
                 </select>
                 {isMobile&&sp1&&<div style={{marginTop:"7px",padding:"8px 10px",borderRadius:"9px",background:GOLD+"0B",fontFamily:F,lineHeight:1.35,color:"#1F241F",overflowWrap:"anywhere"}}><strong style={{display:"block",fontSize:"12px"}}>{sp1.title}</strong><span style={{display:"block",fontSize:"11px",color:"#59645D",marginTop:"2px"}}>{sp1.artist}</span></div>}
               </div>
-              <span style={{fontFamily:F,fontSize:isMobile?"10px":"12px",color:"#8A928B",fontWeight:900,textAlign:"center",textTransform:isMobile?"uppercase":"none",letterSpacing:isMobile?"1px":"normal"}}>vs</span>
+              <span style={{fontFamily:F,fontSize:"11px",color:isDark?"#5A625A":"#8A928B",fontWeight:900,textAlign:"center",letterSpacing:"1px",textTransform:"uppercase",background:isDark?"#1A1E1A":"#F0EDE6",padding:"5px 12px",borderRadius:"999px",whiteSpace:"nowrap",alignSelf:"center"}}>vs</span>
               <div style={{minWidth:0}}>
                 {isMobile&&<div style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:"#1565C0",marginBottom:"6px"}}>{isArtists ? "Artist" : (isSingles?"Song":"Album")} Two</div>}
                 <select value={cmpS2} onChange={e=>setCmpS2(e.target.value)} title={sp2?`${sp2.title} — ${sp2.artist}`:""} style={{width:"100%",minWidth:0,padding:isMobile?"11px 12px":"8px 10px",border:"1.5px solid #1565C055",borderRadius:"8px",background:"#FFF",fontSize:isMobile?"12px":"11px",fontFamily:F,fontWeight:700,cursor:"pointer",outline:"none",color:"#1F241F"}}>
@@ -220,7 +222,7 @@ export default function AnalyticsPage({ ctx }) {
             </>)}
           </div>
           {/* Stats row */}
-          <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(3,1fr)",gap:"10px",marginBottom:"20px"}}>
+          <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(3,1fr)",gap:isMobile?"10px":"14px",marginBottom:"28px"}}>
             {[
               {l:"Chart Depth",v:analyticsRowsFor(anMonth).length,c:GOLD,s:`${releaseLabelLower} in Top 50 combined`},
               {l:"New Entries",v:mvData.new,c:"#2DB04A",s:"not in prev month"},
@@ -229,7 +231,11 @@ export default function AnalyticsPage({ ctx }) {
               {l:"Cross-Platform Hits",v:xHitsCount,c:"#00897B",s:`on all ${tp} platforms`},
               {l:"Chart Leader",v:anLeader?.title||"—",s:anLeader?.artist||"",compact:true,c:GOLD},
             ].map((s,i)=>(
-              <div key={i} style={card({padding:isMobile?"15px":"18px"})}><div style={{...secLbl(s.c),marginBottom:"6px"}}>{s.l}</div><div style={{fontSize:s.compact?(isMobile?"14px":"16px"):(isMobile?"24px":"28px"),fontWeight:900,color:s.c,lineHeight:1.2,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{s.v}</div><div style={{fontSize:isMobile?"10.5px":"10px",color:"#59645D",fontFamily:F,lineHeight:1.35}}>{s.s}</div></div>
+              <div key={i} style={{...card({padding:isMobile?"16px":"20px 22px"}),borderTop:`3px solid ${s.c}`}}>
+                <div style={{fontSize:isMobile?"9px":"9.5px",fontWeight:900,letterSpacing:"1.8px",textTransform:"uppercase",color:s.c,marginBottom:"10px",fontFamily:F}}>{s.l}</div>
+                <div style={{fontSize:s.compact?(isMobile?"15px":"18px"):(isMobile?"26px":"32px"),fontWeight:900,color:isDark?"#F6F3EA":"#1A1A1A",lineHeight:1.1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{s.v}</div>
+                <div style={{fontSize:isMobile?"10px":"10px",color:isDark?"#8F968F":"#69716B",fontFamily:F,lineHeight:1.35,marginTop:"6px"}}>{s.s}</div>
+              </div>
             ))}
           </div>
           {/* Top 10 + Platform #1s */}
@@ -553,7 +559,10 @@ export default function AnalyticsPage({ ctx }) {
                     </div>
                     <div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginTop:"3px"}}>{s.a}</div>
                   </div>
-                  <div style={{textAlign:"right",fontFamily:F,whiteSpace:"nowrap"}}><div style={{color:"#2DB04A",fontSize:TXT.cardMeta,fontWeight:800}}>▲{s.from-s.to}</div><div style={{fontSize:TXT.micro,color:"#7B857D"}}>#{s.from}→#{s.to}</div></div>
+                  <div style={{textAlign:"right",fontFamily:F,whiteSpace:"nowrap",flexShrink:0}}>
+                    <div style={{display:"inline-flex",alignItems:"center",gap:"4px",background:"rgba(45,176,74,0.10)",borderRadius:"6px",padding:"3px 8px",color:"#2DB04A",fontSize:"12px",fontWeight:900}}>▲ {s.from-s.to}</div>
+                    <div style={{fontSize:TXT.micro,color:"#7B857D",marginTop:"3px"}}>#{s.from} → #{s.to}</div>
+                  </div>
                 </div>
                 );
               })}
@@ -572,7 +581,10 @@ export default function AnalyticsPage({ ctx }) {
                     </div>
                     <div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginTop:"3px"}}>{s.a}</div>
                   </div>
-                  <div style={{textAlign:"right",fontFamily:F,whiteSpace:"nowrap"}}><div style={{color:"#E53935",fontSize:TXT.cardMeta,fontWeight:800}}>▼{s.to-s.from}</div><div style={{fontSize:TXT.micro,color:"#7B857D"}}>#{s.from}→#{s.to}</div></div>
+                  <div style={{textAlign:"right",fontFamily:F,whiteSpace:"nowrap",flexShrink:0}}>
+                    <div style={{display:"inline-flex",alignItems:"center",gap:"4px",background:"rgba(229,57,53,0.10)",borderRadius:"6px",padding:"3px 8px",color:"#E53935",fontSize:"12px",fontWeight:900}}>▼ {s.to-s.from}</div>
+                    <div style={{fontSize:TXT.micro,color:"#7B857D",marginTop:"3px"}}>#{s.from} → #{s.to}</div>
+                  </div>
                 </div>
                 );
               })}
