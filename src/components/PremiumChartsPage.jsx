@@ -1558,9 +1558,9 @@ export default function PremiumChartsPage({
 
                     {/* Eyebrow */}
                     <div style={{
-                      fontSize: "8.5px", fontWeight: 800, letterSpacing: "2px",
+                      fontSize: "11px", fontWeight: 800, letterSpacing: "1.6px",
                       textTransform: "uppercase", color: chartAccent,
-                      marginBottom: "7px",
+                      marginBottom: "8px",
                       fontFamily: "'IBM Plex Sans Condensed', Helvetica, sans-serif",
                       display: "flex", alignItems: "center", gap: "6px",
                     }}>
@@ -1571,9 +1571,9 @@ export default function PremiumChartsPage({
 
                     {/* Title */}
                     <div style={{
-                      fontSize: "18px", fontWeight: 800,
+                      fontSize: "22px", fontWeight: 800,
                       color: textPrimary,
-                      lineHeight: 1.2, marginBottom: "5px",
+                      lineHeight: 1.15, marginBottom: "6px",
                       fontFamily: "'IBM Plex Sans', Helvetica, sans-serif",
                       overflow: "hidden",
                       display: "-webkit-box",
@@ -1584,9 +1584,9 @@ export default function PremiumChartsPage({
                     {/* Subtitle */}
                     {cardSub && (
                       <div style={{
-                        fontSize: "12px",
+                        fontSize: "15px",
                         color: textSub,
-                        marginBottom: "12px",
+                        marginBottom: "13px",
                         overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                         fontFamily: "'IBM Plex Sans', Helvetica, sans-serif",
                       }}>{cardSub}</div>
@@ -1596,20 +1596,20 @@ export default function PremiumChartsPage({
                     <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
                       {pts > 0 && (
                         <span style={{
-                          fontSize: "10px", fontWeight: 700,
+                          fontSize: "12px", fontWeight: 700,
                           color: chartAccent,
                           background: `${chartAccent}1A`,
                           border: `1px solid ${chartAccent}44`,
-                          borderRadius: "5px", padding: "2px 8px",
+                          borderRadius: "5px", padding: "3px 9px",
                           fontFamily: "'IBM Plex Sans Condensed', Helvetica, sans-serif",
                           letterSpacing: "0.3px",
                         }}>{pts.toLocaleString()} pts</span>
                       )}
                       <span style={{
-                        fontSize: "10px", fontWeight: 800,
+                        fontSize: "12px", fontWeight: 800,
                         color: mvStyle.color,
                         background: mvStyle.background || mvFallbackBg,
-                        borderRadius: "5px", padding: "2px 7px",
+                        borderRadius: "5px", padding: "3px 8px",
                         fontFamily: "'IBM Plex Sans Condensed', Helvetica, sans-serif",
                       }}>{mvmt.label}</span>
                       {cert && <CertificationTag entry={item} />}

@@ -88,7 +88,7 @@ export default function YearEndPage({ ctx }) {
                         minWidth:0,
                       }}
                     >
-                      <div style={{fontSize:t3?"28px":"24px",fontWeight:950,lineHeight:1,color:medalColor,textAlign:"center",fontFamily:F}}>{idx+1}</div>
+                      <div style={{fontSize:t3?"32px":"26px",fontWeight:950,lineHeight:1,color:medalColor,textAlign:"center",fontFamily:F}}>{idx+1}</div>
 
                       <div style={{display:"flex",alignItems:"center",gap:"11px",minWidth:0,maxWidth:"100%"}}>
                         <div style={{width:"46px",height:"46px",minWidth:"46px",borderRadius:"10px",overflow:"hidden",flexShrink:0,background:isDark?"#1A1E1A":"#F0EDE7",position:"relative"}}>
@@ -110,7 +110,7 @@ export default function YearEndPage({ ctx }) {
                               margin:0,
                               textAlign:"left",
                               fontFamily:SF,
-                              fontSize:t3?"15.5px":"15px",
+                              fontSize:t3?"18px":"16.5px",
                               fontWeight:850,
                               lineHeight:1.15,
                               color:isDark?"#F6F3EA":"#050505",
@@ -134,7 +134,7 @@ export default function YearEndPage({ ctx }) {
                               margin:"4px 0 0",
                               textAlign:"left",
                               fontFamily:F,
-                              fontSize:"12.2px",
+                              fontSize:"14px",
                               fontWeight:700,
                               lineHeight:1.35,
                               color:isDark?"#D7DBD7":"#59645D",
@@ -190,8 +190,8 @@ export default function YearEndPage({ ctx }) {
                         <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:"8px"}}>
                           {statItems.map((stat)=>(
                             <div key={stat.label} style={{background:isDark?"#151915":"#F7F7F7",border:"1px solid "+(isDark?"rgba(255,255,255,0.12)":"rgba(0,0,0,0.06)"),borderRadius:"12px",padding:"8px 6px",minWidth:0,boxSizing:"border-box"}}>
-                              <span style={{display:"block",fontFamily:F,fontSize:"9px",color:isDark?"#AEB6AE":"#777",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",textAlign:"center"}}>{stat.label}</span>
-                              <span style={{display:"block",marginTop:"4px",fontFamily:F,color:isDark?"#F6F3EA":"#050505",fontSize:"12px",fontWeight:900,textAlign:"center",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{stat.value}</span>
+                              <span style={{display:"block",fontFamily:F,fontSize:"11px",color:isDark?"#AEB6AE":"#777",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",textAlign:"center"}}>{stat.label}</span>
+                              <span style={{display:"block",marginTop:"4px",fontFamily:F,color:isDark?"#F6F3EA":"#050505",fontSize:"14px",fontWeight:900,textAlign:"center",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{stat.value}</span>
                             </div>
                           ))}
                         </div>
@@ -207,7 +207,7 @@ export default function YearEndPage({ ctx }) {
                             background:isDark?"#151915":"#FFF",
                             color:GOLD,
                             fontFamily:F,
-                            fontSize:"10.5px",
+                            fontSize:"12px",
                             fontWeight:900,
                             letterSpacing:"1px",
                             textTransform:"uppercase",
@@ -224,26 +224,21 @@ export default function YearEndPage({ ctx }) {
               })}
             </div>
           ) : (
-            <div style={{
-              overflowX:"visible",
-              overflowY:"hidden",
-              WebkitOverflowScrolling:"touch",
-              margin:"0",
-              paddingBottom:"0"
-            }}>
+            <div style={{overflowX:"visible",overflowY:"hidden",WebkitOverflowScrolling:"touch",margin:"0",paddingBottom:"0"}}>
               <div style={{minWidth:"0",width:"100%"}}>
+                {/* Column headers — styled like Charts page */}
                 <div style={{
                   display:"grid",
                   gridTemplateColumns:"54px minmax(0,1fr) 148px 92px",
                   columnGap:"30px",
                   padding:"11px 0",
-                  borderBottom:"2px solid #1A1A1A",
+                  borderBottom:"2px solid "+(isDark?"#3a3e3a":"#1A1A1A"),
                   fontFamily:F,
-                  fontSize:"9px",
+                  fontSize:"12px",
                   fontWeight:900,
-                  letterSpacing:"1.8px",
+                  letterSpacing:"1.5px",
                   textTransform:"uppercase",
-                  color:"#4F5751",
+                  color:isDark?"#8a9288":"#4F5751",
                   alignItems:"end"
                 }}>
                   <span style={{textAlign:"center"}}>#</span>
@@ -262,16 +257,19 @@ export default function YearEndPage({ ctx }) {
                         display:"grid",
                         gridTemplateColumns:"54px minmax(0,1fr) 148px 92px",
                         columnGap:"30px",
-                        padding:t3?"13px 0":"9px 0",
-                        borderBottom:"1px solid #F2F2EE",
+                        padding:t3?"14px 0":"10px 0",
+                        borderBottom:"1px solid "+(isDark?"#2a2e2a":"#F2F2EE"),
                         alignItems:"center",
-                        cursor:"default"
+                        cursor:"default",
+                        transition:"background 120ms ease",
                       }}
-                      onMouseEnter={e=>e.currentTarget.style.background="#FAFAF6"}
+                      onMouseEnter={e=>e.currentTarget.style.background=isDark?"#141814":"#FAFAF6"}
                       onMouseLeave={e=>e.currentTarget.style.background="transparent"}
                     >
-                      <div style={{textAlign:"center",fontSize:t3?"20px":"14px",fontWeight:900,color:t3?MEDALS[idx]:"#B0B5B0",letterSpacing:"-0.3px"}}>{idx+1}</div>
+                      {/* Rank */}
+                      <div style={{textAlign:"center",fontSize:t3?"22px":"16px",fontWeight:900,color:t3?MEDALS[idx]:(isDark?"#5a625a":"#B0B5B0"),letterSpacing:"-0.3px"}}>{idx+1}</div>
 
+                      {/* Title + artist + art */}
                       <div style={{display:"flex",alignItems:"center",gap:"12px",minWidth:0}}>
                         <div style={{width:"52px",height:"52px",minWidth:"52px",borderRadius:"10px",overflow:"hidden",flexShrink:0,background:isDark?"#1A1E1A":"#F0EDE7",position:"relative"}}>
                           {item.cover_image
@@ -285,54 +283,51 @@ export default function YearEndPage({ ctx }) {
                             alignItems:"center",
                             gap:"7px",
                             flexWrap:"wrap",
-                            fontSize:t3?"14px":TXT.cardTitle,
+                            fontSize:t3?"17px":"15px",
                             fontWeight:850,
-                            marginBottom:"1px",
+                            marginBottom:"2px",
                             lineHeight:1.15,
-                            whiteSpace:"normal",
-                            overflow:"visible",
-                            textOverflow:"clip"
+                            color:isDark?"#F6F3EA":"#050505",
                           }}>
-                            <button type="button" onClick={()=>isArtists ? openArtistDetails(item.t) : openReleaseDetails(item,isSingles?"single":"album")} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:"inherit",fontWeight:"inherit",lineHeight:"inherit",cursor:"pointer",textAlign:"left"}}>{item.t}</button>
+                            <button type="button" onClick={()=>isArtists ? openArtistDetails(item.t) : openReleaseDetails(item,isSingles?"single":"album")} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:"inherit",fontWeight:"inherit",lineHeight:"inherit",cursor:"pointer",textAlign:"left",color:"inherit"}}>{item.t}</button>
                             {certification&&<CertificationTag cert={certification} compact />}
                           </div>
                           <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(isArtists ? item.t : item.a);}} style={{
-                            fontSize:TXT.cardMeta,
-                            color:"#59645D",
+                            fontSize:"13px",
+                            color:isDark?"#8a9288":"#59645D",
                             fontFamily:F,
                             border:0,
                             background:"transparent",
                             padding:0,
                             textAlign:"left",
                             cursor:"pointer",
-                            marginTop:"3px",
-                            whiteSpace:"normal",
-                            overflow:"visible",
-                            textOverflow:"clip"
+                            marginTop:"2px",
                           }}>
                             {item.a}
                           </button>
                         </div>
                       </div>
 
+                      {/* Total pts */}
                       <div style={{
                         textAlign:"center",
                         justifySelf:"stretch",
                         fontFamily:F,
-                        fontSize:t3?"15px":"13px",
+                        fontSize:t3?"17px":"15px",
                         fontWeight:900,
-                        color:t3?GOLD:"#8a9288",
+                        color:t3?GOLD:(isDark?"#8a9288":"#8a9288"),
                         whiteSpace:"nowrap"
                       }}>
                         {item.totalPts.toLocaleString()}
                       </div>
 
+                      {/* Months */}
                       <div style={{
                         textAlign:"center",
                         justifySelf:"stretch",
                         fontFamily:F,
-                        fontSize:"12px",
-                        color:"#8a9288",
+                        fontSize:"14px",
+                        color:isDark?"#8a9288":"#8a9288",
                         fontWeight:800,
                         whiteSpace:"nowrap"
                       }}>

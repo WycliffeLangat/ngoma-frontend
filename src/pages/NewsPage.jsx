@@ -38,11 +38,11 @@ export default function NewsPage({ ctx }) {
                   {i===0 && n.emoji && !hasCover && <div style={{fontSize:isMobile?"27px":"38px",flexShrink:0,marginTop:"2px"}}>{n.emoji}</div>}
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{display:"flex",gap:"8px",alignItems:"center",marginBottom:isMobile?"9px":"8px",flexWrap:"wrap"}}>
-                      <span style={{display:"inline-flex",alignItems:"center",height:"20px",fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.1px",textTransform:"uppercase",color:isDark?"#E4BE55":GOLD,background:isDark?"rgba(184,134,11,0.16)":"rgba(184,134,11,0.11)",border:"1px solid rgba(184,134,11,0.22)",padding:"0 8px",borderRadius:"999px"}}>{n.cat}</span>
-                      <span style={{fontFamily:F,fontSize:"10px",fontWeight:600,color:isDark?"#9a9a9a":"#9a9a9a"}}>{n.date}</span>
+                      <span style={{display:"inline-flex",alignItems:"center",height:"20px",fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1.1px",textTransform:"uppercase",color:isDark?"#E4BE55":GOLD,background:isDark?"rgba(184,134,11,0.16)":"rgba(184,134,11,0.11)",border:"1px solid rgba(184,134,11,0.22)",padding:"0 8px",borderRadius:"999px"}}>{n.cat}</span>
+                      <span style={{fontFamily:F,fontSize:"12px",fontWeight:600,color:isDark?"#9a9a9a":"#9a9a9a"}}>{n.date}</span>
                     </div>
-                    <h3 style={{fontFamily:F,fontSize:i===0?(isMobile?"17px":"18px"):(isMobile?"14px":"14.5px"),fontWeight:800,margin:isMobile?"0 0 8px":"0 0 7px",lineHeight:1.28,color:isDark?"#F6F3EA":"#050505"}}>{n.title}</h3>
-                    <p style={{fontFamily:F,fontSize:isMobile?"12px":TXT.body,color:isDark?"#B8BEB8":"#59645D",margin:0,lineHeight:1.65}}>{n.excerpt}</p>
+                    <h3 style={{fontFamily:F,fontSize:i===0?(isMobile?"20px":"22px"):(isMobile?"17px":"18px"),fontWeight:800,margin:isMobile?"0 0 8px":"0 0 7px",lineHeight:1.28,color:isDark?"#F6F3EA":"#050505"}}>{n.title}</h3>
+                    <p style={{fontFamily:F,fontSize:"14px",color:isDark?"#B8BEB8":"#59645D",margin:0,lineHeight:1.65}}>{n.excerpt}</p>
                   </div>
                   {/* Non-featured + mobile: right-side thumbnail */}
                   {!isFeatured && hasCover && (

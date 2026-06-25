@@ -87,7 +87,7 @@ export default function AnalyticsPage({ ctx }) {
           <AnalyticsDeepSection label="Head-to-Head" isMobile={isMobile}>
           {/* SONG / ALBUM COMPARISON */}
           <div style={{...card(),padding:isMobile?"16px":"18px",marginBottom:isMobile?"20px":"28px",background:isDark?"#0F120F":"linear-gradient(135deg,#FAFAF8,#FFFFFF)",borderColor:isDark?"#2F352F":"#EFEDE7"}}>
-            <div style={secLbl()}><SecMark/>{isArtists ? "Artist" : (isSingles?"Song":"Album")} Head-to-Head</div>
+            <div style={{...secLbl(), fontSize:"20px"}}><SecMark/>{isArtists ? "Artist" : (isSingles?"Song":"Album")} Head-to-Head</div>
             <p style={{fontFamily:F,fontSize:TXT.note,color:isDark?"#F6F3EA":"#69716B",margin:"-8px 0 14px",lineHeight:1.45}}>Compare two {isArtists ? "artists" : (isSingles?"songs":"albums")} across points, rank, platforms, and chart history.</p>
             <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"minmax(0,1fr) auto minmax(0,1fr)",gap:isMobile?"10px":"12px",alignItems:"center",marginBottom:isMobile?"14px":"14px"}}>
               <div style={{minWidth:0}}>
@@ -258,7 +258,7 @@ export default function AnalyticsPage({ ctx }) {
           {/* Cross-platform overlap */}
           <AnalyticsDeepSection label="Cross-Platform Reach" isMobile={isMobile}>
           <div style={{...card(),marginBottom:"20px"}}>
-            <div style={secLbl()}><SecMark/>Cross-Platform Reach — {anMonth}</div>
+            <div style={{...secLbl(), fontSize:"20px"}}><SecMark/>Cross-Platform Reach — {anMonth}</div>
             <p style={{fontFamily:F,fontSize:"10px",color:"#59645D",margin:"-4px 0 12px",lineHeight:1.45}}>{releaseLabel} charting on most platforms simultaneously.</p>
             {crossPlatformRows.slice(0,8).map((s,i)=>{
               const certification = isArtists ? null : getCertificationForEntry(s, isSingles ? "single" : "album");
@@ -284,7 +284,7 @@ export default function AnalyticsPage({ ctx }) {
           {platTotalsData.length>0&&(
             <AnalyticsDeepSection label="Platform Totals" isMobile={isMobile}>
             <div style={{...card(),marginBottom:"20px"}}>
-              <div style={secLbl()}><SecMark/>Combined Top 50 Entries Contributed Per Platform — {anMonth}</div>
+              <div style={{...secLbl(), fontSize:"20px"}}><SecMark/>Combined Top 50 Entries Contributed Per Platform — {anMonth}</div>
               <div style={{display:"flex",justifyContent:"flex-end",margin:"-4px 0 12px"}}><ViewToggle id="platformTotals" /></div>
               {viewMode("platformTotals")==="table" ? (
                 <div style={{display:"grid",gap:"8px"}}>
@@ -314,7 +314,7 @@ export default function AnalyticsPage({ ctx }) {
           <AnalyticsDeepSection label="Country Stats" isMobile={isMobile}>
           <div style={{...card(),marginBottom:"20px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",marginBottom:"14px",flexWrap:"wrap"}}>
-              <div style={{...secLbl(),marginBottom:0}}><SecMark/>Top 5 Countries — {anMonth}</div>
+              <div style={{...secLbl(),marginBottom:0,fontSize:"20px"}}><SecMark/>Top 5 Countries — {anMonth}</div>
               <ViewToggle id="topCountries" />
             </div>
             {viewMode("topCountries")==="table" ? (
@@ -343,7 +343,7 @@ export default function AnalyticsPage({ ctx }) {
           <AnalyticsDeepSection label="Platform Exclusives" isMobile={isMobile}>
           <div style={{...card(),marginBottom:"20px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",marginBottom:"14px",flexWrap:"wrap"}}>
-              <div style={{...secLbl(),marginBottom:0}}><SecMark/>Platform-Unique Entries — {anMonth}</div>
+              <div style={{...secLbl(),marginBottom:0,fontSize:"20px"}}><SecMark/>Platform-Unique Entries — {anMonth}</div>
               <ViewToggle id="uniquePlatforms" />
             </div>
             {viewMode("uniquePlatforms")==="table" ? (
