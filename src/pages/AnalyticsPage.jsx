@@ -77,6 +77,9 @@ export default function AnalyticsPage({ ctx }) {
     viewMode
   } = ctx;
 
+  const anLeader = analyticsRowsFor(anMonth).find(e => Number(e.rank) === 1) || analyticsRowsFor(anMonth)[0];
+  const xHitsCount = crossPlatformRows.filter(e => e.count >= tp).length;
+
   return (
 <div className="ngoma-analytics-page" style={{padding:PAD,background:"transparent",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:"20px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
@@ -217,14 +220,16 @@ export default function AnalyticsPage({ ctx }) {
             </>)}
           </div>
           {/* Stats row */}
-          <div className="anl-grid-4" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"10px",marginBottom:"20px"}}>
+          <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(3,1fr)",gap:"10px",marginBottom:"20px"}}>
             {[
               {l:"Chart Depth",v:analyticsRowsFor(anMonth).length,c:GOLD,s:`${releaseLabelLower} in Top 50 combined`},
               {l:"New Entries",v:mvData.new,c:"#2DB04A",s:"not in prev month"},
               {l:"Re-Entries",v:mvData.ret,c:"#1565C0",s:"returned to chart"},
               {l:"Platforms",v:tp,c:"#7B1FA2",s:`tracked for ${chartTypeLabel.toLowerCase()}`},
+              {l:"Cross-Platform Hits",v:xHitsCount,c:"#00897B",s:`on all ${tp} platforms`},
+              {l:"Chart Leader",v:anLeader?.title||"—",s:anLeader?.artist||"",compact:true,c:GOLD},
             ].map((s,i)=>(
-              <div key={i} style={card({padding:isMobile?"15px":"18px"})}><div style={{...secLbl(s.c),marginBottom:"6px"}}>{s.l}</div><div style={{fontSize:isMobile?"24px":"28px",fontWeight:900,color:s.c}}>{s.v}</div><div style={{fontSize:isMobile?"10.5px":"10px",color:"#59645D",fontFamily:F,lineHeight:1.35}}>{s.s}</div></div>
+              <div key={i} style={card({padding:isMobile?"15px":"18px"})}><div style={{...secLbl(s.c),marginBottom:"6px"}}>{s.l}</div><div style={{fontSize:s.compact?(isMobile?"14px":"16px"):(isMobile?"24px":"28px"),fontWeight:900,color:s.c,lineHeight:1.2,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{s.v}</div><div style={{fontSize:isMobile?"10.5px":"10px",color:"#59645D",fontFamily:F,lineHeight:1.35}}>{s.s}</div></div>
             ))}
           </div>
           {/* Top 10 + Platform #1s */}

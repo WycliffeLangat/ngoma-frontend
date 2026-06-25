@@ -1251,11 +1251,6 @@ export default function PremiumChartsPage({
   });
 
   const isCombinedChart = plat === "Combined" || isKenyanChart;
-  const crossPlatformHitsCount = data.filter((item) => {
-    const count = Number(String(item.plat || item.platform_count || "").split("/")[0]);
-    return count >= tp;
-  }).length;
-  const newEntriesCount = data.filter((item) => movement(item).type === "new").length;
 
   return (
     <>
@@ -1390,60 +1385,6 @@ export default function PremiumChartsPage({
         </div>
         <hr style={{ border: "none", borderTop: "1px solid rgba(0,0,0,0.07)", margin: 0 }} />
       </div>
-
-      <section
-        style={{
-          ...styles.statsBand,
-          maxWidth: pageMax,
-          margin: "0 auto",
-          boxSizing: "border-box",
-          gridTemplateColumns: mobile ? "repeat(2, minmax(0, 1fr))" : `repeat(${isCombinedChart ? 4 : 3}, minmax(0, 1fr))`,
-        }}
-      >
-        {[
-          {
-            label: "Entries",
-            value: 50,
-            sub: isArtistsChart ? "artists" : (isSingles ? "songs" : "albums"),
-          },
-          ...(isCombinedChart ? [{
-            label: isArtistsChart ? "Cross-Platform Artists" : "Cross-Platform Hits",
-            value: crossPlatformHitsCount,
-            sub: `on all ${tp} platforms`,
-          }] : []),
-          {
-            label: "New Entries",
-            value: newEntriesCount,
-            sub: "this month",
-          },
-          {
-            label: "Chart Leader",
-            value: top?.title || "—",
-            sub: top ? top.artist : "",
-            compact: true,
-          },
-        ].map((item, index) => (
-          <div
-            key={item.label}
-            style={{
-              ...styles.statItem,
-              padding: mobile ? "15px 16px" : "18px 24px",
-            }}
-          >
-            <div style={styles.statLabel}>{item.label}</div>
-            <div
-              style={{
-                ...styles.statValue,
-                fontSize: item.compact ? (mobile ? "15px" : "18px") : mobile ? "25px" : "30px",
-                color: item.label === "Chart Leader" ? chartAccentInk : "#050505",
-              }}
-            >
-              {item.value}
-            </div>
-            <div style={styles.statSub}>{item.sub}</div>
-          </div>
-        ))}
-      </section>
 
       <section
         style={{
@@ -1831,7 +1772,7 @@ function MiniBars({ GOLD }) {
 
 const styles = {
   page: {
-    background: "#f8f7f3",
+    background: "#ffffff",
     color: "#050505",
     minHeight: "60vh",
     width: "100%",
@@ -1842,7 +1783,7 @@ const styles = {
   hero: {
     position: "relative",
     overflow: "hidden",
-    background: "#f8f7f3",
+    background: "#ffffff",
     borderBottom: "none",
     transition: "all 0.5s ease-out",
     width: "100%",
@@ -1985,44 +1926,6 @@ const styles = {
     color: "#B8860B",
     fontSize: "12px",
     fontWeight: 900,
-  },
-
-  statsBand: {
-    display: "grid",
-    background: "#f8f7f3",
-    borderTop: "none",
-    borderBottom: "1px solid rgba(0,0,0,0.07)",
-    width: "100%",
-    maxWidth: "100%",
-  },
-
-  statItem: {
-    borderRight: "1px solid rgba(0,0,0,0.08)",
-    minWidth: 0,
-  },
-
-  statLabel: {
-    fontSize: "10.5px",
-    letterSpacing: "1.6px",
-    textTransform: "uppercase",
-    color: "#555555",
-    fontWeight: 900,
-  },
-
-  statValue: {
-    marginTop: "8px",
-    fontWeight: 950,
-    lineHeight: 1,
-    whiteSpace: "normal",
-    overflow: "visible",
-    textOverflow: "clip",
-    color: "#050505",
-  },
-
-  statSub: {
-    marginTop: "6px",
-    fontSize: "12px",
-    color: "#777777",
   },
 
   controls: {
