@@ -6,15 +6,20 @@ let csrfToken = null;
 function setCsrfToken(token) { if (token) csrfToken = token; }
 
 // ── GET response cache ────────────────────────────────────────────────────────
-// Caches successful GET responses for 30 seconds. Prevents the CMS from making
-// repeated network calls for the same data (e.g. ChartEntriesPage makes N×M
-// parallel calls for artist rankings and the Kenya chart — these return instantly
-// from cache on subsequent tab switches).
+// Caches successful GET responses for 60 seconds.
 //
-// Any mutation (POST/PATCH/PUT/DELETE) clears the entire cache so the next GET
-// always fetches fresh data.
+// Invalidation is TARGETED: a mutation against /artists/1/ only clears
+// cache entries whose path starts with "/artists/" — it does NOT flush
+// /chart-entries/, /releases/, or any other resource. This means:
+//
+//   - Saving an artist → only the artist list is re-fetched. The Kenya
+//     chart's platform entry caches survive and are served instantly.
+//   - Editing a chart entry → only chart-entry caches are cleared.
+//     The artist list cache (2000 artists) stays warm.
+//   - A full wipe (clearCmsCache() with no arg) is reserved for operations
+//     that touch multiple resources at once (re-rank, merge, delete).
 const _getCache = new Map(); // path → { data, ts }
-const GET_CACHE_TTL = 30_000; // 30 seconds
+const GET_CACHE_TTL = 60_000; // 60 seconds — safe because invalidation is targeted
 
 function getCached(path) {
   const entry = _getCache.get(path);
@@ -27,7 +32,23 @@ function setCached(path, data) {
   _getCache.set(path, { data, ts: Date.now() });
 }
 
-export function clearCmsCache() { _getCache.clear(); }
+// Clears cache entries whose path starts with `prefix`, or the entire
+// cache if prefix is omitted.
+export function clearCmsCache(prefix) {
+  if (!prefix) { _getCache.clear(); return; }
+  for (const key of _getCache.keys()) {
+    if (key.startsWith(prefix)) _getCache.delete(key);
+  }
+}
+
+// Extract the first path segment so mutations only invalidate their own resource.
+// "/artists/1/"       → "/artists/"
+// "/chart-entries/5/" → "/chart-entries/"
+// "/auth/login/"      → "/auth/"  (not cached anyway)
+function mutationPrefix(path) {
+  const m = path.match(/^(\/[^/?]+\/)/);
+  return m ? m[1] : null;
+}
 // ─────────────────────────────────────────────────────────────────────────────
 
 async function fetchCsrfToken() {
@@ -71,12 +92,11 @@ async function request(path, options = {}) {
     throw err;
   }
 
-  // Cache successful GET responses; clear everything on mutations
+  // Cache successful GET responses; targeted-invalidate on mutations.
   if (!isMutation && !isAuth) {
     setCached(path, data);
   } else if (isMutation) {
-    clearCmsCache();
-    // Keep the revision timestamp so the public page can detect changes
+    clearCmsCache(mutationPrefix(path)); // only flush the affected resource
     try { window.localStorage.setItem("ngoma-cms-revision", String(Date.now())); } catch {}
   }
 

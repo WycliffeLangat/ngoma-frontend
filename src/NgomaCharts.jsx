@@ -158,6 +158,12 @@ const combinedEntryCache = new Map();
 const kenyanRawCache = new Map();
 const kenyanEntryCache = new Map();
 const platformEntryCache = new Map();
+
+// Last revision we synced from the server — used by the focus handler to skip
+// the expensive fetchAppData() call when nothing has changed since page load.
+// Seeded from PUBLIC_DATA so the first focus after a fresh page load is a no-op
+// unless a CMS change happened between the server render and the user switching tabs.
+let _syncedRevision = PUBLIC_DATA.revision || null;
 const rawPlatformIndexCache = new Map();
 
 const getRawPlatformIndex = (ct, pl, m) => {
@@ -987,28 +993,29 @@ export default function NgomaCharts(){
       .finally(() => setApiChecked(true));
   }, []);
 
-  // Re-fetch live chart data when the window regains focus — ensures CMS edits
-  // (title changes, rank recalculations, merges, deletes, country updates) are
-  // reflected immediately when the user switches from the CMS tab back here.
+  // When the window regains focus, check whether the CMS revision changed.
+  // Only run the expensive fetchAppData() when it actually did — this avoids
+  // a large payload fetch on every tab-switch when nothing was edited.
   //
-  // For country changes specifically: fetchAppData() refreshes
-  // window.__NGOMA_PUBLIC_DATA__ (which findCmsArtist reads live), then the
-  // kenyan caches are cleared so the Kenyan Top 50 recomputes with the updated
-  // artist country data.
+  // Revision unchanged → just re-run the live chart fetch (chartRefreshKey).
+  // Revision changed   → full app data re-fetch, then clear kenyan caches so
+  //   the Kenyan Top 50 recomputes with updated artist country_code values.
   useEffect(() => {
     const onFocus = () => {
-      fetchAppData()
-        .then((freshData) => {
-          // Merge fresh data into window.__NGOMA_PUBLIC_DATA__ so getArtistCountry /
-          // findCmsArtist pick up the updated artist country_code values.
-          if (freshData && typeof freshData === "object") {
-            window.__NGOMA_PUBLIC_DATA__ = { ...(window.__NGOMA_PUBLIC_DATA__ || {}), ...freshData };
-          }
-          // Clear the Kenyan chart caches so they recompute with the new data.
-          kenyanRawCache.clear();
-          kenyanEntryCache.clear();
+      fetchRevision()
+        .then(rev => {
+          const latest = String(rev?.revision || rev?.stamp || rev || "");
+          if (!latest || latest === _syncedRevision) return; // nothing changed
+          _syncedRevision = latest;
+          return fetchAppData().then(freshData => {
+            if (freshData && typeof freshData === "object") {
+              window.__NGOMA_PUBLIC_DATA__ = { ...(window.__NGOMA_PUBLIC_DATA__ || {}), ...freshData };
+              kenyanRawCache.clear();
+              kenyanEntryCache.clear();
+            }
+          });
         })
-        .catch(() => {})  // silent — old data still usable
+        .catch(() => {}) // silent — chartRefreshKey still increments below
         .finally(() => setChartRefreshKey(k => k + 1));
     };
     window.addEventListener("focus", onFocus);
