@@ -1444,7 +1444,7 @@ export default function PremiumChartsPage({
               : `0 0 0 1px rgba(0,0,0,0.08), 0 12px 40px rgba(0,0,0,0.14)`;
             const textPrimary = darkMode ? "#FFFFFF"              : "#0A0A0A";
             const textSub     = darkMode ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.55)";
-            const watermark   = darkMode ? `${chartAccent}28` : `${chartAccent}18`;
+            const watermark   = darkMode ? `${chartAccent}CC` : `${chartAccent}99`;
             const dotInactive = darkMode ? "rgba(255,255,255,0.28)" : "rgba(0,0,0,0.18)";
             const arrowBorder = darkMode ? "rgba(255,255,255,0.22)" : "rgba(0,0,0,0.15)";
             const arrowBg     = darkMode ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)";
