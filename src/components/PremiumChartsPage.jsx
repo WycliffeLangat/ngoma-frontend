@@ -1134,7 +1134,10 @@ export default function PremiumChartsPage({
   // Top-5 hero carousel ─────────────────────────────────────────────────────
   const [slideIdx, setSlideIdx] = useState(0);
   const slideTimerRef = useRef(null);
-  const top5 = useMemo(() => data.slice(0, 5), [data]);
+  const top5 = useMemo(
+    () => [...data].sort((a, b) => Number(a.rank) - Number(b.rank)).slice(0, 5),
+    [data]
+  );
 
   useEffect(() => {
     setSlideIdx(0);
@@ -1293,14 +1296,11 @@ export default function PremiumChartsPage({
         .ngoma-dot-btn { transition: width 0.32s ease, background 0.32s ease; }
         .ngoma-carousel-arrow {
           width: 30px; height: 30px; border-radius: 50%;
-          border: 1px solid rgba(255,255,255,0.22);
-          background: rgba(255,255,255,0.08);
-          color: rgba(255,255,255,0.75);
           cursor: pointer; font-size: 16px; line-height: 1;
           display: flex; align-items: center; justify-content: center;
-          backdrop-filter: blur(8px); transition: background 0.2s;
+          backdrop-filter: blur(8px); transition: opacity 0.2s;
         }
-        .ngoma-carousel-arrow:hover { background: rgba(255,255,255,0.18); }
+        .ngoma-carousel-arrow:hover { opacity: 0.7; }
         .ngoma-chart-row-stripe:nth-child(even) { background: ${darkMode ? "#121612" : "transparent"} !important; }
         .ngoma-chart-row-stripe:nth-child(odd)  { background: ${darkMode ? "#0f120f" : "transparent"} !important; }
       `}</style>
@@ -1341,8 +1341,8 @@ export default function PremiumChartsPage({
         <div
           style={{
             ...styles.heroMain,
-            gridTemplateColumns: mobile ? "1fr" : `minmax(260px, 44%) 1fr`,
-            gap: mobile ? 0 : "28px",
+            gridTemplateColumns: (!mobile && top5.length > 0) ? `minmax(260px, 44%) 1fr` : "1fr",
+            gap: (!mobile && top5.length > 0) ? "28px" : 0,
             alignItems: "stretch",
           }}
         >
@@ -1419,7 +1419,7 @@ export default function PremiumChartsPage({
               : (item.title || item.t || "");
             const cardSub     = isArtist
               ? [artProfile?.genre || item.genre, artProfile?.city_region || item.city_region].filter(Boolean).join(" · ")
-              : (item.artist || item.a || "");
+              : (item.primary_artist || item.artist_display || item.artist || item.a || "");
             const pts         = Number(item.total_points || item.pts || 0);
             const rank        = Number(item.rank || item.r || slideIdx + 1);
             const mvmt        = movement(item);
@@ -1437,26 +1437,38 @@ export default function PremiumChartsPage({
               }
             };
 
+            // Theme-aware card tokens
+            const cardBg      = darkMode ? "#141814" : "#FFFFFF";
+            const cardShadow  = darkMode
+              ? `0 0 0 1px rgba(255,255,255,0.12), 0 8px 32px rgba(0,0,0,0.55)`
+              : `0 0 0 1px rgba(0,0,0,0.08), 0 12px 40px rgba(0,0,0,0.14)`;
+            const textPrimary = darkMode ? "#FFFFFF"              : "#0A0A0A";
+            const textSub     = darkMode ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.55)";
+            const watermark   = darkMode ? "rgba(255,255,255,0.035)" : "rgba(0,0,0,0.04)";
+            const dotInactive = darkMode ? "rgba(255,255,255,0.28)" : "rgba(0,0,0,0.18)";
+            const arrowBorder = darkMode ? "rgba(255,255,255,0.22)" : "rgba(0,0,0,0.15)";
+            const arrowBg     = darkMode ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)";
+            const arrowColor  = darkMode ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.6)";
+            const mvFallbackBg = darkMode ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.06)";
+
             return (
               <div
                 style={{
                   position: "relative",
                   borderRadius: "20px",
                   overflow: "hidden",
-                  background: darkMode ? "#141814" : "#0f130f",
+                  background: cardBg,
                   display: "flex",
                   flexDirection: "column",
                   cursor: "pointer",
-                  boxShadow: darkMode
-                    ? `0 0 0 1px rgba(255,255,255,0.12), 0 8px 32px rgba(0,0,0,0.55)`
-                    : `0 24px 60px rgba(0,0,0,0.22), 0 0 0 1px rgba(255,255,255,0.04)`,
+                  boxShadow: cardShadow,
                 }}
                 onMouseEnter={pauseTimer}
                 onMouseLeave={resumeTimer}
                 onClick={() => openRelease(item)}
               >
-                {/* Blurred art backdrop */}
-                {img && (
+                {/* Blurred art backdrop — dark mode only */}
+                {img && darkMode && (
                   <div style={{
                     position: "absolute", inset: 0, pointerEvents: "none",
                     backgroundImage: `url(${img})`,
@@ -1466,12 +1478,12 @@ export default function PremiumChartsPage({
                   }} />
                 )}
 
-                {/* Rich gradient overlay — accent-tinted at top, deep black at bottom */}
+                {/* Gradient overlay */}
                 <div style={{
                   position: "absolute", inset: 0, pointerEvents: "none",
                   background: darkMode
                     ? `linear-gradient(145deg, ${chartAccent}18 0%, rgba(20,24,20,0.78) 50%, rgba(10,13,10,0.97) 100%)`
-                    : `linear-gradient(145deg, ${chartAccent}22 0%, rgba(10,13,11,0.72) 50%, rgba(5,6,5,0.95) 100%)`,
+                    : `linear-gradient(145deg, ${chartAccent}08 0%, rgba(255,255,255,0) 60%)`,
                 }} />
 
                 {/* Left accent stripe */}
@@ -1496,8 +1508,10 @@ export default function PremiumChartsPage({
                   <div style={{
                     width: "120px", height: "120px", minWidth: "120px",
                     borderRadius: "12px", overflow: "hidden", flexShrink: 0,
-                    boxShadow: "0 12px 36px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06)",
-                    background: `linear-gradient(135deg, ${chartAccent}55 0%, #111 100%)`,
+                    boxShadow: darkMode
+                      ? "0 12px 36px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06)"
+                      : "0 8px 24px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.06)",
+                    background: `linear-gradient(135deg, ${chartAccent}44 0%, ${darkMode ? "#111" : "#e8e8e8"} 100%)`,
                     position: "relative",
                   }}>
                     {img ? (
@@ -1515,7 +1529,7 @@ export default function PremiumChartsPage({
                       position: "absolute", top: "5px", left: "5px",
                       minWidth: "22px", height: "22px", borderRadius: "11px",
                       padding: "0 6px",
-                      background: medal || "rgba(0,0,0,0.78)",
+                      background: medal || "rgba(0,0,0,0.75)",
                       backdropFilter: "blur(6px)",
                       display: "flex", alignItems: "center", justifyContent: "center",
                       fontSize: "10px", fontWeight: 900, color: "#FFF",
@@ -1533,7 +1547,7 @@ export default function PremiumChartsPage({
                       transform: "translateY(-52%)",
                       fontSize: "100px", fontWeight: 900,
                       fontFamily: "'IBM Plex Sans Condensed', Helvetica, sans-serif",
-                      color: "rgba(255,255,255,0.035)",
+                      color: watermark,
                       lineHeight: 1, pointerEvents: "none", userSelect: "none",
                       letterSpacing: "-4px",
                     }}>{rank}</div>
@@ -1553,7 +1567,8 @@ export default function PremiumChartsPage({
 
                     {/* Title */}
                     <div style={{
-                      fontSize: "18px", fontWeight: 800, color: "#FFFFFF",
+                      fontSize: "18px", fontWeight: 800,
+                      color: textPrimary,
                       lineHeight: 1.2, marginBottom: "5px",
                       fontFamily: "'IBM Plex Sans', Helvetica, sans-serif",
                       overflow: "hidden",
@@ -1566,7 +1581,7 @@ export default function PremiumChartsPage({
                     {cardSub && (
                       <div style={{
                         fontSize: "12px",
-                        color: darkMode ? "rgba(255,255,255,0.72)" : "rgba(255,255,255,0.62)",
+                        color: textSub,
                         marginBottom: "12px",
                         overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                         fontFamily: "'IBM Plex Sans', Helvetica, sans-serif",
@@ -1589,7 +1604,7 @@ export default function PremiumChartsPage({
                       <span style={{
                         fontSize: "10px", fontWeight: 800,
                         color: mvStyle.color,
-                        background: mvStyle.background || (darkMode ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.08)"),
+                        background: mvStyle.background || mvFallbackBg,
                         borderRadius: "5px", padding: "2px 7px",
                         fontFamily: "'IBM Plex Sans Condensed', Helvetica, sans-serif",
                       }}>{mvmt.label}</span>
@@ -1616,7 +1631,7 @@ export default function PremiumChartsPage({
                           width: i === slideIdx ? "22px" : "7px",
                           height: "7px",
                           borderRadius: "4px",
-                          background: i === slideIdx ? chartAccent : "rgba(255,255,255,0.28)",
+                          background: i === slideIdx ? chartAccent : dotInactive,
                           border: "none", padding: 0, cursor: "pointer", flexShrink: 0,
                         }}
                       />
@@ -1627,10 +1642,12 @@ export default function PremiumChartsPage({
                   <div style={{ display: "flex", gap: "6px" }}>
                     <button
                       className="ngoma-carousel-arrow"
+                      style={{ borderColor: arrowBorder, background: arrowBg, color: arrowColor }}
                       onClick={e => { e.stopPropagation(); setSlideIdx(i => (i - 1 + top5.length) % top5.length); }}
                     >‹</button>
                     <button
                       className="ngoma-carousel-arrow"
+                      style={{ borderColor: arrowBorder, background: arrowBg, color: arrowColor }}
                       onClick={e => { e.stopPropagation(); setSlideIdx(i => (i + 1) % top5.length); }}
                     >›</button>
                   </div>
