@@ -55,10 +55,8 @@ export default function ChartEntriesPage() {
 
   const typedCharts = charts;
 
-  // Platforms relevant to the current chart type
-  const relevantPlatforms = platforms.filter(p =>
-    chartType === "singles" ? p.supports_singles : p.supports_albums
-  );
+  // Show all active platforms — the API returns empty if no entries exist for that platform/chart combo
+  const relevantPlatforms = platforms;
 
   // Auto-select most recent chart when type changes; reset platform to Combined
   useEffect(() => {
