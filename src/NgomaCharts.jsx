@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { API_BASE } from "./api/config.js";
 import {
-  checkApiStatus, fetchNews, fetchCertifications, fetchChartImageData,
+  checkApiStatus, fetchNews, fetchCertifications, fetchChartImageData, fetchAppData,
 } from "./api/public.js";
 import {
   releaseTitle, normFt, releaseArtist, cleanArtistDisplay,
@@ -990,8 +990,27 @@ export default function NgomaCharts(){
   // Re-fetch live chart data when the window regains focus — ensures CMS edits
   // (title changes, rank recalculations, merges, deletes, country updates) are
   // reflected immediately when the user switches from the CMS tab back here.
+  //
+  // For country changes specifically: fetchAppData() refreshes
+  // window.__NGOMA_PUBLIC_DATA__ (which findCmsArtist reads live), then the
+  // kenyan caches are cleared so the Kenyan Top 50 recomputes with the updated
+  // artist country data.
   useEffect(() => {
-    const onFocus = () => setChartRefreshKey(k => k + 1);
+    const onFocus = () => {
+      fetchAppData()
+        .then((freshData) => {
+          // Merge fresh data into window.__NGOMA_PUBLIC_DATA__ so getArtistCountry /
+          // findCmsArtist pick up the updated artist country_code values.
+          if (freshData && typeof freshData === "object") {
+            window.__NGOMA_PUBLIC_DATA__ = { ...(window.__NGOMA_PUBLIC_DATA__ || {}), ...freshData };
+          }
+          // Clear the Kenyan chart caches so they recompute with the new data.
+          kenyanRawCache.clear();
+          kenyanEntryCache.clear();
+        })
+        .catch(() => {})  // silent — old data still usable
+        .finally(() => setChartRefreshKey(k => k + 1));
+    };
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, []);

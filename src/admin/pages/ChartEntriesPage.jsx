@@ -125,6 +125,9 @@ export default function ChartEntriesPage() {
   const [editRelease, setEditRelease] = useState(null);
   const [editArtist,  setEditArtist]  = useState(null);
   const [editBusy,    setEditBusy]    = useState(false);
+  // Incremented after saving an artist so the Kenya effect re-fetches fresh
+  // artist country data and recomputes which entries are eligible.
+  const [kenyaRevision, setKenyaRevision] = useState(0);
 
   const imgInputRef = useRef();
 
@@ -271,7 +274,7 @@ export default function ChartEntriesPage() {
     })
     .catch(e => setError(e.message))
     .finally(() => setKenyanLoading(false));
-  }, [chartType, chartId, platformId, platforms]);
+  }, [chartType, chartId, platformId, platforms, kenyaRevision]);
 
   // Compute cumulative artist rankings from ALL platform entries across ALL months
   // for both singles and albums. Credits ALL artists (primary + featured) on each entry.
@@ -479,6 +482,9 @@ export default function ChartEntriesPage() {
         await cmsApi.patch(`/artists/${editArtist.id}/`, rest);
       }
       setEditArtist(null);
+      // Trigger Kenya effect to re-fetch artist data so country changes
+      // are reflected immediately in Kenyan Top Charts.
+      setKenyaRevision(k => k + 1);
     } catch(e) { setError(e.message); }
     finally { setEditBusy(false); }
   }
