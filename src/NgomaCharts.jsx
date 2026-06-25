@@ -1032,16 +1032,16 @@ export default function NgomaCharts(){
         .finally(() => setChartRefreshKey(k => k + 1));
     };
 
-    // Separate force-refresh path for CMS storage events: bypass the revision comparison
-    // so a country/name change in the CMS tab is ALWAYS reflected immediately, regardless
-    // of whether the backend has bumped its revision stamp yet.
-    // Debounced 500 ms so a cascade (N release PATCHes → N localStorage writes) triggers only one fetch.
-    let _storageTimer = null;
-    const onStorageChange = (e) => {
-      if (e.key !== "ngoma-cms-revision") return;
-      if (document.hidden) return;
-      clearTimeout(_storageTimer);
-      _storageTimer = setTimeout(() => {
+    // Force-refresh path: called by both same-tab (ngoma-cms-change custom event) and
+    // cross-tab (localStorage storage event) CMS mutations. Bypasses revision comparison
+    // so a country change is reflected immediately regardless of backend revision state.
+    // Debounced 500 ms — a cascade of N release PATCHes fires N events; we want one fetch.
+    // No document.hidden guard here: we refresh in the background so the data is already
+    // fresh when the user switches back to the public page.
+    let _cmsTimer = null;
+    const onCmsChange = () => {
+      clearTimeout(_cmsTimer);
+      _cmsTimer = setTimeout(() => {
         fetchAppData()
           .then(freshData => {
             if (freshData && typeof freshData === "object") {
@@ -1056,14 +1056,20 @@ export default function NgomaCharts(){
       }, 500);
     };
 
+    const onStorageChange = (e) => {
+      if (e.key === "ngoma-cms-revision") onCmsChange();
+    };
+
     window.addEventListener("focus", doRevisionSync);
     window.addEventListener("storage", onStorageChange);
+    window.addEventListener("ngoma-cms-change", onCmsChange);
     const pollId = setInterval(doRevisionSync, 60_000);
     return () => {
       window.removeEventListener("focus", doRevisionSync);
       window.removeEventListener("storage", onStorageChange);
+      window.removeEventListener("ngoma-cms-change", onCmsChange);
       clearInterval(pollId);
-      clearTimeout(_storageTimer);
+      clearTimeout(_cmsTimer);
     };
   }, []);
 

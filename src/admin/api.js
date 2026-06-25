@@ -97,7 +97,12 @@ async function request(path, options = {}) {
     setCached(path, data);
   } else if (isMutation) {
     clearCmsCache(mutationPrefix(path)); // only flush the affected resource
-    try { window.localStorage.setItem("ngoma-cms-revision", String(Date.now())); } catch {}
+    try {
+      // localStorage write notifies OTHER browser tabs; the custom event notifies the SAME tab
+      // (localStorage storage events don't fire in the originating window).
+      window.localStorage.setItem("ngoma-cms-revision", String(Date.now()));
+      window.dispatchEvent(new CustomEvent("ngoma-cms-change"));
+    } catch {}
   }
 
   return data;
