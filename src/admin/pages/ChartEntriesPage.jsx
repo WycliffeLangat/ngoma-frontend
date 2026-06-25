@@ -89,18 +89,6 @@ function primaryArtistName(artistDisplay) {
   return allArtistCredits(artistDisplay)[0] || "";
 }
 
-// Checks all possible country-code field names the backend might return.
-function isKenyan(entry) {
-  const code = (
-    entry.country_code ||
-    entry.artist_country_code ||
-    entry.cc ||
-    ""
-  ).toUpperCase();
-  const country = (entry.country || entry.artist_country || "").toLowerCase();
-  return code === "KE" || country === "kenya";
-}
-
 // Canonical key for release deduplication when building the Kenya chart.
 function releaseEntryKey(e) {
   const title = String(e.title || e.t || "").trim().toLowerCase();
@@ -204,38 +192,70 @@ export default function ChartEntriesPage() {
       .finally(() => setLoading(false));
   }, [chartType, chartId, platformId]);
 
-  // Build the Kenya chart from ALL individual platform entries for the selected month.
-  // Aggregates total_points per release across all platforms, filters to KE artists,
-  // sorts descending, no limit.
+  // Build the Kenya chart — identical algorithm to the public Kenyan Top 50, but no limit.
+  //
+  // Uses the CMS artist database (country_code = KE) as the primary source of truth,
+  // exactly as the public page does via getArtistCountry(). Falls back to the
+  // country_code / artist_country_code field on the chart entry itself.
+  //
+  // Steps:
+  //  1. Load all KE artists from /artists/?country_code=KE
+  //  2. Load all individual platform entries for the selected month/chart in parallel
+  //  3. Flag each entry as Kenyan if: artist name matches a KE artist record OR
+  //     the entry's own country_code field is KE
+  //  4. Aggregate total_points per release across all platforms
+  //  5. Sort descending — no 50-entry cap
   useEffect(() => {
     if (chartType === "artists" || platformId !== KENYA || !chartId || !platforms.length) {
       setKenyanEntries([]); return;
     }
     setKenyanLoading(true); setError(""); setSelected(null);
-    Promise.all(
-      platforms.map(p =>
+
+    Promise.all([
+      // KE artist name lookup — same source the public page uses
+      cmsApi.get("/artists/?country_code=KE&page_size=1000")
+        .then(d => getResults(d))
+        .catch(() => []),
+      // All platform entries for this month's chart
+      ...platforms.map(p =>
         cmsApi.get(`/chart-entries/?chart=${chartId}&platform=${p.id}&ordering=rank&page_size=500`)
           .then(d => getResults(d))
           .catch(() => [])
-      )
-    ).then(allArrays => {
+      ),
+    ]).then(([kenyanArtists, ...platformArrays]) => {
+      // Build a normalised name set from every alias/variant of every KE artist
+      const keNames = new Set(
+        kenyanArtists.flatMap(a =>
+          [a.name, a.display_name, a.public_name, ...(Array.isArray(a.aliases) ? a.aliases : [])]
+            .filter(Boolean)
+            .map(n => n.trim().toLowerCase())
+        )
+      );
+
+      function isKenyanEntry(e) {
+        // 1. Entry-level country code (set at chart-publish time from the artist record)
+        const code = (e.country_code || e.artist_country_code || e.cc || "").toUpperCase();
+        if (code === "KE") return true;
+        const country = (e.country || e.artist_country || "").toLowerCase();
+        if (country === "kenya") return true;
+        // 2. Live artist database lookup — primary artist before any ft./&
+        const primary = primaryArtistName(e.artist_display || e.artist || "");
+        return primary ? keNames.has(primary.toLowerCase()) : false;
+      }
+
       const releaseMap = new Map();
-      allArrays.flat().forEach(e => {
-        if (!isKenyan(e)) return;
+      platformArrays.flat().forEach(e => {
+        if (!isKenyanEntry(e)) return;
         const key = releaseEntryKey(e);
         if (!key || key === "|||") return;
         if (releaseMap.has(key)) {
-          const r = releaseMap.get(key);
-          r.total_points += Number(e.total_points) || 0;
-          r._platformCount += 1;
+          releaseMap.get(key).total_points += Number(e.total_points) || 0;
+          releaseMap.get(key)._platformCount += 1;
         } else {
-          releaseMap.set(key, {
-            ...e,
-            total_points: Number(e.total_points) || 0,
-            _platformCount: 1,
-          });
+          releaseMap.set(key, { ...e, total_points: Number(e.total_points) || 0, _platformCount: 1 });
         }
       });
+
       const sorted = [...releaseMap.values()]
         .sort((a, b) => b.total_points - a.total_points)
         .map((e, i) => ({ ...e, rank: i + 1 }));
