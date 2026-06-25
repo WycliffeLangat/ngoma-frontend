@@ -233,14 +233,17 @@ export default function ChartEntriesPage() {
       );
 
       function isKenyanEntry(e) {
-        // 1. Entry-level country code (set at chart-publish time from the artist record)
-        const code = (e.country_code || e.artist_country_code || e.cc || "").toUpperCase();
-        if (code === "KE") return true;
-        const country = (e.country || e.artist_country || "").toLowerCase();
-        if (country === "kenya") return true;
-        // 2. Live artist database lookup — primary artist before any ft./&
+        // Check the PRIMARY ARTIST's country only — never the release/entry country
+        // (entry.country_code can be the release's country, not the artist's, so using
+        // it would include non-Kenyan releases published in Kenya).
+        //
+        // Order of checks (most authoritative first):
+        // 1. Live CMS artist database — primary artist name matches a KE artist record.
+        // 2. artist_country_code field — explicitly the artist's country at export time.
         const primary = primaryArtistName(e.artist_display || e.artist || "");
-        return primary ? keNames.has(primary.toLowerCase()) : false;
+        if (primary && keNames.has(primary.toLowerCase())) return true;
+        const artistCode = (e.artist_country_code || "").toUpperCase();
+        return artistCode === "KE";
       }
 
       const releaseMap = new Map();
@@ -725,7 +728,7 @@ export default function ChartEntriesPage() {
         ) : displayEntries.length === 0 && !displayLoading ? (
           <div className="cms-empty">
             {isKenyaView
-              ? "No Kenyan-eligible entries found. Ensure artist country codes are set to KE in the Artists section."
+              ? "No Kenyan entries found for this month. Confirm that primary artists have country code KE set in the Artists section."
               : `No entries for this chart${activePlatform ? ` on ${activePlatform.name}` : ""}.`}
           </div>
         ) : (
