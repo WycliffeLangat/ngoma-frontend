@@ -1424,7 +1424,7 @@ export default function PremiumChartsPage({
             const rank        = Number(item.rank || item.r || slideIdx + 1);
             const mvmt        = movement(item);
             const mvStyle     = movementStyle(item);
-            const medal       = rank === 1 ? "#B8860B" : rank === 2 ? "#8C8C8C" : rank === 3 ? "#CD7F32" : null;
+            const rankPillBg  = chartAccent;
             const cert        = isArtist ? null : certificationForEntry(item, isSingles ? "single" : "album");
             const pauseTimer  = () => clearInterval(slideTimerRef.current);
             const resumeTimer = () => {
@@ -1444,7 +1444,7 @@ export default function PremiumChartsPage({
               : `0 0 0 1px rgba(0,0,0,0.08), 0 12px 40px rgba(0,0,0,0.14)`;
             const textPrimary = darkMode ? "#FFFFFF"              : "#0A0A0A";
             const textSub     = darkMode ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.55)";
-            const watermark   = darkMode ? "rgba(255,255,255,0.035)" : "rgba(0,0,0,0.04)";
+            const watermark   = darkMode ? `${chartAccent}28` : `${chartAccent}18`;
             const dotInactive = darkMode ? "rgba(255,255,255,0.28)" : "rgba(0,0,0,0.18)";
             const arrowBorder = darkMode ? "rgba(255,255,255,0.22)" : "rgba(0,0,0,0.15)";
             const arrowBg     = darkMode ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)";
@@ -1520,7 +1520,7 @@ export default function PremiumChartsPage({
                       <div style={{
                         width: "100%", height: "100%",
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: "28px", fontWeight: 900, color: `${chartAccent}88`,
+                        fontSize: "28px", fontWeight: 900, color: chartAccent,
                         fontFamily: "'IBM Plex Sans Condensed', Helvetica, sans-serif",
                       }}>#{rank}</div>
                     )}
@@ -1529,12 +1529,11 @@ export default function PremiumChartsPage({
                       position: "absolute", top: "5px", left: "5px",
                       minWidth: "22px", height: "22px", borderRadius: "11px",
                       padding: "0 6px",
-                      background: medal || "rgba(0,0,0,0.75)",
-                      backdropFilter: "blur(6px)",
+                      background: rankPillBg,
                       display: "flex", alignItems: "center", justifyContent: "center",
                       fontSize: "10px", fontWeight: 900, color: "#FFF",
                       fontFamily: "'IBM Plex Sans Condensed', Helvetica, sans-serif",
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.5)",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
                       letterSpacing: "0.3px",
                     }}>#{rank}</div>
                   </div>
