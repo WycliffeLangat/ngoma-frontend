@@ -19,14 +19,17 @@ const FIELD_DEFS = [
   { key: "prev_rank",        label: "Prev rank",        type: "number" },
   { key: "featured_artists", label: "Featured artists", type: "text"   },
   { key: "confidence",       label: "Confidence",       type: "text"   },
+  { key: "notes",            label: "Notes",            type: "text"   },
 ];
+
+const MOVEMENT_OPTIONS = ["", "new", "reentry", "up", "down", "same"];
 
 const COMBINED = "combined";
 
 export default function ChartEntriesPage() {
   const [allCharts, setAllCharts]     = useState([]);
   const [platforms, setPlatforms]     = useState([]);
-  const [chartType, setChartType]     = useState("singles");
+  const [chartType, setChartType]     = useState("singles"); // "singles" | "albums" | "artists"
   const [selectedYM, setSelectedYM]   = useState(""); // "YYYY-MM" key
   const [platformId, setPlatformId]   = useState(COMBINED);
   const [entries, setEntries]         = useState([]);
@@ -119,6 +122,10 @@ export default function ChartEntriesPage() {
       prev_rank:        entry.prev_rank ?? "",
       featured_artists: entry.featured_artists || "",
       confidence:       entry.confidence || "",
+      notes:            entry.notes || "",
+      movement_type:    entry.movement_type || entry.movement || "",
+      is_new:           !!entry.is_new,
+      reentry:          !!entry.reentry,
     });
     setImageFile(null);
     setImagePreview(null);
@@ -142,6 +149,10 @@ export default function ChartEntriesPage() {
         prev_rank:        form.prev_rank !== "" ? Number(form.prev_rank) : null,
         featured_artists: form.featured_artists,
         confidence:       form.confidence,
+        notes:            form.notes || null,
+        movement_type:    form.movement_type || null,
+        is_new:           form.is_new,
+        reentry:          form.reentry,
       };
       const updated = await cmsApi.patch(`/chart-entries/${selected.id}/`, payload);
 
@@ -233,7 +244,7 @@ export default function ChartEntriesPage() {
       {/* ── Toolbar: chart type + month ── */}
       <div className="cms-toolbar" style={{ flexWrap: "wrap" }}>
         <div style={{ display: "flex", gap: 6, background: "#f0ece5", borderRadius: 12, padding: 4 }}>
-          {["singles", "albums"].map(t => (
+          {[["singles","Singles"],["albums","Albums"],["artists","Artists"]].map(([t, label]) => (
             <button
               key={t}
               type="button"
@@ -243,7 +254,7 @@ export default function ChartEntriesPage() {
                 background: chartType === t ? "#111" : "transparent",
                 color:      chartType === t ? "#fff"  : "#666",
               }}
-            >{t === "singles" ? "Singles" : "Albums"}</button>
+            >{label}</button>
           ))}
         </div>
 
@@ -261,7 +272,7 @@ export default function ChartEntriesPage() {
 
         {!currentChart && selectedYM && (
           <span style={{ fontSize: 12, color: "#C62828", fontWeight: 700 }}>
-            No {chartType} chart for this month
+            No {chartType === "artists" ? "artists" : chartType} chart for this month
           </span>
         )}
 
@@ -436,6 +447,37 @@ export default function ChartEntriesPage() {
                   />
                 </label>
               ))}
+
+              {/* Movement type */}
+              <label style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 12 }}>
+                {panelLabel("Movement type")}
+                <select
+                  value={form.movement_type ?? ""}
+                  disabled={isLocked}
+                  onChange={e => setForm(f => ({ ...f, movement_type: e.target.value }))}
+                  style={{ border: "1px solid #E8E1D2", borderRadius: 10, padding: "8px 11px", font: "inherit", fontSize: 13, outline: "none", background: isLocked ? "#faf8f2" : "#fff" }}
+                >
+                  {MOVEMENT_OPTIONS.map(o => (
+                    <option key={o} value={o}>{o || "— auto —"}</option>
+                  ))}
+                </select>
+              </label>
+
+              {/* Boolean flags */}
+              <div style={{ display: "flex", gap: 16, marginBottom: 14 }}>
+                {[["is_new","New entry"],["reentry","Re-entry"]].map(([key, label]) => (
+                  <label key={key} style={{ display: "flex", alignItems: "center", gap: 6, cursor: isLocked ? "default" : "pointer", fontSize: 12, fontWeight: 600, color: "#444" }}>
+                    <input
+                      type="checkbox"
+                      checked={!!form[key]}
+                      disabled={isLocked}
+                      onChange={e => setForm(f => ({ ...f, [key]: e.target.checked }))}
+                      style={{ width: 15, height: 15, accentColor: "#b8860b" }}
+                    />
+                    {label}
+                  </label>
+                ))}
+              </div>
 
               {isLocked
                 ? <div className="cms-alert" style={{ marginTop: 8, fontSize: 12 }}>This chart is locked. Unlock it first to make changes.</div>
