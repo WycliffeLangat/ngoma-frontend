@@ -26,7 +26,7 @@ const ARTIST_COUNTRY_FALLBACK = {
   "Alan Walker": { country: "Norway", code: "NO" },
   "Alikiba": { country: "Tanzania", code: "TZ" },
   "Amiso thwango": { country: "Kenya", code: "KE" },
-  "Angela Chibalonza": { country: "Kenya", code: "KE" },
+  "Angela Chibalonza": { country: "DR Congo", code: "CD" },
   "Anni3": { country: "Kenya", code: "KE" },
   "Ariana Grande": { country: "United States", code: "US" },
   "Asake": { country: "Nigeria", code: "NG" },
@@ -548,6 +548,7 @@ let _cmsArtistMap = null;
 function normArtistKeyLocal(str) {
   return String(str || "").trim().toLowerCase()
     .replace(/\s*\|\s*.+$/, "")
+    .replace(/,\s+.+$/, "")
     .replace(/\s+(?:ft\.?|feat\.?|featuring|w\/)\s+.+$/i, "")
     .replace(/\s+x\s+.+$/i, "")
     .replace(/\s+&\s+.+$/i, "")
@@ -1328,11 +1329,11 @@ export default function PremiumChartsPage({
           }}
         >
           <span style={{ opacity: 0.65, letterSpacing: "0.5px" }}>{sourceLabel}</span>
-          <span style={styles.eyebrowDivider}>/</span>
+          <span style={{color: chartAccent}}>/</span>
           <span>{platformLabel}</span>
           {liveChartLoading && (
             <>
-              <span style={styles.eyebrowDivider}>/</span>
+              <span style={{color: chartAccent}}>/</span>
               <span>Loading</span>
             </>
           )}
@@ -1666,6 +1667,8 @@ export default function PremiumChartsPage({
       <section
         style={{
           ...styles.controls,
+          background: darkMode ? "#0b0e0b" : "#ffffff",
+          borderBottom: `1px solid ${darkMode ? "#1f261f" : "#EAEAE6"}`,
           maxWidth: pageMax,
           margin: "0 auto",
           boxSizing: "border-box",
@@ -1743,7 +1746,7 @@ export default function PremiumChartsPage({
         }}
       >
         {!mobile && (
-          <div style={styles.tableHeader}>
+          <div style={{...styles.tableHeader, background: darkMode ? "#0f120f" : "#f0ede6", borderBottom: `2px solid ${chartAccent}33`, color: darkMode ? "#8a9288" : "#3d4440"}}>
             <span
               style={{ ...styles.headerCell, cursor: "pointer" }}
               onClick={() => handleSort("rank")}

@@ -19,6 +19,7 @@ export default function ReleaseDetailPage({ ctx }) {
     YAxis,
     card,
     closeDetails,
+    getArtistCountry,
     getCertificationForEntry,
     isDark,
     isMobile,
@@ -85,6 +86,12 @@ export default function ReleaseDetailPage({ ctx }) {
         const releaseConfidence = selR.confidence || releaseMetadata.confidence;
         const isAlbum = selR.type === "album" || !isSingles;
 
+        // Resolve country via live CMS artist record (same priority as CountryBadge),
+        // falling back to the country baked into the chart entry at export time.
+        const liveCountry = getArtistCountry(releaseDetails);
+        const displayCountry = liveCountry.country || releaseDetails.country || "";
+        const displayCountryCode = liveCountry.code || releaseDetails.country_code || "";
+
         const infoRows = [
           ["Title", releaseDetails.title || selR.title],
           ["Main artists", releaseDetails.primary_artist_credit || releaseDetails.primary_artist],
@@ -96,8 +103,8 @@ export default function ReleaseDetailPage({ ctx }) {
           [isAlbum ? "ISRCs" : "ISRC", releaseDetails.isrc],
           ["UPC", releaseDetails.upc],
           ...(isAlbum ? [["Number of tracks", releaseDetails.number_of_tracks]] : []),
-          ["Country", releaseDetails.country],
-          ["Country code", releaseDetails.country_code],
+          ["Country", displayCountry],
+          ["Country code", displayCountryCode],
           ["Genre", releaseDetails.genre],
           ["Label", releaseDetails.label],
           ["Distributor", releaseDetails.distributor],

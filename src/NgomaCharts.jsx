@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { API_BASE } from "./api/config.js";
 import {
   checkApiStatus, fetchNews, fetchCertifications, fetchChartImageData, fetchAppData,
+  fetchRevision,
 } from "./api/public.js";
 import {
   releaseTitle, normFt, releaseArtist, cleanArtistDisplay,
@@ -1031,9 +1032,28 @@ export default function NgomaCharts(){
         .finally(() => setChartRefreshKey(k => k + 1));
     };
 
+    // Separate force-refresh path for CMS storage events: bypass the revision comparison
+    // so a country/name change in the CMS tab is ALWAYS reflected immediately, regardless
+    // of whether the backend has bumped its revision stamp yet.
+    // Debounced 500 ms so a cascade (N release PATCHes → N localStorage writes) triggers only one fetch.
+    let _storageTimer = null;
     const onStorageChange = (e) => {
-      // api.js stamps this key on every CMS mutation — fires in the public tab instantly
-      if (e.key === "ngoma-cms-revision") doRevisionSync();
+      if (e.key !== "ngoma-cms-revision") return;
+      if (document.hidden) return;
+      clearTimeout(_storageTimer);
+      _storageTimer = setTimeout(() => {
+        fetchAppData()
+          .then(freshData => {
+            if (freshData && typeof freshData === "object") {
+              window.__NGOMA_PUBLIC_DATA__ = { ...(window.__NGOMA_PUBLIC_DATA__ || {}), ...freshData };
+              _syncedRevision = String(freshData.revision || freshData.stamp || "");
+              kenyanRawCache.clear();
+              kenyanEntryCache.clear();
+            }
+          })
+          .catch(() => {})
+          .finally(() => setChartRefreshKey(k => k + 1));
+      }, 500);
     };
 
     window.addEventListener("focus", doRevisionSync);
@@ -1043,6 +1063,7 @@ export default function NgomaCharts(){
       window.removeEventListener("focus", doRevisionSync);
       window.removeEventListener("storage", onStorageChange);
       clearInterval(pollId);
+      clearTimeout(_storageTimer);
     };
   }, []);
 
@@ -1340,7 +1361,25 @@ const top = data[0];
     const singleProfile = buildCombinedArtists("singles", CURRENT_MONTH).find((item) => item.n === resolvedName);
     const albumProfile = buildCombinedArtists("albums", CURRENT_MONTH).find((item) => item.n === resolvedName);
     const profile = (isSingles ? singleProfile : albumProfile) || singleProfile || albumProfile;
-    if (!profile) return;
+    if (!profile) {
+      if (!requestedName) return;
+      // Artist is not in the cross-platform combined chart (e.g., Kenyan-only artists, or
+      // removed from the Kenyan chart after a country change). Open a profile-only panel
+      // using the CMS record — same fallback pattern as the search result handler.
+      const _pd = typeof window !== "undefined" ? (window.__NGOMA_PUBLIC_DATA__ || {}) : {};
+      const cmsArtist = (_pd.artists || []).find(a =>
+        [a.name, a.display_name, a.public_name].some(n =>
+          String(n || "").trim().toLowerCase() === requestedName.toLowerCase()
+        )
+      );
+      setSelR(null);
+      setSelA({
+        n: (cmsArtist && (cmsArtist.display_name || cmsArtist.name)) || requestedName,
+        rh: {}, mp: {}, pk: "—", rank: "—", p: 0, m: 0, t: 0, prevRank: null,
+      });
+      prepareDetailNavigation();
+      return;
+    }
     setCt(singleProfile === profile ? "singles" : "albums");
     setPlat("Combined");
     setSelR(null);
