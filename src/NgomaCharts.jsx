@@ -2034,43 +2034,16 @@ const top = data[0];
     }).filter(Boolean);
   }, [liveCerts, certificationLookup]);
 
+  // A certification tag is shown ONLY when the release has met the cumulative
+  // Combined Top-50 threshold (51 − rank, summed across all months). The
+  // certificationLookup is the single source of truth for this — entries
+  // not present there have not reached a certification level.
   const getCertificationForEntry = (entry = {}, fallbackType) => {
     const type = String(fallbackType || entry.type || (isSingles ? "single" : "album")).toLowerCase();
     const bucket = type.includes("album") ? "albums" : "singles";
     const title = releaseTitle(entry);
     const artist = releaseArtist(entry);
-
-    const explicitLevel = String(
-      entry.certification_level ||
-      entry.certificationLevel ||
-      entry.certification ||
-      entry.cert_level ||
-      ""
-    )
-      .trim()
-      .toLowerCase()
-      .replace(/\s+certified$/, "");
-
-    const explicitMeta = certificationMetaForLevel(explicitLevel);
-    const totalPts = firstFiniteNumber(
-      entry.totalPts,
-      entry.total_points,
-      entry.totalPoints,
-      entry.cumulative_points,
-      entry.certification_points,
-      entry.certificationPoints
-    );
-
-    const fromLookup = certificationLookup[bucket]?.get(certificationKey(title, artist));
-    if (fromLookup) return fromLookup;
-
-    if (explicitMeta) {
-      return { ...explicitMeta, totalPts: totalPts || 0 };
-    }
-
-    const levelFromPoints = getCertificationLevel(totalPts);
-    const metaFromPoints = certificationMetaForLevel(levelFromPoints);
-    return metaFromPoints ? { ...metaFromPoints, totalPts: totalPts || 0 } : null;
+    return certificationLookup[bucket]?.get(certificationKey(title, artist)) || null;
   };
   const allCertifiedReleases = useMemo(() => {
     const build = (items = [], type) => buildCertifications(items).map((item) => {
