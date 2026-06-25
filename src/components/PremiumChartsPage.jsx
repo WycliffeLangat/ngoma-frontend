@@ -1322,7 +1322,7 @@ export default function PremiumChartsPage({
         <div
           style={{
             ...styles.eyebrowRow,
-            color: darkMode ? "#8a9e8d" : "#69716b",
+            color: darkMode ? "rgba(255,255,255,0.5)" : "#69716b",
             fontSize: mobile ? "10px" : "11px",
             marginBottom: 0,
           }}
@@ -1362,7 +1362,7 @@ export default function PremiumChartsPage({
               aria-label={chartDisplayTitle}
               style={{
                 ...styles.heroTitle,
-                color: darkMode ? "#E8E4DA" : "#050505",
+                color: darkMode ? "rgba(255,255,255,0.92)" : "#050505",
                 fontSize: mobile ? "30px" : "72px",
                 letterSpacing: mobile ? "-0.45px" : "-2.6px",
                 lineHeight: mobile ? 0.96 : 0.9,
@@ -1398,7 +1398,7 @@ export default function PremiumChartsPage({
                   fontSize: mobile ? "20px" : "24px",
                   fontWeight: 850,
                   letterSpacing: "-0.5px",
-                  color: darkMode ? "#9eab9f" : "#050505",
+                  color: darkMode ? "rgba(255,255,255,0.65)" : "#050505",
                 }}
               >
                 {month}
