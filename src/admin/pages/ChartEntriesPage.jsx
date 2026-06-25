@@ -152,23 +152,13 @@ export default function ChartEntriesPage() {
   const chartId  = currentChart ? String(currentChart.id) : "";
   const isLocked = !!currentChart?.locked;
 
-  // Singles chart ID for the selected month — used to compute artist rankings
-  const singlesChartId = useMemo(() => {
-    if (!selectedYM) return null;
-    const c = allCharts.find(ch => {
-      const ym = `${ch.year}-${String(ch.month).padStart(2, "0")}`;
-      return ym === selectedYM && ch.chart_type === "singles";
-    });
-    return c ? String(c.id) : null;
-  }, [allCharts, selectedYM]);
-
-  // Reset when chart type or month changes
+  // Reset when chart type or month changes (month only matters for singles/albums tabs)
   useEffect(() => {
     setPlatformId(COMBINED);
     setSelected(null);
     setSelectedArtist(null);
     setEntries([]);
-    setArtistRankings([]);
+    if (chartType !== "artists") setArtistRankings([]);
   }, [chartType, selectedYM]);
 
   // Load entries for singles/albums tabs
@@ -182,41 +172,49 @@ export default function ChartEntriesPage() {
       .finally(() => setLoading(false));
   }, [chartType, chartId, platformId]);
 
-  // Compute artist rankings from the combined singles chart for the selected month
-  // Formula: 51 − rank per song, summed per primary artist
+  // Compute cumulative artist rankings from ALL combined singles + albums charts.
+  // Formula: 51 − rank per entry, summed across every month for both chart types.
+  // Triggers once when chartType switches to "artists" and whenever allCharts loads.
   useEffect(() => {
-    if (chartType !== "artists" || !singlesChartId) { setArtistRankings([]); return; }
+    if (chartType !== "artists") { setArtistRankings([]); return; }
+    const relevant = allCharts.filter(c => c.chart_type === "singles" || c.chart_type === "albums");
+    if (!relevant.length) { setArtistRankings([]); return; }
     setLoading(true); setError(""); setSelectedArtist(null);
-    cmsApi.get(`/chart-entries/?chart=${singlesChartId}&platform=combined&ordering=rank&page_size=200`)
-      .then(d => {
-        const ents = getResults(d);
-        const map = new Map();
-        ents.forEach(e => {
-          const pts = Math.max(0, 51 - (e.rank || 51));
-          if (pts === 0) return;
-          const primary = primaryArtistName(e.artist_display || e.artist);
-          if (!primary) return;
-          const key = primary.toLowerCase();
-          if (map.has(key)) {
-            const a = map.get(key);
-            a.pts += pts;
-            a.songs.push({ title: e.title, rank: e.rank, pts, entryId: e.id, releaseId: e.release, cover: e.cover_image });
-          } else {
-            map.set(key, {
-              name: primary,
-              pts,
-              songs: [{ title: e.title, rank: e.rank, pts, entryId: e.id, releaseId: e.release, cover: e.cover_image }],
-            });
-          }
-        });
-        const ranked = [...map.values()]
-          .sort((a, b) => b.pts - a.pts)
-          .map((a, i) => ({ ...a, rank: i + 1 }));
-        setArtistRankings(ranked);
-      })
-      .catch(e => setError(e.message))
-      .finally(() => setLoading(false));
-  }, [chartType, singlesChartId]);
+
+    Promise.all(
+      relevant.map(c =>
+        cmsApi.get(`/chart-entries/?chart=${c.id}&platform=combined&ordering=rank&page_size=200`)
+          .then(d => getResults(d))
+          .catch(() => [])
+      )
+    ).then(allArrays => {
+      const map = new Map();
+      allArrays.flat().forEach(e => {
+        const pts = Math.max(0, 51 - (e.rank || 51));
+        if (pts === 0) return;
+        const primary = primaryArtistName(e.artist_display || e.artist);
+        if (!primary) return;
+        const key = primary.toLowerCase();
+        if (map.has(key)) {
+          const a = map.get(key);
+          a.pts += pts;
+          a.songs.push({ title: e.title, rank: e.rank, pts, entryId: e.id, releaseId: e.release, cover: e.cover_image });
+        } else {
+          map.set(key, {
+            name: primary,
+            pts,
+            songs: [{ title: e.title, rank: e.rank, pts, entryId: e.id, releaseId: e.release, cover: e.cover_image }],
+          });
+        }
+      });
+      const ranked = [...map.values()]
+        .sort((a, b) => b.pts - a.pts)
+        .map((a, i) => ({ ...a, rank: i + 1 }));
+      setArtistRankings(ranked);
+    })
+    .catch(e => setError(e.message))
+    .finally(() => setLoading(false));
+  }, [chartType, allCharts]);
 
   const relevantPlatforms = platforms;
 
@@ -457,27 +455,23 @@ export default function ChartEntriesPage() {
           ))}
         </div>
 
-        <select
-          className="cms-select"
-          value={selectedYM}
-          onChange={e => setSelectedYM(e.target.value)}
-          style={{ minWidth: 200 }}
-        >
-          <option value="">— Select month —</option>
-          {uniqueMonths.map(m => (
-            <option key={m.key} value={m.key}>{m.label}</option>
-          ))}
-        </select>
+        {chartType !== "artists" && (
+          <select
+            className="cms-select"
+            value={selectedYM}
+            onChange={e => setSelectedYM(e.target.value)}
+            style={{ minWidth: 200 }}
+          >
+            <option value="">— Select month —</option>
+            {uniqueMonths.map(m => (
+              <option key={m.key} value={m.key}>{m.label}</option>
+            ))}
+          </select>
+        )}
 
         {chartType !== "artists" && !currentChart && selectedYM && (
           <span style={{ fontSize: 12, color: "#C62828", fontWeight: 700 }}>
             No {chartType} chart for this month
-          </span>
-        )}
-
-        {chartType === "artists" && !singlesChartId && selectedYM && (
-          <span style={{ fontSize: 12, color: "#C62828", fontWeight: 700 }}>
-            No singles chart for this month (needed to compute artist rankings)
           </span>
         )}
 
@@ -502,7 +496,7 @@ export default function ChartEntriesPage() {
 
         {chartType === "artists" && artistRankings.length > 0 && (
           <span style={{ fontSize: 12, color: "#888" }}>
-            {artistRankings.length} artists · computed from combined singles
+            {artistRankings.length} artists · cumulative combined singles + albums
           </span>
         )}
 
@@ -530,12 +524,8 @@ export default function ChartEntriesPage() {
 
       ) : chartType === "artists" ? (
         /* ── Artists computed chart ─────────────────────────────────────── */
-        !singlesChartId ? (
-          <div className="cms-empty">
-            {selectedYM ? "No singles chart for this month — artist rankings cannot be computed." : "Select a month above."}
-          </div>
-        ) : artistRankings.length === 0 ? (
-          <div className="cms-empty">No combined chart entries for this month.</div>
+        artistRankings.length === 0 ? (
+          <div className="cms-empty">{allCharts.length ? "No combined chart entries found." : "Loading chart data…"}</div>
         ) : (
           <div className="cms-entries-layout" style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
             <div className="cms-entries-table" style={{ flex: 1, minWidth: 0 }}>
