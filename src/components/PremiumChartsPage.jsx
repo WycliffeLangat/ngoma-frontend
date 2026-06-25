@@ -602,18 +602,23 @@ export function getArtistCountry(item) {
     };
   }
 
-  const fallback =
-    findArtistCountryFallback(item.primary_artist) ||
-    findArtistCountryFallback(item.artist) ||
-    findArtistCountryFallback(item.artist_name) ||
-    null;
+  // Static fallback — only for artists NOT in the CMS at all.
+  // If managedArtist is truthy (artist exists in CMS but has no country_code set yet),
+  // skip the fallback so a stale hardcoded entry never overrides an in-progress CMS update.
+  if (!managedArtist) {
+    const fallback =
+      findArtistCountryFallback(item.primary_artist) ||
+      findArtistCountryFallback(item.artist) ||
+      findArtistCountryFallback(item.artist_name) ||
+      null;
 
-  if (fallback) {
-    return {
-      flag: countryCodeToFlag(fallback.code),
-      country: fallback.country,
-      code: fallback.code,
-    };
+    if (fallback) {
+      return {
+        flag: countryCodeToFlag(fallback.code),
+        country: fallback.country,
+        code: fallback.code,
+      };
+    }
   }
 
   return {
