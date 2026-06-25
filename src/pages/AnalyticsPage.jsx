@@ -377,7 +377,7 @@ export default function AnalyticsPage({ ctx }) {
           <AnalyticsDeepSection label="Climbers & Drops" isMobile={isMobile}>
           <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px",marginBottom:"20px"}}>
             <div style={card()}>
-              <div style={secLbl("#2DB04A")}><SecMark c="#2DB04A"/>Top {releaseLabel} Climbers — {anMonth}</div>
+              <div style={{...secLbl("#2DB04A"), fontSize:"20px"}}><SecMark c="#2DB04A"/>Top {releaseLabel} Climbers — {anMonth}</div>
               {mvData.risers.map((s,i)=>{
                 const certification = isArtists ? null : getCertificationForEntry(s, isSingles ? "single" : "album");
                 return (
@@ -399,7 +399,7 @@ export default function AnalyticsPage({ ctx }) {
               {!mvData.risers.length&&<div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:"#CCC",padding:"20px 0",textAlign:"center"}}>No movement data (debut month)</div>}
             </div>
             <div style={card()}>
-              <div style={secLbl("#E53935")}><SecMark c="#E53935"/>Biggest {releaseLabel} Drops — {anMonth}</div>
+              <div style={{...secLbl("#E53935"), fontSize:"20px"}}><SecMark c="#E53935"/>Biggest {releaseLabel} Drops — {anMonth}</div>
               {mvData.fallers.map((s,i)=>{
                 const certification = isArtists ? null : getCertificationForEntry(s, isSingles ? "single" : "album");
                 return (
