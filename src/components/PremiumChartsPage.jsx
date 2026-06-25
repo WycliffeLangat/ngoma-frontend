@@ -1165,7 +1165,7 @@ export default function PremiumChartsPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, sort, ct, month]);
 
-  const shown = sortedData.slice(0, vc);
+  const shown = sortedData;
 
   function handleSort(key) {
     setSort((current) => {
@@ -1367,24 +1367,6 @@ export default function PremiumChartsPage({
         </div>
       </section>
 
-      <div style={{ maxWidth: pageMax, margin: "0 auto", boxSizing: "border-box" }}>
-        <hr style={{ border: "none", borderTop: "1.5px solid rgba(184,134,11,0.32)", margin: 0 }} />
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: mobile ? "8px 0" : "9px 0",
-          gap: "12px",
-        }}>
-          <span className="chart-dateline" style={{ fontSize: mobile ? "9px" : "10px" }}>
-            {new Date().toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}
-          </span>
-          <span style={{ fontSize: mobile ? "9px" : "10px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#9a9a9a" }}>
-            {platformLabel}
-          </span>
-        </div>
-        <hr style={{ border: "none", borderTop: "1px solid rgba(0,0,0,0.07)", margin: 0 }} />
-      </div>
 
       <section
         style={{
@@ -1452,38 +1434,6 @@ export default function PremiumChartsPage({
           {mobile && <div style={styles.pillFade} />}
         </div>
 
-        <div
-          style={{
-            ...styles.viewOptions,
-            marginLeft: mobile ? 0 : "auto",
-            width: mobile ? "100%" : "auto",
-          }}
-        >
-          {VO.map((item) => {
-            const active = vc === item.c;
-            const disabled = item.c > data.length;
-
-            return (
-              <button
-                key={item.c}
-                onClick={() => !disabled && setVc(item.c)}
-                disabled={disabled}
-                style={{
-                  ...styles.viewButton,
-                  padding: mobile ? "11px 12px" : "8px 12px",
-                  background: active ? (darkMode ? "#1A1E1A" : "#ffffff") : (darkMode ? "#111411" : "#f6f6f3"),
-                  color: active ? (darkMode ? "#F6F3EA" : chartAccentInk) : (darkMode ? "#B8BDB8" : "#4b5563"),
-                  border: active ? `2px solid ${chartAccent}` : `1px solid ${darkMode ? "#2F352F" : "#e5e7eb"}`,
-                  fontWeight: active ? 900 : 800,
-                  opacity: disabled ? 0.4 : 1,
-                  flex: mobile ? 1 : "initial",
-                }}
-              >
-                {item.l}
-              </button>
-            );
-          })}
-        </div>
       </section>
 
       <section
@@ -1519,9 +1469,6 @@ export default function PremiumChartsPage({
             </div>
           </div>
 
-          <div style={styles.tableTopActions}>
-            <div style={{...styles.tableRange,background:`${chartAccent}18`,color:chartAccentInk}}>Top {Math.min(vc, data.length)}</div>
-          </div>
         </div>
 
         {!mobile && (
