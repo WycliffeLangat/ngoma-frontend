@@ -1228,9 +1228,9 @@ const top = data[0];
       return fields.some(f=>f.includes(q))||(a.country_code||"").toLowerCase()===q;
     }).slice(0,6);
     const newsItems=(liveNews||NEWS).filter(n=>[n.title,n.excerpt,n.body,n.cat].map(s=>String(s||"").toLowerCase()).some(f=>f.includes(q))).slice(0,4);
-    const certs=(liveCerts||[]).filter(c=>[String(c.t||""),String(c.a||""),String(c.level||"")].map(s=>s.toLowerCase()).some(f=>f.includes(q))).slice(0,4);
+    const certs=(normalizedLiveCerts||[]).filter(c=>[String(c.t||""),String(c.a||""),String(c.level||"")].map(s=>s.toLowerCase()).some(f=>f.includes(q))).slice(0,4);
     return {songs,albums,artists,news:newsItems,certs};
-  },[srch,songSearchIndex,albumSearchIndex,liveNews,liveCerts]);
+  },[srch,songSearchIndex,albumSearchIndex,liveNews,normalizedLiveCerts]);
   const sFlatResults=useMemo(()=>{
     if(!sResults) return [];
     return [
@@ -2014,6 +2014,26 @@ const top = data[0];
       albums: buildLookup(COMBINED_YEAR_END.albums),
     };
   }, []);
+
+  // Live certs from the API use whatever total_points the backend stored.
+  // We override those with the local Combined Top 50 formula (51 − rank,
+  // accumulated across all months) so the same certification rule applies
+  // whether the source is static or live.
+  const normalizedLiveCerts = useMemo(() => {
+    if (!liveCerts) return null;
+    return liveCerts.map(c => {
+      const bucket = c.chart_type === "albums" ? "albums" : "singles";
+      const local = certificationLookup[bucket]?.get(certificationKey(c.t, c.a));
+      if (local) {
+        return { ...c, totalPts: local.totalPts, level: local.level };
+      }
+      // Entry not yet in local chart history — keep API points but re-derive
+      // level against the same thresholds used locally.
+      const level = getCertificationLevel(c.totalPts);
+      return level ? { ...c, level } : null;
+    }).filter(Boolean);
+  }, [liveCerts, certificationLookup]);
+
   const getCertificationForEntry = (entry = {}, fallbackType) => {
     const type = String(fallbackType || entry.type || (isSingles ? "single" : "album")).toLowerCase();
     const bucket = type.includes("album") ? "albums" : "singles";
@@ -2183,7 +2203,7 @@ const top = data[0];
     card,
     certColors,
     certIcons,
-    certs: liveCerts ? liveCerts.filter(c => c.chart_type === ct) : certs,
+    certs: normalizedLiveCerts ? normalizedLiveCerts.filter(c => c.chart_type === ct) : certs,
     chartTypeLabel,
     closeDetails,
     cmp1,
@@ -2527,7 +2547,7 @@ const top = data[0];
                   <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#5a7abf":"#2d7dd2",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>Songs</div>
                   {sResults.songs.map((e,i)=>{
                     const flatIdx=i;
-                    const cert=liveCerts?liveCerts.find(c=>String(c.t||"").toLowerCase()===String(e.title||"").toLowerCase()&&String(c.a||"").toLowerCase()===String(e.artist||"").toLowerCase()):null;
+                    const cert=normalizedLiveCerts?normalizedLiveCerts.find(c=>String(c.t||"").toLowerCase()===String(e.title||"").toLowerCase()&&String(c.a||"").toLowerCase()===String(e.artist||"").toLowerCase()):null;
                     const certMeta=cert?certificationMetaForLevel(cert.level):null;
                     return(
                       <button key={`s-${i}`} type="button"
