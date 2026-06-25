@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { cmsApi, getResults } from "../api";
 
 const MOVE_COLOR = { NEW: "#1565C0", up: "#1B7F3A", down: "#C62828", same: "#999" };
@@ -24,67 +24,89 @@ const FIELD_DEFS = [
 const COMBINED = "combined";
 
 export default function ChartEntriesPage() {
-  const [charts, setCharts]         = useState([]);
-  const [platforms, setPlatforms]   = useState([]);
-  const [chartType, setChartType]   = useState("singles");
-  const [chartId, setChartId]       = useState("");
-  const [platformId, setPlatformId] = useState(COMBINED);
-  const [entries, setEntries]       = useState([]);
-  const [loading, setLoading]       = useState(false);
-  const [error, setError]           = useState("");
-  const [selected, setSelected]     = useState(null);
-  const [form, setForm]             = useState({});
-  const [saving, setSaving]         = useState(false);
-  const [imageFile, setImageFile]   = useState(null);
+  const [allCharts, setAllCharts]     = useState([]);
+  const [platforms, setPlatforms]     = useState([]);
+  const [chartType, setChartType]     = useState("singles");
+  const [selectedYM, setSelectedYM]   = useState(""); // "YYYY-MM" key
+  const [platformId, setPlatformId]   = useState(COMBINED);
+  const [entries, setEntries]         = useState([]);
+  const [loading, setLoading]         = useState(false);
+  const [error, setError]             = useState("");
+  const [selected, setSelected]       = useState(null);
+  const [form, setForm]               = useState({});
+  const [saving, setSaving]           = useState(false);
+  const [imageFile, setImageFile]     = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const imgInputRef = useRef();
 
-  // Load platforms once
+  // Load ALL chart records (both types) and platforms once.
+  // We deduplicate months client-side and match the correct chart by year+month+chart_type,
+  // which avoids relying on the backend chart_type filter being implemented.
   useEffect(() => {
+    cmsApi.get("/charts/?ordering=-year,-month&page_size=400")
+      .then(d => {
+        const results = getResults(d);
+        setAllCharts(results);
+        // Default to most recent month
+        if (results.length) {
+          const first = results[0];
+          setSelectedYM(`${first.year}-${String(first.month).padStart(2, "0")}`);
+        }
+      })
+      .catch(e => setError(e.message));
     cmsApi.get("/platforms/?active=true&page_size=100")
       .then(d => setPlatforms(getResults(d)))
       .catch(() => {});
   }, []);
 
-  // Reload charts when chart type changes.
-  // Clear stale state immediately so singles entries never bleed into the albums view.
+  // Unique months for the dropdown (sorted newest-first)
+  const uniqueMonths = useMemo(() => {
+    const seen = new Set();
+    return allCharts.reduce((acc, c) => {
+      const key = `${c.year}-${String(c.month).padStart(2, "0")}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        acc.push({ key, year: c.year, month: c.month, label: c.label || `${c.year}-${c.month}` });
+      }
+      return acc;
+    }, []);
+  }, [allCharts]);
+
+  // The chart record that matches the current month + chart type exactly.
+  // This is the correct chart ID to use for entries, regardless of whether
+  // the backend's chart_type filter is implemented.
+  const currentChart = useMemo(() => {
+    if (!selectedYM) return null;
+    return allCharts.find(c => {
+      const ym = `${c.year}-${String(c.month).padStart(2, "0")}`;
+      return ym === selectedYM && c.chart_type === chartType;
+    }) || null;
+  }, [allCharts, selectedYM, chartType]);
+
+  const chartId  = currentChart ? String(currentChart.id) : "";
+  const isLocked = !!currentChart?.locked;
+
+  // Reset platform pill when chart type or month changes
   useEffect(() => {
-    setCharts([]);
-    setChartId("");
+    setPlatformId(COMBINED);
+    setSelected(null);
     setEntries([]);
-    setSelected(null);
-    setPlatformId(COMBINED);
-    cmsApi.get(`/charts/?chart_type=${chartType}&ordering=-year,-month&page_size=200`)
-      .then(d => {
-        const results = getResults(d);
-        setCharts(results);
-        if (results.length) setChartId(String(results[0].id));
-      })
-      .catch(e => setError(e.message));
-  }, [chartType]); // eslint-disable-line
+  }, [chartType, selectedYM]);
 
-  const typedCharts = charts;
-
-  // Show all active platforms — admin must set supports_singles / supports_albums flags
-  // in the Platforms section to restrict which pills show per chart type.
-  const relevantPlatforms = platforms;
-
-  // Reset platform pill when chart month changes
-  useEffect(() => {
-    setPlatformId(COMBINED);
-    setSelected(null);
-  }, [chartId]);
-
-  // Load entries whenever chart or platform changes
+  // Load entries whenever the resolved chart or platform changes
   useEffect(() => {
     if (!chartId) { setEntries([]); return; }
     setLoading(true); setError(""); setSelected(null);
     const platformParam = platformId === COMBINED ? "combined" : platformId;
-    cmsApi.get(`/chart-entries/?chart=${chartId}&chart_type=${chartType}&platform=${platformParam}&ordering=rank&page_size=200`)
+    cmsApi.get(`/chart-entries/?chart=${chartId}&platform=${platformParam}&ordering=rank&page_size=200`)
       .then(d => setEntries(getResults(d)))
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
   }, [chartId, platformId]);
+
+  // Show all active platforms — to restrict per type, set supports_singles /
+  // supports_albums flags in the Platforms admin section.
+  const relevantPlatforms = platforms;
 
   function pickEntry(entry) {
     setSelected(entry);
@@ -136,9 +158,7 @@ export default function ChartEntriesPage() {
     finally { setSaving(false); }
   }
 
-  const selectedChart   = charts.find(c => String(c.id) === chartId);
-  const isLocked        = !!selectedChart?.locked;
-  const activePlatform  = platformId === COMBINED
+  const activePlatform = platformId === COMBINED
     ? { name: "Combined", color: "#B8860B" }
     : platforms.find(p => String(p.id) === String(platformId));
 
@@ -201,15 +221,21 @@ export default function ChartEntriesPage() {
 
         <select
           className="cms-select"
-          value={chartId}
-          onChange={e => setChartId(e.target.value)}
+          value={selectedYM}
+          onChange={e => setSelectedYM(e.target.value)}
           style={{ minWidth: 200 }}
         >
           <option value="">— Select month —</option>
-          {typedCharts.map(c => (
-            <option key={c.id} value={c.id}>{c.label}</option>
+          {uniqueMonths.map(m => (
+            <option key={m.key} value={m.key}>{m.label}</option>
           ))}
         </select>
+
+        {!currentChart && selectedYM && (
+          <span style={{ fontSize: 12, color: "#C62828", fontWeight: 700 }}>
+            No {chartType} chart for this month
+          </span>
+        )}
 
         {isLocked && (
           <span style={{ fontSize: 12, color: "#C62828", fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}>
@@ -237,7 +263,11 @@ export default function ChartEntriesPage() {
 
       {/* ── Body ── */}
       {!chartId ? (
-        <div className="cms-empty">Select a chart month above to view its entries.</div>
+        <div className="cms-empty">
+          {selectedYM
+            ? `No ${chartType} chart found for this month.`
+            : "Select a chart month above to view its entries."}
+        </div>
       ) : loading ? (
         <div className="cms-empty">Loading entries…</div>
       ) : (
