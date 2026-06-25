@@ -907,6 +907,7 @@ export default function NgomaCharts(){
   const [loaded,setLd]=useState(false);
   const [liveStatus, setLiveStatus] = useState("static"); // "static" | "live" | "checking"
   const [apiChecked, setApiChecked] = useState(false); // true once the API ping has resolved
+  const [chartRefreshKey, setChartRefreshKey] = useState(0); // increments on window focus to re-fetch live data
   const [liveChartEntries, setLiveChartEntries] = useState([]);
   const [liveChartMeta, setLiveChartMeta] = useState(null);
   const [liveChartLoading, setLiveChartLoading] = useState(false);
@@ -984,6 +985,15 @@ export default function NgomaCharts(){
       .then(() => setLiveStatus("live"))
       .catch(() => setLiveStatus("static"))
       .finally(() => setApiChecked(true));
+  }, []);
+
+  // Re-fetch live chart data when the window regains focus — ensures CMS edits
+  // (title changes, rank recalculations, merges, deletes, country updates) are
+  // reflected immediately when the user switches from the CMS tab back here.
+  useEffect(() => {
+    const onFocus = () => setChartRefreshKey(k => k + 1);
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
   }, []);
 
   useEffect(() => {
@@ -1072,7 +1082,7 @@ export default function NgomaCharts(){
       });
 
     return () => controller.abort();
-  }, [releaseCt, month, plat, tp, isArtists]);
+  }, [releaseCt, month, plat, tp, isArtists, chartRefreshKey]);
   useEffect(()=>{setTimeout(()=>setLd(true),100);},[]);
 
   const [vw,setVw]=useState(typeof window!=="undefined"?window.innerWidth:1200);

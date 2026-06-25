@@ -54,6 +54,8 @@ export async function fetchCertifications() {
 }
 
 // Returns chart entries for a specific month, year, and platform.
+// cache: "no-store" ensures CMS edits (rank changes, title edits, merges, deletes)
+// are visible immediately without the browser serving a cached response.
 // Pass an AbortSignal to cancel in-flight requests when the user switches months.
 export async function fetchChartImageData({ type, month, year, platform }, signal) {
   const params = new URLSearchParams({
@@ -62,7 +64,11 @@ export async function fetchChartImageData({ type, month, year, platform }, signa
     year: String(year),
     platform,
   });
-  const res = await fetch(`${API_BASE}/export/chart-image-data/?${params}`, { signal });
+  const res = await fetch(`${API_BASE}/export/chart-image-data/?${params}`, {
+    signal,
+    cache: "no-store",
+    headers: { "Cache-Control": "no-cache" },
+  });
   if (!res.ok) throw new Error("Live chart unavailable");
   return res.json();
 }
