@@ -1444,7 +1444,7 @@ export default function PremiumChartsPage({
               : `0 0 0 1px rgba(0,0,0,0.08), 0 12px 40px rgba(0,0,0,0.14)`;
             const textPrimary = darkMode ? "#FFFFFF"              : "#0A0A0A";
             const textSub     = darkMode ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.55)";
-            const watermark   = darkMode ? `${chartAccent}CC` : `${chartAccent}99`;
+
             const dotInactive = darkMode ? "rgba(255,255,255,0.28)" : "rgba(0,0,0,0.18)";
             const arrowBorder = darkMode ? "rgba(255,255,255,0.22)" : "rgba(0,0,0,0.15)";
             const arrowBg     = darkMode ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)";
@@ -1494,6 +1494,20 @@ export default function PremiumChartsPage({
                   zIndex: 2,
                 }} />
 
+                {/* Large rank watermark — direct card child so overflow:hidden doesn't clip it */}
+                <div
+                  key={`wm-${slideIdx}`}
+                  style={{
+                    position: "absolute", right: "14px", bottom: "8px",
+                    fontSize: "120px", fontWeight: 900, lineHeight: 1,
+                    fontFamily: "'IBM Plex Sans Condensed', Helvetica, sans-serif",
+                    color: chartAccent,
+                    pointerEvents: "none", userSelect: "none",
+                    letterSpacing: "-6px",
+                    zIndex: 20,
+                  }}
+                >{rank}</div>
+
                 {/* Main content */}
                 <div
                   key={`slide-${slideIdx}`}
@@ -1535,21 +1549,12 @@ export default function PremiumChartsPage({
                       fontFamily: "'IBM Plex Sans Condensed', Helvetica, sans-serif",
                       boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
                       letterSpacing: "0.3px",
+                      zIndex: 20,
                     }}>#{rank}</div>
                   </div>
 
                   {/* Text */}
                   <div style={{ flex: 1, minWidth: 0, position: "relative" }}>
-                    {/* Ghost rank watermark */}
-                    <div style={{
-                      position: "absolute", right: "-6px", top: "50%",
-                      transform: "translateY(-52%)",
-                      fontSize: "100px", fontWeight: 900,
-                      fontFamily: "'IBM Plex Sans Condensed', Helvetica, sans-serif",
-                      color: watermark,
-                      lineHeight: 1, pointerEvents: "none", userSelect: "none",
-                      letterSpacing: "-4px",
-                    }}>{rank}</div>
 
                     {/* Eyebrow */}
                     <div style={{
