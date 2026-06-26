@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { API_BASE, resolveMediaUrl } from "./api/config.js";
+import { getArtistImageUrl, withResolvedArtistImage } from "./utils/artistImages.js";
 import {
   checkApiStatus, fetchNews, fetchCertifications, fetchChartImageData, fetchAppData,
   fetchRevision,
@@ -54,6 +55,7 @@ const normalizeRelease = (r) =>
   r.cover_image && !r.cover_image.startsWith("http") && !r.cover_image.startsWith("//")
     ? { ...r, cover_image: resolveMediaUrl(r.cover_image) }
     : r;
+const normalizeArtist = (artist) => withResolvedArtistImage(artist || {}, { name: artist?.display_name || artist?.public_name || artist?.name, artists: [artist || {}] });
 const PUBLIC_RELEASES_BY_ID = new Map((PUBLIC_DATA.releases || []).map((release) => [Number(release.id), normalizeRelease(release)]));
 // Fallback index by normalised title — used when chart entries lack release_id.
 const PUBLIC_RELEASES_BY_TITLE = new Map();
@@ -63,9 +65,10 @@ const PUBLIC_RELEASES_BY_TITLE = new Map();
 });
 const PUBLIC_ARTISTS_BY_NAME = new Map();
 (PUBLIC_DATA.artists || []).forEach((artist) => {
+  const normalizedArtist = normalizeArtist(artist);
   [artist.name, artist.display_name, artist.public_name, ...(artist.aliases || [])].forEach((name) => {
     const key = String(name || "").trim().toLowerCase();
-    if (key && !PUBLIC_ARTISTS_BY_NAME.has(key)) PUBLIC_ARTISTS_BY_NAME.set(key, artist);
+    if (key && !PUBLIC_ARTISTS_BY_NAME.has(key)) PUBLIC_ARTISTS_BY_NAME.set(key, normalizedArtist);
   });
 });
 const publicArtistForName = (name = "") => {
@@ -178,9 +181,10 @@ function rebuildPublicLookups(freshData) {
 
   PUBLIC_ARTISTS_BY_NAME.clear();
   artists.forEach((artist) => {
+    const normalizedArtist = normalizeArtist(artist);
     [artist.name, artist.display_name, artist.public_name, ...(artist.aliases || [])].forEach((name) => {
       const k = String(name || "").trim().toLowerCase();
-      if (k && !PUBLIC_ARTISTS_BY_NAME.has(k)) PUBLIC_ARTISTS_BY_NAME.set(k, artist);
+      if (k && !PUBLIC_ARTISTS_BY_NAME.has(k)) PUBLIC_ARTISTS_BY_NAME.set(k, normalizedArtist);
     });
   });
 
@@ -631,6 +635,7 @@ const buildArtistChart = (monthLabel = CURRENT_MONTH, platform = "Combined") => 
     const platformHits = platform === "Combined" ? getArtistPlatformHits(artist.n, monthLabel) : [platform];
     const country = artist.country || getArtistCountry({ artist: artist.n });
     const artistProfile = publicArtistForName(artist.n) || {};
+    const artistImage = getArtistImageUrl({ ...artistProfile, title: artist.n, artist_profile: artistProfile }, { name: artist.n });
     return {
       rank,
       title: artist.n,
@@ -662,7 +667,7 @@ const buildArtistChart = (monthLabel = CURRENT_MONTH, platform = "Combined") => 
       is_artist_entry: true,
       type: "artist",
       artist_profile: artistProfile,
-      image: artistProfile.image || "",
+      image: artistImage,
       aliases: artistProfile.aliases || [],
       city_region: artistProfile.city_region || "",
       genre: artistProfile.genre || "",
@@ -1070,6 +1075,9 @@ export default function NgomaCharts(){
               platformEntryCache.clear();
               rawPlatformIndexCache.clear();
               coverImageCache.clear();
+              combinedArtistsCache.clear();
+              artistPlatformSourceCache.clear();
+              artistChartCache.clear();
               kenyanRawCache.clear();
               kenyanEntryCache.clear();
             }
@@ -1099,6 +1107,9 @@ export default function NgomaCharts(){
               platformEntryCache.clear();
               rawPlatformIndexCache.clear();
               coverImageCache.clear();
+              combinedArtistsCache.clear();
+              artistPlatformSourceCache.clear();
+              artistChartCache.clear();
               kenyanRawCache.clear();
               kenyanEntryCache.clear();
             }
@@ -1446,6 +1457,8 @@ const top = data[0];
       setSelA({
         n: (cmsArtist && (cmsArtist.display_name || cmsArtist.name)) || requestedName,
         rh: {}, mp: {}, pk: "—", rank: "—", p: 0, m: 0, t: 0, prevRank: null,
+        artist_profile: cmsArtist || {},
+        image: getArtistImageUrl(cmsArtist || { title: requestedName }, { name: requestedName }),
       });
       prepareDetailNavigation();
       return;
@@ -2370,6 +2383,7 @@ const top = data[0];
     formulaLabel,
     fullCoverageClub,
     getArtistCountry,
+    getArtistImageUrl,
     getCertificationForEntry,
     getCombined,
     getChartHistory: plat === KENYAN_CHART ? getKenyanCombined : getCombined,

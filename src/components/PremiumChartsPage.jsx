@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { getArtistImageUrl } from "../utils/artistImages.js";
 
 // Flag-derived accent colors shared with the Year End country tags.
 const COUNTRY_ACCENTS = {
@@ -440,6 +441,12 @@ export default function PremiumChartsPage({
   }
 
   function getArtworkUrl(item) {
+    if (isArtistsChart || item?.is_artist_entry || item?.type === "artist") {
+      return getArtistImageUrl(item, {
+        name: item?.title || item?.n || item?.primary_artist || item?.artist,
+      });
+    }
+
     const value = firstDetailValue(
       item,
       [
@@ -452,8 +459,6 @@ export default function PremiumChartsPage({
         "coverUrl",
         "cover_art",
         "album_art",
-        "image",
-        "image_url",
         "thumbnail",
         "thumbnail_url",
       ],
@@ -565,13 +570,17 @@ export default function PremiumChartsPage({
   }
 
   function managedArtistForItem(item) {
-    if (item?.artist_profile) return item.artist_profile;
     const publicData = typeof window !== "undefined" ? (window.__NGOMA_PUBLIC_DATA__ || {}) : {};
-    const requestedName = String(item?.title || item?.primary_artist || item?.artist || "").trim().toLowerCase();
-    return (publicData.artists || []).find((artist) =>
+    const requestedName = String(item?.title || item?.n || item?.primary_artist || item?.artist || "").trim();
+    const requestedKey = requestedName.toLowerCase();
+    const profile = item?.artist_profile || (publicData.artists || []).find((artist) =>
       [artist.name, artist.display_name, artist.public_name, ...(artist.aliases || [])]
-        .some((name) => String(name || "").trim().toLowerCase() === requestedName)
+        .some((name) => String(name || "").trim().toLowerCase() === requestedKey)
     ) || {};
+    return {
+      ...profile,
+      image: getArtistImageUrl({ ...item, artist_profile: profile }, { name: requestedName }) || profile.image || item?.image || "",
+    };
   }
 
   function DetailLinks({ links = {} }) {

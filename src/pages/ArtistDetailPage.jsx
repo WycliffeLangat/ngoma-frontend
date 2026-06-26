@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { getArtistImageUrl } from "../utils/artistImages.js";
 
 export default function ArtistDetailPage({ ctx }) {
   const {
@@ -57,6 +58,10 @@ export default function ArtistDetailPage({ ctx }) {
   }, [selA?.n, API_BASE]);
 
   const profile = liveArtist || artistMetadata;
+  const artistImage = getArtistImageUrl(
+    { ...selA, ...profile, title: selA?.n, artist_profile: profile, image: profile.image || selA?.image },
+    { name: selA?.n }
+  );
   const artistLinks = Object.entries(profile.social_links || {}).filter(([, url]) => url);
 
   const entryCountryCode = selectedArtistEntries[0]?.artist_country_code || selectedArtistEntries[0]?.country_code || "";
@@ -120,7 +125,7 @@ export default function ArtistDetailPage({ ctx }) {
 
           {/* Profile header */}
           <div style={{marginTop:"22px",display:"flex",gap:isMobile?"16px":"24px",alignItems:"flex-start",flexDirection:isMobile?"column":"row",minWidth:0}}>
-            <div style={{width:isMobile?"88px":"120px",height:isMobile?"88px":"120px",borderRadius:"50%",background:"linear-gradient(135deg,#FAF5EA,#EDE0C0)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:isMobile?"36px":"48px",fontWeight:900,color:GOLD,flexShrink:0,border:"3px solid "+GOLD+"22",boxShadow:"0 8px 28px rgba(184,134,11,0.14)",overflow:"hidden"}}>{profile.image?<img src={profile.image} alt={selA.n} style={{width:"100%",height:"100%",objectFit:"cover"}} />:selA.n[0]}</div>
+            <div style={{width:isMobile?"88px":"120px",height:isMobile?"88px":"120px",borderRadius:"50%",background:"linear-gradient(135deg,#FAF5EA,#EDE0C0)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:isMobile?"36px":"48px",fontWeight:900,color:GOLD,flexShrink:0,border:"3px solid "+GOLD+"22",boxShadow:"0 8px 28px rgba(184,134,11,0.14)",overflow:"hidden"}}>{artistImage?<img src={artistImage} alt={selA.n} style={{width:"100%",height:"100%",objectFit:"cover"}} />:selA.n[0]}</div>
             <div style={{flex:1,minWidth:0}}>
               <div style={{display:"flex",alignItems:"center",gap:"10px",flexWrap:"wrap"}}>
                 <h2 style={{margin:0,fontFamily:SF,fontSize:isMobile?"26px":"32px",fontWeight:800,lineHeight:1.08,letterSpacing:"-0.5px"}}>{selA.n}</h2>

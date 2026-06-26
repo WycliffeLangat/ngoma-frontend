@@ -22,6 +22,7 @@ export default function ArtistsPage({ ctx }) {
     expandedArtistRows,
     isDark,
     isMobile,
+    getArtistImageUrl,
     openArtistDetails,
     secLbl,
     setArtistMonth,
@@ -29,6 +30,32 @@ export default function ArtistsPage({ ctx }) {
     setCmpA2,
     toggleArtistRow
   } = ctx;
+
+  const ArtistAvatar = ({ artist, size = 42, compact = false, style = {} }) => {
+    const name = typeof artist === "string" ? artist : artist?.n || artist?.title || artist?.name || "";
+    const image = getArtistImageUrl?.(typeof artist === "string" ? { title: name } : artist, { name });
+    if (image) {
+      return (
+        <img
+          src={image}
+          alt={name}
+          loading="lazy"
+          style={{
+            width: size,
+            height: size,
+            minWidth: size,
+            borderRadius: compact ? "10px" : "12px",
+            objectFit: "cover",
+            display: "block",
+            flexShrink: 0,
+            border: "1px solid " + (isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)"),
+            ...style,
+          }}
+        />
+      );
+    }
+    return <CountryBadge artist={name} compact={compact} style={{ minWidth: size, width: size, height: size, borderRadius: compact ? "10px" : "12px", padding: 0, flexShrink: 0, ...style }} />;
+  };
 
   return (
 <div style={{padding:PAD,background:isDark?"#050505":"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
@@ -60,7 +87,7 @@ export default function ArtistsPage({ ctx }) {
               {[{d:cmp1,c:GOLD},{d:cmp2,c:"#1565C0"}].map(({d,c},i)=>(
                 <button key={i} type="button" onClick={()=>openArtistDetails(d.n)} style={{padding:isMobile?"13px":"15px",background:isDark?(i===0?"rgba(184,134,11,0.16)":"rgba(21,101,192,0.20)"):c+"0D",borderRadius:"10px",border:isDark?"1px solid "+c+"55":"none",borderLeft:"3px solid "+c,cursor:"pointer",minWidth:0,textAlign:"left"}}>
                   <div style={{display:"flex",alignItems:"center",gap:"8px",minWidth:0}}>
-                    <CountryBadge artist={d.n} compact />
+                    <ArtistAvatar artist={d} size={30} compact />
                     <div style={{fontFamily:SF,fontSize:isMobile?"15px":"16px",fontWeight:850,lineHeight:1.2,whiteSpace:"normal",overflowWrap:"anywhere",color:isDark?"#F6F3EA":"#1F241F"}}>{d.n}</div>
                   </div>
                 </button>
@@ -104,7 +131,7 @@ export default function ArtistsPage({ ctx }) {
                   <div key={rowKey} style={{padding:"15px 16px",border:"1px solid "+(isDark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.08)"),borderRadius:"16px",background:isDark?"#0F1110":"#FFF",boxShadow:expanded?"inset 4px 0 0 #B8860B, 0 8px 22px rgba(0,0,0,0.045)":"0 2px 10px rgba(0,0,0,0.025)"}}>
                     <div onClick={()=>toggleArtistRow(rowKey)} role="button" aria-expanded={expanded} style={{display:"grid",gridTemplateColumns:"34px 42px minmax(0,1fr) 38px",gap:"10px",alignItems:"center",cursor:"pointer",minWidth:0}}>
                       <div style={{fontSize:i<3?"28px":"24px",fontWeight:950,lineHeight:1,color:i<3?MEDALS[i]:"#050505",textAlign:"center",fontFamily:F}}>{i+1}</div>
-                      <CountryBadge artist={a.n} style={{minWidth:"42px",width:"42px",height:"42px",borderRadius:"12px",padding:0,flexShrink:0}} />
+                      <ArtistAvatar artist={a} size={42} />
                       <div style={{minWidth:0}}>
                         <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(a.n);}} style={{display:"block",width:"100%",border:0,background:"transparent",padding:0,margin:0,textAlign:"left",fontFamily:SF,fontSize:"15.5px",fontWeight:850,lineHeight:1.2,color:isDark?"#F6F3EA":"#050505",whiteSpace:"normal",overflowWrap:"anywhere",cursor:"pointer"}}>{a.n}</button>
                         <div style={{fontFamily:F,fontSize:"11.5px",fontWeight:800,color:trend.color,marginTop:"5px",lineHeight:1.25}}>{trend.symbol} {trend.shortLabel}</div>
@@ -136,7 +163,7 @@ export default function ArtistsPage({ ctx }) {
               <div key={a.n} className="ngoma-artist-row" style={{display:"grid",gridTemplateColumns:"44px 38px minmax(0,1fr) 70px 126px",gap:"12px",padding:"12px",borderBottom:"1px solid #F2F2EE",alignItems:"center",minWidth:0}}
                 onMouseEnter={e=>e.currentTarget.style.background="#FAFAF6"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
                 <div style={{fontSize:i<3?"20px":"14px",fontWeight:900,color:i<3?MEDALS[i]:"#B0B5B0",textAlign:"center",fontFamily:F,letterSpacing:"-0.3px"}}>{i+1}</div>
-                <CountryBadge artist={a.n} compact />
+                <ArtistAvatar artist={a} size={34} compact />
                 <div style={{minWidth:0}}><button type="button" onClick={()=>openArtistDetails(a.n)} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:"15.5px",fontWeight:850,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",lineHeight:1.15,cursor:"pointer",maxWidth:"100%",textAlign:"left"}}>{a.n}</button><div style={{fontSize:"12px",color:isDark?"#AEB6AE":"#59645D",fontFamily:F,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",marginTop:"4px",lineHeight:1.35}}>{a.t} {a.t===1?"entry":"entries"} · Artist peak: #{a.pk} · {a.m} {a.m===1?"month":"months"}</div></div>
                 <div title={trend.label} style={{textAlign:"center",fontFamily:F,fontSize:"14px",fontWeight:900,color:trend.color}}>{trend.symbol}</div>
                 <div style={{textAlign:"center",fontFamily:F,fontSize:"16px",fontWeight:900,color:GOLD,whiteSpace:"nowrap"}}>{a.p.toLocaleString()}</div>

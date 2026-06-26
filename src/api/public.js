@@ -29,8 +29,11 @@ async function publicRequest(path, options = {}) {
 }
 
 // Ping the API to confirm the live backend is reachable.
+// Use app-data/revision because it is lightweight and is the same live source
+// used to detect CMS changes. This avoids false "chart snapshot" warnings
+// when the older /charts/latest/ health-check endpoint is unavailable.
 export async function checkApiStatus() {
-  await publicRequest("/charts/latest/?chart_type=singles&platform=combined", {
+  await publicRequest("/app-data/revision/", {
     errorMessage: "API unreachable",
   });
   return true;
