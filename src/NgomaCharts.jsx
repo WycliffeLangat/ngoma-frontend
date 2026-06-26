@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { API_BASE, resolveMediaUrl } from "./api/config.js";
-import { getArtistImageUrl, withResolvedArtistImage } from "./utils/artistImages.js";
+import { findArtistProfileInPublicData, getArtistImageUrl, withResolvedArtistImage } from "./utils/artistImages.js";
 import {
   checkApiStatus, fetchNews, fetchCertifications, fetchChartImageData, fetchAppData,
   fetchRevision,
@@ -74,7 +74,12 @@ const PUBLIC_ARTISTS_BY_NAME = new Map();
 const publicArtistForName = (name = "") => {
   const key = String(name || "").trim().toLowerCase();
   if (!key) return null;
-  return PUBLIC_ARTISTS_BY_NAME.get(key) || PUBLIC_ARTISTS_BY_NAME.get(normArtistKey(key)) || null;
+  return (
+    PUBLIC_ARTISTS_BY_NAME.get(key) ||
+    PUBLIC_ARTISTS_BY_NAME.get(normArtistKey(key)) ||
+    findArtistProfileInPublicData(name) ||
+    null
+  );
 };
 const SITE_SETTINGS = PUBLIC_DATA.settings || {};
 const settingValue = (key, fallback = {}) => SITE_SETTINGS[key] ?? fallback;
