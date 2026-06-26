@@ -33,31 +33,66 @@ export default function ArtistChartSection({ ctx, title = "Top Artists", descrip
   const text = isDark ? "#F6F3EA" : "#050505";
   const muted = isDark ? "#B8BDB8" : "#59645D";
 
-  const ArtistAvatar = ({ artist, size = 42, compact = false, style = {} }) => {
+  const ArtistArtwork = ({ artist, size = 54, compact = false, style = {} }) => {
     const name = typeof artist === "string" ? artist : artist?.n || artist?.title || artist?.name || "";
     const image = getArtistImageUrl?.(typeof artist === "string" ? { title: name } : artist, { name });
+    const fallbackLabel = String(name || "A")
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase() || "A";
+
     if (image) {
       return (
-        <img
-          src={image}
-          alt={name}
-          loading="lazy"
-          decoding="async"
+        <div
           style={{
             width: size,
             height: size,
             minWidth: size,
-            borderRadius: compact ? "10px" : "12px",
-            objectFit: "cover",
-            display: "block",
-            flexShrink: 0,
+            borderRadius: compact ? "14px" : "16px",
+            overflow: "hidden",
             border: `1px solid ${cardBorder}`,
+            background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.03)",
+            boxShadow: isDark ? "0 8px 22px rgba(0,0,0,0.24)" : "0 8px 20px rgba(0,0,0,0.08)",
             ...style,
           }}
-        />
+        >
+          <img
+            src={image}
+            alt={name}
+            loading="lazy"
+            decoding="async"
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
+        </div>
       );
     }
-    return <CountryBadge artist={name} compact={compact} style={{ minWidth: size, width: size, height: size, borderRadius: compact ? "10px" : "12px", padding: 0, flexShrink: 0, ...style }} />;
+
+    return (
+      <div
+        style={{
+          width: size,
+          height: size,
+          minWidth: size,
+          borderRadius: compact ? "14px" : "16px",
+          border: `1px solid ${cardBorder}`,
+          background: isDark ? "linear-gradient(135deg, rgba(184,134,11,0.28), rgba(21,101,192,0.18))" : "linear-gradient(135deg, rgba(184,134,11,0.12), rgba(21,101,192,0.08))",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: text,
+          fontFamily: SF,
+          fontSize: size >= 48 ? "16px" : "13px",
+          fontWeight: 900,
+          letterSpacing: "0.04em",
+          ...style,
+        }}
+      >
+        {fallbackLabel}
+      </div>
+    );
   };
 
   const metricRows = [
@@ -99,7 +134,7 @@ export default function ArtistChartSection({ ctx, title = "Top Artists", descrip
           {[{ d: cmp1, c: GOLD }, { d: cmp2, c: "#1565C0" }].map(({ d, c }) => (
             <button key={d.n || c} type="button" onClick={() => openArtistDetails(d.n)} style={{ padding: isMobile ? "13px" : "15px", background: isDark ? `${c}20` : `${c}0D`, borderRadius: "10px", border: isDark ? `1px solid ${c}55` : "none", borderLeft: `3px solid ${c}`, cursor: "pointer", minWidth: 0, textAlign: "left" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0 }}>
-                <ArtistAvatar artist={d} size={30} compact />
+                <ArtistArtwork artist={d} size={34} compact />
                 <div style={{ fontFamily: SF, fontSize: isMobile ? "15px" : "16px", fontWeight: 850, lineHeight: 1.2, whiteSpace: "normal", overflowWrap: "anywhere", color: text }}>{d.n}</div>
               </div>
             </button>
@@ -148,7 +183,7 @@ export default function ArtistChartSection({ ctx, title = "Top Artists", descrip
                 <div key={rowKey} style={{ padding: "15px 16px", border: `1px solid ${cardBorder}`, borderRadius: "16px", background: surface, boxShadow: expanded ? `inset 4px 0 0 ${GOLD}` : "none" }}>
                   <div onClick={() => toggleArtistRow(rowKey)} role="button" aria-expanded={expanded} style={{ display: "grid", gridTemplateColumns: "34px 42px minmax(0,1fr) 38px", gap: "10px", alignItems: "center", cursor: "pointer", minWidth: 0 }}>
                     <div style={{ fontSize: index < 3 ? "28px" : "24px", fontWeight: 950, lineHeight: 1, color: index < 3 ? MEDALS[index] : muted, textAlign: "center", fontFamily: F }}>{index + 1}</div>
-                    <ArtistAvatar artist={artist} size={42} />
+                    <ArtistArtwork artist={artist} size={54} />
                     <div style={{ minWidth: 0 }}>
                       <button type="button" onClick={(event) => { event.stopPropagation(); openArtistDetails(artist.n); }} style={{ display: "block", width: "100%", border: 0, background: "transparent", padding: 0, margin: 0, textAlign: "left", fontFamily: SF, fontSize: "15.5px", fontWeight: 850, lineHeight: 1.2, color: text, whiteSpace: "normal", overflowWrap: "anywhere", cursor: "pointer" }}>{artist.n}</button>
                       <div style={{ fontFamily: F, fontSize: "11.5px", fontWeight: 800, color: trend.color, marginTop: "5px", lineHeight: 1.25 }}>{trend.symbol} {trend.shortLabel}</div>
@@ -182,7 +217,7 @@ export default function ArtistChartSection({ ctx, title = "Top Artists", descrip
               return (
                 <div key={artist.n} className="ngoma-artist-row" style={{ display: "grid", gridTemplateColumns: "44px 38px minmax(0,1fr) 70px 126px", gap: "12px", padding: "12px", borderBottom: `1px solid ${cardBorder}`, alignItems: "center", minWidth: 0 }}>
                   <div style={{ fontSize: index < 3 ? "17px" : "13.5px", fontWeight: 900, color: index < 3 ? MEDALS[index] : muted, textAlign: "center", fontFamily: F }}>{index + 1}</div>
-                  <ArtistAvatar artist={artist} size={34} compact />
+                  <ArtistArtwork artist={artist} size={46} compact />
                   <div style={{ minWidth: 0 }}>
                     <button type="button" onClick={() => openArtistDetails(artist.n)} style={{ border: 0, background: "transparent", color: text, padding: 0, fontFamily: SF, fontSize: "15.5px", fontWeight: 850, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", lineHeight: 1.15, cursor: "pointer", maxWidth: "100%", textAlign: "left" }}>{artist.n}</button>
                     <div style={{ fontSize: "12px", color: muted, fontFamily: F, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: "4px", lineHeight: 1.35 }}>{artist.t} {artist.t === 1 ? "entry" : "entries"} · Artist peak: #{artist.pk} · {artist.m} {artist.m === 1 ? "month" : "months"}</div>

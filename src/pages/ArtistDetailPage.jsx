@@ -125,7 +125,9 @@ export default function ArtistDetailPage({ ctx }) {
 
           {/* Profile header */}
           <div style={{marginTop:"22px",display:"flex",gap:isMobile?"16px":"24px",alignItems:"flex-start",flexDirection:isMobile?"column":"row",minWidth:0}}>
-            <div style={{width:isMobile?"88px":"120px",height:isMobile?"88px":"120px",borderRadius:"50%",background:"linear-gradient(135deg,#FAF5EA,#EDE0C0)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:isMobile?"36px":"48px",fontWeight:900,color:GOLD,flexShrink:0,border:"3px solid "+GOLD+"22",boxShadow:"0 8px 28px rgba(184,134,11,0.14)",overflow:"hidden"}}>{artistImage?<img src={artistImage} alt={selA.n} style={{width:"100%",height:"100%",objectFit:"cover"}} />:selA.n[0]}</div>
+            <div style={{width:isMobile?"112px":"156px",height:isMobile?"112px":"156px",borderRadius:"20px",background: isDark ? "linear-gradient(135deg, rgba(184,134,11,0.24), rgba(21,101,192,0.16))" : "linear-gradient(135deg, #FAF5EA, #EDE0C0)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:isMobile?"40px":"56px",fontWeight:900,color:GOLD,flexShrink:0,border:"2px solid "+(isDark?"rgba(255,255,255,0.12)":"rgba(0,0,0,0.06)"),boxShadow:isDark?"0 12px 30px rgba(0,0,0,0.28)":"0 10px 28px rgba(184,134,11,0.14)",overflow:"hidden"}}>
+              {artistImage ? <img src={artistImage} alt={selA.n} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} /> : <span>{selA.n[0]}</span>}
+            </div>
             <div style={{flex:1,minWidth:0}}>
               <div style={{display:"flex",alignItems:"center",gap:"10px",flexWrap:"wrap"}}>
                 <h2 style={{margin:0,fontFamily:SF,fontSize:isMobile?"26px":"32px",fontWeight:800,lineHeight:1.08,letterSpacing:"-0.5px"}}>{selA.n}</h2>

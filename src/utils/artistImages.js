@@ -41,6 +41,12 @@ function cleanString(value) {
   return text;
 }
 
+function hasImageLikeKey(key = "") {
+  const normalized = String(key || "").toLowerCase();
+  return normalized === "url" || normalized === "src" || normalized === "path"
+    || /(^|_)(image|photo|avatar|cover|thumbnail|art|profile)(s|_url|_image|_photo|_avatar|_cover|_thumbnail|_art|_profile)?($|_)/.test(normalized);
+}
+
 function valueFromCandidate(candidate, fields = ARTIST_IMAGE_FIELDS) {
   if (!candidate) return "";
   if (typeof candidate === "string") return cleanString(candidate);
@@ -63,6 +69,27 @@ function valueFromCandidate(candidate, fields = ARTIST_IMAGE_FIELDS) {
         const nested = value.url || value.secure_url || value.image || value.src || value.path;
         const cleaned = cleanString(nested);
         if (cleaned) return cleaned;
+      }
+    }
+
+    for (const [key, value] of Object.entries(candidate)) {
+      if (typeof value === "string") {
+        if (hasImageLikeKey(key)) {
+          const cleaned = cleanString(value);
+          if (cleaned) return cleaned;
+        }
+        continue;
+      }
+
+      if (value && typeof value === "object") {
+        if (hasImageLikeKey(key)) {
+          const nested = value.url || value.secure_url || value.image || value.src || value.path;
+          const cleaned = cleanString(nested);
+          if (cleaned) return cleaned;
+        }
+
+        const nested = valueFromCandidate(value, fields);
+        if (nested) return nested;
       }
     }
   }
