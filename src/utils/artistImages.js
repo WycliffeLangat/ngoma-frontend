@@ -47,9 +47,46 @@ function hasImageLikeKey(key = "") {
     || /(^|_)(image|photo|avatar|cover|thumbnail|art|profile)(s|_url|_image|_photo|_avatar|_cover|_thumbnail|_art|_profile)?($|_)/.test(normalized);
 }
 
+function looksLikeReleaseCandidate(candidate) {
+  if (!candidate || typeof candidate !== "object") return false;
+  const releaseSpecificFields = [
+    "cover_image",
+    "cover_image_url",
+    "cover",
+    "cover_url",
+    "artwork",
+    "artwork_url",
+    "album_art",
+    "thumbnail",
+    "thumbnail_url",
+    "release_id",
+    "track_id",
+    "song_id",
+    "isrc",
+    "streaming_url",
+  ];
+  const hasReleaseSignal = releaseSpecificFields.some((field) => cleanString(candidate[field]));
+  const hasArtistSignal = [
+    "name",
+    "display_name",
+    "public_name",
+    "artist_name",
+    "aliases",
+    "social_links",
+    "country_code",
+    "genre",
+    "artist_type",
+    "verified",
+    "biography",
+    "slug",
+  ].some((field) => candidate[field] !== undefined && candidate[field] !== null && candidate[field] !== "");
+  return hasReleaseSignal && !hasArtistSignal;
+}
+
 function valueFromCandidate(candidate, fields = ARTIST_IMAGE_FIELDS) {
   if (!candidate) return "";
   if (typeof candidate === "string") return cleanString(candidate);
+  if (looksLikeReleaseCandidate(candidate)) return "";
   if (Array.isArray(candidate)) {
     for (const item of candidate) {
       const nested = valueFromCandidate(item, fields);
@@ -88,7 +125,7 @@ function valueFromCandidate(candidate, fields = ARTIST_IMAGE_FIELDS) {
           if (cleaned) return cleaned;
         }
 
-        const nested = valueFromCandidate(value, fields);
+        const nested = looksLikeReleaseCandidate(value) ? "" : valueFromCandidate(value, fields);
         if (nested) return nested;
       }
     }
