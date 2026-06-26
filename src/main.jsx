@@ -11,6 +11,12 @@ function isPublicAppPath() {
   return !path.startsWith("/cms") && !path.startsWith("/admin-cms");
 }
 
+function notifyPublicDataReady() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("ngoma-public-data-ready"));
+  }
+}
+
 async function loadPublicAppData({ timeoutMs = 4000 } = {}) {
   if (!isPublicAppPath()) return { ok: false, fallback: true };
 
@@ -25,11 +31,13 @@ async function loadPublicAppData({ timeoutMs = 4000 } = {}) {
     window.__NGOMA_PUBLIC_DATA__ = payload;
     window.__NGOMA_PUBLIC_REVISION__ = String(payload.revision || "");
     applyPublicAppData(payload);
+    notifyPublicDataReady();
     return { ok: true, payload };
   } catch (error) {
     console.warn("Falling back to bundled data because live app data is unavailable.", error);
     window.__NGOMA_PUBLIC_DATA__ = window.__NGOMA_PUBLIC_DATA__ || {};
     window.__NGOMA_PUBLIC_REVISION__ = "";
+    notifyPublicDataReady();
     return { ok: false, fallback: true };
   } finally {
     window.clearTimeout(timeout);

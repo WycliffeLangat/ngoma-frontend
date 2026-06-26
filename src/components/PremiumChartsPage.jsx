@@ -196,6 +196,10 @@ export default function PremiumChartsPage({
   const safeGutter = mobile ? "clamp(20px, 5vw, 28px)" : "28px";
   const [expandedRowKey, setExpandedRowKey] = useState(null);
   const [artistImageOverrides, setArtistImageOverrides] = useState({});
+  const [publicDataRefreshKey, setPublicDataRefreshKey] = useState(() => {
+    if (typeof window === "undefined") return 0;
+    return String(window.__NGOMA_PUBLIC_REVISION__ || window.__NGOMA_PUBLIC_DATA__?.revision || "");
+  });
   const [detectedDarkMode, setDetectedDarkMode] = useState(() => {
     if (typeof window === "undefined" || typeof document === "undefined") return false;
     return (
@@ -231,8 +235,23 @@ export default function PremiumChartsPage({
     };
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+
+    const handlePublicDataReady = () => {
+      setPublicDataRefreshKey(String(window.__NGOMA_PUBLIC_REVISION__ || window.__NGOMA_PUBLIC_DATA__?.revision || Date.now()));
+    };
+
+    window.addEventListener("ngoma-public-data-ready", handlePublicDataReady);
+    return () => window.removeEventListener("ngoma-public-data-ready", handlePublicDataReady);
+  }, []);
+
   const darkMode = Boolean(isDark || detectedDarkMode);
   const isArtistsChart = ct === "artists";
+  const publicArtists = useMemo(() => {
+    const publicData = typeof window !== "undefined" ? (window.__NGOMA_PUBLIC_DATA__ || {}) : {};
+    return Array.isArray(publicData.artists) ? publicData.artists : [];
+  }, [publicDataRefreshKey]);
 
   // Lazily fetch artist profile images that are missing from the /app-data/ bundle.
   // The module-level _artistImgCache prevents duplicate requests across re-renders.
@@ -488,6 +507,7 @@ export default function PremiumChartsPage({
     if (isArtistsChart || item?.is_artist_entry || item?.type === "artist") {
       return getArtistImageUrl(item, {
         name: item?.title || item?.n || item?.primary_artist || item?.artist,
+        artists: publicArtists,
       });
     }
 
@@ -619,13 +639,13 @@ export default function PremiumChartsPage({
     const publicData = typeof window !== "undefined" ? (window.__NGOMA_PUBLIC_DATA__ || {}) : {};
     const requestedName = String(item?.title || item?.n || item?.primary_artist || item?.artist || "").trim();
     const requestedKey = requestedName.toLowerCase();
-    const profile = item?.artist_profile || (publicData.artists || []).find((artist) =>
+    const profile = item?.artist_profile || publicArtists.find((artist) =>
       [artist.name, artist.display_name, artist.public_name, ...(artist.aliases || [])]
         .some((name) => String(name || "").trim().toLowerCase() === requestedKey)
     ) || {};
     return {
       ...profile,
-      image: getArtistImageUrl({ ...item, artist_profile: profile }, { name: requestedName }) || profile.image || item?.image || "",
+      image: getArtistImageUrl({ ...item, artist_profile: profile }, { name: requestedName, artists: publicArtists }) || profile.image || item?.image || "",
     };
   }
 

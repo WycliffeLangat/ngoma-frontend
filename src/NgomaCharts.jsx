@@ -1076,6 +1076,7 @@ export default function NgomaCharts(){
             if (freshData && typeof freshData === "object") {
               window.__NGOMA_PUBLIC_DATA__ = { ...(window.__NGOMA_PUBLIC_DATA__ || {}), ...freshData };
               rebuildPublicLookups(freshData);
+              if (typeof window !== "undefined") window.dispatchEvent(new Event("ngoma-public-data-ready"));
               combinedEntryCache.clear();
               platformEntryCache.clear();
               rawPlatformIndexCache.clear();
@@ -1107,6 +1108,7 @@ export default function NgomaCharts(){
             if (freshData && typeof freshData === "object") {
               window.__NGOMA_PUBLIC_DATA__ = { ...(window.__NGOMA_PUBLIC_DATA__ || {}), ...freshData };
               _syncedRevision = String(freshData.revision || freshData.stamp || "");
+              if (typeof window !== "undefined") window.dispatchEvent(new Event("ngoma-public-data-ready"));
               rebuildPublicLookups(freshData);
               combinedEntryCache.clear();
               platformEntryCache.clear();
