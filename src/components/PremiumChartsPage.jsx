@@ -580,6 +580,7 @@ export default function PremiumChartsPage({
             alt=""
             style={styles.releaseArtworkImage}
             loading="lazy"
+            decoding="async"
           />
         ) : (
           <span style={styles.releaseArtworkFallback}>{label}</span>

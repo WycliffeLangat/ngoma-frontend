@@ -42,6 +42,7 @@ export default function ArtistChartSection({ ctx, title = "Top Artists", descrip
           src={image}
           alt={name}
           loading="lazy"
+          decoding="async"
           style={{
             width: size,
             height: size,

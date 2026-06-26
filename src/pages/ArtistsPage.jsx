@@ -40,6 +40,7 @@ export default function ArtistsPage({ ctx }) {
           src={image}
           alt={name}
           loading="lazy"
+          decoding="async"
           style={{
             width: size,
             height: size,

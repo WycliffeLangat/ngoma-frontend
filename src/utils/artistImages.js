@@ -15,6 +15,12 @@ const ARTIST_IMAGE_FIELDS = [
   "picture_url",
   "thumbnail",
   "thumbnail_url",
+  "cover_image",
+  "cover_image_url",
+  "profile_photo",
+  "profile_photo_url",
+  "hero_image",
+  "hero_image_url",
 ];
 
 const VERSION_FIELDS = [
@@ -38,6 +44,13 @@ function cleanString(value) {
 function valueFromCandidate(candidate, fields = ARTIST_IMAGE_FIELDS) {
   if (!candidate) return "";
   if (typeof candidate === "string") return cleanString(candidate);
+  if (Array.isArray(candidate)) {
+    for (const item of candidate) {
+      const nested = valueFromCandidate(item, fields);
+      if (nested) return nested;
+    }
+    return "";
+  }
 
   if (typeof candidate === "object") {
     for (const field of fields) {
@@ -47,7 +60,7 @@ function valueFromCandidate(candidate, fields = ARTIST_IMAGE_FIELDS) {
         if (cleaned) return cleaned;
       }
       if (value && typeof value === "object") {
-        const nested = value.url || value.secure_url || value.image || value.src;
+        const nested = value.url || value.secure_url || value.image || value.src || value.path;
         const cleaned = cleanString(nested);
         if (cleaned) return cleaned;
       }

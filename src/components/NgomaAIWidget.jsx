@@ -12,9 +12,8 @@ import {
   YAxis,
 } from "recharts";
 import { answerNgomaQuestion, NGOMA_ANALYST_PERIOD } from "../utils/ngomaAnalyst";
+import { API_BASE } from "../api/config.js";
 
-const CONFIGURED_API = (import.meta.env.VITE_API_BASE || "").replace(/\/$/, "");
-const API_BASE = CONFIGURED_API || (import.meta.env.DEV ? "http://127.0.0.1:8000/api/v1" : "");
 const STORAGE_KEY = "ngoma-analyst-conversations-v2";
 const MAX_CONVERSATIONS = 10;
 const STARTER_PROMPTS = [

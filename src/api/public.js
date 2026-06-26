@@ -12,20 +12,36 @@ function withCacheBust(path) {
 }
 
 async function publicRequest(path, options = {}) {
-  const res = await fetch(`${API_BASE}${withCacheBust(path)}`, {
-    cache: "no-store",
-    headers: {
-      "Cache-Control": "no-cache",
-      ...(options.headers || {}),
-    },
-    ...options,
-  });
+  const timeoutMs = typeof options.timeoutMs === "number" ? options.timeoutMs : 6000;
+  const controller = new AbortController();
+  const timeoutId = (typeof window !== "undefined" && timeoutMs > 0)
+    ? window.setTimeout(() => controller.abort(), timeoutMs)
+    : null;
 
-  if (!res.ok) {
-    throw new Error(options.errorMessage || `Public API request failed (${res.status})`);
+  try {
+    const res = await fetch(`${API_BASE}${withCacheBust(path)}`, {
+      cache: "no-store",
+      headers: {
+        "Cache-Control": "no-cache",
+        ...(options.headers || {}),
+      },
+      ...options,
+      signal: options.signal || controller.signal,
+    });
+
+    if (!res.ok) {
+      throw new Error(options.errorMessage || `Public API request failed (${res.status})`);
+    }
+
+    return res.json();
+  } catch (error) {
+    if (error?.name === "AbortError") {
+      throw new Error(options.errorMessage || "Public API request timed out");
+    }
+    throw error;
+  } finally {
+    if (timeoutId) window.clearTimeout(timeoutId);
   }
-
-  return res.json();
 }
 
 // Ping the API to confirm the live backend is reachable.

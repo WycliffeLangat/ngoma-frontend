@@ -11,11 +11,11 @@ function isPublicAppPath() {
   return !path.startsWith("/cms") && !path.startsWith("/admin-cms");
 }
 
-async function loadPublicAppData() {
-  if (!isPublicAppPath()) return true;
+async function loadPublicAppData({ timeoutMs = 4000 } = {}) {
+  if (!isPublicAppPath()) return { ok: false, fallback: true };
 
   const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), 25000);
+  const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
   try {
     const payload = await fetchAppData(controller.signal);
     if (!payload || typeof payload !== "object" || !payload.full?.singles || !payload.full?.albums) {
@@ -25,12 +25,12 @@ async function loadPublicAppData() {
     window.__NGOMA_PUBLIC_DATA__ = payload;
     window.__NGOMA_PUBLIC_REVISION__ = String(payload.revision || "");
     applyPublicAppData(payload);
-    return true;
+    return { ok: true, payload };
   } catch (error) {
     console.warn("Falling back to bundled data because live app data is unavailable.", error);
     window.__NGOMA_PUBLIC_DATA__ = window.__NGOMA_PUBLIC_DATA__ || {};
     window.__NGOMA_PUBLIC_REVISION__ = "";
-    return false;
+    return { ok: false, fallback: true };
   } finally {
     window.clearTimeout(timeout);
   }
@@ -94,7 +94,6 @@ function watchForCmsChanges() {
 }
 
 async function start() {
-  await loadPublicAppData();
   const root = ReactDOM.createRoot(document.getElementById("root"));
   const { default: App } = await import("./App.jsx");
   root.render(
@@ -102,6 +101,8 @@ async function start() {
       <App />
     </React.StrictMode>
   );
+
+  void loadPublicAppData({ timeoutMs: 4000 });
   watchForCmsChanges();
 }
 

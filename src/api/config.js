@@ -1,18 +1,20 @@
 // Single source of truth for the backend API base URL.
 //
-// Production fallback is set to the current Railway backend so the public
-// Netlify app does not accidentally call its own /api/v1 route and fall back
-// to chart snapshots when VITE_API_BASE_URL is missing in a deploy context.
+// In production, we prefer an explicit backend URL so the deployed app does not
+// fall back to a same-origin /api/v1 path or bundled chart snapshots when the
+// environment variable is missing. Local development can still use the Django
+// dev server directly.
 //
-// You can still override this in Netlify with:
+// You can override this in Netlify/Vercel with:
 // VITE_API_BASE_URL=https://web-production-0f6b5.up.railway.app/api/v1
 
-const DEFAULT_PRODUCTION_API_BASE = "/api/v1";
+const DEFAULT_DEVELOPMENT_API_BASE = "http://127.0.0.1:8000/api/v1";
+const DEFAULT_PRODUCTION_API_BASE = "https://web-production-0f6b5.up.railway.app/api/v1";
 
 export const API_BASE = (
   import.meta.env.VITE_API_BASE_URL ||
   import.meta.env.VITE_API_BASE ||
-  DEFAULT_PRODUCTION_API_BASE
+  (import.meta.env.PROD ? DEFAULT_PRODUCTION_API_BASE : DEFAULT_DEVELOPMENT_API_BASE)
 ).replace(/\/$/, "");
 
 const _apiOrigin = (() => {
