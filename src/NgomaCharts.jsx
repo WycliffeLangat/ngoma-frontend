@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { API_BASE } from "./api/config.js";
+import { API_BASE, resolveMediaUrl } from "./api/config.js";
 import {
   checkApiStatus, fetchNews, fetchCertifications, fetchChartImageData, fetchAppData,
   fetchRevision,
@@ -48,12 +48,18 @@ import ArtistDetailPage from "./pages/ArtistDetailPage";
 import ReleaseDetailPage from "./pages/ReleaseDetailPage";
 
 const PUBLIC_DATA = typeof window !== "undefined" ? (window.__NGOMA_PUBLIC_DATA__ || {}) : {};
-const PUBLIC_RELEASES_BY_ID = new Map((PUBLIC_DATA.releases || []).map((release) => [Number(release.id), release]));
+// Ensures cover_image (and artist image) URLs are absolute so they load correctly
+// when the frontend is on a different origin (Netlify) from the backend (Railway).
+const normalizeRelease = (r) =>
+  r.cover_image && !r.cover_image.startsWith("http") && !r.cover_image.startsWith("//")
+    ? { ...r, cover_image: resolveMediaUrl(r.cover_image) }
+    : r;
+const PUBLIC_RELEASES_BY_ID = new Map((PUBLIC_DATA.releases || []).map((release) => [Number(release.id), normalizeRelease(release)]));
 // Fallback index by normalised title — used when chart entries lack release_id.
 const PUBLIC_RELEASES_BY_TITLE = new Map();
 (PUBLIC_DATA.releases || []).forEach((release) => {
   const key = String(release.title || "").trim().toLowerCase();
-  if (key && !PUBLIC_RELEASES_BY_TITLE.has(key)) PUBLIC_RELEASES_BY_TITLE.set(key, release);
+  if (key && !PUBLIC_RELEASES_BY_TITLE.has(key)) PUBLIC_RELEASES_BY_TITLE.set(key, normalizeRelease(release));
 });
 const PUBLIC_ARTISTS_BY_NAME = new Map();
 (PUBLIC_DATA.artists || []).forEach((artist) => {
@@ -145,13 +151,49 @@ const monthIndex = m => MONTHS.indexOf(m);
 // fallback key so chart entries with extra/different featured credits still match.
 const PUBLIC_RELEASES_BY_KEY = new Map();
 (PUBLIC_DATA.releases || []).forEach((release) => {
-  const featured = release.featured_artists || release.featured_artist_credit || "";
-  const fullKey = entryKey({ t: release.title, a: release.primary_artist || release.artist || "", fa: featured });
-  if (fullKey && fullKey !== "|||" && !PUBLIC_RELEASES_BY_KEY.has(fullKey)) PUBLIC_RELEASES_BY_KEY.set(fullKey, release);
+  const nr = normalizeRelease(release);
+  const featured = nr.featured_artists || nr.featured_artist_credit || "";
+  const fullKey = entryKey({ t: nr.title, a: nr.primary_artist || nr.artist || "", fa: featured });
+  if (fullKey && fullKey !== "|||" && !PUBLIC_RELEASES_BY_KEY.has(fullKey)) PUBLIC_RELEASES_BY_KEY.set(fullKey, nr);
   // Primary-only fallback: matches chart entries that don't list the same features as the CMS record
-  const primKey = `${String(release.title || "").trim().toLowerCase()}|||${normArtistKey(release.primary_artist || release.artist || "")}`;
-  if (primKey && primKey !== "|||" && !PUBLIC_RELEASES_BY_KEY.has(primKey)) PUBLIC_RELEASES_BY_KEY.set(primKey, release);
+  const primKey = `${String(nr.title || "").trim().toLowerCase()}|||${normArtistKey(nr.primary_artist || nr.artist || "")}`;
+  if (primKey && primKey !== "|||" && !PUBLIC_RELEASES_BY_KEY.has(primKey)) PUBLIC_RELEASES_BY_KEY.set(primKey, nr);
 });
+
+// Rebuilds all module-scope release/artist lookup maps from fresh CMS data so that
+// cover images and other CMS-managed fields are visible without a page reload.
+function rebuildPublicLookups(freshData) {
+  const releases = freshData.releases || [];
+  const artists = freshData.artists || [];
+
+  PUBLIC_RELEASES_BY_ID.clear();
+  releases.forEach((release) => PUBLIC_RELEASES_BY_ID.set(Number(release.id), normalizeRelease(release)));
+
+  PUBLIC_RELEASES_BY_TITLE.clear();
+  releases.forEach((release) => {
+    const nr = normalizeRelease(release);
+    const key = String(nr.title || "").trim().toLowerCase();
+    if (key && !PUBLIC_RELEASES_BY_TITLE.has(key)) PUBLIC_RELEASES_BY_TITLE.set(key, nr);
+  });
+
+  PUBLIC_ARTISTS_BY_NAME.clear();
+  artists.forEach((artist) => {
+    [artist.name, artist.display_name, artist.public_name, ...(artist.aliases || [])].forEach((name) => {
+      const k = String(name || "").trim().toLowerCase();
+      if (k && !PUBLIC_ARTISTS_BY_NAME.has(k)) PUBLIC_ARTISTS_BY_NAME.set(k, artist);
+    });
+  });
+
+  PUBLIC_RELEASES_BY_KEY.clear();
+  releases.forEach((release) => {
+    const nr = normalizeRelease(release);
+    const featured = nr.featured_artists || nr.featured_artist_credit || "";
+    const fullKey = entryKey({ t: nr.title, a: nr.primary_artist || nr.artist || "", fa: featured });
+    if (fullKey && fullKey !== "|||" && !PUBLIC_RELEASES_BY_KEY.has(fullKey)) PUBLIC_RELEASES_BY_KEY.set(fullKey, nr);
+    const primKey = `${String(nr.title || "").trim().toLowerCase()}|||${normArtistKey(nr.primary_artist || nr.artist || "")}`;
+    if (primKey && primKey !== "|||" && !PUBLIC_RELEASES_BY_KEY.has(primKey)) PUBLIC_RELEASES_BY_KEY.set(primKey, nr);
+  });
+}
 
 const rawCombined = (ct, m) => FULL[ct].combined[m] || [];
 const rawPlatform = (ct, pl, m) => ((FULL[ct].platforms[pl] || {})[m] || []);
@@ -1023,7 +1065,12 @@ export default function NgomaCharts(){
           return fetchAppData().then(freshData => {
             if (freshData && typeof freshData === "object") {
               window.__NGOMA_PUBLIC_DATA__ = { ...(window.__NGOMA_PUBLIC_DATA__ || {}), ...freshData };
-              kenyanRawCache.clear();  // force recompute with new artist countries
+              rebuildPublicLookups(freshData);
+              combinedEntryCache.clear();
+              platformEntryCache.clear();
+              rawPlatformIndexCache.clear();
+              coverImageCache.clear();
+              kenyanRawCache.clear();
               kenyanEntryCache.clear();
             }
           });
@@ -1047,6 +1094,11 @@ export default function NgomaCharts(){
             if (freshData && typeof freshData === "object") {
               window.__NGOMA_PUBLIC_DATA__ = { ...(window.__NGOMA_PUBLIC_DATA__ || {}), ...freshData };
               _syncedRevision = String(freshData.revision || freshData.stamp || "");
+              rebuildPublicLookups(freshData);
+              combinedEntryCache.clear();
+              platformEntryCache.clear();
+              rawPlatformIndexCache.clear();
+              coverImageCache.clear();
               kenyanRawCache.clear();
               kenyanEntryCache.clear();
             }
@@ -1141,10 +1193,22 @@ export default function NgomaCharts(){
           };
         });
 
-        entries.forEach((e) => {
+        // Enrich with CMS release cover images when the API entry doesn't supply one.
+        const enrichedEntries = entries.map((e) => {
+          const img = resolveMediaUrl(e.cover_image || "");
+          if (img) return img !== e.cover_image ? { ...e, cover_image: img } : e;
+          const rel =
+            PUBLIC_RELEASES_BY_ID.get(Number(e.release_id)) ||
+            PUBLIC_RELEASES_BY_KEY.get(entryKey(e)) ||
+            PUBLIC_RELEASES_BY_KEY.get(`${String(e.title || "").trim().toLowerCase()}|||${normArtistKey(e.primary_artist || e.artist || "")}`) ||
+            PUBLIC_RELEASES_BY_TITLE.get(String(e.title || "").trim().toLowerCase()) ||
+            {};
+          return rel.cover_image ? { ...e, cover_image: rel.cover_image } : e;
+        });
+        enrichedEntries.forEach((e) => {
           if (e.cover_image) coverImageCache.set(entryKey(e), e.cover_image);
         });
-        setLiveChartEntries(entries);
+        setLiveChartEntries(enrichedEntries);
         setLiveChartMeta(chartData);
         setLiveStatus("live");
       })
