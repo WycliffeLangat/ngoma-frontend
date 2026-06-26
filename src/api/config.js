@@ -7,7 +7,7 @@
 // You can still override this in Netlify with:
 // VITE_API_BASE_URL=https://web-production-0f6b5.up.railway.app/api/v1
 
-const DEFAULT_PRODUCTION_API_BASE = "https://web-production-0f6b5.up.railway.app/api/v1";
+const DEFAULT_PRODUCTION_API_BASE = "/api/v1";
 
 export const API_BASE = (
   import.meta.env.VITE_API_BASE_URL ||
@@ -29,5 +29,6 @@ export function resolveMediaUrl(url) {
   if (!url) return "";
   if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("//")) return url;
   if (url.startsWith("/") && _apiOrigin) return _apiOrigin + url;
+  if (url.startsWith("/")) return url;
   return url;
 }

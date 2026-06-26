@@ -12,17 +12,25 @@ function isPublicAppPath() {
 }
 
 async function loadPublicAppData() {
-  if (!isPublicAppPath()) return;
+  if (!isPublicAppPath()) return true;
 
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), 25000);
   try {
     const payload = await fetchAppData(controller.signal);
+    if (!payload || typeof payload !== "object" || !payload.full?.singles || !payload.full?.albums) {
+      throw new Error("Live app data payload was incomplete.");
+    }
+
     window.__NGOMA_PUBLIC_DATA__ = payload;
     window.__NGOMA_PUBLIC_REVISION__ = String(payload.revision || "");
     applyPublicAppData(payload);
+    return true;
   } catch (error) {
-    console.warn("Using bundled chart fallback because live app data is unavailable.", error);
+    console.warn("Falling back to bundled data because live app data is unavailable.", error);
+    window.__NGOMA_PUBLIC_DATA__ = window.__NGOMA_PUBLIC_DATA__ || {};
+    window.__NGOMA_PUBLIC_REVISION__ = "";
+    return false;
   } finally {
     window.clearTimeout(timeout);
   }
@@ -87,8 +95,9 @@ function watchForCmsChanges() {
 
 async function start() {
   await loadPublicAppData();
+  const root = ReactDOM.createRoot(document.getElementById("root"));
   const { default: App } = await import("./App.jsx");
-  ReactDOM.createRoot(document.getElementById("root")).render(
+  root.render(
     <React.StrictMode>
       <App />
     </React.StrictMode>
