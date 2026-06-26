@@ -54,3 +54,4 @@
   .cms-resource-head{flex-direction:column;align-items:flex-start}
   .cms-resource-head>div{flex-wrap:wrap}
 }
+.cms-btn.cms-sync-done{background:var(--cms-green);color:#fff;border-color:var(--cms-green)}

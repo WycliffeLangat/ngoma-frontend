@@ -50,7 +50,7 @@ function mutationPrefix(path) {
   return m ? m[1] : null;
 }
 
-function notifyPublicAppChanged() {
+export function notifyPublicAppChanged() {
   const stamp = String(Date.now());
   try {
     window.localStorage.setItem("ngoma-cms-revision", stamp);

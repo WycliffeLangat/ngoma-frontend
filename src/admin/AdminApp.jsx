@@ -1,5 +1,5 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import { cmsApi } from "./api";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { cmsApi, notifyPublicAppChanged } from "./api";
 import LoginPage from "./pages/LoginPage";          // tiny — needed immediately for auth
 import NotificationBell from "./components/NotificationBell";
 import GlobalSearch from "./components/GlobalSearch";
@@ -67,6 +67,8 @@ export default function AdminApp() {
   const [page,     setPage]     = useState(getInitialPage);
   const [sidebar,  setSidebar]  = useState(false);
   const [searchJump, setSearchJump] = useState(null);
+  const [syncState, setSyncState] = useState(null); // null | "syncing" | "done"
+  const syncTimerRef = useRef(null);
 
   useEffect(() => {
     cmsApi.me().then(d => setUser(d.user)).catch(() => setUser(null)).finally(() => setChecking(false));
@@ -90,6 +92,17 @@ export default function AdminApp() {
 
   async function signOut() { await cmsApi.logout().catch(() => {}); setUser(null); }
 
+  function handleForcePush() {
+    if (syncState === "syncing") return;
+    setSyncState("syncing");
+    notifyPublicAppChanged();
+    clearTimeout(syncTimerRef.current);
+    syncTimerRef.current = setTimeout(() => {
+      setSyncState("done");
+      syncTimerRef.current = setTimeout(() => setSyncState(null), 2500);
+    }, 800);
+  }
+
   return (
     <div className="cms-shell">
       {sidebar && <div className="cms-sidebar-overlay" onClick={() => setSidebar(false)} />}
@@ -110,6 +123,15 @@ export default function AdminApp() {
           <button className="cms-menu" onClick={() => setSidebar(!sidebar)}>☰</button>
           <div className="cms-global"><GlobalSearch onNavigate={handleGlobalNavigate} /></div>
           <NotificationBell count={unread} />
+          <button
+            className={`cms-btn small${syncState === "done" ? " cms-sync-done" : ""}`}
+            onClick={handleForcePush}
+            disabled={syncState === "syncing"}
+            title="Force the public app to pull the latest CMS data immediately"
+            style={{ whiteSpace: "nowrap" }}
+          >
+            {syncState === "syncing" ? "Pushing…" : syncState === "done" ? "✓ Pushed!" : "Push to Public"}
+          </button>
           <div className="cms-user">
             <span>{user.first_name || user.username}</span>
             <small>{user.role_label}</small>
