@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getArtistImageUrl } from "../utils/artistImages.js";
+import { API_BASE, resolveMediaUrl } from "../api/config.js";
+
+// Module-level cache: artist name (lowercase) → resolved image URL (or "" if none found).
+// Persists across re-renders and chart switches so each artist is only fetched once.
+const _artistImgCache = new Map();
 
 // Flag-derived accent colors shared with the Year End country tags.
 const COUNTRY_ACCENTS = {
@@ -190,6 +195,7 @@ export default function PremiumChartsPage({
   const mobile = useRealMobile(isMobile);
   const safeGutter = mobile ? "clamp(20px, 5vw, 28px)" : "28px";
   const [expandedRowKey, setExpandedRowKey] = useState(null);
+  const [artistImageOverrides, setArtistImageOverrides] = useState({});
   const [detectedDarkMode, setDetectedDarkMode] = useState(() => {
     if (typeof window === "undefined" || typeof document === "undefined") return false;
     return (
@@ -227,6 +233,44 @@ export default function PremiumChartsPage({
 
   const darkMode = Boolean(isDark || detectedDarkMode);
   const isArtistsChart = ct === "artists";
+
+  // Lazily fetch artist profile images that are missing from the /app-data/ bundle.
+  // The module-level _artistImgCache prevents duplicate requests across re-renders.
+  useEffect(() => {
+    if (!isArtistsChart || !data.length) return;
+    let cancelled = false;
+
+    const missing = data.filter((item) => {
+      const key = String(item.title || "").trim().toLowerCase();
+      return key && !getArtworkUrl(item) && !_artistImgCache.has(key);
+    });
+    if (!missing.length) return;
+
+    // Mark all as in-flight before any async work to prevent duplicate fetches.
+    missing.forEach((item) => _artistImgCache.set(String(item.title || "").trim().toLowerCase(), ""));
+
+    Promise.all(missing.map(async (item) => {
+      const name = String(item.title || "").trim();
+      const key = name.toLowerCase();
+      const slug = item.artist_profile?.slug ||
+        name.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      try {
+        const res = await fetch(`${API_BASE}/app-data/artist/${slug}/`, { cache: "no-store" });
+        if (!res.ok) return;
+        const json = await res.json();
+        const raw = json?.artist?.image || json?.artist?.image_url || "";
+        const url = resolveMediaUrl(raw);
+        _artistImgCache.set(key, url);
+        return url ? [key, url] : null;
+      } catch { return null; }
+    })).then((results) => {
+      if (cancelled) return;
+      const found = Object.fromEntries((results || []).filter(Boolean));
+      if (Object.keys(found).length) setArtistImageOverrides((prev) => ({ ...prev, ...found }));
+    });
+
+    return () => { cancelled = true; };
+  }, [isArtistsChart, data]); // eslint-disable-line react-hooks/exhaustive-deps
   const isKenyanChart = plat === "Kenyan";
 
   const chartTitle = "NGOMA TOP 50";
@@ -514,7 +558,8 @@ export default function PremiumChartsPage({
   }
 
   function ReleaseArtwork({ item, size = 50 }) {
-    const artworkUrl = getArtworkUrl(item);
+    const nameKey = String(item?.title || "").trim().toLowerCase();
+    const artworkUrl = getArtworkUrl(item) || artistImageOverrides[nameKey] || "";
     const label = getArtworkLabel(item);
 
     return (
@@ -947,7 +992,7 @@ export default function PremiumChartsPage({
             const isArtist    = isArtistsChart || !!item?.is_artist_entry;
             const artProfile  = isArtist ? managedArtistForItem(item) : {};
             const img         = isArtist
-              ? (artProfile?.image || getArtworkUrl(item))
+              ? (artProfile?.image || getArtworkUrl(item) || artistImageOverrides[String(item?.title || "").trim().toLowerCase()] || "")
               : getArtworkUrl(item);
             const cardTitle   = isArtist
               ? (item.title || item.n || item.a || "")
