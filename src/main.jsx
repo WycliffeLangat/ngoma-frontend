@@ -33,9 +33,16 @@ function watchForCmsChanges() {
 
   let knownRevision = String(window.__NGOMA_PUBLIC_REVISION__ || "");
   let checking = false;
+  let reloadQueued = false;
 
-  const checkRevision = async () => {
-    if (checking || document.hidden) return;
+  const reloadPublicApp = () => {
+    if (reloadQueued) return;
+    reloadQueued = true;
+    window.setTimeout(() => window.location.reload(), 150);
+  };
+
+  const checkRevision = async ({ allowHidden = false } = {}) => {
+    if (checking || (!allowHidden && document.hidden)) return;
     checking = true;
     try {
       const payload = await fetchRevision();
@@ -45,7 +52,7 @@ function watchForCmsChanges() {
         knownRevision = nextRevision;
         return;
       }
-      if (nextRevision !== knownRevision) window.location.reload();
+      if (nextRevision !== knownRevision) reloadPublicApp();
     } catch {
       // A temporary API outage must not interrupt the public app.
     } finally {
@@ -53,17 +60,29 @@ function watchForCmsChanges() {
     }
   };
 
+  const onCmsSignal = () => checkRevision({ allowHidden: true });
   const onStorage = (event) => {
-    if (event.key === "ngoma-cms-revision") window.location.reload();
+    if (event.key === "ngoma-cms-revision") onCmsSignal();
   };
   const onVisibilityChange = () => {
     if (!document.hidden) checkRevision();
   };
 
+  let channel = null;
+  try {
+    channel = new BroadcastChannel("ngoma-cms-sync");
+    channel.onmessage = (event) => {
+      if (event?.data?.type === "cms-change") onCmsSignal();
+    };
+  } catch {
+    channel = null;
+  }
+
   window.addEventListener("storage", onStorage);
+  window.addEventListener("ngoma-cms-change", onCmsSignal);
   window.addEventListener("focus", checkRevision);
   document.addEventListener("visibilitychange", onVisibilityChange);
-  window.setInterval(checkRevision, 15000);
+  window.setInterval(checkRevision, 10000);
 }
 
 async function start() {

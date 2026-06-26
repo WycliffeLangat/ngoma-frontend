@@ -49,6 +49,21 @@ function mutationPrefix(path) {
   const m = path.match(/^(\/[^/?]+\/)/);
   return m ? m[1] : null;
 }
+
+function notifyPublicAppChanged() {
+  const stamp = String(Date.now());
+  try {
+    window.localStorage.setItem("ngoma-cms-revision", stamp);
+  } catch {}
+  try {
+    window.dispatchEvent(new CustomEvent("ngoma-cms-change", { detail: { stamp } }));
+  } catch {}
+  try {
+    const channel = new BroadcastChannel("ngoma-cms-sync");
+    channel.postMessage({ type: "cms-change", stamp });
+    channel.close();
+  } catch {}
+}
 // ─────────────────────────────────────────────────────────────────────────────
 
 async function fetchCsrfToken() {
@@ -97,12 +112,8 @@ async function request(path, options = {}) {
     setCached(path, data);
   } else if (isMutation) {
     clearCmsCache(mutationPrefix(path)); // only flush the affected resource
-    try {
-      // localStorage write notifies OTHER browser tabs; the custom event notifies the SAME tab
-      // (localStorage storage events don't fire in the originating window).
-      window.localStorage.setItem("ngoma-cms-revision", String(Date.now()));
-      window.dispatchEvent(new CustomEvent("ngoma-cms-change"));
-    } catch {}
+    // Tell any open public app tab to refetch/reload immediately after a CMS save.
+    notifyPublicAppChanged();
   }
 
   return data;

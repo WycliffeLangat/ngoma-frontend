@@ -1,62 +1,74 @@
 // Public (non-CMS) API helper functions.
 //
-// Each function maps to one backend endpoint. Components call these instead
-// of writing fetch() directly, so the URL and error-handling logic lives
-// in one place.
-//
-// All functions throw on non-OK responses so callers can catch cleanly.
+// These helpers are intentionally uncached. The CMS edits the backend database,
+// and the public app should read the latest API response at runtime instead of
+// relying on old static/generated frontend data.
 
 import { API_BASE } from "./config.js";
 
+function withCacheBust(path) {
+  const separator = path.includes("?") ? "&" : "?";
+  return `${path}${separator}_=${Date.now()}`;
+}
+
+async function publicRequest(path, options = {}) {
+  const res = await fetch(`${API_BASE}${withCacheBust(path)}`, {
+    cache: "no-store",
+    headers: {
+      "Cache-Control": "no-cache",
+      ...(options.headers || {}),
+    },
+    ...options,
+  });
+
+  if (!res.ok) {
+    throw new Error(options.errorMessage || `Public API request failed (${res.status})`);
+  }
+
+  return res.json();
+}
+
 // Ping the API to confirm the live backend is reachable.
 export async function checkApiStatus() {
-  const res = await fetch(`${API_BASE}/charts/latest/?chart_type=singles&platform=combined`);
-  if (!res.ok) throw new Error(`API unreachable (${res.status})`);
+  await publicRequest("/charts/latest/?chart_type=singles&platform=combined", {
+    errorMessage: "API unreachable",
+  });
   return true;
 }
 
 // Returns the full public payload: chart data, artists, releases,
 // certifications, news, settings, revision stamp.
 export async function fetchAppData(signal) {
-  const res = await fetch(`${API_BASE}/app-data/`, {
-    cache: "no-store",
-    headers: { "Cache-Control": "no-cache" },
+  return publicRequest("/app-data/", {
     signal,
+    errorMessage: "App data request failed",
   });
-  if (!res.ok) throw new Error(`App data request failed (${res.status})`);
-  return res.json();
 }
 
 // Returns the current revision string used to detect CMS changes.
 export async function fetchRevision() {
-  const res = await fetch(`${API_BASE}/app-data/revision/`, {
-    cache: "no-store",
-    headers: { "Cache-Control": "no-cache" },
+  return publicRequest("/app-data/revision/", {
+    errorMessage: "Revision check failed",
   });
-  if (!res.ok) throw new Error(`Revision check failed (${res.status})`);
-  return res.json();
 }
 
 // Returns an array of news articles.
 export async function fetchNews() {
-  const res = await fetch(`${API_BASE}/news/?page_size=100`, { cache: "no-store" });
-  if (!res.ok) throw new Error(`News fetch failed (${res.status})`);
-  const data = await res.json();
+  const data = await publicRequest("/news/?page_size=100", {
+    errorMessage: "News fetch failed",
+  });
   return Array.isArray(data) ? data : (data.results || []);
 }
 
 // Returns an array of certified releases (gold / platinum / diamond).
 export async function fetchCertifications() {
-  const res = await fetch(`${API_BASE}/certifications/?page_size=200`, { cache: "no-store" });
-  if (!res.ok) throw new Error(`Certifications fetch failed (${res.status})`);
-  const data = await res.json();
+  const data = await publicRequest("/certifications/?page_size=200", {
+    errorMessage: "Certifications fetch failed",
+  });
   return Array.isArray(data) ? data : (data.results || []);
 }
 
 // Returns chart entries for a specific month, year, and platform.
-// cache: "no-store" ensures CMS edits (rank changes, title edits, merges, deletes)
-// are visible immediately without the browser serving a cached response.
-// Pass an AbortSignal to cancel in-flight requests when the user switches months.
 export async function fetchChartImageData({ type, month, year, platform }, signal) {
   const params = new URLSearchParams({
     type,
@@ -64,18 +76,15 @@ export async function fetchChartImageData({ type, month, year, platform }, signa
     year: String(year),
     platform,
   });
-  const res = await fetch(`${API_BASE}/export/chart-image-data/?${params}`, {
+  return publicRequest(`/export/chart-image-data/?${params}`, {
     signal,
-    cache: "no-store",
-    headers: { "Cache-Control": "no-cache" },
+    errorMessage: "Live chart unavailable",
   });
-  if (!res.ok) throw new Error("Live chart unavailable");
-  return res.json();
 }
 
 // Returns detailed metadata and chart history for a single artist.
 export async function fetchArtistDetail(slug) {
-  const res = await fetch(`${API_BASE}/app-data/artist/${slug}/`, { cache: "no-store" });
-  if (!res.ok) throw new Error(`Artist not found (${res.status})`);
-  return res.json();
+  return publicRequest(`/app-data/artist/${slug}/`, {
+    errorMessage: "Artist not found",
+  });
 }
