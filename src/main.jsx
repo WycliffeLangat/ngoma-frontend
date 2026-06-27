@@ -66,6 +66,7 @@ function watchForCmsChanges() {
       if (!nextRevision) return;
       if (!knownRevision) {
         knownRevision = nextRevision;
+        reloadPublicApp();
         return;
       }
       if (nextRevision !== knownRevision) reloadPublicApp();
@@ -76,7 +77,9 @@ function watchForCmsChanges() {
     }
   };
 
-  const onCmsSignal = () => checkRevision({ allowHidden: true });
+  // A CMS mutation signal is authoritative. Reload immediately so the public
+  // app hydrates from the new payload without waiting for another poll.
+  const onCmsSignal = reloadPublicApp;
   const onStorage = (event) => {
     if (event.key === "ngoma-cms-revision") onCmsSignal();
   };
@@ -103,6 +106,16 @@ function watchForCmsChanges() {
 
 async function start() {
   const root = ReactDOM.createRoot(document.getElementById("root"));
+  // NgomaCharts builds CMS lookup maps when its module loads. Hydrate first so
+  // a refreshed page starts with current CMS data instead of stale snapshots.
+  if (isPublicAppPath()) {
+    root.render(
+      <div style={{display:"grid",placeItems:"center",height:"100vh",fontFamily:"system-ui, sans-serif",color:"#777",fontSize:14}}>
+        Loading Ngoma Charts…
+      </div>
+    );
+  }
+  await loadPublicAppData({ timeoutMs: 6000 });
   const { default: App } = await import("./App.jsx");
   root.render(
     <React.StrictMode>
@@ -110,7 +123,6 @@ async function start() {
     </React.StrictMode>
   );
 
-  void loadPublicAppData({ timeoutMs: 4000 });
   watchForCmsChanges();
 }
 

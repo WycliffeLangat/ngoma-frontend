@@ -27,7 +27,8 @@ export default function ReleaseDetailPage({ ctx }) {
     openArtistDetails,
     releaseJourney,
     secLbl,
-    selR
+    selR,
+    tp
   } = ctx;
 
   function formatDate(dateStr) {
@@ -137,12 +138,12 @@ export default function ReleaseDetailPage({ ctx }) {
             <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(4,minmax(0,1fr))",gap:"10px",marginBottom:"18px"}}>
               {[
                 {label:"Total Points",value:totalPoints.toLocaleString()},
-                {label:"Peak Rank",value:peakRank<999?`#${peakRank}`:"—"},
-                {label:"Current Rank",value:currentCombined?`#${currentCombined.combined.rank}`:"—"},
-                {label:"Months Charted",value:combinedHistory.length},
-                {label:"#1 Months",value:numberOneMonths},
+                {label:"Combined Peak Rank",value:peakRank<999?`#${peakRank}`:"—"},
+                {label:"Current Combined Rank",value:currentCombined?`#${currentCombined.combined.rank}`:"—"},
+                {label:"Months Charted",value:chartedJourney.length},
+                {label:"#1 Combined Months",value:numberOneMonths},
                 {label:"Platforms",value:platformNames.size},
-                {label:"Best Coverage",value:`${bestCoverage}/${isAlbum?2:6}`},
+                {label:"Best Coverage",value:`${bestCoverage}/${tp}`},
                 {label:"Release Year",value:selR.release_year||releaseMetadata.release_year||"—"},
               ].map((stat)=><div key={stat.label} style={{padding:"12px 13px",border:"1px solid "+(isDark?"#2B302B":"#ECE9E1"),borderRadius:"10px",background:isDark?"#151815":"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#8F968F":"#7B857D"}}>{stat.label}</div><div style={{fontFamily:F,fontSize:"19px",fontWeight:900,color:isDark?"#F6F3EA":"#1A1A1A",marginTop:"5px"}}>{stat.value}</div></div>)}
             </div>

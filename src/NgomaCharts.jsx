@@ -11,7 +11,7 @@ import {
   artistCreditMembers, formatArtistCredit,
   firstFiniteNumber, certificationKey,
   getMonthYearParts, platformToSlug,
-  normArtistKey, artistSetKey, entryKey, sameRelease,
+  normArtistKey, artistSetKey, entryKey, sameRelease, normalizeRankedRows,
   mv, mapPublicNews,
 } from "./utils/chartHelpers.js";
 import {
@@ -51,10 +51,46 @@ import ReleaseDetailPage from "./pages/ReleaseDetailPage";
 const PUBLIC_DATA = typeof window !== "undefined" ? (window.__NGOMA_PUBLIC_DATA__ || {}) : {};
 // Ensures cover_image (and artist image) URLs are absolute so they load correctly
 // when the frontend is on a different origin (Netlify) from the backend (Railway).
-const normalizeRelease = (r) =>
-  r.cover_image && !r.cover_image.startsWith("http") && !r.cover_image.startsWith("//")
-    ? { ...r, cover_image: resolveMediaUrl(r.cover_image) }
-    : r;
+const CMS_ARTISTS_BY_ID = new Map((PUBLIC_DATA.artists || []).map((artist) => [Number(artist.id), artist]));
+const versionedMediaUrl = (url, version = "") => {
+  const resolved = resolveMediaUrl(url || "");
+  if (!resolved || !version) return resolved;
+  const separator = resolved.includes("?") ? "&" : "?";
+  return `${resolved}${separator}v=${encodeURIComponent(String(version))}`;
+};
+const normalizeRelease = (release = {}) => {
+  const embeddedPrimary = Array.isArray(release.primary_artists) ? release.primary_artists : [];
+  const embeddedFeatured = Array.isArray(release.featured_artist_profiles) ? release.featured_artist_profiles : [];
+  const embeddedById = new Map(
+    [...embeddedPrimary, ...embeddedFeatured]
+      .filter((artist) => artist?.id)
+      .map((artist) => [Number(artist.id), artist])
+  );
+  const primaryIds = Array.isArray(release.primary_artist_ids) ? release.primary_artist_ids : [];
+  const featuredIds = Array.isArray(release.featured_artist_ids) ? release.featured_artist_ids : [];
+  let primaryArtists = primaryIds.length
+    ? primaryIds.map((id) => CMS_ARTISTS_BY_ID.get(Number(id)) || embeddedById.get(Number(id))).filter(Boolean)
+    : embeddedPrimary.map((artist) => CMS_ARTISTS_BY_ID.get(Number(artist?.id)) || artist);
+  const canonicalLead = CMS_ARTISTS_BY_ID.get(Number(release.artist_id));
+  if (canonicalLead && (!primaryArtists.length || primaryArtists[0]?.status === "archived")) {
+    primaryArtists = [canonicalLead, ...primaryArtists.slice(1)];
+  }
+  const featuredArtistProfiles = featuredIds.length
+    ? featuredIds.map((id) => CMS_ARTISTS_BY_ID.get(Number(id)) || embeddedById.get(Number(id))).filter(Boolean)
+    : embeddedFeatured.map((artist) => CMS_ARTISTS_BY_ID.get(Number(artist?.id)) || artist);
+
+  return {
+    ...release,
+    primary_artists: primaryArtists,
+    primary_artist_ids: primaryArtists.length ? primaryArtists.map((artist) => artist.id) : primaryIds,
+    featured_artist_profiles: featuredArtistProfiles,
+    featured_artist_ids: featuredArtistProfiles.length ? featuredArtistProfiles.map((artist) => artist.id) : featuredIds,
+    cover_image: versionedMediaUrl(
+      release.cover_image || release.cover_image_url || "",
+      release.image_updated_at || release.updated_at || release.modified_at || ""
+    ),
+  };
+};
 const normalizeArtist = (artist) => withResolvedArtistImage(artist || {}, { name: artist?.display_name || artist?.public_name || artist?.name, artists: [artist || {}] });
 const PUBLIC_RELEASES_BY_ID = new Map((PUBLIC_DATA.releases || []).map((release) => [Number(release.id), normalizeRelease(release)]));
 // Fallback index by normalised title — used when chart entries lack release_id.
@@ -96,9 +132,22 @@ const PUBLIC_METHODOLOGY = (PUBLIC_DATA.methodology || [])[0] || null;
 const CURRENT_MONTH = MONTHS[MONTHS.length - 1];
 const DATA_PERIOD = `${MONTHS[0]} – ${CURRENT_MONTH}`;
 const PUBLIC_PLATFORMS = PUBLIC_DATA.platforms || [];
-const platformKeys = (predicate) => PUBLIC_PLATFORMS.filter(predicate).map((item) => item.name.toUpperCase());
-const S_PLATS = ["Combined", ...(PUBLIC_PLATFORMS.length ? platformKeys((item) => item.supports_singles) : ["APPLE MUSIC","AUDIOMACK","BOOMPLAY","SPOTIFY","YOUTUBE","SHAZAM"])];
-const A_PLATS = ["Combined", ...(PUBLIC_PLATFORMS.length ? platformKeys((item) => item.supports_albums) : ["APPLE MUSIC","AUDIOMACK"])];
+const chartPlatformKeys = (chartType) => Object.keys(FULL?.[chartType]?.platforms || {}).map((name) => name.toUpperCase());
+const availablePlatformKeys = (chartType, supportField, defaults) => {
+  const dataKeys = chartPlatformKeys(chartType);
+  const dataKeySet = new Set(dataKeys);
+  const metadataKeys = PUBLIC_PLATFORMS
+    .filter((item) => Boolean(item?.[supportField]) || dataKeySet.has(String(item?.name || "").toUpperCase()))
+    .map((item) => String(item.name || "").toUpperCase())
+    .filter(Boolean);
+  return [...new Set([
+    ...metadataKeys,
+    ...defaults.filter((name) => dataKeySet.has(name)),
+    ...dataKeys,
+  ])];
+};
+const S_PLATS = ["Combined", ...availablePlatformKeys("singles", "supports_singles", ["APPLE MUSIC","AUDIOMACK","BOOMPLAY","SPOTIFY","YOUTUBE","SHAZAM"])];
+const A_PLATS = ["Combined", ...availablePlatformKeys("albums", "supports_albums", ["APPLE MUSIC","AUDIOMACK"])];
 const KENYAN_CHART = "Kenyan";
 const PLAT_LABEL = PUBLIC_PLATFORMS.reduce((result, item) => ({...result, [item.name.toUpperCase()]: item.name}), {"APPLE MUSIC":"Apple Music","AUDIOMACK":"Audiomack","BOOMPLAY":"Boomplay","SPOTIFY":"Spotify","YOUTUBE":"YouTube","SHAZAM":"Shazam"});
 const PC = PUBLIC_PLATFORMS.reduce((result, item) => ({...result, [item.name]: item.brand_color || item.color, [item.name.toUpperCase()]: item.brand_color || item.color}), {"Apple Music":"#FC3C44","APPLE MUSIC":"#FC3C44","Audiomack":"#F68B1F","AUDIOMACK":"#F68B1F","Boomplay":"#00FFFF","BOOMPLAY":"#00FFFF","Spotify":"#1DB954","SPOTIFY":"#1DB954","YouTube":"#FF0000","YOUTUBE":"#FF0000","Shazam":"#0088FF","SHAZAM":"#0088FF"});
@@ -174,6 +223,9 @@ function rebuildPublicLookups(freshData) {
   const releases = freshData.releases || [];
   const artists = freshData.artists || [];
 
+  CMS_ARTISTS_BY_ID.clear();
+  artists.forEach((artist) => CMS_ARTISTS_BY_ID.set(Number(artist.id), artist));
+
   PUBLIC_RELEASES_BY_ID.clear();
   releases.forEach((release) => PUBLIC_RELEASES_BY_ID.set(Number(release.id), normalizeRelease(release)));
 
@@ -204,8 +256,8 @@ function rebuildPublicLookups(freshData) {
   });
 }
 
-const rawCombined = (ct, m) => FULL[ct].combined[m] || [];
-const rawPlatform = (ct, pl, m) => ((FULL[ct].platforms[pl] || {})[m] || []);
+const rawCombined = (ct, m) => normalizeRankedRows(FULL[ct].combined[m] || [], { positionalPoints: true });
+const rawPlatform = (ct, pl, m) => normalizeRankedRows((FULL[ct].platforms[pl] || {})[m] || []);
 const combinedEntryCache = new Map();
 const kenyanRawCache = new Map();
 const kenyanEntryCache = new Map();
@@ -281,25 +333,49 @@ function enrichChartEntries(entries, getRawEntries, currentMonth, totalPlatforms
       PUBLIC_RELEASES_BY_KEY.get(`${String(e.t || "").trim().toLowerCase()}|||${normArtistKey(e.primary_artist || e.a || e.artist || "")}`) ||
       PUBLIC_RELEASES_BY_TITLE.get(String(e.t || "").trim().toLowerCase()) ||
       {};
-    const primaryArtists = e.primary_artists || releaseDetails.primary_artists || [];
-    const featuredProfiles = e.featured_artist_profiles || releaseDetails.featured_artist_profiles || [];
-    const primaryArtist = cleanArtistDisplay(String(e.pa || e.a || "").trim());
-    const featuredArtists = String(e.fa || "").trim();
+    const primaryArtists = releaseDetails.primary_artists?.length
+      ? releaseDetails.primary_artists
+      : (e.primary_artists || []);
+    const featuredProfiles = releaseDetails.featured_artist_profiles?.length
+      ? releaseDetails.featured_artist_profiles
+      : (e.featured_artist_profiles || []);
+    const primaryArtist = cleanArtistDisplay(String(
+      releaseDetails.primary_artist_credit ||
+      releaseDetails.primary_artist ||
+      e.pa ||
+      e.a ||
+      ""
+    ).trim());
+    const featuredArtists = String(
+      releaseDetails.featured_artist_credit ||
+      releaseDetails.featured_artists ||
+      e.fa ||
+      ""
+    ).trim();
     const artistCredit = cleanArtistDisplay(
-      e.artist_credit || releaseDetails.artist_credit || formatArtistCredit(
+      releaseDetails.artist_credit || e.artist_credit || formatArtistCredit(
         primaryArtist, featuredArtists, primaryArtists, featuredProfiles
       )
     );
+    const releaseTitleValue = releaseDetails.title || e.t;
 
     return {
-      ...releaseDetails,
       ...e,
+      ...releaseDetails,
+      id: e.id,
+      release_id: e.release_id || releaseDetails.id,
       rank: e.r,
-      title: e.t,
+      r: e.r,
+      title: releaseTitleValue,
+      t: releaseTitleValue,
       artist: artistCredit,
       artist_credit: artistCredit,
-      primary_artist: cleanArtistDisplay(e.primary_artist_credit || releaseDetails.primary_artist_credit || primaryArtist),
+      a: artistCredit,
+      primary_artist: primaryArtist,
+      primary_artist_credit: primaryArtist,
+      pa: primaryArtist,
       featured_artists: featuredArtists,
+      fa: featuredArtists,
       primary_artists: primaryArtists,
       featured_artist_profiles: featuredProfiles,
       pts: e.p,
@@ -316,12 +392,13 @@ function enrichChartEntries(entries, getRawEntries, currentMonth, totalPlatforms
       months_on_chart: monthsOnChart || "—",
       platform_count: platformCount,
       platform_max: e.pl ? Number(String(e.pl).split("/")[1]) || totalPlatforms : totalPlatforms,
-      release_year: e.y ?? null,
-      confidence: e.c || "",
-      country: e.co || "",
-      country_code: e.cc || "",
-      artist_country: e.co || "",
-      artist_country_code: e.cc || "",
+      release_year: releaseDetails.release_year ?? e.y ?? null,
+      confidence: releaseDetails.confidence || e.c || "",
+      country: primaryArtists[0]?.country || releaseDetails.country || e.co || "",
+      country_code: primaryArtists[0]?.country_code || releaseDetails.country_code || e.cc || "",
+      artist_country: primaryArtists[0]?.country || releaseDetails.country || e.co || "",
+      artist_country_code: primaryArtists[0]?.country_code || releaseDetails.country_code || e.cc || "",
+      cover_image: releaseDetails.cover_image || resolveMediaUrl(e.cover_image || ""),
     };
   });
 }
@@ -331,7 +408,7 @@ const getCombined = (ct, m) => {
   if (!combinedEntryCache.has(cacheKey)) {
     combinedEntryCache.set(
       cacheKey,
-      enrichChartEntries(rawCombined(ct, m), (monthLabel) => rawCombined(ct, monthLabel), m, ct === "albums" ? 2 : 6)
+      enrichChartEntries(rawCombined(ct, m), (monthLabel) => rawCombined(ct, monthLabel), m, ct === "albums" ? A_PLATS.length - 1 : S_PLATS.length - 1)
     );
   }
   return combinedEntryCache.get(cacheKey);
@@ -360,7 +437,7 @@ const getKenyanCombined = (ct, m) => {
   if (!kenyanEntryCache.has(cacheKey)) {
     kenyanEntryCache.set(
       cacheKey,
-      enrichChartEntries(rawKenyanCombined(ct, m), (monthLabel) => rawKenyanCombined(ct, monthLabel), m, ct === "albums" ? 2 : 6)
+      enrichChartEntries(rawKenyanCombined(ct, m), (monthLabel) => rawKenyanCombined(ct, monthLabel), m, ct === "albums" ? A_PLATS.length - 1 : S_PLATS.length - 1)
     );
   }
   return kenyanEntryCache.get(cacheKey);
@@ -476,6 +553,7 @@ const buildCombinedArtists = (chartType, throughMonth = CURRENT_MONTH) => {
           p: 0,
           m: 0,
           t: 0,
+          placements: 0,
           rank: Number.POSITIVE_INFINITY,
           prevRank: null,
           pk: Number.POSITIVE_INFINITY,
@@ -487,9 +565,11 @@ const buildCombinedArtists = (chartType, throughMonth = CURRENT_MONTH) => {
 
         const points = chartType === "artists" ? artistTop50Points(entry) : Number(entry.pts) || 0;
         current.p += points;
+        current.placements += 1;
         current.mp[monthLabel] = (current.mp[monthLabel] || 0) + points;
         current.months.add(monthLabel);
-        current.titles.add(`${entry.sourceChartType || chartType}|${entryKey(entry)}`);
+        const releaseIdentity = entry.release_id ? `id:${entry.release_id}` : entryKey(entry);
+        current.titles.add(`${entry.sourceChartType || chartType}|${releaseIdentity}`);
         artistMap.set(key, current);
         cumulativeTotals.set(key, (cumulativeTotals.get(key) || 0) + points);
       });
@@ -509,10 +589,11 @@ const buildCombinedArtists = (chartType, throughMonth = CURRENT_MONTH) => {
   });
 
   const result = [...artistMap.entries()]
-    .map(([key, { months, titles, ...artist }]) => ({
+    .map(([key, { months, titles, placements, ...artist }]) => ({
       ...artist,
       m: months.size,
-      t: titles.size,
+      t: placements,
+      unique_releases: titles.size,
       prevRank: previousRanks.get(key) || null,
       pk: Number.isFinite(artist.pk) ? artist.pk : "—",
     }))
@@ -531,8 +612,8 @@ const getArtistPlatformSource = (platform = "Combined", monthLabel = CURRENT_MON
   if (artistPlatformSourceCache.has(cacheKey)) return artistPlatformSourceCache.get(cacheKey);
 
   const rows = [];
-  const addPlatformTop50 = (chartType, sourcePlatform, releaseType) => {
-    top50Only(getPlatform(chartType, sourcePlatform, monthLabel)).forEach((entry) => {
+  const addArtistSourceRows = (chartType, sourcePlatform, releaseType, sourceRows) => {
+    top50Only(sourceRows).forEach((entry) => {
       rows.push({
         ...entry,
         sourceChartType: chartType,
@@ -541,8 +622,14 @@ const getArtistPlatformSource = (platform = "Combined", monthLabel = CURRENT_MON
       });
     });
   };
+  const addPlatformTop50 = (chartType, sourcePlatform, releaseType) => {
+    addArtistSourceRows(chartType, sourcePlatform, releaseType, getPlatform(chartType, sourcePlatform, monthLabel));
+  };
 
-  if (platform === "Combined") {
+  if (platform === KENYAN_CHART) {
+    addArtistSourceRows("singles", KENYAN_CHART, "single", getKenyanCombined("singles", monthLabel));
+    addArtistSourceRows("albums", KENYAN_CHART, "album", getKenyanCombined("albums", monthLabel));
+  } else if (platform === "Combined") {
     ARTIST_PLATS.forEach((sourcePlatform) => {
       addPlatformTop50("singles", sourcePlatform, "single");
       if (A_PLATS.includes(sourcePlatform)) {
@@ -570,6 +657,35 @@ const getArtistPlatformHits = (artistName = "", monthLabel = CURRENT_MONTH) => {
   );
 };
 
+const embeddedArtistProfileForName = (artistName = "", entries = []) => {
+  const wanted = normArtistKey(artistName);
+  if (!wanted) return null;
+
+  let fallback = null;
+  for (const entry of entries) {
+    const candidates = [
+      entry?.artist_profile,
+      entry?.artistProfile,
+      ...(Array.isArray(entry?.primary_artists) ? entry.primary_artists : []),
+      ...(Array.isArray(entry?.featured_artist_profiles) ? entry.featured_artist_profiles : []),
+    ].filter((candidate) => candidate && typeof candidate === "object");
+
+    for (const candidate of candidates) {
+      const names = [
+        candidate.name,
+        candidate.display_name,
+        candidate.public_name,
+        candidate.artist_name,
+        ...(Array.isArray(candidate.aliases) ? candidate.aliases : []),
+      ];
+      if (!names.some((name) => normArtistKey(name) === wanted)) continue;
+      if (getArtistImageUrl(candidate, { name: artistName, artists: [candidate] })) return candidate;
+      fallback ||= candidate;
+    }
+  }
+  return fallback;
+};
+
 const aggregateArtistsForMonth = (monthLabel = CURRENT_MONTH, platform = "Combined") => {
   const artistMap = new Map();
 
@@ -583,7 +699,8 @@ const aggregateArtistsForMonth = (monthLabel = CURRENT_MONTH, platform = "Combin
         releases: [],
         country: getArtistCountry({ artist: artistName }),
       };
-      const releaseKey = `${entry.sourceChartType || entry.type || "release"}|${entryKey(entry)}`;
+      const releaseIdentity = entry.release_id ? `id:${entry.release_id}` : entryKey(entry);
+      const releaseKey = `${entry.sourceChartType || entry.type || "release"}|${releaseIdentity}`;
       current.p += artistTop50Points(entry);
       current.entries.add(releaseKey);
       current.releases.push(entry);
@@ -639,7 +756,13 @@ const buildArtistChart = (monthLabel = CURRENT_MONTH, platform = "Combined") => 
     const stats = history.get(artist.key) || {};
     const platformHits = platform === "Combined" ? getArtistPlatformHits(artist.n, monthLabel) : [platform];
     const country = artist.country || getArtistCountry({ artist: artist.n });
-    const artistProfile = publicArtistForName(artist.n) || {};
+    // Live app-data is authoritative. When it is temporarily unavailable, use
+    // the same CMS artist profiles embedded in the bundled chart entries rather
+    // than falling back to a song/album cover or an initials tile.
+    const artistProfile =
+      publicArtistForName(artist.n) ||
+      embeddedArtistProfileForName(artist.n, artist.releases) ||
+      {};
     const artistImage = getArtistImageUrl({ ...artistProfile, title: artist.n, artist_profile: artistProfile }, { name: artist.n });
     return {
       rank,
@@ -1037,8 +1160,10 @@ export default function NgomaCharts(){
   const isSingles = ct === "singles";
   const isAlbums = ct === "albums";
   const releaseCt = isAlbums ? "albums" : "singles";
-  const platList = isArtists ? S_PLATS : (isSingles ? ["Combined", KENYAN_CHART, ...S_PLATS.slice(1)] : ["Combined", KENYAN_CHART, ...A_PLATS.slice(1)]);
-  const tp = isArtists ? ARTIST_PLATS.length : (isSingles ? 6 : 2);
+  const platList = isArtists
+    ? ["Combined", KENYAN_CHART, ...S_PLATS.slice(1)]
+    : (isSingles ? ["Combined", KENYAN_CHART, ...S_PLATS.slice(1)] : ["Combined", KENYAN_CHART, ...A_PLATS.slice(1)]);
+  const tp = isArtists ? ARTIST_PLATS.length : (isSingles ? S_PLATS.length - 1 : A_PLATS.length - 1);
 
   useEffect(() => {
     setLiveStatus("checking");
@@ -1173,7 +1298,7 @@ export default function NgomaCharts(){
       controller.signal
     )
       .then((chartData) => {
-        const entries = (chartData.entries || []).map((entry) => {
+        const entries = normalizeRankedRows((chartData.entries || []).map((entry) => {
           const movementType = String(entry.movement || "").toLowerCase();
 
           const displayPoints = entry.total_points || 0;
@@ -1209,19 +1334,65 @@ export default function NgomaCharts(){
             artist_country: entry.artist_country || entry.country || "",
             artist_country_code: entry.artist_country_code || entry.country_code || "",
           };
-        });
+        }), { positionalPoints: plat === "Combined" });
 
-        // Enrich with CMS release cover images when the API entry doesn't supply one.
+        // CMS release records are authoritative for editable metadata and media.
+        // Preserve chart-calculation fields from the chart endpoint.
         const enrichedEntries = entries.map((e) => {
-          const img = resolveMediaUrl(e.cover_image || "");
-          if (img) return img !== e.cover_image ? { ...e, cover_image: img } : e;
           const rel =
             PUBLIC_RELEASES_BY_ID.get(Number(e.release_id)) ||
             PUBLIC_RELEASES_BY_KEY.get(entryKey(e)) ||
             PUBLIC_RELEASES_BY_KEY.get(`${String(e.title || "").trim().toLowerCase()}|||${normArtistKey(e.primary_artist || e.artist || "")}`) ||
             PUBLIC_RELEASES_BY_TITLE.get(String(e.title || "").trim().toLowerCase()) ||
             {};
-          return rel.cover_image ? { ...e, cover_image: rel.cover_image } : e;
+          const primaryArtists = rel.primary_artists?.length ? rel.primary_artists : (e.primary_artists || []);
+          const featuredProfiles = rel.featured_artist_profiles?.length ? rel.featured_artist_profiles : (e.featured_artist_profiles || []);
+          const primaryArtist = cleanArtistDisplay(
+            rel.primary_artist_credit || rel.primary_artist || e.primary_artist || ""
+          );
+          const featuredArtists = rel.featured_artist_credit || rel.featured_artists || e.featured_artists || "";
+          const artistCredit = cleanArtistDisplay(
+            rel.artist_credit ||
+            formatArtistCredit(primaryArtist, featuredArtists, primaryArtists, featuredProfiles) ||
+            e.artist_credit ||
+            e.artist ||
+            ""
+          );
+          return {
+            ...e,
+            ...rel,
+            id: e.id,
+            release_id: e.release_id || rel.id,
+            rank: e.rank,
+            r: e.rank,
+            pts: e.pts,
+            total_points: e.total_points,
+            rawPts: e.rawPts,
+            plat: e.plat,
+            prev: e.prev,
+            last_month: e.last_month,
+            peak_rank: e.peak_rank,
+            weeks_on_chart: e.weeks_on_chart,
+            months_on_chart: e.months_on_chart,
+            movement: e.movement,
+            is_new: e.is_new,
+            reentry: e.reentry,
+            platform_count: e.platform_count,
+            platform_max: e.platform_max,
+            title: rel.title || e.title,
+            t: rel.title || e.title,
+            artist: artistCredit,
+            artist_credit: artistCredit,
+            a: artistCredit,
+            primary_artist: primaryArtist,
+            primary_artist_credit: primaryArtist,
+            pa: primaryArtist,
+            featured_artists: featuredArtists,
+            fa: featuredArtists,
+            primary_artists: primaryArtists,
+            featured_artist_profiles: featuredProfiles,
+            cover_image: rel.cover_image || resolveMediaUrl(e.cover_image || ""),
+          };
         });
         enrichedEntries.forEach((e) => {
           if (e.cover_image) coverImageCache.set(entryKey(e), e.cover_image);
@@ -1442,14 +1613,12 @@ const top = data[0];
   };
   const openArtistDetails = (name) => {
     const requestedName = String(name || "").trim();
-    const allCurrentArtists = [...COMBINED_ARTISTS.singles, ...COMBINED_ARTISTS.albums];
+    const allCurrentArtists = buildCombinedArtists("artists", CURRENT_MONTH);
     const resolvedName = allCurrentArtists.find((item) => item.n.toLowerCase() === requestedName.toLowerCase())?.n
       || artistCreditMembers({ artist: requestedName })[0]
       || requestedName;
-    const singleProfile = buildCombinedArtists("singles", CURRENT_MONTH).find((item) => item.n === resolvedName);
-    const albumProfile = buildCombinedArtists("albums", CURRENT_MONTH).find((item) => item.n === resolvedName);
-    const profile = (isSingles ? singleProfile : albumProfile) || singleProfile || albumProfile;
-    if (!profile) {
+    const cumulativeProfile = allCurrentArtists.find((item) => item.n === resolvedName);
+    if (!cumulativeProfile) {
       if (!requestedName) return;
       // Artist is not in the cross-platform combined chart (e.g., Kenyan-only artists, or
       // removed from the Kenyan chart after a country change). Open a profile-only panel
@@ -1470,7 +1639,19 @@ const top = data[0];
       prepareDetailNavigation();
       return;
     }
-    setCt(singleProfile === profile ? "singles" : "albums");
+    const monthlyRanks = {};
+    MONTHS.forEach((monthLabel) => {
+      const index = aggregateArtistsForMonth(monthLabel, "Combined")
+        .findIndex((artist) => normArtistKey(artist.n) === normArtistKey(resolvedName));
+      if (index >= 0 && index < 50) monthlyRanks[monthLabel] = index + 1;
+    });
+    const rankedMonths = Object.values(monthlyRanks);
+    const profile = {
+      ...cumulativeProfile,
+      rank: monthlyRanks[CURRENT_MONTH] || "â€”",
+      pk: rankedMonths.length ? Math.min(...rankedMonths) : "â€”",
+      rh: monthlyRanks,
+    };
     setPlat("Combined");
     setSelR(null);
     setSelA(profile);
@@ -1487,7 +1668,7 @@ const top = data[0];
       openReleaseDetails(item,"album");
     } else if(item._kind==="artist"){
       // Try chart-based artist detail; fall back to profile-only panel for non-chart artists
-      const chartEntry=[...COMBINED_ARTISTS.singles,...COMBINED_ARTISTS.albums].find(a=>a.n.toLowerCase()===String(item.name||"").toLowerCase());
+      const chartEntry=buildCombinedArtists("artists",CURRENT_MONTH).find(a=>a.n.toLowerCase()===String(item.name||"").toLowerCase());
       if(chartEntry){
         openArtistDetails(item.name);
       } else {
@@ -1545,7 +1726,7 @@ const top = data[0];
   const analyticsActive = page === "analytics";
   const analysisMonths = analyticsActive ? MONTHS.slice(0, Math.max(0, monthIndex(anMonth)) + 1) : MONTHS;
   const recordsActive = page === "records";
-  const recordsCoverageTargetFor = (chartType = releaseCt) => chartType === "artists" ? ARTIST_PLATS.length : (chartType === "albums" ? 2 : platformKeysFor(chartType).length);
+  const recordsCoverageTargetFor = (chartType = releaseCt) => chartType === "artists" ? ARTIST_PLATS.length : platformKeysFor(chartType).length;
   const currentRecordsCoverageTarget = recordsCoverageTargetFor(ct);
 
   const platformHitsFor = (chartType, targetMonth, title, artist) => {
@@ -2275,7 +2456,7 @@ const top = data[0];
     if(!r)return [];
     return MONTHS.map(m=>{
       const sc=getCombined(releaseCt,m).find(e=>sameRelease(e,r));
-      const platforms=isSingles?["APPLE MUSIC","AUDIOMACK","BOOMPLAY","SPOTIFY","YOUTUBE","SHAZAM"]:["APPLE MUSIC","AUDIOMACK"];
+      const platforms=(isSingles?S_PLATS:A_PLATS).filter((platform)=>platform!=="Combined");
       const entries=platforms.map(pl=>{const d=getPlatform(releaseCt,pl,m).find(e=>sameRelease(e,r));return d?{platform:PLAT_LABEL[pl]||pl,rank:d.rank,pts:d.pts}:null;}).filter(Boolean);
       return {month:m,combined:sc||null,platforms:entries};
     });
@@ -2283,18 +2464,28 @@ const top = data[0];
 
   const allArtistNames=[...new Set(artists.map(a=>a.n))].sort();
   const selectedArtistEntries = selA ? MONTHS.flatMap((monthLabel) =>
-    getArtistSourceCombined(ct, monthLabel)
-      .filter((entry) => artistCreditMembers(entry).some((name) => name.toLowerCase() === selA.n.toLowerCase()))
-      .map((entry) => ({...entry, month: monthLabel}))
+    getArtistSourceCombined("artists", monthLabel)
+      .filter((entry) => artistCreditMembers(entry).some((name) => normArtistKey(name) === normArtistKey(selA.n)))
+      .map((entry) => ({
+        ...entry,
+        month: monthLabel,
+        chart_type: entry.sourceChartType || entry.chart_type || entry.type,
+        pts: artistTop50Points(entry),
+      }))
   ) : [];
-  const selectedArtistReleases = selA ? [...new Map(selectedArtistEntries.map((entry) => [entryKey(entry), entry])).values()] : [];
+  const artistDetailEntryKey = (entry) => {
+    const releaseIdentity = entry.release_id ? `id:${entry.release_id}` : entryKey(entry);
+    return `${entry.sourceChartType || entry.chart_type || entry.type || "release"}|${releaseIdentity}`;
+  };
+  const selectedArtistReleases = selA ? [...new Map(selectedArtistEntries.map((entry) => [artistDetailEntryKey(entry), entry])).values()] : [];
   const selectedArtistEntryGroups = selA ? [...selectedArtistEntries.reduce((map, entry) => {
-    const key = entryKey(entry);
+    const key = artistDetailEntryKey(entry);
     const current = map.get(key) || {
       title: entry.title,
       artist: entry.artist,
       primary_artist: entry.primary_artist,
       featured_artists: entry.featured_artists,
+      chart_type: entry.sourceChartType || entry.chart_type || entry.type,
       totalPoints: 0,
       peak: Number.POSITIVE_INFINITY,
       rows: [],
@@ -2308,7 +2499,9 @@ const top = data[0];
   const selectedArtistRankData = selA ? MONTHS.map((monthLabel) => ({
     month: monthLabel.split(" ")[0].slice(0, 3),
     rank: selA.rh?.[monthLabel] || null,
-    points: selA.mp?.[monthLabel] || 0,
+    points: selectedArtistEntries
+      .filter((entry) => entry.month === monthLabel)
+      .reduce((sum, entry) => sum + (Number(entry.pts) || 0), 0),
   })) : [];
 
   const pageContext = {

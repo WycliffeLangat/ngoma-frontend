@@ -26,7 +26,6 @@ export default function ArtistDetailPage({ ctx }) {
     getCertificationForEntry,
     isDark,
     isMobile,
-    isSingles,
     monthIndex,
     openReleaseDetails,
     secLbl,
@@ -118,6 +117,14 @@ export default function ArtistDetailPage({ ctx }) {
   ];
   const socialLinks = artistInfoRows.filter(([label]) => urlLabels.has(label));
   const metaRows = artistInfoRows.filter(([label]) => !urlLabels.has(label));
+  const formatRank = (value) => Number.isFinite(Number(value)) && Number(value) > 0 ? `#${Number(value)}` : "—";
+  const placementCount = selectedArtistEntries.length;
+  const totalArtistPoints = selectedArtistEntries.reduce((sum, entry) => sum + (Number(entry.pts) || 0), 0);
+  const chartedMonthCount = new Set(selectedArtistEntries.map((entry) => entry.month)).size;
+  const topTenPlacements = selectedArtistEntries.filter((entry) => Number(entry.rank) <= 10).length;
+  const numberOnePlacements = selectedArtistEntries.filter((entry) => Number(entry.rank) === 1).length;
+  const releaseRanks = selectedArtistEntries.map((entry) => Number(entry.rank)).filter(Number.isFinite);
+  const bestReleaseRank = releaseRanks.length ? Math.min(...releaseRanks) : null;
 
   return (
 <div style={{padding:PAD,background:isDark?"#050505":"#f8f7f3",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
@@ -133,7 +140,7 @@ export default function ArtistDetailPage({ ctx }) {
                 <h2 style={{margin:0,fontFamily:SF,fontSize:isMobile?"26px":"32px",fontWeight:800,lineHeight:1.08,letterSpacing:"-0.5px"}}>{selA.n}</h2>
                 <CountryBadge item={countryItem} showName />
               </div>
-              <div style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",marginTop:"6px",lineHeight:1.5}}>Credited on {selA.t} {isSingles?"songs":"albums"} across {selA.m} months</div>
+              <div style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",marginTop:"6px",lineHeight:1.5}}>Recorded {placementCount} Top-50 platform placements across {chartedMonthCount} months</div>
               {profile.biography&&<p className="bio-text" style={{fontFamily:F,fontSize:"13px",lineHeight:1.72,color:"#4a534c",margin:"12px 0 0",maxWidth:"680px"}}>{profile.biography}</p>}
 
               {/* Social icon links */}
@@ -153,7 +160,7 @@ export default function ArtistDetailPage({ ctx }) {
 
               {/* Stats strip */}
               <div className="artist-stat-strip">
-                {[{v:"#"+selA.rank,l:"Current Rank",c:GOLD},{v:"#"+selA.pk,l:"Best Rank"},{v:selA.p.toLocaleString(),l:"Total Points"},{v:selA.t,l:"Entries"},{v:selA.m,l:"Months"}].map((s,i)=>(
+                {[{v:formatRank(selA.rank),l:"Current Rank",c:GOLD},{v:formatRank(selA.pk),l:"Best Rank"},{v:totalArtistPoints.toLocaleString(),l:"Total Points"},{v:placementCount,l:"Entries"},{v:chartedMonthCount,l:"Months"}].map((s,i)=>(
                   <div key={i} className="artist-stat-item">
                     <div className="stat-value" style={{color:s.c||"#1A1A1A"}}>{s.v}</div>
                     <div className="stat-label">{s.l}</div>
@@ -188,7 +195,7 @@ export default function ArtistDetailPage({ ctx }) {
               </ResponsiveContainer>
             </div>
             <div style={card()}>
-              <div style={secLbl()}><SecMark/>Cumulative Artist Rank</div>
+                <div style={secLbl()}><SecMark/>Monthly Artist Rank</div>
               <ResponsiveContainer width="100%" height={190}>
                 <LineChart data={selectedArtistRankData} margin={{top:8,right:12,left:0,bottom:0}}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#F0F0EC"/>
@@ -203,33 +210,35 @@ export default function ArtistDetailPage({ ctx }) {
           <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(4,minmax(0,1fr))",gap:"10px",marginBottom:"22px"}}>
             {[
               {label:"Unique Releases",value:selectedArtistReleases.length},
-              {label:"Top 10 Placements",value:selectedArtistEntries.filter((entry)=>Number(entry.rank)<=10).length},
-              {label:"#1 Placements",value:selectedArtistEntries.filter((entry)=>Number(entry.rank)===1).length},
-              {label:"Best Release Rank",value:selectedArtistEntries.length?`#${Math.min(...selectedArtistEntries.map((entry)=>Number(entry.rank)))}`:"—"},
+              {label:"Top 10 Placements",value:topTenPlacements},
+              {label:"#1 Placements",value:numberOnePlacements},
+              {label:"Best Release Rank",value:bestReleaseRank?`#${bestReleaseRank}`:"—"},
             ].map((stat)=><div key={stat.label} style={{padding:"12px 13px",border:"1px solid "+(isDark?"#2B302B":"#ECE9E1"),borderRadius:"10px",background:isDark?"#151815":"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#8F968F":"#7B857D"}}>{stat.label}</div><div style={{fontFamily:F,fontSize:"19px",fontWeight:900,color:isDark?"#F6F3EA":"#1A1A1A",marginTop:"5px"}}>{stat.value}</div></div>)}
           </div>
           <h3 style={secLbl()}>Charted Entries Across Months</h3>
           {selectedArtistEntryGroups.map((group)=>{
-            const certification = getCertificationForEntry(group, isSingles ? "single" : "album");
+            const releaseType = group.chart_type === "albums" || group.chart_type === "album" ? "album" : "single";
+            const certification = getCertificationForEntry(group, releaseType);
             const bestRow = [...group.rows].sort((a,b)=>Number(a.rank)-Number(b.rank))[0];
+            const chartedMonthCount = new Set(group.rows.map((row)=>row.month)).size;
             return (
-              <details key={`${group.title}-${group.artist}`} style={{borderBottom:"1px solid #F2F2EE",fontFamily:F}}>
+              <details key={`${group.chart_type}-${group.title}-${group.artist}`} style={{borderBottom:"1px solid #F2F2EE",fontFamily:F}}>
                 <summary style={{display:"grid",gridTemplateColumns:isMobile?"minmax(0,1fr)":"minmax(0,1fr) 150px 90px",gap:"12px",alignItems:"center",padding:"11px 0",cursor:"pointer",listStyle:"none"}}>
                   <div style={{minWidth:0}}>
                     <div style={{display:"flex",alignItems:"center",gap:"7px",flexWrap:"wrap"}}>
-                      <button type="button" onClick={(event)=>{event.preventDefault();openReleaseDetails(bestRow,isSingles?"single":"album");}} style={{display:"flex",alignItems:"center",fontWeight:800,fontSize:TXT.cardTitle,fontFamily:SF,border:0,background:"transparent",padding:0,cursor:"pointer",textAlign:"left",color:isDark?"#F6F3EA":"#050505"}}>
+                      <button type="button" onClick={(event)=>{event.preventDefault();openReleaseDetails(bestRow,releaseType);}} style={{display:"flex",alignItems:"center",fontWeight:800,fontSize:TXT.cardTitle,fontFamily:SF,border:0,background:"transparent",padding:0,cursor:"pointer",textAlign:"left",color:isDark?"#F6F3EA":"#050505"}}>
                         {group.title}{certification&&<span aria-label={`${certification.label} certified`} title={`${certification.label} certified · ${Number(certification.totalPts||0).toLocaleString()} points`} style={{marginLeft:"4px",fontSize:"12px",opacity:0.85,lineHeight:1}}><span style={certification.iconFilter?{filter:certification.iconFilter}:undefined}>{certification.icon}</span></span>}
                       </button>
                     </div>
-                    <span style={{display:"block",marginTop:"3px",color:isDark?"#AEB6AE":"#7B857D",fontSize:TXT.micro,fontFamily:F}}>{group.rows.length} {group.rows.length===1?"month":"months"} charted · peak #{group.peak}</span>
+                    <span style={{display:"block",marginTop:"3px",color:isDark?"#AEB6AE":"#7B857D",fontSize:TXT.micro,fontFamily:F}}>{releaseType === "album" ? "Album" : "Single"} · {chartedMonthCount} {chartedMonthCount===1?"month":"months"} charted · peak #{group.peak}</span>
                   </div>
                   <div style={{fontFamily:F,fontSize:TXT.cardMeta,fontWeight:900,color:GOLD,whiteSpace:"nowrap",textAlign:isMobile?"left":"right"}}>{group.totalPoints.toLocaleString()} pts</div>
                   <div style={{fontFamily:F,fontSize:"10px",fontWeight:850,color:isDark?"#AEB6AE":"#69716B",textAlign:isMobile?"left":"right",textTransform:"uppercase",letterSpacing:"1px"}}>Months</div>
                 </summary>
                 <div style={{padding:"0 0 10px 0",display:"grid",gap:"6px"}}>
-                  {[...group.rows].sort((a,b)=>monthIndex(a.month)-monthIndex(b.month)).map((row)=>(
-                    <div key={row.month} style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) 56px 70px",gap:"8px",alignItems:"center",padding:"7px 10px",borderRadius:"9px",background:isDark?"#121612":"#FAFAF8"}}>
-                      <span style={{fontFamily:F,fontSize:"11px",fontWeight:800,color:isDark?"#D7DBD7":"#59645D"}}>{row.month}</span>
+                  {[...group.rows].sort((a,b)=>monthIndex(a.month)-monthIndex(b.month)).map((row,rowIndex)=>(
+                    <div key={`${row.month}-${row.sourcePlatform || "combined"}-${rowIndex}`} style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) 56px 70px",gap:"8px",alignItems:"center",padding:"7px 10px",borderRadius:"9px",background:isDark?"#121612":"#FAFAF8"}}>
+                      <span style={{fontFamily:F,fontSize:"11px",fontWeight:800,color:isDark?"#D7DBD7":"#59645D"}}>{row.month}{row.sourcePlatform ? ` · ${row.sourcePlatform}` : ""}</span>
                       <span style={{fontFamily:F,fontSize:"11px",fontWeight:900,color:GOLD,textAlign:"right"}}>#{row.rank}</span>
                       <span style={{fontFamily:F,fontSize:"11px",fontWeight:850,color:isDark?"#F6F3EA":"#1A1A1A",textAlign:"right"}}>{Number(row.pts||0).toLocaleString()} pts</span>
                     </div>

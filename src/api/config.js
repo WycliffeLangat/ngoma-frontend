@@ -2,13 +2,13 @@
 //
 // In production, we prefer an explicit backend URL so the deployed app does not
 // fall back to a same-origin /api/v1 path or bundled chart snapshots when the
-// environment variable is missing. Local development can still use the Django
-// dev server directly.
+// environment variable is missing. Local development uses Vite's /api/v1 proxy;
+// set VITE_API_BASE_URL to point at a local Django server when needed.
 //
 // You can override this in Netlify/Vercel with:
 // VITE_API_BASE_URL=https://web-production-0f6b5.up.railway.app/api/v1
 
-const DEFAULT_DEVELOPMENT_API_BASE = "http://127.0.0.1:8000/api/v1";
+const DEFAULT_DEVELOPMENT_API_BASE = "/api/v1";
 const DEFAULT_PRODUCTION_API_BASE = "https://web-production-0f6b5.up.railway.app/api/v1";
 
 export const API_BASE = (

@@ -61,12 +61,18 @@ export const artistCreditMembers = (item = {}) => {
   const featuredArtists = String(
     item.featured_artist_credit || item.featured_artists || item.fa || ""
   ).trim();
-  const source =
-    structuredPrimary.length || structuredFeatured.length
-      ? [...structuredPrimary, ...structuredFeatured]
-      : primaryArtist
-      ? [...splitCreditNames(primaryArtist), ...splitCreditNames(featuredArtists)]
-      : splitCreditNames(item.artist_credit || item.artist || item.a || "");
+  // Resolve primary and featured credits independently. A release can have a
+  // linked primary profile while its featured artists are still text-only; the
+  // previous all-or-nothing branch silently dropped those featured artists.
+  const resolvedPrimary = structuredPrimary.length
+    ? structuredPrimary
+    : splitCreditNames(primaryArtist);
+  const resolvedFeatured = structuredFeatured.length
+    ? structuredFeatured
+    : splitCreditNames(featuredArtists);
+  const source = resolvedPrimary.length || resolvedFeatured.length
+    ? [...resolvedPrimary, ...resolvedFeatured]
+    : splitCreditNames(item.artist_credit || item.artist || item.a || "");
   return [
     ...new Map(
       source
@@ -174,7 +180,53 @@ export const entryKey = (e) => {
   return `${title}|||${artistSetKey(primary, featured)}`;
 };
 
-export const sameRelease = (left, right) => entryKey(left) === entryKey(right);
+export const sameRelease = (left, right) => {
+  const leftId = Number(left?.release_id);
+  const rightId = Number(right?.release_id);
+  if (leftId && rightId) return leftId === rightId;
+  return entryKey(left) === entryKey(right);
+};
+
+const rankedRowsCache = {
+  preservePoints: new WeakMap(),
+  positionalPoints: new WeakMap(),
+};
+
+// CMS merges/deletions can leave historical rank gaps (for example 1…27, 29…).
+// Preserve backend order while closing those gaps. Combined charts use
+// positional points; platform charts retain their source metrics.
+export function normalizeRankedRows(rows = [], { positionalPoints = false } = {}) {
+  if (!Array.isArray(rows) || !rows.length) return [];
+  const cache = positionalPoints ? rankedRowsCache.positionalPoints : rankedRowsCache.preservePoints;
+  if (cache.has(rows)) return cache.get(rows);
+
+  const normalized = [...rows]
+    .map((row, sourceIndex) => ({ row, sourceIndex }))
+    .sort((left, right) => {
+      const leftRank = Number(left.row?.r ?? left.row?.rank);
+      const rightRank = Number(right.row?.r ?? right.row?.rank);
+      const safeLeft = Number.isFinite(leftRank) && leftRank > 0 ? leftRank : Number.POSITIVE_INFINITY;
+      const safeRight = Number.isFinite(rightRank) && rightRank > 0 ? rightRank : Number.POSITIVE_INFINITY;
+      return safeLeft - safeRight || left.sourceIndex - right.sourceIndex;
+    })
+    .map(({ row }, index) => {
+      const rank = index + 1;
+      const next = { ...row };
+      if ("r" in row || !("rank" in row)) next.r = rank;
+      if ("rank" in row) next.rank = rank;
+
+      if (positionalPoints && rank <= 50) {
+        const points = 51 - rank;
+        if ("p" in row) next.p = points;
+        if ("pts" in row) next.pts = points;
+        if ("total_points" in row) next.total_points = points;
+      }
+      return next;
+    });
+
+  cache.set(rows, normalized);
+  return normalized;
+}
 
 // ── Movement badge logic ──────────────────────────────────────────────────
 

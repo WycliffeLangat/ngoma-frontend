@@ -47,9 +47,24 @@ function hasImageLikeKey(key = "") {
     || /(^|_)(image|photo|avatar|cover|thumbnail|art|profile)(s|_url|_image|_photo|_avatar|_cover|_thumbnail|_art|_profile)?($|_)/.test(normalized);
 }
 
+function hasArtistContainerKey(key = "") {
+  return /^(artist|artists|artist_profile|artist_profiles|artistprofile|profile|primary_artist|primary_artists|featured_artist|featured_artists|featured_artist_profiles)$/i
+    .test(String(key || ""));
+}
+
 function looksLikeReleaseCandidate(candidate) {
   if (!candidate || typeof candidate !== "object") return false;
-  const releaseSpecificFields = [
+  const releaseIdentityFields = [
+    "release_id",
+    "track_id",
+    "song_id",
+    "album_id",
+    "isrc",
+    "upc",
+  ];
+  if (releaseIdentityFields.some((field) => cleanString(candidate[field]))) return true;
+
+  const releaseArtworkFields = [
     "cover_image",
     "cover_image_url",
     "cover",
@@ -59,13 +74,9 @@ function looksLikeReleaseCandidate(candidate) {
     "album_art",
     "thumbnail",
     "thumbnail_url",
-    "release_id",
-    "track_id",
-    "song_id",
-    "isrc",
     "streaming_url",
   ];
-  const hasReleaseSignal = releaseSpecificFields.some((field) => cleanString(candidate[field]));
+  const hasReleaseSignal = releaseArtworkFields.some((field) => cleanString(candidate[field]));
   const hasArtistSignal = [
     "name",
     "display_name",
@@ -125,7 +136,12 @@ function valueFromCandidate(candidate, fields = ARTIST_IMAGE_FIELDS) {
           if (cleaned) return cleaned;
         }
 
-        const nested = looksLikeReleaseCandidate(value) ? "" : valueFromCandidate(value, fields);
+        // Artist chart rows contain a `releases` collection. Never walk arbitrary
+        // nested objects here: doing so can mistake a song/album cover for the
+        // artist's profile image. Only artist/profile containers may be searched.
+        const nested = hasArtistContainerKey(key) && !looksLikeReleaseCandidate(value)
+          ? valueFromCandidate(value, fields)
+          : "";
         if (nested) return nested;
       }
     }

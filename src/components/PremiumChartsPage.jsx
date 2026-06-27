@@ -293,10 +293,11 @@ export default function PremiumChartsPage({
   const isKenyanChart = plat === "Kenyan";
 
   const chartTitle = "NGOMA TOP 50";
-  const chartRegion = isKenyanChart ? "(KENYAN SONGS)" : "(KENYA)";
+  const kenyanChartLabel = isArtistsChart ? "Kenyan Artists" : (isSingles ? "Kenyan Songs" : "Kenyan Albums");
+  const chartRegion = isKenyanChart ? `(${kenyanChartLabel.toUpperCase()})` : "(KENYA)";
   const chartDisplayTitle = `${chartTitle} ${chartRegion}`;
   const chartLabel = isArtistsChart ? "Artists" : (isSingles ? "Singles" : "Albums");
-  const platformLabel = liveChartMeta?.platform || (isKenyanChart ? "Kenyan Songs" : (plat === "Combined" ? "Combined" : PLAT_LABEL[plat] || plat));
+  const platformLabel = liveChartMeta?.platform || (isKenyanChart ? kenyanChartLabel : (plat === "Combined" ? "Combined" : PLAT_LABEL[plat] || plat));
   const chartAccent = isKenyanChart ? COUNTRY_ACCENTS.KE : (plat === "Combined" ? GOLD : PC[plat] || GOLD);
   const chartAccentInk = plat === "BOOMPLAY" ? "#007C7C" : chartAccent;
 
