@@ -239,7 +239,13 @@ export default function PremiumChartsPage({
     if (typeof window === "undefined") return undefined;
 
     const handlePublicDataReady = () => {
-      setPublicDataRefreshKey(String(window.__NGOMA_PUBLIC_REVISION__ || window.__NGOMA_PUBLIC_DATA__?.revision || Date.now()));
+      _artistImgCache.clear();
+      setArtistImageOverrides({});
+      const revision = window.__NGOMA_PUBLIC_DATA__?.revision || window.__NGOMA_PUBLIC_REVISION__ || "refresh";
+      // The backend revision can remain unchanged for a short period after an
+      // image save. Include a local nonce so React always rebuilds the artist
+      // lookup and image URLs when fresh public data arrives.
+      setPublicDataRefreshKey(`${revision}|${Date.now()}`);
     };
 
     window.addEventListener("ngoma-public-data-ready", handlePublicDataReady);
@@ -253,33 +259,53 @@ export default function PremiumChartsPage({
     return Array.isArray(publicData.artists) ? publicData.artists : [];
   }, [publicDataRefreshKey]);
 
-  // Lazily fetch artist profile images that are missing from the /app-data/ bundle.
-  // The module-level _artistImgCache prevents duplicate requests across re-renders.
+  // Prefer the newest CMS artist list for every chart row. Only genuinely
+  // missing images fall back to the per-artist endpoint.
   useEffect(() => {
     if (!isArtistsChart || !data.length) return;
     let cancelled = false;
+    const revision = String(publicDataRefreshKey || "snapshot");
+    const seeded = {};
+    const missing = [];
 
-    const missing = data.filter((item) => {
-      const key = String(item.title || "").trim().toLowerCase();
-      return key && !getArtworkUrl(item) && !_artistImgCache.has(key);
+    data.forEach((item) => {
+      const name = String(item.title || item.n || "").trim();
+      const key = name.toLowerCase();
+      if (!key) return;
+      const profile = publicArtists.find((artist) =>
+        [artist.name, artist.display_name, artist.public_name, ...(artist.aliases || [])]
+          .some((value) => String(value || "").trim().toLowerCase() === key)
+      );
+      const currentUrl = profile ? getArtistImageUrl(profile, { name, artists: [profile] }) : "";
+      if (currentUrl) seeded[key] = currentUrl;
+      else if (!_artistImgCache.has(`${revision}|${key}`)) missing.push(item);
     });
-    if (!missing.length) return;
+    setArtistImageOverrides(seeded);
+    if (!missing.length) return undefined;
 
     // Mark all as in-flight before any async work to prevent duplicate fetches.
-    missing.forEach((item) => _artistImgCache.set(String(item.title || "").trim().toLowerCase(), ""));
+    missing.forEach((item) => {
+      const key = String(item.title || item.n || "").trim().toLowerCase();
+      _artistImgCache.set(`${revision}|${key}`, "");
+    });
 
     Promise.all(missing.map(async (item) => {
-      const name = String(item.title || "").trim();
+      const name = String(item.title || item.n || "").trim();
       const key = name.toLowerCase();
-      const slug = item.artist_profile?.slug ||
+      const managedProfile = publicArtists.find((artist) =>
+        [artist.name, artist.display_name, artist.public_name, ...(artist.aliases || [])]
+          .some((value) => String(value || "").trim().toLowerCase() === key)
+      );
+      const slug = managedProfile?.slug || item.artist_profile?.slug ||
         name.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
       try {
         const res = await fetch(`${API_BASE}/app-data/artist/${slug}/`, { cache: "no-store" });
         if (!res.ok) return;
         const json = await res.json();
-        const raw = json?.artist?.image || json?.artist?.image_url || "";
-        const url = resolveMediaUrl(raw);
-        _artistImgCache.set(key, url);
+        const artist = json?.artist || {};
+        const url = getArtistImageUrl(artist, { name, artists: [artist] }) ||
+          resolveMediaUrl(artist.image || artist.image_url || "");
+        _artistImgCache.set(`${revision}|${key}`, url);
         return url ? [key, url] : null;
       } catch { return null; }
     })).then((results) => {
@@ -289,7 +315,7 @@ export default function PremiumChartsPage({
     });
 
     return () => { cancelled = true; };
-  }, [isArtistsChart, data]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isArtistsChart, data, publicArtists, publicDataRefreshKey]);
   const isKenyanChart = plat === "Kenyan";
 
   const chartTitle = "NGOMA TOP 50";
@@ -580,7 +606,7 @@ export default function PremiumChartsPage({
 
   function ReleaseArtwork({ item, size = 50 }) {
     const nameKey = String(item?.title || "").trim().toLowerCase();
-    const artworkUrl = getArtworkUrl(item) || artistImageOverrides[nameKey] || "";
+    const artworkUrl = (isArtistsChart ? artistImageOverrides[nameKey] : "") || getArtworkUrl(item) || "";
     const label = getArtworkLabel(item);
 
     return (
@@ -640,13 +666,16 @@ export default function PremiumChartsPage({
     const publicData = typeof window !== "undefined" ? (window.__NGOMA_PUBLIC_DATA__ || {}) : {};
     const requestedName = String(item?.title || item?.n || item?.primary_artist || item?.artist || "").trim();
     const requestedKey = requestedName.toLowerCase();
-    const profile = item?.artist_profile || publicArtists.find((artist) =>
+    const profile = publicArtists.find((artist) =>
       [artist.name, artist.display_name, artist.public_name, ...(artist.aliases || [])]
         .some((name) => String(name || "").trim().toLowerCase() === requestedKey)
-    ) || {};
+    ) || item?.artist_profile || {};
     return {
       ...profile,
-      image: getArtistImageUrl({ ...item, artist_profile: profile }, { name: requestedName, artists: publicArtists }) || profile.image || item?.image || "",
+      image: artistImageOverrides[requestedKey] ||
+        getArtistImageUrl({ ...profile, title: requestedName, artist_profile: profile }, { name: requestedName, artists: [profile] }) ||
+        item?.image ||
+        "",
     };
   }
 
@@ -1014,7 +1043,7 @@ export default function PremiumChartsPage({
             const isArtist    = isArtistsChart || !!item?.is_artist_entry;
             const artProfile  = isArtist ? managedArtistForItem(item) : {};
             const img         = isArtist
-              ? (artProfile?.image || getArtworkUrl(item) || artistImageOverrides[String(item?.title || "").trim().toLowerCase()] || "")
+              ? (artistImageOverrides[String(item?.title || "").trim().toLowerCase()] || artProfile?.image || getArtworkUrl(item) || "")
               : getArtworkUrl(item);
             const cardTitle   = isArtist
               ? (item.title || item.n || item.a || "")

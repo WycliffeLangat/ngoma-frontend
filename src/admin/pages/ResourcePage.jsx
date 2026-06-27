@@ -78,6 +78,21 @@ export default function ResourcePage({ type, searchJump }) {
     }
   }, [searchJump]);
 
+  // Chart and year-end mirrors pass a canonical record id. Open that record
+  // directly so clicking a mirrored row lands in the real edit form.
+  useEffect(() => {
+    if (!searchJump?.id || searchJump.page !== type) return;
+    let active = true;
+    cmsApi.get(`${config.endpoint}${searchJump.id}/`)
+      .then((record) => {
+        if (!active) return;
+        setEditing(record);
+        setModal(true);
+      })
+      .catch((err) => { if (active) setError(err.message); });
+    return () => { active = false; };
+  }, [searchJump, type, config.endpoint]);
+
   const params = useMemo(() => ({
     ...(config.params || {}),
     page,

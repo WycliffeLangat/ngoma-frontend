@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cmsApi, getResults } from "../api";
 import FormModal from "../components/FormModal";
+import { fetchAppData } from "../../api/public";
+import { buildArtistMonthMirror, publicChartRows } from "../../utils/publicChartMirror";
 
 const MOVE_COLOR = { NEW: "#1565C0", up: "#1B7F3A", down: "#C62828", same: "#999" };
 
@@ -113,6 +115,7 @@ export default function ChartEntriesPage() {
   const [imageFile, setImageFile]       = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [recalcBusy, setRecalcBusy]     = useState(false);
+  const [publicPayload, setPublicPayload] = useState(null);
 
   // Artists tab state
   const [artistRankings, setArtistRankings] = useState([]);
@@ -122,6 +125,7 @@ export default function ChartEntriesPage() {
   const [editRelease, setEditRelease] = useState(null);
   const [editArtist,  setEditArtist]  = useState(null);
   const [editBusy,    setEditBusy]    = useState(false);
+  const [reconcileBusy, setReconcileBusy] = useState(false);
   const imgInputRef = useRef();
 
   // Load ALL chart records and platforms once
@@ -139,6 +143,7 @@ export default function ChartEntriesPage() {
     cmsApi.get("/platforms/?active=true&page_size=100")
       .then(d => setPlatforms(getResults(d)))
       .catch(() => {});
+    fetchAppData().then(setPublicPayload).catch(() => {});
   }, []);
 
   const uniqueMonths = useMemo(() => {
@@ -164,6 +169,33 @@ export default function ChartEntriesPage() {
 
   const chartId  = currentChart ? String(currentChart.id) : "";
   const isLocked = !!currentChart?.locked;
+  const selectedMonthLabel = useMemo(() => {
+    const [year, month] = selectedYM.split("-").map(Number);
+    return year && month
+      ? new Date(year, month - 1, 1).toLocaleDateString("en-US", { month: "long", year: "numeric" })
+      : "";
+  }, [selectedYM]);
+  const platformName = useMemo(() => {
+    if (platformId === COMBINED) return "Combined";
+    if (platformId === "kenyan") return "Kenyan";
+    const platform = platforms.find(p => String(p.id) === String(platformId));
+    return platform?.name || platform?.short_name || "";
+  }, [platformId, platforms]);
+  const availablePlatformNames = useMemo(() => {
+    if (!publicPayload) return null;
+    const source = chartType === "artists"
+      ? {
+          ...(publicPayload.full?.singles?.platforms || {}),
+          ...(publicPayload.full?.albums?.platforms || {}),
+        }
+      : (publicPayload.full?.[chartType]?.platforms || {});
+    return new Set(Object.keys(source).map(name => name.toLowerCase()));
+  }, [publicPayload, chartType]);
+  const visiblePlatforms = useMemo(() => platforms.filter((platform) => {
+    if (!availablePlatformNames) return true;
+    return [platform.name, platform.short_name]
+      .some((name) => availablePlatformNames.has(String(name || "").toLowerCase()));
+  }), [platforms, availablePlatformNames]);
 
   // Reset everything when chart type or month changes
   useEffect(() => {
@@ -180,56 +212,60 @@ export default function ChartEntriesPage() {
       setEntries([]); return;
     }
     setLoading(true); setError(""); setSelected(null);
+    if (publicPayload && selectedMonthLabel) {
+      const mirrored = publicChartRows(publicPayload, chartType, selectedMonthLabel, platformName)
+        .map((entry) => ({
+          ...entry,
+          release: entry.release_id,
+          rank: Number(entry.r ?? entry.rank),
+          total_points: Number(entry.p ?? entry.pts) || 0,
+          weeks_on_chart: entry.w ?? entry.weeks_on_chart,
+          peak_rank: entry.peak_rank ?? entry.pk ?? null,
+          prev_rank: entry.prev_rank ?? entry.prev ?? null,
+          title: entry.t || entry.title,
+          artist: entry.artist_credit || entry.a || entry.artist,
+          artist_display: entry.artist_credit || entry.a || entry.artist,
+          cover_image: entry.cover_image || "",
+        }));
+      setEntries(mirrored);
+      setLoading(false);
+      return;
+    }
     const platformParam = platformId === COMBINED ? "combined" : platformId;
     cmsApi.get(`/chart-entries/?chart=${chartId}&platform=${platformParam}&ordering=rank&page_size=500`)
       .then(d => setEntries(getResults(d)))
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
-  }, [chartType, chartId, platformId]);
+  }, [chartType, chartId, platformId, platformName, publicPayload, selectedMonthLabel]);
 
-  // Compute cumulative artist rankings from ALL platform entries across ALL months
-  // for both singles and albums. Credits ALL artists (primary + featured) on each entry.
-  // Formula: 51 − rank per combined entry, summed across every month + chart type.
+  // Mirror the public monthly Artist Top 50 from singles + albums platform rows.
   useEffect(() => {
     if (chartType !== "artists") { setArtistRankings([]); return; }
-    const relevant = allCharts.filter(c => c.chart_type === "singles" || c.chart_type === "albums");
-    if (!relevant.length) { setArtistRankings([]); return; }
+    if (!publicPayload || !selectedMonthLabel) { setArtistRankings([]); return; }
     setLoading(true); setError(""); setSelectedArtist(null);
 
-    Promise.all(
-      relevant.map(c =>
-        cmsApi.get(`/chart-entries/?chart=${c.id}&platform=combined&ordering=rank&page_size=500`)
-          .then(d => getResults(d))
-          .catch(() => [])
-      )
-    ).then(allArrays => {
-      const map = new Map();
-      allArrays.flat().forEach(e => {
-        const pts = Math.max(0, 51 - (e.rank || 51));
-        if (pts === 0) return;
-        // Credit every named artist on the entry, including featured artists
-        allArtistCredits(e.artist_display || e.artist).forEach(name => {
-          if (!name) return;
-          const key = name.toLowerCase();
-          const song = { title: e.title, rank: e.rank, pts, entryId: e.id, releaseId: e.release, cover: e.cover_image };
-          if (map.has(key)) {
-            const a = map.get(key);
-            a.pts += pts;
-            // Avoid duplicate songs for this artist from the same chart entry
-            if (!a.songs.some(s => s.entryId === e.id)) a.songs.push(song);
-          } else {
-            map.set(key, { name, pts, songs: [song] });
-          }
-        });
-      });
-      const ranked = [...map.values()]
-        .sort((a, b) => b.pts - a.pts)
-        .map((a, i) => ({ ...a, rank: i + 1 }));
-      setArtistRankings(ranked);
-    })
-    .catch(e => setError(e.message))
-    .finally(() => setLoading(false));
-  }, [chartType, allCharts]);
+    try {
+      setArtistRankings(
+        buildArtistMonthMirror(publicPayload, selectedMonthLabel, platformName)
+          .map((artist) => ({
+            ...artist,
+            pts: artist.points,
+            songs: artist.releases.map((entry) => ({
+              title: entry.t || entry.title,
+              rank: Number(entry.r ?? entry.rank),
+              pts: 51 - Number(entry.r ?? entry.rank),
+              entryId: `${entry.sourceChartType}-${entry.sourcePlatform}-${entry.id}`,
+              releaseId: entry.release_id,
+              cover: entry.cover_image,
+            })),
+          }))
+      );
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [chartType, publicPayload, selectedMonthLabel, platformName]);
 
   function pickEntry(entry) {
     setSelected(entry);
@@ -350,6 +386,8 @@ export default function ChartEntriesPage() {
       if (selected?.release === editRelease.id)
         setSelected(prev => ({ ...prev, title: updated.title ?? prev.title, cover_image: updated.cover_image ?? prev.cover_image }));
       setEditRelease(null);
+      const fresh = await fetchAppData().catch(() => null);
+      if (fresh) setPublicPayload(fresh);
     } catch(e) { setError(e.message); }
     finally { setEditBusy(false); }
   }
@@ -411,14 +449,46 @@ export default function ChartEntriesPage() {
       }
 
       setEditArtist(null);
+      const fresh = await fetchAppData().catch(() => null);
+      if (fresh) setPublicPayload(fresh);
     } catch(e) { setError(e.message); }
     finally { setEditBusy(false); }
+  }
+
+  const missingArtistRecords = artistRankings.filter((artist) => !artist.profile?.id);
+
+  async function reconcileMissingArtists() {
+    if (reconcileBusy || !missingArtistRecords.length) return;
+    setReconcileBusy(true); setError("");
+    try {
+      for (const artist of missingArtistRecords) {
+        const matches = getResults(await cmsApi.get(`/artists/?search=${encodeURIComponent(artist.name)}&page_size=10`));
+        const exact = matches.find((item) =>
+          [item.name, item.display_name].some((name) => String(name || "").trim().toLowerCase() === artist.name.trim().toLowerCase())
+        );
+        if (!exact) {
+          await cmsApi.post("/artists/", {
+            name: artist.name,
+            display_name: artist.name,
+            artist_type: "solo",
+            status: "active",
+          });
+        }
+      }
+      const fresh = await fetchAppData();
+      setPublicPayload(fresh);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setReconcileBusy(false);
+    }
   }
 
   // ──────────────────────────────────────────────────────────────────────────
 
   const activePlatform =
     platformId === COMBINED ? { name: "Combined", color: "#B8860B" } :
+    platformId === "kenyan" ? { name: "Kenyan", color: "#006600" } :
     platforms.find(p => String(p.id) === String(platformId));
 
   const panelLabel = (label) => (
@@ -486,8 +556,7 @@ export default function ChartEntriesPage() {
           ))}
         </div>
 
-        {chartType !== "artists" && (
-          <select
+        <select
             className="cms-select"
             value={selectedYM}
             onChange={e => setSelectedYM(e.target.value)}
@@ -498,7 +567,6 @@ export default function ChartEntriesPage() {
               <option key={m.key} value={m.key}>{m.label}</option>
             ))}
           </select>
-        )}
 
         {chartType !== "artists" && !currentChart && selectedYM && (
           <span style={{ fontSize: 12, color: "#C62828", fontWeight: 700 }}>
@@ -512,7 +580,7 @@ export default function ChartEntriesPage() {
           </span>
         )}
 
-        {chartType !== "artists" && chartId && !isLocked && (
+        {chartType !== "artists" && chartId && platformId !== "kenyan" && !isLocked && (
           <button
             type="button"
             className="cms-btn light"
@@ -527,8 +595,13 @@ export default function ChartEntriesPage() {
 
         {chartType === "artists" && artistRankings.length > 0 && (
           <span style={{ fontSize: 12, color: "#888" }}>
-            {artistRankings.length} artists · cumulative all platforms · singles + albums
+            {artistRankings.length} artists · {platformName.toLowerCase()} · singles + albums
           </span>
+        )}
+        {chartType === "artists" && missingArtistRecords.length > 0 && (
+          <button type="button" className="cms-btn light small" onClick={reconcileMissingArtists} disabled={reconcileBusy}>
+            {reconcileBusy ? "Reconciling…" : `Create ${missingArtistRecords.length} missing artist record${missingArtistRecords.length === 1 ? "" : "s"}`}
+          </button>
         )}
 
         {chartType !== "artists" && chartId && entries.length > 0 && (
@@ -539,11 +612,12 @@ export default function ChartEntriesPage() {
         )}
       </div>
 
-      {/* ── Platform pill bar (singles/albums only) ── */}
-      {chartType !== "artists" && chartId && (
+      {/* Platform pills mirror the live public payload. */}
+      {(chartType === "artists" || chartId) && (
         <div className="cms-pill-bar" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16, alignItems: "center" }}>
           {pillBtn(COMBINED, "Combined", "#B8860B")}
-          {platforms.map(p =>
+          {pillBtn("kenyan", chartType === "artists" ? "Kenyan Artists" : (chartType === "albums" ? "Kenyan Albums" : "Kenyan Singles"), "#006600")}
+          {visiblePlatforms.map(p =>
             pillBtn(p.id, p.short_name || p.name, p.color || "#555")
           )}
         </div>
@@ -565,6 +639,7 @@ export default function ChartEntriesPage() {
                   <thead>
                     <tr>
                       <th style={{ width: 40 }}>#</th>
+                      <th style={{ width: 42 }}></th>
                       <th>Artist</th>
                       <th style={{ width: 100 }}>Pts (all)</th>
                       <th style={{ width: 60 }}>Entries</th>
@@ -581,6 +656,11 @@ export default function ChartEntriesPage() {
                           style={{ background: active ? "#fffaf0" : undefined }}
                         >
                           <td style={{ fontWeight: 800, color: "#aaa", fontSize: 13 }}>{artist.rank}</td>
+                          <td style={{ padding: "8px 6px" }}>
+                            {artist.image
+                              ? <img src={artist.image} alt="" style={{ width: 36, height: 36, borderRadius: 8, objectFit: "cover", display: "block" }} />
+                              : <span className="cms-chart-image cms-chart-image-empty" style={{ width: 36, height: 36 }}>{artist.name.charAt(0)}</span>}
+                          </td>
                           <td style={{ fontWeight: 700, fontSize: 13 }}>{artist.name}</td>
                           <td style={{ fontSize: 13, fontWeight: 600 }}>{artist.pts.toLocaleString()}</td>
                           <td style={{ fontSize: 13, color: "#666" }}>{artist.songs.length}</td>

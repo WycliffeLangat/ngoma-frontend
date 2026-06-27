@@ -55,3 +55,13 @@
   .cms-resource-head>div{flex-wrap:wrap}
 }
 .cms-btn.cms-sync-done{background:var(--cms-green);color:#fff;border-color:var(--cms-green)}
+.cms-chart-image{display:block;width:44px;height:44px;border-radius:10px;object-fit:cover;border:1px solid var(--cms-line);background:#f3efe7}.cms-chart-image-empty{display:grid;place-items:center;color:#9b8d72;font-weight:900}.cms-row-subtitle{display:block;color:var(--cms-muted);font-size:11px;margin-top:3px}
+@media(min-width:701px) and (max-width:1100px){
+  .cms-content{padding:16px;max-width:100%}
+  .cms-entries-layout{flex-direction:column}
+  .cms-entries-layout .cms-entries-panel{position:relative!important;top:auto!important;width:100%!important}
+  .cms-entries-layout .cms-table-wrap,.cms-year-end-table{width:100%;overflow-x:auto}
+  .cms-toolbar{align-items:stretch}
+  .cms-toolbar>.cms-select{min-width:170px!important}
+  .cms-page-head{margin-bottom:16px}
+}

@@ -812,6 +812,11 @@ const buildArtistChart = (monthLabel = CURRENT_MONTH, platform = "Combined") => 
 
 const buildArtistYearEndRows = () => buildCombinedArtists("artists", CURRENT_MONTH).slice(0, 50).map((artist) => {
   const country = getArtistCountry({ artist: artist.n });
+  const artistProfile = publicArtistForName(artist.n) || {};
+  const artistImage = getArtistImageUrl(
+    { ...artistProfile, title: artist.n, artist_profile: artistProfile },
+    { name: artist.n, artists: [artistProfile] }
+  );
   return {
     t: artist.n,
     a: "",
@@ -824,6 +829,9 @@ const buildArtistYearEndRows = () => buildCombinedArtists("artists", CURRENT_MON
     country: country.country || "",
     type: "artist",
     is_artist_entry: true,
+    artist_profile: artistProfile,
+    image: artistImage,
+    cover_image: artistImage,
   };
 });
 
@@ -1200,6 +1208,7 @@ export default function NgomaCharts(){
           return fetchAppData().then(freshData => {
             if (freshData && typeof freshData === "object") {
               window.__NGOMA_PUBLIC_DATA__ = { ...(window.__NGOMA_PUBLIC_DATA__ || {}), ...freshData };
+              window.__NGOMA_PUBLIC_REVISION__ = freshData.revision || freshData.stamp || Date.now();
               rebuildPublicLookups(freshData);
               if (typeof window !== "undefined") window.dispatchEvent(new Event("ngoma-public-data-ready"));
               combinedEntryCache.clear();
@@ -1233,6 +1242,7 @@ export default function NgomaCharts(){
             if (freshData && typeof freshData === "object") {
               window.__NGOMA_PUBLIC_DATA__ = { ...(window.__NGOMA_PUBLIC_DATA__ || {}), ...freshData };
               _syncedRevision = String(freshData.revision || freshData.stamp || "");
+              window.__NGOMA_PUBLIC_REVISION__ = freshData.revision || freshData.stamp || Date.now();
               if (typeof window !== "undefined") window.dispatchEvent(new Event("ngoma-public-data-ready"));
               rebuildPublicLookups(freshData);
               combinedEntryCache.clear();
@@ -1417,7 +1427,9 @@ export default function NgomaCharts(){
 
   const [vw,setVw]=useState(typeof window!=="undefined"?window.innerWidth:1200);
   useEffect(()=>{const h=()=>setVw(window.innerWidth);window.addEventListener("resize",h);return()=>window.removeEventListener("resize",h);},[]);
-  const isMobile=vw<640;
+  // Phones and portrait tablets share the compact navigation/card layout.
+  // Wider tablets keep the desktop table where it has enough room.
+  const isMobile=vw<900;
   const PAD=isMobile?"clamp(20px, 5vw, 28px)":"28px";
   const PAGE_MAX="1240px";
   const pageFrame=(extra={})=>({maxWidth:PAGE_MAX,width:"100%",margin:"0 auto",boxSizing:"border-box",minWidth:0,...extra});
@@ -2797,7 +2809,6 @@ const top = data[0];
                   {navItems.map(t=>(
                     <span key={t} onClick={()=>navTo(t)} style={{cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"13px",fontWeight:page===t?800:600,letterSpacing:"1px",textTransform:"uppercase",color:page===t?themeColors.text:themeColors.muted,background:page===t?themeColors.active:"transparent",border:page===t?"1px solid #D4B65E":"1px solid transparent"}}>{navLabel(t)}</span>
                   ))}
-                  <span onClick={()=>{setMNav(false);setSOpen(true);setSActiveIdx(-1);}} style={{cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"13px",fontWeight:600,letterSpacing:"1px",textTransform:"uppercase",color:themeColors.muted}}>Search</span>
                   {themeToggle({hideDot:true,width:"100%",justifyContent:"flex-start",borderRadius:"12px",minHeight:"44px",padding:"0 14px",marginTop:"4px",fontSize:"13px",fontWeight:600,letterSpacing:"1px"})}
                 </div>
               )}
@@ -2847,24 +2858,6 @@ const top = data[0];
                   </div>
                 )}
               </div>
-              <span
-                onClick={()=>{setMoreOpen(false);setSOpen(true);setSActiveIdx(-1);}}
-                style={{
-                  cursor:"pointer",
-                  color:themeColors.muted,
-                  whiteSpace:"nowrap",
-                  padding:"6px 12px",
-                  borderRadius:"20px",
-                  fontFamily:F,
-                  fontSize:"11px",
-                  fontWeight:700,
-                  letterSpacing:"1.5px",
-                  textTransform:"uppercase",
-                  border:"1px solid transparent",
-                }}
-                onMouseEnter={e=>{e.currentTarget.style.color=themeColors.text;e.currentTarget.style.background=themeColors.hover;}}
-                onMouseLeave={e=>{e.currentTarget.style.color=themeColors.muted;e.currentTarget.style.background="transparent";}}
-              >Search</span>
               {themeToggle()}
             </nav>
           )}

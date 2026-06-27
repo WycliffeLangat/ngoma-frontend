@@ -386,6 +386,31 @@
   }
 }
 
+/* Tablet tuning: keep medium screens breathable without changing desktop. */
+@media (min-width: 769px) and (max-width: 1100px) {
+  html,
+  body,
+  #root {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .ngoma-hero-slide {
+    gap: 14px !important;
+    padding: 18px !important;
+  }
+
+  .ngoma-chart-row-stripe {
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .ngoma-mobile-collapsible-body {
+    padding-inline: clamp(14px, 3vw, 26px);
+  }
+}
+
 /* Dark mode overrides — must come last */
 @media (max-width: 768px) {
   html[data-ngoma-theme="dark"] .premium-stat-card,

@@ -12,6 +12,7 @@ const ResourcePage        = lazy(() => import("./pages/ResourcePage"));
 const DuplicateReviewPage = lazy(() => import("./pages/DuplicateReviewPage"));
 const UploadsPage         = lazy(() => import("./pages/UploadsPage"));
 const ChartEntriesPage    = lazy(() => import("./pages/ChartEntriesPage"));
+const YearEndPage         = lazy(() => import("./pages/YearEndPage"));
 const ScaffoldPage        = lazy(() => import("./pages/ScaffoldPage"));
 
 const nav = [
@@ -47,9 +48,10 @@ function PageLoader() {
   return <div className="cms-empty" style={{ paddingTop: 60 }}>Loading…</div>;
 }
 
-function renderPage(page, user, searchJump, setPage) {
-  if (page === "dashboard")       return <DashboardPage onNavigate={setPage} />;
+function renderPage(page, user, searchJump, onNavigate) {
+  if (page === "dashboard")       return <DashboardPage onNavigate={onNavigate} />;
   if (page === "chart-entries")   return <ChartEntriesPage />;
+  if (page === "year-end")        return <YearEndPage onNavigate={onNavigate} />;
   if (page === "uploads")         return <UploadsPage />;
   if (page === "duplicate-review")return <DuplicateReviewPage />;
   if (RESOURCE_PAGES.has(page))   return <ResourcePage type={page} user={user} searchJump={searchJump} />;
@@ -140,7 +142,7 @@ export default function AdminApp() {
         </header>
         <main className="cms-content">
           <Suspense fallback={<PageLoader />}>
-            {renderPage(page, user, searchJump, setPage)}
+            {renderPage(page, user, searchJump, handleGlobalNavigate)}
           </Suspense>
         </main>
       </div>

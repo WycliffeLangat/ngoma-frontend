@@ -29,9 +29,6 @@ export default defineConfig({
           // CMS — only downloaded when the user navigates to /cms.
           // With React.lazy in App.jsx this chunk is already auto-split, but
           // naming it keeps the output predictable.
-          if (id.includes("/src/admin/")) {
-            return "cms";
-          }
         },
       },
     },

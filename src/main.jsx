@@ -1,6 +1,5 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { applyPublicAppData } from "./data/liveChartData";
 import { API_BASE } from "./api/config.js";
 import { fetchAppData, fetchRevision } from "./api/public.js";
 import "./index.css";
@@ -30,6 +29,7 @@ async function loadPublicAppData({ timeoutMs = 4000 } = {}) {
 
     window.__NGOMA_PUBLIC_DATA__ = payload;
     window.__NGOMA_PUBLIC_REVISION__ = String(payload.revision || "");
+    const { applyPublicAppData } = await import("./data/liveChartData");
     applyPublicAppData(payload);
     notifyPublicDataReady();
     return { ok: true, payload };
