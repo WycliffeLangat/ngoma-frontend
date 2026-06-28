@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { API_BASE, SHOULD_USE_BUNDLED_FALLBACK } from "./api/config.js";
-import { fetchAppData, fetchRevision } from "./api/public.js";
+import { fetchAppData } from "./api/public.js";
 import "./index.css";
 import "./styles/mobilePremiumFixes.css";
 
@@ -51,66 +51,6 @@ async function loadPublicAppData({ timeoutMs = 4000 } = {}) {
   }
 }
 
-function watchForCmsChanges() {
-  if (!isPublicAppPath()) return;
-
-  let knownRevision = String(window.__NGOMA_PUBLIC_REVISION__ || "");
-  let checking = false;
-  let reloadQueued = false;
-
-  const reloadPublicApp = () => {
-    if (reloadQueued) return;
-    reloadQueued = true;
-    window.setTimeout(() => window.location.reload(), 150);
-  };
-
-  const checkRevision = async ({ allowHidden = false } = {}) => {
-    if (checking || (!allowHidden && document.hidden)) return;
-    checking = true;
-    try {
-      const payload = await fetchRevision();
-      const nextRevision = String(payload.revision || "");
-      if (!nextRevision) return;
-      if (!knownRevision) {
-        knownRevision = nextRevision;
-        reloadPublicApp();
-        return;
-      }
-      if (nextRevision !== knownRevision) reloadPublicApp();
-    } catch {
-      // A temporary API outage must not interrupt the public app.
-    } finally {
-      checking = false;
-    }
-  };
-
-  // A CMS mutation signal is authoritative. Reload immediately so the public
-  // app hydrates from the new payload without waiting for another poll.
-  const onCmsSignal = reloadPublicApp;
-  const onStorage = (event) => {
-    if (event.key === "ngoma-cms-revision") onCmsSignal();
-  };
-  const onVisibilityChange = () => {
-    if (!document.hidden) checkRevision();
-  };
-
-  let channel = null;
-  try {
-    channel = new BroadcastChannel("ngoma-cms-sync");
-    channel.onmessage = (event) => {
-      if (event?.data?.type === "cms-change") onCmsSignal();
-    };
-  } catch {
-    channel = null;
-  }
-
-  window.addEventListener("storage", onStorage);
-  window.addEventListener("ngoma-cms-change", onCmsSignal);
-  window.addEventListener("focus", checkRevision);
-  document.addEventListener("visibilitychange", onVisibilityChange);
-  window.setInterval(checkRevision, 10000);
-}
-
 async function start() {
   const root = ReactDOM.createRoot(document.getElementById("root"));
   // NgomaCharts builds CMS lookup maps when its module loads. Hydrate first so
@@ -145,7 +85,6 @@ async function start() {
     </React.StrictMode>
   );
 
-  watchForCmsChanges();
 }
 
 start();
