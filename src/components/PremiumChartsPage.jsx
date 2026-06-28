@@ -2166,7 +2166,7 @@ const styles = {
 
   desktopExpandedDetails: {
     margin: "0 24px 16px 176px",
-    padding: "14px 16px",
+    padding: "18px 20px",
     border: "1px solid rgba(0,0,0,0.06)",
     borderRadius: "16px",
     background: "#fbfaf7",
@@ -2182,20 +2182,20 @@ const styles = {
   desktopDetailsGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-    gap: "10px",
+    gap: "12px",
   },
 
   mobileDetailsGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-    gap: "8px",
+    gap: "10px",
   },
 
   detailCard: {
     background: "#f7f7f7",
     border: "1px solid rgba(0,0,0,0.06)",
     borderRadius: "12px",
-    padding: "9px 10px",
+    padding: "12px 13px",
     minWidth: 0,
     boxSizing: "border-box",
   },
@@ -2218,7 +2218,7 @@ const styles = {
 
   detailCardLabel: {
     display: "block",
-    fontSize: "9px",
+    fontSize: "11px",
     color: "#777777",
     fontWeight: 900,
     letterSpacing: "1px",
@@ -2233,7 +2233,7 @@ const styles = {
     display: "block",
     marginTop: "4px",
     color: "#050505",
-    fontSize: "12px",
+    fontSize: "15px",
     fontWeight: 900,
     lineHeight: 1.28,
     overflowWrap: "anywhere",

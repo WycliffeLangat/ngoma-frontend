@@ -140,8 +140,8 @@ export default function ArtistDetailPage({ ctx }) {
                 <h2 style={{margin:0,fontFamily:SF,fontSize:isMobile?"26px":"32px",fontWeight:800,lineHeight:1.08,letterSpacing:"-0.5px"}}>{selA.n}</h2>
                 <CountryBadge item={countryItem} showName />
               </div>
-              <div style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",marginTop:"6px",lineHeight:1.5}}>Recorded {placementCount} Top-50 platform placements across {chartedMonthCount} months</div>
-              {profile.biography&&<p className="bio-text" style={{fontFamily:F,fontSize:"13px",lineHeight:1.72,color:"#4a534c",margin:"12px 0 0",maxWidth:"680px"}}>{profile.biography}</p>}
+              <div style={{fontFamily:F,fontSize:"14px",color:"#69716B",marginTop:"6px",lineHeight:1.5}}>Recorded {placementCount} Top-50 platform placements across {chartedMonthCount} months</div>
+              {profile.biography&&<p className="bio-text" style={{fontFamily:F,fontSize:"15px",lineHeight:1.72,color:"#4a534c",margin:"12px 0 0",maxWidth:"680px"}}>{profile.biography}</p>}
 
               {/* Social icon links */}
               {socialLinks.length > 0 && (
@@ -174,9 +174,9 @@ export default function ArtistDetailPage({ ctx }) {
           {metaRows.length > 0 && (
           <div style={{margin:"22px 0 18px",border:`1px solid ${isDark?"#2B302B":"#E8E5DC"}`,borderRadius:"14px",overflow:"hidden",background:isDark?"#0F1110":"#fff"}}>
             {metaRows.map(([label, value], idx) => (
-              <div key={label} style={{display:"grid",gridTemplateColumns:isMobile?"110px 1fr":"150px 1fr",gap:"12px",padding:"10px 16px",background:isDark?(idx%2===0?"#121612":"#0F1110"):(idx%2===0?"#FAFAF8":"#FFFFFF"),borderTop:idx===0?"none":`1px solid ${isDark?"#2B302B":"#F0EDE6"}`,alignItems:"center"}}>
-                <span style={{fontFamily:F,fontSize:"9.5px",fontWeight:800,letterSpacing:"0.5px",color:isDark?"#8F968F":"#7B857D",textTransform:"uppercase"}}>{label}</span>
-                <span style={{fontFamily:F,fontSize:"12px",fontWeight:600,color:isDark?"#F6F3EA":"#1A1A1A",wordBreak:"break-word"}}>{value}</span>
+              <div key={label} style={{display:"grid",gridTemplateColumns:isMobile?"110px 1fr":"170px 1fr",gap:"14px",padding:"12px 16px",background:isDark?(idx%2===0?"#121612":"#0F1110"):(idx%2===0?"#FAFAF8":"#FFFFFF"),borderTop:idx===0?"none":`1px solid ${isDark?"#2B302B":"#F0EDE6"}`,alignItems:"center"}}>
+                <span style={{fontFamily:F,fontSize:"11px",fontWeight:800,letterSpacing:"0.5px",color:isDark?"#8F968F":"#7B857D",textTransform:"uppercase"}}>{label}</span>
+                <span style={{fontFamily:F,fontSize:"14px",fontWeight:650,color:isDark?"#F6F3EA":"#1A1A1A",wordBreak:"break-word"}}>{value}</span>
               </div>
             ))}
           </div>
@@ -213,7 +213,7 @@ export default function ArtistDetailPage({ ctx }) {
               {label:"Top 10 Placements",value:topTenPlacements},
               {label:"#1 Placements",value:numberOnePlacements},
               {label:"Best Release Rank",value:bestReleaseRank?`#${bestReleaseRank}`:"—"},
-            ].map((stat)=><div key={stat.label} style={{padding:"12px 13px",border:"1px solid "+(isDark?"#2B302B":"#ECE9E1"),borderRadius:"10px",background:isDark?"#151815":"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#8F968F":"#7B857D"}}>{stat.label}</div><div style={{fontFamily:F,fontSize:"19px",fontWeight:900,color:isDark?"#F6F3EA":"#1A1A1A",marginTop:"5px"}}>{stat.value}</div></div>)}
+            ].map((stat)=><div key={stat.label} style={{padding:"14px 15px",border:"1px solid "+(isDark?"#2B302B":"#ECE9E1"),borderRadius:"10px",background:isDark?"#151815":"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#8F968F":"#7B857D"}}>{stat.label}</div><div style={{fontFamily:F,fontSize:"22px",fontWeight:900,color:isDark?"#F6F3EA":"#1A1A1A",marginTop:"5px"}}>{stat.value}</div></div>)}
           </div>
           <h3 style={secLbl()}>Charted Entries Across Months</h3>
           {selectedArtistEntryGroups.map((group)=>{

@@ -98,6 +98,17 @@ function releaseEntryKey(e) {
   return `${title}|||${artist}`;
 }
 
+function normalizeName(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function splitArtistNames(value) {
+  return String(value || "")
+    .split(/\s*(?:\||\bft\.?|\bfeat\.?|\bfeaturing\b|\bx\b|&|,)\s*/i)
+    .map((name) => name.trim())
+    .filter(Boolean);
+}
+
 const COMBINED = "combined";
 
 export default function ChartEntriesPage() {
@@ -490,46 +501,122 @@ export default function ChartEntriesPage() {
   const missingArtistRecords = artistRankings.filter((artist) => !artist.profile?.id);
 
   async function reconcileMissingArtists() {
-    if (reconcileBusy || !missingArtistRecords.length) return;
+    if (reconcileBusy) return;
     setReconcileBusy(true); setError("");
     try {
-      for (const artist of missingArtistRecords) {
-        const matches = getResults(await cmsApi.get(`/artists/?search=${encodeURIComponent(artist.name)}&page_size=10`));
-        let record = matches.find((item) =>
-          [item.name, item.display_name].some((name) => String(name || "").trim().toLowerCase() === artist.name.trim().toLowerCase())
-        );
-        if (!record) {
-          record = await cmsApi.post("/artists/", {
-            name: artist.name,
-            display_name: artist.name,
-            artist_type: "solo",
-            status: "active",
-          });
-        }
-
-        // A text-only featured credit must also be linked to its releases.
-        // Otherwise the artist exists in search but remains absent from the
-        // structured app-data artist list and artist detail history.
-        const releaseIds = [...new Set((artist.releases || [])
-          .filter((entry) => String(entry.featured_artist_credit || entry.fa || entry.featured_artists || "")
-            .split(/\s*(?:,|&|\bft\.?|\bfeat\.?|\bfeaturing\b)\s*/i)
-            .some((name) => name.trim().toLowerCase() === artist.name.trim().toLowerCase()))
-          .map((entry) => entry.release_id)
-          .filter(Boolean))];
-
-        for (const releaseId of releaseIds) {
-          const release = await cmsApi.get(`/releases/${releaseId}/`);
-          const linkedIds = [
-            ...(release.featured_artist_ids || []),
-            ...(release.featured_artist_profiles || []).map((profile) => profile.id),
-          ].map(Number).filter(Boolean);
-          if (!linkedIds.includes(Number(record.id))) {
-            await cmsApi.patch(`/releases/${releaseId}/`, {
-              featured_artist_ids: [...new Set([...linkedIds, Number(record.id)])],
-            });
-          }
+      // Public songs/albums already originate from Release records. Reconcile
+      // only their artist credits, keyed by the exact release_id, so releases
+      // with the same title can never be merged accidentally.
+      const rowsByRelease = new Map();
+      (artistRankings || []).forEach((artist) => {
+        (artist.releases || []).forEach((entry) => {
+          if (entry.release_id) rowsByRelease.set(Number(entry.release_id), entry);
+        });
+      });
+      const rows = [...rowsByRelease.values()];
+      const releaseRecords = new Map();
+      for (const row of rows) {
+        const releaseId = Number(row.release_id);
+        if (!releaseId) continue;
+        try {
+          releaseRecords.set(releaseId, await cmsApi.get(`/releases/${releaseId}/`));
+        } catch (releaseError) {
+          // A deliberately deleted/merged release must not be silently
+          // recreated from a stale browser payload.
+          if (releaseError.status !== 404) throw releaseError;
         }
       }
+      const existingRows = rows.filter((row) => releaseRecords.has(Number(row.release_id)));
+
+      const primaryNamesFor = (row) => {
+        const structured = (row.primary_artists || [])
+          .map((profile) => profile?.public_name || profile?.display_name || profile?.name)
+          .filter(Boolean);
+        return structured.length
+          ? structured
+          : splitArtistNames(row.primary_artist_credit || row.pa || row.primary_artist || row.a || row.artist_credit || row.artist);
+      };
+      const featuredNamesFor = (row) => {
+        const structured = (row.featured_artist_profiles || [])
+          .map((profile) => profile?.public_name || profile?.display_name || profile?.name)
+          .filter(Boolean);
+        const textNames = splitArtistNames(row.featured_artist_credit || row.fa || row.featured_artists || "");
+        return [...new Map([...structured, ...textNames].map((name) => [normalizeName(name), name])).values()];
+      };
+
+      const artistNames = new Map();
+      existingRows.forEach((row) => {
+        [...primaryNamesFor(row), ...featuredNamesFor(row)].forEach((name) => {
+          const key = normalizeName(name);
+          if (key && !artistNames.has(key)) artistNames.set(key, String(name).trim());
+        });
+      });
+      // Also register credits from every published release, not only artists
+      // currently visible in this month. This makes historical and text-only
+      // featured artists searchable throughout the CMS.
+      (publicPayload?.releases || []).forEach((release) => {
+        [...primaryNamesFor(release), ...featuredNamesFor(release)].forEach((name) => {
+          const key = normalizeName(name);
+          if (key && !artistNames.has(key)) artistNames.set(key, String(name).trim());
+        });
+      });
+
+      const artistLookup = new Map();
+      const artistOptions = await cmsApi.get("/artists/options/").catch(() => []);
+      (Array.isArray(artistOptions) ? artistOptions : getResults(artistOptions)).forEach((item) => {
+        const name = item.public_name || item.display_name || item.name || item.label;
+        const key = normalizeName(name);
+        if (key) artistLookup.set(key, { ...item, id: item.id || item.value, name });
+      });
+      for (const [key, rawName] of artistNames) {
+        let record = artistLookup.get(key) || null;
+        if (!record) {
+          try {
+            record = await cmsApi.post("/artists/", {
+              name: rawName,
+              display_name: rawName,
+              artist_type: "solo",
+              status: "active",
+            });
+          } catch (createError) {
+            // A simultaneous reconciliation may have created it between the
+            // search and POST. Resolve that race without surfacing a false 400.
+            const retry = getResults(await cmsApi.get(`/artists/?search=${encodeURIComponent(rawName)}&page_size=10`));
+            record = retry.find((item) =>
+              [item.name, item.display_name, item.public_name].some((name) => normalizeName(name) === key)
+            );
+            if (!record) throw createError;
+          }
+        }
+        artistLookup.set(key, record);
+      }
+
+      for (const row of existingRows) {
+        const releaseId = Number(row.release_id);
+        const release = releaseRecords.get(releaseId);
+        const primaryIds = [
+          ...(release.primary_artist_ids || []),
+          ...(release.primary_artists || []).map((profile) => profile.id),
+          release.artist,
+        ].map(Number).filter(Boolean);
+        const desiredFeaturedIds = featuredNamesFor(row)
+          .map((name) => artistLookup.get(normalizeName(name))?.id)
+          .filter((id) => id !== undefined && id !== null && id !== "")
+          .map(Number);
+        const existingFeaturedIds = [
+          ...(release.featured_artist_ids || []),
+          ...(release.featured_artist_profiles || []).map((profile) => profile.id),
+        ].map(Number).filter(Boolean);
+        const primarySet = new Set(primaryIds);
+        const nextFeaturedIds = [...new Set([...existingFeaturedIds, ...desiredFeaturedIds])]
+          .filter((id) => !primarySet.has(id));
+        const currentKey = [...new Set(existingFeaturedIds)].sort((a, b) => a - b).join(",");
+        const nextKey = [...nextFeaturedIds].sort((a, b) => a - b).join(",");
+        if (nextKey !== currentKey) {
+          await cmsApi.patch(`/releases/${releaseId}/`, { featured_artist_ids: nextFeaturedIds });
+        }
+      }
+
       const fresh = await fetchAppData();
       setPublicPayload(fresh);
     } catch (e) {
@@ -543,12 +630,12 @@ export default function ChartEntriesPage() {
   // CMS exhaustive without requiring an editor to notice and press a repair
   // button first (for example, Fik Fameica as a text-only featured credit).
   useEffect(() => {
-    if (chartType !== "artists" || reconcileBusy || !missingArtistRecords.length) return;
-    const key = `${publicPayload?.revision || "live"}|${selectedMonthLabel}|${missingArtistRecords.map((artist) => artist.name.toLowerCase()).sort().join(",")}`;
+    if (chartType !== "artists" || reconcileBusy || !artistRankings.length) return;
+    const key = `${publicPayload?.revision || "live"}|${selectedMonthLabel}|${platformName}|${artistRankings.map((artist) => artist.name.toLowerCase()).sort().join(",")}`;
     if (reconciliationRef.current === key) return;
     reconciliationRef.current = key;
     reconcileMissingArtists();
-  }, [chartType, publicPayload?.revision, selectedMonthLabel, reconcileBusy, missingArtistRecords.length]);
+  }, [chartType, publicPayload?.revision, selectedMonthLabel, platformName, reconcileBusy, artistRankings.length]);
 
   // ──────────────────────────────────────────────────────────────────────────
 
@@ -664,9 +751,13 @@ export default function ChartEntriesPage() {
             {artistRankings.length} artists · {platformName.toLowerCase()} · singles + albums
           </span>
         )}
-        {chartType === "artists" && missingArtistRecords.length > 0 && (
+        {chartType === "artists" && artistRankings.length > 0 && (
           <button type="button" className="cms-btn light small" onClick={reconcileMissingArtists} disabled={reconcileBusy}>
-            {reconcileBusy ? "Reconciling…" : `Create ${missingArtistRecords.length} missing artist record${missingArtistRecords.length === 1 ? "" : "s"}`}
+            {reconcileBusy
+              ? "Syncing artist records…"
+              : missingArtistRecords.length
+                ? `Sync artists (${missingArtistRecords.length} missing)`
+                : "Sync artist records"}
           </button>
         )}
 
@@ -752,8 +843,8 @@ export default function ChartEntriesPage() {
               <div className="cms-entries-panel" style={{ width: 300, flexShrink: 0, background: "#fff", border: "1px solid #E8E1D2", borderRadius: 20, padding: 20, position: "sticky", top: 90 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                   <div>
-                    <div style={{ fontSize: 15, fontWeight: 800 }}>{selectedArtist.name}</div>
-                    <div style={{ fontSize: 11, color: "#b8860b", fontWeight: 700, marginTop: 2 }}>
+                    <div style={{ fontSize: 16, fontWeight: 800, lineHeight: 1.2 }}>{selectedArtist.name}</div>
+                    <div style={{ fontSize: 12, color: "#b8860b", fontWeight: 700, marginTop: 2 }}>
                       #{selectedArtist.rank} · {selectedArtist.pts.toLocaleString()} pts cumulative
                     </div>
                   </div>
@@ -774,7 +865,7 @@ export default function ChartEntriesPage() {
                   {editBusy ? "Loading…" : "Edit artist record"}
                 </button>
 
-                <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", color: "#5e625c", marginBottom: 8 }}>
+                <div style={{ fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", color: "#5e625c", marginBottom: 8 }}>
                   Chart entries ({selectedArtist.songs.length})
                 </div>
                 {selectedArtist.songs.sort((a, b) => b.pts - a.pts).map(s => (
@@ -785,11 +876,11 @@ export default function ChartEntriesPage() {
                     }
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div
-                        style={{ fontSize: 12, fontWeight: 700, cursor: "pointer", textDecoration: "underline dotted", textUnderlineOffset: 3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+                        style={{ fontSize: 13, fontWeight: 700, cursor: "pointer", textDecoration: "underline dotted", textUnderlineOffset: 3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
                         onClick={() => s.releaseId && openReleaseEdit(s.releaseId)}
                         title="Edit this release"
                       >{s.title}</div>
-                      <div style={{ fontSize: 10, color: "#888" }}>rank #{s.rank} · {s.pts} pts</div>
+                      <div style={{ fontSize: 11, color: "#888" }}>rank #{s.rank} · {s.pts} pts</div>
                     </div>
                   </div>
                 ))}
@@ -870,17 +961,17 @@ export default function ChartEntriesPage() {
               <div className="cms-entries-panel" style={{ width: 300, flexShrink: 0, background: "#fff", border: "1px solid #E8E1D2", borderRadius: 20, padding: 20, position: "sticky", top: 90 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: 15, fontWeight: 800, lineHeight: 1.2, marginBottom: 4 }}>
+                    <div style={{ fontSize: 16, fontWeight: 800, lineHeight: 1.2, marginBottom: 4 }}>
                       {selected.release
                         ? clickLink(() => openReleaseEdit(selected.release), selected.title)
                         : selected.title
                       }
                     </div>
-                    <div style={{ fontSize: 11, color: "#888" }}>
+                    <div style={{ fontSize: 13, color: "#888" }}>
                       {clickLink(() => openArtistEdit(primaryArtistName(selected.artist_display || selected.artist)), selected.artist_display || selected.artist)}
                     </div>
                     {activePlatform?.name && activePlatform.name !== "Combined" && (
-                      <div style={{ fontSize: 10, fontWeight: 700, color: activePlatform.color || "#555", marginTop: 3, textTransform: "uppercase", letterSpacing: ".04em" }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: activePlatform.color || "#555", marginTop: 3, textTransform: "uppercase", letterSpacing: ".04em" }}>
                         {activePlatform.name}
                       </div>
                     )}
@@ -928,7 +1019,7 @@ export default function ChartEntriesPage() {
                             : <span style={{ fontSize: 26, color: "#ccc" }}>+</span>
                           }
                         </button>
-                        <div style={{ fontSize: 11, color: "#888", lineHeight: 1.5 }}>
+                        <div style={{ fontSize: 12, color: "#888", lineHeight: 1.5 }}>
                           {imageFile
                             ? <span style={{ color: "#1B7F3A", fontWeight: 700 }}>✓ {imageFile.name}</span>
                             : "Click thumbnail to replace"
@@ -953,7 +1044,7 @@ export default function ChartEntriesPage() {
                           value={form[key] ?? ""}
                           disabled={isLocked}
                           onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
-                          style={{ border: "1px solid #E8E1D2", borderRadius: 10, padding: "8px 11px", font: "inherit", fontSize: 13, outline: "none", background: isLocked ? "#faf8f2" : "#fff" }}
+                          style={{ border: "1px solid #E8E1D2", borderRadius: 10, padding: "8px 11px", font: "inherit", fontSize: 14, outline: "none", background: isLocked ? "#faf8f2" : "#fff" }}
                         />
                       </label>
                     ))}
@@ -976,7 +1067,7 @@ export default function ChartEntriesPage() {
                     {/* Boolean flags */}
                     <div style={{ display: "flex", gap: 16, marginBottom: 14 }}>
                       {[["is_new","New entry"],["reentry","Re-entry"]].map(([key, label]) => (
-                        <label key={key} style={{ display: "flex", alignItems: "center", gap: 6, cursor: isLocked ? "default" : "pointer", fontSize: 12, fontWeight: 600, color: "#444" }}>
+                        <label key={key} style={{ display: "flex", alignItems: "center", gap: 6, cursor: isLocked ? "default" : "pointer", fontSize: 13, fontWeight: 600, color: "#444" }}>
                           <input
                             type="checkbox"
                             checked={!!form[key]}

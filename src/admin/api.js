@@ -101,9 +101,18 @@ async function request(path, options = {}) {
   }
 
   if (!response.ok) {
-    const detail = data?.detail || data?.error || `Request failed (${response.status})`;
+    const fieldErrors = data && typeof data === "object"
+      ? Object.entries(data)
+          .filter(([key]) => key !== "detail" && key !== "error")
+          .flatMap(([key, value]) => {
+            const messages = Array.isArray(value) ? value : [value];
+            return messages.filter(Boolean).map((message) => `${key}: ${typeof message === "object" ? JSON.stringify(message) : message}`);
+          })
+      : [];
+    const detail = data?.detail || data?.error || fieldErrors.join(" · ") || `Request failed (${response.status})`;
     const err = new Error(detail);
     err.data = data;
+    err.status = response.status;
     throw err;
   }
 

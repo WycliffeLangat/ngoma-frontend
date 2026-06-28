@@ -145,16 +145,16 @@ export default function ReleaseDetailPage({ ctx }) {
                 {label:"Platforms",value:platformNames.size},
                 {label:"Best Coverage",value:`${bestCoverage}/${tp}`},
                 {label:"Release Year",value:selR.release_year||releaseMetadata.release_year||"—"},
-              ].map((stat)=><div key={stat.label} style={{padding:"12px 13px",border:"1px solid "+(isDark?"#2B302B":"#ECE9E1"),borderRadius:"10px",background:isDark?"#151815":"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#8F968F":"#7B857D"}}>{stat.label}</div><div style={{fontFamily:F,fontSize:"19px",fontWeight:900,color:isDark?"#F6F3EA":"#1A1A1A",marginTop:"5px"}}>{stat.value}</div></div>)}
+              ].map((stat)=><div key={stat.label} style={{padding:"14px 15px",border:"1px solid "+(isDark?"#2B302B":"#ECE9E1"),borderRadius:"10px",background:isDark?"#151815":"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#8F968F":"#7B857D"}}>{stat.label}</div><div style={{fontFamily:F,fontSize:"22px",fontWeight:900,color:isDark?"#F6F3EA":"#1A1A1A",marginTop:"5px"}}>{stat.value}</div></div>)}
             </div>
             <div style={{marginBottom:"18px",border:`1px solid ${isDark?"#2B302B":"#ECE9E1"}`,borderRadius:"12px",overflow:"hidden"}}>
               {infoRows.map(([label, value], idx) => (
-                <div key={label} style={{display:"grid",gridTemplateColumns:isMobile?"110px 1fr":"150px 1fr",gap:"12px",padding:"9px 14px",background:isDark?(idx%2===0?"#121612":"#0F1110"):(idx%2===0?"#FAFAF8":"#FFFFFF"),borderTop:idx===0?"none":`1px solid ${isDark?"#2B302B":"#F0EDE6"}`,alignItems:"center"}}>
-                  <span style={{fontFamily:F,fontSize:"9.5px",fontWeight:700,letterSpacing:"0.4px",color:isDark?"#8F968F":"#7B857D",textTransform:"uppercase"}}>{label}</span>
+                <div key={label} style={{display:"grid",gridTemplateColumns:isMobile?"110px 1fr":"170px 1fr",gap:"14px",padding:"12px 16px",background:isDark?(idx%2===0?"#121612":"#0F1110"):(idx%2===0?"#FAFAF8":"#FFFFFF"),borderTop:idx===0?"none":`1px solid ${isDark?"#2B302B":"#F0EDE6"}`,alignItems:"center"}}>
+                  <span style={{fontFamily:F,fontSize:"11px",fontWeight:750,letterSpacing:"0.4px",color:isDark?"#8F968F":"#7B857D",textTransform:"uppercase"}}>{label}</span>
                   {urlLabels.has(label) ? (
-                    <a href={value} target="_blank" rel="noopener noreferrer" onClick={(e)=>e.stopPropagation()} style={{fontFamily:F,fontSize:"12px",fontWeight:700,color:GOLD,textDecoration:"none",wordBreak:"break-all"}}>{value} ↗</a>
+                    <a href={value} target="_blank" rel="noopener noreferrer" onClick={(e)=>e.stopPropagation()} style={{fontFamily:F,fontSize:"14px",fontWeight:700,color:GOLD,textDecoration:"none",wordBreak:"break-all"}}>{value} ↗</a>
                   ) : (
-                    <span style={{fontFamily:F,fontSize:"12px",fontWeight:600,color:isDark?"#F6F3EA":"#1A1A1A",wordBreak:"break-word"}}>{value}</span>
+                    <span style={{fontFamily:F,fontSize:"14px",fontWeight:650,color:isDark?"#F6F3EA":"#1A1A1A",wordBreak:"break-word"}}>{value}</span>
                   )}
                 </div>
               ))}

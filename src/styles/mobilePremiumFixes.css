@@ -421,4 +421,12 @@
     border-right-color: #2b302b !important;
     border-bottom-color: #2b302b !important;
   }
+
+  .artist-stat-item .stat-label {
+    font-size: 11px !important;
+  }
+
+  .artist-stat-item .stat-value {
+    font-size: 24px !important;
+  }
 }
