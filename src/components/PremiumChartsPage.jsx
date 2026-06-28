@@ -127,12 +127,15 @@ export function getArtistCountry(item) {
   // CMS artist record is the authoritative source — reflects live admin edits after page reload.
   const requestedArtist = String(item.primary_artist || item.artist || item.artist_name || "").trim();
   const managedArtist = requestedArtist ? findCmsArtist(requestedArtist) : null;
-  if (managedArtist?.country_code) {
-    const managedCountry = publicCountry(managedArtist.country_code);
+  if (managedArtist) {
+    const managedCode = String(managedArtist.country_code || "").trim().toUpperCase();
+    const managedCountry = publicCountry(managedCode);
     return {
-      flag: managedCountry?.flag || countryCodeToFlag(managedArtist.country_code),
+      flag: managedCountry?.flag || countryCodeToFlag(managedCode),
       country: managedCountry?.name || managedArtist.country || "",
-      code: String(managedArtist.country_code).trim().toUpperCase(),
+      code: managedCode,
+      listedCountry: String(managedArtist.country || "").trim(),
+      listedCode: managedCode,
     };
   }
 
@@ -144,6 +147,8 @@ export function getArtistCountry(item) {
       flag: managedCountry?.flag || countryCodeToFlag(directCode),
       country: managedCountry?.name || item.artist_country || item.country || "",
       code: directCode,
+      listedCountry: String(item.artist_country || item.country || "").trim(),
+      listedCode: directCode,
     };
   }
 
@@ -151,6 +156,8 @@ export function getArtistCountry(item) {
     flag: "",
     country: "",
     code: "",
+    listedCountry: "",
+    listedCode: "",
   };
 }
 

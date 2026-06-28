@@ -431,11 +431,19 @@ const rawKenyanCombined = (ct, m) => {
       chartType: ct,
       month: m,
       countryCode: "KE",
-      resolveCountryCode: (entry) => getArtistCountry({
-        country_code: entry.cc,
-        primary_artist: entry.a,
-        artist: entry.a,
-      }).code,
+      countryName: "Kenya",
+      resolveCountry: (entry) => {
+        const country = getArtistCountry({
+          country: entry.co,
+          country_code: entry.cc,
+          primary_artist: entry.a,
+          artist: entry.a,
+        });
+        return {
+          country: country.listedCountry,
+          code: country.listedCode,
+        };
+      },
     }));
   }
   return kenyanRawCache.get(cacheKey);
@@ -697,16 +705,25 @@ const embeddedArtistProfileForName = (artistName = "", entries = []) => {
 
 const aggregateArtistsForMonth = (monthLabel = CURRENT_MONTH, platform = "Combined") => {
   const artistMap = new Map();
+  const kenyanOnly = platform === KENYAN_CHART;
 
   getArtistPlatformSource(platform, monthLabel).forEach((entry) => {
     artistCreditMembers(entry).forEach((artistName) => {
       const key = artistName.toLowerCase();
+      const country = getArtistCountry({ artist: artistName });
+      if (
+        kenyanOnly &&
+        (
+          String(country.listedCountry || "").trim().toLowerCase() !== "kenya" ||
+          String(country.listedCode || "").trim().toUpperCase() !== "KE"
+        )
+      ) return;
       const current = artistMap.get(key) || {
         n: artistName,
         p: 0,
         entries: new Set(),
         releases: [],
-        country: getArtistCountry({ artist: artistName }),
+        country,
       };
       const releaseIdentity = entry.release_id ? `id:${entry.release_id}` : entryKey(entry);
       const releaseKey = `${entry.sourceChartType || entry.type || "release"}|${releaseIdentity}`;

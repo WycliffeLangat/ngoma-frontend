@@ -67,8 +67,15 @@ export function publicChartRows(payload, type, month, platform = "Combined") {
       chartType: type,
       month,
       countryCode: "KE",
-      resolveCountryCode: (entry) =>
-        entry.primary_artists?.[0]?.country_code || entry.artist_profile?.country_code || entry.cc,
+      countryName: "Kenya",
+      resolveCountry: (entry) => {
+        const profile = entry.primary_artists?.[0] || entry.artist_profile || {};
+        const hasManagedProfile = Boolean(profile && Object.keys(profile).length);
+        return {
+          country: hasManagedProfile ? profile.country : (entry.co || entry.country),
+          code: hasManagedProfile ? profile.country_code : (entry.cc || entry.country_code),
+        };
+      },
     });
   }
   return platformRows(payload?.full, type, platform, month);
@@ -123,12 +130,21 @@ function artistImage(profile = {}) {
 export function buildArtistMonthMirror(payload, month, platform = "Combined") {
   const profiles = artistProfileMap(payload);
   const artists = new Map();
+  const kenyanOnly = normalized(platform) === "kenyan";
 
   artistSourceRows(payload, month, platform).forEach((entry) => {
     const rank = Number(entry.r ?? entry.rank);
     const points = 51 - rank;
     artistCreditNames(entry).forEach((name) => {
       const key = normalized(name);
+      const profile = profiles.get(key) || {};
+      if (
+        kenyanOnly &&
+        (
+          normalized(profile.country) !== "kenya" ||
+          String(profile.country_code || "").trim().toUpperCase() !== "KE"
+        )
+      ) return;
       const current = artists.get(key) || {
         name,
         points: 0,

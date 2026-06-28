@@ -21,7 +21,7 @@ const releaseKey = (entry = {}) => {
 const hasValue = (value) => value !== undefined && value !== null && value !== "";
 
 function mergeReleaseMetadata(target, source) {
-  ["t", "a", "fa", "y", "c", "cc", "release_id", "primary_artists", "featured_artist_profiles"].forEach((field) => {
+  ["t", "a", "fa", "y", "c", "co", "cc", "release_id", "primary_artists", "featured_artist_profiles"].forEach((field) => {
     if (!hasValue(target[field]) && hasValue(source[field])) target[field] = source[field];
   });
 }
@@ -35,12 +35,17 @@ export function buildRegionalCombinedRows({
   chartType = "singles",
   month,
   countryCode,
-  resolveCountryCode = (entry) => entry.cc,
+  countryName = "",
+  resolveCountry = (entry) => ({
+    country: entry.co || entry.country,
+    code: entry.cc || entry.country_code,
+  }),
   limit = 50,
 }) {
   const platformData = full?.[chartType]?.platforms || {};
   const platforms = Object.entries(platformData);
   const targetCountry = String(countryCode || "").trim().toUpperCase();
+  const targetCountryName = String(countryName || "").trim().toLowerCase();
   const releases = new Map();
 
   platforms.forEach(([platform, months]) => {
@@ -52,14 +57,23 @@ export function buildRegionalCombinedRows({
         ...entry,
         rawPoints: 0,
         platforms: new Set(),
-        matchesCountry: false,
+        matchesCountry: true,
       };
 
       mergeReleaseMetadata(current, entry);
       current.rawPoints += Number(entry.p) || 0;
       current.platforms.add(platform);
       current.w = Math.max(Number(current.w) || 0, Number(entry.w) || 0) || current.w;
-      current.matchesCountry ||= String(resolveCountryCode(entry) || "").trim().toUpperCase() === targetCountry;
+      const resolvedCountry = resolveCountry(entry) || {};
+      const resolvedCode = String(resolvedCountry.code || "").trim().toUpperCase();
+      const resolvedName = String(resolvedCountry.country || "").trim().toLowerCase();
+      const exactCountryMatch =
+        resolvedCode === targetCountry &&
+        (!targetCountryName || resolvedName === targetCountryName);
+      // One blank, conflicting, or non-Kenyan platform row disqualifies the
+      // release. Kenyan-only charts must never infer eligibility from a
+      // partial match.
+      current.matchesCountry = current.matchesCountry && exactCountryMatch;
       releases.set(key, current);
     });
   });
