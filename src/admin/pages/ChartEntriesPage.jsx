@@ -116,6 +116,8 @@ export default function ChartEntriesPage() {
   const [imagePreview, setImagePreview] = useState(null);
   const [recalcBusy, setRecalcBusy]     = useState(false);
   const [publicPayload, setPublicPayload] = useState(null);
+  const [publicLoading, setPublicLoading] = useState(true);
+  const [publicError, setPublicError] = useState("");
 
   // Artists tab state
   const [artistRankings, setArtistRankings] = useState([]);
@@ -127,6 +129,7 @@ export default function ChartEntriesPage() {
   const [editBusy,    setEditBusy]    = useState(false);
   const [reconcileBusy, setReconcileBusy] = useState(false);
   const imgInputRef = useRef();
+  const reconciliationRef = useRef("");
 
   // Load ALL chart records and platforms once
   useEffect(() => {
@@ -143,8 +146,24 @@ export default function ChartEntriesPage() {
     cmsApi.get("/platforms/?active=true&page_size=100")
       .then(d => setPlatforms(getResults(d)))
       .catch(() => {});
-    fetchAppData().then(setPublicPayload).catch(() => {});
+    loadPublicPayload();
   }, []);
+
+  async function loadPublicPayload() {
+    setPublicLoading(true);
+    setPublicError("");
+    try {
+      const payload = await fetchAppData(undefined, 30_000);
+      if (!payload?.full?.singles || !payload?.full?.albums || !payload?.months?.length) {
+        throw new Error("The public chart payload is incomplete.");
+      }
+      setPublicPayload(payload);
+    } catch (e) {
+      setPublicError(e.message || "Unable to load public chart entries.");
+    } finally {
+      setPublicLoading(false);
+    }
+  }
 
   const uniqueMonths = useMemo(() => {
     const seen = new Set();
@@ -196,6 +215,19 @@ export default function ChartEntriesPage() {
     return [platform.name, platform.short_name]
       .some((name) => availablePlatformNames.has(String(name || "").toLowerCase()));
   }), [platforms, availablePlatformNames]);
+
+  // The CMS can contain a newer draft chart than the latest published public
+  // month. Artist rows are derived from the public payload, so always start on
+  // its latest available month instead of leaving the Artists tab empty.
+  useEffect(() => {
+    const publishedMonths = publicPayload?.months || [];
+    if (!publishedMonths.length || publishedMonths.includes(selectedMonthLabel)) return;
+    const latest = publishedMonths[publishedMonths.length - 1];
+    const parsed = new Date(`${latest} 1`);
+    if (!Number.isNaN(parsed.getTime())) {
+      setSelectedYM(`${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, "0")}`);
+    }
+  }, [publicPayload, selectedMonthLabel]);
 
   // Reset everything when chart type or month changes
   useEffect(() => {
@@ -463,16 +495,39 @@ export default function ChartEntriesPage() {
     try {
       for (const artist of missingArtistRecords) {
         const matches = getResults(await cmsApi.get(`/artists/?search=${encodeURIComponent(artist.name)}&page_size=10`));
-        const exact = matches.find((item) =>
+        let record = matches.find((item) =>
           [item.name, item.display_name].some((name) => String(name || "").trim().toLowerCase() === artist.name.trim().toLowerCase())
         );
-        if (!exact) {
-          await cmsApi.post("/artists/", {
+        if (!record) {
+          record = await cmsApi.post("/artists/", {
             name: artist.name,
             display_name: artist.name,
             artist_type: "solo",
             status: "active",
           });
+        }
+
+        // A text-only featured credit must also be linked to its releases.
+        // Otherwise the artist exists in search but remains absent from the
+        // structured app-data artist list and artist detail history.
+        const releaseIds = [...new Set((artist.releases || [])
+          .filter((entry) => String(entry.featured_artist_credit || entry.fa || entry.featured_artists || "")
+            .split(/\s*(?:,|&|\bft\.?|\bfeat\.?|\bfeaturing\b)\s*/i)
+            .some((name) => name.trim().toLowerCase() === artist.name.trim().toLowerCase()))
+          .map((entry) => entry.release_id)
+          .filter(Boolean))];
+
+        for (const releaseId of releaseIds) {
+          const release = await cmsApi.get(`/releases/${releaseId}/`);
+          const linkedIds = [
+            ...(release.featured_artist_ids || []),
+            ...(release.featured_artist_profiles || []).map((profile) => profile.id),
+          ].map(Number).filter(Boolean);
+          if (!linkedIds.includes(Number(record.id))) {
+            await cmsApi.patch(`/releases/${releaseId}/`, {
+              featured_artist_ids: [...new Set([...linkedIds, Number(record.id)])],
+            });
+          }
         }
       }
       const fresh = await fetchAppData();
@@ -483,6 +538,17 @@ export default function ChartEntriesPage() {
       setReconcileBusy(false);
     }
   }
+
+  // Reconcile automatically when opening the Artists chart. This makes the
+  // CMS exhaustive without requiring an editor to notice and press a repair
+  // button first (for example, Fik Fameica as a text-only featured credit).
+  useEffect(() => {
+    if (chartType !== "artists" || reconcileBusy || !missingArtistRecords.length) return;
+    const key = `${publicPayload?.revision || "live"}|${selectedMonthLabel}|${missingArtistRecords.map((artist) => artist.name.toLowerCase()).sort().join(",")}`;
+    if (reconciliationRef.current === key) return;
+    reconciliationRef.current = key;
+    reconcileMissingArtists();
+  }, [chartType, publicPayload?.revision, selectedMonthLabel, reconcileBusy, missingArtistRecords.length]);
 
   // ──────────────────────────────────────────────────────────────────────────
 
@@ -624,13 +690,21 @@ export default function ChartEntriesPage() {
       )}
 
       {/* ── Body ── */}
-      {loading || (chartType === "artists" && loading) ? (
+      {loading || (chartType === "artists" && publicLoading) ? (
         <div className="cms-empty">Loading…</div>
 
       ) : chartType === "artists" ? (
         /* ── Artists computed chart ─────────────────────────────────────── */
-        artistRankings.length === 0 ? (
-          <div className="cms-empty">{allCharts.length ? "No combined chart entries found." : "Loading chart data…"}</div>
+        publicError ? (
+          <div className="cms-alert error">
+            <strong>Artist chart could not be loaded.</strong>
+            <div style={{ marginTop: 5 }}>{publicError}</div>
+            <button type="button" className="cms-btn light small" onClick={loadPublicPayload} style={{ marginTop: 10 }}>
+              Retry live chart
+            </button>
+          </div>
+        ) : artistRankings.length === 0 ? (
+          <div className="cms-empty">No artist entries are available for {selectedMonthLabel || "the selected month"} on {platformName}.</div>
         ) : (
           <div className="cms-entries-layout" style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
             <div className="cms-entries-table" style={{ flex: 1, minWidth: 0 }}>

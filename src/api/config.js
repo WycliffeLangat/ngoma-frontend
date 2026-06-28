@@ -11,11 +11,14 @@
 const DEFAULT_DEVELOPMENT_API_BASE = "/api/v1";
 const DEFAULT_PRODUCTION_API_BASE = "https://web-production-0f6b5.up.railway.app/api/v1";
 
-export const API_BASE = (
+const resolvedApiBase = (
   import.meta.env.VITE_API_BASE_URL ||
   import.meta.env.VITE_API_BASE ||
   (import.meta.env.PROD ? DEFAULT_PRODUCTION_API_BASE : DEFAULT_DEVELOPMENT_API_BASE)
 ).replace(/\/$/, "");
+
+export const API_BASE = resolvedApiBase;
+export const SHOULD_USE_BUNDLED_FALLBACK = import.meta.env.DEV || String(import.meta.env.VITE_ALLOW_BUNDLED_FALLBACK || "").toLowerCase() === "true";
 
 const _apiOrigin = (() => {
   try {

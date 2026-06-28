@@ -49,6 +49,15 @@ import ArtistDetailPage from "./pages/ArtistDetailPage";
 import ReleaseDetailPage from "./pages/ReleaseDetailPage";
 
 const PUBLIC_DATA = typeof window !== "undefined" ? (window.__NGOMA_PUBLIC_DATA__ || {}) : {};
+// When the live API is temporarily slow, expose the bundled chart payload to
+// the shared artist-image resolver. It scans embedded primary artist profiles
+// across every platform rank, so an artist such as Thukuthela can still use
+// the CMS portrait instead of an initials tile in snapshot mode.
+if (typeof window !== "undefined" && !PUBLIC_DATA.full?.singles) {
+  PUBLIC_DATA.full = FULL;
+  PUBLIC_DATA.months = MONTHS;
+  window.__NGOMA_PUBLIC_DATA__ = PUBLIC_DATA;
+}
 // Ensures cover_image (and artist image) URLs are absolute so they load correctly
 // when the frontend is on a different origin (Netlify) from the backend (Railway).
 const CMS_ARTISTS_BY_ID = new Map((PUBLIC_DATA.artists || []).map((artist) => [Number(artist.id), artist]));

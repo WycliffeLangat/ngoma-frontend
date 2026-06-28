@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { API_BASE } from "./api/config.js";
+import { API_BASE, SHOULD_USE_BUNDLED_FALLBACK } from "./api/config.js";
 import { fetchAppData, fetchRevision } from "./api/public.js";
 import "./index.css";
 import "./styles/mobilePremiumFixes.css";
@@ -34,11 +34,18 @@ async function loadPublicAppData({ timeoutMs = 4000 } = {}) {
     notifyPublicDataReady();
     return { ok: true, payload };
   } catch (error) {
-    console.warn("Falling back to bundled data because live app data is unavailable.", error);
-    window.__NGOMA_PUBLIC_DATA__ = window.__NGOMA_PUBLIC_DATA__ || {};
-    window.__NGOMA_PUBLIC_REVISION__ = "";
-    notifyPublicDataReady();
-    return { ok: false, fallback: true };
+    const message = error?.message || "Live app data is unavailable.";
+    console.error(`[ngoma] Live API request failed for ${API_BASE}: ${message}`, error);
+
+    if (SHOULD_USE_BUNDLED_FALLBACK) {
+      console.warn("Falling back to bundled data because live app data is unavailable.", error);
+      window.__NGOMA_PUBLIC_DATA__ = window.__NGOMA_PUBLIC_DATA__ || {};
+      window.__NGOMA_PUBLIC_REVISION__ = "";
+      notifyPublicDataReady();
+      return { ok: false, fallback: true };
+    }
+
+    return { ok: false, fallback: false, error: message };
   } finally {
     window.clearTimeout(timeout);
   }
@@ -115,7 +122,22 @@ async function start() {
       </div>
     );
   }
-  await loadPublicAppData({ timeoutMs: 6000 });
+  // Railway can take longer than six seconds to wake and assemble the full
+  // chart payload. Waiting here avoids incorrectly rendering the stale bundled
+  // snapshot on Netlify while localhost (through its warm proxy) looks current.
+  const publicDataState = await loadPublicAppData({ timeoutMs: 30_000 });
+  if (!publicDataState.ok && !publicDataState.fallback && isPublicAppPath()) {
+    root.render(
+      <div style={{display:"grid",placeItems:"center",height:"100vh",fontFamily:"system-ui, sans-serif",color:"#333",fontSize:16,padding:"24px",textAlign:"center",lineHeight:1.5}}>
+        <div>
+          <strong>Unable to load live Ngoma Charts data.</strong>
+          <div style={{marginTop:8,color:"#666"}}>Please verify the Railway API and the Netlify environment variable configuration.</div>
+        </div>
+      </div>
+    );
+    return;
+  }
+
   const { default: App } = await import("./App.jsx");
   root.render(
     <React.StrictMode>

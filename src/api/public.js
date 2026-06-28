@@ -21,10 +21,7 @@ async function publicRequest(path, options = {}) {
   try {
     const res = await fetch(`${API_BASE}${withCacheBust(path)}`, {
       cache: "no-store",
-      headers: {
-        "Cache-Control": "no-cache",
-        ...(options.headers || {}),
-      },
+      headers: options.headers || {},
       ...options,
       signal: options.signal || controller.signal,
     });
@@ -57,9 +54,10 @@ export async function checkApiStatus() {
 
 // Returns the full public payload: chart data, artists, releases,
 // certifications, news, settings, revision stamp.
-export async function fetchAppData(signal) {
+export async function fetchAppData(signal, timeoutMs = 30_000) {
   return publicRequest("/app-data/", {
     signal,
+    timeoutMs,
     errorMessage: "App data request failed",
   });
 }
