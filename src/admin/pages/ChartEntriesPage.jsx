@@ -57,6 +57,7 @@ const ARTIST_FIELDS = [
   { name: "image",            label: "Artist image",      type: "file",     help: "Square image, min 800×800 px. JPEG or PNG." },
   { name: "name",             label: "Artist name" },
   { name: "display_name",     label: "Display name" },
+  { name: "slug",             label: "Slug",              help: "URL-safe identifier, for example fik-fameica." },
   { name: "aliases",          label: "Aliases JSON",      type: "json" },
   { name: "country",          label: "Country" },
   { name: "country_code",     label: "Country code" },
@@ -454,15 +455,31 @@ export default function ChartEntriesPage() {
       const results = getResults(await cmsApi.get(
         `/artists/?search=${encodeURIComponent(artistName)}&page_size=5`
       ));
-      const match = results.find(a =>
+      let match = results.find(a =>
         (a.name || "").toLowerCase() === artistName.toLowerCase() ||
         (a.display_name || "").toLowerCase() === artistName.toLowerCase()
       ) || results[0];
-      if (match) {
-        setEditArtist({ id: match.id, data: match, name: artistName });
-      } else {
-        setError(`Artist "${artistName}" not found in the database.`);
+      if (!match) {
+        try {
+          match = await cmsApi.post("/artists/", {
+            name: artistName,
+            display_name: artistName,
+            slug: artistSlug(artistName),
+            artist_type: "solo",
+            status: "active",
+          });
+        } catch (createError) {
+          const retry = getResults(await cmsApi.get(
+            `/artists/?search=${encodeURIComponent(artistName)}&page_size=5`
+          ));
+          match = retry.find((artist) =>
+            [artist.name, artist.display_name, artist.public_name]
+              .some((name) => normalizeName(name) === normalizeName(artistName))
+          );
+          if (!match) throw createError;
+        }
       }
+      setEditArtist({ id: match.id, data: match, name: artistName });
     } catch(e) { setError(e.message); }
     finally { setEditBusy(false); }
   }
@@ -826,6 +843,7 @@ export default function ChartEntriesPage() {
                       <th>Artist</th>
                       <th style={{ width: 100 }}>Pts (all)</th>
                       <th style={{ width: 60 }}>Entries</th>
+                      <th style={{ width: 74 }}>Edit</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -847,6 +865,19 @@ export default function ChartEntriesPage() {
                           <td style={{ fontWeight: 700, fontSize: 13 }}>{artist.name}</td>
                           <td style={{ fontSize: 13, fontWeight: 600 }}>{artist.pts.toLocaleString()}</td>
                           <td style={{ fontSize: 13, color: "#666" }}>{artist.songs.length}</td>
+                          <td>
+                            <button
+                              type="button"
+                              className="cms-btn light small"
+                              disabled={editBusy}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                openArtistEdit(artist.name);
+                              }}
+                            >
+                              Edit
+                            </button>
+                          </td>
                         </tr>
                       );
                     })}

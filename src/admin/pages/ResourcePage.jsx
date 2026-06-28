@@ -48,6 +48,21 @@ function creditedArtistNames(release) {
   ];
 }
 
+function forEachPublicCreditEntry(payload, visit) {
+  (payload?.releases || []).forEach(visit);
+  ["singles", "albums"].forEach((chartType) => {
+    const chart = payload?.full?.[chartType] || {};
+    Object.values(chart.combined || {}).forEach((rows) => {
+      if (Array.isArray(rows)) rows.forEach(visit);
+    });
+    Object.values(chart.platforms || {}).forEach((months) => {
+      Object.values(months || {}).forEach((rows) => {
+        if (Array.isArray(rows)) rows.forEach(visit);
+      });
+    });
+  });
+}
+
 const configs = {
   artists: { title: "Artists", endpoint: "/artists/", search: true, fields: ["name", "display_name", "country", "country_code", "genre", "artist_type", "status"], columns: [{key:"name",label:"Artist"},{key:"country_code",label:"Country"},{key:"genre",label:"Genre"},{key:"total_releases",label:"Releases"},{key:"status",label:"Status"}], form: [{name:"image",label:"Artist image",type:"file",help:"Square image, min 800×800 px. JPEG or PNG, max 2 MB."},{name:"name",label:"Artist name",help:"The artist's official or commonly credited name."},{name:"display_name",label:"Display name",help:"Optional public-facing spelling. Leave blank to use Artist name."},{name:"slug",label:"Slug",help:"URL-safe identifier. Leave blank and it will be generated from Artist name.",example:"fik-fameica"},{name:"aliases",label:"Aliases JSON",type:"json"},{name:"country",label:"Country"},{name:"country_code",label:"Country code"},{name:"city_region",label:"City/region"},{name:"genre",label:"Genre"},{name:"biography",label:"Biography",type:"textarea"},{name:"artist_type",label:"Artist type"},{name:"verified",label:"Verified",type:"checkbox"},{name:"spotify_url",label:"Spotify URL"},{name:"apple_music_url",label:"Apple Music URL"},{name:"youtube_url",label:"YouTube URL"},{name:"boomplay_url",label:"Boomplay URL"},{name:"audiomack_url",label:"Audiomack URL"},{name:"tiktok_url",label:"TikTok URL"},{name:"instagram_url",label:"Instagram URL"},{name:"x_url",label:"X URL"},{name:"facebook_url",label:"Facebook URL"},{name:"website_url",label:"Website URL"},{name:"status",label:"Status"}] },
   songs: { title: "Songs", endpoint: "/releases/", params:{chart_type:"singles"}, fields: [], columns: [{key:"title",label:"Song"},{key:"artist_display",label:"Main artist(s)"},{key:"country_code",label:"Country"},{key:"release_year",label:"Year"},{key:"status",label:"Status"}] },
@@ -215,7 +230,7 @@ export default function ResourcePage({ type, searchJump }) {
       });
 
       const credited = new Map();
-      (payload?.releases || []).forEach((release) => {
+      forEachPublicCreditEntry(payload, (release) => {
         creditedArtistNames(release).forEach((name) => {
           const key = normalizeArtistName(name);
           if (key && !credited.has(key)) credited.set(key, String(name).trim());
@@ -223,6 +238,7 @@ export default function ResourcePage({ type, searchJump }) {
       });
 
       let created = 0;
+      const skipped = [];
       for (const [key, name] of credited) {
         const slug = artistSlug(name);
         if (byName.has(key) || bySlug.has(slug)) continue;
@@ -246,7 +262,13 @@ export default function ResourcePage({ type, searchJump }) {
               .some((candidate) => normalizeArtistName(candidate) === key) ||
             artist.slug === slug
           );
-          if (!match) throw createError;
+          if (!match) {
+            if (createError?.status === 400) {
+              skipped.push(`${name}: ${createError.message}`);
+              continue;
+            }
+            throw createError;
+          }
           byName.set(key, match);
           bySlug.set(slug, match);
         }
@@ -255,6 +277,9 @@ export default function ResourcePage({ type, searchJump }) {
         clearCmsCache("/artists/");
         await load();
         showFlash(`${created} missing credited artist${created === 1 ? "" : "s"} added to the CMS.`);
+      }
+      if (active && skipped.length) {
+        setError(`Some artist records need attention: ${skipped.slice(0, 3).join(" | ")}`);
       }
     })().catch((syncError) => {
       artistSyncRef.current = false;
