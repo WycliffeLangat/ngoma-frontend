@@ -146,14 +146,61 @@ function ImageUploadBox({ fieldName, label, help, form, set }) {
 
 export default function FormModal({ open, title, entityId, fields = [], initial = {}, onSubmit, onClose }) {
   const [form, setForm] = useState(initial || {});
-  useEffect(() => setForm(initial || {}), [initial, open]);
+  const [submitError, setSubmitError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+  useEffect(() => {
+    setForm(initial || {});
+    setSubmitError("");
+    setFieldErrors({});
+    setSubmitting(false);
+  }, [initial, open]);
   if (!open) return null;
-  const set = (key, value) => setForm((current) => ({ ...current, [key]: value }));
+  const set = (key, value) => {
+    setForm((current) => ({ ...current, [key]: value }));
+    setFieldErrors((current) => {
+      if (!current[key]) return current;
+      const next = { ...current };
+      delete next[key];
+      return next;
+    });
+  };
   const wideTypes = ["textarea", "json", "ordered-multiselect", "tags"];
+  const submit = async (event) => {
+    event.preventDefault();
+    setSubmitError("");
+    setFieldErrors({});
+    setSubmitting(true);
+    try {
+      await onSubmit?.(form);
+    } catch (error) {
+      const data = error?.data;
+      const nextFieldErrors = {};
+      if (data && typeof data === "object") {
+        Object.entries(data).forEach(([key, value]) => {
+          if (key === "detail" || key === "error" || value == null) return;
+          const messages = Array.isArray(value) ? value : [value];
+          nextFieldErrors[key] = messages
+            .map((message) => typeof message === "object" ? JSON.stringify(message) : String(message))
+            .join(" ");
+        });
+      }
+      setFieldErrors(nextFieldErrors);
+      setSubmitError(
+        data?.detail ||
+        data?.error ||
+        (Object.keys(nextFieldErrors).length
+          ? "Please correct the highlighted fields and save again."
+          : error?.message || "The record could not be saved.")
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="cms-modal-backdrop">
-      <form className="cms-modal" onSubmit={(e) => { e.preventDefault(); onSubmit?.(form); }}>
+      <form className="cms-modal" onSubmit={submit}>
         <div className="cms-modal-head">
           <h3>
             {title}
@@ -165,6 +212,11 @@ export default function FormModal({ open, title, entityId, fields = [], initial 
           </h3>
           <button type="button" onClick={onClose}>×</button>
         </div>
+        {submitError && (
+          <div className="cms-alert error cms-modal-error" role="alert">
+            <strong>Unable to save.</strong> {submitError}
+          </div>
+        )}
         <div className="cms-form-grid">
           {fields.map((field) => {
             // File fields render as a standalone div (not a label) so global label CSS doesn't interfere
@@ -177,8 +229,9 @@ export default function FormModal({ open, title, entityId, fields = [], initial 
             }
             const wide = wideTypes.includes(field.type);
             const v = form[field.name];
+            const fieldError = fieldErrors[field.name];
             return (
-              <label key={field.name} className={wide ? "wide" : ""}>
+              <label key={field.name} className={`${wide ? "wide " : ""}${fieldError ? "cms-field-invalid" : ""}`.trim()}>
                 <span>{field.label}</span>
                 {field.type === "checkbox" ? (
                   <input type="checkbox" checked={Boolean(v)} onChange={(e) => set(field.name, e.target.checked)} />
@@ -207,13 +260,19 @@ export default function FormModal({ open, title, entityId, fields = [], initial 
                   />
                 )}
                 {field.help && <small className="cms-help">{field.help}</small>}
+                {fieldError && (
+                  <small className="cms-field-error" role="alert">
+                    {fieldError}
+                    {field.example ? ` Expected example: ${field.example}` : ""}
+                  </small>
+                )}
               </label>
             );
           })}
         </div>
         <div className="cms-actions right">
-          <button type="button" className="cms-btn light" onClick={onClose}>Cancel</button>
-          <button className="cms-btn">Save</button>
+          <button type="button" className="cms-btn light" onClick={onClose} disabled={submitting}>Cancel</button>
+          <button className="cms-btn" disabled={submitting}>{submitting ? "Saving..." : "Save"}</button>
         </div>
       </form>
     </div>

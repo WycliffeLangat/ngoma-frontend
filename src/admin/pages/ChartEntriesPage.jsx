@@ -102,6 +102,16 @@ function normalizeName(value) {
   return String(value || "").trim().toLowerCase();
 }
 
+function artistSlug(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "artist";
+}
+
 function splitArtistNames(value) {
   return String(value || "")
     .split(/\s*(?:\||\bft\.?|\bfeat\.?|\bfeaturing\b|\bx\b|&|,)\s*/i)
@@ -562,6 +572,7 @@ export default function ChartEntriesPage() {
             record = await cmsApi.post("/artists/", {
               name: rawName,
               display_name: rawName,
+              slug: artistSlug(rawName),
               artist_type: "solo",
               status: "active",
             });

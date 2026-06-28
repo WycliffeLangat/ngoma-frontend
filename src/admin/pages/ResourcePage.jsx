@@ -4,9 +4,52 @@ import DataTable from "../components/DataTable";
 import SearchBar from "../components/SearchBar";
 import FormModal from "../components/FormModal";
 import StatusBadge from "../components/StatusBadge";
+import { fetchAppData } from "../../api/public";
+
+function normalizeArtistName(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function artistSlug(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "artist";
+}
+
+function splitArtistNames(value) {
+  return String(value || "")
+    .split(/\s*(?:\||\bft\.?|\bfeat\.?|\bfeaturing\b|\bx\b|&|,)\s*/i)
+    .map((name) => name.trim())
+    .filter(Boolean);
+}
+
+function creditedArtistNames(release) {
+  const primaryProfiles = (release.primary_artists || [])
+    .map((profile) => profile?.public_name || profile?.display_name || profile?.name)
+    .filter(Boolean);
+  const featuredProfiles = (release.featured_artist_profiles || [])
+    .map((profile) => profile?.public_name || profile?.display_name || profile?.name)
+    .filter(Boolean);
+  const primaryText = splitArtistNames(
+    release.primary_artist_credit || release.pa || release.primary_artist ||
+    release.a || release.artist_credit || release.artist
+  );
+  const featuredText = splitArtistNames(
+    release.featured_artist_credit || release.fa || release.featured_artists || ""
+  );
+  return [
+    ...(primaryProfiles.length ? primaryProfiles : primaryText),
+    ...featuredProfiles,
+    ...featuredText,
+  ];
+}
 
 const configs = {
-  artists: { title: "Artists", endpoint: "/artists/", search: true, fields: ["name", "display_name", "country", "country_code", "genre", "artist_type", "status"], columns: [{key:"name",label:"Artist"},{key:"country_code",label:"Country"},{key:"genre",label:"Genre"},{key:"total_releases",label:"Releases"},{key:"status",label:"Status"}], form: [{name:"image",label:"Artist image",type:"file",help:"Square image, min 800×800 px. JPEG or PNG, max 2 MB."},{name:"name",label:"Artist name"},{name:"display_name",label:"Display name"},{name:"aliases",label:"Aliases JSON",type:"json"},{name:"country",label:"Country"},{name:"country_code",label:"Country code"},{name:"city_region",label:"City/region"},{name:"genre",label:"Genre"},{name:"biography",label:"Biography",type:"textarea"},{name:"artist_type",label:"Artist type"},{name:"verified",label:"Verified",type:"checkbox"},{name:"spotify_url",label:"Spotify URL"},{name:"apple_music_url",label:"Apple Music URL"},{name:"youtube_url",label:"YouTube URL"},{name:"boomplay_url",label:"Boomplay URL"},{name:"audiomack_url",label:"Audiomack URL"},{name:"tiktok_url",label:"TikTok URL"},{name:"instagram_url",label:"Instagram URL"},{name:"x_url",label:"X URL"},{name:"facebook_url",label:"Facebook URL"},{name:"website_url",label:"Website URL"},{name:"status",label:"Status"}] },
+  artists: { title: "Artists", endpoint: "/artists/", search: true, fields: ["name", "display_name", "country", "country_code", "genre", "artist_type", "status"], columns: [{key:"name",label:"Artist"},{key:"country_code",label:"Country"},{key:"genre",label:"Genre"},{key:"total_releases",label:"Releases"},{key:"status",label:"Status"}], form: [{name:"image",label:"Artist image",type:"file",help:"Square image, min 800×800 px. JPEG or PNG, max 2 MB."},{name:"name",label:"Artist name",help:"The artist's official or commonly credited name."},{name:"display_name",label:"Display name",help:"Optional public-facing spelling. Leave blank to use Artist name."},{name:"slug",label:"Slug",help:"URL-safe identifier. Leave blank and it will be generated from Artist name.",example:"fik-fameica"},{name:"aliases",label:"Aliases JSON",type:"json"},{name:"country",label:"Country"},{name:"country_code",label:"Country code"},{name:"city_region",label:"City/region"},{name:"genre",label:"Genre"},{name:"biography",label:"Biography",type:"textarea"},{name:"artist_type",label:"Artist type"},{name:"verified",label:"Verified",type:"checkbox"},{name:"spotify_url",label:"Spotify URL"},{name:"apple_music_url",label:"Apple Music URL"},{name:"youtube_url",label:"YouTube URL"},{name:"boomplay_url",label:"Boomplay URL"},{name:"audiomack_url",label:"Audiomack URL"},{name:"tiktok_url",label:"TikTok URL"},{name:"instagram_url",label:"Instagram URL"},{name:"x_url",label:"X URL"},{name:"facebook_url",label:"Facebook URL"},{name:"website_url",label:"Website URL"},{name:"status",label:"Status"}] },
   songs: { title: "Songs", endpoint: "/releases/", params:{chart_type:"singles"}, fields: [], columns: [{key:"title",label:"Song"},{key:"artist_display",label:"Main artist(s)"},{key:"country_code",label:"Country"},{key:"release_year",label:"Year"},{key:"status",label:"Status"}] },
   albums: { title: "Albums", endpoint: "/releases/", params:{chart_type:"albums"}, columns: [{key:"title",label:"Album"},{key:"artist_display",label:"Main artist(s)"},{key:"country_code",label:"Country"},{key:"release_year",label:"Year"},{key:"status",label:"Status"}] },
   countries: { title: "Countries", endpoint: "/countries/", columns: [{key:"name",label:"Country"},{key:"code",label:"Code"},{key:"region",label:"Region"},{key:"active",label:"Active"}], form: [{name:"name",label:"Country"},{name:"code",label:"Code"},{name:"region",label:"Region"},{name:"flag",label:"Flag/Initial"},{name:"display_order",label:"Order",type:"number"},{name:"active",label:"Active",type:"checkbox"}] },
@@ -64,6 +107,7 @@ export default function ResourcePage({ type, searchJump }) {
   const abortRef = useRef(null);
   const keeperSearchTimerRef = useRef(null);
   const flashTimerRef = useRef(null);
+  const artistSyncRef = useRef(false);
 
   function showFlash(msg) {
     setFlash(msg);
@@ -147,8 +191,83 @@ export default function ResourcePage({ type, searchJump }) {
     cmsApi.get("/artists/options/").then(setArtistOptions).catch((e) => setError(e.message));
   }, [type]);
 
+  // Keep Artists exhaustive even when an editor opens this page directly.
+  // This includes primary and text-only featured credits from every published
+  // release, such as Fik Fameica or JAE5.
+  useEffect(() => {
+    if (type !== "artists" || artistSyncRef.current) return;
+    artistSyncRef.current = true;
+    let active = true;
+    (async () => {
+      const [payload, optionData] = await Promise.all([
+        fetchAppData(undefined, 30_000),
+        cmsApi.get("/artists/options/"),
+      ]);
+      const options = Array.isArray(optionData) ? optionData : getResults(optionData);
+      const byName = new Map();
+      const bySlug = new Map();
+      options.forEach((artist) => {
+        [artist.public_name, artist.display_name, artist.name, artist.label].forEach((name) => {
+          const key = normalizeArtistName(name);
+          if (key) byName.set(key, artist);
+        });
+        if (artist.slug) bySlug.set(artist.slug, artist);
+      });
+
+      const credited = new Map();
+      (payload?.releases || []).forEach((release) => {
+        creditedArtistNames(release).forEach((name) => {
+          const key = normalizeArtistName(name);
+          if (key && !credited.has(key)) credited.set(key, String(name).trim());
+        });
+      });
+
+      let created = 0;
+      for (const [key, name] of credited) {
+        const slug = artistSlug(name);
+        if (byName.has(key) || bySlug.has(slug)) continue;
+        try {
+          const artist = await cmsApi.post("/artists/", {
+            name,
+            display_name: name,
+            slug,
+            artist_type: "solo",
+            status: "active",
+          });
+          byName.set(key, artist);
+          bySlug.set(slug, artist);
+          created += 1;
+        } catch (createError) {
+          const matches = getResults(await cmsApi.get(
+            `/artists/?search=${encodeURIComponent(name)}&page_size=10`
+          ));
+          const match = matches.find((artist) =>
+            [artist.name, artist.display_name, artist.public_name]
+              .some((candidate) => normalizeArtistName(candidate) === key) ||
+            artist.slug === slug
+          );
+          if (!match) throw createError;
+          byName.set(key, match);
+          bySlug.set(slug, match);
+        }
+      }
+      if (active && created) {
+        clearCmsCache("/artists/");
+        await load();
+        showFlash(`${created} missing credited artist${created === 1 ? "" : "s"} added to the CMS.`);
+      }
+    })().catch((syncError) => {
+      artistSyncRef.current = false;
+      if (active) setError(`Artist completeness check failed: ${syncError.message}`);
+    });
+    return () => { active = false; };
+  }, [type]);
+
   async function save(form) {
     setError("");
+    if (type === "artists" && !String(form.slug || "").trim() && String(form.name || "").trim()) {
+      form = { ...form, slug: artistSlug(form.name) };
+    }
     const fileFieldNames = new Set(formFields.filter(f => f.type === "file").map(f => f.name));
     const fileEntries = Object.entries(form).filter(([, v]) => v instanceof File);
     const jsonForm = Object.fromEntries(
@@ -172,16 +291,8 @@ export default function ResourcePage({ type, searchJump }) {
         savedId = created?.id;
       }
     } catch(e) {
-      // DRF returns field-level errors as {field: [msg, ...]} — flatten them for display
-      if (e.data && typeof e.data === "object" && !e.data.detail && !e.data.error) {
-        const lines = Object.entries(e.data).map(([field, msgs]) =>
-          `${field}: ${Array.isArray(msgs) ? msgs.join(", ") : msgs}`
-        );
-        setError(lines.join(" | "));
-      } else {
-        setError(e.message);
-      }
-      return;
+      // FormModal renders DRF field errors beside the corresponding inputs.
+      throw e;
     }
 
     // Step 2: upload any files separately as multipart
