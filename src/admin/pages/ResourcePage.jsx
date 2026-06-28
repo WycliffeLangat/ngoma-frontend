@@ -63,6 +63,22 @@ function forEachPublicCreditEntry(payload, visit) {
   });
 }
 
+const WORKFLOW_STATUS_OPTIONS = [
+  { value: "draft", label: "Draft — not public" },
+  { value: "pending_review", label: "Pending review" },
+  { value: "approved", label: "Approved" },
+  { value: "published", label: "Published" },
+  { value: "rejected", label: "Rejected" },
+  { value: "archived", label: "Archived" },
+];
+const CHART_STATUS_OPTIONS = WORKFLOW_STATUS_OPTIONS.filter(({ value }) => value !== "published");
+const RECORD_STATUS_OPTIONS = [
+  { value: "active", label: "Active" },
+  { value: "draft", label: "Draft — not public" },
+  { value: "inactive", label: "Inactive" },
+  { value: "archived", label: "Archived" },
+];
+
 const configs = {
   artists: { title: "Artists", endpoint: "/artists/", search: true, fields: ["name", "display_name", "country", "country_code", "genre", "artist_type", "status"], columns: [{key:"name",label:"Artist"},{key:"country_code",label:"Country"},{key:"genre",label:"Genre"},{key:"total_releases",label:"Releases"},{key:"status",label:"Status"}], form: [{name:"image",label:"Artist image",type:"file",help:"Square image, min 800×800 px. JPEG or PNG, max 2 MB."},{name:"name",label:"Artist name",help:"The artist's official or commonly credited name."},{name:"display_name",label:"Display name",help:"Optional public-facing spelling. Leave blank to use Artist name."},{name:"slug",label:"Slug",help:"URL-safe identifier. Leave blank and it will be generated from Artist name.",example:"fik-fameica"},{name:"aliases",label:"Aliases JSON",type:"json"},{name:"country",label:"Country"},{name:"country_code",label:"Country code"},{name:"city_region",label:"City/region"},{name:"genre",label:"Genre"},{name:"biography",label:"Biography",type:"textarea"},{name:"artist_type",label:"Artist type"},{name:"verified",label:"Verified",type:"checkbox"},{name:"spotify_url",label:"Spotify URL"},{name:"apple_music_url",label:"Apple Music URL"},{name:"youtube_url",label:"YouTube URL"},{name:"boomplay_url",label:"Boomplay URL"},{name:"audiomack_url",label:"Audiomack URL"},{name:"tiktok_url",label:"TikTok URL"},{name:"instagram_url",label:"Instagram URL"},{name:"x_url",label:"X URL"},{name:"facebook_url",label:"Facebook URL"},{name:"website_url",label:"Website URL"},{name:"status",label:"Status"}] },
   songs: { title: "Songs", endpoint: "/releases/", params:{chart_type:"singles"}, fields: [], columns: [{key:"title",label:"Song"},{key:"artist_display",label:"Main artist(s)"},{key:"country_code",label:"Country"},{key:"release_year",label:"Year"},{key:"status",label:"Status"}] },
@@ -70,7 +86,7 @@ const configs = {
   countries: { title: "Countries", endpoint: "/countries/", columns: [{key:"name",label:"Country"},{key:"code",label:"Code"},{key:"region",label:"Region"},{key:"active",label:"Active"}], form: [{name:"name",label:"Country"},{name:"code",label:"Code"},{name:"region",label:"Region"},{name:"flag",label:"Flag/Initial"},{name:"display_order",label:"Order",type:"number"},{name:"active",label:"Active",type:"checkbox"}] },
   platforms: { title: "Platforms", endpoint: "/platforms/", columns: [{key:"name",label:"Platform"},{key:"short_name",label:"Short"},{key:"color",label:"Color"},{key:"max_chart_size",label:"Max"},{key:"active",label:"Active"}], form: [{name:"name",label:"Name"},{name:"slug",label:"Slug"},{name:"short_name",label:"Short name"},{name:"color",label:"Color"},{name:"brand_color",label:"Brand color"},{name:"chart_size",label:"Source chart size",type:"number"},{name:"max_chart_size",label:"Max chart size",type:"number"},{name:"points_base",label:"Points base",type:"number"},{name:"points_method",label:"Points method"},{name:"supports_singles",label:"Supports singles",type:"checkbox"},{name:"supports_albums",label:"Supports albums",type:"checkbox"},{name:"display_order",label:"Display order",type:"number"},{name:"active",label:"Active",type:"checkbox"}] },
   news: { title: "News CMS", endpoint: "/news/", imageField: "cover_image", columns: [{key:"title",label:"Headline"},{key:"category",label:"Category"},{key:"author",label:"Author"},{key:"status",label:"Status"},{key:"updated_at",label:"Updated",render:(r)=>new Date(r.updated_at).toLocaleDateString()}], form: [{name:"cover_image",label:"Cover image",type:"file",help:"Article hero image. JPEG or PNG, max 5 MB."},{name:"title",label:"Headline"},{name:"slug",label:"Slug"},{name:"subheadline",label:"Subheadline"},{name:"category",label:"Category",type:"select",options:["chart_news","milestones","new_releases","industry_news","artist_news","awards","certifications","records","interviews","editorials","artist_spotlight","albums","analytics","announcement"].map(v=>({value:v,label:v.replace(/_/g," ")}))},{name:"author",label:"Author"},{name:"excerpt",label:"Excerpt",type:"textarea"},{name:"body",label:"Body",type:"textarea"},{name:"gallery",label:"Gallery JSON",type:"json"},{name:"tags",label:"Tags JSON",type:"json"},{name:"source_links",label:"Source links JSON",type:"json"},{name:"seo_title",label:"SEO title"},{name:"seo_description",label:"SEO description",type:"textarea"},{name:"featured",label:"Featured",type:"checkbox"},{name:"pinned",label:"Pinned",type:"checkbox"},{name:"breaking",label:"Breaking",type:"checkbox"},{name:"is_published",label:"Published",type:"checkbox"},{name:"status",label:"Status"}] },
-  charts: { title: "Charts", endpoint: "/charts/", columns: [{key:"label",label:"Month"},{key:"chart_type",label:"Type"},{key:"combined_entries_count",label:"Combined entries"},{key:"status",label:"Status"},{key:"locked",label:"Locked"}], form: [{name:"year",label:"Year",type:"number"},{name:"month",label:"Month",type:"number"},{name:"chart_type",label:"Chart type",type:"select",options:[{value:"singles",label:"Singles"},{value:"albums",label:"Albums"}]},{name:"status",label:"Status"},{name:"is_published",label:"Published",type:"checkbox"},{name:"locked",label:"Locked",type:"checkbox"}] },
+  charts: { title: "Chart Periods", endpoint: "/charts/", columns: [{key:"label",label:"Month"},{key:"chart_type",label:"Type"},{key:"combined_entries_count",label:"Combined entries"},{key:"status",label:"Status"},{key:"locked",label:"History locked"}], form: [{name:"year",label:"Year",type:"number",help:"Four-digit chart year, for example 2026."},{name:"month",label:"Month number",type:"number",help:"Use 1 for January through 12 for December."},{name:"chart_type",label:"Chart type",type:"select",options:[{value:"singles",label:"Singles"},{value:"albums",label:"Albums"}]},{name:"status",label:"Review status",type:"select",options:CHART_STATUS_OPTIONS,help:"Publishing is a separate, protected action after entries are reviewed."}] },
   certifications: { title: "Certifications", endpoint: "/certifications/", columns: [{key:"title",label:"Release"},{key:"artist",label:"Artist"},{key:"level",label:"Level"},{key:"total_points",label:"Points"},{key:"is_official",label:"Official"}], form: [{name:"release",label:"Release ID",type:"number"},{name:"level",label:"Level",type:"select",options:[{value:"gold",label:"Gold"},{value:"platinum",label:"Platinum"},{value:"diamond",label:"Diamond"}]},{name:"total_points",label:"Points",type:"number"},{name:"is_official",label:"Official",type:"checkbox"},{name:"is_hidden",label:"Hidden from app",type:"checkbox"},{name:"certification_date",label:"Certification date",type:"date"},{name:"previous_level",label:"Previous level"},{name:"notes",label:"Notes",type:"textarea"}] },
   "certification-rules": { title: "Certification Rules", endpoint: "/certification-rules/", columns: [{key:"label",label:"Level"},{key:"threshold",label:"Points threshold"},{key:"active",label:"Active"},{key:"updated_at",label:"Updated",render:(r)=>new Date(r.updated_at).toLocaleDateString()}], form: [{name:"level",label:"Level",type:"select",options:[{value:"gold",label:"Gold"},{value:"platinum",label:"Platinum"},{value:"diamond",label:"Diamond"}]},{name:"threshold",label:"Points threshold",type:"number"},{name:"active",label:"Active",type:"checkbox"}] },
   methodology: { title: "Methodology", endpoint: "/methodology/", columns: [{key:"version",label:"Version"},{key:"name",label:"Name"},{key:"is_active",label:"Active"},{key:"created_at",label:"Created",render:(r)=>new Date(r.created_at).toLocaleDateString()}], form: [{name:"version",label:"Version"},{name:"name",label:"Name"},{name:"config",label:"Methodology JSON",type:"json"},{name:"is_active",label:"Active",type:"checkbox"}] },
@@ -98,8 +114,20 @@ const ORDERING_OPTIONS = {
 
 const PAGE_SIZE = 50;
 
-export default function ResourcePage({ type, searchJump }) {
+export default function ResourcePage({ type, searchJump, user }) {
   const config = configs[type] || configs.artists;
+  const permissions = user?.permissions || {};
+  const adminOnlyType = ["users", "settings", "backups"].includes(type);
+  const editorialType = ["news", "media", "page-content"].includes(type);
+  const canEdit = !config.readOnly && !permissions.read_only && (
+    adminOnlyType
+      ? permissions.can_manage_users
+      : editorialType
+        ? (permissions.can_manage_news || permissions.can_manage_data)
+        : permissions.can_manage_data
+  );
+  const canPublish = Boolean(permissions.can_publish);
+  const canHardDelete = ["admin", "super_admin"].includes(user?.role);
   const [rows, setRows] = useState([]);
   const [totalCount, setTotalCount] = useState(null);
   const [page, setPage] = useState(1);
@@ -161,7 +189,21 @@ export default function ResourcePage({ type, searchJump }) {
     ...(ordering ? { ordering } : {}),
     ...(alphaFilter ? { starts_with: alphaFilter } : {}),
   }), [config, page, search, statusFilter, ordering, alphaFilter]);
-  const formFields = useMemo(() => type === "songs" || type === "albums" ? releaseForm(type === "albums" ? "albums" : "singles", artistOptions) : (config.form || []), [type, config, artistOptions]);
+  const formFields = useMemo(() => {
+    const baseFields = type === "songs" || type === "albums"
+      ? releaseForm(type === "albums" ? "albums" : "singles", artistOptions)
+      : (config.form || []);
+    return baseFields.map((field) => {
+      if (field.name !== "status" || field.type === "select") return field;
+      return {
+        ...field,
+        type: "select",
+        options: ["artists", "songs", "albums"].includes(type)
+          ? RECORD_STATUS_OPTIONS
+          : WORKFLOW_STATUS_OPTIONS,
+      };
+    });
+  }, [type, config, artistOptions]);
 
   // Used after save/delete to reload without debounce
   async function load() {
@@ -210,7 +252,7 @@ export default function ResourcePage({ type, searchJump }) {
   // This includes primary and text-only featured credits from every published
   // release, such as Fik Fameica or JAE5.
   useEffect(() => {
-    if (type !== "artists" || artistSyncRef.current) return;
+    if (type !== "artists" || !canEdit || artistSyncRef.current) return;
     artistSyncRef.current = true;
     let active = true;
     (async () => {
@@ -286,9 +328,10 @@ export default function ResourcePage({ type, searchJump }) {
       if (active) setError(`Artist completeness check failed: ${syncError.message}`);
     });
     return () => { active = false; };
-  }, [type]);
+  }, [type, canEdit]);
 
   async function save(form) {
+    if (!canEdit) throw new Error("Your role has read-only access to this section.");
     setError("");
     if (type === "artists" && !String(form.slug || "").trim() && String(form.name || "").trim()) {
       form = { ...form, slug: artistSlug(form.name) };
@@ -546,7 +589,7 @@ export default function ResourcePage({ type, searchJump }) {
   }
 
   async function saveImage(file) {
-    if (!file || !imageModal) return;
+    if (!file || !imageModal || !canEdit) return;
     try {
       const fd = new FormData();
       fd.append(imageModal.field, file);
@@ -558,7 +601,7 @@ export default function ResourcePage({ type, searchJump }) {
   const imageField = config.imageField || (type === "artists" ? "image" : (type === "songs" || type === "albums") ? "cover_image" : null);
   const titleKey = type === "artists" ? "name" : "title";
 
-  const actionsColumn = isActionable ? {
+  const actionsColumn = isActionable && canHardDelete ? {
     key: "_actions",
     label: "",
     render: (row) => (
@@ -579,6 +622,65 @@ export default function ResourcePage({ type, searchJump }) {
     ),
   } : null;
 
+  async function runChartAction(row, actionName) {
+    if (!canPublish || actionBusy) return;
+    const labels = {
+      publish: "publish and lock this chart",
+      unpublish: "remove this chart from the public site and return it to draft",
+      unlock: "unlock this chart for correction",
+    };
+    if (!window.confirm(`Are you sure you want to ${labels[actionName]}?`)) return;
+    setActionBusy(true);
+    setError("");
+    try {
+      await cmsApi.post(`/charts/${row.id}/${actionName}/`, {});
+      showFlash(
+        actionName === "publish"
+          ? `${row.label} published and locked.`
+          : actionName === "unpublish"
+            ? `${row.label} returned to draft.`
+            : `${row.label} unlocked for correction.`
+      );
+      await load();
+    } catch (actionError) {
+      setError(actionError.message);
+    } finally {
+      setActionBusy(false);
+    }
+  }
+
+  const chartActionsColumn = type === "charts" && canPublish ? {
+    key: "_workflow",
+    label: "Workflow",
+    render: (row) => (
+      <span style={{ display: "flex", gap: 5 }} onClick={(event) => event.stopPropagation()}>
+        {row.is_published ? (
+          <button
+            className="cms-btn light"
+            style={{ fontSize: 11, padding: "2px 9px" }}
+            disabled={actionBusy}
+            onClick={() => runChartAction(row, "unpublish")}
+          >Return to draft</button>
+        ) : (
+          <button
+            className="cms-btn"
+            style={{ fontSize: 11, padding: "2px 9px" }}
+            disabled={actionBusy}
+            onClick={() => runChartAction(row, "publish")}
+          >Publish</button>
+        )}
+        {row.locked && (
+          <button
+            className="cms-btn light"
+            style={{ fontSize: 11, padding: "2px 9px" }}
+            disabled={actionBusy}
+            onClick={() => runChartAction(row, "unlock")}
+          >Unlock</button>
+        )}
+      </span>
+    ),
+  } : null;
+
   const tableColumns = imageField ? config.columns.map((col) => {
     if (col.key !== titleKey) return col;
     return {
@@ -590,8 +692,12 @@ export default function ResourcePage({ type, searchJump }) {
             <button
               type="button"
               className={"cms-img-thumb" + (imgUrl ? " has-img" : "")}
-              title={imgUrl ? "Replace image" : "Add image"}
-              onClick={(e) => { e.stopPropagation(); setImageModal({ id: row.id, name: row[titleKey], field: imageField, current: imgUrl || null }); }}
+              title={canEdit ? (imgUrl ? "Replace image" : "Add image") : "Image preview"}
+              disabled={!canEdit}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (canEdit) setImageModal({ id: row.id, name: row[titleKey], field: imageField, current: imgUrl || null });
+              }}
             >
               {imgUrl ? <img src={imgUrl} alt="" /> : <span>+</span>}
             </button>
@@ -602,13 +708,17 @@ export default function ResourcePage({ type, searchJump }) {
     };
   }) : config.columns;
 
-  const finalColumns = actionsColumn ? [...tableColumns, actionsColumn] : tableColumns;
+  const finalColumns = [
+    ...tableColumns,
+    ...(chartActionsColumn ? [chartActionsColumn] : []),
+    ...(actionsColumn ? [actionsColumn] : []),
+  ];
 
   return (
     <section>
       <div className="cms-page-head">
         <div><h1>{config.title}</h1><p>Manage {config.title.toLowerCase()} from the CMS.</p></div>
-        {!config.readOnly && <button className="cms-btn" onClick={() => { setEditing(null); setModal(true); }}>Add new</button>}
+        {canEdit && <button className="cms-btn" onClick={() => { setEditing(null); setModal(true); }}>Add new</button>}
       </div>
       {flash && <div className="cms-alert" style={{ background:"#f0fdf4", color:"#15803d", border:"1px solid #bbf7d0", borderRadius:6, padding:"10px 14px", marginBottom:10 }}>{flash}</div>}
       {error && <div className="cms-alert error">{error}</div>}
@@ -640,12 +750,12 @@ export default function ResourcePage({ type, searchJump }) {
             ))}
           </select>
         )}
-        {isActionable && (
+        {isActionable && canEdit && (
           <button className="cms-btn light" onClick={dupGroups === null ? loadDuplicates : () => setDupGroups(null)}>
             {dupGroups === null ? "Find duplicates" : "Hide duplicates"}
           </button>
         )}
-        {isCertifications && (
+        {isCertifications && canEdit && (
           <>
             <button
               className="cms-btn light"
@@ -794,7 +904,7 @@ export default function ResourcePage({ type, searchJump }) {
           )}
         </div>
       )}
-      <FormModal open={modal} title={`${editing ? "Edit" : "Create"} ${config.title}`} entityId={editing?.id} fields={formFields} initial={editing || defaultInitial(formFields)} onSubmit={save} onClose={() => setModal(false)} />
+      <FormModal open={modal && canEdit} title={`${editing ? "Edit" : "Create"} ${config.title}`} entityId={editing?.id} fields={formFields} initial={editing || defaultInitial(formFields)} onSubmit={save} onClose={() => setModal(false)} />
 
       {/* Detail panel */}
       {detailRow && (() => {
@@ -827,7 +937,7 @@ export default function ResourcePage({ type, searchJump }) {
                   {isRelease ? r.title : isArtist ? (r.display_name || r.name) : String(r[config.columns[0]?.key] || "Detail")}
                 </h3>
                 <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                  {!config.readOnly && (
+                  {canEdit && !r.locked && (
                     <button className="cms-btn light" style={{ fontSize: 12, padding: "4px 12px" }}
                       onClick={() => { setDetailRow(null); setEditing(r); setModal(true); }}>
                       Edit
@@ -1117,5 +1227,13 @@ export default function ResourcePage({ type, searchJump }) {
 }
 
 function defaultInitial(fields = []) {
-  return Object.fromEntries(fields.map((f) => [f.name, f.type === "ordered-multiselect" ? [] : (f.name === "status" ? "active" : "")]));
+  return Object.fromEntries(fields.map((field) => [
+    field.name,
+    field.defaultValue ??
+      (field.type === "ordered-multiselect"
+        ? []
+        : field.name === "status"
+          ? ([WORKFLOW_STATUS_OPTIONS, CHART_STATUS_OPTIONS].includes(field.options) ? "draft" : "active")
+          : ""),
+  ]));
 }

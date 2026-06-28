@@ -13,17 +13,65 @@ const DuplicateReviewPage = lazy(() => import("./pages/DuplicateReviewPage"));
 const UploadsPage         = lazy(() => import("./pages/UploadsPage"));
 const ChartEntriesPage    = lazy(() => import("./pages/ChartEntriesPage"));
 const YearEndPage         = lazy(() => import("./pages/YearEndPage"));
-const ScaffoldPage        = lazy(() => import("./pages/ScaffoldPage"));
-
-const nav = [
-  ["dashboard","Dashboard"],["charts","Charts"],["chart-entries","Chart Entries"],["uploads","Uploads"],
-  ["songs","Songs"],["albums","Albums"],["duplicate-review","Duplicate Review"],["artists","Artists"],
-  ["countries","Countries"],["platforms","Platforms"],["news","News"],["certifications","Certifications"],
-  ["certification-rules","Certification Rules"],["methodology","Methodology"],["page-content","Page Content"],
-  ["records","Records"],["year-end","Year End"],["analytics","Analytics"],["social-cards","Social Cards"],
-  ["media","Media Library"],["submissions","Submissions"],["users","Users & Roles"],["reports","Reports"],
-  ["settings","Settings"],["audit","Audit Logs"],["backups","Backups"],
+const NAV_GROUPS = [
+  {
+    label: "Overview",
+    items: [["dashboard", "Dashboard"]],
+  },
+  {
+    label: "Chart operations",
+    permission: "can_manage_data",
+    items: [
+      ["charts", "Chart periods"],
+      ["chart-entries", "Chart entries"],
+      ["uploads", "Imports & uploads"],
+      ["year-end", "Year-end charts"],
+    ],
+  },
+  {
+    label: "Music library",
+    permission: "can_manage_data",
+    items: [
+      ["artists", "Artists"],
+      ["songs", "Songs"],
+      ["albums", "Albums"],
+      ["duplicate-review", "Duplicate review"],
+      ["countries", "Countries"],
+      ["platforms", "Platforms"],
+    ],
+  },
+  {
+    label: "Public content",
+    permission: "can_manage_news",
+    items: [
+      ["news", "News"],
+      ["page-content", "Page content"],
+      ["media", "Media library"],
+    ],
+  },
+  {
+    label: "Quality & rules",
+    permission: "can_manage_data",
+    items: [
+      ["certifications", "Certifications"],
+      ["certification-rules", "Certification rules"],
+      ["methodology", "Ranking methodology"],
+      ["reports", "Data quality"],
+    ],
+  },
+  {
+    label: "Administration",
+    items: [
+      ["users", "Users & roles", "can_manage_users"],
+      ["settings", "Settings", "can_manage_users"],
+      ["audit", "Audit log"],
+      ["backups", "Backups", "can_manage_users"],
+    ],
+  },
 ];
+
+const nav = NAV_GROUPS.flatMap((group) => group.items);
+const KNOWN_PAGES = new Set(nav.map(([key]) => key));
 
 const RESOURCE_PAGES = new Set([
   "artists","songs","albums","countries","platforms","news","charts","certifications",
@@ -31,17 +79,9 @@ const RESOURCE_PAGES = new Set([
   "reports","audit","backups",
 ]);
 
-const SCAFFOLDS = {
-  records:      ["Highest monthly points","Most #1s","Longest charting","Biggest debut","Manual verification"],
-  "year-end":   ["Generate singles","Generate albums","Generate artists","Eligible months","Publish Year End"],
-  analytics:    ["Widget visibility","Head-to-head","Platform comparison","Country performance","Trend labels"],
-  "social-cards":["Top 10","#1 card","Certification card","Milestone card","Story/square/X formats"],
-  submissions:  ["Contact messages","Correction requests","Press releases","New music submissions","Partnerships"],
-};
-
 function getInitialPage() {
   const part = window.location.pathname.split("/cms/")[1]?.replace(/^\//, "") || "dashboard";
-  return part || "dashboard";
+  return KNOWN_PAGES.has(part) ? part : "dashboard";
 }
 
 function PageLoader() {
@@ -50,17 +90,27 @@ function PageLoader() {
 
 function renderPage(page, user, searchJump, onNavigate) {
   if (page === "dashboard")       return <DashboardPage onNavigate={onNavigate} />;
-  if (page === "chart-entries")   return <ChartEntriesPage />;
+  if (page === "chart-entries")   return <ChartEntriesPage user={user} />;
   if (page === "year-end")        return <YearEndPage onNavigate={onNavigate} />;
-  if (page === "uploads")         return <UploadsPage />;
-  if (page === "duplicate-review")return <DuplicateReviewPage />;
+  if (page === "uploads")         return <UploadsPage user={user} />;
+  if (page === "duplicate-review")return <DuplicateReviewPage user={user} />;
   if (RESOURCE_PAGES.has(page))   return <ResourcePage type={page} user={user} searchJump={searchJump} />;
-  return (
-    <ScaffoldPage
-      title={nav.find(([k]) => k === page)?.[1] || "CMS Module"}
-      items={SCAFFOLDS[page] || ["Model placeholder","API placeholder","CMS navigation"]}
-    />
-  );
+  return <div className="cms-empty">This CMS page is unavailable.</div>;
+}
+
+function visibleNavGroups(user) {
+  const permissions = user?.permissions || {};
+  const readOnly = Boolean(permissions.read_only);
+  return NAV_GROUPS.map((group) => {
+    const groupAllowed = !group.permission || permissions[group.permission] || readOnly;
+    const items = groupAllowed
+      ? group.items.filter(([key, , permission]) =>
+          (!permission || permissions[permission]) &&
+          !(readOnly && key === "duplicate-review")
+        )
+      : [];
+    return { ...group, items };
+  }).filter((group) => group.items.length);
 }
 
 export default function AdminApp() {
@@ -79,8 +129,16 @@ export default function AdminApp() {
   useEffect(() => {
     const url = new URL(window.location.href);
     url.pathname = `/cms/${page === "dashboard" ? "" : page}`;
-    window.history.replaceState({}, "", url);
+    if (window.location.pathname !== url.pathname) {
+      window.history.pushState({ cmsPage: page }, "", url);
+    }
   }, [page]);
+
+  useEffect(() => {
+    const onPopState = () => setPage(getInitialPage());
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
 
   function handleGlobalNavigate(targetPage, term, id) {
     setPage(targetPage);
@@ -88,6 +146,7 @@ export default function AdminApp() {
   }
 
   const unread = useMemo(() => 0, []);
+  const navigation = useMemo(() => visibleNavGroups(user), [user]);
 
   if (checking) return <div className="cms-boot">Loading CMS…</div>;
   if (!user)    return <LoginPage onLogin={setUser} />;
@@ -110,13 +169,18 @@ export default function AdminApp() {
       {sidebar && <div className="cms-sidebar-overlay" onClick={() => setSidebar(false)} />}
       <aside className={`cms-sidebar ${sidebar ? "open" : ""}`}>
         <div className="cms-brand"><b>NGOMA</b><span>Admin CMS</span></div>
-        <nav>
-          {nav.map(([key, label]) => (
-            <button
-              key={key}
-              className={page === key ? "active" : ""}
-              onClick={() => { setPage(key); setSidebar(false); }}
-            >{label}</button>
+        <nav aria-label="CMS navigation">
+          {navigation.map((group) => (
+            <div className="cms-nav-group" key={group.label}>
+              <span className="cms-nav-label">{group.label}</span>
+              {group.items.map(([key, label]) => (
+                <button
+                  key={key}
+                  className={page === key ? "active" : ""}
+                  onClick={() => { setPage(key); setSidebar(false); }}
+                >{label}</button>
+              ))}
+            </div>
           ))}
         </nav>
       </aside>
@@ -125,15 +189,17 @@ export default function AdminApp() {
           <button className="cms-menu" onClick={() => setSidebar(!sidebar)}>☰</button>
           <div className="cms-global"><GlobalSearch onNavigate={handleGlobalNavigate} /></div>
           <NotificationBell count={unread} />
-          <button
-            className={`cms-btn small${syncState === "done" ? " cms-sync-done" : ""}`}
-            onClick={handleForcePush}
-            disabled={syncState === "syncing"}
-            title="Force the public app to pull the latest CMS data immediately"
-            style={{ whiteSpace: "nowrap" }}
-          >
-            {syncState === "syncing" ? "Pushing…" : syncState === "done" ? "✓ Pushed!" : "Push to Public"}
-          </button>
+          {!user.permissions?.read_only && (
+            <button
+              className={`cms-btn small${syncState === "done" ? " cms-sync-done" : ""}`}
+              onClick={handleForcePush}
+              disabled={syncState === "syncing"}
+              title="Ask any open public preview tab to fetch the latest published data"
+              style={{ whiteSpace: "nowrap" }}
+            >
+              {syncState === "syncing" ? "Refreshing…" : syncState === "done" ? "✓ Refreshed" : "Refresh public preview"}
+            </button>
+          )}
           <div className="cms-user">
             <span>{user.first_name || user.username}</span>
             <small>{user.role_label}</small>
@@ -141,6 +207,11 @@ export default function AdminApp() {
           <button className="cms-btn light small" onClick={signOut}>Logout</button>
         </header>
         <main className="cms-content">
+          {user.permissions?.read_only && (
+            <div className="cms-alert info cms-readonly-banner">
+              <strong>Read-only access.</strong> You can review records and reports, but changes and publishing are disabled for your role.
+            </div>
+          )}
           <Suspense fallback={<PageLoader />}>
             {renderPage(page, user, searchJump, handleGlobalNavigate)}
           </Suspense>

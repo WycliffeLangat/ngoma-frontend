@@ -1091,8 +1091,32 @@ const CertificationTag = ({ cert, compact = true, style = {} }) => {
   );
 };
 
+const PUBLIC_PAGE_ROUTES = {
+  charts: "/charts",
+  analytics: "/analytics",
+  records: "/records",
+  "year-end": "/year-end",
+  certifications: "/certifications",
+  news: "/news",
+  about: "/about",
+};
+const PUBLIC_PAGE_TITLES = {
+  charts: "Charts",
+  analytics: "Analytics",
+  records: "Records & Milestones",
+  "year-end": "Year-End Charts",
+  certifications: "Certifications",
+  news: "News",
+  about: "About",
+};
+function publicPageFromPath() {
+  if (typeof window === "undefined") return "charts";
+  const segment = window.location.pathname.split("/").filter(Boolean)[0] || "charts";
+  return Object.prototype.hasOwnProperty.call(PUBLIC_PAGE_ROUTES, segment) ? segment : "charts";
+}
+
 export default function NgomaCharts(){
-  const [page,setPage]=useState("charts");
+  const [page,setPage]=useState(publicPageFromPath);
   const [theme,setTheme]=useState(()=>{
     if(typeof window==="undefined") return "light";
     try {
@@ -1162,7 +1186,6 @@ export default function NgomaCharts(){
 
   useEffect(() => {
     if (typeof document === "undefined") return;
-    document.title = SITE_NAME;
     document.documentElement.dataset.ngomaTheme = theme;
     document.body.dataset.ngomaTheme = theme;
     try {
@@ -1171,6 +1194,43 @@ export default function NgomaCharts(){
       // Theme still works for the current session if storage is unavailable.
     }
   }, [theme]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const pageTitle = PUBLIC_PAGE_TITLES[page] || "Charts";
+    document.title = `${pageTitle} | ${SITE_NAME}`;
+    const description = `Explore ${pageTitle.toLowerCase()} from ${SITE_NAME}, Kenya's multi-platform music chart authority.`;
+    let meta = document.querySelector('meta[name="description"]');
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.setAttribute("name", "description");
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute("content", description);
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.setAttribute("rel", "canonical");
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute("href", `${window.location.origin}${PUBLIC_PAGE_ROUTES[page] || "/charts"}`);
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    const ogDescription = document.querySelector('meta[property="og:description"]');
+    if (ogTitle) ogTitle.setAttribute("content", document.title);
+    if (ogDescription) ogDescription.setAttribute("content", description);
+  }, [page]);
+
+  useEffect(() => {
+    const onPopState = () => {
+      if (window.history.state?.ngomaDetail) return;
+      setPage(publicPageFromPath());
+      setSelA(null);
+      setSelR(null);
+      setSelNews(null);
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
 
   const toggleYearEndRow = (rowKey) => {
     setExpandedYearEndRows((current) => ({
@@ -1246,11 +1306,11 @@ export default function NgomaCharts(){
               artistChartCache.clear();
               kenyanRawCache.clear();
               kenyanEntryCache.clear();
+              setChartRefreshKey(k => k + 1);
             }
           });
         })
-        .catch(() => {})
-        .finally(() => setChartRefreshKey(k => k + 1));
+        .catch(() => {});
     };
 
     // Force-refresh path: called by both same-tab (ngoma-cms-change custom event) and
@@ -1280,10 +1340,10 @@ export default function NgomaCharts(){
               artistChartCache.clear();
               kenyanRawCache.clear();
               kenyanEntryCache.clear();
+              setChartRefreshKey(k => k + 1);
             }
           })
-          .catch(() => {})
-          .finally(() => setChartRefreshKey(k => k + 1));
+          .catch(() => {});
       }, 500);
     };
 
@@ -2180,7 +2240,14 @@ const top = data[0];
     return [...seen.values()].sort((a, b) => num(b.pts) - num(a.pts));
   }, [ct, currentRecordsCoverageTarget, recordsActive, isArtists]);
 
-  const navTo=p=>{setPage(p);setSelA(null);setSelR(null);setSelNews(null);setMNav(false);setMoreOpen(false);};
+  const navTo=p=>{
+    const nextPage=PUBLIC_PAGE_ROUTES[p]?p:"charts";
+    const nextPath=PUBLIC_PAGE_ROUTES[nextPage];
+    if(window.location.pathname!==nextPath){
+      window.history.pushState({page:nextPage},"",nextPath);
+    }
+    setPage(nextPage);setSelA(null);setSelR(null);setSelNews(null);setMNav(false);setMoreOpen(false);
+  };
   const navItems=["charts","analytics","records","year-end","certifications","news","about"];
   const primaryNavItems=["charts","analytics","records","year-end","certifications"];
   const moreNavItems=navItems.filter((item)=>!primaryNavItems.includes(item));

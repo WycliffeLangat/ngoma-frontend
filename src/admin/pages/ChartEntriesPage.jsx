@@ -122,7 +122,8 @@ function splitArtistNames(value) {
 
 const COMBINED = "combined";
 
-export default function ChartEntriesPage() {
+export default function ChartEntriesPage({ user }) {
+  const canEdit = Boolean(user?.permissions?.can_manage_data) && !user?.permissions?.read_only;
   const [allCharts, setAllCharts]       = useState([]);
   const [platforms, setPlatforms]       = useState([]);
   const [chartType, setChartType]       = useState("singles"); // "singles" | "albums" | "artists"
@@ -708,13 +709,13 @@ export default function ChartEntriesPage() {
     );
   };
 
-  const clickLink = (onClick, children) => (
+  const clickLink = (onClick, children) => canEdit ? (
     <span
       onClick={e => { e.stopPropagation(); onClick(); }}
       style={{ cursor: editBusy ? "default" : "pointer", textDecoration: "underline dotted", textUnderlineOffset: 3 }}
       title="Click to edit"
     >{children}</span>
-  );
+  ) : children;
 
   return (
     <section>
@@ -768,7 +769,7 @@ export default function ChartEntriesPage() {
           </span>
         )}
 
-        {chartType !== "artists" && chartId && platformId !== "kenyan" && !isLocked && (
+        {canEdit && chartType !== "artists" && chartId && platformId !== "kenyan" && !isLocked && (
           <button
             type="button"
             className="cms-btn light"
@@ -781,7 +782,7 @@ export default function ChartEntriesPage() {
           </button>
         )}
 
-        {chartType === "artists" && artistRankings.length > 0 && (
+        {canEdit && chartType === "artists" && artistRankings.length > 0 && (
           <span style={{ fontSize: 12, color: "#888" }}>
             {artistRankings.length} artists · {platformName.toLowerCase()} · singles + albums
           </span>
@@ -843,7 +844,7 @@ export default function ChartEntriesPage() {
                       <th>Artist</th>
                       <th style={{ width: 100 }}>Pts (all)</th>
                       <th style={{ width: 60 }}>Entries</th>
-                      <th style={{ width: 74 }}>Edit</th>
+                      {canEdit && <th style={{ width: 74 }}>Edit</th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -865,7 +866,7 @@ export default function ChartEntriesPage() {
                           <td style={{ fontWeight: 700, fontSize: 13 }}>{artist.name}</td>
                           <td style={{ fontSize: 13, fontWeight: 600 }}>{artist.pts.toLocaleString()}</td>
                           <td style={{ fontSize: 13, color: "#666" }}>{artist.songs.length}</td>
-                          <td>
+                          {canEdit && <td>
                             <button
                               type="button"
                               className="cms-btn light small"
@@ -877,7 +878,7 @@ export default function ChartEntriesPage() {
                             >
                               Edit
                             </button>
-                          </td>
+                          </td>}
                         </tr>
                       );
                     })}
@@ -904,7 +905,7 @@ export default function ChartEntriesPage() {
                   >×</button>
                 </div>
 
-                <button
+                {canEdit && <button
                   type="button"
                   className="cms-btn full"
                   disabled={editBusy}
@@ -912,7 +913,7 @@ export default function ChartEntriesPage() {
                   style={{ marginBottom: 16 }}
                 >
                   {editBusy ? "Loading…" : "Edit artist record"}
-                </button>
+                </button>}
 
                 <div style={{ fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", color: "#5e625c", marginBottom: 8 }}>
                   Chart entries ({selectedArtist.songs.length})
@@ -926,8 +927,8 @@ export default function ChartEntriesPage() {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div
                         style={{ fontSize: 13, fontWeight: 700, cursor: "pointer", textDecoration: "underline dotted", textUnderlineOffset: 3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
-                        onClick={() => s.releaseId && openReleaseEdit(s.releaseId)}
-                        title="Edit this release"
+                        onClick={() => canEdit && s.releaseId && openReleaseEdit(s.releaseId)}
+                        title={canEdit ? "Edit this release" : undefined}
                       >{s.title}</div>
                       <div style={{ fontSize: 11, color: "#888" }}>rank #{s.rank} · {s.pts} pts</div>
                     </div>
@@ -1033,7 +1034,7 @@ export default function ChartEntriesPage() {
                 </div>
 
                 {/* Quick-access edit buttons (always available) */}
-                <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
+                {canEdit && <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
                   {selected.release && (
                     <button
                       type="button"
@@ -1050,7 +1051,7 @@ export default function ChartEntriesPage() {
                     disabled={editBusy}
                     onClick={() => openArtistEdit(primaryArtistName(selected.artist_display || selected.artist))}
                   >{editBusy ? "…" : "Edit artist"}</button>
-                </div>
+                </div>}
 
                 <>
                     {/* Cover image */}
@@ -1060,7 +1061,8 @@ export default function ChartEntriesPage() {
                         <button
                           type="button"
                           title="Click to upload a new cover image"
-                          onClick={() => imgInputRef.current?.click()}
+                          onClick={() => canEdit && imgInputRef.current?.click()}
+                          disabled={!canEdit}
                           style={{ width: 70, height: 70, borderRadius: 12, overflow: "hidden", border: "2px dashed #E8E1D2", background: "#faf8f2", cursor: "pointer", padding: 0, flexShrink: 0 }}
                         >
                           {(imagePreview || selected.cover_image)
@@ -1129,7 +1131,9 @@ export default function ChartEntriesPage() {
                       ))}
                     </div>
 
-                    {isLocked
+                    {!canEdit
+                      ? <div className="cms-alert info" style={{ marginTop: 8, fontSize: 12 }}>Your role can review this entry but cannot change it.</div>
+                      : isLocked
                       ? <div className="cms-alert" style={{ marginTop: 8, fontSize: 12 }}>This chart is locked. Unlock it first to make changes.</div>
                       : (
                         <button className="cms-btn full" disabled={saving} onClick={save} style={{ marginTop: 6 }}>
@@ -1145,7 +1149,7 @@ export default function ChartEntriesPage() {
       )}
 
       {/* ── Release edit modal ── */}
-      {editRelease && (
+      {canEdit && editRelease && (
         <FormModal
           open
           title="Edit Release"
@@ -1158,7 +1162,7 @@ export default function ChartEntriesPage() {
       )}
 
       {/* ── Artist edit modal ── */}
-      {editArtist && (
+      {canEdit && editArtist && (
         <FormModal
           open
           title="Edit Artist"

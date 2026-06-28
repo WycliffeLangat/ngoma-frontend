@@ -166,6 +166,24 @@ export default function FormModal({ open, title, entityId, fields = [], initial 
     });
   };
   const wideTypes = ["textarea", "json", "ordered-multiselect", "tags"];
+  const requiredNames = new Set(["name", "title", "year", "month", "chart_type", "category", "key"]);
+  const sectionFor = (field) => {
+    if (field.section) return field.section;
+    if (["status", "is_published", "scheduled_for", "published_at", "is_visible", "active", "verified", "featured", "pinned", "breaking", "is_official", "is_hidden"].includes(field.name)) return "Visibility & status";
+    if (field.name.endsWith("_url") || ["source_links", "gallery", "tags", "seo_title", "seo_description"].includes(field.name)) return "Links, media & discovery";
+    if (["country", "country_code", "city_region", "genre", "label", "distributor", "release_year", "release_date", "isrc", "upc", "number_of_tracks", "artist_type", "biography", "songwriters", "producers", "radio_info", "aliases", "credited_artists"].includes(field.name)) return "Details";
+    return "Essentials";
+  };
+  const sectionOrder = ["Essentials", "Details", "Links, media & discovery", "Visibility & status"];
+  const sections = fields.reduce((groups, field) => {
+    const section = sectionFor(field);
+    if (!groups.has(section)) groups.set(section, []);
+    groups.get(section).push(field);
+    return groups;
+  }, new Map());
+  const orderedSections = [...sections.entries()].sort(
+    ([a], [b]) => (sectionOrder.indexOf(a) < 0 ? 99 : sectionOrder.indexOf(a)) - (sectionOrder.indexOf(b) < 0 ? 99 : sectionOrder.indexOf(b))
+  );
   const submit = async (event) => {
     event.preventDefault();
     setSubmitError("");
@@ -217,8 +235,12 @@ export default function FormModal({ open, title, entityId, fields = [], initial 
             <strong>Unable to save.</strong> {submitError}
           </div>
         )}
-        <div className="cms-form-grid">
-          {fields.map((field) => {
+        <div className="cms-form-sections">
+          {orderedSections.map(([section, sectionFields]) => (
+            <section className="cms-form-section" key={section}>
+              <h4>{section}</h4>
+              <div className="cms-form-grid">
+          {sectionFields.map((field) => {
             // File fields render as a standalone div (not a label) so global label CSS doesn't interfere
             if (field.type === "file") {
               return (
@@ -230,15 +252,16 @@ export default function FormModal({ open, title, entityId, fields = [], initial 
             const wide = wideTypes.includes(field.type);
             const v = form[field.name];
             const fieldError = fieldErrors[field.name];
+            const required = field.required ?? requiredNames.has(field.name);
             return (
               <label key={field.name} className={`${wide ? "wide " : ""}${fieldError ? "cms-field-invalid" : ""}`.trim()}>
-                <span>{field.label}</span>
+                <span>{field.label}{required && <b className="cms-required" aria-label="required"> *</b>}</span>
                 {field.type === "checkbox" ? (
                   <input type="checkbox" checked={Boolean(v)} onChange={(e) => set(field.name, e.target.checked)} />
                 ) : field.type === "textarea" ? (
-                  <textarea value={v || ""} onChange={(e) => set(field.name, e.target.value)} rows={5} />
+                  <textarea required={required} value={v || ""} onChange={(e) => set(field.name, e.target.value)} rows={5} />
                 ) : field.type === "select" ? (
-                  <select value={v ?? ""} onChange={(e) => set(field.name, e.target.value)}>
+                  <select required={required} value={v ?? ""} onChange={(e) => set(field.name, e.target.value)}>
                     <option value="">Select...</option>
                     {(field.options || []).map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                   </select>
@@ -255,6 +278,7 @@ export default function FormModal({ open, title, entityId, fields = [], initial 
                 ) : (
                   <input
                     type={field.type || "text"}
+                    required={required}
                     value={v ?? ""}
                     onChange={(e) => set(field.name, field.type === "number" ? Number(e.target.value) : e.target.value)}
                   />
@@ -269,6 +293,9 @@ export default function FormModal({ open, title, entityId, fields = [], initial 
               </label>
             );
           })}
+              </div>
+            </section>
+          ))}
         </div>
         <div className="cms-actions right">
           <button type="button" className="cms-btn light" onClick={onClose} disabled={submitting}>Cancel</button>

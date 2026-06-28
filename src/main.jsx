@@ -39,10 +39,12 @@ async function loadPublicAppData({ timeoutMs = 4000 } = {}) {
 
     if (SHOULD_USE_BUNDLED_FALLBACK) {
       console.warn("Falling back to bundled data because live app data is unavailable.", error);
+      const { loadBundledChartData } = await import("./data/liveChartData");
+      const fallbackPayload = await loadBundledChartData();
       window.__NGOMA_PUBLIC_DATA__ = window.__NGOMA_PUBLIC_DATA__ || {};
       window.__NGOMA_PUBLIC_REVISION__ = "";
       notifyPublicDataReady();
-      return { ok: false, fallback: true };
+      return { ok: false, fallback: true, payload: fallbackPayload };
     }
 
     return { ok: false, fallback: false, error: message };
