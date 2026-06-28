@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { cmsApi, qs } from "../api";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { cmsApi, getResults, qs } from "../api";
 
 const IGNORED_KEY = "cms_dup_ignored_groups";
 
@@ -15,13 +15,207 @@ function groupKey(group) {
 }
 // Normalise artist/release rows into a uniform shape for the review UI
 function normaliseArtist(r) {
-  return { ...r, _type: "artist", _label: r.name, _sub: `${r.release_count ?? 0} release(s)`, _count: r.release_count ?? 0 };
+  const releaseCount = r.release_count ?? r.total_releases ?? 0;
+  return { ...r, release_count: releaseCount, _type: "artist", _label: r.name, _sub: `${releaseCount} release(s)`, _count: releaseCount };
 }
 function normaliseRelease(r, chartType) {
-  return { ...r, _type: "release", _chartType: chartType, _label: r.title, _sub: `${r.artist_display} · ${r.chart_type} · ${r.entry_count} entries`, _count: r.entry_count ?? 0 };
+  const entryCount = r.entry_count ?? 0;
+  return { ...r, entry_count: entryCount, _type: "release", _chartType: chartType, _label: r.title, _sub: `${r.artist_display || r.artist_name || "Unknown artist"} · ${r.chart_type || chartType} · ${entryCount} entries`, _count: entryCount };
+}
+
+function foldText(value) {
+  return String(value || "")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/æ/gi, "ae")
+    .replace(/œ/gi, "oe")
+    .replace(/ø/gi, "o")
+    .replace(/ß/gi, "ss")
+    .replace(/[đð]/gi, "d")
+    .replace(/ł/gi, "l")
+    .replace(/&/g, " and ")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+function foldTokenOrder(value) {
+  const normalized = String(value || "")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/&/g, " and ")
+    .toLowerCase()
+    .match(/[a-z0-9]+/g) || [];
+  return normalized.sort().join("");
+}
+
+function foldReleaseTitle(value) {
+  return foldText(
+    String(value || "")
+      .replace(/\s*[\[(]\s*(?:feat|ft|featuring|remix|remaster(?:ed)?|live|acoustic|radio\s*edit|version)[^\])]*[\])]/gi, "")
+      .replace(/\s+(?:feat|ft|featuring)\b.*$/i, "")
+  );
+}
+
+function editDistance(left, right) {
+  if (left === right) return 0;
+  if (!left.length) return right.length;
+  if (!right.length) return left.length;
+  let previous = Array.from({ length: right.length + 1 }, (_, index) => index);
+  for (let i = 1; i <= left.length; i += 1) {
+    const current = [i];
+    for (let j = 1; j <= right.length; j += 1) {
+      current[j] = Math.min(
+        current[j - 1] + 1,
+        previous[j] + 1,
+        previous[j - 1] + (left[i - 1] === right[j - 1] ? 0 : 1)
+      );
+    }
+    previous = current;
+  }
+  return previous[right.length];
+}
+
+function isConservativeNearMatch(left, right) {
+  if (!left || !right || left === right || left[0] !== right[0]) return false;
+  const maxLength = Math.max(left.length, right.length);
+  const minLength = Math.min(left.length, right.length);
+  if (minLength < 5 || Math.abs(left.length - right.length) > 2) return false;
+  const distance = editDistance(left, right);
+  return distance <= 1 || (maxLength >= 9 && distance <= 2);
+}
+
+async function fetchAll(endpoint, params = {}) {
+  const rows = [];
+  const pageSize = 500;
+  for (let page = 1; page <= 250; page += 1) {
+    const data = await cmsApi.get(`${endpoint}${qs({ ...params, page, page_size: pageSize })}`);
+    const batch = getResults(data);
+    rows.push(...batch);
+    const total = Number(data?.count || 0);
+    if (
+      Array.isArray(data) ||
+      batch.length === 0 ||
+      (total > 0 && rows.length >= total) ||
+      (!total && batch.length < pageSize)
+    ) break;
+  }
+  return rows;
+}
+
+function expandedCandidateGroups(rows, kind) {
+  const records = rows.filter((row) => row?.id && row.status !== "archived");
+  const parent = new Map(records.map((row) => [row.id, row.id]));
+  const find = (id) => {
+    let root = id;
+    while (parent.get(root) !== root) root = parent.get(root);
+    while (parent.get(id) !== id) {
+      const next = parent.get(id);
+      parent.set(id, root);
+      id = next;
+    }
+    return root;
+  };
+  const union = (left, right) => {
+    const a = find(left);
+    const b = find(right);
+    if (a !== b) parent.set(b, a);
+  };
+
+  const canonicalFor = (row) => kind === "artist" ? foldText(row.name) : foldReleaseTitle(row.title);
+  const exactBuckets = new Map();
+  records.forEach((row) => {
+    const variants = kind === "artist"
+      ? [row.name, row.display_name, ...(Array.isArray(row.aliases) ? row.aliases : [])]
+          .flatMap((value) => [foldText(value), foldTokenOrder(value)])
+      : [foldReleaseTitle(row.title)];
+    [...new Set(variants.filter(Boolean))].forEach((key) => {
+      const existing = exactBuckets.get(key);
+      if (existing) union(row.id, existing);
+      else exactBuckets.set(key, row.id);
+    });
+  });
+
+  // Conservative fuzzy pass catches small spelling/transcription differences.
+  // Bucketing by first character keeps the scan responsive for thousands of rows.
+  const fuzzyBuckets = new Map();
+  records.forEach((row) => {
+    const canonical = canonicalFor(row);
+    if (!canonical) return;
+    const bucketKey = canonical[0];
+    if (!fuzzyBuckets.has(bucketKey)) fuzzyBuckets.set(bucketKey, []);
+    fuzzyBuckets.get(bucketKey).push({ row, canonical });
+  });
+  fuzzyBuckets.forEach((bucket) => {
+    for (let left = 0; left < bucket.length; left += 1) {
+      for (let right = left + 1; right < bucket.length; right += 1) {
+        if (isConservativeNearMatch(bucket[left].canonical, bucket[right].canonical)) {
+          union(bucket[left].row.id, bucket[right].row.id);
+        }
+      }
+    }
+  });
+
+  const groups = new Map();
+  records.forEach((row) => {
+    const root = find(row.id);
+    if (!groups.has(root)) groups.set(root, []);
+    groups.get(root).push(row);
+  });
+  return [...groups.values()].filter((group) => group.length > 1);
+}
+
+function consolidateGroups(groups) {
+  const parent = new Map();
+  const records = new Map();
+  const recordKey = (row) => `${row._type}:${row.id}`;
+  const find = (key) => {
+    if (!parent.has(key)) parent.set(key, key);
+    let root = key;
+    while (parent.get(root) !== root) root = parent.get(root);
+    while (parent.get(key) !== key) {
+      const next = parent.get(key);
+      parent.set(key, root);
+      key = next;
+    }
+    return root;
+  };
+  const union = (left, right) => {
+    const a = find(left);
+    const b = find(right);
+    if (a !== b) parent.set(b, a);
+  };
+
+  groups.forEach((group) => {
+    const keys = group.map(recordKey);
+    group.forEach((row) => {
+      const key = recordKey(row);
+      records.set(key, { ...(records.get(key) || {}), ...row });
+      find(key);
+    });
+    keys.slice(1).forEach((key) => union(keys[0], key));
+  });
+
+  const combined = new Map();
+  records.forEach((row, key) => {
+    const root = find(key);
+    if (!combined.has(root)) combined.set(root, []);
+    combined.get(root).push(row);
+  });
+  return [...combined.values()]
+    .filter((group) => group.length > 1)
+    .map((group) => group.sort((left, right) =>
+      Number(right._count || 0) - Number(left._count || 0) ||
+      Number(Boolean(right.cover_image)) - Number(Boolean(left.cover_image)) ||
+      Number(left.id) - Number(right.id)
+    ))
+    .sort((left, right) =>
+      right.length - left.length ||
+      String(left[0]?._label || "").localeCompare(String(right[0]?._label || ""))
+    );
 }
 
 export default function DuplicateReviewPage() {
+  const scanStartedRef = useRef(false);
   const [groups, setGroups] = useState(null);
   const [ignored, setIgnored] = useState(loadIgnored);
   const [busy, setBusy] = useState(null);
@@ -34,21 +228,33 @@ export default function DuplicateReviewPage() {
     setGroups(null);
     setError("");
     try {
-      const [singles, albums, artists] = await Promise.all([
+      const [singles, albums, artists, allSingles, allAlbums, allArtists] = await Promise.all([
         cmsApi.get(`/releases/duplicates/${qs({ chart_type: "singles" })}`),
         cmsApi.get(`/releases/duplicates/${qs({ chart_type: "albums" })}`),
         cmsApi.get(`/artists/duplicates/`),
+        fetchAll("/releases/", { chart_type: "singles" }),
+        fetchAll("/releases/", { chart_type: "albums" }),
+        fetchAll("/artists/"),
       ]);
-      const allGroups = [
+      const serverGroups = [
         ...(singles.groups || []).map(g => g.map(r => normaliseRelease(r, "singles"))),
         ...(albums.groups  || []).map(g => g.map(r => normaliseRelease(r, "albums"))),
         ...(artists.groups || []).map(g => g.map(r => normaliseArtist(r))),
       ];
-      setGroups(allGroups);
+      const expandedGroups = [
+        ...expandedCandidateGroups(allSingles, "release").map(g => g.map(r => normaliseRelease(r, "singles"))),
+        ...expandedCandidateGroups(allAlbums, "release").map(g => g.map(r => normaliseRelease(r, "albums"))),
+        ...expandedCandidateGroups(allArtists, "artist").map(g => g.map(r => normaliseArtist(r))),
+      ];
+      setGroups(consolidateGroups([...serverGroups, ...expandedGroups]));
     } catch(e) { setError(e.message); setGroups([]); }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    if (scanStartedRef.current) return;
+    scanStartedRef.current = true;
+    load();
+  }, [load]);
 
   const visible = (groups || []).filter(g => {
     const key = groupKey(g);
@@ -144,7 +350,12 @@ export default function DuplicateReviewPage() {
   return (
     <section className="cms-resource">
       <div className="cms-resource-head">
-        <h2>Duplicate Review</h2>
+        <div>
+          <h2>Duplicate Review</h2>
+          <p style={{ margin: "4px 0 0", color: "#777", fontSize: 13 }}>
+            Reviews exact and near matches across case, spacing, punctuation, accents, aliases, and small spelling differences.
+          </p>
+        </div>
         <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
           <span style={{ fontSize: 13, color: "#666" }}>
             {groups === null ? "Scanning…" : `${visible.length} remaining · ${doneCount} merged · ${ignoredCount} skipped`}

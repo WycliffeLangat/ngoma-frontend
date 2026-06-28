@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 export default function PlatformPerformance({
   rows = [],
   isDark,
@@ -9,6 +11,7 @@ export default function PlatformPerformance({
   showReleases = false,
   expectedPlatforms = [],
 }) {
+  const [view, setView] = useState("graph");
   const hasPerformance = rows.some((row) => row && Number(row.placements) > 0);
   if (!hasPerformance) return null;
 
@@ -41,12 +44,6 @@ export default function PlatformPerformance({
 
   if (!ranked.length) return null;
 
-  const strongest = ranked[0];
-  const weakest = ranked[ranked.length - 1];
-  const weakestTies = ranked.filter((row) => Number(row.points) === Number(weakest.points));
-  const weakestSummary = weakestTies.length > 1
-    ? { ...weakest, platform: weakestTies.map((row) => row.platform).join(", "), peakRank: "—" }
-    : weakest;
   const maxPoints = Math.max(...ranked.map((row) => Number(row.points) || 0), 1);
   const platformColor = (platform) => {
     const exact = PC[platform];
@@ -57,14 +54,6 @@ export default function PlatformPerformance({
     return (key && PC[key]) || GOLD;
   };
 
-  const summary = [
-    { label: "Strongest Platform", row: strongest },
-    {
-      label: ranked.length === 1 ? "Only Tracked Platform" : weakestTies.length > 1 ? "Weakest Platforms" : "Weakest Platform",
-      row: ranked.length === 1 ? strongest : weakestSummary,
-    },
-  ];
-
   return (
     <section style={{
       marginBottom: "22px",
@@ -73,33 +62,44 @@ export default function PlatformPerformance({
       borderRadius: "14px",
       background: isDark ? "#0F1110" : "#FFFFFF",
     }}>
-      <div style={{ marginBottom: "16px" }}>
-        <h3 style={{ margin: 0, fontFamily: SF, fontSize: isMobile ? "18px" : "21px", fontWeight: 850 }}>
-          Points by Platform
-        </h3>
-        <p style={{ margin: "5px 0 0", fontFamily: F, fontSize: "12px", lineHeight: 1.5, color: isDark ? "#AEB6AE" : "#69716B" }}>
-          Comparable Top-50 points are calculated as 51 − rank for every monthly platform placement.
-        </p>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "14px", flexWrap: "wrap", marginBottom: "18px" }}>
+        <div>
+          <h3 style={{ margin: 0, fontFamily: SF, fontSize: isMobile ? "18px" : "21px", fontWeight: 850 }}>
+            Points by Platform
+          </h3>
+          <p style={{ margin: "5px 0 0", fontFamily: F, fontSize: "12px", lineHeight: 1.5, color: isDark ? "#AEB6AE" : "#69716B" }}>
+            Comparable Top-50 points are calculated as 51 − rank for every monthly platform placement.
+          </p>
+        </div>
+        <div style={{ display: "inline-flex", padding: "3px", borderRadius: "999px", background: isDark ? "#252A26" : "#F0EEE8" }}>
+          {["graph", "table"].map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => setView(option)}
+              aria-pressed={view === option}
+              style={{
+                border: 0,
+                borderRadius: "999px",
+                padding: "7px 12px",
+                background: view === option ? (isDark ? "#F6F3EA" : "#FFFFFF") : "transparent",
+                color: view === option ? "#1A1A1A" : (isDark ? "#AEB6AE" : "#69716B"),
+                boxShadow: view === option ? "0 1px 4px rgba(0,0,0,.12)" : "none",
+                fontFamily: F,
+                fontSize: "10px",
+                fontWeight: 900,
+                letterSpacing: ".8px",
+                textTransform: "uppercase",
+                cursor: "pointer",
+              }}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "10px", marginBottom: "18px" }}>
-        {summary.map(({ label, row }) => (
-          <div key={label} style={{
-            padding: "13px 14px",
-            borderRadius: "11px",
-            background: isDark ? "#151815" : "#FAFAF8",
-            borderLeft: `4px solid ${platformColor(row.platform)}`,
-          }}>
-            <div style={{ fontFamily: F, fontSize: "10px", fontWeight: 900, letterSpacing: "1px", textTransform: "uppercase", color: isDark ? "#8F968F" : "#7B857D" }}>{label}</div>
-            <div style={{ marginTop: "4px", fontFamily: SF, fontSize: "18px", fontWeight: 850 }}>{row.platform}</div>
-            <div style={{ marginTop: "2px", fontFamily: F, fontSize: "12px", fontWeight: 750, color: platformColor(row.platform) }}>
-              {Number(row.points).toLocaleString()} pts · {row.peakRank === "—" ? "no peak" : `peak #${row.peakRank}`}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div style={{ display: "grid", gap: "10px", marginBottom: "18px" }}>
+      {view === "graph" && <div style={{ display: "grid", gap: "12px" }}>
         {ranked.map((row) => {
           const color = platformColor(row.platform);
           const width = Number(row.points) > 0
@@ -121,9 +121,9 @@ export default function PlatformPerformance({
             </div>
           );
         })}
-      </div>
+      </div>}
 
-      <div style={{ overflowX: "auto", border: `1px solid ${isDark ? "#2B302B" : "#ECE9E1"}`, borderRadius: "10px" }}>
+      {view === "table" && <div style={{ overflowX: "auto", border: `1px solid ${isDark ? "#2B302B" : "#ECE9E1"}`, borderRadius: "10px" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", minWidth: showReleases ? "610px" : "520px", fontFamily: F, fontSize: "12px" }}>
           <thead>
             <tr style={{ background: isDark ? "#151815" : "#FAFAF8", color: isDark ? "#AEB6AE" : "#69716B", textAlign: "left" }}>
@@ -146,7 +146,7 @@ export default function PlatformPerformance({
             ))}
           </tbody>
         </table>
-      </div>
+      </div>}
     </section>
   );
 }
