@@ -514,19 +514,6 @@ export default function ChartEntriesPage() {
         });
       });
       const rows = [...rowsByRelease.values()];
-      const releaseRecords = new Map();
-      for (const row of rows) {
-        const releaseId = Number(row.release_id);
-        if (!releaseId) continue;
-        try {
-          releaseRecords.set(releaseId, await cmsApi.get(`/releases/${releaseId}/`));
-        } catch (releaseError) {
-          // A deliberately deleted/merged release must not be silently
-          // recreated from a stale browser payload.
-          if (releaseError.status !== 404) throw releaseError;
-        }
-      }
-      const existingRows = rows.filter((row) => releaseRecords.has(Number(row.release_id)));
 
       const primaryNamesFor = (row) => {
         const structured = (row.primary_artists || [])
@@ -545,7 +532,7 @@ export default function ChartEntriesPage() {
       };
 
       const artistNames = new Map();
-      existingRows.forEach((row) => {
+      rows.forEach((row) => {
         [...primaryNamesFor(row), ...featuredNamesFor(row)].forEach((name) => {
           const key = normalizeName(name);
           if (key && !artistNames.has(key)) artistNames.set(key, String(name).trim());
@@ -591,6 +578,21 @@ export default function ChartEntriesPage() {
         artistLookup.set(key, record);
       }
 
+      // Artist creation is intentionally completed before any release reads.
+      // A stale or deleted release must never prevent a credited name from
+      // appearing in the CMS Artists database/search.
+      const releaseRecords = new Map();
+      for (const row of rows) {
+        const releaseId = Number(row.release_id);
+        if (!releaseId) continue;
+        try {
+          releaseRecords.set(releaseId, await cmsApi.get(`/releases/${releaseId}/`));
+        } catch {
+          // Merged/deleted records are explicitly allowed to stay absent.
+        }
+      }
+      const existingRows = rows.filter((row) => releaseRecords.has(Number(row.release_id)));
+
       for (const row of existingRows) {
         const releaseId = Number(row.release_id);
         const release = releaseRecords.get(releaseId);
@@ -613,7 +615,12 @@ export default function ChartEntriesPage() {
         const currentKey = [...new Set(existingFeaturedIds)].sort((a, b) => a - b).join(",");
         const nextKey = [...nextFeaturedIds].sort((a, b) => a - b).join(",");
         if (nextKey !== currentKey) {
-          await cmsApi.patch(`/releases/${releaseId}/`, { featured_artist_ids: nextFeaturedIds });
+          try {
+            await cmsApi.patch(`/releases/${releaseId}/`, { featured_artist_ids: nextFeaturedIds });
+          } catch {
+            // The Artist records already exist at this point. Keep processing
+            // other releases and let a later sync retry this individual link.
+          }
         }
       }
 
