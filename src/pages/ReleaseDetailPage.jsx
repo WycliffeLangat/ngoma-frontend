@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
+import PlatformPerformance from "../components/PlatformPerformance.jsx";
 
 export default function ReleaseDetailPage({ ctx }) {
   const {
+    A_PLATS,
     CartesianGrid,
     CertificationTag,
     CountryBadge,
@@ -11,8 +13,10 @@ export default function ReleaseDetailPage({ ctx }) {
     LineChart,
     PAD,
     PC,
+    PLAT_LABEL,
     ResponsiveContainer,
     SF,
+    S_PLATS,
     SecMark,
     Tooltip,
     XAxis,
@@ -82,6 +86,28 @@ export default function ReleaseDetailPage({ ctx }) {
             return platformEntry ? Math.min(best, Number(platformEntry.rank)) : best;
           }, 999),
         })).sort((a,b)=>a.rank-b.rank);
+        const platformPerformance = [...journey.reduce((map, item) => {
+          item.platforms.forEach((entry) => {
+            const current = map.get(entry.platform) || {
+              platform: entry.platform,
+              points: 0,
+              placements: 0,
+              peakRank: Number.POSITIVE_INFINITY,
+              months: new Set(),
+            };
+            const rank = Number(entry.rank);
+            current.points += Number.isFinite(rank) ? Math.max(0, 51 - rank) : 0;
+            current.placements += 1;
+            current.peakRank = Math.min(current.peakRank, rank || Number.POSITIVE_INFINITY);
+            current.months.add(item.month);
+            map.set(entry.platform, current);
+          });
+          return map;
+        }, new Map()).values()].map((row) => ({
+          ...row,
+          peakRank: Number.isFinite(row.peakRank) ? row.peakRank : "—",
+          months: row.months.size,
+        }));
         const releaseMetadata = combinedHistory.find((item) => item.combined?.release_year || item.combined?.confidence || item.combined?.genre || item.combined?.label)?.combined || {};
         const releaseDetails = {...releaseMetadata, ...selR};
         const releaseConfidence = selR.confidence || releaseMetadata.confidence;
@@ -180,6 +206,18 @@ export default function ReleaseDetailPage({ ctx }) {
                 {platformPeaks.map((item)=><div key={item.platform} style={{display:"flex",justifyContent:"space-between",gap:"12px",padding:"8px 0",borderBottom:"1px solid #F0F0EC",fontFamily:F,fontSize:"12px"}}><span style={{color:PC[item.platform]||"#59645D",fontWeight:800}}>{item.platform}</span><strong>#{item.rank}</strong></div>)}
               </div>
             </div>
+            <PlatformPerformance
+              rows={platformPerformance}
+              isDark={isDark}
+              isMobile={isMobile}
+              F={F}
+              SF={SF}
+              GOLD={GOLD}
+              PC={PC}
+              expectedPlatforms={(isAlbum ? A_PLATS : S_PLATS)
+                .filter((platform) => platform !== "Combined" && platform !== "Kenyan")
+                .map((platform) => PLAT_LABEL[platform] || platform)}
+            />
             <h3 style={secLbl()}><SecMark/>Cross-Platform Journey</h3>
             {chartedJourney.map(({month:m,combined,platforms})=>(
               <div key={m} style={{marginBottom:"14px",padding:"16px",background:isDark?"#111411":"#FAFAF8",borderRadius:"8px",border:"1px solid "+(isDark?"#2B302B":"#EAEAE6")}}>

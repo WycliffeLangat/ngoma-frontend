@@ -2543,7 +2543,9 @@ const top = data[0];
   })) : [];
 
   const pageContext = {
+    A_PLATS,
     API_BASE,
+    ARTIST_PLATS,
     AnalyticsDeepSection,
     BRONZE,
     Bar,
@@ -2576,6 +2578,7 @@ const top = data[0];
     RecordIcon,
     ResponsiveContainer,
     SF,
+    S_PLATS,
     SILVER,
     SITE_NAME,
     SecMark,

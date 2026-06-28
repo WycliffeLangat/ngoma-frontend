@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { getArtistImageUrl } from "../utils/artistImages.js";
+import PlatformPerformance from "../components/PlatformPerformance.jsx";
 
 export default function ArtistDetailPage({ ctx }) {
   const {
     Bar,
     BarChart,
+    ARTIST_PLATS,
     CartesianGrid,
     CertificationTag,
     CountryBadge,
@@ -13,6 +15,8 @@ export default function ArtistDetailPage({ ctx }) {
     Line,
     LineChart,
     PAD,
+    PC,
+    PLAT_LABEL,
     ResponsiveContainer,
     SF,
     SecMark,
@@ -125,6 +129,35 @@ export default function ArtistDetailPage({ ctx }) {
   const numberOnePlacements = selectedArtistEntries.filter((entry) => Number(entry.rank) === 1).length;
   const releaseRanks = selectedArtistEntries.map((entry) => Number(entry.rank)).filter(Number.isFinite);
   const bestReleaseRank = releaseRanks.length ? Math.min(...releaseRanks) : null;
+  const artistPlatformData = [...selectedArtistEntries.reduce((map, entry) => {
+    const platform = entry.sourcePlatform || entry.platform;
+    if (!platform) return map;
+    const current = map.get(platform) || {
+      platform,
+      points: 0,
+      placements: 0,
+      peakRank: Number.POSITIVE_INFINITY,
+      months: new Set(),
+      releases: new Set(),
+    };
+    const rank = Number(entry.rank ?? entry.r);
+    current.points += Number(entry.pts) || (Number.isFinite(rank) ? Math.max(0, 51 - rank) : 0);
+    current.placements += 1;
+    current.peakRank = Math.min(current.peakRank, rank || Number.POSITIVE_INFINITY);
+    if (entry.month) current.months.add(entry.month);
+    current.releases.add(
+      entry.release_id
+        ? `${entry.sourceChartType || entry.chart_type || "release"}|${entry.release_id}`
+        : `${entry.sourceChartType || entry.chart_type || "release"}|${entry.title}|${entry.artist}`
+    );
+    map.set(platform, current);
+    return map;
+  }, new Map()).values()].map((row) => ({
+    ...row,
+    peakRank: Number.isFinite(row.peakRank) ? row.peakRank : "—",
+    months: row.months.size,
+    releases: row.releases.size,
+  }));
 
   return (
 <div style={{padding:PAD,background:isDark?"#050505":"#f8f7f3",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
@@ -215,6 +248,17 @@ export default function ArtistDetailPage({ ctx }) {
               {label:"Best Release Rank",value:bestReleaseRank?`#${bestReleaseRank}`:"—"},
             ].map((stat)=><div key={stat.label} style={{padding:"14px 15px",border:"1px solid "+(isDark?"#2B302B":"#ECE9E1"),borderRadius:"10px",background:isDark?"#151815":"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#8F968F":"#7B857D"}}>{stat.label}</div><div style={{fontFamily:F,fontSize:"22px",fontWeight:900,color:isDark?"#F6F3EA":"#1A1A1A",marginTop:"5px"}}>{stat.value}</div></div>)}
           </div>
+          <PlatformPerformance
+            rows={artistPlatformData}
+            isDark={isDark}
+            isMobile={isMobile}
+            F={F}
+            SF={SF}
+            GOLD={GOLD}
+            PC={PC}
+            showReleases
+            expectedPlatforms={(ARTIST_PLATS || []).map((platform) => PLAT_LABEL[platform] || platform)}
+          />
           <h3 style={secLbl()}>Charted Entries Across Months</h3>
           {selectedArtistEntryGroups.map((group)=>{
             const releaseType = group.chart_type === "albums" || group.chart_type === "album" ? "album" : "single";
