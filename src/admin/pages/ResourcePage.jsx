@@ -5,6 +5,11 @@ import SearchBar from "../components/SearchBar";
 import FormModal from "../components/FormModal";
 import StatusBadge from "../components/StatusBadge";
 import { fetchAppData } from "../../api/public";
+import {
+  getAffectedChartScopes,
+  reorderAffectedChartScopes,
+  rerankAffectedChartScopes,
+} from "../chartRankMaintenance";
 
 function normalizeArtistName(value) {
   return String(value || "").trim().toLowerCase();
@@ -461,40 +466,6 @@ export default function ResourcePage({ type, searchJump, user }) {
     finally { setActionBusy(false); }
   }
 
-  // Returns chart IDs that contain entries for the given release.
-  // Called BEFORE delete/merge while the entries still exist.
-  async function getAffectedChartIds(releaseId) {
-    try {
-      const data = await cmsApi.get(`/chart-entries/?release=${releaseId}&page_size=500`);
-      return [...new Set(getResults(data).map(e => e.chart).filter(Boolean))];
-    } catch { return []; }
-  }
-
-  // Re-ranks all entries in chartIds by total_points DESC for every platform
-  // (combined + each active platform) to close rank gaps after delete/merge.
-  async function reRankAffectedCharts(chartIds) {
-    if (!chartIds.length) return;
-    let platformKeys = ["combined"];
-    try {
-      const pd = await cmsApi.get("/platforms/?active=true&page_size=100");
-      platformKeys = ["combined", ...getResults(pd).map(p => p.id)];
-    } catch {}
-    for (const chartId of chartIds) {
-      for (const platform of platformKeys) {
-        try {
-          const entries = getResults(await cmsApi.get(
-            `/chart-entries/?chart=${chartId}&platform=${platform}&ordering=-total_points&page_size=200`
-          ));
-          for (let i = 0; i < entries.length; i++) {
-            if (entries[i].rank !== i + 1) {
-              await cmsApi.patch(`/chart-entries/${entries[i].id}/`, { rank: i + 1 });
-            }
-          }
-        } catch {}
-      }
-    }
-  }
-
   // Artist merge API:   POST /artists/{KEEPER}/merge/  { artist_ids: [dup] }
   // Release merge API:  POST /releases/{DUP}/merge/   { into_id: keeper }
   async function callMergeApi(dupRow, keeperRow) {
@@ -511,16 +482,17 @@ export default function ResourcePage({ type, searchJump, user }) {
     const targetName = deleteTarget.title || deleteTarget.name || `id ${deleteTarget.id}`;
     try {
       const isRelease = type === "songs" || type === "albums";
-      const affectedChartIds = isRelease
-        ? await getAffectedChartIds(deleteTarget.id)
+      const affectedScopes = isRelease
+        ? await getAffectedChartScopes(deleteTarget.id)
         : [];
       await cmsApi.delete(`${config.endpoint}${deleteTarget.id}/hard_delete/`);
-      if (affectedChartIds.length) {
-        await reRankAffectedCharts(affectedChartIds);
-      }
+      const rankResult = await reorderAffectedChartScopes(affectedScopes);
       clearCmsCache();
       setDeleteTarget(null);
-      showFlash(`"${targetName}" deleted.`);
+      showFlash(
+        `"${targetName}" deleted.` +
+        (rankResult.failedScopes.length ? " Some locked chart ranks could not be refreshed." : "")
+      );
       load();
     } catch(e) { setError(e.message); }
     finally { setActionBusy(false); }
@@ -546,17 +518,18 @@ export default function ResourcePage({ type, searchJump, user }) {
     const keepName = isArtist ? (mergeTarget.keeper.display_name || mergeTarget.keeper.name) : mergeTarget.keeper.title;
     try {
       const isRelease = type === "songs" || type === "albums";
-      const affectedChartIds = isRelease
-        ? await getAffectedChartIds(mergeTarget.dup.id)
+      const affectedScopes = isRelease
+        ? await getAffectedChartScopes(mergeTarget.dup.id)
         : [];
       await callMergeApi(mergeTarget.dup, mergeTarget.keeper);
-      if (affectedChartIds.length) {
-        await reRankAffectedCharts(affectedChartIds);
-      }
+      const rankResult = await rerankAffectedChartScopes(affectedScopes);
       clearCmsCache();
       setMergeTarget(null);
       setDupGroups(null);
-      showFlash(`"${dupName}" merged into "${keepName}".`);
+      showFlash(
+        `"${dupName}" merged into "${keepName}".` +
+        (rankResult.failedScopes.length ? " Some locked chart ranks could not be refreshed." : "")
+      );
       load();
     } catch(e) { setError(e.message); }
     finally { setActionBusy(false); }
@@ -577,8 +550,14 @@ export default function ResourcePage({ type, searchJump, user }) {
     const keepName = isArtist ? (keeper.display_name || keeper.name) : keeper.title;
     setActionBusy(true);
     try {
-      for (const dup of dups) {
-        await callMergeApi(dup, keeper);
+      if (isArtist) {
+        await cmsApi.post(`${config.endpoint}${keeper.id}/merge/`, {
+          artist_ids: dups.map((dup) => dup.id),
+        });
+      } else {
+        for (const dup of dups) {
+          await callMergeApi(dup, keeper);
+        }
       }
       clearCmsCache();
       showFlash(`Merged ${dups.length} duplicate${dups.length !== 1 ? "s" : ""} into "${keepName}".`);

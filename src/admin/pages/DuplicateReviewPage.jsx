@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cmsApi, getResults, qs } from "../api";
+import {
+  getAffectedChartScopes,
+  rerankAffectedChartScopes,
+} from "../chartRankMaintenance";
 
 const IGNORED_KEY = "cms_dup_ignored_groups";
 
@@ -283,55 +287,29 @@ export default function DuplicateReviewPage() {
     }
   }
 
-  async function getAffectedChartIds(releaseId) {
-    try {
-      const data = await cmsApi.get(`/chart-entries/?release=${releaseId}&page_size=500`);
-      return [...new Set((data?.results || data || []).map(e => e.chart).filter(Boolean))];
-    } catch { return []; }
-  }
-
-  async function reRankAffectedCharts(chartIds) {
-    if (!chartIds.length) return;
-    let platformKeys = ["combined"];
-    try {
-      const pd = await cmsApi.get("/platforms/?active=true&page_size=100");
-      platformKeys = ["combined", ...(pd?.results || pd || []).map(p => p.id)];
-    } catch {}
-    for (const chartId of chartIds) {
-      for (const platform of platformKeys) {
-        try {
-          const d = await cmsApi.get(
-            `/chart-entries/?chart=${chartId}&platform=${platform}&ordering=-total_points&page_size=200`
-          );
-          const entries = d?.results || d || [];
-          for (let i = 0; i < entries.length; i++) {
-            if (entries[i].rank !== i + 1) {
-              await cmsApi.patch(`/chart-entries/${entries[i].id}/`, { rank: i + 1 });
-            }
-          }
-        } catch {}
-      }
-    }
-  }
-
   async function mergeGroup(group, keeper) {
     const key = groupKey(group);
     setBusy(key);
     setError("");
     try {
       const isRelease = keeper._type === "release";
-      // Capture affected chart IDs BEFORE merging while entries still exist
-      let affectedChartIds = [];
-      if (isRelease) {
-        const dupIds = group.filter(r => r.id !== keeper.id).map(r => r.id);
-        const results = await Promise.all(dupIds.map(id => getAffectedChartIds(id)));
-        affectedChartIds = [...new Set(results.flat())];
+      const duplicates = group.filter(r => r.id !== keeper.id);
+      // Capture affected scopes BEFORE merging while entries still exist.
+      const affectedScopes = isRelease
+        ? await getAffectedChartScopes(duplicates.map((dup) => dup.id))
+        : [];
+      if (keeper._type === "artist") {
+        await cmsApi.post(`/artists/${keeper.id}/merge/`, {
+          artist_ids: duplicates.map((dup) => dup.id),
+        });
+      } else {
+        for (const dup of duplicates) {
+          await callMergeApi(dup, keeper);
+        }
       }
-      for (const dup of group.filter(r => r.id !== keeper.id)) {
-        await callMergeApi(dup, keeper);
-      }
-      if (affectedChartIds.length) {
-        await reRankAffectedCharts(affectedChartIds);
+      const rankResult = await rerankAffectedChartScopes(affectedScopes);
+      if (rankResult.failedScopes.length) {
+        setError("Merge completed, but some locked chart ranks could not be refreshed.");
       }
       setDone(prev => new Set([...prev, key]));
     } catch(e) { setError(e.message); }
