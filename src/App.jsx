@@ -9,7 +9,7 @@ const AdminApp    = lazy(() => import("./admin/AdminApp"));
 
 function isCmsPath() {
   const p = window.location.pathname.toLowerCase();
-  return p.startsWith("/cms") || p.startsWith("/admin-cms");
+  return p.startsWith("/cms") || p.startsWith("/admin-cms") || p.startsWith("/admin");
 }
 
 function Spinner({ label }) {

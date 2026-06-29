@@ -80,8 +80,19 @@ const RESOURCE_PAGES = new Set([
 ]);
 
 function getInitialPage() {
-  const part = window.location.pathname.split("/cms/")[1]?.replace(/^\//, "") || "dashboard";
+  const part = window.location.pathname
+    .replace(/^\/(?:cms|admin-cms|admin)\/?/i, "")
+    .split("/")[0] || "dashboard";
   return KNOWN_PAGES.has(part) ? part : "dashboard";
+}
+
+function getPageLabel(page) {
+  return nav.find(([key]) => key === page)?.[1] || "Dashboard";
+}
+
+function getUserInitials(user) {
+  const name = `${user?.first_name || ""} ${user?.last_name || ""}`.trim() || user?.username || "Admin";
+  return name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
 }
 
 function PageLoader() {
@@ -89,7 +100,7 @@ function PageLoader() {
 }
 
 function renderPage(page, user, searchJump, onNavigate) {
-  if (page === "dashboard")       return <DashboardPage onNavigate={onNavigate} />;
+  if (page === "dashboard")       return <DashboardPage user={user} onNavigate={onNavigate} />;
   if (page === "chart-entries")   return <ChartEntriesPage user={user} />;
   if (page === "year-end")        return <YearEndPage onNavigate={onNavigate} />;
   if (page === "uploads")         return <UploadsPage user={user} />;
@@ -147,6 +158,7 @@ export default function AdminApp() {
 
   const unread = useMemo(() => 0, []);
   const navigation = useMemo(() => visibleNavGroups(user), [user]);
+  const pageLabel = getPageLabel(page);
 
   if (checking) return <div className="cms-boot">Loading CMS…</div>;
   if (!user)    return <LoginPage onLogin={setUser} />;
@@ -168,7 +180,16 @@ export default function AdminApp() {
     <div className="cms-shell">
       {sidebar && <div className="cms-sidebar-overlay" onClick={() => setSidebar(false)} />}
       <aside className={`cms-sidebar ${sidebar ? "open" : ""}`}>
-        <div className="cms-brand"><b>NGOMA</b><span>Admin CMS</span></div>
+        <div className="cms-brand">
+          <b aria-hidden="true">N</b>
+          <span><strong>Ngoma Charts</strong><small>Admin workspace</small></span>
+          <button
+            type="button"
+            className="cms-sidebar-close"
+            onClick={() => setSidebar(false)}
+            aria-label="Close navigation"
+          >×</button>
+        </div>
         <nav aria-label="CMS navigation">
           {navigation.map((group) => (
             <div className="cms-nav-group" key={group.label}>
@@ -177,16 +198,33 @@ export default function AdminApp() {
                 <button
                   key={key}
                   className={page === key ? "active" : ""}
+                  aria-current={page === key ? "page" : undefined}
                   onClick={() => { setPage(key); setSidebar(false); }}
-                >{label}</button>
+                ><span className="cms-nav-dot" aria-hidden="true" />{label}</button>
               ))}
             </div>
           ))}
         </nav>
+        <div className="cms-sidebar-footer">
+          <a href="/" target="_blank" rel="noreferrer">
+            <span aria-hidden="true">↗</span>
+            View public site
+          </a>
+          <small>Ngoma Charts CMS</small>
+        </div>
       </aside>
       <div className="cms-main">
         <header className="cms-topbar">
-          <button className="cms-menu" onClick={() => setSidebar(!sidebar)}>☰</button>
+          <button
+            className="cms-menu"
+            onClick={() => setSidebar(!sidebar)}
+            aria-label="Open navigation"
+            aria-expanded={sidebar}
+          >☰</button>
+          <div className="cms-page-context">
+            <small>Workspace</small>
+            <strong>{pageLabel}</strong>
+          </div>
           <div className="cms-global"><GlobalSearch onNavigate={handleGlobalNavigate} /></div>
           <NotificationBell count={unread} />
           {!user.permissions?.read_only && (
@@ -201,10 +239,13 @@ export default function AdminApp() {
             </button>
           )}
           <div className="cms-user">
-            <span>{user.first_name || user.username}</span>
-            <small>{user.role_label}</small>
+            <b aria-hidden="true">{getUserInitials(user)}</b>
+            <span>
+              <strong>{user.first_name || user.username}</strong>
+              <small>{user.role_label}</small>
+            </span>
           </div>
-          <button className="cms-btn light small" onClick={signOut}>Logout</button>
+          <button className="cms-btn light small cms-logout" onClick={signOut}>Sign out</button>
         </header>
         <main className="cms-content">
           {user.permissions?.read_only && (

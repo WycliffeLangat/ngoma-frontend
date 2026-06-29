@@ -11,6 +11,25 @@ const labels = {
   unpublished_chart_months: "Unpublished charts", certifications_unofficial: "Unofficial certifications", uploads_awaiting_review: "Uploads awaiting review",
 };
 
+const cardMeta = {
+  total_songs: { icon: "♪", hint: "Songs in the catalogue", target: "songs" },
+  total_albums: { icon: "◉", hint: "Albums in the catalogue", target: "albums" },
+  total_artists: { icon: "A", hint: "Artist profiles", target: "artists" },
+  latest_uploaded_chart_month: { icon: "↗", hint: "Most recent chart import", target: "uploads" },
+  pending_approvals: { icon: "✓", hint: "Items awaiting review", target: "uploads" },
+  missing_artist_countries: { icon: "!", hint: "Profiles needing attention", target: "artists" },
+  duplicate_artists_detected: { icon: "≋", hint: "Potential duplicate profiles", target: "duplicate-review" },
+  latest_news_posts: { icon: "N", hint: "Published and draft stories", target: "news" },
+  recently_edited_data: { icon: "↺", hint: "Recent change events", target: "audit" },
+  errors_warnings: { icon: "!", hint: "Open quality reports", target: "reports" },
+  system_health: { icon: "●", hint: "Publishing and data checks", target: "reports" },
+  last_backup_date: { icon: "↧", hint: "Most recent backup", target: "backups" },
+  editors_admins: { icon: "U", hint: "People with CMS access", target: "users" },
+  unpublished_chart_months: { icon: "○", hint: "Charts not yet public", target: "charts" },
+  certifications_unofficial: { icon: "◇", hint: "Certifications to verify", target: "certifications" },
+  uploads_awaiting_review: { icon: "↑", hint: "Imports awaiting review", target: "uploads" },
+};
+
 // Keys where a non-zero value signals something needs attention
 const WARN_IF_NONZERO = new Set([
   "missing_artist_countries", "duplicate_artists_detected",
@@ -32,28 +51,51 @@ function cardClass(key, value) {
   return "";
 }
 
-export default function DashboardPage({ onNavigate }) {
+export default function DashboardPage({ user, onNavigate }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   useEffect(() => { cmsApi.get("/dashboard/").then(setData).catch((e) => setError(e.message)); }, []);
   if (error) return <div className="cms-alert error">{error}</div>;
   if (!data) return <div className="cms-empty">Loading dashboard...</div>;
+  const firstName = user?.first_name || user?.username || "there";
   return (
     <section>
-      <div className="cms-page-head"><div><h1>Dashboard</h1><p>The control room for Ngoma Charts.</p></div></div>
+      <div className="cms-page-head cms-dashboard-head">
+        <div>
+          <span className="cms-eyebrow">Overview</span>
+          <h1>Welcome back, {firstName}</h1>
+          <p>Here is what needs your attention across Ngoma Charts.</p>
+        </div>
+        {!user?.permissions?.read_only && (
+          <div className="cms-quick-actions" aria-label="Quick actions">
+            <button className="cms-btn light" onClick={() => onNavigate?.("chart-entries")}>Manage chart</button>
+            <button className="cms-btn" onClick={() => onNavigate?.("uploads")}>Upload chart</button>
+          </div>
+        )}
+      </div>
       <div className="cms-card-grid">
         {Object.entries(data.cards || {}).map(([key, value]) => {
           const cls = cardClass(key, value);
+          const meta = cardMeta[key] || { icon: "•", hint: "View details" };
+          const interactive = Boolean(meta.target && onNavigate);
+          const Card = interactive ? "button" : "div";
           return (
-            <div className={`cms-stat-card${cls ? ` ${cls}` : ""}`} key={key}>
-              <span>{labels[key] || key}</span>
+            <Card
+              type={interactive ? "button" : undefined}
+              className={`cms-stat-card${cls ? ` ${cls}` : ""}${interactive ? " interactive" : ""}`}
+              key={key}
+              onClick={interactive ? () => onNavigate(meta.target) : undefined}
+            >
+              <span className="cms-stat-icon" aria-hidden="true">{meta.icon}</span>
+              <span className="cms-stat-label">{labels[key] || key}</span>
               <strong>{format(value)}</strong>
-            </div>
+              <small>{meta.hint}</small>
+            </Card>
           );
         })}
       </div>
       <div className="cms-grid two">
-        <div className="cms-card"><h2>Alerts</h2>{(data.alerts || []).map((a, i) => {
+        <div className="cms-card"><div className="cms-card-heading"><div><span className="cms-eyebrow">Needs attention</span><h2>Alerts</h2></div><span className="cms-count-badge">{(data.alerts || []).length}</span></div>{(data.alerts || []).length === 0 && <div className="cms-empty compact">Everything looks good. No open alerts.</div>}{(data.alerts || []).map((a, i) => {
           const isCertAlert = /certif/i.test(a.title || "") || /certif/i.test(a.message || "");
           return (
             <div key={i} className={`cms-alert ${a.level}`}>
@@ -68,9 +110,9 @@ export default function DashboardPage({ onNavigate }) {
             </div>
           );
         })}</div>
-        <div className="cms-card"><h2>Top performing releases</h2><DataTable columns={[{key:"release__title",label:"Title"},{key:"release__artist__name",label:"Artist"},{key:"points",label:"Points"}]} rows={data.top_performing || []} /></div>
+        <div className="cms-card"><div className="cms-card-heading"><div><span className="cms-eyebrow">Current leaders</span><h2>Top performing releases</h2></div></div><DataTable columns={[{key:"release__title",label:"Title"},{key:"release__artist__name",label:"Artist"},{key:"points",label:"Points"}]} rows={data.top_performing || []} /></div>
       </div>
-      <div className="cms-card"><h2>Recent activity</h2><DataTable columns={[{key:"created_at",label:"Time",render:(r)=>new Date(r.created_at).toLocaleString()},{key:"user_name",label:"User"},{key:"action",label:"Action"},{key:"object_repr",label:"Item"}]} rows={data.recent_activity || []} /></div>
+      <div className="cms-card"><div className="cms-card-heading"><div><span className="cms-eyebrow">Audit trail</span><h2>Recent activity</h2></div><button className="cms-text-btn" onClick={() => onNavigate?.("audit")}>View audit log →</button></div><DataTable columns={[{key:"created_at",label:"Time",render:(r)=>new Date(r.created_at).toLocaleString()},{key:"user_name",label:"User"},{key:"action",label:"Action"},{key:"object_repr",label:"Item"}]} rows={data.recent_activity || []} /></div>
     </section>
   );
 }

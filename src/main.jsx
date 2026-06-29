@@ -7,7 +7,9 @@ import "./styles/mobilePremiumFixes.css";
 
 function isPublicAppPath() {
   const path = window.location.pathname.toLowerCase();
-  return !path.startsWith("/cms") && !path.startsWith("/admin-cms");
+  return !path.startsWith("/cms") &&
+    !path.startsWith("/admin-cms") &&
+    !path.startsWith("/admin");
 }
 
 function notifyPublicDataReady() {
