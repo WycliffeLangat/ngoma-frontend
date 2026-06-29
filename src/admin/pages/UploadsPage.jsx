@@ -4,9 +4,13 @@ import DataTable from "../components/DataTable";
 import UploadPreviewTable from "../components/UploadPreviewTable";
 import StatusBadge from "../components/StatusBadge";
 
+const RAW_WEEKLY = "weekly";
+const FINAL_CHART = "final";
+
 export default function UploadsPage({ user }) {
   const canManageData = Boolean(user?.permissions?.can_manage_data) && !user?.permissions?.read_only;
   const canPublish = Boolean(user?.permissions?.can_publish);
+  const [uploadKind, setUploadKind] = useState(RAW_WEEKLY);
   const [platforms, setPlatforms] = useState([]);
   const [uploads, setUploads] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -16,16 +20,29 @@ export default function UploadsPage({ user }) {
     chart_type: "singles",
     year: new Date().getFullYear(),
     month: new Date().getMonth() + 1,
+    week: 1,
     platform: "",
+    file: null,
   });
 
   useEffect(() => {
-    cmsApi.get("/platforms/").then((data) => setPlatforms(getResults(data)));
-    load();
+    cmsApi.get("/platforms/").then((data) => setPlatforms(getResults(data))).catch(() => {});
   }, []);
 
-  async function load() {
-    setUploads(getResults(await cmsApi.get("/chart-uploads/")));
+  useEffect(() => {
+    setSelected(null);
+    setError("");
+    load(uploadKind);
+  }, [uploadKind]);
+
+  async function load(kind = uploadKind) {
+    const endpoint = kind === RAW_WEEKLY ? "/weekly-uploads/" : "/chart-uploads/";
+    try {
+      const data = getResults(await cmsApi.get(endpoint));
+      setUploads(data.map((item) => ({ ...item, _uploadKind: kind })));
+    } catch (loadError) {
+      setError(loadError.message);
+    }
   }
 
   function set(key, value) {
@@ -34,18 +51,22 @@ export default function UploadsPage({ user }) {
 
   async function submit(event) {
     event.preventDefault();
-    if (!canManageData) return;
+    if (!canManageData || !form.file) return;
     setError("");
     setLoading(true);
     try {
       const body = new FormData();
-      Object.entries(form).forEach(([key, value]) => {
-        if (value !== "" && key !== "file") body.append(key, value);
+      const fields = uploadKind === RAW_WEEKLY
+        ? ["chart_type", "year", "month", "week"]
+        : ["chart_type", "year", "month", "platform"];
+      fields.forEach((key) => {
+        if (form[key] !== "") body.append(key, form[key]);
       });
-      if (form.file) body.append("file", form.file);
-      const upload = await cmsApi.post("/chart-uploads/", body);
-      setSelected(upload);
-      await load();
+      body.append("file", form.file);
+      const endpoint = uploadKind === RAW_WEEKLY ? "/weekly-uploads/" : "/chart-uploads/";
+      const upload = await cmsApi.post(endpoint, body);
+      setSelected({ ...upload, _uploadKind: uploadKind });
+      await load(uploadKind);
     } catch (uploadError) {
       setError(uploadError.message);
     } finally {
@@ -54,62 +75,182 @@ export default function UploadsPage({ user }) {
   }
 
   async function runAction(name) {
-    if (!selected || !canManageData) return;
+    if (!selected || selected._uploadKind !== FINAL_CHART || !canManageData) return;
     if (["approve", "publish", "rollback"].includes(name) && !canPublish) {
       setError("Your role is not allowed to perform this publishing action.");
       return;
     }
     try {
       const next = await cmsApi.post(`/chart-uploads/${selected.id}/${name}/`);
-      setSelected(next.upload || next);
-      await load();
+      setSelected({ ...(next.upload || next), _uploadKind: FINAL_CHART });
+      await load(FINAL_CHART);
     } catch (actionError) {
       setError(actionError.message);
     }
   }
 
+  const isWeekly = uploadKind === RAW_WEEKLY;
+
   return (
     <section>
       <div className="cms-page-head">
         <div>
-          <h1>Imports & Uploads</h1>
-          <p>Upload, validate, review and publish chart files through a guided workflow.</p>
+          <span className="cms-eyebrow">Chart operations</span>
+          <h1>Imports & uploads</h1>
+          <p>Bring raw weekly platform rankings into the monthly chart workflow.</p>
         </div>
       </div>
-      {error && <div className="cms-alert error">{error}</div>}
+
+      <div className="cms-upload-mode" role="tablist" aria-label="Upload type">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={isWeekly}
+          className={`cms-upload-mode-btn${isWeekly ? " active" : ""}`}
+          onClick={() => setUploadKind(RAW_WEEKLY)}
+        >
+          <strong>Raw weekly rankings</strong>
+          <span>Recommended for weekly platform files</span>
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={!isWeekly}
+          className={`cms-upload-mode-btn${!isWeekly ? " active" : ""}`}
+          onClick={() => setUploadKind(FINAL_CHART)}
+        >
+          <strong>Final chart replacement</strong>
+          <span>Advanced: replace an already ranked chart</span>
+        </button>
+      </div>
+
+      {isWeekly && (
+        <div className="cms-alert info cms-upload-guidance">
+          <strong>Use your raw weekly workbook as-is.</strong>
+          <span>
+            The first row should contain platform columns such as Apple Music, Audiomack,
+            Boomplay, Spotify, YouTube and Shazam. Each column is read from #1 downward;
+            you do not need to select one platform.
+          </span>
+        </div>
+      )}
+
+      {error && <div className="cms-alert error" role="alert">{error}</div>}
       <div className="cms-grid two">
         {canManageData ? (
           <form className="cms-card cms-upload-form" onSubmit={submit}>
-            <h2>New chart file</h2>
-            <label><span>Chart type</span><select value={form.chart_type} onChange={(event) => set("chart_type", event.target.value)}><option value="singles">Singles</option><option value="albums">Albums</option></select></label>
-            <label><span>Year</span><input required type="number" min="1900" max="2200" value={form.year} onChange={(event) => set("year", event.target.value)} /></label>
-            <label><span>Month</span><input required type="number" min="1" max="12" value={form.month} onChange={(event) => set("month", event.target.value)} /></label>
-            <label><span>Platform</span><select value={form.platform} onChange={(event) => set("platform", event.target.value)}><option value="">Combined chart</option>{platforms.map((platform) => <option value={platform.id} key={platform.id}>{platform.name}</option>)}</select></label>
-            <label className="wide"><span>CSV or Excel file</span><input required type="file" accept=".csv,.xlsx,.xlsm" onChange={(event) => set("file", event.target.files?.[0])} /></label>
-            <button className="cms-btn full" disabled={loading}>{loading ? "Uploading…" : "Upload and validate"}</button>
-            <p className="cms-help">Include rank, title and artist. Optional columns include featured artists, country code, release year, points, platforms, peak and last month.</p>
+            <div className="cms-card-heading wide">
+              <div>
+                <span className="cms-eyebrow">{isWeekly ? "Weekly source data" : "Advanced import"}</span>
+                <h2>{isWeekly ? "Upload weekly rankings" : "Replace a final chart"}</h2>
+              </div>
+            </div>
+            <label>
+              <span>Chart type</span>
+              <select value={form.chart_type} onChange={(event) => set("chart_type", event.target.value)}>
+                <option value="singles">Singles</option>
+                <option value="albums">Albums</option>
+              </select>
+            </label>
+            <label>
+              <span>Year</span>
+              <input required type="number" min="1900" max="2200" value={form.year} onChange={(event) => set("year", event.target.value)} />
+            </label>
+            <label>
+              <span>Month</span>
+              <select value={form.month} onChange={(event) => set("month", event.target.value)}>
+                {Array.from({ length: 12 }, (_, index) => (
+                  <option value={index + 1} key={index + 1}>
+                    {new Date(2000, index, 1).toLocaleString(undefined, { month: "long" })}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {isWeekly ? (
+              <label>
+                <span>Week of month</span>
+                <select value={form.week} onChange={(event) => set("week", event.target.value)}>
+                  {[1, 2, 3, 4, 5].map((week) => <option value={week} key={week}>Week {week}</option>)}
+                </select>
+              </label>
+            ) : (
+              <label>
+                <span>Chart scope</span>
+                <select value={form.platform} onChange={(event) => set("platform", event.target.value)}>
+                  <option value="">Combined chart</option>
+                  {platforms.map((platform) => <option value={platform.id} key={platform.id}>{platform.name}</option>)}
+                </select>
+                <small>Choose a platform only when the file is one finalized platform chart.</small>
+              </label>
+            )}
+            <label className="wide cms-file-drop">
+              <span>{isWeekly ? "Raw weekly Excel workbook" : "Final chart CSV or Excel file"}</span>
+              <input
+                key={uploadKind}
+                required
+                type="file"
+                accept={isWeekly ? ".xlsx,.xlsm" : ".csv,.xlsx,.xlsm"}
+                onChange={(event) => set("file", event.target.files?.[0] || null)}
+              />
+              <small>
+                {isWeekly
+                  ? "XLSX or XLSM with one column per platform."
+                  : "Include rank, title and artist. This replaces the selected final chart."}
+              </small>
+            </label>
+            <button className="cms-btn full" disabled={loading || !form.file}>
+              {loading ? "Processing workbook…" : isWeekly ? "Process Week" : "Upload and validate"}
+            </button>
           </form>
         ) : (
           <div className="cms-card">
             <h2>New chart file</h2>
-            <p className="cms-help">Your role can review import history and validation results, but cannot upload or change chart files.</p>
+            <p className="cms-help">Your role can review import history, but cannot upload or change chart files.</p>
           </div>
         )}
+
         <div className="cms-card">
-          <h2>Validation summary</h2>
-          {selected
-            ? <Summary selected={selected} onAction={runAction} canManageData={canManageData} canPublish={canPublish} />
-            : <p className="cms-help">Select an import below to review its errors and warnings.</p>}
+          <div className="cms-card-heading">
+            <div>
+              <span className="cms-eyebrow">Current selection</span>
+              <h2>{isWeekly ? "Processing result" : "Validation summary"}</h2>
+            </div>
+          </div>
+          {selected ? (
+            selected._uploadKind === RAW_WEEKLY
+              ? <WeeklySummary selected={selected} />
+              : <FinalSummary selected={selected} onAction={runAction} canManageData={canManageData} canPublish={canPublish} />
+          ) : (
+            <div className="cms-empty compact">
+              {isWeekly ? "Process a workbook or select a previous week below." : "Select an import to review its validation."}
+            </div>
+          )}
         </div>
       </div>
-      {selected && <div className="cms-card"><h2>Preview rows</h2><UploadPreviewTable rows={selected.rows_data || []} /></div>}
+
+      {selected?._uploadKind === FINAL_CHART && (
+        <div className="cms-card"><h2>Preview rows</h2><UploadPreviewTable rows={selected.rows_data || []} /></div>
+      )}
+
       <div className="cms-card">
-        <h2>Import history</h2>
+        <div className="cms-card-heading">
+          <div>
+            <span className="cms-eyebrow">History</span>
+            <h2>{isWeekly ? "Weekly imports" : "Final chart imports"}</h2>
+          </div>
+        </div>
         <DataTable
-          columns={[
+          columns={isWeekly ? [
+            { key: "uploaded_at", label: "Uploaded", render: (row) => new Date(row.uploaded_at).toLocaleString() },
+            { key: "chart_type", label: "Type" },
+            { key: "week", label: "Period", render: (row) => `${monthName(row.month)} ${row.year} · Week ${row.week}` },
+            { key: "original_filename", label: "File" },
+            { key: "entries_processed", label: "Entries" },
+            { key: "processed", label: "Status", render: (row) => <StatusBadge value={row.processed ? "published" : "error"} /> },
+          ] : [
             { key: "created_at", label: "Created", render: (row) => new Date(row.created_at).toLocaleString() },
             { key: "chart_type", label: "Type" },
-            { key: "platform_name", label: "Platform", render: (row) => row.platform_name || "Combined" },
+            { key: "platform_name", label: "Scope", render: (row) => row.platform_name || "Combined" },
             { key: "row_count", label: "Rows" },
             { key: "status", label: "Status", render: (row) => <StatusBadge value={row.status} /> },
           ]}
@@ -121,7 +262,27 @@ export default function UploadsPage({ user }) {
   );
 }
 
-function Summary({ selected, onAction, canManageData, canPublish }) {
+function WeeklySummary({ selected }) {
+  const failed = !selected.processed || String(selected.processing_notes || "").startsWith("Error:");
+  return (
+    <div>
+      <div className="cms-upload-summary">
+        <div><span>Month</span><strong>{monthName(selected.month)}</strong></div>
+        <div><span>Week</span><strong>{selected.week}</strong></div>
+        <div><span>Entries</span><strong>{selected.entries_processed || 0}</strong></div>
+        <div><span>Duplicates removed</span><strong>{selected.duplicates_dropped || 0}</strong></div>
+      </div>
+      <div className={`cms-alert ${failed ? "error" : "info"}`}>
+        <strong>{failed ? "Processing failed" : "Week processed successfully"}</strong><br />
+        {failed
+          ? selected.processing_notes
+          : "Platform entries were normalized and the month-to-date chart was rebuilt automatically."}
+      </div>
+    </div>
+  );
+}
+
+function FinalSummary({ selected, onAction, canManageData, canPublish }) {
   const summary = selected.validation_summary || {};
   return (
     <div>
@@ -131,8 +292,8 @@ function Summary({ selected, onAction, canManageData, canPublish }) {
         <div><span>Warnings</span><strong>{summary.warning_count || 0}</strong></div>
         <div><span>Status</span><StatusBadge value={selected.status} /></div>
       </div>
-      {(summary.errors || []).slice(0, 5).map((error, index) => <div className="cms-alert error" key={`e${index}`}>Row {error.row || "—"}: {error.message}</div>)}
-      {(summary.warnings || []).slice(0, 5).map((warning, index) => <div className="cms-alert warning" key={`w${index}`}>Row {warning.row || "—"}: {warning.message}</div>)}
+      {(summary.errors || []).slice(0, 5).map((item, index) => <div className="cms-alert error" key={`e${index}`}>Row {item.row || "—"}: {item.message}</div>)}
+      {(summary.warnings || []).slice(0, 5).map((item, index) => <div className="cms-alert warning" key={`w${index}`}>Row {item.row || "—"}: {item.message}</div>)}
       {canManageData && (
         <div className="cms-actions wrap">
           <button className="cms-btn light" onClick={() => onAction("revalidate")}>Re-run validation</button>
@@ -148,4 +309,8 @@ function Summary({ selected, onAction, canManageData, canPublish }) {
       )}
     </div>
   );
+}
+
+function monthName(month) {
+  return new Date(2000, Number(month || 1) - 1, 1).toLocaleString(undefined, { month: "short" });
 }

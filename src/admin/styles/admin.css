@@ -204,3 +204,24 @@
 @media(prefers-reduced-motion:reduce){
   .cms-sidebar,.cms-sidebar nav button,.cms-stat-card.interactive,.cms-btn{transition:none!important}
 }
+
+/* Weekly chart import workflow */
+.cms-upload-mode{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 16px;padding:5px;background:#eae8e0;border-radius:17px}
+.cms-upload-mode-btn{display:flex;flex-direction:column;gap:4px;padding:13px 15px;border:1px solid transparent;border-radius:13px;background:transparent;color:var(--cms-muted);text-align:left;cursor:pointer;font:inherit}
+.cms-upload-mode-btn strong{color:#575950;font-size:13px}
+.cms-upload-mode-btn span{font-size:10px}
+.cms-upload-mode-btn.active{border-color:#ded7c8;background:#fff;box-shadow:0 5px 16px rgba(42,34,14,.07)}
+.cms-upload-mode-btn.active strong{color:var(--cms-ink)}
+.cms-upload-guidance{display:flex;align-items:flex-start;gap:9px;margin-bottom:18px}
+.cms-upload-guidance strong{white-space:nowrap}
+.cms-upload-guidance span{font-size:13px;line-height:1.5}
+.cms-upload-form .wide{grid-column:1/-1}
+.cms-upload-form label small,.cms-file-drop small{color:var(--cms-muted);font-size:11px;font-weight:600;line-height:1.4;text-transform:none;letter-spacing:0}
+.cms-file-drop{padding:14px;border:1px dashed #d2c7ab;border-radius:15px;background:#fbf8f0}
+.cms-file-drop input{padding:8px;background:#fff}
+.cms-upload-summary strong{font-size:19px}
+@media(max-width:700px){
+  .cms-upload-mode{grid-template-columns:1fr}
+  .cms-upload-guidance{display:block}
+  .cms-upload-guidance strong{display:block;margin-bottom:5px;white-space:normal}
+}
