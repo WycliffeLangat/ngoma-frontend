@@ -3,6 +3,7 @@ import { cmsApi, getResults } from "../api";
 import FormModal from "../components/FormModal";
 import { fetchAppData } from "../../api/public";
 import { buildArtistMonthMirror, publicChartRows } from "../../utils/publicChartMirror";
+import { harmonizeChartData } from "../chartRankMaintenance";
 
 const MOVE_COLOR = { NEW: "#1565C0", up: "#1B7F3A", down: "#C62828", same: "#999" };
 
@@ -15,17 +16,15 @@ function movement(entry) {
 }
 
 const FIELD_DEFS = [
-  { key: "rank",             label: "Rank",             type: "number" },
+  { key: "rank",             label: "Rank (calculated)", type: "number", calculated: true },
   { key: "total_points",     label: "Total points",     type: "number" },
   { key: "weeks_on_chart",   label: "Weeks on chart",   type: "number" },
-  { key: "peak_rank",        label: "Peak rank",        type: "number" },
-  { key: "prev_rank",        label: "Prev rank",        type: "number" },
+  { key: "peak_rank",        label: "Peak rank (calculated)", type: "number", calculated: true },
+  { key: "prev_rank",        label: "Last month (calculated)", type: "number", calculated: true },
   { key: "featured_artists", label: "Featured artists", type: "text"   },
   { key: "confidence",       label: "Confidence",       type: "text"   },
   { key: "notes",            label: "Notes",            type: "text"   },
 ];
-
-const MOVEMENT_OPTIONS = ["", "new", "reentry", "up", "down", "same"];
 
 const RELEASE_FIELDS = [
   { name: "cover_image",      label: "Cover image",       type: "file",     help: "Square image, JPEG or PNG, max 2 MB." },
@@ -352,17 +351,11 @@ export default function ChartEntriesPage({ user }) {
     setSaving(true); setError("");
     try {
       const payload = {
-        rank:             Number(form.rank),
         total_points:     Number(form.total_points),
         weeks_on_chart:   Number(form.weeks_on_chart),
-        peak_rank:        Number(form.peak_rank),
-        prev_rank:        form.prev_rank !== "" ? Number(form.prev_rank) : null,
         featured_artists: form.featured_artists,
         confidence:       form.confidence,
         notes:            form.notes || null,
-        movement_type:    form.movement_type || null,
-        is_new:           form.is_new,
-        reentry:          form.reentry,
       };
       const updated = await cmsApi.patch(`/chart-entries/${selected.id}/`, payload);
 
@@ -373,8 +366,9 @@ export default function ChartEntriesPage({ user }) {
         updated.cover_image = updatedRelease?.cover_image || imagePreview;
       }
 
-      setEntries(prev => prev.map(e => e.id === selected.id ? { ...e, ...updated } : e));
-      setSelected(prev => ({ ...prev, ...updated }));
+      const fresh = await fetchAppData();
+      setPublicPayload(fresh);
+      setSelected(null);
       setImageFile(null);
     } catch (e) { setError(e.message); }
     finally { setSaving(false); }
@@ -384,22 +378,13 @@ export default function ChartEntriesPage({ user }) {
     if (!chartId || recalcBusy || isLocked) return;
     setRecalcBusy(true); setError("");
     try {
-      const platformParam = platformId === COMBINED ? "combined" : platformId;
-      const all = getResults(await cmsApi.get(
-        `/chart-entries/?chart=${chartId}&platform=${platformParam}&ordering=-total_points&page_size=500`
-      ));
-      let changed = 0;
-      for (let i = 0; i < all.length; i++) {
-        if (all[i].rank !== i + 1) {
-          await cmsApi.patch(`/chart-entries/${all[i].id}/`, { rank: i + 1 });
-          changed++;
-        }
+      const result = await harmonizeChartData({ chartIds: [Number(chartId)] });
+      const fresh = await fetchAppData();
+      setPublicPayload(fresh);
+      setSelected(null);
+      if (!result.rank_changes && !result.history_changes && !result.certifications_changed) {
+        setError("Chart history is already fully harmonized — no changes made.");
       }
-      const updated = getResults(await cmsApi.get(
-        `/chart-entries/?chart=${chartId}&platform=${platformParam}&ordering=rank&page_size=500`
-      ));
-      setEntries(updated);
-      if (changed === 0) setError("Ranks are already in order — no changes made.");
     } catch(e) { setError(e.message); }
     finally { setRecalcBusy(false); }
   }
@@ -776,9 +761,9 @@ export default function ChartEntriesPage({ user }) {
             style={{ fontSize: 12 }}
             disabled={recalcBusy}
             onClick={reRankCurrentChart}
-            title="Re-rank entries by total points (fixes gaps after a release is deleted or merged)"
+            title="Recalculate ranks, movement, last month, peaks, certifications, analytics, and year-end data across every month"
           >
-            {recalcBusy ? "Recalculating…" : "↻ Recalculate ranks"}
+            {recalcBusy ? "Harmonizing…" : "↻ Harmonize all months"}
           </button>
         )}
 
@@ -1087,48 +1072,21 @@ export default function ChartEntriesPage({ user }) {
                     </div>
 
                     {/* Chart entry fields */}
-                    {FIELD_DEFS.map(({ key, label, type }) => (
+                    {FIELD_DEFS.map(({ key, label, type, calculated }) => (
                       <label key={key} style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 12 }}>
                         {panelLabel(label)}
                         <input
                           type={type}
                           value={form[key] ?? ""}
-                          disabled={isLocked}
+                          disabled={isLocked || calculated}
                           onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
-                          style={{ border: "1px solid #E8E1D2", borderRadius: 10, padding: "8px 11px", font: "inherit", fontSize: 14, outline: "none", background: isLocked ? "#faf8f2" : "#fff" }}
+                          style={{ border: "1px solid #E8E1D2", borderRadius: 10, padding: "8px 11px", font: "inherit", fontSize: 14, outline: "none", background: isLocked || calculated ? "#faf8f2" : "#fff" }}
                         />
                       </label>
                     ))}
 
-                    {/* Movement type */}
-                    <label style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 12 }}>
-                      {panelLabel("Movement type")}
-                      <select
-                        value={form.movement_type ?? ""}
-                        disabled={isLocked}
-                        onChange={e => setForm(f => ({ ...f, movement_type: e.target.value }))}
-                        style={{ border: "1px solid #E8E1D2", borderRadius: 10, padding: "8px 11px", font: "inherit", fontSize: 13, outline: "none", background: isLocked ? "#faf8f2" : "#fff" }}
-                      >
-                        {MOVEMENT_OPTIONS.map(o => (
-                          <option key={o} value={o}>{o || "— auto —"}</option>
-                        ))}
-                      </select>
-                    </label>
-
-                    {/* Boolean flags */}
-                    <div style={{ display: "flex", gap: 16, marginBottom: 14 }}>
-                      {[["is_new","New entry"],["reentry","Re-entry"]].map(([key, label]) => (
-                        <label key={key} style={{ display: "flex", alignItems: "center", gap: 6, cursor: isLocked ? "default" : "pointer", fontSize: 13, fontWeight: 600, color: "#444" }}>
-                          <input
-                            type="checkbox"
-                            checked={!!form[key]}
-                            disabled={isLocked}
-                            onChange={e => setForm(f => ({ ...f, [key]: e.target.checked }))}
-                            style={{ width: 15, height: 15, accentColor: "#b8860b" }}
-                          />
-                          {label}
-                        </label>
-                      ))}
+                    <div className="cms-alert info" style={{ marginBottom: 14, fontSize: 12 }}>
+                      Rank, movement, last month, and peak are recalculated from the complete chart history whenever this entry is saved.
                     </div>
 
                     {!canEdit

@@ -1,7 +1,6 @@
 import { cmsApi, clearCmsCache, getResults } from "./api";
 
 const READ_CONCURRENCY = 6;
-const WRITE_CONCURRENCY = 6;
 
 async function mapWithConcurrency(items, limit, mapper) {
   const results = new Array(items.length);
@@ -55,51 +54,14 @@ export async function getAffectedChartScopes(releaseIds) {
   return [...scopes.values()];
 }
 
-async function updateRank(entry, rank) {
-  await cmsApi.patch(`/chart-entries/${entry.id}/`, { rank });
-}
-
-async function rerankScope(scope) {
-  const entries = getResults(await cmsApi.get(
-    `/chart-entries/?chart=${scope.chart}&platform=${scope.platform}` +
-    `&ordering=-total_points,rank&page_size=500`
-  ));
-  const changed = entries
-    .map((entry, index) => ({ ...entry, nextRank: index + 1 }))
-    .filter((entry) => entry.rank !== entry.nextRank);
-
-  if (!changed.length) return 0;
-
-  // Rank is unique per chart/platform. Move changed rows to unique temporary
-  // values first so swaps cannot collide, then install their final ranks.
-  const temporaryResults = await mapWithConcurrency(
-    changed,
-    WRITE_CONCURRENCY,
-    async (entry) => {
-      try {
-        await updateRank(entry, -(1_000_000 + Number(entry.id)));
-        return { entry, applied: true };
-      } catch (error) {
-        return { entry, applied: false, error };
-      }
-    }
-  );
-  const temporaryFailure = temporaryResults.find((result) => !result.applied);
-  if (temporaryFailure) {
-    await mapWithConcurrency(
-      temporaryResults.filter((result) => result.applied),
-      WRITE_CONCURRENCY,
-      async ({ entry }) => {
-        try { await updateRank(entry, entry.rank); } catch {}
-      }
-    );
-    throw temporaryFailure.error;
-  }
-
-  await mapWithConcurrency(changed, WRITE_CONCURRENCY, async (entry) => {
-    await updateRank(entry, entry.nextRank);
+export async function harmonizeChartData({ chartIds = [], chartType = "" } = {}) {
+  clearCmsCache();
+  const result = await cmsApi.post("/chart-entries/harmonize/", {
+    chart_ids: [...new Set(chartIds.filter(Boolean))],
+    ...(chartType ? { chart_type: chartType } : {}),
   });
-  return changed.length;
+  clearCmsCache();
+  return result;
 }
 
 /**
@@ -109,23 +71,21 @@ async function rerankScope(scope) {
  */
 export async function rerankAffectedChartScopes(scopes) {
   if (!scopes.length) return { updatedEntries: 0, failedScopes: [] };
-
-  // Merge/delete mutations invalidate releases, not chart-entry GETs.
-  // Explicitly clear these before reading the post-mutation ranking.
-  clearCmsCache("/chart-entries/");
-
-  const results = await mapWithConcurrency(scopes, READ_CONCURRENCY, async (scope) => {
-    try {
-      return { scope, updated: await rerankScope(scope) };
-    } catch (error) {
-      return { scope, updated: 0, error };
-    }
-  });
-
-  return {
-    updatedEntries: results.reduce((sum, result) => sum + result.updated, 0),
-    failedScopes: results.filter((result) => result.error),
-  };
+  try {
+    const result = await harmonizeChartData({
+      chartIds: scopes.map((scope) => scope.chart),
+    });
+    return {
+      updatedEntries: Number(result.rank_changes || 0) + Number(result.history_changes || 0),
+      failedScopes: [],
+      ...result,
+    };
+  } catch (error) {
+    return {
+      updatedEntries: 0,
+      failedScopes: scopes.map((scope) => ({ scope, error })),
+    };
+  }
 }
 
 /**
@@ -134,19 +94,10 @@ export async function rerankAffectedChartScopes(scopes) {
  */
 export async function reorderAffectedChartScopes(scopes) {
   if (!scopes.length) return { reorderedScopes: 0, failedScopes: [] };
-
-  clearCmsCache("/chart-entries/");
-  const results = await mapWithConcurrency(scopes, READ_CONCURRENCY, async (scope) => {
-    try {
-      await cmsApi.post("/chart-entries/reorder/", scope);
-      return { scope };
-    } catch (error) {
-      return { scope, error };
-    }
-  });
-
+  const result = await rerankAffectedChartScopes(scopes);
   return {
-    reorderedScopes: results.filter((result) => !result.error).length,
-    failedScopes: results.filter((result) => result.error),
+    reorderedScopes: result.failedScopes.length ? 0 : scopes.length,
+    failedScopes: result.failedScopes,
+    ...result,
   };
 }
