@@ -300,13 +300,33 @@ function historyKeysForMonth(ct, plat, currentMonth) {
     ? (monthLabel) => rawCombined(ct, monthLabel)
     : (monthLabel) => rawPlatform(ct, plat, monthLabel);
   const priorKeys = new Set();
+  const priorIds = new Set();
   let previousKeys = new Set();
+  let previousIds = new Set();
   MONTHS.slice(0, currentIndex + 1).forEach((monthLabel, offset) => {
     const monthEntries = getRaw(monthLabel).filter((item) => Number(item.r) <= 50).slice(0, 50);
-    if (offset < currentIndex) monthEntries.forEach((item) => priorKeys.add(entryKey(item)));
-    if (offset === currentIndex - 1) previousKeys = new Set(monthEntries.map(entryKey));
+    if (offset < currentIndex) {
+      monthEntries.forEach((item) => {
+        priorKeys.add(entryKey(item));
+        const id = Number(item.release_id);
+        if (id) priorIds.add(id);
+      });
+    }
+    if (offset === currentIndex - 1) {
+      previousKeys = new Set(monthEntries.map(entryKey));
+      previousIds = new Set(monthEntries.map((item) => Number(item.release_id)).filter(Boolean));
+    }
   });
-  return { priorKeys, previousKeys };
+  return { priorKeys, priorIds, previousKeys, previousIds };
+}
+
+// Matches a live chart-image-data entry against history derived from the
+// synced FULL bundle. release_id is preferred when both sides have it since
+// it is immune to artist-credit text formatting differences between the two
+// API endpoints; entryKey is the fallback.
+function matchesHistory(entry, releaseId, keySet, idSet) {
+  if (releaseId && idSet.has(releaseId)) return true;
+  return keySet.has(entry);
 }
 
 function enrichChartEntries(entries, getRawEntries, currentMonth, totalPlatforms) {
@@ -1375,13 +1395,18 @@ export default function NgomaCharts(){
           const fallbackIsReentry = movementType === "reentry" || movementType === "re-entry" || movementType === "re";
           const movementKey = entryKey({
             t: entry.title,
-            a: entry.primary_artist || entry.artist || "",
+            a: entry.primary_artist_credit || entry.primary_artist || entry.artist || "",
             fa: entry.featured_artists || "",
           });
-          const isNew = movementHistory ? !movementHistory.priorKeys.has(movementKey) : fallbackIsNew;
-          const isReentry = movementHistory
-            ? !movementHistory.previousKeys.has(movementKey) && movementHistory.priorKeys.has(movementKey)
-            : fallbackIsReentry;
+          const movementReleaseId = Number(entry.release_id) || null;
+          const matchedPrior = movementHistory
+            ? matchesHistory(movementKey, movementReleaseId, movementHistory.priorKeys, movementHistory.priorIds)
+            : false;
+          const matchedPrevious = movementHistory
+            ? matchesHistory(movementKey, movementReleaseId, movementHistory.previousKeys, movementHistory.previousIds)
+            : false;
+          const isNew = movementHistory ? !matchedPrior : fallbackIsNew;
+          const isReentry = movementHistory ? (!matchedPrevious && matchedPrior) : fallbackIsReentry;
 
           const displayPoints = entry.total_points || 0;
 
