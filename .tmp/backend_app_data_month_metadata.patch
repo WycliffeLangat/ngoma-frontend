@@ -1,0 +1,42 @@
+diff --git a/charts/app_data.py b/charts/app_data.py
+--- a/charts/app_data.py
++++ b/charts/app_data.py
+@@ -339,6 +339,28 @@ class PublicAppDataView(APIView):
+             .order_by("year", "month", "chart_type")
+         )
+         months, full = _chart_data(request, charts)
++        periods = {}
++        latest_by_chart_type = {}
++        for chart in charts:
++            key = (chart.year, chart.month)
++            period = periods.setdefault(
++                key,
++                {
++                    "label": chart.label,
++                    "year": chart.year,
++                    "month": chart.month,
++                    "chart_types": [],
++                },
++            )
++            if chart.chart_type not in period["chart_types"]:
++                period["chart_types"].append(chart.chart_type)
++            latest_by_chart_type[chart.chart_type] = {
++                "label": chart.label,
++                "year": chart.year,
++                "month": chart.month,
++            }
++        month_options = [periods[key] for key in sorted(periods)]
++        latest_published_month = month_options[-1] if month_options else None
+ 
+         public_release_ids = {
+             entry.release_id
+@@ -430,6 +449,9 @@ class PublicAppDataView(APIView):
+             "revision": revision,
+             "generated_at": timezone.now(),
+             "months": months,
++            "month_options": month_options,
++            "latest_published_month": latest_published_month,
++            "latest_published_by_chart_type": latest_by_chart_type,
+             "full": full,
+             "artists": artists,
+             "releases": releases,

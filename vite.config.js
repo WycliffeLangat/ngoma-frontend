@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
-  const proxyTarget = (env.VITE_API_PROXY_TARGET || env.VITE_API_BASE_URL || "https://web-production-0f6b5.up.railway.app").replace(/\/$/, "");
+  const proxyTarget = (env.VITE_API_PROXY_TARGET || "http://127.0.0.1:8000").replace(/\/$/, "");
   const normalizedTarget = proxyTarget.replace(/\/api\/v1$/, "");
 
   return {
@@ -26,10 +26,6 @@ export default defineConfig(({ mode }) => {
             // React runtime — shared between public and CMS bundles.
             if (id.includes("/node_modules/react-dom") || id.includes("/node_modules/react/")) {
               return "react";
-            }
-            // Large static chart-history dataset — fetched in parallel with the app shell.
-            if (id.includes("src/data/liveChartData")) {
-              return "chart-data";
             }
             // CMS — only downloaded when the user navigates to /cms.
             // With React.lazy in App.jsx this chunk is already auto-split, but

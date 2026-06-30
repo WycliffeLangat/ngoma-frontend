@@ -4,7 +4,7 @@
 // and the public app should read the latest API response at runtime instead of
 // relying on old static/generated frontend data.
 
-import { API_BASE } from "./config.js";
+import { API_BASE, API_CONFIGURED } from "./config.js";
 
 function withCacheBust(path) {
   const separator = path.includes("?") ? "&" : "?";
@@ -12,6 +12,9 @@ function withCacheBust(path) {
 }
 
 async function publicRequest(path, options = {}) {
+  if (!API_CONFIGURED) {
+    throw new Error("VITE_API_BASE is not configured.");
+  }
   const timeoutMs = typeof options.timeoutMs === "number" ? options.timeoutMs : 6000;
   const controller = new AbortController();
   const timeoutId = (typeof window !== "undefined" && timeoutMs > 0)
@@ -43,7 +46,7 @@ async function publicRequest(path, options = {}) {
 
 // Ping the API to confirm the live backend is reachable.
 // Use app-data/revision because it is lightweight and is the same live source
-// used to detect CMS changes. This avoids false "chart snapshot" warnings
+// used to detect CMS changes. This avoids false availability warnings
 // when the older /charts/latest/ health-check endpoint is unavailable.
 export async function checkApiStatus() {
   await publicRequest("/app-data/revision/", {

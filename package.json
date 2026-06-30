@@ -6,7 +6,6 @@
   "description": "Kenya's official multi-platform music charts",
   "scripts": {
     "dev": "vite",
-    "prebuild": "node scripts/generate-chart-data.mjs",
     "build": "vite build",
     "preview": "vite preview"
   },

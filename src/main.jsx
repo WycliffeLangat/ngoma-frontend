@@ -1,7 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { API_BASE, SHOULD_USE_BUNDLED_FALLBACK } from "./api/config.js";
+import { API_BASE, API_CONFIGURED } from "./api/config.js";
 import { fetchAppData } from "./api/public.js";
+import { normalizePublicPayload } from "./utils/publicDataRuntime.js";
 import "./index.css";
 import "./styles/mobilePremiumFixes.css";
 
@@ -19,40 +20,65 @@ function notifyPublicDataReady() {
 }
 
 async function loadPublicAppData({ timeoutMs = 4000 } = {}) {
-  if (!isPublicAppPath()) return { ok: false, fallback: true };
+  if (!isPublicAppPath()) return { ok: true };
+  if (!API_CONFIGURED) {
+    return {
+      ok: false,
+      type: "configuration",
+      error: "VITE_API_BASE is not configured.",
+    };
+  }
 
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const payload = await fetchAppData(controller.signal);
-    if (!payload || typeof payload !== "object" || !payload.full?.singles || !payload.full?.albums) {
+    const rawPayload = await fetchAppData(controller.signal, timeoutMs);
+    const payload = normalizePublicPayload(rawPayload);
+    if (
+      !payload ||
+      typeof payload !== "object" ||
+      !payload.full?.singles ||
+      !payload.full?.albums ||
+      !payload.months.length ||
+      !payload.latest_published_month
+    ) {
       throw new Error("Live app data payload was incomplete.");
     }
 
     window.__NGOMA_PUBLIC_DATA__ = payload;
     window.__NGOMA_PUBLIC_REVISION__ = String(payload.revision || "");
-    const { applyPublicAppData } = await import("./data/liveChartData");
-    applyPublicAppData(payload);
     notifyPublicDataReady();
     return { ok: true, payload };
   } catch (error) {
-    const message = error?.message || "Live app data is unavailable.";
-    console.error(`[ngoma] Live API request failed for ${API_BASE}: ${message}`, error);
-
-    if (SHOULD_USE_BUNDLED_FALLBACK) {
-      console.warn("Falling back to bundled data because live app data is unavailable.", error);
-      const { loadBundledChartData } = await import("./data/liveChartData");
-      const fallbackPayload = await loadBundledChartData();
-      window.__NGOMA_PUBLIC_DATA__ = window.__NGOMA_PUBLIC_DATA__ || {};
-      window.__NGOMA_PUBLIC_REVISION__ = "";
-      notifyPublicDataReady();
-      return { ok: false, fallback: true, payload: fallbackPayload };
-    }
-
-    return { ok: false, fallback: false, error: message };
+    const message = error?.message || "The backend API is unavailable.";
+    console.error(`[ngoma] Backend API request failed for ${API_BASE}: ${message}`, error);
+    return { ok: false, type: "network", error: message };
   } finally {
     window.clearTimeout(timeout);
   }
+}
+
+function PublicStartupError({ state }) {
+  const configurationError = state.type === "configuration";
+  return (
+    <div style={{display:"grid",placeItems:"center",minHeight:"100vh",fontFamily:"system-ui, sans-serif",color:"#252820",padding:"24px",textAlign:"center",lineHeight:1.5,background:"#f7f5ef"}}>
+      <div style={{maxWidth:560,background:"#fff",border:"1px solid #ded9cc",borderRadius:16,padding:"28px",boxShadow:"0 14px 40px rgba(0,0,0,.08)"}}>
+        <strong style={{display:"block",fontSize:20}}>
+          {configurationError ? "Ngoma Charts backend is not configured." : "Unable to load Ngoma Charts data."}
+        </strong>
+        <div style={{marginTop:10,color:"#60645b",fontSize:14}}>
+          {configurationError
+            ? "Set VITE_API_BASE to the Django API base URL, then rebuild the frontend."
+            : `The frontend could not reach ${API_BASE}. Please try again after the backend is available.`}
+        </div>
+        {!configurationError && (
+          <button type="button" onClick={() => window.location.reload()} style={{marginTop:18,border:0,borderRadius:999,padding:"10px 18px",background:"#1d4f35",color:"#fff",fontWeight:700,cursor:"pointer"}}>
+            Retry
+          </button>
+        )}
+      </div>
+    </div>
+  );
 }
 
 async function start() {
@@ -66,19 +92,11 @@ async function start() {
       </div>
     );
   }
-  // Railway can take longer than six seconds to wake and assemble the full
-  // chart payload. Waiting here avoids incorrectly rendering the stale bundled
-  // snapshot on Netlify while localhost (through its warm proxy) looks current.
+  // The public application module is loaded only after the backend payload is
+  // ready because its chart indexes are built at module initialization.
   const publicDataState = await loadPublicAppData({ timeoutMs: 30_000 });
-  if (!publicDataState.ok && !publicDataState.fallback && isPublicAppPath()) {
-    root.render(
-      <div style={{display:"grid",placeItems:"center",height:"100vh",fontFamily:"system-ui, sans-serif",color:"#333",fontSize:16,padding:"24px",textAlign:"center",lineHeight:1.5}}>
-        <div>
-          <strong>Unable to load live Ngoma Charts data.</strong>
-          <div style={{marginTop:8,color:"#666"}}>Please verify the Railway API and the Netlify environment variable configuration.</div>
-        </div>
-      </div>
-    );
+  if (!publicDataState.ok && isPublicAppPath()) {
+    root.render(<PublicStartupError state={publicDataState} />);
     return;
   }
 

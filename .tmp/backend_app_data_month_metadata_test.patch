@@ -1,0 +1,26 @@
+diff --git a/charts/tests.py b/charts/tests.py
+--- a/charts/tests.py
++++ b/charts/tests.py
+@@ -112,8 +112,22 @@ class PublicAppDataSyncTests(TestCase):
+     def app_data(self):
+         response = self.client.get("/api/v1/app-data/")
+         self.assertEqual(response.status_code, 200, response.content)
+         self.assertIn("no-store", response["Cache-Control"])
+         return response.json()
+ 
++    def test_app_data_exposes_sorted_latest_published_month_metadata(self):
++        data = self.app_data()
++        month_options = data["month_options"]
++
++        self.assertEqual(
++            [(item["year"], item["month"]) for item in month_options],
++            sorted((item["year"], item["month"]) for item in month_options),
++        )
++        self.assertEqual(data["months"], [item["label"] for item in month_options])
++        self.assertEqual(data["latest_published_month"]["label"], "July 2026")
++        self.assertEqual(data["latest_published_month"]["year"], 2026)
++        self.assertEqual(data["latest_published_month"]["month"], 7)
++        self.assertEqual(data["latest_published_by_chart_type"]["singles"]["label"], "July 2026")
++
+     def patch_cms(self, path, payload):
+         self.client.force_authenticate(self.admin)

@@ -1,0 +1,1643 @@
+{
+  "month": "June 2026",
+  "source_archive": "C:\\Users\\HP\\Downloads\\June%202026%20Weeks%201-3%20Cleaned%20Files.zip",
+  "raw_rows_processed": 2757,
+  "resolution_counts": {
+    "new": 864,
+    "existing": 829,
+    "june": 1064
+  },
+  "warnings": [
+    {
+      "kind": "new_variant",
+      "source": "Ran To Atlanta - Drake, Future, Molly Santana",
+      "resolved": "Ran To Atlanta - Drake, Future & Molly Santana",
+      "platform": "Apple Music",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "B’s On The Table - Drake, 21 Savage",
+      "resolved": "B’s On The Table - Drake & 21 Savage",
+      "platform": "Apple Music",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "Abantwana Bakho - DJ Maphorisa, Xduppy, Kabza De Small",
+      "resolved": "Abantwana Bakho - DJ Maphorisa, Xduppy & Kabza De Small",
+      "platform": "Apple Music",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "Nakupenda - TxC, Davido, Scotts Maphuma, Shoday",
+      "resolved": "Nakupenda - TxC, Davido, Scotts Maphuma & Shoday",
+      "platform": "Apple Music",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "Shela - Sam Deep, Nia Pearl, Boohle",
+      "resolved": "Shela - Sam Deep, Nia Pearl & Boohle",
+      "platform": "Apple Music",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "Lwetse - Xduppy, Angekebabuye mc",
+      "resolved": "Lwetse - Xduppy & Angekebabuye mc",
+      "platform": "Apple Music",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "Watu - Marioo, D Voice",
+      "resolved": "Watu - Marioo & D Voice",
+      "platform": "Audiomack",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "Pombe I - Marioo, Harmonize",
+      "resolved": "Pombe I - Marioo & Harmonize",
+      "platform": "Audiomack",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "See What We've Done - King Promise, Mr Eazi",
+      "resolved": "See What We've Done - King Promise & Mr Eazi",
+      "platform": "Audiomack",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "Oh No - Oberz, Fola",
+      "resolved": "Oh No - Oberz & Fola",
+      "platform": "Audiomack",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "Gymnastic - KiDi, Olivetheboy, KOJO BLAK",
+      "resolved": "Gymnastic - KiDi, Olivetheboy & KOJO BLAK",
+      "platform": "Audiomack",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "Dying Minute - Stahgee, Feladehusla, Aguero Banks",
+      "resolved": "Dying Minute - Stahgee, Feladehusla & Aguero Banks",
+      "platform": "Audiomack",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "Instagram - Muyeez, Seyi Vibez",
+      "resolved": "Instagram - Muyeez & Seyi Vibez",
+      "platform": "Audiomack",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "Zagga Dat - Black Coco, Zagga",
+      "resolved": "Zagga Dat - Black Coco & Zagga",
+      "platform": "Audiomack",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "Get Better - Zlatan, Fola",
+      "resolved": "Get Better - Zlatan & Fola",
+      "platform": "Audiomack",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "Excellent - KOJO BLAK and Kelvyn Boy",
+      "resolved": "Excellent - KOJO BLAK & Kelvyn Boy",
+      "platform": "Audiomack",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "Philo - Bella Shmurda, Omah Lay",
+      "resolved": "Philo - Bella Shmurda & Omah Lay",
+      "platform": "Audiomack",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "Realize - Balloranking, Seyi Vibez",
+      "resolved": "Realize - Balloranking & Seyi Vibez",
+      "platform": "Audiomack",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "Trump - Smur Lee, ZHUS JDO",
+      "resolved": "Trump - Smur Lee & ZHUS JDO",
+      "platform": "Audiomack",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "Dangbana Riddim - Bella Shmurda, FOLA",
+      "resolved": "Dangbana Riddim - Bella Shmurda & FOLA",
+      "platform": "Audiomack",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "Bobo - Adekunle Gold, Lojay, Shoday",
+      "resolved": "Bobo - Adekunle Gold, Lojay & Shoday",
+      "platform": "Audiomack",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "2026 Kenyan Club Bangers - Nonstop Bangers Non stop Party Mix - Nonstop Bangers Mix - Arbantone, Dancehall, Gengetone, ohangla club bangers mix - DJ WIZZY 254",
+      "resolved": "2026 Kenyan Club Bangers - Nonstop Bangers Non stop Party Mix - Nonstop Bangers Mix - Arbantone, Dancehall, Gengetone & ohangla club bangers mix - DJ WIZZY 254",
+      "platform": "Boomplay",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "Mimi Na Wewe - Bridget Blue, Nikita Kering'",
+      "resolved": "Mimi Na Wewe - Bridget Blue & Nikita Kering'",
+      "platform": "Spotify",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "Talk To Me Nuh - Shenseea , Vybz Kartel & Rvssian",
+      "resolved": "Talk To Me Nuh - Shenseea, Vybz Kartel & Rvssian",
+      "platform": "YouTube",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "Six Seven - Laurinha Costa , Dj Cabello , Dj Tchouzen & SoundMusic Original",
+      "resolved": "Six Seven - Laurinha Costa, Dj Cabello, Dj Tchouzen & SoundMusic Original",
+      "platform": "YouTube",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "Lava Lava Ft Mbosso - Basi Tu - Lava Lava",
+      "resolved": "Lava Lava - Basi Tu - Lava Lava & Mbosso",
+      "platform": "YouTube",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "The Reason Why - JP Cooper , Stefflon Don & Banx & Ranx",
+      "resolved": "The Reason Why - JP Cooper, Stefflon Don, Banx & Ranx",
+      "platform": "YouTube",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "Pawon Boy Vol.1 - Tml Vibez, Dj 4kerty",
+      "resolved": "Pawon Boy Vol.1 - Tml Vibez & Dj 4kerty",
+      "platform": "Audiomack",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "Favourite Girl (with Rema) - Darkoo",
+      "resolved": "Favourite Girl - Darkoo & Rema",
+      "platform": "Audiomack",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "WELE DANCE - Lui Cruz and Berri-Tiga",
+      "resolved": "WELE DANCE - Lui Cruz & Berri-Tiga",
+      "platform": "Audiomack",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "Run Away (OMALICHA) - Khaid and Gyakie",
+      "resolved": "Run Away (OMALICHA) - Khaid & Gyakie",
+      "platform": "Audiomack",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "Sability / Rush / Bloody Samaritan (with Kelly Rowland) - Ayra Starr",
+      "resolved": "Sability / Rush / Bloody Samaritan - Ayra Starr & Kelly Rowland",
+      "platform": "Audiomack",
+      "week": 1
+    },
+    {
+      "kind": "new_variant",
+      "source": "prada dem (feat. Offset) - Gunna",
+      "resolved": "prada dem - Gunna & Offset",
+      "platform": "Apple Music",
+      "week": 2
+    },
+    {
+      "kind": "new_variant",
+      "source": "Slim Girls (feat. DJ Big N) - Koko Pee",
+      "resolved": "Slim Girls - Koko Pee & DJ Big N",
+      "platform": "Boomplay",
+      "week": 2
+    },
+    {
+      "kind": "new_variant",
+      "source": "You (feat. Korede Bello) - Bruce africa",
+      "resolved": "You - Bruce Africa & Korede Bello",
+      "platform": "YouTube",
+      "week": 2
+    },
+    {
+      "kind": "new_variant",
+      "source": "Vurugu (feat. Toxic Lyrikali) - Mauru Gwash",
+      "resolved": "Vurugu - Mauru Gwash & Toxic Lyrikali",
+      "platform": "YouTube",
+      "week": 2
+    },
+    {
+      "kind": "new_variant",
+      "source": "KWANTLE KWAA (feat. SFEAR NOFOKOL) - Kabelo Tiro aka skavenja",
+      "resolved": "KWANTLE KWAA - Kabelo Tiro aka skavenja & SFEAR NOFOKOL",
+      "platform": "Shazam",
+      "week": 2
+    },
+    {
+      "kind": "new_variant",
+      "source": "Reality (feat. BieBieQ Lekker Beats) - DJ Johnny SA",
+      "resolved": "Reality - DJ Johnny SA & BieBieQ Lekker Beats",
+      "platform": "Shazam",
+      "week": 2
+    },
+    {
+      "kind": "new_variant",
+      "source": "Ngiyak'cela (feat. Mashudu) - ShaunMusiq, Bassie & Leemckrazy",
+      "resolved": "Ngiyak'cela - ShaunMusiq, Bassie, Leemckrazy & Mashudu",
+      "platform": "Shazam",
+      "week": 2
+    },
+    {
+      "kind": "new_variant",
+      "source": "Non (feat. Le T.P. OK Jazz) - Franco Luambo",
+      "resolved": "Non - Franco Luambo & Le T.P. OK Jazz",
+      "platform": "Shazam",
+      "week": 2
+    },
+    {
+      "kind": "new_variant",
+      "source": "SASEZOLA - Novex, Born Kxng, MOONLIGHT AFRIQA",
+      "resolved": "SASEZOLA - Novex, Born Kxng & MOONLIGHT AFRIQA",
+      "platform": "Apple Music",
+      "week": 3
+    },
+    {
+      "kind": "new_variant",
+      "source": "P power (feat. Drake) - Gunna, Drake",
+      "resolved": "P power - Gunna & Drake",
+      "platform": "Apple Music",
+      "week": 3
+    },
+    {
+      "kind": "new_variant",
+      "source": "Phumelela - Skillz, Simmy, Zeh McGeba",
+      "resolved": "Phumelela - Skillz, Simmy & Zeh McGeba",
+      "platform": "Apple Music",
+      "week": 3
+    },
+    {
+      "kind": "new_variant",
+      "source": "LIKE ME (feat. 42 Dugg & Lil Baby) - Future",
+      "resolved": "LIKE ME - Future, 42 Dugg & Lil Baby",
+      "platform": "Apple Music",
+      "week": 3
+    },
+    {
+      "kind": "new_variant",
+      "source": "Money In The Grave (feat. Rick Ross) - Drake",
+      "resolved": "Money In The Grave - Drake & Rick Ross",
+      "platform": "Apple Music",
+      "week": 3
+    },
+    {
+      "kind": "new_variant",
+      "source": "I Know Who I Be - Davido, JAZZWRLD, GL_Ceejay",
+      "resolved": "I Know Who I Be - Davido, JAZZWRLD & GL_Ceejay",
+      "platform": "Apple Music",
+      "week": 3
+    },
+    {
+      "kind": "new_variant",
+      "source": "Fountains (feat. Tems) - Drake",
+      "resolved": "Fountains - Drake & Tems",
+      "platform": "Apple Music",
+      "week": 3
+    },
+    {
+      "kind": "new_variant",
+      "source": "Make Them Know - Unknown",
+      "resolved": "Make Them Know - Unknown Artist",
+      "platform": "Apple Music",
+      "week": 3
+    },
+    {
+      "kind": "new_variant",
+      "source": "SOMEBODY LOVES U - Unknown",
+      "resolved": "SOMEBODY LOVES U - Unknown Artist",
+      "platform": "Apple Music",
+      "week": 3
+    },
+    {
+      "kind": "new_variant",
+      "source": "Top Notch - Alikiba, Marioo",
+      "resolved": "Top Notch - Alikiba & Marioo",
+      "platform": "Audiomack",
+      "week": 3
+    },
+    {
+      "kind": "new_variant",
+      "source": "Nga'ada (feat. Mauru Gwash, JayLo & OnlyMoh) - Thirtyfourbrick, Mauru Gwash, JayLo, OnlyMoh",
+      "resolved": "Nga'ada - Thirtyfourbrick, Mauru Gwash, JayLo & OnlyMoh",
+      "platform": "Audiomack",
+      "week": 3
+    },
+    {
+      "kind": "new_variant",
+      "source": "Nitakesha - Mocco Genius, Dogo Paten",
+      "resolved": "Nitakesha - Mocco Genius & Dogo Paten",
+      "platform": "Audiomack",
+      "week": 3
+    },
+    {
+      "kind": "new_variant",
+      "source": "Don't Be Shy - Yemi Alade, Bien",
+      "resolved": "Don't Be Shy - Yemi Alade & Bien",
+      "platform": "Audiomack",
+      "week": 3
+    },
+    {
+      "kind": "new_variant",
+      "source": "NAMLILIA MALEBO - HAUKUSIKIA - ALBERT MUZIKI ENTERTAINMENT, FAUSTIN MUNISHI",
+      "resolved": "NAMLILIA MALEBO - HAUKUSIKIA - ALBERT MUZIKI ENTERTAINMENT & FAUSTIN MUNISHI",
+      "platform": "Audiomack",
+      "week": 3
+    },
+    {
+      "kind": "new_variant",
+      "source": "LATEST 2026 SONGS MIX BEST OF AFROBEAT, BONGO DANCEHALL HIPHOP RNB - DJ EXRAY, RUGER, OMAH LAY, DIAMOND, ZUCHU, MBOSSO, D VOICE, HARMONIZE, RAYVANNY",
+      "resolved": "LATEST 2026 SONGS MIX BEST OF AFROBEAT, BONGO DANCEHALL HIPHOP RNB - DJ EXRAY, RUGER, OMAH LAY, DIAMOND, ZUCHU, MBOSSO, D Voice, HARMONIZE & RAYVANNY",
+      "platform": "Audiomack",
+      "week": 3
+    },
+    {
+      "kind": "new_variant",
+      "source": "Nitampeteka kwa Mama - Msomali, Xouh",
+      "resolved": "Nitampeteka kwa Mama - Msomali & Xouh",
+      "platform": "Audiomack",
+      "week": 3
+    },
+    {
+      "kind": "new_variant",
+      "source": "Rima (feat. Mauru Gwash) - Thirtyfourbrick, Mauru Gwash",
+      "resolved": "Rima - Thirtyfourbrick & Mauru Gwash",
+      "platform": "Audiomack",
+      "week": 3
+    },
+    {
+      "kind": "new_variant",
+      "source": "Nichum - Yammi, Darassa",
+      "resolved": "Nichum - Yammi & Darassa",
+      "platform": "Audiomack",
+      "week": 3
+    },
+    {
+      "kind": "new_variant",
+      "source": "KIDONDA - Dulla Makabila, Jay Melody",
+      "resolved": "KIDONDA - Dulla Makabila & Jay Melody",
+      "platform": "Audiomack",
+      "week": 3
+    },
+    {
+      "kind": "new_variant",
+      "source": "Waiting - Ariel Wayz, Bensoul",
+      "resolved": "Waiting - Ariel Wayz & Bensoul",
+      "platform": "Audiomack",
+      "week": 3
+    },
+    {
+      "kind": "new_variant",
+      "source": "Ara (600M) - Bella Shmurda, Olamide",
+      "resolved": "Ara (600M) - Bella Shmurda & Olamide",
+      "platform": "Audiomack",
+      "week": 3
+    },
+    {
+      "kind": "new_variant",
+      "source": "Mon Amor - Rayvanny, Mbosso",
+      "resolved": "Mon Amor - Rayvanny & Mbosso",
+      "platform": "Audiomack",
+      "week": 3
+    },
+    {
+      "kind": "new_variant",
+      "source": "Headlights (feat. KIDDO) - Alok & Alan Walker",
+      "resolved": "Headlights - Alok, Alan Walker & KIDDO",
+      "platform": "YouTube",
+      "week": 3
+    },
+    {
+      "kind": "new_variant",
+      "source": "Sasa Hivi Refix (feat. Ashley) - V-BE",
+      "resolved": "Sasa Hivi Refix - V-BE & Ashley",
+      "platform": "YouTube",
+      "week": 3
+    },
+    {
+      "kind": "new_variant",
+      "source": "Intentions (feat. Quavo) - Justin Bieber",
+      "resolved": "Intentions - Justin Bieber & Quavo",
+      "platform": "YouTube",
+      "week": 3
+    },
+    {
+      "kind": "new_variant",
+      "source": "20 (feat. Jux) - Diamond Platnumz",
+      "resolved": "20 - Diamond Platnumz & Jux",
+      "platform": "YouTube",
+      "week": 3
+    },
+    {
+      "kind": "new_variant",
+      "source": "Lwetse 2.0 (feat. Uncle Waffles, ...) - Xduppy, Angekebabuye mc, Focal...",
+      "resolved": "Lwetse 2.0 - Xduppy, Angekebabuye mc, Focal... & Uncle Waffles",
+      "platform": "Shazam",
+      "week": 3
+    },
+    {
+      "kind": "new_variant",
+      "source": "iKhekhe (feat. Shoes Meister ...) - EeQue, Al Xapo, Optimist Music Z...",
+      "resolved": "iKhekhe - EeQue, Al Xapo, Optimist Music Z... & Shoes Meister ...",
+      "platform": "Shazam",
+      "week": 3
+    },
+    {
+      "kind": "new_variant",
+      "source": "MAGIC & BIRD 2: WHAT A RUSH! - Andy Mineo, Wordsplayed & Magic & Bird",
+      "resolved": "MAGIC & BIRD 2: WHAT A RUSH! - Andy Mineo, Wordsplayed, Magic & Bird",
+      "platform": "Apple Music",
+      "week": 3
+    }
+  ],
+  "weekly_counts": {
+    "singles": {
+      "1": 550,
+      "2": 549,
+      "3": 549
+    },
+    "albums": {
+      "1": 394,
+      "2": 394,
+      "3": 321
+    }
+  },
+  "combined": {
+    "singles": [
+      {
+        "rank": 1,
+        "title": "Finale",
+        "primary": "Bien",
+        "featured": "Alikiba",
+        "display_points": 50,
+        "raw_points": 1580,
+        "platform_count": 6,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 2,
+        "title": "Ozalima",
+        "primary": "Mbosso",
+        "featured": "",
+        "display_points": 49,
+        "raw_points": 1331,
+        "platform_count": 6,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 3,
+        "title": "Chai ya saa kumi",
+        "primary": "Ywaya Tajiri",
+        "featured": "",
+        "display_points": 48,
+        "raw_points": 1244,
+        "platform_count": 5,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 4,
+        "title": "Dance Samawaah!",
+        "primary": "Collo Blue",
+        "featured": "NDOVU KUU",
+        "display_points": 47,
+        "raw_points": 965,
+        "platform_count": 4,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 5,
+        "title": "Mdomo uliponza kichwa",
+        "primary": "Soul Touch Brand",
+        "featured": "",
+        "display_points": 46,
+        "raw_points": 891,
+        "platform_count": 4,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 6,
+        "title": "Hate",
+        "primary": "Toxic Lyrikali",
+        "featured": "",
+        "display_points": 45,
+        "raw_points": 876,
+        "platform_count": 5,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 7,
+        "title": "Rapudo",
+        "primary": "Prince Indah",
+        "featured": "",
+        "display_points": 44,
+        "raw_points": 767,
+        "platform_count": 3,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 8,
+        "title": "Pawa",
+        "primary": "Mbosso",
+        "featured": "",
+        "display_points": 43,
+        "raw_points": 756,
+        "platform_count": 4,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 9,
+        "title": "Siaka",
+        "primary": "Mejja",
+        "featured": "Fik Fameica",
+        "display_points": 42,
+        "raw_points": 749,
+        "platform_count": 4,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 10,
+        "title": "AYAYAAH",
+        "primary": "ELEMENT EleéeH",
+        "featured": "Bien & Joshua Baraka",
+        "display_points": 41,
+        "raw_points": 747,
+        "platform_count": 5,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 11,
+        "title": "Party Lit",
+        "primary": "JETTI",
+        "featured": "DJ CHEEM",
+        "display_points": 40,
+        "raw_points": 730,
+        "platform_count": 4,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 12,
+        "title": "Wewe",
+        "primary": "Harmonize",
+        "featured": "",
+        "display_points": 39,
+        "raw_points": 725,
+        "platform_count": 3,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 13,
+        "title": "Up Burukanga",
+        "primary": "Collo Blue",
+        "featured": "Addeh Prince",
+        "display_points": 38,
+        "raw_points": 692,
+        "platform_count": 4,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 14,
+        "title": "Watu",
+        "primary": "Marioo",
+        "featured": "D Voice",
+        "display_points": 37,
+        "raw_points": 660,
+        "platform_count": 4,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 15,
+        "title": "Bhuju",
+        "primary": "Alikiba",
+        "featured": "Mbosso",
+        "display_points": 36,
+        "raw_points": 647,
+        "platform_count": 3,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 16,
+        "title": "LAST DANCE",
+        "primary": "Wakadinali",
+        "featured": "",
+        "display_points": 35,
+        "raw_points": 627,
+        "platform_count": 3,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 17,
+        "title": "Donjo Maber",
+        "primary": "Iyanii",
+        "featured": "Dufla",
+        "display_points": 34,
+        "raw_points": 621,
+        "platform_count": 4,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 18,
+        "title": "Natafuta Doo",
+        "primary": "ELISHA TOTO",
+        "featured": "",
+        "display_points": 33,
+        "raw_points": 621,
+        "platform_count": 3,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 19,
+        "title": "Stone",
+        "primary": "toxic lyrikali",
+        "featured": "Countree Hype",
+        "display_points": 32,
+        "raw_points": 608,
+        "platform_count": 4,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 20,
+        "title": "Natulizana",
+        "primary": "Diamond Platnumz",
+        "featured": "",
+        "display_points": 31,
+        "raw_points": 604,
+        "platform_count": 3,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 21,
+        "title": "PM",
+        "primary": "Willy Paul",
+        "featured": "Otile Brown",
+        "display_points": 30,
+        "raw_points": 600,
+        "platform_count": 4,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 22,
+        "title": "Panic",
+        "primary": "Vybz Kartel",
+        "featured": "Shenseea",
+        "display_points": 29,
+        "raw_points": 588,
+        "platform_count": 5,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 23,
+        "title": "Baridi",
+        "primary": "D Voice",
+        "featured": "Zuchu",
+        "display_points": 28,
+        "raw_points": 564,
+        "platform_count": 3,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 24,
+        "title": "Mombasa",
+        "primary": "Marioo",
+        "featured": "",
+        "display_points": 27,
+        "raw_points": 544,
+        "platform_count": 3,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 25,
+        "title": "Mfisadi",
+        "primary": "Toxic Lyrikali",
+        "featured": "Dyana Cods",
+        "display_points": 26,
+        "raw_points": 536,
+        "platform_count": 3,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 26,
+        "title": "Raindance",
+        "primary": "Dave",
+        "featured": "Tems",
+        "display_points": 25,
+        "raw_points": 528,
+        "platform_count": 3,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 27,
+        "title": "Dai Dai",
+        "primary": "Shakira",
+        "featured": "Burna Boy",
+        "display_points": 24,
+        "raw_points": 523,
+        "platform_count": 3,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 28,
+        "title": "Backbencher",
+        "primary": "Toxic Lyrikali",
+        "featured": "Countree Hype",
+        "display_points": 23,
+        "raw_points": 522,
+        "platform_count": 4,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 29,
+        "title": "Hardest Truth",
+        "primary": "Jubet",
+        "featured": "",
+        "display_points": 22,
+        "raw_points": 519,
+        "platform_count": 3,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 30,
+        "title": "Papaoutai (Afro Soul)",
+        "primary": "mikeeysmind",
+        "featured": "Chill77 & Unjaps",
+        "display_points": 21,
+        "raw_points": 508,
+        "platform_count": 3,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 31,
+        "title": "Moyo",
+        "primary": "Kusslove",
+        "featured": "Rayvanny",
+        "display_points": 20,
+        "raw_points": 498,
+        "platform_count": 3,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 32,
+        "title": "Go Down",
+        "primary": "PAPA NYOSTO",
+        "featured": "",
+        "display_points": 19,
+        "raw_points": 494,
+        "platform_count": 4,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 33,
+        "title": "Shabang",
+        "primary": "Drake",
+        "featured": "",
+        "display_points": 18,
+        "raw_points": 491,
+        "platform_count": 3,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 34,
+        "title": "Well Done",
+        "primary": "deejay mj",
+        "featured": "",
+        "display_points": 17,
+        "raw_points": 480,
+        "platform_count": 2,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 35,
+        "title": "WORSHIP",
+        "primary": "Asake",
+        "featured": "DJ Snake",
+        "display_points": 16,
+        "raw_points": 476,
+        "platform_count": 3,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 36,
+        "title": "Taya",
+        "primary": "Okello Max",
+        "featured": "",
+        "display_points": 15,
+        "raw_points": 470,
+        "platform_count": 3,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 37,
+        "title": "Pombe I",
+        "primary": "Marioo",
+        "featured": "Harmonize",
+        "display_points": 14,
+        "raw_points": 458,
+        "platform_count": 2,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 38,
+        "title": "DJ",
+        "primary": "Mbosso",
+        "featured": "",
+        "display_points": 13,
+        "raw_points": 449,
+        "platform_count": 4,
+        "platform_max": 6,
+        "weeks": 2
+      },
+      {
+        "rank": 39,
+        "title": "Back Outside",
+        "primary": "BNXN",
+        "featured": "Sarz",
+        "display_points": 12,
+        "raw_points": 437,
+        "platform_count": 2,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 40,
+        "title": "AYE",
+        "primary": "Zuchu",
+        "featured": "G NAKO",
+        "display_points": 11,
+        "raw_points": 428,
+        "platform_count": 3,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 41,
+        "title": "Berna",
+        "primary": "Prince Indah",
+        "featured": "",
+        "display_points": 10,
+        "raw_points": 424,
+        "platform_count": 2,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 42,
+        "title": "Happy",
+        "primary": "Diamond Platnumz",
+        "featured": "",
+        "display_points": 9,
+        "raw_points": 423,
+        "platform_count": 3,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 43,
+        "title": "No Bad Grades",
+        "primary": "Young Roddo",
+        "featured": "",
+        "display_points": 8,
+        "raw_points": 405,
+        "platform_count": 4,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 44,
+        "title": "Inama",
+        "primary": "Zuchu",
+        "featured": "Diamond Platnumz",
+        "display_points": 7,
+        "raw_points": 401,
+        "platform_count": 3,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 45,
+        "title": "Come Closer",
+        "primary": "Wizkid",
+        "featured": "Drake",
+        "display_points": 6,
+        "raw_points": 399,
+        "platform_count": 2,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 46,
+        "title": "Digi Digi",
+        "primary": "Abongo Jakabwana",
+        "featured": "",
+        "display_points": 5,
+        "raw_points": 397,
+        "platform_count": 3,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 47,
+        "title": "Ran To Atlanta",
+        "primary": "Drake",
+        "featured": "Future & Molly Santana",
+        "display_points": 4,
+        "raw_points": 394,
+        "platform_count": 2,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 48,
+        "title": "Gratitude",
+        "primary": "Asake",
+        "featured": "",
+        "display_points": 3,
+        "raw_points": 392,
+        "platform_count": 3,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 49,
+        "title": "Msumari",
+        "primary": "Diamond Platnumz",
+        "featured": "Ciara",
+        "display_points": 2,
+        "raw_points": 373,
+        "platform_count": 2,
+        "platform_max": 6,
+        "weeks": 3
+      },
+      {
+        "rank": 50,
+        "title": "Utanionea",
+        "primary": "Alikiba",
+        "featured": "",
+        "display_points": 1,
+        "raw_points": 365,
+        "platform_count": 4,
+        "platform_max": 6,
+        "weeks": 3
+      }
+    ],
+    "albums": [
+      {
+        "rank": 1,
+        "title": "M$NEY",
+        "primary": "Asake",
+        "featured": "",
+        "display_points": 50,
+        "raw_points": 1192,
+        "platform_count": 2,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 2,
+        "title": "The Most Wanted",
+        "primary": "JAZZWRLD",
+        "featured": "Thukuthela",
+        "display_points": 49,
+        "raw_points": 1106,
+        "platform_count": 2,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 3,
+        "title": "Mr. Money With The Vibe",
+        "primary": "Asake",
+        "featured": "",
+        "display_points": 48,
+        "raw_points": 1001,
+        "platform_count": 2,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 4,
+        "title": "ICEMAN",
+        "primary": "Drake",
+        "featured": "",
+        "display_points": 47,
+        "raw_points": 975,
+        "platform_count": 2,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 5,
+        "title": "One of Wun",
+        "primary": "Gunna",
+        "featured": "",
+        "display_points": 46,
+        "raw_points": 955,
+        "platform_count": 2,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 6,
+        "title": "OCTANE",
+        "primary": "Don Toliver",
+        "featured": "",
+        "display_points": 45,
+        "raw_points": 914,
+        "platform_count": 2,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 7,
+        "title": "The Last Wun",
+        "primary": "Gunna",
+        "featured": "",
+        "display_points": 44,
+        "raw_points": 905,
+        "platform_count": 2,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 8,
+        "title": "RNB",
+        "primary": "Bridget Blue",
+        "featured": "",
+        "display_points": 43,
+        "raw_points": 758,
+        "platform_count": 2,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 9,
+        "title": "MMMCXII",
+        "primary": "Marioo",
+        "featured": "",
+        "display_points": 42,
+        "raw_points": 737,
+        "platform_count": 2,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 10,
+        "title": "God and Time",
+        "primary": "Vybz Kartel",
+        "featured": "",
+        "display_points": 41,
+        "raw_points": 713,
+        "platform_count": 2,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 11,
+        "title": "Love, Damini",
+        "primary": "Burna Boy",
+        "featured": "",
+        "display_points": 40,
+        "raw_points": 713,
+        "platform_count": 2,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 12,
+        "title": "$ome $exy $ongs 4 U",
+        "primary": "PARTYNEXTDOOR",
+        "featured": "Drake",
+        "display_points": 39,
+        "raw_points": 624,
+        "platform_count": 2,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 13,
+        "title": "ROTEEN",
+        "primary": "Toxic Lyrikali",
+        "featured": "",
+        "display_points": 38,
+        "raw_points": 595,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 14,
+        "title": "HABIBTI",
+        "primary": "Drake",
+        "featured": "",
+        "display_points": 37,
+        "raw_points": 591,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 15,
+        "title": "Room Number 3",
+        "primary": "Mbosso",
+        "featured": "",
+        "display_points": 36,
+        "raw_points": 590,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 16,
+        "title": "you seem pretty sad for a girl so in love",
+        "primary": "Olivia Rodrigo",
+        "featured": "",
+        "display_points": 35,
+        "raw_points": 590,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 17,
+        "title": "PM",
+        "primary": "Ibraah",
+        "featured": "",
+        "display_points": 34,
+        "raw_points": 585,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 18,
+        "title": "MAID OF HONOUR",
+        "primary": "Drake",
+        "featured": "",
+        "display_points": 33,
+        "raw_points": 584,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 19,
+        "title": "The Godson",
+        "primary": "Marioo",
+        "featured": "",
+        "display_points": 32,
+        "raw_points": 580,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 20,
+        "title": "Viking (Vybz Is King): 10th Year Anniversary",
+        "primary": "Vybz Kartel",
+        "featured": "",
+        "display_points": 31,
+        "raw_points": 576,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 21,
+        "title": "ARIRANG",
+        "primary": "BTS",
+        "featured": "",
+        "display_points": 30,
+        "raw_points": 575,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 22,
+        "title": "Peace And Money",
+        "primary": "Zuchu",
+        "featured": "",
+        "display_points": 29,
+        "raw_points": 570,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 23,
+        "title": "Take Care (Deluxe Version)",
+        "primary": "Drake",
+        "featured": "",
+        "display_points": 28,
+        "raw_points": 570,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 24,
+        "title": "Mtoto wa Khadija",
+        "primary": "Mejja",
+        "featured": "",
+        "display_points": 27,
+        "raw_points": 568,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 25,
+        "title": "Victims Of Madness 2.0",
+        "primary": "Wakadinali",
+        "featured": "",
+        "display_points": 26,
+        "raw_points": 568,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 26,
+        "title": "Starter",
+        "primary": "Alikiba",
+        "featured": "",
+        "display_points": 25,
+        "raw_points": 563,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 27,
+        "title": "The Art of Loving",
+        "primary": "Olivia Dean",
+        "featured": "",
+        "display_points": 24,
+        "raw_points": 562,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 28,
+        "title": "Thriller",
+        "primary": "Michael Jackson",
+        "featured": "",
+        "display_points": 23,
+        "raw_points": 559,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 29,
+        "title": "Midnight Train",
+        "primary": "Sauti Sol",
+        "featured": "",
+        "display_points": 22,
+        "raw_points": 557,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 30,
+        "title": "Fast & Furious Riddim",
+        "primary": "Intence",
+        "featured": "Ayetian, Eddy G, Jahvillani, Mugs.Roze, Rymey, Skeng, Teebone, Tommy Lee, Mugs & Roze",
+        "display_points": 21,
+        "raw_points": 552,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 31,
+        "title": "Certified Lover Boy",
+        "primary": "Drake",
+        "featured": "",
+        "display_points": 20,
+        "raw_points": 550,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 32,
+        "title": "Rain Sounds",
+        "primary": "SleepTherapy",
+        "featured": "",
+        "display_points": 19,
+        "raw_points": 545,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 33,
+        "title": "Graduation",
+        "primary": "Kanye West",
+        "featured": "",
+        "display_points": 18,
+        "raw_points": 542,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 34,
+        "title": "Billion Dollar Baby 2.0",
+        "primary": "Seyi Vibez",
+        "featured": "",
+        "display_points": 17,
+        "raw_points": 540,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 35,
+        "title": "THE TORCHER",
+        "primary": "Stonebwoy",
+        "featured": "",
+        "display_points": 16,
+        "raw_points": 537,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 36,
+        "title": "Alusa Why Are You Topless?",
+        "primary": "Bien",
+        "featured": "",
+        "display_points": 15,
+        "raw_points": 534,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 37,
+        "title": "MASA",
+        "primary": "YoungBoy Never Broke Again",
+        "featured": "",
+        "display_points": 14,
+        "raw_points": 534,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 38,
+        "title": "Rema Compilation",
+        "primary": "Rema",
+        "featured": "",
+        "display_points": 13,
+        "raw_points": 531,
+        "platform_count": 2,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 39,
+        "title": "MAFFIAN",
+        "primary": "Ayo Maff",
+        "featured": "",
+        "display_points": 12,
+        "raw_points": 531,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 40,
+        "title": "Boy Alone",
+        "primary": "Omah Lay",
+        "featured": "",
+        "display_points": 11,
+        "raw_points": 528,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 41,
+        "title": "Views",
+        "primary": "Drake",
+        "featured": "",
+        "display_points": 10,
+        "raw_points": 527,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 42,
+        "title": "Ctrl (Deluxe)",
+        "primary": "SZA",
+        "featured": "",
+        "display_points": 9,
+        "raw_points": 525,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 43,
+        "title": "The Fall-Off",
+        "primary": "J. Cole",
+        "featured": "",
+        "display_points": 8,
+        "raw_points": 523,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 44,
+        "title": "Shakur",
+        "primary": "T.I Blaze",
+        "featured": "",
+        "display_points": 7,
+        "raw_points": 522,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 45,
+        "title": "The Villain I Never Was",
+        "primary": "Black Sherif",
+        "featured": "",
+        "display_points": 6,
+        "raw_points": 519,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 46,
+        "title": "Kilometer II",
+        "primary": "Mavo",
+        "featured": "",
+        "display_points": 5,
+        "raw_points": 516,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 47,
+        "title": "VOICE OF THE CROWN",
+        "primary": "SHATTA WALE",
+        "featured": "",
+        "display_points": 4,
+        "raw_points": 513,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 48,
+        "title": "Daddy Lumba Old Classic (1989-1994)",
+        "primary": "Daddy Lumba",
+        "featured": "",
+        "display_points": 3,
+        "raw_points": 510,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 49,
+        "title": "Her Loss",
+        "primary": "Drake",
+        "featured": "21 Savage",
+        "display_points": 2,
+        "raw_points": 510,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      },
+      {
+        "rank": 50,
+        "title": "Kiama",
+        "primary": "Kahu$h",
+        "featured": "",
+        "display_points": 1,
+        "raw_points": 508,
+        "platform_count": 1,
+        "platform_max": 2,
+        "weeks": 3
+      }
+    ]
+  },
+  "platform_counts": {
+    "singles": {
+      "Apple Music": 132,
+      "Audiomack": 176,
+      "Boomplay": 116,
+      "Spotify": 51,
+      "YouTube": 148,
+      "Shazam": 153
+    },
+    "albums": {
+      "Apple Music": 306,
+      "Audiomack": 201
+    }
+  },
+  "harmonization_mappings": 166,
+  "database": {
+    "charts": {
+      "singles": {
+        "combined": 50,
+        "platform": 776
+      },
+      "albums": {
+        "combined": 50,
+        "platform": 507
+      }
+    },
+    "weekly_uploads": 6,
+    "weekly_entries": 2757,
+    "certification_updates": 0
+  }
+}

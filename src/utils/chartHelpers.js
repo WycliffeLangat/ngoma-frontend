@@ -128,7 +128,7 @@ const MONTH_NUMBER = {
   September: 9, October: 10, November: 11, December: 12,
 };
 
-// Splits "June 2026" → { monthNumber: 6, year: "2026" }.
+// Splits a backend month label into its numeric month and year.
 export function getMonthYearParts(label) {
   const [monthName, year] = label.split(" ");
   return { monthNumber: MONTH_NUMBER[monthName], year };

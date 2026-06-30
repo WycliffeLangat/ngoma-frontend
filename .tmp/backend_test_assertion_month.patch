@@ -1,0 +1,12 @@
+diff --git a/charts/tests.py b/charts/tests.py
+--- a/charts/tests.py
++++ b/charts/tests.py
+@@ -348,7 +348,7 @@ class PublicAppDataSyncTests(APITestCase):
+ 
+         analytics = self.client.get("/api/v1/charts/analytics/?chart_type=singles&year=2026")
+         self.assertEqual(analytics.status_code, 200, analytics.content)
+-        self.assertNotIn("July 2026", analytics.json())
++        self.assertNotIn("August 2026", analytics.json())
+ 
+     def test_publish_validates_ranks_and_locks_historical_chart(self):
+         self.client.force_authenticate(self.admin)

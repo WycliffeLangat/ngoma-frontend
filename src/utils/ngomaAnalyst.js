@@ -1,6 +1,9 @@
-import { FULL, MONTHS } from "../data/liveChartData";
+import { publishedMonthOptions, runtimePublicData } from "./publicDataRuntime.js";
 
-const CURRENT_MONTH = MONTHS[MONTHS.length - 1];
+const PUBLIC_DATA = runtimePublicData();
+const FULL = PUBLIC_DATA.full || { singles: { combined: {}, platforms: {} }, albums: { combined: {}, platforms: {} } };
+const MONTHS = publishedMonthOptions(PUBLIC_DATA).map((item) => item.label);
+const CURRENT_MONTH = PUBLIC_DATA.latest_published_month?.label || MONTHS[MONTHS.length - 1];
 const PERIOD = `${MONTHS[0]} to ${CURRENT_MONTH}`;
 const PLATFORM_LABELS = {
   "APPLE MUSIC": "Apple Music",
@@ -304,7 +307,7 @@ export function answerNgomaQuestion(question) {
     return `I answer only from the Ngoma Charts data stored in this app (${PERIOD}). Ask about chart leaders, Top 50 entries, artists, releases, rank journeys, movements, platforms, coverage, certifications, or local vs international performance.`;
   }
   if (/data period|date range|what data|coverage period|how current/.test(context.q)) {
-    return `The in-app analyst uses the bundled Ngoma Charts dataset from ${PERIOD}: Combined Top 50 singles and albums plus their individual platform charts. It does not browse the web or call an external AI service.`;
+    return `The in-app analyst uses the Ngoma Charts data returned by the backend API from ${PERIOD}: Combined Top 50 singles and albums plus their individual platform charts. It does not browse the web or call an external AI service.`;
   }
   if (/weather|forecast|temperature|breaking news|latest news|sports|football|politic|election|stock|price|net worth|born|birthday|age of|how old|biograph|personal life|relationship|lyrics|song meaning|tour date|concert|streaming link|play the song/.test(context.q)) {
     return `That information is not part of the Ngoma Charts dataset, so I cannot answer it. I only use the chart records stored in this app (${PERIOD}) and do not search the web or guess.`;
@@ -333,7 +336,7 @@ export function answerNgomaQuestion(question) {
   if (/top\s+\d+|top songs|top albums|show.*chart|list.*chart/.test(context.q)) return topList(context);
   if (/who.*#?1|number one|chart leader|topped|top song|top album|what is #?1/.test(context.q)) return leader(context);
 
-  return `I could not map that question to a fact stored in Ngoma Charts. I only answer from the in-app ${PERIOD} dataset. Try asking "Who was #1 in May 2026?", "Top 10 Spotify songs", "How did Finale perform?", "Top 10 artists", or "Certification breakdown".`;
+  return `I could not map that question to a fact stored in Ngoma Charts. I only answer from the backend-provided ${PERIOD} dataset. Try asking "Who is #1 in the latest month?", "Top 10 Spotify songs", "How did the latest #1 perform?", "Top 10 artists", or "Certification breakdown".`;
 }
 
 export const NGOMA_ANALYST_PERIOD = PERIOD;

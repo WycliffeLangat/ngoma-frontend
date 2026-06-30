@@ -2,7 +2,7 @@
 
 Kenya's official multi-platform music charts. Singles and albums ranked across Apple Music, Audiomack, Boomplay, Spotify, YouTube and Shazam.
 
-This is a production-ready React + Vite single-page app. It ships with the complete September 2025–May 2026 dataset bundled in, so **it works fully standalone with no backend**. When you deploy the Django backend, set one environment variable and it switches to live data automatically.
+Ngoma Charts is backend-powered. All current, historical, and future chart data is stored in the Django backend/database and served through the public API. The React frontend does not bundle chart data; it only fetches and displays data from the configured backend API.
 
 ## Quick start
 
@@ -34,23 +34,23 @@ ngoma-charts/
     ├── main.jsx            # React entry point
     ├── App.jsx             # app shell
     ├── NgomaCharts.jsx     # the full application (all pages)
-    ├── index.css           # fonts + reset
-    └── data/
-        └── chartData.js    # generated September 2025–May 2026 chart data
+    └── index.css           # fonts + reset
 ```
 
-The app and the dataset are separated: `src/data/chartData.js` holds all the chart data, so updating data never touches the UI code.
+Chart uploads, review, publication, historical records, rankings and metadata are managed in Django Admin. No generated chart dataset is committed to the frontend.
 
-## Connecting the backend (optional)
+## Configure the backend
 
-The app runs without a backend. To switch to live data from the Django backend:
+The backend API is required:
 
 1. Copy `.env.example` to `.env`
-2. Set your deployed backend URL:
+2. Set the public API base:
    ```
    VITE_API_BASE=https://api.ngomacharts.co.ke/api/v1
    ```
-3. Rebuild. The app will ping the backend on load and show a green **LIVE** indicator when connected (it falls back to the bundled dataset if the backend is unreachable, so the site never breaks).
+3. Rebuild or restart the development server.
+
+At startup the frontend requests `/app-data/`, sorts the published periods by numeric year/month, and activates the latest published month. If `VITE_API_BASE` is missing or the backend is unavailable, the public app shows a clear configuration or connection error; it never loads local chart records.
 
 The **AI Analyst** is currently disabled and is not mounted in the public app.
 
@@ -74,7 +74,7 @@ vercel --prod
 
 ## Updating chart data
 
-Replace the contents of `src/data/chartData.js` with new month data (same shape), or — once the backend is live — set `VITE_API_BASE` and add months through the Django admin. No UI changes needed either way.
+Upload, review and publish chart data through Django Admin. The public API and frontend automatically expose newly published months; no frontend chart-data edit or rebuild is required.
 
 ## Notes
 

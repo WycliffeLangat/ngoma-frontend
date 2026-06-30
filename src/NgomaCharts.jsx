@@ -14,6 +14,7 @@ import {
   normArtistKey, artistSetKey, entryKey, sameRelease, normalizeRankedRows,
   mv, mapPublicNews,
 } from "./utils/chartHelpers.js";
+import { normalizePublicPayload, publishedMonthOptions, runtimePublicData } from "./utils/publicDataRuntime.js";
 import {
   BarChart,
   Bar,
@@ -29,7 +30,6 @@ import {
   Pie,
   CartesianGrid,
 } from "recharts";
-import { FULL, MONTHS } from "./data/liveChartData";
 import { buildRegionalCombinedRows } from "./data/regionalCombinedChart";
 import PremiumChartsPage, { getArtistCountry } from "./components/PremiumChartsPage";
 
@@ -48,16 +48,10 @@ import ChartsPage from "./pages/ChartsPage";
 import ArtistDetailPage from "./pages/ArtistDetailPage";
 import ReleaseDetailPage from "./pages/ReleaseDetailPage";
 
-const PUBLIC_DATA = typeof window !== "undefined" ? (window.__NGOMA_PUBLIC_DATA__ || {}) : {};
-// When the live API is temporarily slow, expose the bundled chart payload to
-// the shared artist-image resolver. It scans embedded primary artist profiles
-// across every platform rank, so an artist such as Thukuthela can still use
-// the CMS portrait instead of an initials tile in snapshot mode.
-if (typeof window !== "undefined" && !PUBLIC_DATA.full?.singles) {
-  PUBLIC_DATA.full = FULL;
-  PUBLIC_DATA.months = MONTHS;
-  window.__NGOMA_PUBLIC_DATA__ = PUBLIC_DATA;
-}
+const PUBLIC_DATA = runtimePublicData();
+const MONTH_OPTIONS = publishedMonthOptions(PUBLIC_DATA);
+const MONTHS = MONTH_OPTIONS.map((item) => item.label);
+const FULL = PUBLIC_DATA.full;
 // Ensures cover_image (and artist image) URLs are absolute so they load correctly
 // when the frontend is on a different origin (Netlify) from the backend (Railway).
 const CMS_ARTISTS_BY_ID = new Map((PUBLIC_DATA.artists || []).map((artist) => [Number(artist.id), artist]));
@@ -137,8 +131,8 @@ const DEFAULT_CHART_SETTING = settingValue("default_chart", {});
 const MAINTENANCE_SETTING = settingValue("maintenance_mode", {});
 const PUBLIC_METHODOLOGY = (PUBLIC_DATA.methodology || [])[0] || null;
 
-// ===== FULL Top-50 dataset across all months and platforms =====
-const CURRENT_MONTH = MONTHS[MONTHS.length - 1];
+// ===== Full Top-50 dataset supplied by the Django public API =====
+const CURRENT_MONTH = PUBLIC_DATA.latest_published_month?.label || MONTHS[MONTHS.length - 1];
 const DATA_PERIOD = `${MONTHS[0]} – ${CURRENT_MONTH}`;
 const PUBLIC_PLATFORMS = PUBLIC_DATA.platforms || [];
 const chartPlatformKeys = (chartType) => Object.keys(FULL?.[chartType]?.platforms || {}).map((name) => name.toUpperCase());
@@ -783,7 +777,7 @@ const buildArtistChart = (monthLabel = CURRENT_MONTH, platform = "Combined") => 
     const platformHits = platform === "Combined" ? getArtistPlatformHits(artist.n, monthLabel) : [platform];
     const country = artist.country || getArtistCountry({ artist: artist.n });
     // Live app-data is authoritative. When it is temporarily unavailable, use
-    // the same CMS artist profiles embedded in the bundled chart entries rather
+    // the same CMS artist profiles embedded in the API chart entries rather
     // than falling back to a song/album cover or an initials tile.
     const artistProfile =
       publicArtistForName(artist.n) ||
@@ -1029,26 +1023,7 @@ const RecordIcon = ({ label = "", size = 30, muted = false }) => {
   );
 };
 
-const NEWS=[
-  {id:1,date:"June 15, 2026",cat:"CHART NEWS",emoji:"",title:"Finale Leads May After Collaboration Credits Are Unified",excerpt:"Bien & Alikiba's Finale ranks #1 with appearances on five of six tracked singles platforms.",body:"Equivalent Bien, Bien ft Alikiba and Bien & Alikiba credits are treated as one release. Finale leads Apple Music, Spotify and YouTube for May."},
-  {id:2,date:"June 14, 2026",cat:"CHART NEWS",emoji:"",title:"Finale Completes Back-to-Back Months at #1",excerpt:"Bien & Alikiba also lead the recalculated April Combined singles chart.",body:"The collaboration finishes ahead of Siaka and Pawa in April, then retains the summit in May."},
-  {id:3,date:"June 13, 2026",cat:"ANALYTICS",emoji:"",title:"Pawa Remains the Period's Highest-Scoring Single",excerpt:"Mbosso's Pawa totals 436 display points across all nine tracked months.",body:"Pawa appeared in every monthly Combined chart and finished #1 in November and December 2025."},
-  {id:4,date:"June 12, 2026",cat:"ARTIST SPOTLIGHT",emoji:"",title:`${COMBINED_ARTISTS.singles[0].n} Leads the Singles Artist Ranking`,excerpt:`Top 50 platform entries produce ${COMBINED_ARTISTS.singles[0].p.toLocaleString()} cumulative artist points through May 2026.`,body:"The artist ranking gives points to every named primary and featured artist from Top 50 platform Singles and Albums entries."},
-  {id:5,date:"June 11, 2026",cat:"ANALYTICS",emoji:"",title:"Natafuta Doo Makes May's Biggest Singles Jump",excerpt:"ELISHA TOTO climbs twenty-three positions from #40 to #17.",body:"The 23-place gain is the largest positive move among returning singles in May's normalized Combined chart."},
-  {id:6,date:"June 10, 2026",cat:"CHART NEWS",emoji:"",title:"Zuchu's I Love You Climbs Eighteen Places",excerpt:"I Love You moves from #36 in April to #18 in May.",body:"The release also leads Boomplay's May chart, giving Zuchu both a strong platform result and a Top 20 Combined finish."},
-  {id:7,date:"June 9, 2026",cat:"CHART NEWS",emoji:"",title:"Chai ya saa kumi Surges to #2",excerpt:"Ywaya Tajiri gains seventeen places from April to May.",body:"Chai ya saa kumi rises from #19 to #2 and appears on five of the six tracked singles platforms."},
-  {id:8,date:"June 8, 2026",cat:"ANALYTICS",emoji:"",title:"May's Top Five Reflect Broad Platform Reach",excerpt:"Four of the first five singles chart on five platforms, while LAST DANCE reaches four.",body:"Finale, Chai ya saa kumi, AYAYAAH and Siaka each post 5/6 coverage in the latest Combined Top 50."},
-  {id:9,date:"June 7, 2026",cat:"PLATFORM WATCH",emoji:"",title:"Finale Leads Three May Platform Charts",excerpt:"Bien & Alikiba finish #1 on Apple Music, Spotify and YouTube.",body:"Audiomack is led by Alikiba & Mbosso's Bhuju, Boomplay by Zuchu's I Love You, and Shazam by Deejay MJ's Well Done."},
-  {id:10,date:"June 6, 2026",cat:"ANALYTICS",emoji:"",title:"No May Single Reaches 6/6 Coverage",excerpt:"The latest singles chart peaks at five tracked platforms per release.",body:"The result highlights how differently audiences behave across Apple Music, Audiomack, Boomplay, Spotify, YouTube and Shazam."},
-  {id:11,date:"June 5, 2026",cat:"ALBUMS",emoji:"",title:"Asake's M$NEY Debuts at #1",excerpt:"M$NEY leads the May Combined albums chart with full 2/2 coverage.",body:"The album appears on both Apple Music and Audiomack and arrives ahead of Cardi B's AM I THE DRAMA? (Ultimate Edition)."},
-  {id:12,date:"June 4, 2026",cat:"ALBUMS",emoji:"",title:"Kehlani Makes May's Biggest Album Leap",excerpt:"Kehlani rises forty-five places from #50 to #5.",body:"No returning song or album makes a larger month-to-month move in the latest Combined rankings."},
-  {id:13,date:"June 3, 2026",cat:"ALBUMS",emoji:"",title:"Fally Ipupa's XX Rockets to #4",excerpt:"XX gains thirty-one positions from its April rank of #35.",body:"The climb places Fally Ipupa immediately behind May's Top 3 albums and gives XX full Apple Music and Audiomack coverage."},
-  {id:14,date:"June 2, 2026",cat:"ALBUMS",emoji:"",title:"GOLD Climbs Sixteen Places",excerpt:"GOLD moves from #31 in April to #15 in May.",body:"The album records one of May's strongest gains and returns to the upper half of the Combined Top 50."},
-  {id:15,date:"June 1, 2026",cat:"ARTIST SPOTLIGHT",emoji:"",title:`${COMBINED_ARTISTS.albums[0].n} Tops the Albums Artist Ranking`,excerpt:`Top 50 album entries total ${COMBINED_ARTISTS.albums[0].p.toLocaleString()} cumulative artist points.`,body:"The albums artist ranking uses primary and featured credits from tracked Top 50 entries."},
-  {id:16,date:"May 31, 2026",cat:"ALBUMS",emoji:"",title:"The Last Wun Leads the Nine-Month Albums Ranking",excerpt:"Gunna's album totals 414 display points across all nine months.",body:"The Last Wun finishes ahead of Bien's Alusa Why Are You Topless? and PARTYNEXTDOOR's $ome $exy $ongs 4 U."},
-  {id:17,date:"May 30, 2026",cat:"ALBUMS",emoji:"",title:"Sixteen May Top 20 Albums Reach Both Platforms",excerpt:"Most of May's leading albums appear on both Apple Music and Audiomack.",body:"M$NEY, RNB, XX, Kehlani and twelve other Top 20 albums record full 2/2 platform coverage."},
-  {id:18,date:"May 29, 2026",cat:"ANALYTICS",emoji:"",title:"Wrong Places Secures Platinum Status",excerpt:"Joshua Baraka & JAE5 total 408 points across nine months.",body:"Wrong Places appears in every tracked month and exceeds the new 400-point Platinum certification threshold."},
-];
+const NEWS=[];
 
 const mapPublicCertifications = (items = []) => items.map((c) => ({
   ...c,
@@ -1126,7 +1101,7 @@ export default function NgomaCharts(){
     }
   });
   const [ct,setCt]=useState(["singles","albums"].includes(DEFAULT_CHART_SETTING.chart_type) ? DEFAULT_CHART_SETTING.chart_type : "singles");
-  const [month,setMonth]=useState(MONTHS.includes(DEFAULT_CHART_SETTING.month) ? DEFAULT_CHART_SETTING.month : CURRENT_MONTH);
+  const [month,setMonth]=useState(CURRENT_MONTH);
   const [plat,setPlat]=useState("Combined");
   const [vc,setVc]=useState(10);
   const [hr,setHr]=useState(null);
@@ -1147,9 +1122,8 @@ export default function NgomaCharts(){
   const [rankJourneyView,setRankJourneyView]=useState("table");
   const [viewModes,setViewModes]=useState({});
   const [loaded,setLd]=useState(false);
-  const [liveStatus, setLiveStatus] = useState("static"); // "static" | "live" | "checking"
+  const [liveStatus, setLiveStatus] = useState("checking"); // "checking" | "live" | "degraded"
   const [apiChecked, setApiChecked] = useState(false); // true once the API ping has resolved
-  const [chartRefreshKey, setChartRefreshKey] = useState(0); // increments on window focus to re-fetch live data
   const [liveChartEntries, setLiveChartEntries] = useState([]);
   const [liveChartMeta, setLiveChartMeta] = useState(null);
   const [liveChartLoading, setLiveChartLoading] = useState(false);
@@ -1263,7 +1237,7 @@ export default function NgomaCharts(){
     setLiveStatus("checking");
     checkApiStatus()
       .then(() => setLiveStatus("live"))
-      .catch(() => setLiveStatus("static"))
+      .catch(() => setLiveStatus("degraded"))
       .finally(() => setApiChecked(true));
   }, []);
 
@@ -1280,9 +1254,8 @@ export default function NgomaCharts(){
   // All three paths call doRevisionSync, which:
   //   - skips when the tab is hidden (interval fires in the background)
   //   - fetches the lightweight revision endpoint first
-  //   - if revision changed: fetches full app data, updates __NGOMA_PUBLIC_DATA__,
-  //     clears kenyan caches so getArtistCountry() reads the new country_code,
-  //     then increments chartRefreshKey to force a re-render + chart recompute
+  //   - if revision changed: reloads the backend-powered app so module-level
+  //     chart indexes and the latest published month are rebuilt atomically
   useEffect(() => {
     const doRevisionSync = () => {
       if (document.hidden) return; // tab is backgrounded — skip; focus event handles return
@@ -1293,20 +1266,9 @@ export default function NgomaCharts(){
           _syncedRevision = latest;
           return fetchAppData().then(freshData => {
             if (freshData && typeof freshData === "object") {
-              window.__NGOMA_PUBLIC_DATA__ = { ...(window.__NGOMA_PUBLIC_DATA__ || {}), ...freshData };
+              window.__NGOMA_PUBLIC_DATA__ = normalizePublicPayload(freshData);
               window.__NGOMA_PUBLIC_REVISION__ = freshData.revision || freshData.stamp || Date.now();
-              rebuildPublicLookups(freshData);
-              if (typeof window !== "undefined") window.dispatchEvent(new Event("ngoma-public-data-ready"));
-              combinedEntryCache.clear();
-              platformEntryCache.clear();
-              rawPlatformIndexCache.clear();
-              coverImageCache.clear();
-              combinedArtistsCache.clear();
-              artistPlatformSourceCache.clear();
-              artistChartCache.clear();
-              kenyanRawCache.clear();
-              kenyanEntryCache.clear();
-              setChartRefreshKey(k => k + 1);
+              window.location.reload();
             }
           });
         })
@@ -1326,21 +1288,10 @@ export default function NgomaCharts(){
         fetchAppData()
           .then(freshData => {
             if (freshData && typeof freshData === "object") {
-              window.__NGOMA_PUBLIC_DATA__ = { ...(window.__NGOMA_PUBLIC_DATA__ || {}), ...freshData };
+              window.__NGOMA_PUBLIC_DATA__ = normalizePublicPayload(freshData);
               _syncedRevision = String(freshData.revision || freshData.stamp || "");
               window.__NGOMA_PUBLIC_REVISION__ = freshData.revision || freshData.stamp || Date.now();
-              if (typeof window !== "undefined") window.dispatchEvent(new Event("ngoma-public-data-ready"));
-              rebuildPublicLookups(freshData);
-              combinedEntryCache.clear();
-              platformEntryCache.clear();
-              rawPlatformIndexCache.clear();
-              coverImageCache.clear();
-              combinedArtistsCache.clear();
-              artistPlatformSourceCache.clear();
-              artistChartCache.clear();
-              kenyanRawCache.clear();
-              kenyanEntryCache.clear();
-              setChartRefreshKey(k => k + 1);
+              window.location.reload();
             }
           })
           .catch(() => {});
@@ -1393,8 +1344,8 @@ export default function NgomaCharts(){
       { type: releaseCt, month: monthNumber, year, platform: platformToSlug(plat) },
       controller.signal
     )
-      .then((chartData) => {
-        const entries = normalizeRankedRows((chartData.entries || []).map((entry) => {
+      .then((chartResponse) => {
+        const entries = normalizeRankedRows((chartResponse.entries || []).map((entry) => {
           const movementType = String(entry.movement || "").toLowerCase();
 
           const displayPoints = entry.total_points || 0;
@@ -1494,21 +1445,21 @@ export default function NgomaCharts(){
           if (e.cover_image) coverImageCache.set(entryKey(e), e.cover_image);
         });
         setLiveChartEntries(enrichedEntries);
-        setLiveChartMeta(chartData);
+        setLiveChartMeta(chartResponse);
         setLiveStatus("live");
       })
       .catch((error) => {
         if (error.name === "AbortError") return;
         setLiveChartEntries([]);
         setLiveChartMeta(null);
-        setLiveStatus("static");
+        setLiveStatus("degraded");
       })
       .finally(() => {
         if (!controller.signal.aborted) setLiveChartLoading(false);
       });
 
     return () => controller.abort();
-  }, [releaseCt, month, plat, tp, isArtists, chartRefreshKey]);
+  }, [releaseCt, month, plat, tp, isArtists]);
   useEffect(()=>{setTimeout(()=>setLd(true),100);},[]);
 
   const [vw,setVw]=useState(typeof window!=="undefined"?window.innerWidth:1200);
@@ -1550,9 +1501,9 @@ const getData = () => {
   return plat === "Combined" ? getCombined(releaseCt, month) : getPlatform(releaseCt, plat, month);
 };
 
-const staticData = getData();
+const appDataEntries = getData();
 
-const sourceData = liveChartEntries.length ? liveChartEntries : staticData;
+const sourceData = liveChartEntries.length ? liveChartEntries : appDataEntries;
 const data = sourceData.filter((entry) => Number(entry.rank) <= 50).slice(0, 50);
 
 const display = data.slice(0, Math.min(vc, data.length));
@@ -2813,13 +2764,13 @@ const top = data[0];
 
   return(
     <div className="ngoma-app-shell" data-theme={theme} style={{fontFamily:SF,background:themeColors.page,color:themeColors.text,minHeight:"100vh",width:"100%",overflowX:"hidden"}}>
-      {apiChecked && liveStatus === "static" && (
+      {apiChecked && liveStatus === "degraded" && (
         <div style={{
           position:"fixed",bottom:"14px",right:"14px",zIndex:9999,pointerEvents:"none",
           background:"rgba(20,20,20,0.82)",backdropFilter:"blur(6px)",color:"#ccc",
           fontSize:"10px",letterSpacing:"0.4px",padding:"5px 11px",borderRadius:"999px",
         }}>
-          Using chart snapshot · live data unavailable
+          Live refresh unavailable · showing the loaded API response
         </div>
       )}
       <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700;800;900&family=Instrument+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>

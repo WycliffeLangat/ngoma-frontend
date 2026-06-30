@@ -290,7 +290,7 @@ export function getPublicArtistMap() {
   (publicData.artists || []).forEach((artist) => addArtistToMap(map, artist));
 
   // Fallback: chart API entries also carry primary_artists with image fields.
-  // This covers artist charts built from bundled chart rows, where the row only
+  // This covers artist charts built from API chart rows, where the row only
   // has a name such as "Asake" but not the full CMS artist object.
   scanPublicChartNode(publicData.full, map);
   scanPublicChartNode(publicData.year_end, map);

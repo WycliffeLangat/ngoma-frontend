@@ -1,0 +1,100 @@
+diff --git a/charts/tests.py b/charts/tests.py
+--- a/charts/tests.py
++++ b/charts/tests.py
+@@ -64,7 +64,7 @@ class PublicAppDataSyncTests(APITestCase):
+         )
+         self.chart = MonthlyChart.objects.create(
+             year=2026,
+-            month=6,
++            month=7,
+             chart_type="singles",
+             label="ignored",
+             status="published",
+@@ -217,7 +217,7 @@ class PublicAppDataSyncTests(APITestCase):
+         self.assertEqual(revision_response.status_code, 200)
+         self.assertEqual(revision_response.json()["revision"], data["revision"])
+         self.assertIn("no-store", revision_response["Cache-Control"])
+-        row = data["full"]["singles"]["combined"]["June 2026"][0]
++        row = data["full"]["singles"]["combined"]["July 2026"][0]
+         self.assertEqual(row["t"], "Updated Song")
+         self.assertEqual(row["a"], "Updated Artist")
+         self.assertEqual(row["p"], 77)
+@@ -328,7 +328,7 @@ class PublicAppDataSyncTests(APITestCase):
+         data = response.json()
+         self.assertEqual(data["singles_stats"]["total_points"], 50)
+         self.assertEqual(len(data["chart_history"]), 1)
+-        self.assertEqual(data["chart_history"][0]["month"], "June 2026")
++        self.assertEqual(data["chart_history"][0]["month"], "July 2026")
+ 
+     def test_public_year_end_and_analytics_ignore_draft_charts(self):
+         draft_chart = MonthlyChart.objects.create(
+@@ -412,7 +412,7 @@ class PublicAppDataSyncTests(APITestCase):
+         self.assertEqual(response["featured_artist_ids"], [self.featured_artist.id, self.featured_artist_two.id])
+ 
+         data = self.app_data()
+-        row = data["full"]["singles"]["combined"]["June 2026"][0]
++        row = data["full"]["singles"]["combined"]["July 2026"][0]
+         release = next(item for item in data["releases"] if item["id"] == self.release.id)
+         expected_credit = "Original Artist, Second Artist & Third Artist ft. Featured Artist & Guest Two"
+ 
+diff --git a/charts/test_weekly_uploads.py b/charts/test_weekly_uploads.py
+--- a/charts/test_weekly_uploads.py
++++ b/charts/test_weekly_uploads.py
+@@ -61,7 +61,7 @@ class CmsWeeklyUploadTests(APITestCase):
+ 
+     def test_raw_xlsx_is_processed_without_persisting_to_image_storage(self):
+         chart_file = SimpleUploadedFile(
+-            'June 2026 Week 1 Singles.xlsx',
++            'July 2026 Week 1 Singles.xlsx',
+             weekly_workbook_bytes(),
+             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+         )
+@@ -71,7 +71,7 @@ class CmsWeeklyUploadTests(APITestCase):
+             {
+                 'chart_type': ChartType.SINGLES,
+                 'year': 2026,
+-                'month': 6,
++                'month': 7,
+                 'week': 1,
+                 'file': chart_file,
+             },
+@@ -79,11 +79,11 @@ class CmsWeeklyUploadTests(APITestCase):
+         )
+ 
+         self.assertEqual(response.status_code, 201, response.data)
+-        upload = WeeklyUpload.objects.get(year=2026, month=6, week=1)
++        upload = WeeklyUpload.objects.get(year=2026, month=7, week=1)
+         self.assertTrue(upload.processed)
+         self.assertEqual(upload.entries_processed, 12)
+-        self.assertEqual(upload.file.name, 'June 2026 Week 1 Singles.xlsx')
+-        self.assertEqual(response.data['original_filename'], 'June 2026 Week 1 Singles.xlsx')
++        self.assertEqual(upload.file.name, 'July 2026 Week 1 Singles.xlsx')
++        self.assertEqual(response.data['original_filename'], 'July 2026 Week 1 Singles.xlsx')
+         self.assertNotIn('file', response.data)
+         self.assertEqual(PlatformChartEntry.objects.filter(upload=upload).count(), 12)
+         self.assertEqual(
+@@ -89,6 +89,6 @@ class CmsWeeklyUploadTests(APITestCase):
+             MonthlyChartEntry.objects.filter(
+                 chart__year=2026,
+-                chart__month=6,
++                chart__month=7,
+                 chart__chart_type=ChartType.SINGLES,
+                 platform__isnull=True,
+             ).count(),
+@@ -98,6 +98,6 @@ class CmsWeeklyUploadTests(APITestCase):
+             MonthlyChartEntry.objects.filter(
+                 chart__year=2026,
+-                chart__month=6,
++                chart__month=7,
+                 platform__isnull=True,
+             ).exclude(weeks_on_chart=1).exists()
+         )
+@@ -109,7 +109,7 @@ class CmsWeeklyUploadTests(APITestCase):
+             {
+                 'chart_type': ChartType.SINGLES,
+                 'year': 2026,
+-                'month': 6,
++                'month': 7,
+                 'week': 1,
+                 'file': SimpleUploadedFile(
+                     'week-1.csv',

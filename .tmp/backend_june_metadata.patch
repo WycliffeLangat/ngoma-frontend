@@ -1,0 +1,22 @@
+diff --git a/charts/management/commands/seed_data.py b/charts/management/commands/seed_data.py
+--- a/charts/management/commands/seed_data.py
++++ b/charts/management/commands/seed_data.py
+@@ -54,6 +54,7 @@ class Command(BaseCommand):
+         self.stdout.write(
+             self.style.SUCCESS(
+                 f"Import complete: {report['combined_rows']} Combined rows, "
+-                f"{report['platform_rows']} platform rows, current month May 2026"
++                f"{report['platform_rows']} platform rows, "
++                f"current month {report['months'][-1]}"
+             )
+         )
+diff --git a/charts/management/commands/finalize_month.py b/charts/management/commands/finalize_month.py
+--- a/charts/management/commands/finalize_month.py
++++ b/charts/management/commands/finalize_month.py
+@@ -276,5 +276,5 @@ class Command(BaseCommand):
+             "\nNext step — regenerate chartData.js:\n"
+             "  python scripts/export_frontend_data.py \\\n"
+             f"    {wb_path} \\\n"
+-            "    ../ngoma_charts_frontend/ngoma_deploy/src/data/chartData.js"
++            "    ../../ngoma_charts_frontend/ngoma_deploy/src/data/chartData.js"
+         )

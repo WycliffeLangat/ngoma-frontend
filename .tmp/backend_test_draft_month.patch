@@ -1,0 +1,21 @@
+diff --git a/charts/tests.py b/charts/tests.py
+--- a/charts/tests.py
++++ b/charts/tests.py
+@@ -313,7 +313,7 @@ class PublicAppDataSyncTests(APITestCase):
+ 
+     def test_draft_chart_entries_do_not_change_public_artist_history_or_stats(self):
+         draft_chart = MonthlyChart.objects.create(
+-            year=2026, month=7, chart_type="singles", status="draft", is_published=False
++            year=2026, month=8, chart_type="singles", status="draft", is_published=False
+         )
+         MonthlyChartEntry.objects.create(
+             chart=draft_chart,
+@@ -331,7 +331,7 @@ class PublicAppDataSyncTests(APITestCase):
+ 
+     def test_public_year_end_and_analytics_ignore_draft_charts(self):
+         draft_chart = MonthlyChart.objects.create(
+-            year=2026, month=7, chart_type="singles", status="draft", is_published=False
++            year=2026, month=8, chart_type="singles", status="draft", is_published=False
+         )
+         MonthlyChartEntry.objects.create(
+             chart=draft_chart, release=self.release, rank=1, total_points=9999

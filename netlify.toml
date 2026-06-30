@@ -3,11 +3,9 @@
   publish = "dist"
 
 [build.environment]
-  # Node 18+ is required for native fetch in scripts/generate-chart-data.mjs.
   NODE_VERSION = "18"
-  # VITE_API_BASE_URL must be set in Netlify → Site settings → Environment variables.
-  # Example: https://your-app.railway.app/api/v1
-  # The prebuild script uses this to refresh chartData.js from the live API on every deploy.
+  # VITE_API_BASE must be set in Netlify Site settings -> Environment variables.
+  # Example: https://api.ngomacharts.co.ke/api/v1
 
 # Single-page app — serve index.html for all routes
 [[redirects]]

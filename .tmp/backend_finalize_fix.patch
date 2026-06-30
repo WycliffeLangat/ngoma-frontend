@@ -1,0 +1,27 @@
+diff --git a/charts/management/commands/finalize_month.py b/charts/management/commands/finalize_month.py
+--- a/charts/management/commands/finalize_month.py
++++ b/charts/management/commands/finalize_month.py
+@@ -244,7 +244,7 @@ class Command(BaseCommand):
+         old_block = match.group(1)
+         # Strip trailing whitespace/newline then closing bracket, add new entry
+         new_block = old_block.rstrip()[:-1].rstrip() + f',\n    "{month_label}",\n]'
+         dataset_path.write_text(text.replace(old_block, new_block), encoding="utf-8")
+-        self.stdout.write(f"Updated MONTHS in master_dataset.py → added '{month_label}'")
++        self.stdout.write(f"Updated MONTHS in master_dataset.py: added '{month_label}'")
+ 
+     def _update_validate_check(self):
+         """
+diff --git a/charts/master_dataset.py b/charts/master_dataset.py
+--- a/charts/master_dataset.py
++++ b/charts/master_dataset.py
+@@ -559,8 +559,8 @@ def validate_master_data(data):
+                 if int(row["Platforms_Max"]) != expected_max:
+                     raise ValueError(f"Invalid Platforms_Max at {chart_type} {month} rank {rank}")
+ 
+-    if combined_total != 900:
+-        raise ValueError("The two Combined sheets must contain exactly 900 rows")
++    if combined_total != 50 * 2 * len(MONTHS):
++        raise ValueError(f"The two Combined sheets must contain exactly {50 * 2 * len(MONTHS)} rows")
+ 
+ 
+ def _month_parts(label):
