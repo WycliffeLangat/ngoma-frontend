@@ -149,6 +149,9 @@ export default function ResourcePage({ type, searchJump, user }) {
   const [imageModal, setImageModal] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [mergeTarget, setMergeTarget] = useState(null);
+  const [selectedIds, setSelectedIds] = useState(() => new Set());
+  const [bulkDeleteTargets, setBulkDeleteTargets] = useState([]);
+  const [bulkMergeTarget, setBulkMergeTarget] = useState(null);
   const [dupGroups, setDupGroups] = useState(null);
   const [actionBusy, setActionBusy] = useState(false);
   const [detailRow, setDetailRow] = useState(null);
@@ -226,9 +229,21 @@ export default function ResourcePage({ type, searchJump, user }) {
   }
 
   // Reset search and filters when switching resource types
-  useEffect(() => { setSearch(""); setStatusFilter(""); setOrdering(""); setAlphaFilter(""); setPage(1); }, [type]);
+  useEffect(() => {
+    setSearch("");
+    setStatusFilter("");
+    setOrdering("");
+    setAlphaFilter("");
+    setPage(1);
+    setSelectedIds(new Set());
+    setBulkDeleteTargets([]);
+    setBulkMergeTarget(null);
+  }, [type]);
   // Reset to page 1 whenever filters/search change
   useEffect(() => { setPage(1); }, [search, statusFilter, ordering, alphaFilter]);
+  // Selection is intentionally page-specific so an invisible row cannot be
+  // merged or deleted after the list changes underneath the editor.
+  useEffect(() => { setSelectedIds(new Set()); }, [page, search, statusFilter, ordering, alphaFilter]);
 
   // Debounced load — re-runs when any filter changes; typed search gets 280ms debounce
   useEffect(() => {
@@ -414,6 +429,32 @@ export default function ResourcePage({ type, searchJump, user }) {
   const isArtist = type === "artists";
   const isActionable = isRelease || isArtist;
   const isCertifications = type === "certifications";
+  const selectedRows = rows.filter((row) => selectedIds.has(row.id));
+
+  function recordLabel(row) {
+    if (isArtist) return row.display_name || row.name || `Artist #${row.id}`;
+    return row.title || `Record #${row.id}`;
+  }
+
+  function toggleSelectedRow(row) {
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      if (next.has(row.id)) next.delete(row.id);
+      else next.add(row.id);
+      return next;
+    });
+  }
+
+  function toggleAllRows(visibleRows, shouldSelect) {
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      visibleRows.forEach((row) => {
+        if (shouldSelect) next.add(row.id);
+        else next.delete(row.id);
+      });
+      return next;
+    });
+  }
 
   // Canonical thresholds: Diamond ≥600, Platinum ≥400, Gold ≥200
   function correctCertLevel(points) {
@@ -498,6 +539,50 @@ export default function ResourcePage({ type, searchJump, user }) {
     finally { setActionBusy(false); }
   }
 
+  async function hardDeleteSelected() {
+    if (!bulkDeleteTargets.length || actionBusy) return;
+    setActionBusy(true);
+    setError("");
+    const targets = [...bulkDeleteTargets];
+    const deleted = [];
+    const failures = [];
+    try {
+      const affectedScopes = isRelease
+        ? await getAffectedChartScopes(targets.map((target) => target.id))
+        : [];
+      for (const target of targets) {
+        try {
+          await cmsApi.delete(`${config.endpoint}${target.id}/hard_delete/`);
+          deleted.push(target);
+        } catch (deleteError) {
+          failures.push({ target, error: deleteError });
+        }
+      }
+      if (!deleted.length) throw failures[0]?.error || new Error("No records were deleted.");
+
+      const rankResult = await reorderAffectedChartScopes(affectedScopes);
+      clearCmsCache();
+      setBulkDeleteTargets([]);
+      setSelectedIds(new Set(failures.map(({ target }) => target.id)));
+      showFlash(
+        `Deleted ${deleted.length} ${isArtist ? "artist" : isRelease ? "release" : "record"}` +
+        `${deleted.length === 1 ? "" : "s"}.` +
+        (rankResult.failedScopes.length ? " Some locked chart ranks could not be refreshed." : "")
+      );
+      await load();
+      if (failures.length) {
+        setError(
+          `${failures.length} record${failures.length === 1 ? "" : "s"} could not be deleted: ` +
+          failures.map(({ target, error: failure }) => `${recordLabel(target)} (${failure.message})`).join(" · ")
+        );
+      }
+    } catch (deleteError) {
+      setError(deleteError.message);
+    } finally {
+      setActionBusy(false);
+    }
+  }
+
   async function searchForKeeper(q) {
     if (!q.trim()) { setMergeTarget(t => ({ ...t, keeperResults: [] })); return; }
     try {
@@ -533,6 +618,61 @@ export default function ResourcePage({ type, searchJump, user }) {
       load();
     } catch(e) { setError(e.message); }
     finally { setActionBusy(false); }
+  }
+
+  async function mergeSelected() {
+    if (!bulkMergeTarget?.keeperId || actionBusy) return;
+    const selected = bulkMergeTarget.rows;
+    const keeper = selected.find((row) => row.id === bulkMergeTarget.keeperId);
+    const duplicates = selected.filter((row) => row.id !== bulkMergeTarget.keeperId);
+    if (!keeper || !duplicates.length) return;
+
+    setActionBusy(true);
+    setError("");
+    const merged = [];
+    const failures = [];
+    try {
+      const affectedScopes = isRelease
+        ? await getAffectedChartScopes(duplicates.map((row) => row.id))
+        : [];
+      if (isArtist) {
+        await cmsApi.post(`${config.endpoint}${keeper.id}/merge/`, {
+          artist_ids: duplicates.map((row) => row.id),
+        });
+        merged.push(...duplicates);
+      } else {
+        for (const duplicate of duplicates) {
+          try {
+            await callMergeApi(duplicate, keeper);
+            merged.push(duplicate);
+          } catch (mergeError) {
+            failures.push({ target: duplicate, error: mergeError });
+          }
+        }
+      }
+      if (!merged.length) throw failures[0]?.error || new Error("No records were merged.");
+
+      const rankResult = await rerankAffectedChartScopes(affectedScopes);
+      clearCmsCache();
+      setBulkMergeTarget(null);
+      setDupGroups(null);
+      setSelectedIds(new Set(failures.map(({ target }) => target.id)));
+      showFlash(
+        `Merged ${merged.length} record${merged.length === 1 ? "" : "s"} into "${recordLabel(keeper)}".` +
+        (rankResult.failedScopes.length ? " Some locked chart ranks could not be refreshed." : "")
+      );
+      await load();
+      if (failures.length) {
+        setError(
+          `${failures.length} record${failures.length === 1 ? "" : "s"} could not be merged: ` +
+          failures.map(({ target, error: failure }) => `${recordLabel(target)} (${failure.message})`).join(" · ")
+        );
+      }
+    } catch (mergeError) {
+      setError(mergeError.message);
+    } finally {
+      setActionBusy(false);
+    }
   }
 
   async function loadDuplicates() {
@@ -594,7 +734,7 @@ export default function ResourcePage({ type, searchJump, user }) {
         <button
           className="cms-btn danger"
           style={{ fontSize: "11px", padding: "2px 9px" }}
-          title="Permanently delete this release and all its chart entries"
+          title={isArtist ? "Permanently delete this artist" : "Permanently delete this release and all its chart entries"}
           onClick={() => setDeleteTarget(row)}
         >Delete</button>
       </span>
@@ -757,6 +897,36 @@ export default function ResourcePage({ type, searchJump, user }) {
       </div>
 
       {/* A–Z alphabet bar */}
+      {isActionable && canHardDelete && selectedRows.length > 0 && (
+        <div className="cms-bulk-bar" role="region" aria-label="Bulk actions">
+          <strong>{selectedRows.length} selected</strong>
+          <span>Select at least two records to merge them into one keeper.</span>
+          <div>
+            <button
+              className="cms-btn light small"
+              disabled={selectedRows.length < 2 || actionBusy}
+              onClick={() => setBulkMergeTarget({ rows: [...selectedRows], keeperId: null })}
+            >
+              Merge selected
+            </button>
+            <button
+              className="cms-btn danger small"
+              disabled={actionBusy}
+              onClick={() => setBulkDeleteTargets([...selectedRows])}
+            >
+              Delete selected
+            </button>
+            <button
+              className="cms-text-btn"
+              disabled={actionBusy}
+              onClick={() => setSelectedIds(new Set())}
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+      )}
+
       {ALPHA_TYPES.has(type) && (
         <div className="cms-alpha-bar" style={{ background: "#f7f5f0", border: "1px solid #e8e0cc", borderRadius: 8, padding: "8px 12px", margin: "0 0 12px", display: "flex", flexWrap: "wrap", gap: 4, alignItems: "center" }}>
           <span style={{ fontSize: 11, fontWeight: 700, color: "#999", textTransform: "uppercase", letterSpacing: ".05em", marginRight: 4 }}>A–Z:</span>
@@ -851,7 +1021,15 @@ export default function ResourcePage({ type, searchJump, user }) {
       )}
 
       {loading ? <div className="cms-empty">Loading...</div> : (
-        <DataTable columns={finalColumns} rows={rows} onRowClick={(row) => setDetailRow(row)} />
+        <DataTable
+          columns={finalColumns}
+          rows={rows}
+          onRowClick={(row) => setDetailRow(row)}
+          selectable={isActionable && canHardDelete}
+          selectedIds={selectedIds}
+          onToggleRow={toggleSelectedRow}
+          onToggleAll={toggleAllRows}
+        />
       )}
       {totalCount !== null && (
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 2px", marginTop:4, borderTop:"1px solid #f0f0f0" }}>
@@ -1068,6 +1246,86 @@ export default function ResourcePage({ type, searchJump, user }) {
           </div>
         </div>
       )}
+      {bulkDeleteTargets.length > 0 && (
+        <div className="cms-modal-backdrop" onClick={() => !actionBusy && setBulkDeleteTargets([])}>
+          <div className="cms-modal" onClick={(event) => event.stopPropagation()} style={{ maxWidth: 520 }}>
+            <div className="cms-modal-head">
+              <h3>Delete {bulkDeleteTargets.length} records permanently?</h3>
+              <button type="button" onClick={() => setBulkDeleteTargets([])} disabled={actionBusy}>×</button>
+            </div>
+            <div className="cms-bulk-record-list">
+              {bulkDeleteTargets.map((row) => (
+                <div key={row.id}>
+                  <strong>{recordLabel(row)}</strong>
+                  <span>{isArtist ? row.country || row.country_code : row.artist_display} · id {row.id}</span>
+                </div>
+              ))}
+            </div>
+            <p style={{ fontSize: 13, color: "#c0392b", margin: "12px 0 16px" }}>
+              This permanently deletes every selected record
+              {isRelease ? " and its chart entries and certifications" : ""}. This cannot be undone.
+            </p>
+            <div className="cms-actions right">
+              <button className="cms-btn light" onClick={() => setBulkDeleteTargets([])} disabled={actionBusy}>Cancel</button>
+              <button className="cms-btn danger" onClick={hardDeleteSelected} disabled={actionBusy}>
+                {actionBusy ? "Deleting…" : `Delete all ${bulkDeleteTargets.length}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {bulkMergeTarget && (
+        <div className="cms-modal-backdrop" onClick={() => !actionBusy && setBulkMergeTarget(null)}>
+          <div className="cms-modal" onClick={(event) => event.stopPropagation()} style={{ maxWidth: 560 }}>
+            <div className="cms-modal-head">
+              <h3>Merge {bulkMergeTarget.rows.length} selected records</h3>
+              <button type="button" onClick={() => setBulkMergeTarget(null)} disabled={actionBusy}>×</button>
+            </div>
+            <p style={{ fontSize: 13, color: "#666", margin: "10px 0" }}>
+              Choose the one record to keep. Every other selected record will be merged into it and removed.
+            </p>
+            <div className="cms-bulk-keeper-list">
+              {bulkMergeTarget.rows.map((row) => {
+                const isKeeper = bulkMergeTarget.keeperId === row.id;
+                return (
+                  <label key={row.id} className={isKeeper ? "selected" : ""}>
+                    <input
+                      type="radio"
+                      name="bulk-merge-keeper"
+                      checked={isKeeper}
+                      disabled={actionBusy}
+                      onChange={() => setBulkMergeTarget((current) => ({ ...current, keeperId: row.id }))}
+                    />
+                    <span>
+                      <strong>{recordLabel(row)}</strong>
+                      <small>
+                        {isArtist
+                          ? `${row.total_releases ?? row.release_count ?? 0} releases`
+                          : row.artist_display || "No artist credit"}
+                        {" · "}id {row.id}
+                      </small>
+                    </span>
+                    <b>{isKeeper ? "KEEP" : "MERGE"}</b>
+                  </label>
+                );
+              })}
+            </div>
+            <p style={{ fontSize: 12, color: "#888", margin: "12px 0 0" }}>
+              {isArtist
+                ? "Releases and aliases move to the keeper."
+                : "Monthly chart points are combined, duplicate weekly entries are removed, and certifications are recalculated."}
+            </p>
+            <div className="cms-actions right">
+              <button className="cms-btn light" onClick={() => setBulkMergeTarget(null)} disabled={actionBusy}>Cancel</button>
+              <button className="cms-btn" onClick={mergeSelected} disabled={!bulkMergeTarget.keeperId || actionBusy}>
+                {actionBusy ? "Merging…" : `Merge ${bulkMergeTarget.rows.length - 1} into keeper`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Delete confirm modal */}
       {deleteTarget && (
         <div className="cms-modal-backdrop" onClick={() => !actionBusy && setDeleteTarget(null)}>
@@ -1077,10 +1335,12 @@ export default function ResourcePage({ type, searchJump, user }) {
               <button type="button" onClick={() => setDeleteTarget(null)} disabled={actionBusy}>×</button>
             </div>
             <p style={{ margin: "10px 0 4px", fontSize: 14 }}>
-              <strong>"{deleteTarget.title}"</strong> by {deleteTarget.artist_display}
+              <strong>"{recordLabel(deleteTarget)}"</strong>
+              {!isArtist && deleteTarget.artist_display ? ` by ${deleteTarget.artist_display}` : ""}
             </p>
             <p style={{ fontSize: 13, color: "#c0392b", margin: "0 0 16px" }}>
-              This will permanently delete the release and all its chart entries and certifications. This cannot be undone.
+              This will permanently delete the {isArtist ? "artist" : "release"}
+              {isRelease ? " and all its chart entries and certifications" : ""}. This cannot be undone.
             </p>
             <div className="cms-actions right">
               <button className="cms-btn light" onClick={() => setDeleteTarget(null)} disabled={actionBusy}>Cancel</button>
