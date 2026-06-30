@@ -54,7 +54,11 @@ function cardClass(key, value) {
 export default function DashboardPage({ user, onNavigate }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
-  useEffect(() => { cmsApi.get("/dashboard/").then(setData).catch((e) => setError(e.message)); }, []);
+  useEffect(() => {
+    Promise.all([cmsApi.get("/dashboard/"), cmsApi.get("/dashboard/insights/")])
+      .then(([summary, insights]) => setData({ ...summary, ...insights, cards: { ...summary.cards, ...insights.cards } }))
+      .catch((e) => setError(e.message));
+  }, []);
   if (error) return <div className="cms-alert error">{error}</div>;
   if (!data) return <div className="cms-empty">Loading dashboard...</div>;
   const firstName = user?.first_name || user?.username || "there";
