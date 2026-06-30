@@ -286,6 +286,29 @@ const getRawPlatformIndex = (ct, pl, m) => {
   return rawPlatformIndexCache.get(cacheKey);
 };
 
+// Builds the "charted in an earlier month" / "charted last month" key sets for
+// a given chart + month straight from the synced FULL history. New = never
+// appeared in any earlier month; RE = appeared in an earlier month but was
+// absent from the immediately preceding month. Used to classify movement
+// consistently regardless of what any other data source (e.g. the live
+// chart-image endpoint) reports, so the rule applies automatically to every
+// future month as soon as it is published.
+function historyKeysForMonth(ct, plat, currentMonth) {
+  const currentIndex = monthIndex(currentMonth);
+  if (currentIndex < 0) return null;
+  const getRaw = plat === "Combined"
+    ? (monthLabel) => rawCombined(ct, monthLabel)
+    : (monthLabel) => rawPlatform(ct, plat, monthLabel);
+  const priorKeys = new Set();
+  let previousKeys = new Set();
+  MONTHS.slice(0, currentIndex + 1).forEach((monthLabel, offset) => {
+    const monthEntries = getRaw(monthLabel).filter((item) => Number(item.r) <= 50).slice(0, 50);
+    if (offset < currentIndex) monthEntries.forEach((item) => priorKeys.add(entryKey(item)));
+    if (offset === currentIndex - 1) previousKeys = new Set(monthEntries.map(entryKey));
+  });
+  return { priorKeys, previousKeys };
+}
+
 function enrichChartEntries(entries, getRawEntries, currentMonth, totalPlatforms) {
   const currentIndex = monthIndex(currentMonth);
   const historyMonths = currentIndex >= 0 ? MONTHS.slice(0, currentIndex + 1) : [];
@@ -1345,8 +1368,20 @@ export default function NgomaCharts(){
       controller.signal
     )
       .then((chartResponse) => {
+        const movementHistory = historyKeysForMonth(releaseCt, plat, month);
         const entries = normalizeRankedRows((chartResponse.entries || []).map((entry) => {
           const movementType = String(entry.movement || "").toLowerCase();
+          const fallbackIsNew = movementType === "new";
+          const fallbackIsReentry = movementType === "reentry" || movementType === "re-entry" || movementType === "re";
+          const movementKey = entryKey({
+            t: entry.title,
+            a: entry.primary_artist || entry.artist || "",
+            fa: entry.featured_artists || "",
+          });
+          const isNew = movementHistory ? !movementHistory.priorKeys.has(movementKey) : fallbackIsNew;
+          const isReentry = movementHistory
+            ? !movementHistory.previousKeys.has(movementKey) && movementHistory.priorKeys.has(movementKey)
+            : fallbackIsReentry;
 
           const displayPoints = entry.total_points || 0;
 
@@ -1363,9 +1398,9 @@ export default function NgomaCharts(){
             plat: entry.platform_count ? `${entry.platform_count}/${entry.platform_max || tp}` : "",
             prev: entry.prev_rank,
             first: false,
-            is_new: movementType === "new",
-            reentry: movementType === "reentry" || movementType === "re-entry" || movementType === "re",
-            movement: entry.movement,
+            is_new: isNew,
+            reentry: isReentry,
+            movement: isNew ? "new" : isReentry ? "reentry" : entry.movement,
             last_month:
               entry.last_month !== null && entry.last_month !== undefined && entry.last_month !== ""
                 ? entry.last_month
