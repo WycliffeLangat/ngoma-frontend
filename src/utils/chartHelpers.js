@@ -187,18 +187,13 @@ export const sameRelease = (left, right) => {
   return entryKey(left) === entryKey(right);
 };
 
-const rankedRowsCache = {
-  preservePoints: new WeakMap(),
-  positionalPoints: new WeakMap(),
-};
+const rankedRowsCache = new WeakMap();
 
-// CMS merges/deletions can leave historical rank gaps (for example 1…27, 29…).
-// Preserve backend order while closing those gaps. Combined charts use
-// positional points; platform charts retain their source metrics.
-export function normalizeRankedRows(rows = [], { positionalPoints = false } = {}) {
+// The backend owns rank normalization and both point systems. This helper
+// only orders rows by the authoritative rank and preserves every score.
+export function normalizeRankedRows(rows = []) {
   if (!Array.isArray(rows) || !rows.length) return [];
-  const cache = positionalPoints ? rankedRowsCache.positionalPoints : rankedRowsCache.preservePoints;
-  if (cache.has(rows)) return cache.get(rows);
+  if (rankedRowsCache.has(rows)) return rankedRowsCache.get(rows);
 
   const normalized = [...rows]
     .map((row, sourceIndex) => ({ row, sourceIndex }))
@@ -209,22 +204,9 @@ export function normalizeRankedRows(rows = [], { positionalPoints = false } = {}
       const safeRight = Number.isFinite(rightRank) && rightRank > 0 ? rightRank : Number.POSITIVE_INFINITY;
       return safeLeft - safeRight || left.sourceIndex - right.sourceIndex;
     })
-    .map(({ row }, index) => {
-      const rank = index + 1;
-      const next = { ...row };
-      if ("r" in row || !("rank" in row)) next.r = rank;
-      if ("rank" in row) next.rank = rank;
+    .map(({ row }) => ({ ...row }));
 
-      if (positionalPoints && rank <= 50) {
-        const points = 51 - rank;
-        if ("p" in row) next.p = points;
-        if ("pts" in row) next.pts = points;
-        if ("total_points" in row) next.total_points = points;
-      }
-      return next;
-    });
-
-  cache.set(rows, normalized);
+  rankedRowsCache.set(rows, normalized);
   return normalized;
 }
 

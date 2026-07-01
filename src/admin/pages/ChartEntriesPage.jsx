@@ -307,7 +307,7 @@ export default function ChartEntriesPage({ user }) {
             songs: artist.releases.map((entry) => ({
               title: entry.t || entry.title,
               rank: Number(entry.r ?? entry.rank),
-              pts: 51 - Number(entry.r ?? entry.rank),
+              pts: Number(entry.p ?? entry.pts ?? entry.total_points) || 0,
               entryId: `${entry.sourceChartType}-${entry.sourcePlatform}-${entry.id}`,
               releaseId: entry.release_id,
               cover: entry.cover_image,

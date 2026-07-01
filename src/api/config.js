@@ -1,9 +1,10 @@
 // The Django API is the only chart-data source. An explicit environment value
 // is required in every environment so a deployment can never silently point at
 // stale, same-origin, or bundled data.
+const runtimeEnv = import.meta.env || {};
 const configuredApiBase = String(
-  import.meta.env.VITE_API_BASE ||
-  import.meta.env.VITE_API_BASE_URL ||
+  runtimeEnv.VITE_API_BASE ||
+  runtimeEnv.VITE_API_BASE_URL ||
   ""
 ).trim();
 

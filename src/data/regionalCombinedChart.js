@@ -61,7 +61,7 @@ export function buildRegionalCombinedRows({
       };
 
       mergeReleaseMetadata(current, entry);
-      current.rawPoints += Number(entry.p) || 0;
+      current.rawPoints += Number(entry.rp ?? entry.raw_total_points ?? entry.p) || 0;
       current.platforms.add(platform);
       current.w = Math.max(Number(current.w) || 0, Number(entry.w) || 0) || current.w;
       const resolvedCountry = resolveCountry(entry) || {};
@@ -90,7 +90,7 @@ export function buildRegionalCombinedRows({
     .map((entry, index) => ({
       ...entry,
       r: index + 1,
-      p: limit - index,
+      p: index < 50 ? 50 - index : 0,
       rp: entry.rawPoints,
       pl: `${entry.platforms.size}/${platforms.length}`,
       cc: targetCountry,

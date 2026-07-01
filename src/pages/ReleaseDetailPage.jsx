@@ -96,7 +96,7 @@ export default function ReleaseDetailPage({ ctx }) {
               months: new Set(),
             };
             const rank = Number(entry.rank);
-            current.points += Number.isFinite(rank) ? Math.max(0, 51 - rank) : 0;
+            current.points += Number(entry.pts ?? entry.p ?? entry.total_points) || 0;
             current.placements += 1;
             current.peakRank = Math.min(current.peakRank, rank || Number.POSITIVE_INFINITY);
             current.months.add(item.month);

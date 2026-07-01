@@ -259,7 +259,7 @@ function rebuildPublicLookups(freshData) {
   });
 }
 
-const rawCombined = (ct, m) => normalizeRankedRows(FULL[ct].combined[m] || [], { positionalPoints: true });
+const rawCombined = (ct, m) => normalizeRankedRows(FULL[ct].combined[m] || []);
 const rawPlatform = (ct, pl, m) => normalizeRankedRows((FULL[ct].platforms[pl] || {})[m] || []);
 const combinedEntryCache = new Map();
 const kenyanRawCache = new Map();
@@ -511,7 +511,8 @@ const getPlatform = (ct, pl, m) => {
 const top50Only = (rows = []) => rows.filter((entry) => Number(entry.rank ?? entry.r) <= 50).slice(0, 50);
 const artistTop50Points = (entry = {}) => {
   const rank = Number(entry.rank ?? entry.r);
-  return Number.isFinite(rank) && rank >= 1 && rank <= 50 ? 51 - rank : 0;
+  if (!Number.isFinite(rank) || rank < 1 || rank > 50) return 0;
+  return Number(entry.pts ?? entry.p ?? entry.total_points) || 0;
 };
 
 const getArtistSourceCombined = (chartType, monthLabel) => {
@@ -684,12 +685,8 @@ const getArtistPlatformSource = (platform = "Combined", monthLabel = CURRENT_MON
     addArtistSourceRows("singles", KENYAN_CHART, "single", getKenyanCombined("singles", monthLabel));
     addArtistSourceRows("albums", KENYAN_CHART, "album", getKenyanCombined("albums", monthLabel));
   } else if (platform === "Combined") {
-    ARTIST_PLATS.forEach((sourcePlatform) => {
-      addPlatformTop50("singles", sourcePlatform, "single");
-      if (A_PLATS.includes(sourcePlatform)) {
-        addPlatformTop50("albums", sourcePlatform, "album");
-      }
-    });
+    addArtistSourceRows("singles", "Combined", "single", getCombined("singles", monthLabel));
+    addArtistSourceRows("albums", "Combined", "album", getCombined("albums", monthLabel));
   } else {
     addPlatformTop50("singles", platform, "single");
     if (A_PLATS.includes(platform)) {
@@ -835,7 +832,9 @@ const buildArtistChart = (monthLabel = CURRENT_MONTH, platform = "Combined") => 
       featured_artists: "",
       pts: artist.p,
       rawPts: null,
-      points_source: "Top 50 platform Singles + Albums",
+      points_source: platform === "Combined"
+        ? "Combined Singles Top 50 + Combined Albums Top 50"
+        : `${platform} Top 50 Singles + supported Albums`,
       plat: platform === "Combined" ? `${platformHits.length}/${ARTIST_PLATS.length}` : "",
       prev: previousRank,
       last_month: previousRank || "—",
@@ -1419,7 +1418,7 @@ export default function NgomaCharts(){
             primary_artist: cleanArtistDisplay(entry.primary_artist_credit || entry.primary_artist || entry.artist),
             featured_artists: entry.featured_artists || "",
             pts: displayPoints,
-            rawPts: null,
+            rawPts: entry.raw_total_points ?? null,
             plat: entry.platform_count ? `${entry.platform_count}/${entry.platform_max || tp}` : "",
             prev: entry.prev_rank,
             first: false,
@@ -1441,7 +1440,7 @@ export default function NgomaCharts(){
             artist_country: entry.artist_country || entry.country || "",
             artist_country_code: entry.artist_country_code || entry.country_code || "",
           };
-        }), { positionalPoints: plat === "Combined" });
+        }));
 
         // CMS release records are authoritative for editable metadata and media.
         // Preserve chart-calculation fields from the chart endpoint.
@@ -2516,45 +2515,25 @@ const top = data[0];
     acc[item.level] = item.color;
     return acc;
   }, {});
-  const certificationLookup = useMemo(() => {
-    const buildLookup = (items = []) => {
-      const map = new Map();
-      items.forEach((item) => {
-        const level = getCertificationLevel(item.totalPts);
-        const meta = certificationMetaForLevel(level);
-        if (!meta) return;
-        map.set(certificationKey(item.t, item.a), {
-          ...meta,
-          totalPts: Number(item.totalPts) || 0,
-        });
-      });
-      return map;
-    };
-
-    return {
-      singles: buildLookup(COMBINED_YEAR_END.singles),
-      albums: buildLookup(COMBINED_YEAR_END.albums),
-    };
-  }, []);
-
-  // Live certs from the API use whatever total_points the backend stored.
-  // We override those with the local Combined Top 50 formula (51 − rank,
-  // accumulated across all months) so the same certification rule applies
-  // whether the source is static or live.
+  // Certification level and cumulative points come from the backend's
+  // published Combined Top 50 history; the browser does not recalculate it.
   const normalizedLiveCerts = useMemo(() => {
     if (!liveCerts) return null;
-    return liveCerts.map(c => {
-      const bucket = c.chart_type === "albums" ? "albums" : "singles";
-      const local = certificationLookup[bucket]?.get(certificationKey(c.t, c.a));
-      if (local) {
-        return { ...c, totalPts: local.totalPts, level: local.level };
-      }
-      // Entry not yet in local chart history — keep API points but re-derive
-      // level against the same thresholds used locally.
-      const level = getCertificationLevel(c.totalPts);
-      return level ? { ...c, level } : null;
+    return liveCerts.map((cert) => {
+      const meta = certificationMetaForLevel(cert.level);
+      if (!meta) return null;
+      return { ...cert, ...meta, totalPts: Number(cert.totalPts) || 0 };
     }).filter(Boolean);
-  }, [liveCerts, certificationLookup]);
+  }, [liveCerts]);
+
+  const certificationLookup = useMemo(() => {
+    const result = { singles: new Map(), albums: new Map() };
+    (normalizedLiveCerts || []).forEach((cert) => {
+      const bucket = cert.chart_type === "albums" ? "albums" : "singles";
+      result[bucket].set(certificationKey(cert.t, cert.a), cert);
+    });
+    return result;
+  }, [normalizedLiveCerts]);
 
   // A certification tag is shown ONLY when the release has met the cumulative
   // Combined Top-50 threshold (51 − rank, summed across all months). The
@@ -2568,16 +2547,11 @@ const top = data[0];
     return certificationLookup[bucket]?.get(certificationKey(title, artist)) || null;
   };
   const allCertifiedReleases = useMemo(() => {
-    const build = (items = [], type) => buildCertifications(items).map((item) => {
-      const meta = certificationMetaForLevel(item.level);
-      return meta ? { ...item, ...meta, type } : null;
-    }).filter(Boolean);
-
-    return [
-      ...build(COMBINED_YEAR_END.singles, "single"),
-      ...build(COMBINED_YEAR_END.albums, "album"),
-    ].sort((a, b) => b.totalPts - a.totalPts || b.pts - a.pts);
-  }, []);
+    return (normalizedLiveCerts || []).map((cert) => ({
+      ...cert,
+      type: cert.chart_type === "albums" ? "album" : "single",
+    })).sort((a, b) => b.totalPts - a.totalPts);
+  }, [normalizedLiveCerts]);
 
   const getCertificationsForNews = (news = {}, limit = 3) => {
     const text = `${news.title || ""} ${news.excerpt || ""} ${news.body || ""}`.toLowerCase();

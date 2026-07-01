@@ -39,6 +39,14 @@ ngoma-charts/
 
 Chart uploads, review, publication, historical records, rankings and metadata are managed in Django Admin. No generated chart dataset is committed to the frontend.
 
+## Chart scoring
+
+The Django API is authoritative for ranks and points. Weekly Top 100 source
+charts use `101 - rank` raw points to build monthly platform and combined
+rankings. Published Top 50 rows use `51 - rank` public points for display,
+artists, certifications, analytics and history. The React app never repairs
+or recalculates backend chart scores.
+
 ## Configure the backend
 
 The backend API is required:

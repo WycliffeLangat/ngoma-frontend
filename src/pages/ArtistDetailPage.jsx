@@ -141,7 +141,7 @@ export default function ArtistDetailPage({ ctx }) {
       releases: new Set(),
     };
     const rank = Number(entry.rank ?? entry.r);
-    current.points += Number(entry.pts) || (Number.isFinite(rank) ? Math.max(0, 51 - rank) : 0);
+    current.points += Number(entry.pts ?? entry.p ?? entry.total_points) || 0;
     current.placements += 1;
     current.peakRank = Math.min(current.peakRank, rank || Number.POSITIVE_INFINITY);
     if (entry.month) current.months.add(entry.month);
