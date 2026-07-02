@@ -977,10 +977,11 @@ export default function PremiumChartsPage({
         </div>
 
         <div
+          className="ngoma-hero-main"
           style={{
             ...styles.heroMain,
             gridTemplateColumns: (!mobile && top5.length > 0) ? `minmax(260px, 44%) 1fr` : "1fr",
-            gap: (!mobile && top5.length > 0) ? "28px" : 0,
+            gap: top5.length > 0 ? (mobile ? "22px" : "28px") : 0,
             alignItems: "stretch",
           }}
         >
@@ -997,6 +998,7 @@ export default function PremiumChartsPage({
             }}
           >
             <h1
+              className="ngoma-chart-hero-title"
               aria-label={chartDisplayTitle}
               style={{
                 ...styles.heroTitle,
@@ -1045,7 +1047,7 @@ export default function PremiumChartsPage({
           </div>
 
           {/* ── Right: Top-5 auto-sliding showcase ── */}
-          {!mobile && top5.length > 0 && (() => {
+          {top5.length > 0 && (() => {
             const item        = top5[slideIdx] || top5[0];
             const isArtist    = isArtistsChart || !!item?.is_artist_entry;
             const artProfile  = isArtist ? managedArtistForItem(item) : {};
@@ -1091,6 +1093,7 @@ export default function PremiumChartsPage({
 
             return (
               <div
+                className="ngoma-hero-showcase"
                 style={{
                   position: "relative",
                   borderRadius: "20px",
@@ -1135,6 +1138,7 @@ export default function PremiumChartsPage({
                 {/* Large rank watermark — direct card child so overflow:hidden doesn't clip it */}
                 <div
                   key={`wm-${slideIdx}`}
+                  className="ngoma-hero-watermark"
                   style={{
                     position: "absolute", right: "36px", top: "22px",
                     fontSize: "100px", fontWeight: 900, lineHeight: 1,
@@ -1149,7 +1153,7 @@ export default function PremiumChartsPage({
                 {/* Main content */}
                 <div
                   key={`slide-${slideIdx}`}
-                  className="ngoma-hero-slide"
+                  className="ngoma-hero-slide ngoma-hero-card-content"
                   style={{
                     position: "relative", zIndex: 3,
                     flex: 1, display: "flex", gap: "20px",
@@ -1157,7 +1161,7 @@ export default function PremiumChartsPage({
                   }}
                 >
                   {/* Cover art */}
-                  <div style={{
+                  <div className="ngoma-hero-art" style={{
                     width: "120px", height: "120px", minWidth: "120px",
                     borderRadius: "12px", overflow: "hidden", flexShrink: 0,
                     boxShadow: darkMode
@@ -1192,7 +1196,7 @@ export default function PremiumChartsPage({
                   </div>
 
                   {/* Text */}
-                  <div style={{ flex: 1, minWidth: 0, position: "relative" }}>
+                  <div className="ngoma-hero-copy" style={{ flex: 1, minWidth: 0, position: "relative" }}>
 
                     {/* Eyebrow */}
                     <div style={{
@@ -1256,7 +1260,7 @@ export default function PremiumChartsPage({
                 </div>
 
                 {/* Bottom bar: dots + arrows */}
-                <div style={{
+                <div className="ngoma-hero-controls" style={{
                   position: "relative", zIndex: 3,
                   display: "flex", alignItems: "center",
                   justifyContent: "space-between",
@@ -1267,6 +1271,8 @@ export default function PremiumChartsPage({
                     {top5.map((_, i) => (
                       <button
                         key={i}
+                        type="button"
+                        aria-label={`Show Top 5 entry ${i + 1}`}
                         className="ngoma-dot-btn"
                         onClick={e => { e.stopPropagation(); setSlideIdx(i); }}
                         style={{
@@ -1283,11 +1289,15 @@ export default function PremiumChartsPage({
                   {/* Prev / Next */}
                   <div style={{ display: "flex", gap: "6px" }}>
                     <button
+                      type="button"
+                      aria-label="Show previous Top 5 entry"
                       className="ngoma-carousel-arrow"
                       style={{ borderColor: arrowBorder, background: arrowBg, color: arrowColor }}
                       onClick={e => { e.stopPropagation(); setSlideIdx(i => (i - 1 + top5.length) % top5.length); }}
                     >‹</button>
                     <button
+                      type="button"
+                      aria-label="Show next Top 5 entry"
                       className="ngoma-carousel-arrow"
                       style={{ borderColor: arrowBorder, background: arrowBg, color: arrowColor }}
                       onClick={e => { e.stopPropagation(); setSlideIdx(i => (i + 1) % top5.length); }}

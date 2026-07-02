@@ -100,6 +100,60 @@
     margin-top: 4px !important;
   }
 
+  /* Keep the Top-5 chart hero visible and comfortably touch-sized on phones. */
+  .ngoma-hero-main {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 22px !important;
+  }
+
+  .ngoma-hero-showcase {
+    min-width: 0;
+    border-radius: 16px !important;
+  }
+
+  .ngoma-hero-card-content {
+    gap: 14px !important;
+    padding: 16px 16px 12px 18px !important;
+  }
+
+  .ngoma-hero-art {
+    width: 92px !important;
+    height: 92px !important;
+    min-width: 92px !important;
+    border-radius: 10px !important;
+  }
+
+  .ngoma-hero-watermark {
+    top: 14px !important;
+    right: 16px !important;
+    z-index: 2 !important;
+    font-size: 64px !important;
+    letter-spacing: -2px !important;
+    opacity: 0.15;
+  }
+
+  .ngoma-hero-copy {
+    min-width: 0;
+  }
+
+  .ngoma-hero-copy > div:nth-child(2) {
+    font-size: 18px !important;
+  }
+
+  .ngoma-hero-copy > div:nth-child(3) {
+    font-size: 13px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .ngoma-hero-controls {
+    padding: 0 14px 14px 18px !important;
+  }
+
+  .ngoma-carousel-arrow {
+    width: 34px !important;
+    height: 34px !important;
+  }
+
   /* =========================
      #1 THIS MONTH CARD
   ========================= */
@@ -396,7 +450,24 @@
     overflow-x: hidden;
   }
 
-  .ngoma-hero-slide {
+  .ngoma-hero-main {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 24px !important;
+  }
+
+  .ngoma-chart-hero-title {
+    font-size: clamp(46px, 7vw, 62px) !important;
+    line-height: 0.92 !important;
+    letter-spacing: -1.8px !important;
+    margin-block: 32px !important;
+  }
+
+  .ngoma-hero-showcase {
+    width: min(100%, 720px);
+    min-width: 0;
+  }
+
+  .ngoma-hero-card-content {
     gap: 14px !important;
     padding: 18px !important;
   }
