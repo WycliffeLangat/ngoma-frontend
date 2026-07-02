@@ -47,6 +47,14 @@ rankings. Published Top 50 rows use `51 - rank` public points for display,
 artists, certifications, analytics and history. The React app never repairs
 or recalculates backend chart scores.
 
+Regional charts are independently ranked from the complete pre-trim platform
+candidate pool. Eligibility (for example `KE`) is applied before ranking and
+before the public Top 50 cutoff; regional charts are never filtered from a
+platform or Combined Top 50. Regional artist charts likewise use all eligible
+regional release candidates before the singles and albums charts are trimmed.
+A regional chart contains fewer than 50 rows only when fewer than 50 eligible
+entries have source-platform activity.
+
 ## Configure the backend
 
 The backend API is required:

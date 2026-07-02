@@ -261,6 +261,7 @@ function rebuildPublicLookups(freshData) {
 const rawCombined = (ct, m) => normalizeRankedRows(FULL[ct].combined[m] || []);
 const rawPlatform = (ct, pl, m) => normalizeRankedRows((FULL[ct].platforms[pl] || {})[m] || []);
 const rawKenyanCombined = (ct, m) => normalizeRankedRows((FULL[ct].regions || {}).KE?.[m] || []);
+const rawKenyanArtists = (m) => normalizeRankedRows((FULL.artists?.regions || {}).KE?.[m] || []);
 const combinedEntryCache = new Map();
 const kenyanEntryCache = new Map();
 const platformEntryCache = new Map();
@@ -753,6 +754,71 @@ const aggregateArtistsForMonth = (monthLabel = CURRENT_MONTH, platform = "Combin
 const buildArtistChart = (monthLabel = CURRENT_MONTH, platform = "Combined") => {
   const cacheKey = `${platform}|${monthLabel}`;
   if (artistChartCache.has(cacheKey)) return artistChartCache.get(cacheKey);
+
+  if (platform === KENYAN_CHART) {
+    const backendRows = rawKenyanArtists(monthLabel);
+    if (backendRows.length) {
+      const result = backendRows.slice(0, 50).map((entry) => {
+        const artistName = entry.t || entry.title || entry.pa || "";
+        const artistProfile =
+          publicArtistForName(artistName) ||
+          entry.primary_artists?.[0] ||
+          {};
+        const country = getArtistCountry({
+          artist: artistName,
+          country: entry.co,
+          country_code: entry.cc,
+          primary_artists: entry.primary_artists,
+        });
+        const movementType = String(entry.movement || "").toLowerCase();
+        return {
+          rank: Number(entry.r ?? entry.rank),
+          title: artistName,
+          artist: "",
+          primary_artist: artistName,
+          featured_artists: "",
+          pts: Number(entry.p) || 0,
+          rawPts: Number(entry.rp) || 0,
+          points_source: "Full Kenyan singles + albums platform candidate pool",
+          plat: "",
+          prev: entry.prev_rank ?? null,
+          last_month: entry.last_month ?? entry.prev_rank ?? "—",
+          is_new: movementType === "new",
+          reentry: movementType === "re-entry" || movementType === "reentry",
+          movement: entry.movement,
+          peak_rank: entry.peak_rank,
+          weeks_on_chart: "—",
+          months_on_chart: "—",
+          platform_count: null,
+          platform_max: null,
+          release_year: null,
+          confidence: "",
+          country: country.country || country.listedCountry || "",
+          country_code: country.code || country.listedCode || "",
+          artist_country: country.country || country.listedCountry || "",
+          artist_country_code: country.code || country.listedCode || "",
+          entries_count: Number(entry.entries_count) || 0,
+          releases: [],
+          is_artist_entry: true,
+          type: "artist",
+          artist_profile: artistProfile,
+          image: getArtistImageUrl(
+            { ...artistProfile, title: artistName, artist_profile: artistProfile },
+            { name: artistName, artists: [artistProfile] }
+          ),
+          aliases: artistProfile.aliases || [],
+          city_region: artistProfile.city_region || "",
+          genre: artistProfile.genre || "",
+          biography: artistProfile.biography || "",
+          artist_type: artistProfile.artist_type || "",
+          verified: Boolean(artistProfile.verified),
+          social_links: artistProfile.social_links || {},
+        };
+      });
+      artistChartCache.set(cacheKey, result);
+      return result;
+    }
+  }
 
   const currentIndex = monthIndex(monthLabel);
   const historyMonths = currentIndex >= 0 ? MONTHS.slice(0, currentIndex + 1) : [];

@@ -109,3 +109,38 @@ test("platform artist chart combines that platform's supported singles and album
   assert.equal(byName.get("Bien"), 127);
   assert.equal(byName.get("Alikiba"), 31);
 });
+
+test("Kenyan Artist Chart ranks from all regional candidates, not regional release Top 50", () => {
+  const bienKe = { ...bien, country: "Kenya", country_code: "KE" };
+  const scarKe = { ...scar, country: "Kenya", country_code: "KE" };
+  const data = payload({
+    artists: {
+      regions: {
+        KE: {
+          [MONTH]: [
+            { r: 1, p: 50, rp: 500, t: "Scar", artist_id: 3, entries_count: 1, primary_artists: [scarKe] },
+            { r: 2, p: 49, rp: 100, t: "Bien", artist_id: 1, entries_count: 1, primary_artists: [bienKe] },
+          ],
+        },
+      },
+    },
+    singles: {
+      combined: { [MONTH]: [] },
+      platforms: {},
+      regions: {
+        KE: {
+          [MONTH]: [
+            { r: 1, p: 50, rp: 100, t: "Public Song", release_id: 30, primary_artists: [bienKe] },
+          ],
+        },
+      },
+    },
+    albums: { combined: { [MONTH]: [] }, platforms: {}, regions: {} },
+  });
+  data.artists = [bienKe, scarKe];
+
+  const chart = buildArtistMonthMirror(data, MONTH, "Kenyan");
+  assert.deepEqual(chart.map((row) => row.name), ["Scar", "Bien"]);
+  assert.equal(chart[0].points, 50);
+  assert.equal(chart[0].raw_points, 500);
+});

@@ -107,6 +107,24 @@ function artistImage(profile = {}) {
 
 export function buildArtistMonthMirror(payload, month, platform = "Combined") {
   const profiles = artistProfileMap(payload);
+  const regionalArtistRows = normalized(platform) === "kenyan"
+    ? rankedTop50(payload?.full?.artists?.regions?.KE?.[month])
+    : [];
+  if (regionalArtistRows.length) {
+    return regionalArtistRows.map((row) => {
+      const name = row.t || row.title || row.pa || "";
+      const profile = profiles.get(normalized(name)) || row.primary_artists?.[0] || {};
+      return {
+        name,
+        points: Number(row.p ?? row.pts) || 0,
+        raw_points: Number(row.rp ?? row.rawPts) || 0,
+        entries_count: Number(row.entries_count) || 0,
+        profile,
+        image: artistImage(profile),
+        rank: Number(row.r ?? row.rank),
+      };
+    });
+  }
   const artists = new Map();
   const kenyanOnly = normalized(platform) === "kenyan";
 
