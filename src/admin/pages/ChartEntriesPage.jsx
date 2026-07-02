@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { cmsApi, getResults } from "../api";
 import FormModal from "../components/FormModal";
 import { fetchAppData } from "../../api/public";
-import { buildArtistMonthMirror, publicChartRows } from "../../utils/publicChartMirror";
+import { buildArtistMonthMirror } from "../../utils/publicChartMirror";
 import { harmonizeChartData } from "../chartRankMaintenance";
 
 const MOVE_COLOR = { NEW: "#1565C0", up: "#1B7F3A", down: "#C62828", same: "#999" };
@@ -121,6 +121,26 @@ function splitArtistNames(value) {
 
 const COMBINED = "combined";
 
+function appendQuery(path, params = {}) {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") query.set(key, String(value));
+  });
+  const value = query.toString();
+  return value ? `${path}${path.includes("?") ? "&" : "?"}${value}` : path;
+}
+
+async function fetchAllCmsResults(path, pageSize = 500) {
+  const rows = [];
+  for (let page = 1; ; page += 1) {
+    const payload = await cmsApi.get(appendQuery(path, { page, page_size: pageSize }));
+    const results = getResults(payload);
+    rows.push(...results);
+    if (Array.isArray(payload) || !payload?.next || results.length === 0) break;
+  }
+  return rows;
+}
+
 export default function ChartEntriesPage({ user }) {
   const canEdit = Boolean(user?.permissions?.can_manage_data) && !user?.permissions?.read_only;
   const [allCharts, setAllCharts]       = useState([]);
@@ -223,13 +243,12 @@ export default function ChartEntriesPage({ user }) {
     return platform?.name || platform?.short_name || "";
   }, [platformId, platforms]);
   const availablePlatformNames = useMemo(() => {
+    if (chartType !== "artists") return null;
     if (!publicPayload) return null;
-    const source = chartType === "artists"
-      ? {
-          ...(publicPayload.full?.singles?.platforms || {}),
-          ...(publicPayload.full?.albums?.platforms || {}),
-        }
-      : (publicPayload.full?.[chartType]?.platforms || {});
+    const source = {
+      ...(publicPayload.full?.singles?.platforms || {}),
+      ...(publicPayload.full?.albums?.platforms || {}),
+    };
     return new Set(Object.keys(source).map(name => name.toLowerCase()));
   }, [publicPayload, chartType]);
   const visiblePlatforms = useMemo(() => platforms.filter((platform) => {
@@ -242,6 +261,7 @@ export default function ChartEntriesPage({ user }) {
   // month. Artist rows are derived from the public payload, so always start on
   // its latest available month instead of leaving the Artists tab empty.
   useEffect(() => {
+    if (chartType !== "artists") return;
     const publishedMonths = publicPayload?.months || [];
     if (!publishedMonths.length || publishedMonths.includes(selectedMonthLabel)) return;
     const latest = publishedMonths[publishedMonths.length - 1];
@@ -249,7 +269,7 @@ export default function ChartEntriesPage({ user }) {
     if (!Number.isNaN(parsed.getTime())) {
       setSelectedYM(`${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, "0")}`);
     }
-  }, [publicPayload, selectedMonthLabel]);
+  }, [chartType, publicPayload, selectedMonthLabel]);
 
   // Reset everything when chart type or month changes
   useEffect(() => {
@@ -266,31 +286,15 @@ export default function ChartEntriesPage({ user }) {
       setEntries([]); return;
     }
     setLoading(true); setError(""); setSelected(null);
-    if (publicPayload && selectedMonthLabel) {
-      const mirrored = publicChartRows(publicPayload, chartType, selectedMonthLabel, platformName)
-        .map((entry) => ({
-          ...entry,
-          release: entry.release_id,
-          rank: Number(entry.r ?? entry.rank),
-          total_points: Number(entry.p ?? entry.pts) || 0,
-          weeks_on_chart: entry.w ?? entry.weeks_on_chart,
-          peak_rank: entry.peak_rank ?? entry.pk ?? null,
-          prev_rank: entry.prev_rank ?? entry.prev ?? null,
-          title: entry.t || entry.title,
-          artist: entry.artist_credit || entry.a || entry.artist,
-          artist_display: entry.artist_credit || entry.a || entry.artist,
-          cover_image: entry.cover_image || "",
-        }));
-      setEntries(mirrored);
-      setLoading(false);
-      return;
-    }
     const platformParam = platformId === COMBINED ? "combined" : platformId;
-    cmsApi.get(`/chart-entries/?chart=${chartId}&platform=${platformParam}&ordering=rank&page_size=500`)
-      .then(d => setEntries(getResults(d)))
+    const endpoint = platformId === "kenyan"
+      ? `/regional-chart-entries/?chart=${chartId}&region=KE&ordering=rank`
+      : `/chart-entries/?chart=${chartId}&platform=${platformParam}&ordering=rank`;
+    fetchAllCmsResults(endpoint)
+      .then(setEntries)
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
-  }, [chartType, chartId, platformId, platformName, publicPayload, selectedMonthLabel]);
+  }, [chartType, chartId, platformId]);
 
   // Mirror the public monthly Artist Top 50 from singles + albums platform rows.
   useEffect(() => {
@@ -347,7 +351,7 @@ export default function ChartEntriesPage({ user }) {
   }
 
   async function save() {
-    if (!selected || saving) return;
+    if (!selected || saving || platformId === "kenyan") return;
     setSaving(true); setError("");
     try {
       const payload = {
@@ -366,8 +370,13 @@ export default function ChartEntriesPage({ user }) {
         updated.cover_image = updatedRelease?.cover_image || imagePreview;
       }
 
-      const fresh = await fetchAppData();
-      setPublicPayload(fresh);
+      const platformParam = platformId === COMBINED ? "combined" : platformId;
+      const endpoint = platformId === "kenyan"
+        ? `/regional-chart-entries/?chart=${chartId}&region=KE&ordering=rank`
+        : `/chart-entries/?chart=${chartId}&platform=${platformParam}&ordering=rank`;
+      setEntries(await fetchAllCmsResults(endpoint));
+      const fresh = await fetchAppData().catch(() => null);
+      if (fresh) setPublicPayload(fresh);
       setSelected(null);
       setImageFile(null);
     } catch (e) { setError(e.message); }
@@ -379,8 +388,11 @@ export default function ChartEntriesPage({ user }) {
     setRecalcBusy(true); setError("");
     try {
       const result = await harmonizeChartData({ chartIds: [Number(chartId)] });
-      const fresh = await fetchAppData();
-      setPublicPayload(fresh);
+      const platformParam = platformId === COMBINED ? "combined" : platformId;
+      const endpoint = `/chart-entries/?chart=${chartId}&platform=${platformParam}&ordering=rank`;
+      setEntries(await fetchAllCmsResults(endpoint));
+      const fresh = await fetchAppData().catch(() => null);
+      if (fresh) setPublicPayload(fresh);
       setSelected(null);
       if (!result.rank_changes && !result.history_changes && !result.certifications_changed) {
         setError("Chart history is already fully harmonized — no changes made.");
@@ -664,6 +676,7 @@ export default function ChartEntriesPage({ user }) {
     platformId === COMBINED ? { name: "Combined", color: "#B8860B" } :
     platformId === "kenyan" ? { name: "Kenyan", color: "#006600" } :
     platforms.find(p => String(p.id) === String(platformId));
+  const isRegionalScope = platformId === "kenyan";
 
   const panelLabel = (label) => (
     <span style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", color: "#5e625c", display: "block", marginBottom: 5 }}>
@@ -1047,8 +1060,8 @@ export default function ChartEntriesPage({ user }) {
                           type="button"
                           title="Click to upload a new cover image"
                           onClick={() => canEdit && imgInputRef.current?.click()}
-                          disabled={!canEdit}
-                          style={{ width: 70, height: 70, borderRadius: 12, overflow: "hidden", border: "2px dashed #E8E1D2", background: "#faf8f2", cursor: "pointer", padding: 0, flexShrink: 0 }}
+                          disabled={!canEdit || isRegionalScope}
+                          style={{ width: 70, height: 70, borderRadius: 12, overflow: "hidden", border: "2px dashed #E8E1D2", background: "#faf8f2", cursor: isRegionalScope ? "default" : "pointer", padding: 0, flexShrink: 0 }}
                         >
                           {(imagePreview || selected.cover_image)
                             ? <img src={imagePreview || selected.cover_image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
@@ -1058,7 +1071,7 @@ export default function ChartEntriesPage({ user }) {
                         <div style={{ fontSize: 12, color: "#888", lineHeight: 1.5 }}>
                           {imageFile
                             ? <span style={{ color: "#1B7F3A", fontWeight: 700 }}>✓ {imageFile.name}</span>
-                            : "Click thumbnail to replace"
+                            : isRegionalScope ? "Edit release metadata from the button above" : "Click thumbnail to replace"
                           }
                         </div>
                         <input
@@ -1078,19 +1091,23 @@ export default function ChartEntriesPage({ user }) {
                         <input
                           type={type}
                           value={form[key] ?? ""}
-                          disabled={isLocked || calculated}
+                          disabled={isLocked || calculated || isRegionalScope}
                           onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
-                          style={{ border: "1px solid #E8E1D2", borderRadius: 10, padding: "8px 11px", font: "inherit", fontSize: 14, outline: "none", background: isLocked || calculated ? "#faf8f2" : "#fff" }}
+                          style={{ border: "1px solid #E8E1D2", borderRadius: 10, padding: "8px 11px", font: "inherit", fontSize: 14, outline: "none", background: isLocked || calculated || isRegionalScope ? "#faf8f2" : "#fff" }}
                         />
                       </label>
                     ))}
 
                     <div className="cms-alert info" style={{ marginBottom: 14, fontSize: 12 }}>
-                      Rank, movement, last month, and peak are recalculated from the complete chart history whenever this entry is saved.
+                      {isRegionalScope
+                        ? "Regional chart rows are derived from the complete source pool. Edit release or artist metadata directly; ranks update during harmonization."
+                        : "Rank, movement, last month, and peak are recalculated from the complete chart history whenever this entry is saved."}
                     </div>
 
                     {!canEdit
                       ? <div className="cms-alert info" style={{ marginTop: 8, fontSize: 12 }}>Your role can review this entry but cannot change it.</div>
+                      : isRegionalScope
+                      ? <div className="cms-alert info" style={{ marginTop: 8, fontSize: 12 }}>Use the release and artist edit buttons for regional chart metadata.</div>
                       : isLocked
                       ? <div className="cms-alert" style={{ marginTop: 8, fontSize: 12 }}>This chart is locked. Unlock it first to make changes.</div>
                       : (
