@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getArtistImageUrl } from "../utils/artistImages.js";
+import { sameRelease } from "../utils/chartHelpers.js";
 import { API_BASE, resolveMediaUrl } from "../api/config.js";
 
 // Module-level cache: artist name (lowercase) → resolved image URL (or "" if none found).
@@ -1060,9 +1061,16 @@ export default function PremiumChartsPage({
             const cardSub     = isArtist
               ? [artProfile?.genre || item.genre, artProfile?.city_region || item.city_region].filter(Boolean).join(" · ")
               : (item.primary_artist || item.artist_display || item.artist || item.a || "");
-            // Accumulated points (summed across platforms/credits), not the
-            // 1-50 rank-based display score used in the table rows.
-            const pts         = Number(item.rawPts ?? item.raw_total_points ?? item.rp ?? item.total_points ?? item.pts ?? 0);
+            // Always the Combined Top 50 score for this release, even when
+            // the active tab is a single platform or a region — not that
+            // scope's own (usually much smaller) points.
+            const combinedEntry = !isArtist
+              ? (getCombined(ct, month) || []).find((entry) => sameRelease(entry, item))
+              : null;
+            const pts = Number(
+              combinedEntry?.total_points ?? combinedEntry?.pts
+              ?? item.total_points ?? item.pts ?? 0
+            );
             const rank        = Number(item.rank || item.r || slideIdx + 1);
             const mvmt        = movement(item);
             const mvStyle     = movementStyle(item);
