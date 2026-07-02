@@ -1061,16 +1061,15 @@ export default function PremiumChartsPage({
             const cardSub     = isArtist
               ? [artProfile?.genre || item.genre, artProfile?.city_region || item.city_region].filter(Boolean).join(" · ")
               : (item.primary_artist || item.artist_display || item.artist || item.a || "");
-            // Always the Combined Top 50 score for this release, even when
-            // the active tab is a single platform or a region — not that
-            // scope's own (usually much smaller) points.
-            const combinedEntry = !isArtist
-              ? (getCombined(ct, month) || []).find((entry) => sameRelease(entry, item))
-              : null;
-            const pts = Number(
-              combinedEntry?.total_points ?? combinedEntry?.pts
-              ?? item.total_points ?? item.pts ?? 0
-            );
+            // All-time Combined Top 50 points: sum this release's Combined
+            // score across every month it has charted, not just the active
+            // tab's scope or the current month alone.
+            const pts = !isArtist
+              ? MONTHS.reduce((sum, m) => {
+                  const entry = (getCombined(ct, m) || []).find((e) => sameRelease(e, item));
+                  return sum + Number(entry?.total_points ?? entry?.pts ?? 0);
+                }, 0)
+              : Number(item.total_points ?? item.pts ?? 0);
             const rank        = Number(item.rank || item.r || slideIdx + 1);
             const mvmt        = movement(item);
             const mvStyle     = movementStyle(item);
