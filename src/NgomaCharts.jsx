@@ -30,7 +30,6 @@ import {
   Pie,
   CartesianGrid,
 } from "recharts";
-import { buildRegionalCombinedRows } from "./data/regionalCombinedChart";
 import PremiumChartsPage, { getArtistCountry } from "./components/PremiumChartsPage";
 
 // Persists cover images fetched from the live API so the Kenyan chart
@@ -261,8 +260,8 @@ function rebuildPublicLookups(freshData) {
 
 const rawCombined = (ct, m) => normalizeRankedRows(FULL[ct].combined[m] || []);
 const rawPlatform = (ct, pl, m) => normalizeRankedRows((FULL[ct].platforms[pl] || {})[m] || []);
+const rawKenyanCombined = (ct, m) => normalizeRankedRows((FULL[ct].regions || {}).KE?.[m] || []);
 const combinedEntryCache = new Map();
-const kenyanRawCache = new Map();
 const kenyanEntryCache = new Map();
 const platformEntryCache = new Map();
 
@@ -458,32 +457,6 @@ const getCombined = (ct, m) => {
     );
   }
   return combinedEntryCache.get(cacheKey);
-};
-
-const rawKenyanCombined = (ct, m) => {
-  const cacheKey = `${ct}|${m}`;
-  if (!kenyanRawCache.has(cacheKey)) {
-    kenyanRawCache.set(cacheKey, buildRegionalCombinedRows({
-      full: FULL,
-      chartType: ct,
-      month: m,
-      countryCode: "KE",
-      countryName: "Kenya",
-      resolveCountry: (entry) => {
-        const country = getArtistCountry({
-          country: entry.co,
-          country_code: entry.cc,
-          primary_artist: entry.a,
-          artist: entry.a,
-        });
-        return {
-          country: country.listedCountry,
-          code: country.listedCode,
-        };
-      },
-    }));
-  }
-  return kenyanRawCache.get(cacheKey);
 };
 
 const getKenyanCombined = (ct, m) => {

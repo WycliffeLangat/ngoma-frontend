@@ -1,5 +1,4 @@
 import { resolveMediaUrl } from "../api/config.js";
-import { buildRegionalCombinedRows } from "../data/regionalCombinedChart.js";
 
 const normalized = (value) => String(value || "").trim().toLowerCase();
 
@@ -59,21 +58,7 @@ export function publicChartRows(payload, type, month, platform = "Combined") {
     return rankedTop50(payload?.full?.[type]?.combined?.[month]);
   }
   if (normalized(platform) === "kenyan") {
-    return buildRegionalCombinedRows({
-      full: payload?.full,
-      chartType: type,
-      month,
-      countryCode: "KE",
-      countryName: "Kenya",
-      resolveCountry: (entry) => {
-        const profile = entry.primary_artists?.[0] || entry.artist_profile || {};
-        const hasManagedProfile = Boolean(profile && Object.keys(profile).length);
-        return {
-          country: hasManagedProfile ? profile.country : (entry.co || entry.country),
-          code: hasManagedProfile ? profile.country_code : (entry.cc || entry.country_code),
-        };
-      },
-    });
+    return rankedTop50(payload?.full?.[type]?.regions?.KE?.[month]);
   }
   return platformRows(payload?.full, type, platform, month);
 }
