@@ -1060,7 +1060,9 @@ export default function PremiumChartsPage({
             const cardSub     = isArtist
               ? [artProfile?.genre || item.genre, artProfile?.city_region || item.city_region].filter(Boolean).join(" · ")
               : (item.primary_artist || item.artist_display || item.artist || item.a || "");
-            const pts         = Number(item.total_points || item.pts || 0);
+            // Accumulated points (summed across platforms/credits), not the
+            // 1-50 rank-based display score used in the table rows.
+            const pts         = Number(item.rawPts ?? item.raw_total_points ?? item.rp ?? item.total_points ?? item.pts ?? 0);
             const rank        = Number(item.rank || item.r || slideIdx + 1);
             const mvmt        = movement(item);
             const mvStyle     = movementStyle(item);

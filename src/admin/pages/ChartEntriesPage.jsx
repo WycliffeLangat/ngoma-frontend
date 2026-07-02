@@ -3,7 +3,6 @@ import { cmsApi, getResults } from "../api";
 import FormModal from "../components/FormModal";
 import { fetchAppData } from "../../api/public";
 import { buildArtistMonthMirror } from "../../utils/publicChartMirror";
-import { harmonizeChartData } from "../chartRankMaintenance";
 
 const MOVE_COLOR = { NEW: "#1565C0", up: "#1B7F3A", down: "#C62828", same: "#999" };
 
@@ -156,7 +155,6 @@ export default function ChartEntriesPage({ user }) {
   const [saving, setSaving]             = useState(false);
   const [imageFile, setImageFile]       = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
-  const [recalcBusy, setRecalcBusy]     = useState(false);
   const [publicPayload, setPublicPayload] = useState(null);
   const [publicLoading, setPublicLoading] = useState(true);
   const [publicError, setPublicError] = useState("");
@@ -229,7 +227,6 @@ export default function ChartEntriesPage({ user }) {
   }, [allCharts, selectedYM, chartType]);
 
   const chartId  = currentChart ? String(currentChart.id) : "";
-  const isLocked = !!currentChart?.locked;
   const selectedMonthLabel = useMemo(() => {
     const [year, month] = selectedYM.split("-").map(Number);
     return year && month
@@ -381,24 +378,6 @@ export default function ChartEntriesPage({ user }) {
       setImageFile(null);
     } catch (e) { setError(e.message); }
     finally { setSaving(false); }
-  }
-
-  async function reRankCurrentChart() {
-    if (!chartId || recalcBusy || isLocked) return;
-    setRecalcBusy(true); setError("");
-    try {
-      const result = await harmonizeChartData({ chartIds: [Number(chartId)] });
-      const platformParam = platformId === COMBINED ? "combined" : platformId;
-      const endpoint = `/chart-entries/?chart=${chartId}&platform=${platformParam}&ordering=rank`;
-      setEntries(await fetchAllCmsResults(endpoint));
-      const fresh = await fetchAppData().catch(() => null);
-      if (fresh) setPublicPayload(fresh);
-      setSelected(null);
-      if (!result.rank_changes && !result.history_changes && !result.certifications_changed) {
-        setError("Chart history is already fully harmonized — no changes made.");
-      }
-    } catch(e) { setError(e.message); }
-    finally { setRecalcBusy(false); }
   }
 
   // ── Inline release edit ────────────────────────────────────────────────────
@@ -761,25 +740,6 @@ export default function ChartEntriesPage({ user }) {
           </span>
         )}
 
-        {isLocked && (
-          <span style={{ fontSize: 12, color: "#C62828", fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}>
-            🔒 Locked — read only
-          </span>
-        )}
-
-        {canEdit && chartType !== "artists" && chartId && platformId !== "kenyan" && !isLocked && (
-          <button
-            type="button"
-            className="cms-btn light"
-            style={{ fontSize: 12 }}
-            disabled={recalcBusy}
-            onClick={reRankCurrentChart}
-            title="Recalculate ranks, movement, last month, peaks, certifications, analytics, and year-end data across every month"
-          >
-            {recalcBusy ? "Harmonizing…" : "↻ Harmonize all months"}
-          </button>
-        )}
-
         {canEdit && chartType === "artists" && artistRankings.length > 0 && (
           <span style={{ fontSize: 12, color: "#888" }}>
             {artistRankings.length} artists · {platformName.toLowerCase()} · singles + albums
@@ -1091,9 +1051,9 @@ export default function ChartEntriesPage({ user }) {
                         <input
                           type={type}
                           value={form[key] ?? ""}
-                          disabled={isLocked || calculated || isRegionalScope}
+                          disabled={calculated || isRegionalScope}
                           onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
-                          style={{ border: "1px solid #E8E1D2", borderRadius: 10, padding: "8px 11px", font: "inherit", fontSize: 14, outline: "none", background: isLocked || calculated || isRegionalScope ? "#faf8f2" : "#fff" }}
+                          style={{ border: "1px solid #E8E1D2", borderRadius: 10, padding: "8px 11px", font: "inherit", fontSize: 14, outline: "none", background: calculated || isRegionalScope ? "#faf8f2" : "#fff" }}
                         />
                       </label>
                     ))}
@@ -1108,8 +1068,6 @@ export default function ChartEntriesPage({ user }) {
                       ? <div className="cms-alert info" style={{ marginTop: 8, fontSize: 12 }}>Your role can review this entry but cannot change it.</div>
                       : isRegionalScope
                       ? <div className="cms-alert info" style={{ marginTop: 8, fontSize: 12 }}>Use the release and artist edit buttons for regional chart metadata.</div>
-                      : isLocked
-                      ? <div className="cms-alert" style={{ marginTop: 8, fontSize: 12 }}>This chart is locked. Unlock it first to make changes.</div>
                       : (
                         <button className="cms-btn full" disabled={saving} onClick={save} style={{ marginTop: 6 }}>
                           {saving ? "Saving…" : "Save chart entry"}

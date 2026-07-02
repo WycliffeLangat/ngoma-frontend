@@ -91,7 +91,7 @@ const configs = {
   countries: { title: "Countries", endpoint: "/countries/", columns: [{key:"name",label:"Country"},{key:"code",label:"Code"},{key:"region",label:"Region"},{key:"active",label:"Active"}], form: [{name:"name",label:"Country"},{name:"code",label:"Code"},{name:"region",label:"Region"},{name:"flag",label:"Flag/Initial"},{name:"display_order",label:"Order",type:"number"},{name:"active",label:"Active",type:"checkbox"}] },
   platforms: { title: "Platforms", endpoint: "/platforms/", columns: [{key:"name",label:"Platform"},{key:"short_name",label:"Short"},{key:"color",label:"Color"},{key:"max_chart_size",label:"Max"},{key:"active",label:"Active"}], form: [{name:"name",label:"Name"},{name:"slug",label:"Slug"},{name:"short_name",label:"Short name"},{name:"color",label:"Color"},{name:"brand_color",label:"Brand color"},{name:"chart_size",label:"Source chart size",type:"number"},{name:"max_chart_size",label:"Max chart size",type:"number"},{name:"points_base",label:"Points base",type:"number"},{name:"points_method",label:"Points method"},{name:"supports_singles",label:"Supports singles",type:"checkbox"},{name:"supports_albums",label:"Supports albums",type:"checkbox"},{name:"display_order",label:"Display order",type:"number"},{name:"active",label:"Active",type:"checkbox"}] },
   news: { title: "News CMS", endpoint: "/news/", imageField: "cover_image", columns: [{key:"title",label:"Headline"},{key:"category",label:"Category"},{key:"author",label:"Author"},{key:"status",label:"Status"},{key:"updated_at",label:"Updated",render:(r)=>new Date(r.updated_at).toLocaleDateString()}], form: [{name:"cover_image",label:"Cover image",type:"file",help:"Article hero image. JPEG or PNG, max 5 MB."},{name:"title",label:"Headline"},{name:"slug",label:"Slug"},{name:"subheadline",label:"Subheadline"},{name:"category",label:"Category",type:"select",options:["chart_news","milestones","new_releases","industry_news","artist_news","awards","certifications","records","interviews","editorials","artist_spotlight","albums","analytics","announcement"].map(v=>({value:v,label:v.replace(/_/g," ")}))},{name:"author",label:"Author"},{name:"excerpt",label:"Excerpt",type:"textarea"},{name:"body",label:"Body",type:"textarea"},{name:"gallery",label:"Gallery JSON",type:"json"},{name:"tags",label:"Tags JSON",type:"json"},{name:"source_links",label:"Source links JSON",type:"json"},{name:"seo_title",label:"SEO title"},{name:"seo_description",label:"SEO description",type:"textarea"},{name:"featured",label:"Featured",type:"checkbox"},{name:"pinned",label:"Pinned",type:"checkbox"},{name:"breaking",label:"Breaking",type:"checkbox"},{name:"is_published",label:"Published",type:"checkbox"},{name:"status",label:"Status"}] },
-  charts: { title: "Chart Periods", endpoint: "/charts/", columns: [{key:"label",label:"Month"},{key:"chart_type",label:"Type"},{key:"combined_entries_count",label:"Combined entries"},{key:"status",label:"Status"},{key:"locked",label:"History locked"}], form: [{name:"year",label:"Year",type:"number",help:"Four-digit chart year, for example 2026."},{name:"month",label:"Month number",type:"number",help:"Use 1 for January through 12 for December."},{name:"chart_type",label:"Chart type",type:"select",options:[{value:"singles",label:"Singles"},{value:"albums",label:"Albums"}]},{name:"status",label:"Review status",type:"select",options:CHART_STATUS_OPTIONS,help:"Publishing is a separate, protected action after entries are reviewed."}] },
+  charts: { title: "Chart Periods", endpoint: "/charts/", columns: [{key:"label",label:"Month"},{key:"chart_type",label:"Type"},{key:"combined_entries_count",label:"Combined entries"},{key:"status",label:"Status"}], form: [{name:"year",label:"Year",type:"number",help:"Four-digit chart year, for example 2026."},{name:"month",label:"Month number",type:"number",help:"Use 1 for January through 12 for December."},{name:"chart_type",label:"Chart type",type:"select",options:[{value:"singles",label:"Singles"},{value:"albums",label:"Albums"}]},{name:"status",label:"Review status",type:"select",options:CHART_STATUS_OPTIONS,help:"Publishing is a separate, protected action after entries are reviewed."}] },
   certifications: { title: "Certifications", endpoint: "/certifications/", columns: [{key:"title",label:"Release"},{key:"artist",label:"Artist"},{key:"level",label:"Level"},{key:"total_points",label:"Points"},{key:"is_official",label:"Official"}], form: [{name:"release",label:"Release ID",type:"number"},{name:"level",label:"Level",type:"select",options:[{value:"gold",label:"Gold"},{value:"platinum",label:"Platinum"},{value:"diamond",label:"Diamond"}]},{name:"total_points",label:"Points",type:"number"},{name:"is_official",label:"Official",type:"checkbox"},{name:"is_hidden",label:"Hidden from app",type:"checkbox"},{name:"certification_date",label:"Certification date",type:"date"},{name:"previous_level",label:"Previous level"},{name:"notes",label:"Notes",type:"textarea"}] },
   "certification-rules": { title: "Certification Rules", endpoint: "/certification-rules/", columns: [{key:"label",label:"Level"},{key:"threshold",label:"Points threshold"},{key:"active",label:"Active"},{key:"updated_at",label:"Updated",render:(r)=>new Date(r.updated_at).toLocaleDateString()}], form: [{name:"level",label:"Level",type:"select",options:[{value:"gold",label:"Gold"},{value:"platinum",label:"Platinum"},{value:"diamond",label:"Diamond"}]},{name:"threshold",label:"Points threshold",type:"number"},{name:"active",label:"Active",type:"checkbox"}] },
   methodology: { title: "Methodology", endpoint: "/methodology/", columns: [{key:"version",label:"Version"},{key:"name",label:"Name"},{key:"is_active",label:"Active"},{key:"created_at",label:"Created",render:(r)=>new Date(r.created_at).toLocaleDateString()}], form: [{name:"version",label:"Version"},{name:"name",label:"Name"},{name:"config",label:"Methodology JSON",type:"json"},{name:"is_active",label:"Active",type:"checkbox"}] },
@@ -744,9 +744,8 @@ export default function ResourcePage({ type, searchJump, user }) {
   async function runChartAction(row, actionName) {
     if (!canPublish || actionBusy) return;
     const labels = {
-      publish: "publish and lock this chart",
+      publish: "publish this chart",
       unpublish: "remove this chart from the public site and return it to draft",
-      unlock: "unlock this chart for correction",
     };
     if (!window.confirm(`Are you sure you want to ${labels[actionName]}?`)) return;
     setActionBusy(true);
@@ -755,10 +754,8 @@ export default function ResourcePage({ type, searchJump, user }) {
       await cmsApi.post(`/charts/${row.id}/${actionName}/`, {});
       showFlash(
         actionName === "publish"
-          ? `${row.label} published and locked.`
-          : actionName === "unpublish"
-            ? `${row.label} returned to draft.`
-            : `${row.label} unlocked for correction.`
+          ? `${row.label} published.`
+          : `${row.label} returned to draft.`
       );
       await load();
     } catch (actionError) {
@@ -787,14 +784,6 @@ export default function ResourcePage({ type, searchJump, user }) {
             disabled={actionBusy}
             onClick={() => runChartAction(row, "publish")}
           >Publish</button>
-        )}
-        {row.locked && (
-          <button
-            className="cms-btn light"
-            style={{ fontSize: 11, padding: "2px 9px" }}
-            disabled={actionBusy}
-            onClick={() => runChartAction(row, "unlock")}
-          >Unlock</button>
         )}
       </span>
     ),
@@ -1094,7 +1083,7 @@ export default function ResourcePage({ type, searchJump, user }) {
                   {isRelease ? r.title : isArtist ? (r.display_name || r.name) : String(r[config.columns[0]?.key] || "Detail")}
                 </h3>
                 <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                  {canEdit && !r.locked && (
+                  {canEdit && (
                     <button className="cms-btn light" style={{ fontSize: 12, padding: "4px 12px" }}
                       onClick={() => { setDetailRow(null); setEditing(r); setModal(true); }}>
                       Edit
