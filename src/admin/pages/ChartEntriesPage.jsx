@@ -16,7 +16,11 @@ function movement(entry) {
 
 const FIELD_DEFS = [
   { key: "rank",             label: "Rank (calculated)", type: "number", calculated: true },
-  { key: "total_points",     label: "Total points",     type: "number" },
+  // Points here are the raw, summed score (what actually ranks the chart).
+  // The 1-50 Top 50 display score (total_points = 51-rank) only exists for
+  // the public app's Combined chart rankings — it's derived by harmonize
+  // from rank, not something to edit here.
+  { key: "raw_total_points", label: "Points",           type: "number" },
   { key: "weeks_on_chart",   label: "Weeks on chart",   type: "number" },
   { key: "peak_rank",        label: "Peak rank (calculated)", type: "number", calculated: true },
   { key: "prev_rank",        label: "Last month (calculated)", type: "number", calculated: true },
@@ -326,7 +330,7 @@ export default function ChartEntriesPage({ user }) {
     setSelected(entry);
     setForm({
       rank:             entry.rank,
-      total_points:     entry.total_points,
+      raw_total_points: entry.raw_total_points,
       weeks_on_chart:   entry.weeks_on_chart,
       peak_rank:        entry.peak_rank,
       prev_rank:        entry.prev_rank ?? "",
@@ -352,7 +356,7 @@ export default function ChartEntriesPage({ user }) {
     setSaving(true); setError("");
     try {
       const payload = {
-        total_points:     Number(form.total_points),
+        raw_total_points: Number(form.raw_total_points),
         weeks_on_chart:   Number(form.weeks_on_chart),
         featured_artists: form.featured_artists,
         confidence:       form.confidence,
@@ -949,7 +953,7 @@ export default function ChartEntriesPage({ user }) {
                             <div style={{ fontWeight: 700, fontSize: 13, lineHeight: 1.3 }}>{entry.title}</div>
                             <div style={{ fontSize: 11, color: "#888", marginTop: 1 }}>{entry.artist_display || entry.artist}</div>
                           </td>
-                          <td style={{ fontSize: 13, fontWeight: 600 }}>{(entry.total_points || 0).toLocaleString()}</td>
+                          <td style={{ fontSize: 13, fontWeight: 600 }}>{(entry.raw_total_points || 0).toLocaleString()}</td>
                           <td style={{ fontSize: 13, color: "#666" }}>{entry.weeks_on_chart ?? "—"}</td>
                           <td style={{ fontSize: 13, color: "#666" }}>{entry.peak_rank ?? "—"}</td>
                           <td>
