@@ -152,6 +152,7 @@ export default function ResourcePage({ type, searchJump, user }) {
   const [selectedIds, setSelectedIds] = useState(() => new Set());
   const [bulkDeleteTargets, setBulkDeleteTargets] = useState([]);
   const [bulkMergeTarget, setBulkMergeTarget] = useState(null);
+  const [bulkEditTarget, setBulkEditTarget] = useState(null);
   const [dupGroups, setDupGroups] = useState(null);
   const [actionBusy, setActionBusy] = useState(false);
   const [detailRow, setDetailRow] = useState(null);
@@ -238,6 +239,7 @@ export default function ResourcePage({ type, searchJump, user }) {
     setSelectedIds(new Set());
     setBulkDeleteTargets([]);
     setBulkMergeTarget(null);
+    setBulkEditTarget(null);
   }, [type]);
   // Reset to page 1 whenever filters/search change
   useEffect(() => { setPage(1); }, [search, statusFilter, ordering, alphaFilter]);
@@ -675,6 +677,72 @@ export default function ResourcePage({ type, searchJump, user }) {
     }
   }
 
+  // Bulk artist country edit — same PATCH + release cascade as the single-artist
+  // edit in save(), just looped over every selected artist.
+  async function bulkEditCountry() {
+    if (!bulkEditTarget || actionBusy) return;
+    const country = bulkEditTarget.country.trim();
+    const countryCode = bulkEditTarget.country_code.trim().toUpperCase();
+    if (!country && !countryCode) return;
+    const updates = {};
+    if (country) updates.country = country;
+    if (countryCode) updates.country_code = countryCode;
+
+    setActionBusy(true);
+    setError("");
+    const targets = bulkEditTarget.rows;
+    const updated = [];
+    const failures = [];
+    try {
+      for (const artist of targets) {
+        try {
+          await cmsApi.patch(`${config.endpoint}${artist.id}/`, updates);
+          updated.push(artist);
+        } catch (updateError) {
+          failures.push({ target: artist, error: updateError });
+        }
+      }
+      if (!updated.length) throw failures[0]?.error || new Error("No records were updated.");
+
+      let cascadedReleases = 0;
+      if (countryCode) {
+        const releaseUpdates = { country_code: countryCode };
+        if (country) releaseUpdates.country = country;
+        for (const artist of updated) {
+          const oldCode = (artist.country_code || "").trim().toUpperCase();
+          if (oldCode === countryCode) continue;
+          try {
+            const relData = await cmsApi.get(`/releases/?primary_artist=${artist.id}&page_size=500`);
+            const releases = getResults(relData);
+            if (releases.length) {
+              await Promise.allSettled(releases.map(r => cmsApi.patch(`/releases/${r.id}/`, releaseUpdates)));
+              cascadedReleases += releases.length;
+            }
+          } catch { /* best-effort cascade, same as single-artist edit */ }
+        }
+      }
+
+      clearCmsCache();
+      setBulkEditTarget(null);
+      setSelectedIds(new Set(failures.map(({ target }) => target.id)));
+      showFlash(
+        `Updated ${updated.length} artist${updated.length === 1 ? "" : "s"}.` +
+        (cascadedReleases ? ` Country cascaded to ${cascadedReleases} release${cascadedReleases === 1 ? "" : "s"}.` : "")
+      );
+      await load();
+      if (failures.length) {
+        setError(
+          `${failures.length} record${failures.length === 1 ? "" : "s"} could not be updated: ` +
+          failures.map(({ target, error: failure }) => `${recordLabel(target)} (${failure.message})`).join(" · ")
+        );
+      }
+    } catch (updateError) {
+      setError(updateError.message);
+    } finally {
+      setActionBusy(false);
+    }
+  }
+
   async function loadDuplicates() {
     setDupGroups([]);
     try {
@@ -891,6 +959,15 @@ export default function ResourcePage({ type, searchJump, user }) {
           <strong>{selectedRows.length} selected</strong>
           <span>Select at least two records to merge them into one keeper.</span>
           <div>
+            {isArtist && (
+              <button
+                className="cms-btn light small"
+                disabled={actionBusy}
+                onClick={() => setBulkEditTarget({ rows: [...selectedRows], country: "", country_code: "" })}
+              >
+                Bulk edit country
+              </button>
+            )}
             <button
               className="cms-btn light small"
               disabled={selectedRows.length < 2 || actionBusy}
@@ -1309,6 +1386,61 @@ export default function ResourcePage({ type, searchJump, user }) {
               <button className="cms-btn light" onClick={() => setBulkMergeTarget(null)} disabled={actionBusy}>Cancel</button>
               <button className="cms-btn" onClick={mergeSelected} disabled={!bulkMergeTarget.keeperId || actionBusy}>
                 {actionBusy ? "Merging…" : `Merge ${bulkMergeTarget.rows.length - 1} into keeper`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {bulkEditTarget && (
+        <div className="cms-modal-backdrop" onClick={() => !actionBusy && setBulkEditTarget(null)}>
+          <div className="cms-modal" onClick={(event) => event.stopPropagation()} style={{ maxWidth: 520 }}>
+            <div className="cms-modal-head">
+              <h3>Bulk edit {bulkEditTarget.rows.length} artists</h3>
+              <button type="button" onClick={() => setBulkEditTarget(null)} disabled={actionBusy}>×</button>
+            </div>
+            <p style={{ fontSize: 13, color: "#666", margin: "10px 0" }}>
+              Set the country for every selected artist. Leave a field blank to leave it unchanged.
+              This also cascades the country to each artist's releases, exactly like a single artist edit does.
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, margin: "10px 0 14px" }}>
+              <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 12, color: "#666" }}>
+                <span>Country</span>
+                <input
+                  className="cms-search"
+                  placeholder="e.g. Uganda"
+                  value={bulkEditTarget.country}
+                  disabled={actionBusy}
+                  onChange={(e) => setBulkEditTarget((current) => ({ ...current, country: e.target.value }))}
+                />
+              </label>
+              <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 12, color: "#666" }}>
+                <span>Country code</span>
+                <input
+                  className="cms-search"
+                  placeholder="e.g. UG"
+                  value={bulkEditTarget.country_code}
+                  disabled={actionBusy}
+                  onChange={(e) => setBulkEditTarget((current) => ({ ...current, country_code: e.target.value }))}
+                />
+              </label>
+            </div>
+            <div className="cms-bulk-record-list">
+              {bulkEditTarget.rows.map((row) => (
+                <div key={row.id}>
+                  <strong>{recordLabel(row)}</strong>
+                  <span>{row.country || row.country_code || "No country set"} · id {row.id}</span>
+                </div>
+              ))}
+            </div>
+            <div className="cms-actions right" style={{ marginTop: 14 }}>
+              <button className="cms-btn light" onClick={() => setBulkEditTarget(null)} disabled={actionBusy}>Cancel</button>
+              <button
+                className="cms-btn"
+                onClick={bulkEditCountry}
+                disabled={actionBusy || (!bulkEditTarget.country.trim() && !bulkEditTarget.country_code.trim())}
+              >
+                {actionBusy ? "Updating…" : `Update ${bulkEditTarget.rows.length} artist${bulkEditTarget.rows.length === 1 ? "" : "s"}`}
               </button>
             </div>
           </div>
