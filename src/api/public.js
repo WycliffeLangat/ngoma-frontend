@@ -11,37 +11,78 @@ function withCacheBust(path) {
   return `${path}${separator}_=${Date.now()}`;
 }
 
+const RETRY_DELAYS_MS = [300, 900]; // two retries for transient network blips
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isNetworkFailure(error) {
+  return error instanceof TypeError;
+}
+
+// In-flight de-duplication: several CMS pages independently call
+// fetchAppData()/etc. on mount around the same time. Sharing one promise per
+// path avoids firing duplicate large requests without caching (staleness-free).
+const _inFlight = new Map(); // path (without signal) → Promise
+
 async function publicRequest(path, options = {}) {
   if (!API_CONFIGURED) {
     throw new Error("VITE_API_BASE is not configured.");
   }
-  const timeoutMs = typeof options.timeoutMs === "number" ? options.timeoutMs : 6000;
-  const controller = new AbortController();
-  const timeoutId = (typeof window !== "undefined" && timeoutMs > 0)
-    ? window.setTimeout(() => controller.abort(), timeoutMs)
-    : null;
-
-  try {
-    const res = await fetch(`${API_BASE}${withCacheBust(path)}`, {
-      cache: "no-store",
-      headers: options.headers || {},
-      ...options,
-      signal: options.signal || controller.signal,
-    });
-
-    if (!res.ok) {
-      throw new Error(options.errorMessage || `Public API request failed (${res.status})`);
-    }
-
-    return res.json();
-  } catch (error) {
-    if (error?.name === "AbortError") {
-      throw new Error(options.errorMessage || "Public API request timed out");
-    }
-    throw error;
-  } finally {
-    if (timeoutId) window.clearTimeout(timeoutId);
+  // Requests with a caller-supplied AbortSignal (page-navigation cancellation)
+  // aren't safe to share across callers, so only dedupe signal-less calls.
+  const dedupeKey = !options.signal ? path : null;
+  if (dedupeKey) {
+    const pending = _inFlight.get(dedupeKey);
+    if (pending) return pending;
   }
+
+  const run = async () => {
+    const timeoutMs = typeof options.timeoutMs === "number" ? options.timeoutMs : 6000;
+    let attempt = 0;
+    for (;;) {
+      const controller = new AbortController();
+      const timeoutId = (typeof window !== "undefined" && timeoutMs > 0)
+        ? window.setTimeout(() => controller.abort(), timeoutMs)
+        : null;
+      try {
+        const res = await fetch(`${API_BASE}${withCacheBust(path)}`, {
+          cache: "no-store",
+          headers: options.headers || {},
+          ...options,
+          signal: options.signal || controller.signal,
+        });
+
+        if (!res.ok) {
+          throw new Error(options.errorMessage || `Public API request failed (${res.status})`);
+        }
+
+        return await res.json();
+      } catch (error) {
+        if (error?.name === "AbortError") {
+          throw new Error(options.errorMessage || "Public API request timed out");
+        }
+        attempt += 1;
+        if (attempt > RETRY_DELAYS_MS.length || !isNetworkFailure(error)) {
+          if (isNetworkFailure(error)) {
+            throw new Error(options.errorMessage || "Unable to reach the server. Check your connection and try again.");
+          }
+          throw error;
+        }
+        await sleep(RETRY_DELAYS_MS[attempt - 1]);
+      } finally {
+        if (timeoutId) window.clearTimeout(timeoutId);
+      }
+    }
+  };
+
+  if (dedupeKey) {
+    const promise = run().finally(() => _inFlight.delete(dedupeKey));
+    _inFlight.set(dedupeKey, promise);
+    return promise;
+  }
+  return run();
 }
 
 // Ping the API to confirm the live backend is reachable.

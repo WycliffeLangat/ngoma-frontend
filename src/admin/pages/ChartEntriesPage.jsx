@@ -134,13 +134,22 @@ function appendQuery(path, params = {}) {
 }
 
 async function fetchAllCmsResults(path, pageSize = 500) {
-  const rows = [];
-  for (let page = 1; ; page += 1) {
-    const payload = await cmsApi.get(appendQuery(path, { page, page_size: pageSize }));
-    const results = getResults(payload);
-    rows.push(...results);
-    if (Array.isArray(payload) || !payload?.next || results.length === 0) break;
-  }
+  const first = await cmsApi.get(appendQuery(path, { page: 1, page_size: pageSize }));
+  const rows = getResults(first);
+  // Non-paginated (plain array) responses or a single page — nothing more to fetch.
+  if (Array.isArray(first) || !first?.next || rows.length < pageSize) return rows;
+
+  const totalPages = typeof first.count === "number" ? Math.ceil(first.count / pageSize) : null;
+  if (!totalPages || totalPages <= 1) return rows;
+
+  // Remaining pages are independent — fetch them in parallel instead of
+  // waiting on each one sequentially.
+  const restPages = await Promise.all(
+    Array.from({ length: totalPages - 1 }, (_, i) =>
+      cmsApi.get(appendQuery(path, { page: i + 2, page_size: pageSize })).then(getResults)
+    )
+  );
+  restPages.forEach((page) => rows.push(...page));
   return rows;
 }
 

@@ -74,58 +74,123 @@ async function fetchCsrfToken() {
   } catch {}
 }
 
+const DEFAULT_TIMEOUT_MS = 20_000;
+const RETRY_DELAYS_MS = [300, 900]; // two retries, exponential-ish backoff
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// True only for errors that mean the request never reached the server
+// (offline, DNS failure, CORS, connection reset, client-side timeout) — the
+// raw "Failed to fetch" TypeError. HTTP error responses (4xx/5xx) are real
+// answers from the server and must not be retried/rewritten.
+function isNetworkFailure(error) {
+  return error?.name === "AbortError" || error instanceof TypeError;
+}
+
+// In-flight GET de-duplication: if two callers request the same uncached
+// path at the same time (common when several CMS pages mount together),
+// they share one network round trip instead of firing duplicates.
+const _inFlight = new Map(); // path → Promise
+
+async function rawFetch(path, options, timeoutMs) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(`${CMS_BASE}${path}`, {
+      credentials: "include",
+      ...options,
+      signal: options.signal || controller.signal,
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 async function request(path, options = {}) {
   const method = (options.method || "GET").toUpperCase();
   const isMutation = ["POST", "PATCH", "PUT", "DELETE"].includes(method);
   const isAuth = path.startsWith("/auth/");
+  const timeoutMs = typeof options.timeoutMs === "number" ? options.timeoutMs : DEFAULT_TIMEOUT_MS;
 
   // Return cached response for non-auth GET requests
   if (!isMutation && !isAuth) {
     const cached = getCached(path);
     if (cached !== null) return cached;
+    const pending = _inFlight.get(path);
+    if (pending) return pending;
   }
 
   const headers = options.body instanceof FormData ? {} : { "Content-Type": "application/json" };
   if (isMutation && csrfToken) headers["X-CSRFToken"] = csrfToken;
 
-  const response = await fetch(`${CMS_BASE}${path}`, {
-    credentials: "include",
-    ...options,
-    headers: { ...headers, ...(options.headers || {}) },
-  });
+  const run = async () => {
+    let response;
+    let attempt = 0;
+    // Only idempotent GET requests are safe to retry automatically —
+    // retrying a POST/PATCH/DELETE after a network blip could double-submit.
+    const maxAttempts = !isMutation ? RETRY_DELAYS_MS.length + 1 : 1;
+    for (;;) {
+      try {
+        response = await rawFetch(path, { ...options, headers: { ...headers, ...(options.headers || {}) } }, timeoutMs);
+        break;
+      } catch (networkError) {
+        attempt += 1;
+        if (attempt >= maxAttempts || !isNetworkFailure(networkError)) {
+          const friendly = new Error(
+            networkError?.name === "AbortError"
+              ? "The request timed out. Check your connection and try again."
+              : "Unable to reach the server. Check your connection and try again."
+          );
+          friendly.cause = networkError;
+          friendly.isNetworkError = true;
+          throw friendly;
+        }
+        await sleep(RETRY_DELAYS_MS[attempt - 1]);
+      }
+    }
 
-  const text = await response.text();
-  let data = null;
-  try { data = text ? JSON.parse(text) : null; } catch {
-    if (!response.ok) throw new Error(`Server error (${response.status}) — check backend logs`);
-  }
+    const text = await response.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch {
+      if (!response.ok) throw new Error(`Server error (${response.status}) — check backend logs`);
+    }
 
-  if (!response.ok) {
-    const fieldErrors = data && typeof data === "object"
-      ? Object.entries(data)
-          .filter(([key]) => key !== "detail" && key !== "error")
-          .flatMap(([key, value]) => {
-            const messages = Array.isArray(value) ? value : [value];
-            return messages.filter(Boolean).map((message) => `${key}: ${typeof message === "object" ? JSON.stringify(message) : message}`);
-          })
-      : [];
-    const detail = data?.detail || data?.error || fieldErrors.join(" · ") || `Request failed (${response.status})`;
-    const err = new Error(detail);
-    err.data = data;
-    err.status = response.status;
-    throw err;
-  }
+    if (!response.ok) {
+      const fieldErrors = data && typeof data === "object"
+        ? Object.entries(data)
+            .filter(([key]) => key !== "detail" && key !== "error")
+            .flatMap(([key, value]) => {
+              const messages = Array.isArray(value) ? value : [value];
+              return messages.filter(Boolean).map((message) => `${key}: ${typeof message === "object" ? JSON.stringify(message) : message}`);
+            })
+        : [];
+      const detail = data?.detail || data?.error || fieldErrors.join(" · ") || `Request failed (${response.status})`;
+      const err = new Error(detail);
+      err.data = data;
+      err.status = response.status;
+      throw err;
+    }
 
-  // Cache successful GET responses; targeted-invalidate on mutations.
+    // Cache successful GET responses; targeted-invalidate on mutations.
+    if (!isMutation && !isAuth) {
+      setCached(path, data);
+    } else if (isMutation) {
+      clearCmsCache(mutationPrefix(path)); // only flush the affected resource
+      // Tell any open public app tab to refetch/reload immediately after a CMS save.
+      notifyPublicAppChanged();
+    }
+
+    return data;
+  };
+
   if (!isMutation && !isAuth) {
-    setCached(path, data);
-  } else if (isMutation) {
-    clearCmsCache(mutationPrefix(path)); // only flush the affected resource
-    // Tell any open public app tab to refetch/reload immediately after a CMS save.
-    notifyPublicAppChanged();
+    const promise = run().finally(() => _inFlight.delete(path));
+    _inFlight.set(path, promise);
+    return promise;
   }
-
-  return data;
+  return run();
 }
 
 export const cmsApi = {

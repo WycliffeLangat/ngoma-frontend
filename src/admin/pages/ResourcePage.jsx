@@ -32,6 +32,23 @@ function splitArtistNames(value) {
     .filter(Boolean);
 }
 
+// Runs `worker` over `items` with at most `limit` in flight at once — used
+// instead of a plain sequential loop so independent create/lookup calls
+// don't wait on each other's full round trip one at a time.
+async function runWithConcurrency(items, limit, worker) {
+  const results = new Array(items.length);
+  let next = 0;
+  async function runner() {
+    for (;;) {
+      const index = next++;
+      if (index >= items.length) return;
+      results[index] = await worker(items[index], index);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, runner));
+  return results;
+}
+
 function creditedArtistNames(release) {
   const primaryProfiles = (release.primary_artists || [])
     .map((profile) => profile?.public_name || profile?.display_name || profile?.name)
@@ -303,11 +320,17 @@ export default function ResourcePage({ type, searchJump, user }) {
         });
       });
 
+      const pending = [...credited].filter(([key, name]) => {
+        const slug = artistSlug(name);
+        return !byName.has(key) && !bySlug.has(slug);
+      });
       let created = 0;
       const skipped = [];
-      for (const [key, name] of credited) {
+      // Each entry is a distinct artist key, so these creates are independent
+      // of one another — run them with bounded concurrency instead of one
+      // at a time to cut a potentially long chain of round trips.
+      await runWithConcurrency(pending, 5, async ([key, name]) => {
         const slug = artistSlug(name);
-        if (byName.has(key) || bySlug.has(slug)) continue;
         try {
           const artist = await cmsApi.post("/artists/", {
             name,
@@ -331,14 +354,14 @@ export default function ResourcePage({ type, searchJump, user }) {
           if (!match) {
             if (createError?.status === 400) {
               skipped.push(`${name}: ${createError.message}`);
-              continue;
+              return;
             }
             throw createError;
           }
           byName.set(key, match);
           bySlug.set(slug, match);
         }
-      }
+      });
       if (active && created) {
         clearCmsCache("/artists/");
         await load();
