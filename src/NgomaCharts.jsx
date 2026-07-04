@@ -154,6 +154,9 @@ const KENYAN_CHART = "Kenyan";
 const PLAT_LABEL = PUBLIC_PLATFORMS.reduce((result, item) => ({...result, [item.name.toUpperCase()]: item.name}), {"APPLE MUSIC":"Apple Music","AUDIOMACK":"Audiomack","BOOMPLAY":"Boomplay","SPOTIFY":"Spotify","YOUTUBE":"YouTube","SHAZAM":"Shazam"});
 const PC = PUBLIC_PLATFORMS.reduce((result, item) => ({...result, [item.name]: item.brand_color || item.color, [item.name.toUpperCase()]: item.brand_color || item.color}), {"Apple Music":"#FC3C44","APPLE MUSIC":"#FC3C44","Audiomack":"#F68B1F","AUDIOMACK":"#F68B1F","Boomplay":"#00FFFF","BOOMPLAY":"#00FFFF","Spotify":"#1DB954","SPOTIFY":"#1DB954","YouTube":"#FF0000","YOUTUBE":"#FF0000","Shazam":"#0088FF","SHAZAM":"#0088FF"});
 const GOLD=THEME_SETTING.primary || "#B8860B"; const SILVER="#8C8C8C"; const BRONZE="#CD7F32";
+// Distinct from SILVER (used for #2 rank medals elsewhere) so the Platinum
+// certification badge can read as a brighter silver-white on its own.
+const PLATINUM_SILVER="#A9AFB5";
 const MEDALS=[GOLD,SILVER,BRONZE];
 const F = "'IBM Plex Sans Condensed',Helvetica,sans-serif";
 const SF = "'IBM Plex Sans',Helvetica,sans-serif";
@@ -162,7 +165,7 @@ const VO = [{l:"Top 10",c:10},{l:"Top 20",c:20},{l:"Top 50",c:50}];
 const certificationThresholds = Object.fromEntries((PUBLIC_DATA.certification_rules || []).map((item) => [item.level, Number(item.threshold)]));
 const CERTIFICATION_LEVELS = [
   { level: "diamond", label: "Diamond", icon: "💎", pts: certificationThresholds.diamond || 600, color: "#7B1FA2" },
-  { level: "platinum", label: "Platinum", icon: "🎵", pts: certificationThresholds.platinum || 400, color: SILVER },
+  { level: "platinum", label: "Platinum", icon: "🎵", pts: certificationThresholds.platinum || 400, color: PLATINUM_SILVER },
   { level: "gold", label: "Gold", icon: "📀", pts: certificationThresholds.gold || 200, color: GOLD },
 ];
 const getCertificationLevel = (totalPts = 0) => {

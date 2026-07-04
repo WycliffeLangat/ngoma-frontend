@@ -3190,7 +3190,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell select optgroup {
   line-height: 1;
 }
 .cert-wall-card.diamond { border-top: 3px solid #7b1fa2; }
-.cert-wall-card.platinum { border-top: 3px solid #8c8c8c; }
+.cert-wall-card.platinum { border-top: 3px solid #A9AFB5; }
 .cert-wall-card.gold     { border-top: 3px solid var(--ngoma-gold); }
 
 /* --- News publication layout --------------------------- */
