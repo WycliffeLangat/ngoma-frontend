@@ -76,7 +76,7 @@ export default function CertificationsPage({ ctx }) {
           </div>
           <div style={{marginTop:"20px"}}>
             {CERTIFICATION_LEVELS.map(({ level })=>{
-              const filtered=deduplicatedCerts.filter(c=>c.level===level);
+              const filtered=deduplicatedCerts.filter(c=>c.level===level).sort((a,b)=>(b.totalPts||0)-(a.totalPts||0));
               if(!filtered.length)return null;
               return(<div key={level} style={{marginBottom:"32px"}}>
                 <div style={{...secLbl(certColors[level]),marginBottom:"16px",fontSize:"15px",letterSpacing:"0.5px"}}><span style={certIconFilters[level]?{filter:certIconFilters[level]}:undefined}>{certIcons[level]}</span> {level.charAt(0).toUpperCase()+level.slice(1)} Certified ({filtered.length})</div>
