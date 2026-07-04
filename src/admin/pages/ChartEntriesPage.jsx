@@ -144,7 +144,7 @@ async function fetchAllCmsResults(path, pageSize = 500) {
   return rows;
 }
 
-export default function ChartEntriesPage({ user }) {
+export default function ChartEntriesPage({ user, searchJump }) {
   const canEdit = Boolean(user?.permissions?.can_manage_data) && !user?.permissions?.read_only;
   const [allCharts, setAllCharts]       = useState([]);
   const [platforms, setPlatforms]       = useState([]);
@@ -236,6 +236,16 @@ export default function ChartEntriesPage({ user }) {
       return acc;
     }, []);
   }, [allCharts]);
+
+  // Jump straight to the chart period/type a dashboard alert flagged, so
+  // clicking "Fix" lands on the exact month instead of just this page.
+  useEffect(() => {
+    if (!searchJump || searchJump.page !== "chart-entries" || !searchJump.id || !allCharts.length) return;
+    const target = allCharts.find(c => String(c.id) === String(searchJump.id));
+    if (!target) return;
+    setChartType(target.chart_type);
+    setSelectedYM(`${target.year}-${String(target.month).padStart(2, "0")}`);
+  }, [searchJump, allCharts]);
 
   // Exact chart record for singles/albums tab
   const currentChart = useMemo(() => {

@@ -7,7 +7,7 @@ import StatusBadge from "../components/StatusBadge";
 const RAW_WEEKLY = "weekly";
 const FINAL_CHART = "final";
 
-export default function UploadsPage({ user }) {
+export default function UploadsPage({ user, searchJump }) {
   const canManageData = Boolean(user?.permissions?.can_manage_data) && !user?.permissions?.read_only;
   const canPublish = Boolean(user?.permissions?.can_publish);
   const [uploadKind, setUploadKind] = useState(RAW_WEEKLY);
@@ -34,6 +34,19 @@ export default function UploadsPage({ user }) {
     setError("");
     load(uploadKind);
   }, [uploadKind]);
+
+  // Jump straight to the specific upload a dashboard alert flagged, so
+  // clicking "Fix" opens that upload's validation summary directly.
+  useEffect(() => {
+    if (!searchJump || searchJump.page !== "uploads" || !searchJump.id) return;
+    if (uploadKind !== FINAL_CHART) {
+      setUploadKind(FINAL_CHART);
+      return;
+    }
+    cmsApi.get(`/chart-uploads/${searchJump.id}/`)
+      .then((upload) => setSelected({ ...upload, _uploadKind: FINAL_CHART }))
+      .catch((jumpError) => setError(jumpError.message));
+  }, [searchJump, uploadKind]);
 
   async function load(kind = uploadKind) {
     const endpoint = kind === RAW_WEEKLY ? "/weekly-uploads/" : "/chart-uploads/";

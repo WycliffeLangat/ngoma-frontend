@@ -57,8 +57,8 @@ const ALERT_PAGE_BY_ID = {
   "platform-settings-invalid": "platforms",
   "charts-unpublished": "charts",
   "chart-publication-state-mismatch": "charts",
-  "charts-without-entries": "charts",
-  "charts-missing-combined-ranking": "charts",
+  "charts-without-entries": "chart-entries",
+  "charts-missing-combined-ranking": "chart-entries",
   "invalid-chart-entry-values": "chart-entries",
   "chart-rank-gaps": "chart-entries",
   "uploads-awaiting-action": "uploads",
@@ -105,6 +105,18 @@ const PAGE_LABELS = {
 function alertPage(alert) {
   return ALERT_PAGE_BY_ID[alert.id] || ALERT_PAGE_BY_MODULE[alert.module];
 }
+
+// Which alert backs each "needs attention" stat card, so clicking the card
+// can jump straight into the worst offending record rather than an
+// unfiltered list.
+const CARD_ALERT_ID = {
+  missing_artist_countries: "artists-missing-country",
+  duplicate_artists_detected: "possible-duplicate-artists",
+  certifications_unofficial: "certifications-unofficial-visible",
+  errors_warnings: "open-data-quality-reports",
+  unpublished_chart_months: "charts-unpublished",
+  uploads_awaiting_review: "uploads-awaiting-action",
+};
 
 // Exact values returned by the backend (cms_views.py line 106)
 // 'ACTION_REQUIRED' → error alerts exist
@@ -153,12 +165,16 @@ export default function DashboardPage({ user, onNavigate }) {
           const meta = cardMeta[key] || { icon: "•", hint: "View details" };
           const interactive = Boolean(meta.target && onNavigate);
           const Card = interactive ? "button" : "div";
+          const linkedAlert = (data.alerts || []).find((a) => a.id === CARD_ALERT_ID[key]);
+          const pinpoint = (linkedAlert?.details || []).find((d) => d.id != null);
           return (
             <Card
               type={interactive ? "button" : undefined}
               className={`cms-stat-card${cls ? ` ${cls}` : ""}${interactive ? " interactive" : ""}`}
               key={key}
-              onClick={interactive ? () => onNavigate(meta.target) : undefined}
+              onClick={interactive ? () => (
+                pinpoint ? onNavigate(meta.target, pinpoint.label, pinpoint.id) : onNavigate(meta.target)
+              ) : undefined}
             >
               <span className="cms-stat-icon" aria-hidden="true">{meta.icon}</span>
               <span className="cms-stat-label">{labels[key] || key}</span>

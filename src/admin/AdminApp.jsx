@@ -101,9 +101,9 @@ function PageLoader() {
 
 function renderPage(page, user, searchJump, onNavigate) {
   if (page === "dashboard")       return <DashboardPage user={user} onNavigate={onNavigate} />;
-  if (page === "chart-entries")   return <ChartEntriesPage user={user} />;
+  if (page === "chart-entries")   return <ChartEntriesPage user={user} searchJump={searchJump} />;
   if (page === "year-end")        return <YearEndPage onNavigate={onNavigate} />;
-  if (page === "uploads")         return <UploadsPage user={user} />;
+  if (page === "uploads")         return <UploadsPage user={user} searchJump={searchJump} />;
   if (page === "duplicate-review")return <DuplicateReviewPage user={user} />;
   if (RESOURCE_PAGES.has(page))   return <ResourcePage type={page} user={user} searchJump={searchJump} />;
   return <div className="cms-empty">This CMS page is unavailable.</div>;
