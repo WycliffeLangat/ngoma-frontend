@@ -77,11 +77,13 @@ const WORKFLOW_STATUS_OPTIONS = [
   { value: "archived", label: "Archived" },
 ];
 const CHART_STATUS_OPTIONS = WORKFLOW_STATUS_OPTIONS.filter(({ value }) => value !== "published");
+// No "archived" option here on purpose: an artist/song/album that shouldn't
+// exist gets merged or permanently deleted, not soft-archived — see the
+// Merge/Delete row actions.
 const RECORD_STATUS_OPTIONS = [
   { value: "active", label: "Active" },
   { value: "draft", label: "Draft — not public" },
   { value: "inactive", label: "Inactive" },
-  { value: "archived", label: "Archived" },
 ];
 
 const configs = {
