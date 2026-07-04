@@ -1,0 +1,870 @@
+[
+    {
+        "id":  1497,
+        "name":  "Aguero Banks",
+        "slug":  "aguero-banks",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  708,
+        "name":  "Al Xapo",
+        "slug":  "al-xapo",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1070,
+        "name":  "AlunaGeorge",
+        "slug":  "alunageorge",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2043,
+        "name":  "Andrea Bocelli",
+        "slug":  "andrea-bocelli",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2052,
+        "name":  "Angekebabuye mc",
+        "slug":  "angekebabuye-mc",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1258,
+        "name":  "Armanii",
+        "slug":  "armanii",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  350,
+        "name":  "Ayo Maff",
+        "slug":  "ayo-maff",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1012,
+        "name":  "BBO",
+        "slug":  "bbo",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1199,
+        "name":  "Bhadboi OML",
+        "slug":  "bhadboi-oml",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1018,
+        "name":  "Black Coco",
+        "slug":  "black-coco",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2050,
+        "name":  "Boohle",
+        "slug":  "boohle",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1062,
+        "name":  "Brick",
+        "slug":  "brick",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1499,
+        "name":  "Brown Joel",
+        "slug":  "brown-joel",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  921,
+        "name":  "Bryson Tiller",
+        "slug":  "bryson-tiller",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1954,
+        "name":  "Daddy Lumba",
+        "slug":  "daddy-lumba",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2104,
+        "name":  "David Guetta",
+        "slug":  "david-guetta",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1067,
+        "name":  "Deejay MJ",
+        "slug":  "deejay-mj",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2102,
+        "name":  "Di Genius",
+        "slug":  "di-genius",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1222,
+        "name":  "Didi B",
+        "slug":  "didi-b",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1551,
+        "name":  "Dj Boat",
+        "slug":  "dj-boat",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  310,
+        "name":  "DJ Khaled",
+        "slug":  "dj-khaled",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  392,
+        "name":  "Dr Sarah K",
+        "slug":  "dr-sarah-k",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  997,
+        "name":  "Faceless",
+        "slug":  "faceless",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1003,
+        "name":  "Fameye",
+        "slug":  "fameye",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2067,
+        "name":  "Feladehusla",
+        "slug":  "feladehusla",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  385,
+        "name":  "G NAKO",
+        "slug":  "g-nako-2",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2089,
+        "name":  "Heavenly Echoes Ministers",
+        "slug":  "heavenly-echoes-ministers",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1065,
+        "name":  "Hornsphere",
+        "slug":  "hornsphere",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1017,
+        "name":  "Hyce",
+        "slug":  "hyce",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2120,
+        "name":  "I-Octane",
+        "slug":  "i-octane",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2085,
+        "name":  "IShowSpeed",
+        "slug":  "ishowspeed",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2048,
+        "name":  "Jay Rock",
+        "slug":  "jay-rock",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  988,
+        "name":  "Jubet",
+        "slug":  "jubet",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1071,
+        "name":  "JustBasweti",
+        "slug":  "justbasweti",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2147,
+        "name":  "Kabelo Tiro aka skavenja",
+        "slug":  "kabelo-tiro-aka-skavenja",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1138,
+        "name":  "Kahu$h",
+        "slug":  "kahuh",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1146,
+        "name":  "Kali Uchis",
+        "slug":  "kali-uchis",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  327,
+        "name":  "KiDi",
+        "slug":  "kidi",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1085,
+        "name":  "King Bubby",
+        "slug":  "king-bubby",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1046,
+        "name":  "King Soundboi",
+        "slug":  "king-soundboi",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  929,
+        "name":  "Kman 6ixx",
+        "slug":  "kman-6ixx",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  680,
+        "name":  "KOJO BLAK",
+        "slug":  "kojo-blak",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  421,
+        "name":  "Kusah",
+        "slug":  "kusah",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1956,
+        "name":  "Kweku Smoke",
+        "slug":  "kweku-smoke",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2094,
+        "name":  "Lace",
+        "slug":  "lace",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1011,
+        "name":  "Lasmid",
+        "slug":  "lasmid",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1091,
+        "name":  "Levelz UP",
+        "slug":  "levelz-up",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2146,
+        "name":  "LOVIXX STOSLIV",
+        "slug":  "lovixx-stosliv",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2054,
+        "name":  "M...",
+        "slug":  "m",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  412,
+        "name":  "Mad G Odeya",
+        "slug":  "mad-g-odeya",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  634,
+        "name":  "Madilu System",
+        "slug":  "madilu-system",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2051,
+        "name":  "Mano",
+        "slug":  "mano",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  337,
+        "name":  "Masicka",
+        "slug":  "masicka",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2112,
+        "name":  "Mauvais Djo",
+        "slug":  "mauvais-djo",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1013,
+        "name":  "Mavo",
+        "slug":  "mavo",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2109,
+        "name":  "Mellow",
+        "slug":  "mellow",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2113,
+        "name":  "Miracle LRE",
+        "slug":  "miracle-lre",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2126,
+        "name":  "Misokuhle",
+        "slug":  "misokuhle",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2053,
+        "name":  "Mluusician",
+        "slug":  "mluusician",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1955,
+        "name":  "Mohbad",
+        "slug":  "mohbad",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1408,
+        "name":  "Mr Eazi",
+        "slug":  "mr-eazi",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  822,
+        "name":  "MSA",
+        "slug":  "msa",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2055,
+        "name":  "Musa Keys",
+        "slug":  "musa-keys",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1009,
+        "name":  "Muyeez",
+        "slug":  "muyeez",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  336,
+        "name":  "Nahj",
+        "slug":  "nahj",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2082,
+        "name":  "Nahsh kariuki Official",
+        "slug":  "nahsh-kariuki-official",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  649,
+        "name":  "Naira Marley",
+        "slug":  "naira-marley",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2073,
+        "name":  "NDOVU KUU",
+        "slug":  "ndovu-kuu",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2049,
+        "name":  "Nia Pearl",
+        "slug":  "nia-pearl",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  795,
+        "name":  "Nikita Kering\u0027",
+        "slug":  "nikita-kering",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2047,
+        "name":  "Nkosazana Daughter",
+        "slug":  "nkosazana-daughter",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2103,
+        "name":  "Notnice",
+        "slug":  "notnice",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1002,
+        "name":  "Oberz",
+        "slug":  "oberz",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1024,
+        "name":  "Olivetheboy",
+        "slug":  "olivetheboy",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  922,
+        "name":  "OnlyMoh",
+        "slug":  "onlymoh",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1043,
+        "name":  "PAPA NYOSTO",
+        "slug":  "papa-nyosto",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1064,
+        "name":  "Papa Nyosto",
+        "slug":  "papa-nyosto-2",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  975,
+        "name":  "Ragal Ironbull",
+        "slug":  "ragal-ironbull",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1015,
+        "name":  "Rord Kelly",
+        "slug":  "rord-kelly",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2086,
+        "name":  "Ruben Idy",
+        "slug":  "ruben-idy",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  831,
+        "name":  "RUDRA KARTEL",
+        "slug":  "rudra-kartel-2",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  814,
+        "name":  "Rudra Kartel",
+        "slug":  "rudra-kartel",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  346,
+        "name":  "Rybeena",
+        "slug":  "rybeena",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  469,
+        "name":  "Sam Deep",
+        "slug":  "sam-deep",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1000,
+        "name":  "SAMAD",
+        "slug":  "samad",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2106,
+        "name":  "SamDan",
+        "slug":  "samdan",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2125,
+        "name":  "sami kay",
+        "slug":  "sami-kay",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2149,
+        "name":  "SFEAR N...",
+        "slug":  "sfear-n",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2148,
+        "name":  "SFEAR NOFOKOL",
+        "slug":  "sfear-nofokol",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1228,
+        "name":  "Shaboozey",
+        "slug":  "shaboozey",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  664,
+        "name":  "Shakira",
+        "slug":  "shakira",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  315,
+        "name":  "Shallipopi",
+        "slug":  "shallipopi",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  710,
+        "name":  "Shoday",
+        "slug":  "shoday",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2110,
+        "name":  "Sleaz...",
+        "slug":  "sleaz",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  192,
+        "name":  "SleepTherapy",
+        "slug":  "sleeptherapy",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2108,
+        "name":  "Slyzza Rsa",
+        "slug":  "slyzza-rsa",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  628,
+        "name":  "Solpulse",
+        "slug":  "solpulse",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  868,
+        "name":  "Spice",
+        "slug":  "spice",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1006,
+        "name":  "Stahgee",
+        "slug":  "stahgee",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2045,
+        "name":  "Thatohatsi",
+        "slug":  "thatohatsi",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2087,
+        "name":  "THE LIGHTBEARERS TZ",
+        "slug":  "the-lightbearers-tz",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2138,
+        "name":  "THE MOTIONS",
+        "slug":  "the-motions",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  485,
+        "name":  "Toprock Gospel",
+        "slug":  "toprock-gospel",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2084,
+        "name":  "Tuzo Jerome Tz",
+        "slug":  "tuzo-jerome-tz",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  640,
+        "name":  "TxC",
+        "slug":  "txc",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2057,
+        "name":  "Uncool MC",
+        "slug":  "uncool-mc",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1345,
+        "name":  "Usmanial Vibez",
+        "slug":  "usmanial-vibez-2",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  312,
+        "name":  "Valiant",
+        "slug":  "valiant",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  505,
+        "name":  "V-BE",
+        "slug":  "v-be",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1225,
+        "name":  "Vibez Inc",
+        "slug":  "vibez-inc",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  538,
+        "name":  "Vicoka",
+        "slug":  "vicoka",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  693,
+        "name":  "Victor Ivyic",
+        "slug":  "victor-ivyic",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  578,
+        "name":  "Victor Muthenya",
+        "slug":  "victor-muthenya-2",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  495,
+        "name":  "VICTOR MUTHENYA",
+        "slug":  "victor-muthenya",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  589,
+        "name":  "We Are Nubia",
+        "slug":  "we-are-nubia-2",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  314,
+        "name":  "We are Nubia",
+        "slug":  "we-are-nubia",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  564,
+        "name":  "Wendy Shay",
+        "slug":  "wendy-shay",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1304,
+        "name":  "YFN Lucci",
+        "slug":  "yfn-lucci",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  1957,
+        "name":  "YOUNG JP",
+        "slug":  "young-jp",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2066,
+        "name":  "Young Roddo",
+        "slug":  "young-roddo",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2046,
+        "name":  "Young Stunna",
+        "slug":  "young-stunna",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2127,
+        "name":  "Yung Miami",
+        "slug":  "yung-miami",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  2069,
+        "name":  "Zagga",
+        "slug":  "zagga",
+        "country":  "",
+        "country_code":  ""
+    },
+    {
+        "id":  481,
+        "name":  "Zlatan",
+        "slug":  "zlatan",
+        "country":  "",
+        "country_code":  ""
+    }
+]
