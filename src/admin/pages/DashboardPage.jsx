@@ -36,6 +36,73 @@ const WARN_IF_NONZERO = new Set([
   "certifications_unofficial", "errors_warnings",
 ]);
 
+// Where each alert's "Fix" button should land, keyed by the stable alert id
+// the backend assigns (see cms_alerts.py). A handful of alerts share a
+// `module` with a page that can't actually resolve their record ids (e.g.
+// duplicate-artist groups, or chart-entry problems whose ids point at the
+// parent chart) so those are listed explicitly rather than derived from
+// `module` alone.
+const ALERT_PAGE_BY_ID = {
+  "open-data-quality-reports": "reports",
+  "artists-missing-country": "artists",
+  "artists-partial-country": "artists",
+  "artists-unknown-country-code": "artists",
+  "artist-profile-completeness": "artists",
+  "releases-missing-country": "songs",
+  "releases-partial-country": "songs",
+  "releases-unknown-country-code": "songs",
+  "release-metadata-completeness": "songs",
+  "possible-duplicate-artists": "duplicate-review",
+  "country-settings-incomplete": "countries",
+  "platform-settings-invalid": "platforms",
+  "charts-unpublished": "charts",
+  "chart-publication-state-mismatch": "charts",
+  "charts-without-entries": "charts",
+  "charts-missing-combined-ranking": "charts",
+  "invalid-chart-entry-values": "chart-entries",
+  "chart-rank-gaps": "chart-entries",
+  "uploads-awaiting-action": "uploads",
+  "upload-validation-errors": "uploads",
+  "upload-validation-warnings": "uploads",
+  "news-awaiting-action": "news",
+  "scheduled-news-overdue": "news",
+  "news-publication-state-mismatch": "news",
+  "published-news-completeness": "news",
+  "certifications-unofficial-visible": "certifications",
+  "official-certifications-missing-date": "certifications",
+  "certifications-below-threshold": "certifications",
+  "certification-rule-configuration": "certification-rules",
+  "visible-page-content-empty": "page-content",
+  "media-metadata-incomplete": "media",
+  "methodology-active-count": "methodology",
+  "backup-missing": "backups",
+  "latest-backup-failed": "backups",
+  "backup-stale": "backups",
+};
+
+// Fallback for any alert id not listed above (forward-compatible with new
+// backend alerts), derived from its `module` field.
+const ALERT_PAGE_BY_MODULE = {
+  reports: "reports", artists: "artists", releases: "songs", countries: "countries",
+  platforms: "platforms", charts: "charts", chart_entries: "chart-entries",
+  chart_uploads: "uploads", news: "news", certifications: "certifications",
+  certification_rules: "certification-rules", page_content: "page-content",
+  media: "media", methodology: "methodology", backups: "backups",
+};
+
+const PAGE_LABELS = {
+  reports: "Data quality", artists: "Artists", songs: "Songs", countries: "Countries",
+  platforms: "Platforms", charts: "Chart periods", "chart-entries": "Chart entries",
+  uploads: "Imports & uploads", news: "News", certifications: "Certifications",
+  "certification-rules": "Certification rules", "page-content": "Page content",
+  media: "Media library", methodology: "Ranking methodology", backups: "Backups",
+  "duplicate-review": "Duplicate review",
+};
+
+function alertPage(alert) {
+  return ALERT_PAGE_BY_ID[alert.id] || ALERT_PAGE_BY_MODULE[alert.module];
+}
+
 // Exact values returned by the backend (cms_views.py line 106)
 // 'ACTION_REQUIRED' → error alerts exist
 // 'NEEDS_ATTENTION' → warning alerts exist
@@ -100,14 +167,27 @@ export default function DashboardPage({ user, onNavigate }) {
       </div>
       <div className="cms-grid two">
         <div className="cms-card"><div className="cms-card-heading"><div><span className="cms-eyebrow">Needs attention</span><h2>Alerts</h2></div><span className="cms-count-badge">{(data.alerts || []).length}</span></div>{(data.alerts || []).length === 0 && <div className="cms-empty compact">Everything looks good. No open alerts.</div>}{(data.alerts || []).map((a, i) => {
-          const isCertAlert = /certif/i.test(a.title || "") || /certif/i.test(a.message || "");
+          const page = alertPage(a);
+          const pageLabel = PAGE_LABELS[page] || page;
+          const linkableDetails = (a.details || []).filter((d) => d.id != null);
           return (
             <div key={i} className={`cms-alert ${a.level}`}>
               <b>{a.title}</b><br />{a.message}
-              {isCertAlert && onNavigate && (
+              {page && onNavigate && linkableDetails.length > 0 && (
+                <ul className="cms-alert-detail-list">
+                  {linkableDetails.map((d, di) => (
+                    <li key={di}>
+                      <button className="cms-text-btn" onClick={() => onNavigate(page, d.label, d.id)}>
+                        {d.label}{d.problem ? ` — ${d.problem}` : ""}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {page && onNavigate && (
                 <div style={{ marginTop: 8 }}>
-                  <button className="cms-btn light" style={{ fontSize: 11, padding: "3px 12px" }} onClick={() => onNavigate("certifications")}>
-                    Fix in Certifications →
+                  <button className="cms-btn light" style={{ fontSize: 11, padding: "3px 12px" }} onClick={() => onNavigate(page)}>
+                    Fix in {pageLabel} →
                   </button>
                 </div>
               )}
