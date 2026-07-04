@@ -168,6 +168,11 @@ const CERTIFICATION_LEVELS = [
   { level: "platinum", label: "Platinum", icon: "🎵", pts: certificationThresholds.platinum || 400, color: PLATINUM_SILVER, iconFilter: "grayscale(1) brightness(1.7)" },
   { level: "gold", label: "Gold", icon: "📀", pts: certificationThresholds.gold || 200, color: GOLD },
 ];
+// Lower index = higher tier. A release keeps one Certification row per
+// threshold it has ever crossed (see recalculate_certifications on the
+// backend), so anywhere a release's "current" level is shown must pick the
+// highest-ranked row, never just whichever one the API happened to list last.
+const CERTIFICATION_LEVEL_RANK = Object.fromEntries(CERTIFICATION_LEVELS.map((l, i) => [l.level, i]));
 const getCertificationLevel = (totalPts = 0) => {
   const points = Number(totalPts) || 0;
   return CERTIFICATION_LEVELS.find((item) => points >= item.pts)?.level || null;
@@ -1718,7 +1723,19 @@ const top = data[0];
       return fields.some(f=>f.includes(q))||(a.country_code||"").toLowerCase()===q;
     }).slice(0,6);
     const newsItems=(liveNews||NEWS).filter(n=>[n.title,n.excerpt,n.body,n.cat].map(s=>String(s||"").toLowerCase()).some(f=>f.includes(q))).slice(0,4);
-    const certs=(liveCerts||[]).filter(c=>[String(c.t||""),String(c.a||""),String(c.level||"")].map(s=>s.toLowerCase()).some(f=>f.includes(q))).slice(0,4);
+    // A release can have one raw cert row per threshold it has ever crossed
+    // (Gold, then later Platinum) — keep only the highest-ranked row per
+    // release so search never lists the same song twice at two levels.
+    const matchedCerts=(liveCerts||[]).filter(c=>[String(c.t||""),String(c.a||""),String(c.level||"")].map(s=>s.toLowerCase()).some(f=>f.includes(q)));
+    const certsByKey=new Map();
+    matchedCerts.forEach(c=>{
+      const key=`${c.chart_type==="albums"?"albums":"singles"}|||${certificationKey(c.t,c.a)}`;
+      const existing=certsByKey.get(key);
+      if(!existing||(CERTIFICATION_LEVEL_RANK[c.level]??99)<(CERTIFICATION_LEVEL_RANK[existing.level]??99)){
+        certsByKey.set(key,c);
+      }
+    });
+    const certs=Array.from(certsByKey.values()).slice(0,4);
     return {songs,albums,artists,news:newsItems,certs};
   },[srch,songSearchIndex,albumSearchIndex,liveNews,liveCerts]);
   const sFlatResults=useMemo(()=>{
@@ -2568,14 +2585,31 @@ const top = data[0];
     }).filter(Boolean);
   }, [liveCerts]);
 
+  // Collapse the raw certification rows down to one per release — the
+  // highest level it has reached — before anything downstream reads them,
+  // so the Charts badges, the news matcher, and the Certifications page can
+  // never disagree about which level a release is currently at.
+  const dedupedLiveCerts = useMemo(() => {
+    if (!normalizedLiveCerts) return null;
+    const bucket = new Map();
+    normalizedLiveCerts.forEach((cert) => {
+      const key = `${cert.chart_type === "albums" ? "albums" : "singles"}|||${certificationKey(cert.t, cert.a)}`;
+      const existing = bucket.get(key);
+      if (!existing || (CERTIFICATION_LEVEL_RANK[cert.level] ?? 99) < (CERTIFICATION_LEVEL_RANK[existing.level] ?? 99)) {
+        bucket.set(key, cert);
+      }
+    });
+    return Array.from(bucket.values());
+  }, [normalizedLiveCerts]);
+
   const certificationLookup = useMemo(() => {
     const result = { singles: new Map(), albums: new Map() };
-    (normalizedLiveCerts || []).forEach((cert) => {
+    (dedupedLiveCerts || []).forEach((cert) => {
       const bucket = cert.chart_type === "albums" ? "albums" : "singles";
       result[bucket].set(certificationKey(cert.t, cert.a), cert);
     });
     return result;
-  }, [normalizedLiveCerts]);
+  }, [dedupedLiveCerts]);
 
   // A certification tag is shown ONLY when the release has met the cumulative
   // Combined Top-50 threshold (51 − rank, summed across all months). The
@@ -2589,11 +2623,11 @@ const top = data[0];
     return certificationLookup[bucket]?.get(certificationKey(title, artist)) || null;
   };
   const allCertifiedReleases = useMemo(() => {
-    return (normalizedLiveCerts || []).map((cert) => ({
+    return (dedupedLiveCerts || []).map((cert) => ({
       ...cert,
       type: cert.chart_type === "albums" ? "album" : "single",
     })).sort((a, b) => b.totalPts - a.totalPts);
-  }, [normalizedLiveCerts]);
+  }, [dedupedLiveCerts]);
 
   const getCertificationsForNews = (news = {}, limit = 3) => {
     const text = `${news.title || ""} ${news.excerpt || ""} ${news.body || ""}`.toLowerCase();
@@ -2729,7 +2763,7 @@ const top = data[0];
     card,
     certColors,
     certIcons,
-    certs: normalizedLiveCerts ? normalizedLiveCerts.filter(c => c.chart_type === ct) : certs,
+    certs: dedupedLiveCerts ? dedupedLiveCerts.filter(c => c.chart_type === ct) : certs,
     chartTypeLabel,
     closeDetails,
     cmp1,
@@ -3055,7 +3089,7 @@ const top = data[0];
                   <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#5a7abf":"#2d7dd2",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>Songs</div>
                   {sResults.songs.map((e,i)=>{
                     const flatIdx=i;
-                    const cert=normalizedLiveCerts?normalizedLiveCerts.find(c=>String(c.t||"").toLowerCase()===String(e.title||"").toLowerCase()&&String(c.a||"").toLowerCase()===String(e.artist||"").toLowerCase()):null;
+                    const cert=dedupedLiveCerts?dedupedLiveCerts.find(c=>String(c.t||"").toLowerCase()===String(e.title||"").toLowerCase()&&String(c.a||"").toLowerCase()===String(e.artist||"").toLowerCase()):null;
                     const certMeta=cert?certificationMetaForLevel(cert.level):null;
                     return(
                       <button key={`s-${i}`} type="button"
