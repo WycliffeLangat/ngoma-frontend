@@ -70,11 +70,14 @@ const ALERT_PAGE_BY_ID = {
   "published-news-completeness": "news",
   "certifications-unofficial-visible": "certifications",
   "official-certifications-missing-date": "certifications",
+  "certifications-invalid-values": "certifications",
   "certifications-below-threshold": "certifications",
   "certification-rule-configuration": "certification-rules",
   "visible-page-content-empty": "page-content",
   "media-metadata-incomplete": "media",
   "methodology-active-count": "methodology",
+  "countries-duplicate-code": "countries",
+  "inactive-editor-accounts": "users",
   "backup-missing": "backups",
   "latest-backup-failed": "backups",
   "backup-stale": "backups",
@@ -96,7 +99,7 @@ const PAGE_LABELS = {
   uploads: "Imports & uploads", news: "News", certifications: "Certifications",
   "certification-rules": "Certification rules", "page-content": "Page content",
   media: "Media library", methodology: "Ranking methodology", backups: "Backups",
-  "duplicate-review": "Duplicate review",
+  "duplicate-review": "Duplicate review", users: "Users & roles",
 };
 
 function alertPage(alert) {
