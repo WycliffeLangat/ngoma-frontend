@@ -162,6 +162,9 @@ export default function ChartEntriesPage({ user }) {
   const [publicPayload, setPublicPayload] = useState(null);
   const [publicLoading, setPublicLoading] = useState(true);
   const [publicError, setPublicError] = useState("");
+  // CMS-only: artist name -> country lookup, used to show a Country column
+  // on the entries table. Not part of the public app's data/UI.
+  const [artistCountryMap, setArtistCountryMap] = useState(new Map());
 
   // Artists tab state
   const [artistRankings, setArtistRankings] = useState([]);
@@ -191,6 +194,19 @@ export default function ChartEntriesPage({ user }) {
       .then(d => setPlatforms(getResults(d)))
       .catch(() => {});
     loadPublicPayload();
+    fetchAllCmsResults("/artists/?page_size=500")
+      .then((rows) => {
+        const map = new Map();
+        rows.forEach((artist) => {
+          const info = { country: artist.country || "", country_code: (artist.country_code || "").toUpperCase() };
+          [artist.name, artist.display_name, artist.public_name].forEach((name) => {
+            const key = normalizeName(name);
+            if (key && !map.has(key)) map.set(key, info);
+          });
+        });
+        setArtistCountryMap(map);
+      })
+      .catch(() => {});
   }, []);
 
   async function loadPublicPayload() {
@@ -925,6 +941,7 @@ export default function ChartEntriesPage({ user }) {
                       <th style={{ width: 40 }}>#</th>
                       <th style={{ width: 42 }}></th>
                       <th>Title / Artist</th>
+                      <th style={{ width: 64 }}>Country</th>
                       <th style={{ width: 80 }}>Points</th>
                       <th style={{ width: 52 }}>Wks</th>
                       <th style={{ width: 52 }}>Peak</th>
@@ -935,6 +952,9 @@ export default function ChartEntriesPage({ user }) {
                     {entries.map(entry => {
                       const mv     = movement(entry);
                       const active = selected?.id === entry.id;
+                      const artistCountry = artistCountryMap.get(
+                        normalizeName(primaryArtistName(entry.artist_display || entry.artist))
+                      );
                       return (
                         <tr
                           key={entry.id}
@@ -952,6 +972,9 @@ export default function ChartEntriesPage({ user }) {
                           <td>
                             <div style={{ fontWeight: 700, fontSize: 13, lineHeight: 1.3 }}>{entry.title}</div>
                             <div style={{ fontSize: 11, color: "#888", marginTop: 1 }}>{entry.artist_display || entry.artist}</div>
+                          </td>
+                          <td style={{ fontSize: 12, color: "#666", textAlign: "center" }} title={artistCountry?.country || ""}>
+                            {artistCountry?.country_code || "—"}
                           </td>
                           <td style={{ fontSize: 13, fontWeight: 600 }}>{(entry.raw_total_points || 0).toLocaleString()}</td>
                           <td style={{ fontSize: 13, color: "#666" }}>{entry.weeks_on_chart ?? "—"}</td>
