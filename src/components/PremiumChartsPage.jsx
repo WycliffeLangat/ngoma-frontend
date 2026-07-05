@@ -1172,7 +1172,7 @@ export default function PremiumChartsPage({
                   {/* Cover art */}
                   <div className="ngoma-hero-art" style={{
                     width: "120px", height: "120px", minWidth: "120px",
-                    borderRadius: "12px", overflow: "hidden", flexShrink: 0,
+                    borderRadius: 0, overflow: "hidden", flexShrink: 0,
                     boxShadow: darkMode
                       ? "0 12px 36px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06)"
                       : "0 8px 24px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.06)",
