@@ -3,6 +3,7 @@ import { cmsApi, getResults } from "../api";
 import DataTable from "../components/DataTable";
 import UploadPreviewTable from "../components/UploadPreviewTable";
 import StatusBadge from "../components/StatusBadge";
+import ConfirmDialog from "../components/ConfirmDialog";
 
 const RAW_WEEKLY = "weekly";
 const FINAL_CHART = "final";
@@ -14,8 +15,10 @@ export default function UploadsPage({ user, searchJump }) {
   const [platforms, setPlatforms] = useState([]);
   const [uploads, setUploads] = useState([]);
   const [selected, setSelected] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [actionBusy, setActionBusy] = useState(false);
   const [form, setForm] = useState({
     chart_type: "singles",
     year: new Date().getFullYear(),
@@ -88,17 +91,42 @@ export default function UploadsPage({ user, searchJump }) {
   }
 
   async function runAction(name) {
-    if (!selected || selected._uploadKind !== FINAL_CHART || !canManageData) return;
+    if (!selected || selected._uploadKind !== FINAL_CHART || !canManageData || actionBusy) return;
     if (["approve", "publish", "rollback"].includes(name) && !canPublish) {
       setError("Your role is not allowed to perform this publishing action.");
       return;
     }
+    setActionBusy(true);
     try {
       const next = await cmsApi.post(`/chart-uploads/${selected.id}/${name}/`);
       setSelected({ ...(next.upload || next), _uploadKind: FINAL_CHART });
       await load(FINAL_CHART);
     } catch (actionError) {
       setError(actionError.message);
+    } finally {
+      setActionBusy(false);
+    }
+  }
+
+  async function deleteUpload() {
+    if (!deleteTarget || !canManageData || actionBusy) return;
+    setError("");
+    setActionBusy(true);
+    const kind = deleteTarget._uploadKind === RAW_WEEKLY ? RAW_WEEKLY : FINAL_CHART;
+    const endpoint = kind === RAW_WEEKLY
+      ? `/weekly-uploads/${deleteTarget.id}/`
+      : `/chart-uploads/${deleteTarget.id}/`;
+    try {
+      await cmsApi.delete(endpoint);
+      if (selected?.id === deleteTarget.id && selected?._uploadKind === kind) {
+        setSelected(null);
+      }
+      setDeleteTarget(null);
+      await load(kind);
+    } catch (deleteError) {
+      setError(deleteError.message);
+    } finally {
+      setActionBusy(false);
     }
   }
 
@@ -260,17 +288,56 @@ export default function UploadsPage({ user, searchJump }) {
             { key: "original_filename", label: "File" },
             { key: "entries_processed", label: "Entries" },
             { key: "processed", label: "Status", render: (row) => <StatusBadge value={row.processed ? "published" : "error"} /> },
+            { key: "actions", label: "Actions", render: (row) => canManageData ? (
+              <button
+                type="button"
+                className="cms-btn danger small"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setDeleteTarget(row);
+                }}
+                disabled={actionBusy}
+              >
+                Delete
+              </button>
+            ) : "—" },
           ] : [
             { key: "created_at", label: "Created", render: (row) => new Date(row.created_at).toLocaleString() },
             { key: "chart_type", label: "Type" },
             { key: "platform_name", label: "Scope", render: (row) => row.platform_name || "Combined" },
             { key: "row_count", label: "Rows" },
             { key: "status", label: "Status", render: (row) => <StatusBadge value={row.status} /> },
+            { key: "actions", label: "Actions", render: (row) => canManageData ? (
+              <button
+                type="button"
+                className="cms-btn danger small"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setDeleteTarget(row);
+                }}
+                disabled={actionBusy}
+              >
+                Delete
+              </button>
+            ) : "—" },
           ]}
           rows={uploads}
           onRowClick={setSelected}
         />
       </div>
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        title="Delete import"
+        message={deleteTarget
+          ? `Delete this ${deleteTarget._uploadKind === RAW_WEEKLY ? "weekly import" : "chart upload"}? This cannot be undone.`
+          : ""}
+        confirmLabel={actionBusy ? "Deleting…" : "Delete"}
+        onCancel={() => {
+          if (!actionBusy) setDeleteTarget(null);
+        }}
+        onConfirm={deleteUpload}
+      />
     </section>
   );
 }
