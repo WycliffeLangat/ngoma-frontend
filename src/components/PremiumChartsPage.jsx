@@ -166,6 +166,7 @@ export default function PremiumChartsPage({
   isMobile,
   loaded,
   F,
+  SF,
   GOLD,
   MEDALS,
   MONTHS,
@@ -503,7 +504,7 @@ export default function PremiumChartsPage({
                 openArtist(token.value);
               }}
               className="ngoma-artist-link"
-              style={{ ...styles.artistButton, ...(darkMode ? styles.artistButtonDark : null) }}
+              style={{ ...styles.artistButton, fontFamily: F, ...(darkMode ? styles.artistButtonDark : null) }}
               title={`Open ${token.value}`}
             >
               {token.value}
@@ -1148,7 +1149,7 @@ export default function PremiumChartsPage({
                   style={{
                     position: "absolute", right: "36px", top: "22px",
                     fontSize: "100px", fontWeight: 900, lineHeight: 1,
-                    fontFamily: "'IBM Plex Sans Condensed', Helvetica, sans-serif",
+                    fontFamily: F,
                     color: chartAccent,
                     pointerEvents: "none", userSelect: "none",
                     letterSpacing: "-4px",
@@ -1183,7 +1184,7 @@ export default function PremiumChartsPage({
                         width: "100%", height: "100%",
                         display: "flex", alignItems: "center", justifyContent: "center",
                         fontSize: "28px", fontWeight: 900, color: chartAccent,
-                        fontFamily: "'IBM Plex Sans Condensed', Helvetica, sans-serif",
+                        fontFamily: F,
                       }}>#{rank}</div>
                     )}
                   </div>
@@ -1196,7 +1197,7 @@ export default function PremiumChartsPage({
                       fontSize: "11px", fontWeight: 800, letterSpacing: "1.6px",
                       textTransform: "uppercase", color: chartAccent,
                       marginBottom: "8px",
-                      fontFamily: "'IBM Plex Sans Condensed', Helvetica, sans-serif",
+                      fontFamily: F,
                       display: "flex", alignItems: "center", gap: "6px",
                     }}>
                       <span>{slideIdx + 1} / {top5.length}</span>
@@ -1209,7 +1210,7 @@ export default function PremiumChartsPage({
                       fontSize: "22px", fontWeight: 800,
                       color: textPrimary,
                       lineHeight: 1.15, marginBottom: "6px",
-                      fontFamily: "'IBM Plex Sans', Helvetica, sans-serif",
+                      fontFamily: SF,
                       overflow: "hidden",
                       display: "-webkit-box",
                       WebkitLineClamp: 2,
@@ -1223,7 +1224,7 @@ export default function PremiumChartsPage({
                         color: textSub,
                         marginBottom: "13px",
                         overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                        fontFamily: "'IBM Plex Sans', Helvetica, sans-serif",
+                        fontFamily: F,
                       }}>{cardSub}</div>
                     )}
 
@@ -1236,7 +1237,7 @@ export default function PremiumChartsPage({
                           background: `${chartAccent}1A`,
                           border: `1px solid ${chartAccent}44`,
                           borderRadius: "5px", padding: "3px 9px",
-                          fontFamily: "'IBM Plex Sans Condensed', Helvetica, sans-serif",
+                          fontFamily: F,
                           letterSpacing: "0.3px",
                         }}>{pts.toLocaleString()} pts</span>
                       )}
@@ -1245,7 +1246,7 @@ export default function PremiumChartsPage({
                         color: mvStyle.color,
                         background: mvStyle.background || mvFallbackBg,
                         borderRadius: "5px", padding: "3px 8px",
-                        fontFamily: "'IBM Plex Sans Condensed', Helvetica, sans-serif",
+                        fontFamily: F,
                       }}>{mvmt.label}</span>
                       {cert && <CertificationTag entry={item} />}
                     </div>
@@ -1462,7 +1463,7 @@ export default function PremiumChartsPage({
                           openRelease(item);
                         }}
                         className="ngoma-title-link"
-                        style={{ ...styles.titleButton, ...(darkMode ? styles.titleButtonDark : null), color: darkMode ? "#FFFFFF" : "#050505" }}
+                        style={{ ...styles.titleButton, fontFamily: SF, ...(darkMode ? styles.titleButtonDark : null), color: darkMode ? "#FFFFFF" : "#050505" }}
                         title={`Open ${item.title}`}
                       >
                         {item.title}{certification && (
@@ -1476,7 +1477,7 @@ export default function PremiumChartsPage({
 
                       {isArtistsChart ? (
                         item.artist ? (
-                          <div style={{...styles.artistLinksWrap, ...(darkMode ? styles.artistButtonDark : null), cursor:"default"}}>
+                          <div style={{...styles.artistLinksWrap, fontFamily: F, ...(darkMode ? styles.artistButtonDark : null), cursor:"default"}}>
                             {item.artist}
                           </div>
                         ) : null
@@ -1562,7 +1563,7 @@ export default function PremiumChartsPage({
                       <button
                         onClick={() => openRelease(item)}
                         className="ngoma-title-link"
-                        style={{ ...styles.titleButton, ...(darkMode ? styles.titleButtonDark : null), color: darkMode ? "#FFFFFF" : "#050505" }}
+                        style={{ ...styles.titleButton, fontFamily: SF, ...(darkMode ? styles.titleButtonDark : null), color: darkMode ? "#FFFFFF" : "#050505" }}
                         title={`Open ${item.title}`}
                       >
                         {item.title}{certification && (
@@ -1576,7 +1577,7 @@ export default function PremiumChartsPage({
 
                       {isArtistsChart ? (
                         item.artist ? (
-                          <div style={{...styles.artistLinksWrap, ...(darkMode ? styles.artistButtonDark : null), cursor:"default"}}>
+                          <div style={{...styles.artistLinksWrap, fontFamily: F, ...(darkMode ? styles.artistButtonDark : null), cursor:"default"}}>
                             {item.artist}
                           </div>
                         ) : null
