@@ -2322,7 +2322,7 @@ const styles = {
   artistSeparator: {
     color: "#777777",
     fontSize: "13px",
-    fontWeight: 700,
+    fontWeight: 400,
     margin: "0 4px",
     lineHeight: 1.25,
   },
