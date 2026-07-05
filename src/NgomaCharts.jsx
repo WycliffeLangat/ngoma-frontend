@@ -313,6 +313,9 @@ function historyKeysForMonth(ct, plat, currentMonth) {
   let previousKeys = new Set();
   let previousFallbackKeys = new Set();
   let previousIds = new Set();
+  let previousRanksByKey = new Map();
+  let previousRanksByFallback = new Map();
+  let previousRanksById = new Map();
   MONTHS.slice(0, currentIndex + 1).forEach((monthLabel, offset) => {
     const monthEntries = getRaw(monthLabel).filter((item) => Number(item.r) <= 50).slice(0, 50);
     if (offset < currentIndex) {
@@ -327,9 +330,26 @@ function historyKeysForMonth(ct, plat, currentMonth) {
       previousKeys = new Set(monthEntries.map(entryKey));
       previousFallbackKeys = new Set(monthEntries.map(movementFallbackKey));
       previousIds = new Set(monthEntries.map(extractReleaseId).filter(Boolean));
+      previousRanksByKey = new Map(monthEntries.map((item) => [entryKey(item), Number(item.r)]));
+      previousRanksByFallback = new Map(monthEntries.map((item) => [movementFallbackKey(item), Number(item.r)]));
+      previousRanksById = new Map(
+        monthEntries
+          .map((item) => [extractReleaseId(item), Number(item.r)])
+          .filter(([id]) => Boolean(id))
+      );
     }
   });
-  return { priorKeys, priorFallbackKeys, priorIds, previousKeys, previousFallbackKeys, previousIds };
+  return {
+    priorKeys,
+    priorFallbackKeys,
+    priorIds,
+    previousKeys,
+    previousFallbackKeys,
+    previousIds,
+    previousRanksByKey,
+    previousRanksByFallback,
+    previousRanksById,
+  };
 }
 
 // Matches a live chart-image-data entry against history derived from the
@@ -1485,18 +1505,34 @@ export default function NgomaCharts(){
             title: entry.title,
             primary_artist: entry.primary_artist_credit || entry.primary_artist || entry.artist || "",
           });
+          const linkedRelease =
+            PUBLIC_RELEASES_BY_ID.get(Number(movementReleaseId)) ||
+            PUBLIC_RELEASES_BY_KEY.get(movementKey) ||
+            PUBLIC_RELEASES_BY_KEY.get(fallbackKey) ||
+            PUBLIC_RELEASES_BY_TITLE.get(String(entry.title || "").trim().toLowerCase()) ||
+            null;
+          const resolvedReleaseId = movementReleaseId || extractReleaseId(linkedRelease);
           const matchedPrior = movementHistory
             ? (
-                matchesHistory(movementKey, movementReleaseId, movementHistory.priorKeys, movementHistory.priorIds) ||
+                matchesHistory(movementKey, resolvedReleaseId, movementHistory.priorKeys, movementHistory.priorIds) ||
                 movementHistory.priorFallbackKeys.has(fallbackKey)
               )
             : false;
           const matchedPrevious = movementHistory
             ? (
-                matchesHistory(movementKey, movementReleaseId, movementHistory.previousKeys, movementHistory.previousIds) ||
+                matchesHistory(movementKey, resolvedReleaseId, movementHistory.previousKeys, movementHistory.previousIds) ||
                 movementHistory.previousFallbackKeys.has(fallbackKey)
               )
             : false;
+          const previousRankFromHistory = movementHistory
+            ? (
+                movementHistory.previousRanksById.get(resolvedReleaseId) ||
+                movementHistory.previousRanksByKey.get(movementKey) ||
+                movementHistory.previousRanksByFallback.get(fallbackKey) ||
+                null
+              )
+            : null;
+          const computedPrev = entry.prev_rank ?? previousRankFromHistory;
           const isNew = movementHistory ? !matchedPrior : fallbackIsNew;
           const isReentry = movementHistory ? (!matchedPrevious && matchedPrior) : fallbackIsReentry;
 
@@ -1513,7 +1549,7 @@ export default function NgomaCharts(){
             pts: displayPoints,
             rawPts: entry.raw_total_points ?? null,
             plat: entry.platform_count ? `${entry.platform_count}/${entry.platform_max || tp}` : "",
-            prev: entry.prev_rank,
+            prev: computedPrev,
             first: false,
             is_new: isNew,
             reentry: isReentry,
@@ -1521,7 +1557,7 @@ export default function NgomaCharts(){
             last_month:
               entry.last_month !== null && entry.last_month !== undefined && entry.last_month !== ""
                 ? entry.last_month
-                : entry.prev_rank ?? "—",
+                : computedPrev ?? "—",
             peak_rank: entry.peak_rank,
             weeks_on_chart: entry.weeks_on_chart,
             platform_count: entry.platform_count,
