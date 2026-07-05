@@ -308,24 +308,28 @@ function historyKeysForMonth(ct, plat, currentMonth) {
     ? (monthLabel) => rawCombined(ct, monthLabel)
     : (monthLabel) => rawPlatform(ct, plat, monthLabel);
   const priorKeys = new Set();
+  const priorFallbackKeys = new Set();
   const priorIds = new Set();
   let previousKeys = new Set();
+  let previousFallbackKeys = new Set();
   let previousIds = new Set();
   MONTHS.slice(0, currentIndex + 1).forEach((monthLabel, offset) => {
     const monthEntries = getRaw(monthLabel).filter((item) => Number(item.r) <= 50).slice(0, 50);
     if (offset < currentIndex) {
       monthEntries.forEach((item) => {
         priorKeys.add(entryKey(item));
-        const id = Number(item.release_id);
+        priorFallbackKeys.add(movementFallbackKey(item));
+        const id = extractReleaseId(item);
         if (id) priorIds.add(id);
       });
     }
     if (offset === currentIndex - 1) {
       previousKeys = new Set(monthEntries.map(entryKey));
-      previousIds = new Set(monthEntries.map((item) => Number(item.release_id)).filter(Boolean));
+      previousFallbackKeys = new Set(monthEntries.map(movementFallbackKey));
+      previousIds = new Set(monthEntries.map(extractReleaseId).filter(Boolean));
     }
   });
-  return { priorKeys, priorIds, previousKeys, previousIds };
+  return { priorKeys, priorFallbackKeys, priorIds, previousKeys, previousFallbackKeys, previousIds };
 }
 
 // Matches a live chart-image-data entry against history derived from the
@@ -335,6 +339,21 @@ function historyKeysForMonth(ct, plat, currentMonth) {
 function matchesHistory(entry, releaseId, keySet, idSet) {
   if (releaseId && idSet.has(releaseId)) return true;
   return keySet.has(entry);
+}
+
+function extractReleaseId(item) {
+  const candidates = [item?.release_id, item?.releaseId, item?.release, item?.release_pk];
+  for (const value of candidates) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed) && parsed > 0) return parsed;
+  }
+  return null;
+}
+
+function movementFallbackKey(item) {
+  const title = String(item?.t || item?.title || "").trim().toLowerCase();
+  const artist = normArtistKey(item?.pa || item?.primary_artist || item?.a || item?.artist || item?.artist_credit || "");
+  return `${title}|||${artist}`;
 }
 
 // Canonical movement identity for cross-month matching.
@@ -1461,12 +1480,22 @@ export default function NgomaCharts(){
             a: entry.primary_artist_credit || entry.primary_artist || entry.artist || "",
             fa: entry.featured_artists || "",
           });
-          const movementReleaseId = Number(entry.release_id) || null;
+          const movementReleaseId = extractReleaseId(entry);
+          const fallbackKey = movementFallbackKey({
+            title: entry.title,
+            primary_artist: entry.primary_artist_credit || entry.primary_artist || entry.artist || "",
+          });
           const matchedPrior = movementHistory
-            ? matchesHistory(movementKey, movementReleaseId, movementHistory.priorKeys, movementHistory.priorIds)
+            ? (
+                matchesHistory(movementKey, movementReleaseId, movementHistory.priorKeys, movementHistory.priorIds) ||
+                movementHistory.priorFallbackKeys.has(fallbackKey)
+              )
             : false;
           const matchedPrevious = movementHistory
-            ? matchesHistory(movementKey, movementReleaseId, movementHistory.previousKeys, movementHistory.previousIds)
+            ? (
+                matchesHistory(movementKey, movementReleaseId, movementHistory.previousKeys, movementHistory.previousIds) ||
+                movementHistory.previousFallbackKeys.has(fallbackKey)
+              )
             : false;
           const isNew = movementHistory ? !matchedPrior : fallbackIsNew;
           const isReentry = movementHistory ? (!matchedPrevious && matchedPrior) : fallbackIsReentry;
