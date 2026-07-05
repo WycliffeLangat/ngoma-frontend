@@ -2365,7 +2365,7 @@ const styles = {
     marginTop: 0,
     textAlign: "left",
     fontSize: "13px",
-    fontWeight: 700,
+    fontWeight: 400,
     cursor: "pointer",
     whiteSpace: "normal",
     overflow: "visible",
