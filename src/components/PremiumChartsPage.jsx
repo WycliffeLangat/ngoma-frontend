@@ -624,7 +624,7 @@ export default function PremiumChartsPage({
           width: size,
           height: size,
           minWidth: size,
-          borderRadius: 0,
+          borderRadius: "10px",
           background: `linear-gradient(135deg, ${chartAccent} 0%, #111111 100%)`,
         }}
         title={`${item.title || "Release"} artwork`}
@@ -916,10 +916,8 @@ export default function PremiumChartsPage({
       <style>{`
         .ngoma-premium-charts-dark .ngoma-title-link,
         .ngoma-premium-charts-dark .ngoma-title-link:visited,
-        .ngoma-premium-charts-dark .ngoma-title-link:hover,
         .ngoma-app-shell[data-theme="dark"] .ngoma-premium-charts .ngoma-title-link,
-        .ngoma-app-shell[data-theme="dark"] .ngoma-premium-charts .ngoma-title-link:visited,
-        .ngoma-app-shell[data-theme="dark"] .ngoma-premium-charts .ngoma-title-link:hover {
+        .ngoma-app-shell[data-theme="dark"] .ngoma-premium-charts .ngoma-title-link:visited {
           color: #FFFFFF !important;
           -webkit-text-fill-color: #FFFFFF !important;
         }
@@ -1191,7 +1189,7 @@ export default function PremiumChartsPage({
                   </div>
 
                   {/* Text */}
-                  <div className="ngoma-hero-copy" style={{ flex: 1, minWidth: 0, position: "relative" }}>
+                  <div className="ngoma-hero-copy" style={{ flex: 1, minWidth: 0, position: "relative", zIndex: 2 }}>
 
                     {/* Eyebrow */}
                     <div style={{
@@ -1465,6 +1463,7 @@ export default function PremiumChartsPage({
                         }}
                         className="ngoma-title-link"
                         style={{ ...styles.titleButton, ...(darkMode ? styles.titleButtonDark : null), color: darkMode ? "#FFFFFF" : "#050505" }}
+                        title={`Open ${item.title}`}
                       >
                         {item.title}{certification && (
                           <span
@@ -1564,6 +1563,7 @@ export default function PremiumChartsPage({
                         onClick={() => openRelease(item)}
                         className="ngoma-title-link"
                         style={{ ...styles.titleButton, ...(darkMode ? styles.titleButtonDark : null), color: darkMode ? "#FFFFFF" : "#050505" }}
+                        title={`Open ${item.title}`}
                       >
                         {item.title}{certification && (
                           <span
@@ -2303,6 +2303,8 @@ const styles = {
 
   entryText: {
     minWidth: 0,
+    position: "relative",
+    zIndex: 1,
   },
 
   artistLinksWrap: {
@@ -2357,7 +2359,7 @@ const styles = {
     maxWidth: "100%",
     border: "none",
     background: "transparent",
-    color: "#777777",
+    color: "#59645D",
     padding: 0,
     marginTop: 0,
     textAlign: "left",
@@ -2370,7 +2372,7 @@ const styles = {
   },
 
   artistButtonDark: {
-    color: "#c8d0c8",
+    color: "#8a9288",
   },
 
   metaNumber: {

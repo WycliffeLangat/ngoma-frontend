@@ -2931,6 +2931,7 @@ const top = data[0];
         ::-webkit-scrollbar{height:5px;width:5px;}
         ::-webkit-scrollbar-thumb{background:#D8D2C4;border-radius:3px;}
         * { -webkit-tap-highlight-color: transparent; }
+        .ngoma-title-link:hover{ color:#B8860B !important; text-decoration: underline; text-underline-offset: 2px; }
         .ngoma-artist-link:hover{ color:#B8860B !important; text-decoration: underline; text-underline-offset: 2px; }
         @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
       `}</style>
