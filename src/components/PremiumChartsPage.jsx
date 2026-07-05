@@ -1073,7 +1073,6 @@ export default function PremiumChartsPage({
             const rank        = Number(item.rank || item.r || slideIdx + 1);
             const mvmt        = movement(item);
             const mvStyle     = movementStyle(item);
-            const rankPillBg  = chartAccent;
             const cert        = isArtist ? null : certificationForEntry(item, isSingles ? "single" : "album");
             const pauseTimer  = () => clearInterval(slideTimerRef.current);
             const resumeTimer = () => {
@@ -1189,19 +1188,6 @@ export default function PremiumChartsPage({
                         fontFamily: "'IBM Plex Sans Condensed', Helvetica, sans-serif",
                       }}>#{rank}</div>
                     )}
-                    {/* Rank pill on art */}
-                    <div style={{
-                      position: "absolute", top: "5px", left: "5px",
-                      minWidth: "22px", height: "22px", borderRadius: "11px",
-                      padding: "0 6px",
-                      background: rankPillBg,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: "10px", fontWeight: 900, color: "#FFF",
-                      fontFamily: "'IBM Plex Sans Condensed', Helvetica, sans-serif",
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
-                      letterSpacing: "0.3px",
-                      zIndex: 20,
-                    }}>#{rank}</div>
                   </div>
 
                   {/* Text */}
