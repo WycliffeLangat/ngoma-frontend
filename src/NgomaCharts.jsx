@@ -337,6 +337,14 @@ function matchesHistory(entry, releaseId, keySet, idSet) {
   return keySet.has(entry);
 }
 
+// Canonical movement identity for cross-month matching.
+// release_id is stable across artist-credit formatting changes, so prefer it.
+function movementIdentity(item) {
+  const id = Number(item?.release_id);
+  if (Number.isFinite(id) && id > 0) return `id:${id}`;
+  return `key:${entryKey(item)}`;
+}
+
 function enrichChartEntries(entries, getRawEntries, currentMonth, totalPlatforms) {
   const currentIndex = monthIndex(currentMonth);
   const historyMonths = currentIndex >= 0 ? MONTHS.slice(0, currentIndex + 1) : [];
@@ -345,35 +353,44 @@ function enrichChartEntries(entries, getRawEntries, currentMonth, totalPlatforms
   );
   const previousEntries = currentIndex > 0 ? historyByMonth[currentIndex - 1] : [];
   const previousByKey = new Map();
+  const previousByIdentity = new Map();
   previousEntries.forEach((item) => {
     const key = entryKey(item);
     if (!previousByKey.has(key)) previousByKey.set(key, item);
+    const identity = movementIdentity(item);
+    if (!previousByIdentity.has(identity)) previousByIdentity.set(identity, item);
   });
   const earlierKeys = new Set();
+  const earlierIdentities = new Set();
   const historyStats = new Map();
 
   historyByMonth.forEach((monthEntries, monthOffset) => {
     const seenThisMonth = new Set();
     monthEntries.forEach((item) => {
       const key = entryKey(item);
-      if (monthOffset < currentIndex) earlierKeys.add(key);
+      const identity = movementIdentity(item);
+      if (monthOffset < currentIndex) {
+        earlierKeys.add(key);
+        earlierIdentities.add(identity);
+      }
 
       const rank = Number(item.r);
-      const stats = historyStats.get(key) || { peakRank: Number.POSITIVE_INFINITY, months: 0 };
+      const stats = historyStats.get(identity) || { peakRank: Number.POSITIVE_INFINITY, months: 0 };
       if (Number.isFinite(rank)) stats.peakRank = Math.min(stats.peakRank, rank);
-      if (!seenThisMonth.has(key)) {
+      if (!seenThisMonth.has(identity)) {
         stats.months += 1;
-        seenThisMonth.add(key);
+        seenThisMonth.add(identity);
       }
-      historyStats.set(key, stats);
+      historyStats.set(identity, stats);
     });
   });
 
   return entries.map((e) => {
     const key = entryKey(e);
-    const previousEntry = previousByKey.get(key);
-    const appearedBefore = earlierKeys.has(key);
-    const stats = historyStats.get(key) || {};
+    const identity = movementIdentity(e);
+    const previousEntry = previousByIdentity.get(identity) || previousByKey.get(key);
+    const appearedBefore = earlierIdentities.has(identity) || earlierKeys.has(key);
+    const stats = historyStats.get(identity) || {};
     const peakRank = stats.peakRank;
     const monthsOnChart = stats.months || 0;
 
