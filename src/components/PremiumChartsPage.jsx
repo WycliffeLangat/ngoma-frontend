@@ -2329,14 +2329,17 @@ const styles = {
   },
 
   titleButton: {
-    display: "block",
+    display: "inline-block",
     maxWidth: "100%",
     border: "none",
+    borderBottom: "3px solid currentColor",
+    borderRadius: 0,
     background: "transparent",
     WebkitAppearance: "none",
     appearance: "none",
     color: "#050505",
     padding: 0,
+    paddingBottom: "2px",
     textAlign: "left",
     fontSize: "16px",
     fontWeight: 950,
