@@ -7,6 +7,7 @@ import ConfirmDialog from "../components/ConfirmDialog";
 
 const RAW_WEEKLY = "weekly";
 const FINAL_CHART = "final";
+const UPLOAD_PROCESSING_TIMEOUT_MS = 5 * 60_000;
 
 export default function UploadsPage({ user, searchJump }) {
   const canManageData = Boolean(user?.permissions?.can_manage_data) && !user?.permissions?.read_only;
@@ -80,7 +81,9 @@ export default function UploadsPage({ user, searchJump }) {
       });
       body.append("file", form.file);
       const endpoint = uploadKind === RAW_WEEKLY ? "/weekly-uploads/" : "/chart-uploads/";
-      const upload = await cmsApi.post(endpoint, body);
+      const upload = await cmsApi.post(endpoint, body, {
+        timeoutMs: UPLOAD_PROCESSING_TIMEOUT_MS,
+      });
       setSelected({ ...upload, _uploadKind: uploadKind });
       await load(uploadKind);
     } catch (uploadError) {
@@ -98,7 +101,16 @@ export default function UploadsPage({ user, searchJump }) {
     }
     setActionBusy(true);
     try {
-      const next = await cmsApi.post(`/chart-uploads/${selected.id}/${name}/`);
+      const next = await cmsApi.post(
+        `/chart-uploads/${selected.id}/${name}/`,
+        {},
+        {
+          timeoutMs:
+            name === "publish"
+              ? UPLOAD_PROCESSING_TIMEOUT_MS
+              : undefined,
+        },
+      );
       setSelected({ ...(next.upload || next), _uploadKind: FINAL_CHART });
       await load(FINAL_CHART);
     } catch (actionError) {

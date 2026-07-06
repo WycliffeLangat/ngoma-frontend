@@ -69,7 +69,8 @@ VITE_API_PROXY_TARGET=http://127.0.0.1:8000
 ```
 
 Production hosting must set `VITE_API_BASE` to the public Django API URL before
-building.
+building. Netlify is already configured to use `/api/v1` as a same-origin proxy
+to Railway, which keeps CMS session cookies first-party.
 
 At startup the frontend requests `/app-data/`, sorts the published periods by numeric year/month, and activates the latest published month. If `VITE_API_BASE` is missing or the backend is unavailable, the public app shows a clear configuration or connection error; it never loads local chart records.
 

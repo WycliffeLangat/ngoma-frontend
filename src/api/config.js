@@ -2,7 +2,11 @@
 // is required in every environment so a deployment can never silently point at
 // stale, same-origin, or bundled data.
 const runtimeEnv = import.meta.env || {};
+const hasNetlifyApiProxy =
+  typeof window !== "undefined" &&
+  /(^|\.)netlify\.app$/i.test(window.location.hostname);
 const configuredApiBase = String(
+  (hasNetlifyApiProxy ? "/api/v1" : "") ||
   runtimeEnv.VITE_API_BASE ||
   runtimeEnv.VITE_API_BASE_URL ||
   ""
