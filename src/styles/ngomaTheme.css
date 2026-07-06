@@ -3160,38 +3160,40 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell select optgroup {
   border-color: rgba(255,255,255,0.08);
 }
 
-/* --- Certification award wall -------------------------- */
+/* --- Certification award list -------------------------- */
 .cert-wall {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 .cert-wall-card {
-  border-radius: 14px;
-  padding: 16px;
+  border-radius: 10px;
+  padding: 12px 16px;
   box-sizing: border-box;
   background: var(--ngoma-card-bg);
   border: 1px solid var(--ngoma-border-light);
-  box-shadow: var(--ngoma-shadow-soft);
+  border-top: none !important;
+  border-left: 3px solid transparent;
+  box-shadow: none;
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
   transition:
     border-color var(--ngoma-transition),
-    transform var(--ngoma-transition),
-    box-shadow var(--ngoma-transition);
+    background var(--ngoma-transition);
 }
 .cert-wall-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--ngoma-shadow-card);
+  background: var(--ngoma-card-bg-hover, rgba(0,0,0,0.02));
 }
 .cert-wall-card .cert-icon {
-  font-size: 30px;
+  font-size: 24px;
   line-height: 1;
+  flex-shrink: 0;
 }
-.cert-wall-card.diamond { border-top: 3px solid #7b1fa2; }
-.cert-wall-card.platinum { border-top: 3px solid #A9AFB5; }
-.cert-wall-card.gold     { border-top: 3px solid var(--ngoma-gold); }
+.cert-wall-card.diamond { border-left-color: #7b1fa2; }
+.cert-wall-card.platinum { border-left-color: #A9AFB5; }
+.cert-wall-card.gold     { border-left-color: var(--ngoma-gold); }
 
 /* --- News publication layout --------------------------- */
 .news-grid {
