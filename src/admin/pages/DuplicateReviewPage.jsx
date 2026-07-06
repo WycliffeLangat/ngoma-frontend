@@ -244,7 +244,7 @@ export default function DuplicateReviewPage() {
   const [groups, setGroups] = useState(null);
   const [ignored, setIgnored] = useState(loadIgnored);
   const [busy, setBusy] = useState(null);
-  const [done, setDone] = useState(new Set());
+  const [mergedCount, setMergedCount] = useState(0);
   const [error, setError] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [mergeModal, setMergeModal] = useState(null);
@@ -283,7 +283,7 @@ export default function DuplicateReviewPage() {
 
   const visible = (groups || []).filter(g => {
     const key = groupKey(g);
-    if (done.has(key) || ignored.has(key)) return false;
+    if (ignored.has(key)) return false;
     if (typeFilter !== "all") {
       if (typeFilter === "artists" && g[0]?._type !== "artist") return false;
       if (typeFilter === "singles" && g[0]?._chartType !== "singles") return false;
@@ -308,13 +308,17 @@ export default function DuplicateReviewPage() {
     }
   }
 
-  async function mergeGroup(group, keeper) {
+  // selectedIds lets a bigger candidate list be merged partially: only the
+  // checked duplicates are merged into the keeper, the rest stay in the
+  // group (shrunk in place) for further review instead of all-or-nothing.
+  async function mergeGroup(group, keeper, selectedIds) {
     const key = groupKey(group);
+    const duplicates = group.filter(r => r.id !== keeper.id && selectedIds.has(r.id));
+    if (!duplicates.length) { setMergeModal(null); return; }
     setBusy(key);
     setError("");
     try {
       const isRelease = keeper._type === "release";
-      const duplicates = group.filter(r => r.id !== keeper.id);
       // Capture affected scopes BEFORE merging while entries still exist.
       const affectedScopes = isRelease
         ? await getAffectedChartScopes(duplicates.map((dup) => dup.id))
@@ -332,13 +336,16 @@ export default function DuplicateReviewPage() {
       if (rankResult.failedScopes.length) {
         setError("Merge completed, but some locked chart ranks could not be refreshed.");
       }
-      setDone(prev => new Set([...prev, key]));
+      const mergedKeys = new Set(duplicates.map(r => `${r._type}:${r.id}`));
+      setGroups(prev => (prev || [])
+        .map(g => g.filter(r => !mergedKeys.has(`${r._type}:${r.id}`)))
+        .filter(g => g.length > 1));
+      setMergedCount(prev => prev + duplicates.length);
     } catch(e) { setError(e.message); }
     finally { setBusy(null); setMergeModal(null); }
   }
 
   const ignoredCount = (groups || []).filter(g => ignored.has(groupKey(g))).length;
-  const doneCount = done.size;
 
   const counts = {
     singles: (groups || []).filter(g => g[0]?._chartType === "singles").length,
@@ -357,7 +364,7 @@ export default function DuplicateReviewPage() {
         </div>
         <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
           <span style={{ fontSize: 13, color: "#666" }}>
-            {groups === null ? "Scanning…" : `${visible.length} remaining · ${doneCount} merged · ${ignoredCount} skipped`}
+            {groups === null ? "Scanning…" : `${visible.length} remaining · ${mergedCount} record(s) merged · ${ignoredCount} skipped`}
           </span>
           <select
             className="cms-select"
@@ -387,7 +394,7 @@ export default function DuplicateReviewPage() {
           <div style={{ fontSize: 40, marginBottom: 12 }}>✓</div>
           <strong style={{ fontSize: 18 }}>All reviewed!</strong>
           <p style={{ color: "#888", fontSize: 14, marginTop: 6 }}>
-            {doneCount > 0 ? `${doneCount} group(s) merged. ` : ""}
+            {mergedCount > 0 ? `${mergedCount} record(s) merged. ` : ""}
             {ignoredCount > 0 ? `${ignoredCount} skipped.` : "No duplicates found."}
           </p>
           <button className="cms-btn" style={{ marginTop: 14 }} onClick={load}>Scan again</button>
@@ -414,7 +421,16 @@ export default function DuplicateReviewPage() {
               </div>
               <div style={{ display: "flex", gap: 8 }}>
                 <button className="cms-btn light" style={{ fontSize: 12 }} disabled={isBusy} onClick={() => dismiss(group)}>Keep separate</button>
-                <button className="cms-btn" style={{ fontSize: 12 }} disabled={isBusy} onClick={() => setMergeModal({ group, pickedKeeper: best })}>
+                <button
+                  className="cms-btn"
+                  style={{ fontSize: 12 }}
+                  disabled={isBusy}
+                  onClick={() => setMergeModal({
+                    group,
+                    pickedKeeper: best,
+                    selectedIds: new Set(group.filter(r => r.id !== best.id).map(r => r.id)),
+                  })}
+                >
                   {isBusy ? "Merging…" : "Merge →"}
                 </button>
               </div>
@@ -461,7 +477,7 @@ export default function DuplicateReviewPage() {
 
       {/* Merge confirm modal */}
       {mergeModal && (() => {
-        const { group, pickedKeeper } = mergeModal;
+        const { group, pickedKeeper, selectedIds } = mergeModal;
         const isArtist = pickedKeeper._type === "artist";
         const dups = group.filter(r => r.id !== pickedKeeper.id);
         const rLabel = r => isArtist ? (r.name || "") : (r.title || "");
@@ -469,6 +485,19 @@ export default function DuplicateReviewPage() {
         const rMeta  = r => isArtist
           ? `${r.release_count ?? 0} release(s)`
           : [r.entry_count && `${r.entry_count} entries`, r.cover_image && "has cover"].filter(Boolean).join(" · ");
+        // Swapping the keeper reshuffles who counts as a "duplicate to merge",
+        // so default back to selecting all of them under the new keeper.
+        const swapKeeper = (newKeeper) => setMergeModal(m => ({
+          ...m,
+          pickedKeeper: newKeeper,
+          selectedIds: new Set(m.group.filter(r => r.id !== newKeeper.id).map(r => r.id)),
+        }));
+        const toggleSelected = (id) => setMergeModal(m => {
+          const next = new Set(m.selectedIds);
+          if (next.has(id)) next.delete(id); else next.add(id);
+          return { ...m, selectedIds: next };
+        });
+        const selectedCount = dups.filter(r => selectedIds.has(r.id)).length;
         return (
           <div className="cms-modal-backdrop" onClick={() => !busy && setMergeModal(null)}>
             <div className="cms-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 540 }}>
@@ -492,7 +521,7 @@ export default function DuplicateReviewPage() {
                       className="cms-btn light"
                       style={{ marginTop: 8, fontSize: 11, padding: "5px 10px" }}
                       disabled={!!busy}
-                      onClick={() => setMergeModal(m => ({ ...m, pickedKeeper: dups[0] }))}
+                      onClick={() => swapKeeper(dups[0])}
                     >⇄ Keep this instead</button>
                   </div>
                   {/* KEEP card */}
@@ -515,23 +544,56 @@ export default function DuplicateReviewPage() {
                     <div style={{ fontSize: 10, color: "#ccc" }}>id {pickedKeeper.id}</div>
                   </div>
                   <div style={{ border: "1.5px solid #fca5a5", borderRadius: 10, padding: "12px 14px", background: "#fff5f5" }}>
-                    <div style={{ fontSize: 9, fontWeight: 800, color: "#dc2626", textTransform: "uppercase", letterSpacing: ".09em", marginBottom: 8 }}>Delete ({dups.length})</div>
-                    {dups.map((r, ri) => (
-                      <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 8, paddingTop: ri > 0 ? 8 : 0, marginTop: ri > 0 ? 8 : 0, borderTop: ri > 0 ? "1px solid #fecaca" : "none" }}>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 13, fontWeight: 600 }}>{rLabel(r)}</div>
-                          {rSub(r) && <div style={{ fontSize: 11, color: "#888" }}>{rSub(r)}</div>}
-                          <div style={{ fontSize: 10, color: "#ccc" }}>id {r.id} · {rMeta(r)}</div>
-                        </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, gap: 8, flexWrap: "wrap" }}>
+                      <div style={{ fontSize: 9, fontWeight: 800, color: "#dc2626", textTransform: "uppercase", letterSpacing: ".09em" }}>
+                        Delete ({selectedCount} of {dups.length} selected)
+                      </div>
+                      <div style={{ display: "flex", gap: 6 }}>
                         <button
                           type="button"
                           className="cms-btn light"
-                          style={{ fontSize: 10, padding: "4px 8px", flexShrink: 0 }}
+                          style={{ fontSize: 10, padding: "3px 8px" }}
                           disabled={!!busy}
-                          onClick={() => setMergeModal(m => ({ ...m, pickedKeeper: r }))}
-                        >⇄ Keep this</button>
+                          onClick={() => setMergeModal(m => ({ ...m, selectedIds: new Set(dups.map(r => r.id)) }))}
+                        >Select all</button>
+                        <button
+                          type="button"
+                          className="cms-btn light"
+                          style={{ fontSize: 10, padding: "3px 8px" }}
+                          disabled={!!busy}
+                          onClick={() => setMergeModal(m => ({ ...m, selectedIds: new Set() }))}
+                        >Select none</button>
                       </div>
-                    ))}
+                    </div>
+                    <p style={{ fontSize: 11, color: "#a33", margin: "0 0 8px" }}>
+                      Uncheck any track that's actually a different single/album — only checked tracks are merged.
+                    </p>
+                    {dups.map((r, ri) => {
+                      const checked = selectedIds.has(r.id);
+                      return (
+                        <div key={r.id} style={{ display: "flex", alignItems: "flex-start", gap: 8, paddingTop: ri > 0 ? 8 : 0, marginTop: ri > 0 ? 8 : 0, borderTop: ri > 0 ? "1px solid #fecaca" : "none", opacity: checked ? 1 : 0.55 }}>
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            disabled={!!busy}
+                            onChange={() => toggleSelected(r.id)}
+                            style={{ marginTop: 3, flexShrink: 0 }}
+                          />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 13, fontWeight: 600 }}>{rLabel(r)}</div>
+                            {rSub(r) && <div style={{ fontSize: 11, color: "#888" }}>{rSub(r)}</div>}
+                            <div style={{ fontSize: 10, color: "#ccc" }}>id {r.id} · {rMeta(r)}</div>
+                          </div>
+                          <button
+                            type="button"
+                            className="cms-btn light"
+                            style={{ fontSize: 10, padding: "4px 8px", flexShrink: 0 }}
+                            disabled={!!busy}
+                            onClick={() => swapKeeper(r)}
+                          >⇄ Keep this</button>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -543,8 +605,14 @@ export default function DuplicateReviewPage() {
               </p>
               <div className="cms-actions right">
                 <button className="cms-btn light" onClick={() => setMergeModal(null)} disabled={!!busy}>Cancel</button>
-                <button className="cms-btn" onClick={() => mergeGroup(group, pickedKeeper)} disabled={!!busy}>
-                  {busy === groupKey(group) ? "Merging…" : "Confirm merge"}
+                <button
+                  className="cms-btn"
+                  onClick={() => mergeGroup(group, pickedKeeper, selectedIds)}
+                  disabled={!!busy || selectedCount === 0}
+                >
+                  {busy === groupKey(group)
+                    ? "Merging…"
+                    : dups.length > 1 ? `Confirm merge (${selectedCount})` : "Confirm merge"}
                 </button>
               </div>
             </div>
