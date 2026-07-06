@@ -483,13 +483,17 @@ export default function PremiumChartsPage({
     if (!tokens.length) return null;
 
     return (
-      <span style={styles.artistLinksWrap}>
+      <span style={{ ...styles.artistLinksWrap, marginTop: mobile ? "4px" : "2px" }}>
         {tokens.map((token, tokenIndex) => {
           if (token.type === "separator") {
             return (
               <span
                 key={`${token.value}-${tokenIndex}`}
-                style={{ ...styles.artistSeparator, ...(darkMode ? styles.artistSeparatorDark : null) }}
+                style={{
+                  ...styles.artistSeparator,
+                  ...(mobile ? { fontSize: "14px", fontWeight: 700 } : null),
+                  ...(darkMode ? styles.artistSeparatorDark : null),
+                }}
               >
                 {token.value}
               </span>
@@ -504,7 +508,12 @@ export default function PremiumChartsPage({
                 openArtist(token.value);
               }}
               className="ngoma-artist-link"
-              style={{ ...styles.artistButton, fontFamily: F, ...(darkMode ? styles.artistButtonDark : null) }}
+              style={{
+                ...styles.artistButton,
+                fontFamily: F,
+                ...(mobile ? { fontSize: "14px", fontWeight: 700 } : null),
+                ...(darkMode ? styles.artistButtonDark : null),
+              }}
               title={`Open ${token.value}`}
             >
               {token.value}
@@ -611,6 +620,34 @@ export default function PremiumChartsPage({
       ["songwriters", "songwriter", "writers", "writer", "written_by", "composers", "composer"],
       "—"
     );
+  }
+
+  function getReleaseDate(item) {
+    const value = firstDetailValue(
+      item,
+      ["release_date", "releaseDate", "date_released"],
+      ""
+    );
+    const match = String(value).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) return value;
+    return new Intl.DateTimeFormat("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      timeZone: "UTC",
+    }).format(new Date(`${value}T00:00:00Z`));
+  }
+
+  function hasReleaseLinks(item) {
+    return [
+      "spotify_url",
+      "apple_music_url",
+      "youtube_url",
+      "boomplay_url",
+      "audiomack_url",
+      "tiktok_url",
+      "shazam_url",
+    ].some((key) => Boolean(item?.[key]));
   }
 
   function ReleaseArtwork({ item, size = 50 }) {
@@ -751,6 +788,18 @@ export default function PremiumChartsPage({
 
     const primaryCredit = firstDetailValue(item, ["primary_artist_credit"], "");
     const featuredCredit = firstDetailValue(item, ["featured_artist_credit"], "");
+    const songwriterDetails = getSongwriterDetails(item);
+    const producerDetails = getProducerDetails(item);
+    const releaseDate = getReleaseDate(item);
+    const releaseYear = getReleaseYear(item);
+    const creditedArtists = firstDetailValue(item, ["credited_artists", "additional_credits"], "");
+    const genre = firstDetailValue(item, ["genre", "genres"], "");
+    const label = firstDetailValue(item, ["label", "record_label"], "");
+    const distributor = firstDetailValue(item, ["distributor", "distribution"], "");
+    const isrc = firstDetailValue(item, ["isrc", "isrc_code"], "");
+    const upc = firstDetailValue(item, ["upc", "upc_code", "barcode"], "");
+    const trackCount = firstDetailValue(item, ["number_of_tracks", "track_count", "tracks"], "");
+    const radioInfo = firstDetailValue(item, ["radio_info", "radio_notes"], "");
     const compactMove = compact ? movement(item) : null;
     const compactMoveStyle = compact ? movementStyle(item) : null;
     return (
@@ -760,9 +809,19 @@ export default function PremiumChartsPage({
         {compact && <DetailCard label="Peak" value={profile.peak} />}
         {primaryCredit && <DetailCard label="Main artist(s)" value={primaryCredit} wide />}
         {featuredCredit && <DetailCard label="Featuring" value={featuredCredit} wide />}
-        {getSongwriterDetails(item) !== "—" && <DetailCard label="Songwriter(s)" value={getSongwriterDetails(item)} wide />}
-        {getProducerDetails(item) !== "—" && <DetailCard label="Producer(s)" value={getProducerDetails(item)} wide />}
-        <DetailCard label="Release year" value={getReleaseYear(item)} />
+        {creditedArtists && <DetailCard label="Additional credits" value={creditedArtists} wide />}
+        {songwriterDetails !== "—" && <DetailCard label="Songwriter(s)" value={songwriterDetails} wide />}
+        {producerDetails !== "—" && <DetailCard label="Producer(s)" value={producerDetails} wide />}
+        {releaseDate && <DetailCard label="Release date" value={releaseDate} />}
+        {releaseYear !== "—" && <DetailCard label="Release year" value={releaseYear} />}
+        {genre && <DetailCard label="Genre" value={genre} />}
+        {label && <DetailCard label="Label" value={label} />}
+        {distributor && <DetailCard label="Distributor" value={distributor} />}
+        {isrc && <DetailCard label="ISRC" value={isrc} />}
+        {upc && <DetailCard label="UPC" value={upc} />}
+        {trackCount && <DetailCard label="Tracks" value={trackCount} />}
+        {radioInfo && <DetailCard label="Radio information" value={radioInfo} wide />}
+        {hasReleaseLinks(item) && <DetailCard label="Listen" value={<DetailLinks links={item} />} wide />}
       </div>
     );
   }
@@ -845,6 +904,17 @@ export default function PremiumChartsPage({
 
   function getRowKey(item, index) {
     return `${ct}-${month}-${plat}-${item.title}-${item.primary_artist || item.artist}-${item.rank}-${index}`;
+  }
+
+  function yearEndTitleStyle(item) {
+    const topThree = Number(item?.rank) <= 3;
+    return {
+      fontSize: mobile ? (topThree ? "18px" : "16.5px") : (topThree ? "17px" : "15px"),
+      fontWeight: 850,
+      ...(mobile
+        ? { whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }
+        : { whiteSpace: "normal", overflow: "visible", textOverflow: "clip" }),
+    };
   }
 
   function toggleRow(rowKey) {
@@ -1463,16 +1533,10 @@ export default function PremiumChartsPage({
                           openRelease(item);
                         }}
                         className="ngoma-title-link"
-                        style={{ ...styles.titleButton, fontFamily: SF, ...(darkMode ? styles.titleButtonDark : null), color: darkMode ? "#FFFFFF" : "#050505" }}
+                        style={{ ...styles.titleButton, ...yearEndTitleStyle(item), fontFamily: SF, ...(darkMode ? styles.titleButtonDark : null), color: darkMode ? "#FFFFFF" : "#050505" }}
                         title={`Open ${item.title}`}
                       >
-                        {item.title}{certification && (
-                          <span
-                            aria-label={`${certification.label} certified`}
-                            title={`${certification.label} certified · ${Number(certification.totalPts || 0).toLocaleString()} points`}
-                            style={{ marginLeft: "4px", fontSize: "12px", opacity: 0.85, lineHeight: 1, verticalAlign: "middle" }}
-                          ><span style={certification.iconFilter ? { filter: certification.iconFilter } : undefined}>{certification.icon}</span></span>
-                        )}
+                        {item.title}
                       </button>
 
                       {isArtistsChart ? (
@@ -1482,6 +1546,7 @@ export default function PremiumChartsPage({
                           </div>
                         ) : null
                       ) : <ArtistLinks item={item} />}
+                      {certification && <CertificationTag cert={certification} compact style={{ marginTop: "6px" }} />}
                     </div>
 
                     <button
@@ -1560,20 +1625,17 @@ export default function PremiumChartsPage({
                     <ReleaseArtwork item={item} size={50} />
 
                     <div style={styles.entryText}>
-                      <button
-                        onClick={() => openRelease(item)}
-                        className="ngoma-title-link"
-                        style={{ ...styles.titleButton, fontFamily: SF, ...(darkMode ? styles.titleButtonDark : null), color: darkMode ? "#FFFFFF" : "#050505" }}
-                        title={`Open ${item.title}`}
-                      >
-                        {item.title}{certification && (
-                          <span
-                            aria-label={`${certification.label} certified`}
-                            title={`${certification.label} certified · ${Number(certification.totalPts || 0).toLocaleString()} points`}
-                            style={{ marginLeft: "4px", fontSize: "12px", opacity: 0.85, lineHeight: 1, verticalAlign: "middle" }}
-                          ><span style={certification.iconFilter ? { filter: certification.iconFilter } : undefined}>{certification.icon}</span></span>
-                        )}
-                      </button>
+                      <div style={{ display: "flex", alignItems: "center", gap: "7px", flexWrap: "wrap" }}>
+                        <button
+                          onClick={() => openRelease(item)}
+                          className="ngoma-title-link"
+                          style={{ ...styles.titleButton, ...yearEndTitleStyle(item), fontFamily: SF, ...(darkMode ? styles.titleButtonDark : null), color: darkMode ? "#FFFFFF" : "#050505" }}
+                          title={`Open ${item.title}`}
+                        >
+                          {item.title}
+                        </button>
+                        {certification && <CertificationTag cert={certification} compact />}
+                      </div>
 
                       {isArtistsChart ? (
                         item.artist ? (

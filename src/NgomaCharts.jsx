@@ -1280,6 +1280,8 @@ export default function NgomaCharts(){
   const [expandedTrendingRows, setExpandedTrendingRows] = useState({});
   const detailOpenRef = useRef(false);
   const detailReturnScrollRef = useRef(0);
+  const publicHeaderRef = useRef(null);
+  const [publicHeaderHeight, setPublicHeaderHeight] = useState(0);
   const isDark = theme === "dark";
   const themeColors = isDark
     ? {
@@ -1313,6 +1315,27 @@ export default function NgomaCharts(){
       // Theme still works for the current session if storage is unavailable.
     }
   }, [theme]);
+
+  useEffect(() => {
+    const header = publicHeaderRef.current;
+    if (!header) return undefined;
+
+    const updateHeaderHeight = () => {
+      setPublicHeaderHeight(Math.ceil(header.getBoundingClientRect().height));
+    };
+
+    updateHeaderHeight();
+    const observer = typeof ResizeObserver !== "undefined"
+      ? new ResizeObserver(updateHeaderHeight)
+      : null;
+    observer?.observe(header);
+    window.addEventListener("resize", updateHeaderHeight);
+
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", updateHeaderHeight);
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -2958,7 +2981,7 @@ const top = data[0];
   ];
 
   return(
-    <div className="ngoma-app-shell" data-theme={theme} style={{fontFamily:SF,background:themeColors.page,color:themeColors.text,minHeight:"100vh",width:"100%",overflowX:"hidden"}}>
+    <div className="ngoma-app-shell" data-theme={theme} style={{fontFamily:SF,background:themeColors.page,color:themeColors.text,minHeight:"100vh",width:"100%",overflowX:"clip"}}>
       {apiChecked && liveStatus === "degraded" && (
         <div style={{
           position:"fixed",bottom:"14px",right:"14px",zIndex:9999,pointerEvents:"none",
@@ -3024,7 +3047,7 @@ const top = data[0];
       {MAINTENANCE_SETTING.enabled&&<div role="status" style={{padding:"11px 18px",background:MAINTENANCE_SETTING.background || "#FFF3CD",color:MAINTENANCE_SETTING.color || "#5F4700",fontFamily:F,fontSize:"12px",fontWeight:800,textAlign:"center",borderBottom:`1px solid ${GOLD}55`}}>{MAINTENANCE_SETTING.message || `${SITE_NAME} is currently undergoing maintenance.`}</div>}
 
       {/* HEADER */}
-      <header style={{background:themeColors.surface,borderBottom:`3px solid ${themeColors.text}`,position:"sticky",top:0,zIndex:50}}>
+      <header ref={publicHeaderRef} style={{background:themeColors.surface,borderBottom:`3px solid ${themeColors.text}`,position:"fixed",top:0,left:0,right:0,width:"100%",zIndex:90,boxShadow:isDark?"0 8px 24px rgba(0,0,0,0.34)":"0 8px 24px rgba(31,36,31,0.10)"}}>
         <div style={{background:"#1A1A1A",color:"#FFF"}}>
           <div style={{...pageFrame({display:"flex",justifyContent:"flex-end",alignItems:"center",gap:"10px",padding:isMobile?"6px 16px":"5px 28px"}),fontFamily:F,fontSize:isMobile?"8px":"9.5px",letterSpacing:isMobile?"1px":"2px",textTransform:"uppercase"}}>
             <span style={{color:"rgba(255,255,255,0.68)",fontSize:isMobile?"8px":"9.5px",letterSpacing:isMobile?"0.5px":"1px",fontFamily:"inherit",whiteSpace:"nowrap"}}>
@@ -3140,6 +3163,7 @@ const top = data[0];
           )}
         </div>
       </header>
+      <div aria-hidden="true" style={{height:`${publicHeaderHeight}px`,flexShrink:0}} />
 
       {/* SEARCH */}
       {sOpen&&(
