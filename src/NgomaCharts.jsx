@@ -12,7 +12,7 @@ import {
   firstFiniteNumber, certificationKey,
   getMonthYearParts, platformToSlug,
   normArtistKey, artistSetKey, entryKey, sameRelease, normalizeRankedRows,
-  mv, mapPublicNews,
+  mv, resolveMovementFromHistory, mapPublicNews,
 } from "./utils/chartHelpers.js";
 import { normalizePublicPayload, publishedMonthOptions, runtimePublicData } from "./utils/publicDataRuntime.js";
 import {
@@ -1532,9 +1532,15 @@ export default function NgomaCharts(){
                 null
               )
             : null;
-          const computedPrev = entry.prev_rank ?? previousRankFromHistory;
-          const isNew = movementHistory ? !matchedPrior : fallbackIsNew;
-          const isReentry = movementHistory ? (!matchedPrevious && matchedPrior) : fallbackIsReentry;
+          const resolvedMovement = resolveMovementFromHistory({
+            historyAvailable: Boolean(movementHistory),
+            appearedBefore: matchedPrior,
+            appearedPreviousMonth: matchedPrevious,
+            previousRank: previousRankFromHistory,
+            backendPrevRank: entry.prev_rank,
+            backendLastMonth: entry.last_month,
+            backendMovement: entry.movement,
+          });
 
           const displayPoints = entry.total_points || 0;
 
@@ -1549,15 +1555,12 @@ export default function NgomaCharts(){
             pts: displayPoints,
             rawPts: entry.raw_total_points ?? null,
             plat: entry.platform_count ? `${entry.platform_count}/${entry.platform_max || tp}` : "",
-            prev: computedPrev,
+            prev: resolvedMovement.prev,
             first: false,
-            is_new: isNew,
-            reentry: isReentry,
-            movement: isNew ? "new" : isReentry ? "reentry" : entry.movement,
-            last_month:
-              entry.last_month !== null && entry.last_month !== undefined && entry.last_month !== ""
-                ? entry.last_month
-                : computedPrev ?? "—",
+            is_new: movementHistory ? resolvedMovement.isNew : fallbackIsNew,
+            reentry: movementHistory ? resolvedMovement.reentry : fallbackIsReentry,
+            movement: resolvedMovement.movement,
+            last_month: resolvedMovement.lastMonth,
             peak_rank: entry.peak_rank,
             weeks_on_chart: entry.weeks_on_chart,
             platform_count: entry.platform_count,

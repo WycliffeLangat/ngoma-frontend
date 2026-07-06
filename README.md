@@ -57,14 +57,19 @@ entries have source-platform activity.
 
 ## Configure the backend
 
-The backend API is required:
+Local development uses `/api/v1` and Vite proxies requests to the deployed
+Railway API configured in `.env.development`. Run `npm run dev` to review
+frontend changes without starting Django.
 
-1. Copy `.env.example` to `.env`
-2. Set the public API base:
-   ```
-   VITE_API_BASE=https://api.ngomacharts.co.ke/api/v1
-   ```
-3. Rebuild or restart the development server.
+To use a local Django backend instead, add this ignored `.env.local` file and
+restart Vite:
+
+```env
+VITE_API_PROXY_TARGET=http://127.0.0.1:8000
+```
+
+Production hosting must set `VITE_API_BASE` to the public Django API URL before
+building.
 
 At startup the frontend requests `/app-data/`, sorts the published periods by numeric year/month, and activates the latest published month. If `VITE_API_BASE` is missing or the backend is unavailable, the public app shows a clear configuration or connection error; it never loads local chart records.
 

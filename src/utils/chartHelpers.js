@@ -232,6 +232,49 @@ export const mv = (e) => {
   return { t: "same" };
 };
 
+export const resolveMovementFromHistory = ({
+  historyAvailable = false,
+  appearedBefore = false,
+  appearedPreviousMonth = false,
+  previousRank = null,
+  backendPrevRank = null,
+  backendLastMonth = null,
+  backendMovement = "",
+} = {}) => {
+  if (!historyAvailable) {
+    const movementType = String(backendMovement || "").toLowerCase();
+    return {
+      prev: backendPrevRank ?? null,
+      lastMonth:
+        backendLastMonth !== null &&
+        backendLastMonth !== undefined &&
+        backendLastMonth !== ""
+          ? backendLastMonth
+          : backendPrevRank ?? "—",
+      isNew: movementType === "new",
+      reentry:
+        movementType === "reentry" ||
+        movementType === "re-entry" ||
+        movementType === "re",
+      movement: backendMovement,
+    };
+  }
+
+  const prev = appearedPreviousMonth
+    ? previousRank ?? backendPrevRank ?? null
+    : null;
+  const isNew = !appearedBefore;
+  const reentry = !appearedPreviousMonth && appearedBefore;
+
+  return {
+    prev,
+    lastMonth: prev ?? "—",
+    isNew,
+    reentry,
+    movement: isNew ? "new" : reentry ? "reentry" : undefined,
+  };
+};
+
 // ── News / certifications data mapping ───────────────────────────────────
 
 const NEWS_CATEGORY_LABELS = {
