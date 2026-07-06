@@ -839,17 +839,23 @@ export default function ResourcePage({ type, searchJump, user }) {
     const labels = {
       publish: "publish this chart",
       unpublish: "remove this chart from the public site and return it to draft",
+      delete: "permanently delete this chart period",
     };
     if (!window.confirm(`Are you sure you want to ${labels[actionName]}?`)) return;
     setActionBusy(true);
     setError("");
     try {
-      await cmsApi.post(`/charts/${row.id}/${actionName}/`, {});
-      showFlash(
-        actionName === "publish"
-          ? `${row.label} published.`
-          : `${row.label} returned to draft.`
-      );
+      if (actionName === "delete") {
+        await cmsApi.delete(`/charts/${row.id}/`);
+        showFlash(`${row.label} deleted.`);
+      } else {
+        await cmsApi.post(`/charts/${row.id}/${actionName}/`, {});
+        showFlash(
+          actionName === "publish"
+            ? `${row.label} published.`
+            : `${row.label} returned to draft.`
+        );
+      }
       await load();
     } catch (actionError) {
       setError(actionError.message);
@@ -878,6 +884,13 @@ export default function ResourcePage({ type, searchJump, user }) {
             onClick={() => runChartAction(row, "publish")}
           >Publish</button>
         )}
+        <button
+          className="cms-btn danger"
+          style={{ fontSize: 11, padding: "2px 9px" }}
+          disabled={actionBusy}
+          title="Permanently delete this chart period"
+          onClick={() => runChartAction(row, "delete")}
+        >Delete</button>
       </span>
     ),
   } : null;
