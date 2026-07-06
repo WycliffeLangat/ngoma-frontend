@@ -81,11 +81,26 @@ function editDistance(left, right) {
 
 function isConservativeNearMatch(left, right) {
   if (!left || !right || left === right || left[0] !== right[0]) return false;
-  const maxLength = Math.max(left.length, right.length);
   const minLength = Math.min(left.length, right.length);
   if (minLength < 5 || Math.abs(left.length - right.length) > 2) return false;
-  const distance = editDistance(left, right);
-  return distance <= 1 || (maxLength >= 9 && distance <= 2);
+  // A single-character edit is the only distance conservative enough to trust as
+  // "same title, minor typo/transcription difference" rather than two genuinely
+  // different titles that happen to share a template, e.g. "Make Them Cry" vs
+  // "Make Them Pay" (edit distance 2) or "Somebody Loves Me" vs "...Loves U".
+  return editDistance(left, right) <= 1;
+}
+
+const SERIES_MARKER_WORDS = new Set([
+  "i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x",
+  "xi", "xii", "xiii", "xiv", "xv", "xvi", "xvii", "xviii", "xix", "xx",
+]);
+
+// A release title differing only by a sequel/series number ("Vol. 1" vs
+// "Vol. 2", "Culture II" vs "Culture III", "...2025" vs "...2026") is a
+// different release, not a duplicate, even at edit distance 1.
+function seriesMarkerSignature(value) {
+  const words = String(value || "").toLowerCase().match(/[a-z0-9]+/g) || [];
+  return words.filter((word) => /^\d+$/.test(word) || SERIES_MARKER_WORDS.has(word)).join(",");
 }
 
 async function fetchAll(endpoint, params = {}) {
@@ -152,8 +167,14 @@ function expandedCandidateGroups(rows, kind) {
   fuzzyBuckets.forEach((bucket) => {
     for (let left = 0; left < bucket.length; left += 1) {
       for (let right = left + 1; right < bucket.length; right += 1) {
+        const rowLeft = bucket[left].row;
+        const rowRight = bucket[right].row;
+        if (
+          kind === "release" &&
+          seriesMarkerSignature(rowLeft.title) !== seriesMarkerSignature(rowRight.title)
+        ) continue;
         if (isConservativeNearMatch(bucket[left].canonical, bucket[right].canonical)) {
-          union(bucket[left].row.id, bucket[right].row.id);
+          union(rowLeft.id, rowRight.id);
         }
       }
     }
