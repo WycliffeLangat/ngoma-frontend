@@ -846,8 +846,8 @@ export default function ResourcePage({ type, searchJump, user }) {
     setError("");
     try {
       if (actionName === "delete") {
-        await cmsApi.delete(`/charts/${row.id}/`);
-        showFlash(`${row.label} deleted.`);
+        await cmsApi.delete(`/charts/${row.id}/hard_delete/`);
+        showFlash(`${row.label} permanently deleted.`);
       } else {
         await cmsApi.post(`/charts/${row.id}/${actionName}/`, {});
         showFlash(
