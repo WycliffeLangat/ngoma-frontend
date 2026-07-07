@@ -2559,7 +2559,7 @@ const top = data[0];
             style={{
               border:0,
               borderRadius:"999px",
-              background:active?(isDark?GOLD:"#1A1A1A"):"transparent",
+              background:active?(isDark?"#363C33":"#1A1A1A"):"transparent",
               color:active?"#FFF":(isDark?"#B8BDB8":"#59645D"),
               padding:"7px 12px",
               fontFamily:F,

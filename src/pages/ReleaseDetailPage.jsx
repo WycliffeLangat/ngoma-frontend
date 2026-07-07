@@ -66,6 +66,22 @@ export default function ReleaseDetailPage({ ctx }) {
     img.src = url;
   }, [selR?.cover_image]);
 
+  // Shared chart theming — keeps every Recharts panel dark-mode-aware
+  // and consistent with the rest of the app instead of hardcoded light colors.
+  const gridStroke = isDark ? "#242923" : "#EDEAE2";
+  const axisTick = (size, extra) => ({ fontSize: size, fontFamily: F, fill: isDark ? "#93A093" : "#59645D", fontWeight: 650, ...extra });
+  const tooltipStyle = {
+    fontFamily: F, fontSize: 11,
+    background: isDark ? "#161A16" : "#FFFFFF",
+    border: "1px solid " + (isDark ? "#2F352F" : "#E4E1D8"),
+    borderRadius: "8px",
+    boxShadow: isDark ? "0 8px 24px rgba(0,0,0,0.35)" : "0 8px 24px rgba(31,36,31,0.08)",
+    color: isDark ? "#F6F3EA" : "#1A1A1A",
+  };
+  const tooltipLabelStyle = { color: isDark ? "#D7DBD7" : "#59645D", fontWeight: 700, marginBottom: "2px" };
+  const dividerColor = isDark ? "#2B302B" : "#F0F0EC";
+  const darkCard = (extra = {}) => ({ ...card(extra), background: isDark ? "#0F120F" : "#FFFFFF", borderColor: isDark ? "#2B302B" : "#EFEDE7" });
+
   return (()=>{
         const selectedCertification = getCertificationForEntry(selR, selR.type || (isSingles ? "single" : "album"));
         const journey = releaseJourney(selR);
@@ -151,16 +167,25 @@ export default function ReleaseDetailPage({ ctx }) {
         return (
         <div style={{padding:PAD,background:isDark?"#050505":accentRgb?`linear-gradient(160deg,rgba(${accentRgb},0.13) 0%,#ffffff 100%)`:"#ffffff",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden",transition:"background 0.6s ease"}}>
           <span onClick={closeDetails} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:GOLD,cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>← Back</span>
-          <div style={{marginTop:"20px"}}>
-            {releaseDetails.cover_image&&<img src={releaseDetails.cover_image} alt={`${selR.title} cover`} style={{width:isMobile?"120px":"150px",aspectRatio:"1",objectFit:"cover",borderRadius:"14px",marginBottom:"16px",boxShadow:"0 10px 28px rgba(0,0,0,0.12)"}} />}
-            <div style={{fontFamily:F,fontSize:"10px",letterSpacing:"2px",textTransform:"uppercase",color:GOLD,marginBottom:"6px"}}>{selR.type||"single"}</div>
-            <h1 style={{display:"flex",alignItems:"center",fontSize:isMobile?"24px":"30px",fontWeight:850,margin:"0 0 4px",lineHeight:1.12}}>
-              {selR.title}{selectedCertification&&<span aria-label={`${selectedCertification.label} certified`} title={`${selectedCertification.label} certified · ${Number(selectedCertification.totalPts||0).toLocaleString()} points`} style={{marginLeft:"6px",fontSize:isMobile?"12px":"18px",opacity:0.85,lineHeight:1}}><span style={selectedCertification.iconFilter?{filter:selectedCertification.iconFilter}:undefined}>{selectedCertification.icon}</span></span>}
-            </h1>
-            <div style={{display:"flex",alignItems:"center",gap:"9px",flexWrap:"wrap",margin:"0 0 16px"}}>
-              <button type="button" onClick={()=>openArtistDetails(selR.primary_artist||selR.artist)} style={{fontSize:isMobile?"15px":"18px",color:"#4E5851",margin:0,padding:0,border:0,background:"transparent",fontFamily:F,cursor:"pointer",fontWeight:800}}>{selR.artist}</button>
-              <CountryBadge artist={selR.primary_artist||selR.artist} item={releaseDetails} showName />
+
+          {/* Hero — cover art beside identity, matching the artist detail page's layout */}
+          <div style={{marginTop:"20px",display:"flex",gap:isMobile?"16px":"24px",alignItems:"flex-start",flexDirection:isMobile?"column":"row",minWidth:0}}>
+            {releaseDetails.cover_image && (
+              <img src={releaseDetails.cover_image} alt={`${selR.title} cover`} style={{width:isMobile?"120px":"156px",height:isMobile?"120px":"156px",aspectRatio:"1",objectFit:"cover",borderRadius:"20px",boxShadow:isDark?"0 12px 30px rgba(0,0,0,0.4)":"0 12px 30px rgba(0,0,0,0.14)",flexShrink:0}} />
+            )}
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontFamily:F,fontSize:"10px",letterSpacing:"2px",textTransform:"uppercase",color:GOLD,marginBottom:"6px",fontWeight:800}}>{selR.type||"single"}</div>
+              <h1 style={{display:"flex",alignItems:"center",flexWrap:"wrap",gap:"8px",fontSize:isMobile?"24px":"32px",fontWeight:850,margin:"0 0 10px",lineHeight:1.1,fontFamily:SF,letterSpacing:"-0.5px",color:isDark?"#F6F3EA":"#1A1A1A"}}>
+                {selR.title}{selectedCertification&&<span aria-label={`${selectedCertification.label} certified`} title={`${selectedCertification.label} certified · ${Number(selectedCertification.totalPts||0).toLocaleString()} points`} style={{fontSize:isMobile?"14px":"20px",opacity:0.9,lineHeight:1}}><span style={selectedCertification.iconFilter?{filter:selectedCertification.iconFilter}:undefined}>{selectedCertification.icon}</span></span>}
+              </h1>
+              <div style={{display:"flex",alignItems:"center",gap:"9px",flexWrap:"wrap"}}>
+                <button type="button" onClick={()=>openArtistDetails(selR.primary_artist||selR.artist)} style={{fontSize:isMobile?"15px":"18px",color:isDark?"#C7CCC6":"#4E5851",margin:0,padding:0,border:0,background:"transparent",fontFamily:F,cursor:"pointer",fontWeight:800}}>{selR.artist}</button>
+                <CountryBadge artist={selR.primary_artist||selR.artist} item={releaseDetails} showName />
+              </div>
             </div>
+          </div>
+
+          <div style={{marginTop:"22px"}}>
             <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(4,minmax(0,1fr))",gap:"10px",marginBottom:"18px"}}>
               {[
                 {label:"Total Points",value:totalPoints.toLocaleString()},
@@ -185,25 +210,24 @@ export default function ReleaseDetailPage({ ctx }) {
                 </div>
               ))}
             </div>
-            {releaseConfidence&&<div style={{fontFamily:F,fontSize:"11px",color:"#68716B",margin:"-6px 0 18px"}}>Metadata confidence: <strong>{releaseConfidence}</strong></div>}
+            {releaseConfidence&&<div style={{fontFamily:F,fontSize:"11px",color:isDark?"#8F968F":"#68716B",margin:"-6px 0 18px"}}>Metadata confidence: <strong>{releaseConfidence}</strong></div>}
             <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1.4fr 0.8fr",gap:"14px",marginBottom:"20px"}}>
-              <div style={card()}>
-                <div style={secLbl()}><SecMark/>Combined Rank & Points Journey</div>
+              <div style={darkCard()}>
+                <div style={secLbl()}><SecMark/>Combined Rank Journey</div>
+                <div style={{fontFamily:F,fontSize:"9.5px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#8F968F":"#7B857D",margin:"-6px 0 6px"}}>Lower = better</div>
                 <ResponsiveContainer width="100%" height={220}>
-                  <LineChart data={releaseRankData} margin={{top:10,right:18,left:0,bottom:0}}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#F0F0EC"/>
-                    <XAxis dataKey="month" tick={{fontSize:10,fontFamily:F,fill:"#59645D"}}/>
-                    <YAxis yAxisId="rank" reversed domain={[1,50]} tick={{fontSize:10,fontFamily:F,fill:"#59645D"}} tickFormatter={v=>`#${v}`}/>
-                    <YAxis yAxisId="points" orientation="right" domain={[0,50]} hide/>
-                    <Tooltip formatter={(value,name)=>[name==="rank"?`#${value}`:value,name==="rank"?"Rank":"Points"]} contentStyle={{fontFamily:F,fontSize:11}}/>
-                    <Line yAxisId="rank" type="monotone" dataKey="rank" stroke={GOLD} strokeWidth={3} dot={{r:4}}/>
-                    <Line yAxisId="points" type="monotone" dataKey="points" stroke="#1565C0" strokeWidth={2} strokeDasharray="5 4" dot={{r:3}}/>
+                  <LineChart data={releaseRankData} margin={{top:8,right:18,left:0,bottom:0}}>
+                    <CartesianGrid stroke={gridStroke} vertical={false}/>
+                    <XAxis dataKey="month" tick={axisTick(10)} tickLine={false} axisLine={false}/>
+                    <YAxis reversed domain={[1,50]} tick={axisTick(10)} tickFormatter={v=>`#${v}`} axisLine={false} tickLine={false}/>
+                    <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} cursor={{stroke:gridStroke}} formatter={(v)=>[`#${v}`,"Rank"]}/>
+                    <Line type="monotone" dataKey="rank" stroke={GOLD} strokeWidth={2} dot={{r:4,fill:GOLD,stroke:isDark?"#0F120F":"#FFFFFF",strokeWidth:2}} activeDot={{r:6}}/>
                   </LineChart>
                 </ResponsiveContainer>
               </div>
-              <div style={card()}>
+              <div style={darkCard()}>
                 <div style={secLbl()}><SecMark/>Platform Peak Ranks</div>
-                {platformPeaks.map((item)=><div key={item.platform} style={{display:"flex",justifyContent:"space-between",gap:"12px",padding:"8px 0",borderBottom:"1px solid #F0F0EC",fontFamily:F,fontSize:"12px"}}><span style={{color:PC[item.platform]||"#59645D",fontWeight:800}}>{item.platform}</span><strong>#{item.rank}</strong></div>)}
+                {platformPeaks.map((item)=><div key={item.platform} style={{display:"flex",justifyContent:"space-between",gap:"12px",padding:"8px 0",borderBottom:`1px solid ${dividerColor}`,fontFamily:F,fontSize:"12px"}}><span style={{color:PC[item.platform]||(isDark?"#93A093":"#59645D"),fontWeight:800}}>{item.platform}</span><strong style={{color:isDark?"#F6F3EA":"#1A1A1A"}}>#{item.rank}</strong></div>)}
               </div>
             </div>
             <PlatformPerformance
@@ -218,24 +242,34 @@ export default function ReleaseDetailPage({ ctx }) {
                 .filter((platform) => platform !== "Combined" && platform !== "Kenyan")
                 .map((platform) => PLAT_LABEL[platform] || platform)}
             />
-            <h3 style={secLbl()}><SecMark/>Cross-Platform Journey</h3>
-            {chartedJourney.map(({month:m,combined,platforms})=>(
-              <div key={m} style={{marginBottom:"14px",padding:"16px",background:isDark?"#111411":"#FAFAF8",borderRadius:"8px",border:"1px solid "+(isDark?"#2B302B":"#EAEAE6")}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"10px"}}>
-                  <span style={{fontWeight:700,fontFamily:SF,color:isDark?"#F6F3EA":"inherit"}}>{m}</span>
-                  {combined
-                    ? <span style={{fontFamily:F,fontSize:"13px",fontWeight:700,color:GOLD}}>#{combined.rank} Combined · {combined.pts.toLocaleString()} pts · {combined.plat} platforms</span>
-                    : <span style={{fontFamily:F,fontSize:"12px",fontWeight:800,color:isDark?"#F4EFE4":"#59645D"}}>Platform entries only</span>}
+            <div style={darkCard({marginBottom:0})}>
+              <div style={secLbl()}><SecMark/>Cross-Platform Journey</div>
+              <div style={{border:`1px solid ${isDark?"#2B302B":"#E4E1D8"}`,borderRadius:"12px",overflow:"hidden"}}>
+                <div style={{display:"grid",gridTemplateColumns:isMobile?"58px 84px 46px minmax(0,1fr)":"74px 140px 60px minmax(0,1fr)",gap:"8px",padding:isMobile?"9px":"11px 14px",background:"#1F241F",fontFamily:F,fontSize:"10.5px",fontWeight:850,letterSpacing:"0.8px",textTransform:"uppercase",color:"#C9CEC9"}}>
+                  <div>Month</div><div>Combined</div><div>Cover</div><div>Platforms</div>
                 </div>
-                <div style={{display:"flex",gap:"6px",flexWrap:"wrap"}}>
-                  {platforms.map(p=>(
-                    <span key={p.platform} style={{padding:"4px 10px",background:(PC[p.platform]||"#888")+"14",borderRadius:"12px",fontSize:"10px",fontFamily:F,fontWeight:600,color:PC[p.platform]||"#888",borderLeft:"2px solid "+(PC[p.platform]||"#888")}}>
-                      {p.platform} #{p.rank}
-                    </span>
-                  ))}
-                </div>
+                {chartedJourney.map(({month:m,combined,platforms},idx)=>{
+                  const isPeak = combined && Number(combined.rank) === 1;
+                  return (
+                  <div key={m} style={{display:"grid",gridTemplateColumns:isMobile?"58px 84px 46px minmax(0,1fr)":"74px 140px 60px minmax(0,1fr)",gap:"8px",alignItems:"center",padding:isMobile?"9px":"10px 14px",background:isDark?(idx%2?"#121612":"#0F120F"):(idx%2?"#FBFAF7":"#FFFFFF"),borderTop:idx===0?"none":`1px solid ${dividerColor}`,borderLeft:isPeak?`3px solid ${GOLD}`:"3px solid transparent"}}>
+                    <span style={{fontFamily:SF,fontSize:"12px",fontWeight:800,color:isDark?"#F6F3EA":"#1A1A1A"}}>{m}</span>
+                    {combined
+                      ? <span style={{fontFamily:F,fontSize:"11.5px",fontWeight:800,color:GOLD}}>#{combined.rank} · {combined.pts.toLocaleString()} pts</span>
+                      : <span style={{fontFamily:F,fontSize:"11px",color:isDark?"#8F968F":"#7B857D"}}>—</span>}
+                    <span style={{fontFamily:F,fontSize:"11px",fontWeight:800,color:isDark?"#AEB6AE":"#69716B"}}>{platforms.length}/{tp}</span>
+                    <div style={{display:"flex",gap:"5px",flexWrap:"wrap"}}>
+                      {platforms.map(p=>(
+                        <span key={p.platform} title={`${p.platform} #${p.rank}`} style={{padding:"2px 8px",background:(PC[p.platform]||"#888")+"18",borderRadius:"999px",fontSize:"9.5px",fontFamily:F,fontWeight:700,color:PC[p.platform]||"#888"}}>
+                          {p.platform} #{p.rank}
+                        </span>
+                      ))}
+                      {!platforms.length && <span style={{fontSize:"11px",color:isDark?"#68716B":"#B8BDB8"}}>—</span>}
+                    </div>
+                  </div>
+                  );
+                })}
               </div>
-            ))}
+            </div>
           </div>
         </div>
         );

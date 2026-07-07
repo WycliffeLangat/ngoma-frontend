@@ -393,7 +393,7 @@ export default function AnalyticsPage({ ctx }) {
                   <div style={{fontFamily:F,fontSize:isMobile?"10px":"9.5px",fontWeight:800,letterSpacing:"1.4px",textTransform:"uppercase",color:"#59645D"}}>Peak Rank by Platform</div>
                   <div style={{display:"flex",gap:"6px"}}>
                     {["table","graph"].map(v=>(
-                      <button key={v} type="button" onClick={()=>setPlatCompareView(v)} style={{padding:"5px 12px",borderRadius:"999px",border:"1.5px solid "+(platCompareView===v?GOLD:"#DEDAD2"),background:platCompareView===v?GOLD:"transparent",color:platCompareView===v?"#FFF":isDark?"#AEB6AE":"#59645D",fontFamily:F,fontSize:"10px",fontWeight:800,cursor:"pointer",textTransform:"uppercase",letterSpacing:"0.8px"}}>
+                      <button key={v} type="button" onClick={()=>setPlatCompareView(v)} style={{padding:"5px 12px",borderRadius:"999px",border:"1.5px solid "+(platCompareView===v?(isDark?"#363C33":"#1A1A1A"):(isDark?"#2F352F":"#DEDAD2")),background:platCompareView===v?(isDark?"#363C33":"#1A1A1A"):"transparent",color:platCompareView===v?"#FFF":isDark?"#AEB6AE":"#59645D",fontFamily:F,fontSize:"10px",fontWeight:800,cursor:"pointer",textTransform:"uppercase",letterSpacing:"0.8px"}}>
                         {v==="table"?"Table":"Chart"}
                       </button>
                     ))}

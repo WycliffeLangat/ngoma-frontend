@@ -159,6 +159,23 @@ export default function ArtistDetailPage({ ctx }) {
     releases: row.releases.size,
   }));
 
+  // Shared chart theming — mirrors ReleaseDetailPage/AnalyticsPage so every
+  // Recharts panel reacts to dark mode instead of hardcoded light colors.
+  const gridStroke = isDark ? "#242923" : "#EDEAE2";
+  const axisTick = (size, extra) => ({ fontSize: size, fontFamily: F, fill: isDark ? "#93A093" : "#59645D", fontWeight: 650, ...extra });
+  const tooltipStyle = {
+    fontFamily: F, fontSize: 11,
+    background: isDark ? "#161A16" : "#FFFFFF",
+    border: "1px solid " + (isDark ? "#2F352F" : "#E4E1D8"),
+    borderRadius: "8px",
+    boxShadow: isDark ? "0 8px 24px rgba(0,0,0,0.35)" : "0 8px 24px rgba(31,36,31,0.08)",
+    color: isDark ? "#F6F3EA" : "#1A1A1A",
+  };
+  const tooltipLabelStyle = { color: isDark ? "#D7DBD7" : "#59645D", fontWeight: 700, marginBottom: "2px" };
+  const barCursorFill = isDark ? "rgba(255,255,255,0.05)" : "rgba(31,36,31,0.04)";
+  const dividerColor = isDark ? "#2B302B" : "#F2F2EE";
+  const darkCard = (extra = {}) => ({ ...card(extra), background: isDark ? "#0F120F" : "#FFFFFF", borderColor: isDark ? "#2B302B" : "#EFEDE7" });
+
   return (
 <div style={{padding:PAD,background:isDark?"#050505":"#f8f7f3",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <span onClick={closeDetails} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:GOLD,cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:700}}>← Back</span>
@@ -170,11 +187,11 @@ export default function ArtistDetailPage({ ctx }) {
             </div>
             <div style={{flex:1,minWidth:0}}>
               <div style={{display:"flex",alignItems:"center",gap:"10px",flexWrap:"wrap"}}>
-                <h2 style={{margin:0,fontFamily:SF,fontSize:isMobile?"26px":"32px",fontWeight:800,lineHeight:1.08,letterSpacing:"-0.5px"}}>{selA.n}</h2>
+                <h2 style={{margin:0,fontFamily:SF,fontSize:isMobile?"26px":"32px",fontWeight:800,lineHeight:1.08,letterSpacing:"-0.5px",color:isDark?"#F6F3EA":"#1A1A1A"}}>{selA.n}</h2>
                 <CountryBadge item={countryItem} showName />
               </div>
-              <div style={{fontFamily:F,fontSize:"14px",color:"#69716B",marginTop:"6px",lineHeight:1.5}}>Recorded {placementCount} Top-50 platform placements across {chartedMonthCount} months</div>
-              {profile.biography&&<p className="bio-text" style={{fontFamily:F,fontSize:"15px",lineHeight:1.72,color:"#4a534c",margin:"12px 0 0",maxWidth:"680px"}}>{profile.biography}</p>}
+              <div style={{fontFamily:F,fontSize:"14px",color:isDark?"#AEB6AE":"#69716B",marginTop:"6px",lineHeight:1.5}}>Recorded {placementCount} Top-50 platform placements across {chartedMonthCount} months</div>
+              {profile.biography&&<p className="bio-text" style={{fontFamily:F,fontSize:"15px",lineHeight:1.72,color:isDark?"#C7CCC6":"#4a534c",margin:"12px 0 0",maxWidth:"680px"}}>{profile.biography}</p>}
 
               {/* Social icon links */}
               {socialLinks.length > 0 && (
@@ -195,7 +212,7 @@ export default function ArtistDetailPage({ ctx }) {
               <div className="artist-stat-strip">
                 {[{v:formatRank(selA.rank),l:"Current Rank",c:GOLD},{v:formatRank(selA.pk),l:"Best Rank"},{v:totalArtistPoints.toLocaleString(),l:"Total Points"},{v:placementCount,l:"Entries"},{v:chartedMonthCount,l:"Months"}].map((s,i)=>(
                   <div key={i} className="artist-stat-item">
-                    <div className="stat-value" style={{color:s.c||"#1A1A1A"}}>{s.v}</div>
+                    <div className="stat-value" style={{color:s.c||(isDark?"#F6F3EA":"#1A1A1A")}}>{s.v}</div>
                     <div className="stat-label">{s.l}</div>
                   </div>
                 ))}
@@ -216,26 +233,27 @@ export default function ArtistDetailPage({ ctx }) {
           )}
 
           <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:"14px",marginBottom:"20px"}}>
-            <div style={card()}>
+            <div style={darkCard()}>
               <div style={secLbl()}><SecMark/>Monthly Credited Points</div>
               <ResponsiveContainer width="100%" height={190}>
                 <BarChart data={selectedArtistRankData}>
-                  <XAxis dataKey="month" tick={{fontSize:10.5,fontFamily:F,fill:"#59645D",fontWeight:650}} tickLine={false}/>
-                  <YAxis tick={{fontSize:10,fontFamily:F,fill:"#59645D",fontWeight:650}} axisLine={false} tickLine={false}/>
-                  <Tooltip formatter={v=>[v.toLocaleString()+" pts","Points"]} contentStyle={{fontFamily:F,fontSize:11}}/>
-                  <Bar dataKey="points" fill={GOLD} radius={[4,4,0,0]}/>
+                  <CartesianGrid stroke={gridStroke} vertical={false}/>
+                  <XAxis dataKey="month" tick={axisTick(10.5)} tickLine={false} axisLine={false}/>
+                  <YAxis tick={axisTick(10)} axisLine={false} tickLine={false}/>
+                  <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} cursor={{fill:barCursorFill}} formatter={v=>[v.toLocaleString()+" pts","Points"]}/>
+                  <Bar dataKey="points" fill={GOLD} radius={[4,4,0,0]} maxBarSize={22}/>
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <div style={card()}>
+            <div style={darkCard()}>
                 <div style={secLbl()}><SecMark/>Monthly Artist Rank</div>
               <ResponsiveContainer width="100%" height={190}>
                 <LineChart data={selectedArtistRankData} margin={{top:8,right:12,left:0,bottom:0}}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F0F0EC"/>
-                  <XAxis dataKey="month" tick={{fontSize:10.5,fontFamily:F,fill:"#59645D"}}/>
-                  <YAxis reversed domain={[1,"dataMax"]} allowDecimals={false} tickCount={8} tick={{fontSize:10,fontFamily:F,fill:"#59645D"}} tickFormatter={v=>`#${v}`}/>
-                  <Tooltip formatter={v=>[`#${v}`,"Artist Rank"]} contentStyle={{fontFamily:F,fontSize:11}}/>
-                  <Line type="monotone" dataKey="rank" stroke="#1565C0" strokeWidth={3} connectNulls dot={{r:4}}/>
+                  <CartesianGrid stroke={gridStroke} vertical={false}/>
+                  <XAxis dataKey="month" tick={axisTick(10.5)} tickLine={false} axisLine={false}/>
+                  <YAxis reversed domain={[1,"dataMax"]} allowDecimals={false} tickCount={8} tick={axisTick(10)} tickFormatter={v=>`#${v}`} axisLine={false} tickLine={false}/>
+                  <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} cursor={{stroke:gridStroke}} formatter={v=>[`#${v}`,"Artist Rank"]}/>
+                  <Line type="monotone" dataKey="rank" stroke="#1565C0" strokeWidth={2} connectNulls dot={{r:4,fill:"#1565C0",stroke:isDark?"#0F120F":"#FFFFFF",strokeWidth:2}} activeDot={{r:6}}/>
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -266,7 +284,7 @@ export default function ArtistDetailPage({ ctx }) {
             const bestRow = [...group.rows].sort((a,b)=>Number(a.rank)-Number(b.rank))[0];
             const chartedMonthCount = new Set(group.rows.map((row)=>row.month)).size;
             return (
-              <details key={`${group.chart_type}-${group.title}-${group.artist}`} style={{borderBottom:"1px solid #F2F2EE",fontFamily:F}}>
+              <details key={`${group.chart_type}-${group.title}-${group.artist}`} style={{borderBottom:`1px solid ${dividerColor}`,fontFamily:F}}>
                 <summary style={{display:"grid",gridTemplateColumns:isMobile?"minmax(0,1fr)":"minmax(0,1fr) 150px 90px",gap:"12px",alignItems:"center",padding:"11px 0",cursor:"pointer",listStyle:"none"}}>
                   <div style={{minWidth:0}}>
                     <div style={{display:"flex",alignItems:"center",gap:"7px",flexWrap:"wrap"}}>
