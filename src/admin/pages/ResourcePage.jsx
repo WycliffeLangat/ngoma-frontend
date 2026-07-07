@@ -123,7 +123,7 @@ const configs = {
   backups: { title: "Backups", endpoint: "/backups/", columns: [{key:"status",label:"Status"},{key:"file",label:"File"},{key:"created_at",label:"Created",render:(r)=>new Date(r.created_at).toLocaleString()}], form: [{name:"status",label:"Status"},{name:"notes",label:"Notes",type:"textarea"}] },
 };
 
-function releaseForm(chartType, artistOptions){ return [{name:"cover_image",label:"Cover image",type:"file",help:"Square image, min 1000×1000 px. JPEG or PNG, max 2 MB."},{name:"title",label:"Title"},{name:"primary_artist_ids",label:"Main artists (ordered)",type:"ordered-multiselect",options:artistOptions,help:"The first artist is the lead. Two artists display with &, while three or more use commas and & before the last."},{name:"featured_artist_ids",label:"Featuring (ordered)",type:"ordered-multiselect",options:artistOptions,help:"Featured artists display after ft and may include more than one artist."},{name:"chart_type",label:"Chart type",type:"select",options:[{value:chartType,label:chartType}]},{name:"canonical_title",label:"Canonical title"},{name:"featured_artists",label:"Unlinked featured names",help:"Fallback for a featured artist who does not yet have an Artist record."},{name:"credited_artists",label:"Other credited artists / notes"},{name:"songwriters",label:"Songwriters",type:"tags"},{name:"producers",label:"Producers",type:"tags"},{name:"release_year",label:"Release year",type:"number"},{name:"release_date",label:"Release date",type:"date"},{name:"isrc",label:"ISRC"},{name:"upc",label:"UPC"},{name:"number_of_tracks",label:"Number of tracks",type:"number"},{name:"country",label:"Country"},{name:"country_code",label:"Country code"},{name:"genre",label:"Genre"},{name:"label",label:"Label"},{name:"distributor",label:"Distributor"},{name:"spotify_url",label:"Spotify URL"},{name:"apple_music_url",label:"Apple Music URL"},{name:"boomplay_url",label:"Boomplay URL"},{name:"audiomack_url",label:"Audiomack URL"},{name:"youtube_url",label:"YouTube URL"},{name:"tiktok_url",label:"TikTok URL"},{name:"shazam_url",label:"Shazam URL"},{name:"radio_info",label:"Radio info",type:"textarea"},{name:"status",label:"Status"}]; }
+function releaseForm(chartType, artistOptions){ return [{name:"cover_image",label:"Cover image",type:"file",help:"Square image, min 1000×1000 px. JPEG or PNG, max 2 MB."},{name:"title",label:"Title"},{name:"primary_artist_ids",label:"Main artists (ordered)",type:"ordered-multiselect",options:artistOptions,help:"The first artist is the lead. Two artists display with &, while three or more use commas and & before the last."},{name:"featured_artist_ids",label:"Featuring (ordered)",type:"ordered-multiselect",options:artistOptions,help:"Featured artists display after ft and may include more than one artist."},{name:"chart_type",label:"Chart type",type:"select",options:[{value:chartType,label:chartType}]},{name:"canonical_title",label:"Canonical title"},{name:"featured_artists",label:"Unlinked featured names",help:"Fallback for a featured artist who does not yet have an Artist record."},{name:"credited_artists",label:"Other credited artists / notes"},{name:"songwriters",label:"Songwriters",type:"tags"},{name:"producers",label:"Producers",type:"tags"},{name:"release_year",label:"Release year",type:"number"},{name:"release_date",label:"Release date",type:"date"},{name:"isrc",label:"ISRC"},{name:"upc",label:"UPC"},{name:"number_of_tracks",label:"Number of tracks",type:"number"},{name:"country",label:"Country",readOnly:true,help:"Always the main artist's country — edit the artist record to change it."},{name:"country_code",label:"Country code",readOnly:true,help:"Always the main artist's country code — edit the artist record to change it."},{name:"genre",label:"Genre"},{name:"label",label:"Label"},{name:"distributor",label:"Distributor"},{name:"spotify_url",label:"Spotify URL"},{name:"apple_music_url",label:"Apple Music URL"},{name:"boomplay_url",label:"Boomplay URL"},{name:"audiomack_url",label:"Audiomack URL"},{name:"youtube_url",label:"YouTube URL"},{name:"tiktok_url",label:"TikTok URL"},{name:"shazam_url",label:"Shazam URL"},{name:"radio_info",label:"Radio info",type:"textarea"},{name:"status",label:"Status"}]; }
 
 // Resources that support status filtering and ordering in the CMS toolbar
 const STATUS_TYPES    = new Set(["songs", "albums", "artists"]);
@@ -424,30 +424,9 @@ export default function ResourcePage({ type, searchJump, user }) {
       }
     }
 
-    // Step 3: if an existing artist's country changed, cascade country_code (and country
-    // name) to all releases where this artist is the primary artist — best-effort.
-    // The API's primary_artist filter already scopes by artist ID, so no name-filter needed.
-    if (type === "artists" && savedId && editing?.id) {
-      const oldCode = (editing.country_code || "").trim().toUpperCase();
-      const newCode = (form.country_code || "").trim().toUpperCase();
-      if (newCode && oldCode !== newCode) {
-        try {
-          const relData = await cmsApi.get(`/releases/?primary_artist=${savedId}&page_size=500`);
-          const releases = getResults(relData);
-          if (releases.length) {
-            const updates = { country_code: newCode };
-            if (form.country && form.country.trim()) updates.country = form.country.trim();
-            const results = await Promise.allSettled(releases.map(r => cmsApi.patch(`/releases/${r.id}/`, updates)));
-            const failed = results.filter(r => r.status === "rejected").length;
-            if (failed > 0) {
-              showFlash(`Artist saved. Country cascaded to ${releases.length - failed}/${releases.length} releases (${failed} failed).`);
-            } else {
-              showFlash(`Artist saved. Country cascaded to ${releases.length} release${releases.length !== 1 ? "s" : ""}.`);
-            }
-          }
-        } catch(e) { showFlash(`Artist saved. Country cascade failed: ${e.message}`); }
-      }
-    }
+    // The backend cascades an artist's country/country_code change onto every
+    // release where they're the main performer (see CmsArtistSerializer.update()
+    // in cms_serializers.py) — no client-side follow-up PATCHes needed here.
 
     setModal(false); setEditing(null); setDetailRow(null); load();
   }
@@ -702,8 +681,9 @@ export default function ResourcePage({ type, searchJump, user }) {
     }
   }
 
-  // Bulk artist country edit — same PATCH + release cascade as the single-artist
-  // edit in save(), just looped over every selected artist.
+  // Bulk artist country edit. The backend cascades each artist's new country onto
+  // every release where they're the main performer (see CmsArtistSerializer.update()
+  // in cms_serializers.py), so no client-side release PATCHes are needed here.
   async function bulkEditCountry() {
     if (!bulkEditTarget || actionBusy) return;
     const country = bulkEditTarget.country.trim();
@@ -729,31 +709,10 @@ export default function ResourcePage({ type, searchJump, user }) {
       }
       if (!updated.length) throw failures[0]?.error || new Error("No records were updated.");
 
-      let cascadedReleases = 0;
-      if (countryCode) {
-        const releaseUpdates = { country_code: countryCode };
-        if (country) releaseUpdates.country = country;
-        for (const artist of updated) {
-          const oldCode = (artist.country_code || "").trim().toUpperCase();
-          if (oldCode === countryCode) continue;
-          try {
-            const relData = await cmsApi.get(`/releases/?primary_artist=${artist.id}&page_size=500`);
-            const releases = getResults(relData);
-            if (releases.length) {
-              await Promise.allSettled(releases.map(r => cmsApi.patch(`/releases/${r.id}/`, releaseUpdates)));
-              cascadedReleases += releases.length;
-            }
-          } catch { /* best-effort cascade, same as single-artist edit */ }
-        }
-      }
-
       clearCmsCache();
       setBulkEditTarget(null);
       setSelectedIds(new Set(failures.map(({ target }) => target.id)));
-      showFlash(
-        `Updated ${updated.length} artist${updated.length === 1 ? "" : "s"}.` +
-        (cascadedReleases ? ` Country cascaded to ${cascadedReleases} release${cascadedReleases === 1 ? "" : "s"}.` : "")
-      );
+      showFlash(`Updated ${updated.length} artist${updated.length === 1 ? "" : "s"}.`);
       await load();
       if (failures.length) {
         setError(

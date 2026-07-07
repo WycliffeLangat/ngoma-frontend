@@ -279,6 +279,7 @@ export default function FormModal({ open, title, entityId, fields = [], initial 
                   <input
                     type={field.type || "text"}
                     required={required}
+                    disabled={field.readOnly}
                     value={v ?? ""}
                     onChange={(e) => set(field.name, field.type === "number" ? Number(e.target.value) : e.target.value)}
                   />

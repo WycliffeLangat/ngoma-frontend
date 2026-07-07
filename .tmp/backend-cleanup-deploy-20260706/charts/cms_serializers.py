@@ -2,10 +2,11 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 from django.db import transaction
 from django.db.models import Min, Q, Sum
+from django.utils import timezone
 
 from .models import *
 from .artist_credits import release_credit_payload
-from .cms_utils import published_artist_entries, published_top50_entries
+from .cms_utils import harmonize_chart_history, published_artist_entries, published_top50_entries
 
 ALLOWED_IMAGE_TYPES = {'image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'}
 
@@ -200,6 +201,28 @@ class CmsArtistSerializer(serializers.ModelSerializer):
 
         return attrs
 
+    def update(self, instance, validated_data):
+        old_country = instance.country
+        old_country_code = instance.country_code
+        instance = super().update(instance, validated_data)
+        if instance.country != old_country or instance.country_code != old_country_code:
+            # This artist's country changed — cascade to every release where they're
+            # the main performer, so release.country never drifts from the artist's.
+            release_ids = list(Release.objects.filter(artist_id=instance.id).values_list('id', flat=True))
+            if release_ids:
+                Release.objects.filter(id__in=release_ids).update(
+                    country=instance.country,
+                    country_code=instance.country_code,
+                    updated_at=timezone.now(),
+                )
+                chart_ids = list(
+                    MonthlyChartEntry.objects.filter(release_id__in=release_ids)
+                    .values_list('chart_id', flat=True).distinct()
+                )
+                if chart_ids:
+                    harmonize_chart_history(chart_ids=chart_ids)
+        return instance
+
 
 class CmsReleaseSerializer(serializers.ModelSerializer):
     artist = serializers.PrimaryKeyRelatedField(queryset=Artist.objects.all(), required=False)
@@ -318,36 +341,12 @@ class CmsReleaseSerializer(serializers.ModelSerializer):
         if overlap:
             raise serializers.ValidationError({'featured_artist_ids': 'An artist cannot be both a main and featured artist on the same release.'})
 
-        incoming_country = attrs.get('country')
-        incoming_code = attrs.get('country_code')
-
-        if incoming_country and incoming_code is None:
-            code = (
-                Country.objects.filter(name__iexact=incoming_country.strip(), active=True)
-                .values_list('code', flat=True)
-                .first()
-            ) or (
-                Release.objects.filter(country__iexact=incoming_country.strip())
-                .exclude(country_code='')
-                .values_list('country_code', flat=True)
-                .first()
-            )
-            if code:
-                attrs['country_code'] = code.upper()
-
-        elif incoming_code and incoming_country is None:
-            name = (
-                Country.objects.filter(code__iexact=incoming_code.strip(), active=True)
-                .values_list('name', flat=True)
-                .first()
-            ) or (
-                Release.objects.filter(country_code__iexact=incoming_code.strip())
-                .exclude(country='')
-                .values_list('country', flat=True)
-                .first()
-            )
-            if name:
-                attrs['country'] = name
+        # A release's country is always that of its main performer — never a value
+        # typed independently in the CMS. This overrides whatever was submitted.
+        main_artist = attrs.get('artist') or (self.instance.artist if self.instance is not None else None)
+        if main_artist is not None:
+            attrs['country'] = main_artist.country
+            attrs['country_code'] = main_artist.country_code
 
         return attrs
 
