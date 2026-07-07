@@ -44,7 +44,6 @@ import CertificationsPage from "./pages/CertificationsPage";
 import YearEndPage from "./pages/YearEndPage";
 import RecordsPage from "./pages/RecordsPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
-import ChartsPage from "./pages/ChartsPage";
 import ArtistDetailPage from "./pages/ArtistDetailPage";
 import ReleaseDetailPage from "./pages/ReleaseDetailPage";
 
@@ -2856,7 +2855,6 @@ const top = data[0];
     PLAT_LABEL,
     Pie,
     PieChart,
-    PremiumChartsPage,
     RecordIcon,
     ResponsiveContainer,
     SF,
@@ -3353,7 +3351,47 @@ const top = data[0];
       {selA && !selR && <ArtistDetailPage ctx={pageContext} />}
 
       {/* CHARTS PAGE */}
-      {page === "charts" && !selA && !selR && <ChartsPage ctx={pageContext} />}
+      {page === "charts" && !selA && !selR && (
+        <PremiumChartsPage
+          isMobile={isMobile}
+          isTablet={isTablet}
+          loaded={loaded}
+          F={F}
+          SF={SF}
+          GOLD={GOLD}
+          MEDALS={MEDALS}
+          MONTHS={MONTHS}
+          VO={VO}
+          PC={PC}
+          PLAT_LABEL={PLAT_LABEL}
+          ct={ct}
+          setCt={setCt}
+          month={month}
+          setMonth={setMonth}
+          plat={plat}
+          setPlat={setPlat}
+          platList={platList}
+          vc={vc}
+          setVc={setVc}
+          data={data}
+          display={display}
+          top={top}
+          tp={tp}
+          isSingles={isSingles}
+          artists={artists}
+          setSelA={setSelA}
+          setSelR={setSelR}
+          onOpenArtist={openArtistDetails}
+          onOpenRelease={openReleaseDetails}
+          getCombined={plat === KENYAN_CHART ? getKenyanCombined : getCombined}
+          liveChartLoading={liveChartLoading}
+          liveChartMeta={liveChartMeta}
+          liveStatus={liveStatus}
+          pageMax={PAGE_MAX}
+          certificationForEntry={getCertificationForEntry}
+          CertificationTag={CertificationTag}
+        />
+      )}
 
       {/* ANALYTICS PAGE */}
       {page === "analytics" && !selA && !selR && <AnalyticsPage ctx={pageContext} />}
