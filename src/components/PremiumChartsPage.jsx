@@ -1493,7 +1493,7 @@ export default function PremiumChartsPage({
           </div>
         )}
 
-        <div style={styles.rows}>
+        <div style={mobile ? styles.mobileRowsGrid : styles.rows}>
           {shown.map((item, index) => {
             const profile = getReleaseProfile(item);
             const move = movement(item);
@@ -1512,17 +1512,13 @@ export default function PremiumChartsPage({
                   key={rowKey}
                   style={{
                     ...styles.mobileRow,
+                    ...(darkMode ? styles.mobileRowDark : null),
+                    boxShadow: expanded
+                      ? `inset 4px 0 0 ${chartAccent}, 0 8px 22px rgba(0,0,0,${darkMode ? "0.26" : "0.045"})`
+                      : (darkMode ? "0 2px 10px rgba(0,0,0,0.16)" : "0 2px 10px rgba(0,0,0,0.025)"),
                     animationDelay: `${Math.min(index * 20, 400)}ms`,
                     maxWidth: "100%",
                     boxSizing: "border-box",
-                  }}
-                  onMouseEnter={(event) => {
-                    event.currentTarget.style.background = `${chartAccent}0B`;
-                    event.currentTarget.style.boxShadow = `inset 4px 0 0 ${chartAccent}`;
-                  }}
-                  onMouseLeave={(event) => {
-                    event.currentTarget.style.background = darkMode ? "#0d0f0d" : "transparent";
-                    event.currentTarget.style.boxShadow = "none";
                   }}
                 >
                   <div
@@ -2018,6 +2014,11 @@ const styles = {
     flexDirection: "column",
   },
 
+  mobileRowsGrid: {
+    display: "grid",
+    gap: "10px",
+  },
+
   row: {
     display: "grid",
     gridTemplateColumns: "54px 90px minmax(0, 1fr) 110px 86px 82px",
@@ -2032,10 +2033,18 @@ const styles = {
 
   mobileRow: {
     padding: "18px 18px",
-    borderBottom: "1px solid rgba(0,0,0,0.08)",
+    border: "1px solid rgba(0,0,0,0.08)",
+    borderRadius: "16px",
+    background: "#ffffff",
     color: "#050505",
     animation: "fadeUp 0.35s ease both",
     transition: "background 180ms ease, box-shadow 180ms ease",
+  },
+
+  mobileRowDark: {
+    border: "1px solid rgba(255,255,255,0.12)",
+    background: "#0F120F",
+    color: "#F6F3EA",
   },
 
   mobileRowTop: {
@@ -2090,20 +2099,20 @@ const styles = {
   },
 
   mobileExpandedDetails: {
-    margin: "8px 4px 12px",
+    margin: "12px 0 0",
     padding: "14px 16px 12px",
-    border: "1px solid rgba(0,0,0,0.08)",
+    border: "1px solid rgba(0,0,0,0.06)",
     borderRadius: "14px",
-    background: "#ffffff",
-    boxShadow: "0 8px 28px rgba(0,0,0,0.07)",
+    background: "#fbfaf7",
+    boxShadow: "none",
     animation: "slideDown 220ms ease both",
   },
 
   mobileExpandedDetailsDark: {
     border: "1px solid rgba(255,255,255,0.10)",
-    background: "#0f120f",
+    background: "#0b0e0b",
     color: "#fffdf7",
-    boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.02)",
+    boxShadow: "none",
   },
 
   mobileCountryRow: {
