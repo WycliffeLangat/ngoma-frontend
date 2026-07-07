@@ -491,7 +491,7 @@ export default function PremiumChartsPage({
                 key={`${token.value}-${tokenIndex}`}
                 style={{
                   ...styles.artistSeparator,
-                  ...(mobile ? { fontSize: "14px", fontWeight: 700 } : null),
+                  ...(mobile ? { fontSize: "12px", fontWeight: 700 } : null),
                   ...(darkMode ? styles.artistSeparatorDark : null),
                 }}
               >
@@ -511,7 +511,7 @@ export default function PremiumChartsPage({
               style={{
                 ...styles.artistButton,
                 fontFamily: F,
-                ...(mobile ? { fontSize: "14px", fontWeight: 700 } : null),
+                ...(mobile ? { fontSize: "12px", fontWeight: 700 } : null),
                 ...(darkMode ? styles.artistButtonDark : null),
               }}
               title={`Open ${token.value}`}
@@ -692,12 +692,19 @@ export default function PremiumChartsPage({
           ...(wide ? styles.detailCardWide : null),
         }}
       >
-        <span style={{ ...styles.detailCardLabel, ...(darkMode ? styles.detailCardLabelDark : null) }}>
+        <span
+          style={{
+            ...styles.detailCardLabel,
+            ...(mobile ? { fontSize: "9.5px" } : null),
+            ...(darkMode ? styles.detailCardLabelDark : null),
+          }}
+        >
           {label}
         </span>
         <span
           style={{
             ...styles.detailCardValue,
+            ...(mobile ? { fontSize: "13px" } : null),
             ...(darkMode ? styles.detailCardValueDark : null),
             ...(accent && !darkMode ? { color: accent } : null),
           }}
@@ -909,7 +916,7 @@ export default function PremiumChartsPage({
   function yearEndTitleStyle(item) {
     const topThree = Number(item?.rank) <= 3;
     return {
-      fontSize: mobile ? (topThree ? "18px" : "16.5px") : (topThree ? "17px" : "15px"),
+      fontSize: mobile ? (topThree ? "15px" : "13.5px") : (topThree ? "17px" : "15px"),
       fontWeight: 850,
       ...(mobile
         ? { whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }
@@ -2108,7 +2115,7 @@ const styles = {
   },
 
   mobileDetailLabel: {
-    fontSize: "9px",
+    fontSize: "8.5px",
     color: "#777777",
     fontWeight: 900,
     letterSpacing: "1px",
@@ -2117,14 +2124,14 @@ const styles = {
 
   mobileDetailValue: {
     marginTop: "3px",
-    fontSize: "12px",
+    fontSize: "11px",
     color: "#050505",
     fontWeight: 900,
     overflowWrap: "anywhere",
   },
 
   mobileRank: {
-    fontSize: "28px",
+    fontSize: "22px",
     fontWeight: 950,
     lineHeight: 1,
   },
@@ -2159,7 +2166,7 @@ const styles = {
 
   mobileMiniStatLabel: {
     display: "block",
-    fontSize: "9px",
+    fontSize: "8px",
     color: "#777777",
     fontWeight: 900,
     letterSpacing: "1px",
@@ -2175,7 +2182,7 @@ const styles = {
     display: "block",
     marginTop: "4px",
     color: "#050505",
-    fontSize: "12px",
+    fontSize: "11px",
     fontWeight: 900,
     textAlign: "center",
     whiteSpace: "normal",
