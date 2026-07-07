@@ -1816,18 +1816,16 @@ main,
   background-image: none !important;
 }
 
-/* Force the dark hero area to become light */
-.premium-hero,
-.premium-chart-hero,
-.chart-hero,
-.charts-hero,
-.ngoma-hero,
-.hero,
+/* Force the dark hero area to become light.
+   The [class*="hero"]/[class*="Hero"] wildcards used to live here, but the
+   only DOM in the whole app matching "hero" is the Top-5 showcase card in
+   PremiumChartsPage.jsx, which already manages its own theme-aware
+   background/box-shadow inline — the wildcard was unconditionally stripping
+   that box-shadow (and forcing black text even in dark mode) on every
+   viewport. Removed rather than scoped, since nothing else ever matched. */
 .top-section,
 .summary-section,
 .chart-summary,
-[class*="hero"],
-[class*="Hero"],
 [class*="summary"],
 [class*="Summary"] {
   background: #ffffff !important;
@@ -1837,69 +1835,12 @@ main,
 }
 
 /* Make hero/card texts black */
-.premium-hero *,
-.premium-chart-hero *,
-.chart-hero *,
-.charts-hero *,
-.ngoma-hero *,
-.hero *,
 .top-section *,
 .summary-section *,
 .chart-summary *,
-[class*="hero"] *,
-[class*="Hero"] *,
 [class*="summary"] *,
 [class*="Summary"] * {
   color: inherit;
-}
-
-.premium-hero h1,
-.premium-hero h2,
-.premium-hero h3,
-.premium-hero h4,
-.chart-hero h1,
-.chart-hero h2,
-.chart-hero h3,
-.chart-hero h4,
-.charts-hero h1,
-.charts-hero h2,
-.charts-hero h3,
-.charts-hero h4,
-.hero h1,
-.hero h2,
-.hero h3,
-.hero h4,
-[class*="hero"] h1,
-[class*="Hero"] h1,
-[class*="hero"] h2,
-[class*="Hero"] h2 {
-  color: #050505 !important;
-}
-
-/* Main huge title like NGOMA TOP 50 */
-.premium-hero .title,
-.chart-hero .title,
-.charts-hero .title,
-.hero .title,
-[class*="hero"] .title,
-[class*="Hero"] .title {
-  color: #050505 !important;
-}
-
-/* Subtexts */
-.premium-hero p,
-.premium-hero small,
-.chart-hero p,
-.chart-hero small,
-.charts-hero p,
-.charts-hero small,
-.hero p,
-.hero small,
-[class*="hero"] p,
-[class*="Hero"] p,
-[class*="hero"] small,
-[class*="Hero"] small {
-  color: #777777 !important;
 }
 
 /* The #1 this month card should become white */
@@ -2101,7 +2042,11 @@ ranking-item *,
   color: inherit;
 }
 
-/* Song titles and artist names */
+/* Song titles and artist names.
+   [class*="title"]/[class*="Title"] excludes the chart hero <h1> — it's the
+   only real match in the app, it already switches color for dark mode
+   inline (PremiumChartsPage.jsx), and this unscoped !important was forcing
+   it black regardless of theme, making the heading unreadable in dark mode. */
 .title,
 .name,
 .song-title,
@@ -2109,8 +2054,8 @@ ranking-item *,
 .album-title,
 .entry-title,
 .track-title,
-[class*="title"],
-[class*="Title"],
+[class*="title"]:not(.ngoma-chart-hero-title),
+[class*="Title"]:not(.ngoma-chart-hero-title),
 [class*="name"],
 [class*="Name"] {
   color: #050505 !important;
@@ -3334,8 +3279,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell select optgroup {
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
   .hero, .premium-hero, .premium-chart-hero, .chart-hero,
-  .charts-hero, .ngoma-hero, .hero-section, .top-section,
-  [class*="hero"], [class*="Hero"]
+  .charts-hero, .ngoma-hero, .hero-section, .top-section
 ) {
   background: #0f1110 !important;
   background-image: none !important;
@@ -3350,18 +3294,6 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
   background: #0f1110 !important;
   background-image: none !important;
   color: #f6f3ea !important;
-}
-
-html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
-  [class*="hero"], [class*="Hero"]
-) :where(h1, h2, h3, h4) {
-  color: #f6f3ea !important;
-}
-
-html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
-  [class*="hero"], [class*="Hero"]
-) :where(p, small) {
-  color: #aeb6ae !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
