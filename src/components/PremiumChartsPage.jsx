@@ -1456,7 +1456,7 @@ export default function PremiumChartsPage({
       <section
         style={{
           ...styles.tableShell,
-          borderTop:`3px solid ${chartAccent}`,
+          borderTop: mobile ? "none" : `3px solid ${chartAccent}`,
           maxWidth: pageMax,
           width: "100%",
           margin: mobile ? "16px auto 28px" : "24px auto 34px",
