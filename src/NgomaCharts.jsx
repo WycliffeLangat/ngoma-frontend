@@ -31,6 +31,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import PremiumChartsPage, { getArtistCountry } from "./components/PremiumChartsPage";
+import ArtistAmbientField from "./components/ArtistAmbientField.jsx";
 
 // Persists cover images fetched from the live API so the Kenyan chart
 // (which never calls the API directly) can still show artwork.
@@ -2987,7 +2988,10 @@ const top = data[0];
   ];
 
   return(
-    <div className="ngoma-app-shell" data-theme={theme} style={{fontFamily:SF,background:themeColors.page,color:themeColors.text,minHeight:"100vh",width:"100%",overflowX:"clip"}}>
+    <div className="ngoma-app-shell" data-theme={theme} style={{fontFamily:SF,background:themeColors.page,color:themeColors.text,minHeight:"100vh",width:"100%",overflowX:"clip",isolation:"isolate"}}>
+      {/* EXPERIMENT: living artist-portrait backdrop, mounted once so it shows
+          through every page's transparent gaps rather than being hero-only. */}
+      <ArtistAmbientField theme={theme} />
       {apiChecked && liveStatus === "degraded" && (
         <div style={{
           position:"fixed",bottom:"14px",right:"14px",zIndex:9999,pointerEvents:"none",

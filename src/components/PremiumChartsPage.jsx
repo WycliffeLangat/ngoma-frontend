@@ -1025,6 +1025,7 @@ export default function PremiumChartsPage({
           transform: loaded ? "none" : "translateY(8px)",
         }}
       >
+
         <div style={{...styles.heroGlow,background:`linear-gradient(120deg, ${chartAccent}12 0%, transparent 54%, ${chartAccent}08 100%)`}} />
 
         <div
