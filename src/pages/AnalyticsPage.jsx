@@ -110,7 +110,7 @@ export default function AnalyticsPage({ ctx }) {
           </div>
 
           {/* Overview stats — the headline snapshot, always visible */}
-          <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(4,1fr)",gap:isMobile?"12px":"14px",...sectionGap}}>
+          <div className="ngoma-detail-stat-grid" style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(4,1fr)",gap:isMobile?"12px":"14px",...sectionGap}}>
             {[
               {l:"New Entries",v:mvData.new,c:"#2DB04A",s:"not in prev month"},
               {l:"Re-Entries",v:mvData.ret,c:"#1565C0",s:"returned to chart"},

@@ -480,6 +480,21 @@
   .ngoma-mobile-collapsible-body {
     padding-inline: clamp(14px, 3vw, 26px);
   }
+
+  /* Release/Artist detail pages: stack the chart + side-panel split instead
+     of squeezing both into a 1.4fr/0.8fr row, same "stack for breathing
+     room" treatment already applied to .ngoma-hero-main above. */
+  .anl-grid-2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .ngoma-detail-stat-grid {
+    gap: 14px !important;
+  }
+
+  .ngoma-platform-performance {
+    padding: 18px !important;
+  }
 }
 
 /* Dark mode overrides — must come last */

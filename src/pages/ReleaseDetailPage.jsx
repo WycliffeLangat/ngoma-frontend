@@ -186,7 +186,7 @@ export default function ReleaseDetailPage({ ctx }) {
           </div>
 
           <div style={{marginTop:"22px"}}>
-            <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(4,minmax(0,1fr))",gap:"10px",marginBottom:"18px"}}>
+            <div className="ngoma-detail-stat-grid" style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(4,minmax(0,1fr))",gap:"10px",marginBottom:"18px"}}>
               {[
                 {label:"Total Points",value:totalPoints.toLocaleString()},
                 {label:"Combined Peak Rank",value:peakRank<999?`#${peakRank}`:"—"},

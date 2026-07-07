@@ -130,7 +130,7 @@ const DRIFT_KEYFRAMES = `
 }
 `;
 
-function PortraitSlot({ index, layout, pool, isDark, reducedMotion, mood }) {
+function PortraitSlot({ index, layout, pool, isDark, reducedMotion, mood, sizeScale, opacityScale }) {
   const [poolIdx, setPoolIdx] = useState(() => (pool.length ? (index * 7) % pool.length : 0));
   const [visible, setVisible] = useState(true);
 
@@ -169,10 +169,12 @@ function PortraitSlot({ index, layout, pool, isDark, reducedMotion, mood }) {
   const driftVariant = (index % 4) + 1;
   const driftDuration = 65 + (index % 5) * 18;
   const baseRotate = ((index * 37) % 24) - 12;
-  const opacity = visible ? (isDark ? 0.11 + (index % 4) * 0.02 : 0.05 + (index % 4) * 0.012) : 0;
+  const baseOpacity = isDark ? 0.11 + (index % 4) * 0.02 : 0.05 + (index % 4) * 0.012;
+  const opacity = visible ? baseOpacity * opacityScale : 0;
 
-  const width = layout.size * shape.aspect;
-  const height = layout.size;
+  const scaledSize = layout.size * sizeScale;
+  const width = scaledSize * shape.aspect;
+  const height = scaledSize;
 
   return (
     <div
@@ -211,13 +213,20 @@ function PortraitSlot({ index, layout, pool, isDark, reducedMotion, mood }) {
   );
 }
 
-export default function ArtistAmbientField({ theme = "dark", className = "" }) {
+export default function ArtistAmbientField({ theme = "dark", className = "", isMobile = false, isTablet = false }) {
   const isDark = theme === "dark";
   const pool = usePortraitPool();
   const reducedMotion = usePrefersReducedMotion();
   const mood = useTimeMood();
 
   if (!pool.length) return null;
+
+  // Phones get fewer, smaller, fainter portraits so the backdrop stays a
+  // subtle texture instead of competing with foreground content on a
+  // narrow viewport. Tablets sit between phone and desktop density.
+  const activeSlots = isMobile ? SLOTS.filter((_, i) => i % 2 === 0) : SLOTS;
+  const sizeScale = isMobile ? 0.55 : isTablet ? 0.78 : 1;
+  const opacityScale = isMobile ? 0.65 : isTablet ? 0.85 : 1;
 
   return (
     <div
@@ -245,7 +254,7 @@ export default function ArtistAmbientField({ theme = "dark", className = "" }) {
           mixBlendMode: isDark ? "screen" : "soft-light",
         }}
       />
-      {SLOTS.map((slotLayout, i) => (
+      {activeSlots.map((slotLayout, i) => (
         <PortraitSlot
           key={i}
           index={i}
@@ -254,6 +263,8 @@ export default function ArtistAmbientField({ theme = "dark", className = "" }) {
           isDark={isDark}
           reducedMotion={reducedMotion}
           mood={mood}
+          sizeScale={sizeScale}
+          opacityScale={opacityScale}
         />
       ))}
     </div>

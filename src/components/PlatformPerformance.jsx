@@ -78,7 +78,7 @@ export default function PlatformPerformance({
   const barCursorFill = isDark ? "rgba(255,255,255,0.05)" : "rgba(31,36,31,0.04)";
 
   return (
-    <section style={{
+    <section className="ngoma-platform-performance" style={{
       marginBottom: "22px",
       padding: isMobile ? "16px" : "20px",
       border: `1px solid ${isDark ? "#2B302B" : "#E8E5DC"}`,

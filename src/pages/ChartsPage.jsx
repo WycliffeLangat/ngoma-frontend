@@ -19,6 +19,7 @@ export default function ChartsPage({ ctx }) {
     getChartHistory,
     getCombined,
     isMobile,
+    isTablet,
     isSingles,
     liveChartLoading,
     liveChartMeta,
@@ -43,6 +44,7 @@ export default function ChartsPage({ ctx }) {
   return (
 <PremiumChartsPage
     isMobile={isMobile}
+    isTablet={isTablet}
     loaded={loaded}
     F={F}
     SF={SF}

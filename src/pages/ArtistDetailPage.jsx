@@ -258,7 +258,7 @@ export default function ArtistDetailPage({ ctx }) {
               </ResponsiveContainer>
             </div>
           </div>
-          <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(4,minmax(0,1fr))",gap:"10px",marginBottom:"22px"}}>
+          <div className="ngoma-detail-stat-grid" style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(4,minmax(0,1fr))",gap:"10px",marginBottom:"22px"}}>
             {[
               {label:"Unique Releases",value:selectedArtistReleases.length},
               {label:"Top 10 Placements",value:topTenPlacements},

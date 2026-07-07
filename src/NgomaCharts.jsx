@@ -1688,6 +1688,10 @@ export default function NgomaCharts(){
   // Phones and portrait tablets share the compact navigation/card layout.
   // Wider tablets keep the desktop table where it has enough room.
   const isMobile=vw<900;
+  // iPad-landscape-ish band that still gets the full desktop layout structure
+  // but benefits from slightly less density than a large desktop viewport.
+  // Matches the existing tablet-tuning CSS band in mobilePremiumFixes.css.
+  const isTablet=vw>=900&&vw<1100;
   const PAD=isMobile?"clamp(20px, 5vw, 28px)":"28px";
   const PAGE_MAX="1240px";
   const pageFrame=(extra={})=>({maxWidth:PAGE_MAX,width:"100%",margin:"0 auto",boxSizing:"border-box",minWidth:0,...extra});
@@ -2909,6 +2913,7 @@ const top = data[0];
     hof,
     isDark,
     isMobile,
+    isTablet,
     isArtists,
     isAlbums,
     isSingles,
@@ -2991,7 +2996,7 @@ const top = data[0];
     <div className="ngoma-app-shell" data-theme={theme} style={{fontFamily:SF,background:themeColors.page,color:themeColors.text,minHeight:"100vh",width:"100%",overflowX:"clip",isolation:"isolate"}}>
       {/* EXPERIMENT: living artist-portrait backdrop, mounted once so it shows
           through every page's transparent gaps rather than being hero-only. */}
-      <ArtistAmbientField theme={theme} />
+      <ArtistAmbientField theme={theme} isMobile={isMobile} isTablet={isTablet} />
       {apiChecked && liveStatus === "degraded" && (
         <div style={{
           position:"fixed",bottom:"14px",right:"14px",zIndex:9999,pointerEvents:"none",
