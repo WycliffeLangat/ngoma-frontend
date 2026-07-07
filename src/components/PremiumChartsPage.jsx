@@ -1217,7 +1217,7 @@ export default function PremiumChartsPage({
                   key={`wm-${slideIdx}`}
                   className="ngoma-hero-watermark"
                   style={{
-                    position: "absolute", right: "36px", top: "22px",
+                    position: "absolute", right: "74px", top: "22px",
                     fontSize: "100px", fontWeight: 900, lineHeight: 1,
                     fontFamily: F,
                     color: chartAccent,
@@ -1524,7 +1524,7 @@ export default function PremiumChartsPage({
                     aria-expanded={expanded}
                   >
                     <div style={{ ...styles.mobileRank, color: medalColor }}>{item.rank}</div>
-                    <ReleaseArtwork item={item} size={42} />
+                    <ReleaseArtwork item={item} size={56} />
 
                     <div style={styles.mobileEntryMain}>
                       <button
@@ -1622,7 +1622,7 @@ export default function PremiumChartsPage({
                   </div>
 
                   <div style={styles.entryCell}>
-                    <ReleaseArtwork item={item} size={50} />
+                    <ReleaseArtwork item={item} size={66} />
 
                     <div style={styles.entryText}>
                       <div style={{ display: "flex", alignItems: "center", gap: "7px", flexWrap: "wrap" }}>
@@ -1973,8 +1973,8 @@ const styles = {
 
   tableHeader: {
     display: "grid",
-    gridTemplateColumns: "54px 84px minmax(0, 1fr) 84px 60px 58px",
-    gap: "14px",
+    gridTemplateColumns: "54px 90px minmax(0, 1fr) 110px 86px 82px",
+    gap: "30px",
     alignItems: "center",
     justifyItems: "center",
     padding: "12px 24px",
@@ -1991,6 +1991,7 @@ const styles = {
     width: "100%",
     textAlign: "center",
     justifySelf: "center",
+    padding: "0 6px",
   },
 
   headerEntryCell: {
@@ -2011,10 +2012,10 @@ const styles = {
 
   row: {
     display: "grid",
-    gridTemplateColumns: "54px 84px minmax(0, 1fr) 84px 60px 58px",
-    gap: "14px",
+    gridTemplateColumns: "54px 90px minmax(0, 1fr) 110px 86px 82px",
+    gap: "30px",
     alignItems: "center",
-    padding: "16px 24px",
+    padding: "20px 24px",
     borderBottom: "1px solid rgba(0,0,0,0.08)",
     color: "#050505",
     animation: "fadeUp 0.35s ease both",
@@ -2022,7 +2023,7 @@ const styles = {
   },
 
   mobileRow: {
-    padding: "16px 18px",
+    padding: "18px 18px",
     borderBottom: "1px solid rgba(0,0,0,0.08)",
     color: "#050505",
     animation: "fadeUp 0.35s ease both",
@@ -2038,7 +2039,7 @@ const styles = {
 
   mobileCompactRow: {
     display: "grid",
-    gridTemplateColumns: "34px 42px minmax(0, 1fr) max-content",
+    gridTemplateColumns: "34px 56px minmax(0, 1fr) max-content",
     gap: "10px",
     alignItems: "center",
     minWidth: 0,
@@ -2206,7 +2207,7 @@ const styles = {
 
   releaseArtworkFallback: {
     color: "#ffffff",
-    fontSize: "13px",
+    fontSize: "16px",
     fontWeight: 950,
     letterSpacing: "1px",
     lineHeight: 1,
@@ -2326,7 +2327,7 @@ const styles = {
   },
 
   moveBadge: {
-    justifySelf: "start",
+    justifySelf: "center",
     minWidth: "52px",
     textAlign: "center",
     borderRadius: "999px",

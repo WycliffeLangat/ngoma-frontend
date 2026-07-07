@@ -1187,7 +1187,12 @@ const CertificationTag = ({ cert, compact = true, style = {} }) => {
   const certificationLabel = `${cert.label} certified · ${Number(cert.totalPts || 0).toLocaleString()} points`;
   if (compact) return (
     <span
-      style={{ display: "inline-flex", alignItems: "center", fontSize: "8px", lineHeight: 1, verticalAlign: "middle", ...style }}
+      style={{
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+        fontSize: "15px", lineHeight: 1, verticalAlign: "middle",
+        position: "relative", top: "1px",
+        ...style,
+      }}
       title={certificationLabel}
       aria-label={certificationLabel}
     >
@@ -1201,7 +1206,7 @@ const CertificationTag = ({ cert, compact = true, style = {} }) => {
         width: "fit-content", maxWidth: "100%", minWidth: "24px", minHeight: "24px",
         padding: "3px 5px", borderRadius: "999px",
         background: `${cert.color}14`, border: `1px solid ${cert.color}40`,
-        color: cert.color, fontFamily: F, fontSize: "14px", lineHeight: 1.1,
+        color: cert.color, fontFamily: F, fontSize: "26px", lineHeight: 1.1,
         whiteSpace: "nowrap", verticalAlign: "middle", ...style,
       }}
       title={certificationLabel}
