@@ -32,6 +32,10 @@
   .ngoma-hero-showcase {
     min-width: 0;
     border-radius: 18px !important;
+    justify-self: center !important;
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+    width: min(82vw, 320px) !important;
   }
 
   .ngoma-carousel-arrow {
@@ -64,6 +68,10 @@
 
   .ngoma-hero-showcase {
     min-width: 0;
+    justify-self: center !important;
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+    width: min(46vw, 380px) !important;
   }
 
   .ngoma-chart-row-stripe {

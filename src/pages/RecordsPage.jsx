@@ -170,9 +170,12 @@ export default function RecordsPage({ ctx }) {
     fullCoverageClub,
     isDark,
     isMobile,
+    isTablet,
     openRecord,
     setOpenRecord,
   } = ctx;
+
+  const recordGridColumns = isMobile ? "1fr" : isTablet ? "repeat(2,1fr)" : "repeat(3,1fr)";
 
   const cardBg = isDark ? "#141814" : "#FFFFFF";
   const cardBorder = isDark ? "#242923" : "#EFEDE7";
@@ -215,7 +218,7 @@ export default function RecordsPage({ ctx }) {
               <Tog sm/>
             </div>
           </div>
-          <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:isMobile?"14px":"16px"}}>
+          <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:recordGridColumns,gap:isMobile?"14px":"16px"}}>
             {currentRecords.map((r,i)=>{
               const expanded = r.isCoverage && openRecord === i;
               const pool = r.isCoverage ? fullCoverageClub : r.isTotalCount ? currentRecordsPool : [];
