@@ -1,3 +1,6 @@
+import EntryThumb from "../components/EntryThumb.jsx";
+import { getPublicArtists, findArtistMentionedIn, getArtistImageUrl } from "../utils/artistImages.js";
+
 const CATEGORY_COLORS = {
   chart_news: "#B8860B",
   albums: "#3B7DD8",
@@ -37,15 +40,23 @@ export default function NewsDetailPage({ ctx }) {
     .filter((n) => n.id !== selNews.id && (n.category || "other") === (selNews.category || "other"))
     .slice(0, 3);
 
+  const publicArtists = getPublicArtists();
+  const mentionedArtist = selNews.cover_image ? null : findArtistMentionedIn(`${selNews.title} ${selNews.excerpt || ""}`, publicArtists);
+  const heroArtUrl = selNews.cover_image || (mentionedArtist ? getArtistImageUrl(mentionedArtist, { name: mentionedArtist.name, artists: publicArtists }) : "");
+
   return (
 <div style={{padding:PAD,background:isDark?"#0F120F":"#FFF",border:isDark?"1px solid #2F352F":"1px solid transparent",borderRadius:isDark?"16px":"0",minHeight:"60vh",maxWidth:"680px",margin:"0 auto",boxSizing:"border-box",overflow:"hidden"}}>
           <span onClick={()=>setSelNews(null)} style={{fontFamily:F,fontSize:isMobile?"14px":"13px",color:GOLD,cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>← All News</span>
           <div style={{marginTop:"20px"}}>
-            {selNews.cover_image && (
-              <div style={{width:"100%",borderRadius:"14px",overflow:"hidden",marginBottom:"24px",background:isDark?"#1A1E1A":"#F0EDE7"}}>
-                <img src={selNews.cover_image} alt={selNews.title} style={{width:"100%",maxHeight:"380px",objectFit:"cover",display:"block"}} loading="lazy"/>
-              </div>
-            )}
+            <div style={{width:"100%",height:isMobile?"220px":"380px",borderRadius:"14px",overflow:"hidden",marginBottom:"24px",background:heroArtUrl?(isDark?"#1A1E1A":"#F0EDE7"):`linear-gradient(135deg, ${color}26, ${color}08)`}}>
+              {heroArtUrl ? (
+                <img src={heroArtUrl} alt={selNews.title} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} loading="lazy"/>
+              ) : (
+                <div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                  <span style={{fontSize:isMobile?"64px":"88px"}}>{selNews.emoji || "🎵"}</span>
+                </div>
+              )}
+            </div>
             <div style={{display:"flex",gap:"10px",alignItems:"center",marginBottom:"12px",flexWrap:"wrap"}}>
               <span style={{fontFamily:F,fontSize:"11px",fontWeight:700,letterSpacing:"1.5px",textTransform:"uppercase",color:color,background:isDark?color+"22":color+"14",border:`1px solid ${color}3D`,padding:"2px 8px",borderRadius:"10px"}}>{selNews.cat}</span>
               <span style={{fontFamily:F,fontSize:"12px",fontWeight:650,color:isDark?"#C9CEC9":"#59645D"}}>{selNews.date}</span>
@@ -73,12 +84,18 @@ export default function NewsDetailPage({ ctx }) {
               <div style={{marginTop:"20px",paddingTop:"24px",borderTop:isDark?"1px solid #2F352F":"1px solid #EEE"}}>
                 <h4 style={{fontFamily:F,fontSize:"13px",fontWeight:800,letterSpacing:"0.6px",textTransform:"uppercase",color:isDark?"#9a9a9a":"#8A8F87",margin:"0 0 14px"}}>More in {selNews.cat}</h4>
                 <div style={{display:"flex",flexDirection:"column",gap:"12px"}}>
-                  {related.map((n) => (
-                    <div key={n.id} onClick={()=>setSelNews(n)} style={{cursor:"pointer",padding:"12px 14px",borderRadius:"10px",background:isDark?"#14170F":"#FAF8F3",border:isDark?"1px solid #2A2E28":"1px solid #EEE9DD"}}>
-                      <div style={{fontFamily:F,fontSize:"12px",fontWeight:600,color:isDark?"#9a9a9a":"#9a9a9a",marginBottom:"4px"}}>{n.date}</div>
-                      <div style={{fontFamily:F,fontSize:"14.5px",fontWeight:750,color:isDark?"#F6F3EA":"#050505",lineHeight:1.35}}>{n.title}</div>
+                  {related.map((n) => {
+                    const relatedArtist = n.cover_image ? null : findArtistMentionedIn(`${n.title} ${n.excerpt || ""}`, publicArtists);
+                    return (
+                    <div key={n.id} onClick={()=>setSelNews(n)} style={{display:"flex",alignItems:"center",gap:"12px",cursor:"pointer",padding:"12px 14px",borderRadius:"10px",background:isDark?"#14170F":"#FAF8F3",border:isDark?"1px solid #2A2E28":"1px solid #EEE9DD"}}>
+                      <EntryThumb item={n} name={relatedArtist?.name || n.title} size={56} radius="9px" accent={CATEGORY_COLORS[n.category] || GOLD} />
+                      <div style={{minWidth:0}}>
+                        <div style={{fontFamily:F,fontSize:"12px",fontWeight:600,color:isDark?"#9a9a9a":"#9a9a9a",marginBottom:"4px"}}>{n.date}</div>
+                        <div style={{fontFamily:F,fontSize:"14.5px",fontWeight:750,color:isDark?"#F6F3EA":"#050505",lineHeight:1.35}}>{n.title}</div>
+                      </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

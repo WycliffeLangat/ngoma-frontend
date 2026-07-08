@@ -32,6 +32,7 @@ import {
 } from "recharts";
 import PremiumChartsPage, { getArtistCountry } from "./components/PremiumChartsPage";
 import ArtistAmbientField from "./components/ArtistAmbientField.jsx";
+import EntryThumb from "./components/EntryThumb.jsx";
 
 // Persists cover images fetched from the live API so the Kenyan chart
 // (which never calls the API directly) can still show artwork.
@@ -185,6 +186,7 @@ const buildCertifications = (items = []) => items
     a: item.a,
     totalPts: Number(item.totalPts) || 0,
     level: getCertificationLevel(item.totalPts),
+    cover_image: item.cover_image || item.image || "",
   }))
   .filter((item) => item.level);
 const certificationMetaForLevel = (level) => CERTIFICATION_LEVELS.find((item) => item.level === level) || null;
@@ -2143,6 +2145,8 @@ const top = data[0];
           featured_artists: entry.fa || entry.featured_artists || "",
           rank: entry.r || entry.rank,
           pts: entry.p || entry.pts,
+          cover_image: entry.cover_image || entry.image || entry.c || "",
+          is_artist_entry: isArtists,
         }));
       return {
         platform,
@@ -2239,7 +2243,16 @@ const top = data[0];
         const from = Number(previous.rank);
         const to = Number(entry.rank);
         if (!Number.isFinite(from) || !Number.isFinite(to) || from === to) return null;
-        return { t: entry.title, a: entry.artist, from, to, delta: from - to };
+        return {
+          t: entry.title,
+          a: entry.artist,
+          from,
+          to,
+          delta: from - to,
+          cover_image: entry.cover_image || entry.image || "",
+          is_artist_entry: entry.is_artist_entry,
+          type: entry.type,
+        };
       })
       .filter(Boolean);
 
@@ -2275,6 +2288,7 @@ const top = data[0];
             key,
             title: entry.title,
             artist: entry.artist,
+            cover_image: entry.cover_image || entry.image || "",
             totalPoints: 0,
             months: new Set(),
             numberOneMonths: new Set(),
@@ -2319,6 +2333,11 @@ const top = data[0];
     return best;
   };
 
+  // Eligible pool for the record boxes that don't pin to a single release/artist
+  // (Total Charted X) — set inside the IIFE below and exposed via ctx so
+  // RecordsPage can rotate the box's art through every entry in the pool
+  // instead of showing it empty.
+  let currentRecordsPool = [];
   const currentRecords = recordsActive ? (() => {
     if (isArtists) {
       const artistGroups = releaseGroupsFor("artists").map((group) => ({
@@ -2332,6 +2351,7 @@ const top = data[0];
           Number.POSITIVE_INFINITY
         ),
       }));
+      currentRecordsPool = artistGroups.map((group) => ({ ...group, is_artist_entry: true }));
       const highestPoints = [...artistGroups].sort((a, b) => b.totalPoints - a.totalPoints || a.title.localeCompare(b.title))[0];
       const mostMonths = [...artistGroups].sort((a, b) => b.months.size - a.months.size || b.totalPoints - a.totalPoints)[0];
       const mostEntries = [...artistGroups].sort((a, b) => b.entryCount - a.entryCount || b.totalPoints - a.totalPoints)[0];
@@ -2342,11 +2362,12 @@ const top = data[0];
         { label: "Most Months Active", displayLabel: "Most Months Active", value: mostMonths?.title || "—", displaySub: mostMonths ? `${mostMonths.months.size} ${mostMonths.months.size === 1 ? "month" : "months"} in the Top 50` : "No artist data found", certificationEntry: mostMonths ? { title: mostMonths.title, is_artist_entry: true } : null },
         { label: "Most Chart Entries", displayLabel: "Most Chart Entries", value: mostEntries?.title || "—", displaySub: mostEntries ? `${mostEntries.entryCount} credited Top-50 release placements` : "No artist data found", certificationEntry: mostEntries ? { title: mostEntries.title, is_artist_entry: true } : null },
         { label: "Best Artist Rank", displayLabel: "Best Artist Rank", value: bestPeak?.title || "—", displaySub: bestPeak ? `Peak public artist rank #${bestPeak.peak}` : "No artist data found", certificationEntry: bestPeak ? { title: bestPeak.title, is_artist_entry: true } : null },
-        { label: "Biggest Artist Climb", displayLabel: "Biggest Artist Climb", value: biggestClimb?.title || "—", displaySub: biggestClimb ? `#${biggestClimb.from} → #${biggestClimb.to}` : "No monthly Top-50 climb found", climbDelta: biggestClimb?.delta || null, certificationEntry: biggestClimb ? { title: biggestClimb.title, is_artist_entry: true } : null },
-        { label: "Total Charted Artists", displayLabel: "Total Charted Artists", value: artistGroups.length, displaySub: `artists appearing in a public Top 50` },
+        { label: "Biggest Artist Climb", displayLabel: "Biggest Artist Climb", value: biggestClimb?.title || "—", displaySub: biggestClimb ? `#${biggestClimb.from} → #${biggestClimb.to}` : "No monthly Top-50 climb found", climbDelta: biggestClimb?.delta || null, certificationEntry: biggestClimb ? { title: biggestClimb.title, is_artist_entry: true, cover_image: biggestClimb.cover_image || biggestClimb.image || "" } : null },
+        { label: "Total Charted Artists", displayLabel: "Total Charted Artists", value: artistGroups.length, displaySub: `artists appearing in a public Top 50`, isTotalCount: true },
       ];
     }
     const groups = releaseGroupsFor(releaseCt);
+    currentRecordsPool = groups;
     const highestPoints = [...groups]
       .sort((a, b) => b.totalPoints - a.totalPoints || a.title.localeCompare(b.title))[0];
     const biggestClimb = biggestClimbFor(releaseCt);
@@ -2365,7 +2386,7 @@ const top = data[0];
         displaySub: mostNumberOnes
           ? `${mostNumberOnes.artist} · No. 1 for ${mostNumberOnes.numberOneMonths.size} ${mostNumberOnes.numberOneMonths.size === 1 ? "month" : "months"} ${trackedPeriodLabel}`
           : `No #1 ${releaseLabelLower} found`,
-        certificationEntry: mostNumberOnes ? { title: mostNumberOnes.title, artist: mostNumberOnes.artist } : null,
+        certificationEntry: mostNumberOnes ? { title: mostNumberOnes.title, artist: mostNumberOnes.artist, cover_image: mostNumberOnes.cover_image || "" } : null,
       },
       {
         label: "Highest Points Score",
@@ -2374,7 +2395,7 @@ const top = data[0];
         displaySub: highestPoints
           ? `${highestPoints.artist} · ${highestPoints.totalPoints.toLocaleString()} pts`
           : `No ${releaseLabelLower} found`,
-        certificationEntry: highestPoints ? { title: highestPoints.title, artist: highestPoints.artist } : null,
+        certificationEntry: highestPoints ? { title: highestPoints.title, artist: highestPoints.artist, cover_image: highestPoints.cover_image || "" } : null,
       },
       {
         label: "Biggest Monthly Climb",
@@ -2400,13 +2421,14 @@ const top = data[0];
         displaySub: longestRun
           ? `${longestRun.artist} · ${longestRun.months.size === MONTHS.length ? `Charted all ${monthCountLabel}` : `Charted ${longestRun.months.size} ${longestRun.months.size === 1 ? "month" : "months"}`}`
           : `No ${releaseLabelLower} found`,
-        certificationEntry: longestRun ? { title: longestRun.title, artist: longestRun.artist } : null,
+        certificationEntry: longestRun ? { title: longestRun.title, artist: longestRun.artist, cover_image: longestRun.cover_image || "" } : null,
       },
       {
         label: `Total Charted ${releaseLabel}`,
         displayLabel: `Total Charted ${releaseLabel}`,
         value: groups.length,
         displaySub: `charted ${trackedPeriodLabel}`,
+        isTotalCount: true,
       },
     ];
   })() : [];
@@ -2619,8 +2641,8 @@ const top = data[0];
   const songProfile=(key)=>{
     const meta=allTitles.find(t=>t.key===key);
     if(!meta)return null;
-    const {title,artist,primary_artist,eKey:releaseKey}=meta;
-    const prof={title,artist,primary_artist,monthly:{},platforms:{},totalPts:0,peak:999,months:0,debutMonth:null,bestCov:0,avgRank:0};
+    const {title,artist,primary_artist,is_artist_entry,eKey:releaseKey}=meta;
+    const prof={title,artist,primary_artist,is_artist_entry,cover_image:"",monthly:{},platforms:{},totalPts:0,peak:999,months:0,debutMonth:null,bestCov:0,avgRank:0};
     let rankSum=0,rankCount=0;
     analysisMonths.forEach(m=>{
       const e=analyticsRowsFor(m).find(x=>entryKey(x)===releaseKey);
@@ -2629,6 +2651,7 @@ const top = data[0];
         prof.totalPts+=Number(e.pts)||0; prof.months+=1;
         if(e.rank<prof.peak)prof.peak=e.rank;
         if(!prof.debutMonth)prof.debutMonth=m;
+        if(!prof.cover_image)prof.cover_image=e.cover_image||e.image||"";
         const covNum=parseInt((e.plat||"0/0").split("/")[0],10)||0;
         if(covNum>prof.bestCov)prof.bestCov=covNum;
         rankSum+=e.rank; rankCount+=1;
@@ -2894,6 +2917,7 @@ const top = data[0];
     ct,
     currentPlatformKeys,
     currentRecords,
+    currentRecordsPool,
     currentTrending,
     data,
     display,
@@ -3218,6 +3242,7 @@ const top = data[0];
                         onMouseEnter={()=>setSActiveIdx(flatIdx)}
                         onClick={()=>selectSearchResult(e)}
                         style={{display:"flex",alignItems:"center",gap:"12px",width:"100%",textAlign:"left",padding:"10px 18px",border:"none",borderBottom:`1px solid ${isDark?"#1c2320":"#F8F8F5"}`,cursor:"pointer",background:flatIdx===sActiveIdx?(isDark?"#1a2518":"#F0F7FF"):(isDark?"transparent":"transparent")}}>
+                        <EntryThumb item={e} name={e.artist} size={34} radius="8px" accent={GOLD} />
                         <div style={{flex:1,minWidth:0}}>
                           <div style={{fontSize:"13px",fontWeight:700,color:isDark?"#F6F3EA":"#1A1A1A",display:"flex",alignItems:"center",gap:"5px",overflow:"hidden"}}>
                             <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.title}</span>
@@ -3245,6 +3270,7 @@ const top = data[0];
                         onMouseEnter={()=>setSActiveIdx(flatIdx)}
                         onClick={()=>selectSearchResult(e)}
                         style={{display:"flex",alignItems:"center",gap:"12px",width:"100%",textAlign:"left",padding:"10px 18px",border:"none",borderBottom:`1px solid ${isDark?"#1c2320":"#F8F8F5"}`,cursor:"pointer",background:flatIdx===sActiveIdx?(isDark?"#1a2518":"#F0F7FF"):"transparent"}}>
+                        <EntryThumb item={e} name={e.artist} size={34} radius="8px" accent="#1a8a5a" />
                         <div style={{flex:1,minWidth:0}}>
                           <div style={{fontSize:"13px",fontWeight:700,color:isDark?"#F6F3EA":"#1A1A1A",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.title}</div>
                           <div style={{fontSize:"11px",color:isDark?"#7a8a7a":"#888",marginTop:"1px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.artist}</div>
@@ -3292,6 +3318,7 @@ const top = data[0];
                         onMouseEnter={()=>setSActiveIdx(flatIdx)}
                         onClick={()=>selectSearchResult({...n,_kind:"news"})}
                         style={{display:"flex",alignItems:"center",gap:"12px",width:"100%",textAlign:"left",padding:"10px 18px",border:"none",borderBottom:`1px solid ${isDark?"#1c2320":"#F8F8F5"}`,cursor:"pointer",background:flatIdx===sActiveIdx?(isDark?"#1a2518":"#F0F7FF"):"transparent"}}>
+                        <EntryThumb item={n} name={n.title} size={34} radius="8px" accent="#c05c00" />
                         <div style={{flex:1,minWidth:0}}>
                           <div style={{fontSize:"13px",fontWeight:700,color:isDark?"#F6F3EA":"#1A1A1A",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{n.title}</div>
                           <div style={{fontSize:"11px",color:isDark?"#7a8a7a":"#888",marginTop:"1px"}}><span style={{color:"#c05c00",fontWeight:700}}>{n.cat}</span>{n.date?" · "+n.date:""}</div>

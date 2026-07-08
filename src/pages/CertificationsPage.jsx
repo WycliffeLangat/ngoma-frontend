@@ -1,3 +1,5 @@
+import EntryThumb from "../components/EntryThumb.jsx";
+
 export default function CertificationsPage({ ctx }) {
   const {
     CERTIFICATION_LEVELS,
@@ -11,6 +13,7 @@ export default function CertificationsPage({ ctx }) {
     certColors,
     certIcons,
     certs,
+    isDark,
     isMobile,
     isSingles,
     isArtists,
@@ -18,6 +21,13 @@ export default function CertificationsPage({ ctx }) {
     openReleaseDetails,
     secLbl
   } = ctx;
+
+  const textPrimary = isDark ? "#F6F3EA" : "#1A1A1A";
+  const textMuted = isDark ? "#8F968F" : "#69716B";
+  const cardBg = isDark ? "#141814" : "#FFFFFF";
+  const cardBorder = isDark ? "#242923" : "#EFEDE7";
+  const cardShadow = isDark ? "0 8px 24px rgba(0,0,0,0.32)" : "0 1px 3px rgba(0,0,0,0.02),0 8px 24px rgba(0,0,0,0.02)";
+  const tileCard = (extra = {}) => card({ background: cardBg, border: `1px solid ${cardBorder}`, boxShadow: cardShadow, ...extra });
 
   const certIconFilters = Object.fromEntries(CERTIFICATION_LEVELS.map(l => [l.level, l.iconFilter || null]));
 
@@ -36,30 +46,34 @@ export default function CertificationsPage({ ctx }) {
 
   if (isArtists) {
     return (
-      <div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
+      <div style={{padding:PAD,minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:"24px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
           <div>
-            <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px"}}>Artist Certifications</h2>
-            <p style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",margin:0,lineHeight:1.55}}>Artist certification rules have not been activated yet. Song and album certifications remain based on cumulative Combined chart points.</p>
+            <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px",color:textPrimary}}>Artist Certifications</h2>
+            <p style={{fontFamily:F,fontSize:TXT.lead,color:textMuted,margin:0,lineHeight:1.55}}>Artist certification rules have not been activated yet. Song and album certifications remain based on cumulative Combined chart points.</p>
           </div>
           <div style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap"}}>
             <Tog sm/>
           </div>
         </div>
-        <div style={{...card({textAlign:"center",padding:isMobile?"28px":"34px"})}}>
-          <div style={{fontFamily:SF,fontSize:isMobile?"22px":"26px",fontWeight:850,marginBottom:"8px"}}>No artist certifications yet</div>
-          <div style={{fontFamily:F,fontSize:TXT.body,color:"#69716B",lineHeight:1.6}}>Use the Artists toggle on Charts, Analytics, Records, and Year End to view artist rankings and comparisons.</div>
+        <div style={{...tileCard({textAlign:"center",padding:isMobile?"28px":"34px",borderRadius:"16px"})}}>
+          <div style={{fontFamily:SF,fontSize:isMobile?"22px":"26px",fontWeight:850,marginBottom:"8px",color:textPrimary}}>No artist certifications yet</div>
+          <div style={{fontFamily:F,fontSize:TXT.body,color:textMuted,lineHeight:1.6}}>Use the Artists toggle on Charts, Analytics, Records, and Year End to view artist rankings and comparisons.</div>
         </div>
       </div>
     );
   }
 
   return (
-<div style={{padding:PAD,background:"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
+<div style={{padding:PAD,minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
+      <style>{`
+        .ngoma-cert-tile { transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease; }
+        .ngoma-cert-tile:hover { transform: translateY(-4px); }
+      `}</style>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:"24px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
             <div>
-              <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px"}}>Certifications</h2>
-              <p style={{fontFamily:F,fontSize:TXT.lead,color:"#69716B",margin:0,lineHeight:1.55}}>Awarded from cumulative Combined chart points earned across every month a song or album appears.</p>
+              <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px",color:textPrimary}}>Certifications</h2>
+              <p style={{fontFamily:F,fontSize:TXT.lead,color:textMuted,margin:0,lineHeight:1.55}}>Awarded from cumulative Combined chart points earned across every month a song or album appears.</p>
             </div>
             <div style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap"}}>
               <Tog sm/>
@@ -67,10 +81,10 @@ export default function CertificationsPage({ ctx }) {
           </div>
           <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"12px",marginBottom:"28px"}}>
             {CERTIFICATION_LEVELS.map((c,i)=>(
-              <div key={i} style={{...card({textAlign:"center"}),borderTop:"3px solid "+c.color}}>
+              <div key={i} className="ngoma-cert-tile" style={{...tileCard({textAlign:"center",borderRadius:"16px"}),borderTop:"3px solid "+c.color}}>
                 <div style={{fontSize:"28px"}}><span style={c.iconFilter?{filter:c.iconFilter}:undefined}>{c.icon}</span></div>
                 <div style={{fontWeight:800,fontSize:TXT.metric,margin:"6px 0 2px",color:c.color}}>{c.label}</div>
-                <div style={{fontFamily:F,fontSize:TXT.cardMeta,color:"#69716B"}}>{c.pts.toLocaleString()}+ points</div>
+                <div style={{fontFamily:F,fontSize:TXT.cardMeta,color:textMuted}}>{c.pts.toLocaleString()}+ points</div>
               </div>
             ))}
           </div>
@@ -84,23 +98,24 @@ export default function CertificationsPage({ ctx }) {
                   {filtered.map((c,i)=>(
                     <div key={i} className={`cert-wall-card ${level}`} style={{background:certColors[level]+"08"}}>
                       <span className="cert-icon"><span style={certIconFilters[level]?{filter:certIconFilters[level]}:undefined}>{certIcons[level]}</span></span>
+                      <EntryThumb item={c} name={c.a} size={64} accent={certColors[level]} />
                       <div style={{flex:1,minWidth:0}}>
-                        <button type="button" onClick={()=>openReleaseDetails(c,isSingles?"single":"album")} style={{display:"block",border:0,background:"transparent",padding:0,fontFamily:SF,fontWeight:800,fontSize:"15px",lineHeight:1.25,cursor:"pointer",textAlign:"left",color:"#050505",whiteSpace:"normal",wordBreak:"break-word"}}>{c.t}</button>
+                        <button type="button" onClick={()=>openReleaseDetails(c,isSingles?"single":"album")} style={{display:"block",border:0,background:"transparent",padding:0,fontFamily:SF,fontWeight:800,fontSize:"15px",lineHeight:1.25,cursor:"pointer",textAlign:"left",color:textPrimary,whiteSpace:"normal",wordBreak:"break-word"}}>{c.t}</button>
                         <div style={{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap",marginTop:"2px"}}>
-                          <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(c.a);}} style={{fontFamily:F,fontSize:"13px",color:"#69716B",fontWeight:700,padding:0,border:0,background:"transparent",cursor:"pointer",textAlign:"left"}}>{c.a}</button>
+                          <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(c.a);}} style={{fontFamily:F,fontSize:"13px",color:textMuted,fontWeight:700,padding:0,border:0,background:"transparent",cursor:"pointer",textAlign:"left"}}>{c.a}</button>
                           <CountryBadge artist={c.a} showName />
                         </div>
                       </div>
                       <div style={{textAlign:"right",fontFamily:F,flexShrink:0}}>
                         <div style={{fontSize:"18px",fontWeight:900,color:certColors[level],lineHeight:1}}>{c.totalPts.toLocaleString()}</div>
-                        <div style={{fontSize:"11px",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.8px",color:"#9a9a9a",marginTop:"2px"}}>pts</div>
+                        <div style={{fontSize:"11px",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.8px",color:textMuted,marginTop:"2px"}}>pts</div>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>);
             })}
-            {!deduplicatedCerts.length&&<div style={{padding:"40px",textAlign:"center",fontFamily:F,color:"#CCC"}}>No certifications yet</div>}
+            {!deduplicatedCerts.length&&<div style={{padding:"40px",textAlign:"center",fontFamily:F,color:textMuted}}>No certifications yet</div>}
           </div>
         </div>
   );

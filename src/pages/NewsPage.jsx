@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import EntryThumb from "../components/EntryThumb.jsx";
+import { getPublicArtists, findArtistMentionedIn, getArtistImageUrl } from "../utils/artistImages.js";
 
 // Accent color per raw category slug — used as a card's left border and the
 // tint behind its category pill. Falls back to GOLD for anything unmapped.
@@ -38,6 +40,18 @@ export default function NewsPage({ ctx }) {
   } = ctx;
 
   const [filter, setFilter] = useState("all");
+  const publicArtists = useMemo(() => getPublicArtists(), []);
+
+  // Most articles don't have an editor-set cover image yet, so fall back to a
+  // photo of whichever tracked artist the headline actually names (many news
+  // titles read like "X Ties the Record...") before giving up to an emoji.
+  function resolveNewsArt(n) {
+    if (n.cover_image) return { url: n.cover_image, artistName: "" };
+    const mentioned = findArtistMentionedIn(`${n.title} ${n.excerpt || ""}`, publicArtists);
+    if (!mentioned) return { url: "", artistName: "" };
+    const url = getArtistImageUrl(mentioned, { name: mentioned.name, artists: publicArtists });
+    return { url, artistName: mentioned.name };
+  }
 
   const categories = useMemo(() => {
     const seen = new Map(); // slug -> { label, count }
@@ -116,7 +130,8 @@ export default function NewsPage({ ctx }) {
 
   function Card({ n, hero }) {
     const color = CATEGORY_COLORS[n.category] || GOLD;
-    const hasCover = !!n.cover_image;
+    const art = resolveNewsArt(n);
+    const hasArt = !!art.url;
     return (
       <div
         onClick={() => setSelNews(n)}
@@ -128,22 +143,32 @@ export default function NewsPage({ ctx }) {
         onMouseEnter={(e)=>{if(!isMobile){e.currentTarget.style.boxShadow=isDark?"0 0 0 1px rgba(184,134,11,0.22)":"0 14px 36px rgba(0,0,0,0.09)";e.currentTarget.style.transform="translateY(-2px)";}}}
         onMouseLeave={(e)=>{e.currentTarget.style.boxShadow=isDark?"none":"0 2px 8px rgba(0,0,0,0.04)";e.currentTarget.style.transform="none";}}
       >
-        {hero && hasCover && (
-          <div style={{width:"100%",height:"240px",overflow:"hidden",flexShrink:0}}>
-            <img src={n.cover_image} alt={n.title} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} loading="lazy"/>
+        {hero && (
+          <div style={{width:"100%",height:isMobile?"220px":"340px",overflow:"hidden",flexShrink:0,position:"relative",background:`linear-gradient(135deg, ${color}26, ${color}08)`}}>
+            {hasArt ? (
+              <img src={art.url} alt={n.title} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} loading="lazy"/>
+            ) : (
+              <div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                <span style={{fontSize:isMobile?"56px":"78px"}}>{n.emoji || "🎵"}</span>
+              </div>
+            )}
           </div>
         )}
-        <div style={{padding:isMobile?"16px":"22px",display:"flex",gap:isMobile?"10px":"14px",alignItems:"flex-start",minWidth:0}}>
-          {hero && n.emoji && !hasCover && <div style={{fontSize:isMobile?"27px":"38px",flexShrink:0,marginTop:"2px"}}>{n.emoji}</div>}
+        <div style={{padding:isMobile?"16px":"22px",display:"flex",gap:isMobile?"12px":"16px",alignItems:"flex-start",minWidth:0}}>
           <div style={{flex:1,minWidth:0}}>
             <MetaRow n={n} size={hero?"lg":"sm"} />
             <h3 style={{fontFamily:F,fontSize:hero?(isMobile?"20px":"22px"):(isMobile?"17px":"18px"),fontWeight:800,margin:hero?"0 0 8px":"0 0 7px",lineHeight:1.28,color:isDark?"#F6F3EA":"#050505"}}>{n.title}</h3>
             <p style={{fontFamily:F,fontSize:"14px",color:isDark?"#B8BEB8":"#59645D",margin:0,lineHeight:1.65}}>{n.excerpt}</p>
           </div>
-          {!hero && hasCover && (
-            <div style={{width:isMobile?"60px":"72px",height:isMobile?"60px":"72px",minWidth:isMobile?"60px":"72px",borderRadius:"10px",overflow:"hidden",flexShrink:0,alignSelf:"center",background:isDark?"#1A1E1A":"#F0EDE7"}}>
-              <img src={n.cover_image} alt="" style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} loading="lazy"/>
-            </div>
+          {!hero && (
+            <EntryThumb
+              item={n}
+              name={art.artistName || n.title}
+              size={isMobile?96:128}
+              radius="10px"
+              accent={color}
+              style={{alignSelf:"center"}}
+            />
           )}
           <span aria-hidden="true" style={{fontFamily:F,fontSize:isMobile?"20px":"18px",color:isDark?"#555":"#C0C7C1",flexShrink:0,padding:isMobile?"6px 0 6px 4px":"4px 0 4px 10px",marginTop:"2px"}}>›</span>
         </div>

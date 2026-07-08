@@ -1,4 +1,5 @@
 import { useState } from "react";
+import EntryThumb from "../components/EntryThumb.jsx";
 
 export default function AnalyticsPage({ ctx }) {
   const {
@@ -134,12 +135,15 @@ export default function AnalyticsPage({ ctx }) {
                 const certification = isArtists ? null : getCertificationForEntry(s, isSingles ? "single" : "album");
                 return (
                 <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:isMobile?"8px 0":"6px 0",borderBottom:"1px solid #F0F0EC"}}>
-                  <div style={{minWidth:0}}>
-                    <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
-                      <button type="button" onClick={()=>openReleaseDetails(s,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15,cursor:"pointer",textAlign:"left"}}>{s.t}</button>
-                      {certification&&<CertificationTag cert={certification} compact />}
+                  <div style={{display:"flex",alignItems:"center",gap:"10px",minWidth:0}}>
+                    <EntryThumb item={s} name={isArtists?s.t:s.a} isArtist={isArtists} size={46} accent="#2DB04A" />
+                    <div style={{minWidth:0}}>
+                      <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
+                        <button type="button" onClick={()=>openReleaseDetails(s,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15,cursor:"pointer",textAlign:"left"}}>{s.t}</button>
+                        {certification&&<CertificationTag cert={certification} compact />}
+                      </div>
+                      <div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginTop:"3px"}}>{s.a}</div>
                     </div>
-                    <div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginTop:"3px"}}>{s.a}</div>
                   </div>
                   <div style={{textAlign:"right",fontFamily:F,whiteSpace:"nowrap",flexShrink:0}}>
                     <div style={{display:"inline-flex",alignItems:"center",gap:"4px",background:"rgba(45,176,74,0.10)",borderRadius:"6px",padding:"3px 8px",color:"#2DB04A",fontSize:"12px",fontWeight:900}}>▲ {s.from-s.to}</div>
@@ -156,12 +160,15 @@ export default function AnalyticsPage({ ctx }) {
                 const certification = isArtists ? null : getCertificationForEntry(s, isSingles ? "single" : "album");
                 return (
                 <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:isMobile?"8px 0":"6px 0",borderBottom:"1px solid #F0F0EC"}}>
-                  <div style={{minWidth:0}}>
-                    <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
-                      <button type="button" onClick={()=>openReleaseDetails(s,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15,cursor:"pointer",textAlign:"left"}}>{s.t}</button>
-                      {certification&&<CertificationTag cert={certification} compact />}
+                  <div style={{display:"flex",alignItems:"center",gap:"10px",minWidth:0}}>
+                    <EntryThumb item={s} name={isArtists?s.t:s.a} isArtist={isArtists} size={46} accent="#E53935" />
+                    <div style={{minWidth:0}}>
+                      <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
+                        <button type="button" onClick={()=>openReleaseDetails(s,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15,cursor:"pointer",textAlign:"left"}}>{s.t}</button>
+                        {certification&&<CertificationTag cert={certification} compact />}
+                      </div>
+                      <div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginTop:"3px"}}>{s.a}</div>
                     </div>
-                    <div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginTop:"3px"}}>{s.a}</div>
                   </div>
                   <div style={{textAlign:"right",fontFamily:F,whiteSpace:"nowrap",flexShrink:0}}>
                     <div style={{display:"inline-flex",alignItems:"center",gap:"4px",background:"rgba(229,57,53,0.10)",borderRadius:"6px",padding:"3px 8px",color:"#E53935",fontSize:"12px",fontWeight:900}}>▼ {s.to-s.from}</div>
@@ -184,12 +191,15 @@ export default function AnalyticsPage({ ctx }) {
               const certification = isArtists ? null : getCertificationForEntry(s, isSingles ? "single" : "album");
               return (
               <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:"7px 0",borderBottom:"1px solid #F0F0EC"}}>
-                <div style={{flex:1,minWidth:0}}>
-                  <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
-                    <button type="button" onClick={()=>openReleaseDetails(s,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,cursor:"pointer",textAlign:"left"}}>{s.t}</button>
-                    {certification&&<CertificationTag cert={certification} compact />}
+                <div style={{display:"flex",alignItems:"center",gap:"10px",flex:1,minWidth:0}}>
+                  <EntryThumb item={s} name={isArtists?s.t:s.a} isArtist={isArtists} size={44} accent="#00897B" />
+                  <div style={{minWidth:0}}>
+                    <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
+                      <button type="button" onClick={()=>openReleaseDetails(s,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,cursor:"pointer",textAlign:"left"}}>{s.t}</button>
+                      {certification&&<CertificationTag cert={certification} compact />}
+                    </div>
+                    <div style={{fontSize:TXT.cardMeta,color:"#59645D",fontFamily:F,marginTop:"2px"}}>{s.a}</div>
                   </div>
-                  <div style={{fontSize:TXT.cardMeta,color:"#59645D",fontFamily:F,marginTop:"2px"}}>{s.a}</div>
                 </div>
                 <div style={{display:"flex",gap:"3px",alignItems:"center",flexShrink:0}}>
                   {s.plats.map(pl=><div key={pl} style={{width:"7px",height:"7px",borderRadius:"50%",background:PC[pl]||"#888"}} title={PLAT_LABEL[pl]}/>)}
@@ -276,9 +286,12 @@ export default function AnalyticsPage({ ctx }) {
                   <div key={platform.platform} style={{padding:"12px",border:"1px solid "+(isDark?"#2F352F":"#EFEDE7"),borderRadius:"12px",background:isDark?"#0F120F":"#FAFAF8"}}>
                     <div style={{fontFamily:F,fontSize:"12px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:platform.color,marginBottom:"8px"}}>{platform.label} · {platform.count}</div>
                     {platform.entries.slice(0,4).map((entry)=>(
-                      <div key={`${entry.title}-${entry.artist}`} style={{padding:"6px 0",borderBottom:"1px solid "+(isDark?"#2F352F":"#F0F0EC")}}>
-                        <button type="button" onClick={()=>openReleaseDetails(entry,isSingles?"single":"album")} style={{border:0,background:"transparent",padding:0,textAlign:"left",fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:850,color:isDark?"#F6F3EA":"#050505",cursor:"pointer"}}>{entry.title}</button>
-                        <div style={{fontFamily:F,fontSize:TXT.cardMeta,color:isDark?"#AEB6AE":"#69716B"}}>#{entry.rank} · {entry.artist}</div>
+                      <div key={`${entry.title}-${entry.artist}`} style={{display:"flex",alignItems:"center",gap:"9px",padding:"6px 0",borderBottom:"1px solid "+(isDark?"#2F352F":"#F0F0EC")}}>
+                        <EntryThumb item={entry} name={isArtists?entry.title:entry.artist} isArtist={isArtists} size={40} accent={platform.color} />
+                        <div style={{minWidth:0}}>
+                          <button type="button" onClick={()=>openReleaseDetails(entry,isSingles?"single":"album")} style={{border:0,background:"transparent",padding:0,textAlign:"left",fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:850,color:isDark?"#F6F3EA":"#050505",cursor:"pointer"}}>{entry.title}</button>
+                          <div style={{fontFamily:F,fontSize:TXT.cardMeta,color:isDark?"#AEB6AE":"#69716B"}}>#{entry.rank} · {entry.artist}</div>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -325,11 +338,16 @@ export default function AnalyticsPage({ ctx }) {
               <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:isMobile?"10px":"12px",marginBottom:isMobile?"12px":"14px"}}>
                 {[{d:sp1,c:GOLD},{d:sp2,c:"#1565C0"}].map(({d,c},i)=>(
                   <div key={i} style={{padding:isMobile?"13px":"15px",background:isDark?(i===0?"rgba(184,134,11,0.16)":"rgba(21,101,192,0.20)"):c+"0D",borderRadius:"10px",border:isDark?"1px solid "+c+"55":"1px solid transparent",borderLeft:"3px solid "+c,minWidth:0}}>
+                    <div style={{display:"flex",alignItems:"flex-start",gap:"10px",minWidth:0}}>
+                    <EntryThumb item={d} name={isArtists?d.title:d.artist} isArtist={isArtists} size={isMobile?54:64} accent={c} />
+                    <div style={{minWidth:0,flex:1}}>
                     <div style={{display:"flex",alignItems:"center",gap:"7px",flexWrap:"wrap",minWidth:0}}>
                       <button type="button" onClick={()=>openReleaseDetails(d,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:"15px",fontWeight:800,lineHeight:1.2,whiteSpace:isMobile?"normal":"nowrap",overflow:isMobile?"visible":"hidden",textOverflow:isMobile?"clip":"ellipsis",overflowWrap:"anywhere",minWidth:0,cursor:"pointer",textAlign:"left",color:isDark?"#F6F3EA":"#1F241F"}}>{d.title}</button>
                       {isArtists ? null : getCertificationForEntry(d, isSingles ? "single" : "album")&&<CertificationTag cert={isArtists ? null : getCertificationForEntry(d, isSingles ? "single" : "album")} compact />}
                     </div>
                     <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(d.artist);}} style={{display:"block",maxWidth:"100%",fontFamily:F,fontSize:"12px",color:isDark?"#F6F3EA":"#59645D",marginTop:"3px",padding:0,border:0,background:"transparent",fontWeight:700,whiteSpace:isMobile?"normal":"nowrap",overflow:isMobile?"visible":"hidden",textOverflow:isMobile?"clip":"ellipsis",overflowWrap:"anywhere",cursor:"pointer",textAlign:"left"}}>{d.artist}</button>
+                    </div>
+                    </div>
                     {isMobile&&<button type="button" onClick={()=>openReleaseDetails(d,isArtists ? "artist" : (isSingles?"single":"album"))} style={{marginTop:"9px",border:"1px solid "+c+"55",borderRadius:"999px",background:isDark?"rgba(255,255,255,0.04)":"#FFF",color:isDark&&i===1?"#72A7E8":c,fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",padding:"7px 10px",cursor:"pointer"}}>View Details</button>}
                     <div style={{display:"flex",gap:isMobile?"12px":"16px",marginTop:isMobile?"10px":"12px",flexWrap:"wrap"}}>
                       <div><div style={{fontFamily:F,fontSize:isMobile?"18px":"20px",fontWeight:800,color:isDark&&i===1?"#72A7E8":c}}>{d.totalPts.toLocaleString()}</div><div style={{fontFamily:F,fontSize:"11px",letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#F6F3EA":"#69716B",fontWeight:700}}>Total Pts</div></div>

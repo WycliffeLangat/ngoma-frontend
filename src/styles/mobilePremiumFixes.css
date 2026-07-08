@@ -31,45 +31,7 @@
 
   .ngoma-hero-showcase {
     min-width: 0;
-    border-radius: 16px !important;
-  }
-
-  .ngoma-hero-card-content {
-    gap: 14px !important;
-    padding: 16px 16px 12px 18px !important;
-  }
-
-  .ngoma-hero-art {
-    width: 92px !important;
-    height: 92px !important;
-    min-width: 92px !important;
-    border-radius: 10px !important;
-  }
-
-  .ngoma-hero-watermark {
-    top: 14px !important;
-    right: 16px !important;
-    z-index: 2 !important;
-    font-size: 64px !important;
-    letter-spacing: -2px !important;
-    opacity: 0.15;
-  }
-
-  .ngoma-hero-copy {
-    min-width: 0;
-  }
-
-  .ngoma-hero-copy > div:nth-child(2) {
-    font-size: 18px !important;
-  }
-
-  .ngoma-hero-copy > div:nth-child(3) {
-    font-size: 13px !important;
-    margin-bottom: 10px !important;
-  }
-
-  .ngoma-hero-controls {
-    padding: 0 14px 14px 18px !important;
+    border-radius: 18px !important;
   }
 
   .ngoma-carousel-arrow {
@@ -101,13 +63,7 @@
   }
 
   .ngoma-hero-showcase {
-    width: min(100%, 720px);
     min-width: 0;
-  }
-
-  .ngoma-hero-card-content {
-    gap: 14px !important;
-    padding: 18px !important;
   }
 
   .ngoma-chart-row-stripe {

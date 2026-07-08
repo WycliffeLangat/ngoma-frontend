@@ -319,6 +319,34 @@ export function findArtistProfileInPublicData(name = "") {
   return findArtistProfileByName(name, getPublicArtists());
 }
 
+// News/editorial copy names artists in free text ("Cardi B Ties the Record...")
+// rather than carrying a clean artist field. Scans the public artist roster for
+// the longest name/alias that appears in the text, so callers can resolve a
+// real artist photo instead of falling back to a generic placeholder.
+export function findArtistMentionedIn(text = "", artists) {
+  const haystack = cleanString(text).toLowerCase();
+  if (!haystack) return null;
+  const pool = artists || getPublicArtists();
+
+  let best = null;
+  for (const artist of pool) {
+    const candidates = [
+      artist?.name,
+      artist?.display_name,
+      artist?.public_name,
+      ...(Array.isArray(artist?.aliases) ? artist.aliases : []),
+    ];
+    for (const candidate of candidates) {
+      const needle = cleanString(candidate).toLowerCase();
+      if (needle.length < 3) continue;
+      if (haystack.includes(needle) && (!best || needle.length > best.needle.length)) {
+        best = { artist, needle };
+      }
+    }
+  }
+  return best?.artist || null;
+}
+
 export function getArtistImageUrl(item = {}, options = {}) {
   const publicArtists = options.artists || getPublicArtists();
   const explicitName = options.name || getArtistDisplayName(item);

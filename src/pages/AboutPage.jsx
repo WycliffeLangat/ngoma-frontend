@@ -1,3 +1,6 @@
+import EntryThumb from "../components/EntryThumb.jsx";
+import { getPublicArtists, getArtistImageUrl } from "../utils/artistImages.js";
+
 export default function AboutPage({ ctx }) {
   const {
     CERTIFICATION_LEVELS,
@@ -18,10 +21,38 @@ export default function AboutPage({ ctx }) {
     openReleaseDetails
   } = ctx;
 
+  const featuredPortraits = (() => {
+    const seen = new Set();
+    const urls = [];
+    for (const artist of getPublicArtists()) {
+      const url = getArtistImageUrl(artist, { name: artist.name, artists: [artist] });
+      if (url && !seen.has(url)) { seen.add(url); urls.push(url); }
+      if (urls.length >= (isMobile ? 6 : 10)) break;
+    }
+    return urls;
+  })();
+
   return (
 <div style={{padding:PAD,background:isDark?"#050505":"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px",color:isDark?"#F6F3EA":"#050505"}}>About {SITE_NAME}</h2>
-          <p style={{fontFamily:F,fontSize:isMobile?"14px":"15px",color:isDark?"#D7DBD7":"#59645D",margin:"0 0 24px",lineHeight:1.7}}>{SITE_NAME} tracks the music performing strongly in Kenya by comparing songs and albums across major digital platforms, then turning that activity into simple monthly Top 50 charts, artist rankings, analytics, records and certifications.</p>
+          <p style={{fontFamily:F,fontSize:isMobile?"14px":"15px",color:isDark?"#D7DBD7":"#59645D",margin:"0 0 18px",lineHeight:1.7}}>{SITE_NAME} tracks the music performing strongly in Kenya by comparing songs and albums across major digital platforms, then turning that activity into simple monthly Top 50 charts, artist rankings, analytics, records and certifications.</p>
+          {featuredPortraits.length>0 && (
+            <div style={{display:"flex",alignItems:"center",marginBottom:"26px"}}>
+              <div style={{display:"flex"}}>
+                {featuredPortraits.map((url,i)=>(
+                  <div key={i} style={{
+                    width:isMobile?56:76,height:isMobile?56:76,borderRadius:"50%",overflow:"hidden",
+                    marginLeft:i===0?0:(isMobile?-16:-22),
+                    border:"2px solid "+(isDark?"#050505":"#FFF"),
+                    boxShadow:"0 3px 10px rgba(0,0,0,0.18)",flexShrink:0,position:"relative",zIndex:featuredPortraits.length-i,
+                  }}>
+                    <img src={url} alt="" loading="lazy" decoding="async" style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}/>
+                  </div>
+                ))}
+              </div>
+              <span style={{marginLeft:"14px",fontFamily:F,fontSize:isMobile?"11px":"12px",fontWeight:800,letterSpacing:"0.4px",color:isDark?"#AEB6AE":"#69716B"}}>The artists {SITE_NAME} tracks every month</span>
+            </div>
+          )}
           <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px"}}>
             <div style={card()}>
               <h3 style={{fontFamily:F,fontSize:"16px",fontWeight:800,letterSpacing:"0.5px",textTransform:"uppercase",color:GOLD,margin:"0 0 12px"}}>How It Works</h3>
@@ -65,10 +96,13 @@ export default function AboutPage({ ctx }) {
                   <div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1.8px",textTransform:"uppercase",color:GOLD,marginBottom:"12px",paddingBottom:"6px",borderBottom:"1px solid "+GOLD+"33"}}>{label}</div>
                   <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"10px"}}>
                     {items.map((e,i)=>(
-                      <div key={i} style={{padding:"12px",background:isDark?"#1A1810":"#FFF",borderRadius:"8px",border:"1px solid "+GOLD+"33"}}>
-                        <div style={{fontFamily:F,fontSize:"11px",letterSpacing:"1.5px",textTransform:"uppercase",color:GOLD,marginBottom:"4px"}}>{e.month}</div>
-                        <button type="button" onClick={()=>openReleaseDetails(e,e.type)} style={{display:"block",border:0,background:"transparent",padding:0,fontFamily:SF,fontWeight:800,fontSize:"15px",marginBottom:"2px",lineHeight:1.2,cursor:"pointer",textAlign:"left",color:isDark?"#F6F3EA":"inherit"}}>{e.title}</button>
-                        <div style={{fontFamily:F,fontSize:"13px",color:isDark?"#AEB6AE":"#69716B"}}>{e.artist}</div>
+                      <div key={i} style={{display:"flex",gap:"11px",alignItems:"center",padding:"12px",background:isDark?"#1A1810":"#FFF",borderRadius:"8px",border:"1px solid "+GOLD+"33"}}>
+                        <EntryThumb item={e} name={e.artist} size={isMobile?62:72} accent={GOLD} />
+                        <div style={{minWidth:0}}>
+                          <div style={{fontFamily:F,fontSize:"11px",letterSpacing:"1.5px",textTransform:"uppercase",color:GOLD,marginBottom:"4px"}}>{e.month}</div>
+                          <button type="button" onClick={()=>openReleaseDetails(e,e.type)} style={{display:"block",border:0,background:"transparent",padding:0,fontFamily:SF,fontWeight:800,fontSize:"15px",marginBottom:"2px",lineHeight:1.2,cursor:"pointer",textAlign:"left",color:isDark?"#F6F3EA":"inherit"}}>{e.title}</button>
+                          <div style={{fontFamily:F,fontSize:"13px",color:isDark?"#AEB6AE":"#69716B"}}>{e.artist}</div>
+                        </div>
                       </div>
                     ))}
                   </div>
