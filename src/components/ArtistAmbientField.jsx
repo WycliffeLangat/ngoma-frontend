@@ -81,6 +81,48 @@ function usePrefersReducedMotion() {
   return reduced;
 }
 
+function randomInRange(min, max) {
+  return min + Math.random() * (max - min);
+}
+
+function randomPick(list) {
+  return list[Math.floor(Math.random() * list.length)];
+}
+
+// Attributes for a slot's very first paint: derived from its index so the
+// initial backdrop is evenly spread (no clustering) before anything has had
+// a chance to randomize.
+function initialSlotAttrs(index, layout) {
+  return {
+    shapeIdx: index % SHAPES.length,
+    filterKind: ["plain", "warm", "cool"][index % 3],
+    blendIdx: index % 3,
+    driftVariant: (index % 4) + 1,
+    driftDuration: 65 + (index % 5) * 18,
+    baseRotate: ((index * 37) % 24) - 12,
+    top: layout.top,
+    left: layout.left,
+    size: layout.size,
+  };
+}
+
+// Attributes rolled fresh each time a slot cycles to a new photo — this is
+// what makes the backdrop feel alive: not just a new picture, but a new
+// silhouette, footprint, position, drift pattern, and color treatment.
+function randomSlotAttrs() {
+  return {
+    shapeIdx: Math.floor(Math.random() * SHAPES.length),
+    filterKind: randomPick(["plain", "warm", "cool"]),
+    blendIdx: Math.floor(Math.random() * 3),
+    driftVariant: Math.floor(Math.random() * 4) + 1,
+    driftDuration: randomInRange(55, 140),
+    baseRotate: randomInRange(-14, 14),
+    top: `${randomInRange(2, 90).toFixed(1)}%`,
+    left: `${randomInRange(1, 92).toFixed(1)}%`,
+    size: randomInRange(70, 235),
+  };
+}
+
 function shuffle(list) {
   const copy = [...list];
   for (let i = copy.length - 1; i > 0; i--) {
@@ -133,6 +175,7 @@ const DRIFT_KEYFRAMES = `
 function PortraitSlot({ index, layout, pool, isDark, reducedMotion, mood, sizeScale, opacityScale }) {
   const [poolIdx, setPoolIdx] = useState(() => (pool.length ? (index * 7) % pool.length : 0));
   const [visible, setVisible] = useState(true);
+  const [attrs, setAttrs] = useState(() => initialSlotAttrs(index, layout));
 
   useEffect(() => {
     if (reducedMotion || pool.length < 2) return undefined;
@@ -145,6 +188,10 @@ function PortraitSlot({ index, layout, pool, isDark, reducedMotion, mood, sizeSc
       setVisible(false);
       swapTimeout = setTimeout(() => {
         setPoolIdx((p) => (p + 1) % pool.length);
+        // Re-roll shape, size, position, drift, and color treatment together
+        // with the photo so the whole slot feels like a new "frame", not a
+        // reused one — while invisible, so the jump isn't seen.
+        setAttrs(randomSlotAttrs());
         setVisible(true);
       }, 900);
     };
@@ -164,15 +211,15 @@ function PortraitSlot({ index, layout, pool, isDark, reducedMotion, mood, sizeSc
   const url = pool[poolIdx];
   if (!url) return null;
 
-  const shape = SHAPES[index % SHAPES.length];
-  const filterKind = ["plain", "warm", "cool"][index % 3];
-  const driftVariant = (index % 4) + 1;
-  const driftDuration = 65 + (index % 5) * 18;
-  const baseRotate = ((index * 37) % 24) - 12;
+  const shape = SHAPES[attrs.shapeIdx];
+  const filterKind = attrs.filterKind;
+  const driftVariant = attrs.driftVariant;
+  const driftDuration = attrs.driftDuration;
+  const baseRotate = attrs.baseRotate;
   const baseOpacity = isDark ? 0.11 + (index % 4) * 0.02 : 0.05 + (index % 4) * 0.012;
   const opacity = visible ? baseOpacity * opacityScale : 0;
 
-  const scaledSize = layout.size * sizeScale;
+  const scaledSize = attrs.size * sizeScale;
   const width = scaledSize * shape.aspect;
   const height = scaledSize;
 
@@ -180,8 +227,8 @@ function PortraitSlot({ index, layout, pool, isDark, reducedMotion, mood, sizeSc
     <div
       style={{
         position: "absolute",
-        top: layout.top,
-        left: layout.left,
+        top: attrs.top,
+        left: attrs.left,
         width: `${width}px`,
         height: `${height}px`,
         opacity,
@@ -202,8 +249,8 @@ function PortraitSlot({ index, layout, pool, isDark, reducedMotion, mood, sizeSc
           transform: `rotate(${baseRotate}deg)`,
           filter: buildFilter({ kind: filterKind, isDark, hue: mood.hue }) + (shape.blurPx ? ` blur(${shape.blurPx}px)` : ""),
           mixBlendMode: isDark
-            ? ["screen", "overlay", "soft-light"][index % 3]
-            : ["multiply", "soft-light", "darken"][index % 3],
+            ? ["screen", "overlay", "soft-light"][attrs.blendIdx]
+            : ["multiply", "soft-light", "darken"][attrs.blendIdx],
           boxShadow: shape.ring
             ? (isDark ? "0 0 0 2px rgba(255,255,255,0.14)" : "0 0 0 2px rgba(0,0,0,0.10)")
             : "none",
