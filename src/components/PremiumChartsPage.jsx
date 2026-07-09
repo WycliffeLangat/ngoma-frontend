@@ -1003,7 +1003,7 @@ export default function PremiumChartsPage({
   const marqueeViewportRef = useRef(null);
   const marqueeTrackRef = useRef(null);
   const marqueeHoveredRef = useRef(false);
-  const marqueeDragRef = useRef({ dragging: false, startX: 0, startScrollLeft: 0, lastX: 0, lastT: 0, velocity: 0, dragDistance: 0, suppressClickUntil: 0 });
+  const marqueeDragRef = useRef({ dragging: false, startX: 0, startScrollLeft: 0, lastX: 0, lastT: 0, velocity: 0, dragDistance: 0, suppressClickUntil: 0, downTarget: null });
 
   useEffect(() => {
     const viewport = marqueeViewportRef.current;
@@ -1071,6 +1071,7 @@ export default function PremiumChartsPage({
     drag.lastT = performance.now();
     drag.velocity = 0;
     drag.dragDistance = 0;
+    drag.downTarget = event.target;
     viewport.style.cursor = "grabbing";
     viewport.setPointerCapture?.(event.pointerId);
   }
@@ -1108,7 +1109,14 @@ export default function PremiumChartsPage({
     if (drag.dragDistance > 6) {
       drag.suppressClickUntil = performance.now() + 80;
       if (Math.abs(drag.velocity) > 0.03) marqueeGlide(-drag.velocity * 1000);
+    } else {
+      // setPointerCapture above retargets the native click event that
+      // normally follows pointerup to the viewport itself, so the card
+      // button never sees it — fire the button's click directly instead.
+      const card = drag.downTarget?.closest?.("button");
+      if (card) card.click();
     }
+    drag.downTarget = null;
   }
 
   function handleMarqueeClickCapture(event) {
