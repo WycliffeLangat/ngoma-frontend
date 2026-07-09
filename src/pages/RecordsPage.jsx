@@ -1,4 +1,4 @@
-import EntryThumb from "../components/EntryThumb.jsx";
+import EntryThumb, { resolveEntryImageUrl } from "../components/EntryThumb.jsx";
 import { useRotatingArt } from "../hooks/useRotatingArt.js";
 
 function RecordCard({ r, expanded, onToggle, pool, ctx, theme }) {
