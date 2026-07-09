@@ -2256,10 +2256,15 @@ const top = data[0];
       })
       .filter(Boolean);
 
+    const newEntries = currentRows.filter((entry) => entry.is_new);
+    const reEntries = currentRows.filter((entry) => entry.reentry);
+
     return {
-      new: currentRows.filter((entry) => entry.is_new).length,
-      ret: currentRows.filter((entry) => entry.reentry).length,
-      debut: currentRows.filter((entry) => entry.is_new).length,
+      new: newEntries.length,
+      ret: reEntries.length,
+      debut: newEntries.length,
+      newEntries,
+      reEntries,
       risers: moves.filter((entry) => entry.delta > 0).sort((a, b) => b.delta - a.delta).slice(0, 5),
       fallers: moves.filter((entry) => entry.delta < 0).sort((a, b) => a.delta - b.delta).slice(0, 5),
     };
@@ -2268,7 +2273,7 @@ const top = data[0];
   // Movement data for the current analytics month and selected chart type
   const mvData = analyticsActive
     ? buildMovementData(ct, anMonth)
-    : { new: 0, ret: 0, debut: 0, risers: [], fallers: [] };
+    : { new: 0, ret: 0, debut: 0, newEntries: [], reEntries: [], risers: [], fallers: [] };
 
   const num = (value) => {
     const parsed = Number(String(value ?? 0).replace(/,/g, ""));

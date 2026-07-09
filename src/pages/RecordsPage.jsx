@@ -1,36 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import EntryThumb, { resolveEntryImageUrl } from "../components/EntryThumb.jsx";
-
-// Cycles a card's background art through every eligible entry in `pool` so a
-// box with no single "winner" (Perfect Coverage Club, Total Charted X) still
-// always shows a photo instead of sitting empty.
-function useRotatingArt(pool, intervalMs = 4500) {
-  const candidates = useMemo(() => {
-    return (pool || [])
-      .map((entry) => {
-        const name = entry.artist || entry.title || entry.n || "";
-        const url = resolveEntryImageUrl(entry, { name, isArtist: Boolean(entry.is_artist_entry || entry.type === "artist") });
-        return url ? { entry, name, url } : null;
-      })
-      .filter(Boolean);
-  }, [pool]);
-
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    setIndex(0);
-  }, [candidates.length]);
-
-  useEffect(() => {
-    if (candidates.length < 2) return undefined;
-    const id = setInterval(() => {
-      setIndex((current) => (current + 1) % candidates.length);
-    }, intervalMs);
-    return () => clearInterval(id);
-  }, [candidates.length, intervalMs]);
-
-  return candidates.length ? candidates[index % candidates.length] : null;
-}
+import EntryThumb from "../components/EntryThumb.jsx";
+import { useRotatingArt } from "../hooks/useRotatingArt.js";
 
 function RecordCard({ r, expanded, onToggle, pool, ctx, theme }) {
   const {

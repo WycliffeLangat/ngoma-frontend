@@ -1,5 +1,40 @@
 import { useState } from "react";
 import EntryThumb from "../components/EntryThumb.jsx";
+import { useRotatingArt } from "../hooks/useRotatingArt.js";
+
+// A headline stat tile whose background bleeds cover art from whichever
+// entries qualify for it (e.g. this month's new entries), cycling through
+// them when more than one is eligible so no single release hogs the tile.
+function AnalyticsStatBox({ label, value, sub, color, compact, pool, isMobile, isDark, F, card, driveText }) {
+  const rotating = useRotatingArt(pool);
+  const hasArt = Boolean(rotating?.url);
+  const displayValue = driveText ? (rotating?.entry?.title || value) : value;
+  const displaySub = driveText ? (rotating?.entry?.artist || sub) : sub;
+
+  return (
+    <div style={{ ...card({ padding: isMobile ? "14px" : "20px 22px" }), position: "relative", overflow: "hidden", borderTop: `3px solid ${color}` }}>
+      {hasArt && (
+        <>
+          <img
+            key={rotating.entry?.key || rotating.name}
+            src={rotating.url}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            onError={(event) => { event.currentTarget.style.display = "none"; }}
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(160deg, rgba(6,7,6,0.90) 0%, rgba(6,7,6,0.74) 45%, rgba(6,7,6,0.36) 100%)" }} />
+        </>
+      )}
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <div style={{ fontSize: "11px", fontWeight: 900, letterSpacing: "1.2px", textTransform: "uppercase", color: hasArt ? "#FFFFFF" : color, marginBottom: "8px", fontFamily: F, textShadow: hasArt ? "0 1px 6px rgba(0,0,0,0.55)" : "none" }}>{label}</div>
+        <div style={{ fontSize: compact ? (isMobile ? "14px" : "18px") : (isMobile ? "24px" : "32px"), fontWeight: 900, color: hasArt ? "#FFFFFF" : (isDark ? "#F6F3EA" : "#1A1A1A"), lineHeight: 1.1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textShadow: hasArt ? "0 1px 8px rgba(0,0,0,0.6)" : "none" }}>{displayValue}</div>
+        <div style={{ fontSize: "12px", color: hasArt ? "rgba(255,255,255,0.85)" : (isDark ? "#8F968F" : "#69716B"), fontFamily: F, lineHeight: 1.35, marginTop: "5px", textShadow: hasArt ? "0 1px 6px rgba(0,0,0,0.55)" : "none" }}>{displaySub}</div>
+      </div>
+    </div>
+  );
+}
 
 export default function AnalyticsPage({ ctx }) {
   const {
@@ -65,8 +100,11 @@ export default function AnalyticsPage({ ctx }) {
     viewMode
   } = ctx;
 
-  const anLeader = analyticsRowsFor(anMonth).find(e => Number(e.rank) === 1) || analyticsRowsFor(anMonth)[0];
-  const xHitsCount = crossPlatformRows.filter(e => e.count >= tp).length;
+  const anRows = analyticsRowsFor(anMonth);
+  const anLeader = anRows.find(e => Number(e.rank) === 1) || anRows[0];
+  const leaderPool = anRows.filter(e => Number(e.rank) === 1);
+  const xHitsRows = crossPlatformRows.filter(e => e.count >= tp);
+  const xHitsCount = xHitsRows.length;
   const [platCompareView, setPlatCompareView] = useState("table");
 
   // Shared chart theming — every Recharts instance below reads from this so
@@ -113,16 +151,12 @@ export default function AnalyticsPage({ ctx }) {
           {/* Overview stats — the headline snapshot, always visible */}
           <div className="ngoma-detail-stat-grid" style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(4,1fr)",gap:isMobile?"12px":"14px",...sectionGap}}>
             {[
-              {l:"New Entries",v:mvData.new,c:"#2DB04A",s:"not in prev month"},
-              {l:"Re-Entries",v:mvData.ret,c:"#1565C0",s:"returned to chart"},
-              {l:"Cross-Platform Hits",v:xHitsCount,c:"#00897B",s:`on all ${tp} platforms`},
-              {l:"Chart Leader",v:anLeader?.title||"—",s:anLeader?.artist||"",compact:true,c:GOLD},
+              {l:"New Entries",v:mvData.new,c:"#2DB04A",s:"not in prev month",pool:mvData.newEntries},
+              {l:"Re-Entries",v:mvData.ret,c:"#1565C0",s:"returned to chart",pool:mvData.reEntries},
+              {l:"Cross-Platform Hits",v:xHitsCount,c:"#00897B",s:`on all ${tp} platforms`,pool:xHitsRows},
+              {l:"Chart Leader",v:anLeader?.title||"—",s:anLeader?.artist||"",compact:true,c:GOLD,pool:leaderPool,driveText:true},
             ].map((s,i)=>(
-              <div key={i} style={{...card({padding:isMobile?"14px":"20px 22px"}),borderTop:`3px solid ${s.c}`}}>
-                <div style={{fontSize:"11px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:s.c,marginBottom:"8px",fontFamily:F}}>{s.l}</div>
-                <div style={{fontSize:s.compact?(isMobile?"14px":"18px"):(isMobile?"24px":"32px"),fontWeight:900,color:isDark?"#F6F3EA":"#1A1A1A",lineHeight:1.1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{s.v}</div>
-                <div style={{fontSize:"12px",color:isDark?"#8F968F":"#69716B",fontFamily:F,lineHeight:1.35,marginTop:"5px"}}>{s.s}</div>
-              </div>
+              <AnalyticsStatBox key={i} label={s.l} value={s.v} sub={s.s} color={s.c} compact={s.compact} pool={s.pool} driveText={s.driveText} isMobile={isMobile} isDark={isDark} F={F} card={card} />
             ))}
           </div>
 
