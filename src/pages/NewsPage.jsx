@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import EntryThumb from "../components/EntryThumb.jsx";
-import { getPublicArtists, findArtistMentionedIn, getArtistImageUrl } from "../utils/artistImages.js";
+import { getPublicArtists } from "../utils/artistImages.js";
+import { getNewsMedia, getPrimaryNewsMedia } from "../utils/newsMedia.js";
 
 // Accent color per raw category slug — used as a card's left border and the
 // tint behind its category pill. Falls back to GOLD for anything unmapped.
@@ -42,15 +43,9 @@ export default function NewsPage({ ctx }) {
   const [filter, setFilter] = useState("all");
   const publicArtists = useMemo(() => getPublicArtists(), []);
 
-  // Most articles don't have an editor-set cover image yet, so fall back to a
-  // photo of whichever tracked artist the headline actually names (many news
-  // titles read like "X Ties the Record...") before giving up to an emoji.
   function resolveNewsArt(n) {
-    if (n.cover_image) return { url: n.cover_image, artistName: "" };
-    const mentioned = findArtistMentionedIn(`${n.title} ${n.excerpt || ""}`, publicArtists);
-    if (!mentioned) return { url: "", artistName: "" };
-    const url = getArtistImageUrl(mentioned, { name: mentioned.name, artists: publicArtists });
-    return { url, artistName: mentioned.name };
+    const primary = getPrimaryNewsMedia(n, publicArtists);
+    return { ...primary, media: getNewsMedia(n, publicArtists) };
   }
 
   const categories = useMemo(() => {
@@ -132,6 +127,8 @@ export default function NewsPage({ ctx }) {
     const color = CATEGORY_COLORS[n.category] || GOLD;
     const art = resolveNewsArt(n);
     const hasArt = !!art.url;
+    const media = art.media || [];
+    const thumbItem = { ...n, cover_image: art.url };
     return (
       <div
         onClick={() => setSelNews(n)}
@@ -145,7 +142,16 @@ export default function NewsPage({ ctx }) {
       >
         {hero && (
           <div style={{width:"100%",height:isMobile?"220px":"340px",overflow:"hidden",flexShrink:0,position:"relative",background:`linear-gradient(135deg, ${color}26, ${color}08)`}}>
-            {hasArt ? (
+            {hasArt && media.length > 1 && !isMobile ? (
+              <div style={{display:"grid",gridTemplateColumns:"minmax(0,1.6fr) minmax(160px,0.8fr)",gap:"3px",width:"100%",height:"100%"}}>
+                <img src={media[0].url} alt={n.title} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} loading="lazy"/>
+                <div style={{display:"grid",gridTemplateRows:"1fr 1fr",gap:"3px",minWidth:0}}>
+                  {media.slice(1,3).map((item, index) => (
+                    <img key={`${item.url}-${index}`} src={item.url} alt="" style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} loading="lazy"/>
+                  ))}
+                </div>
+              </div>
+            ) : hasArt ? (
               <img src={art.url} alt={n.title} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} loading="lazy"/>
             ) : (
               <div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center"}}>
@@ -162,7 +168,7 @@ export default function NewsPage({ ctx }) {
           </div>
           {!hero && (
             <EntryThumb
-              item={n}
+              item={thumbItem}
               name={art.artistName || n.title}
               size={isMobile?96:128}
               radius="10px"

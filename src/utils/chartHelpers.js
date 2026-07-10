@@ -295,23 +295,39 @@ const NEWS_CATEGORY_LABELS = {
 };
 
 // Transforms raw API news objects into the shape used by the frontend.
+const normalizeNewsMedia = (n = {}) => {
+  const media = Array.isArray(n.media) ? n.media : [];
+  return media
+    .map((item) => {
+      if (typeof item === "string") return { url: item };
+      if (!item || typeof item !== "object") return null;
+      const url = item.url || item.src || item.image || item.cover_image || "";
+      return url ? { ...item, url } : null;
+    })
+    .filter(Boolean);
+};
+
 export const mapPublicNews = (items = []) =>
-  items.map((n) => ({
-    ...n,
-    id: n.id,
-    date: n.published_at
-      ? new Date(n.published_at).toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        })
-      : "",
-    cat:
-      NEWS_CATEGORY_LABELS[n.category] ||
-      (n.category || "").toUpperCase().replace(/_/g, " "),
-    emoji: n.emoji || "",
-    title: n.title || "",
-    excerpt: n.excerpt || "",
-    body: n.body || "",
-    cover_image: n.cover_image || "",
-  }));
+  items.map((n) => {
+    const media = normalizeNewsMedia(n);
+    return {
+      ...n,
+      id: n.id,
+      date: n.published_at
+        ? new Date(n.published_at).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })
+        : "",
+      cat:
+        NEWS_CATEGORY_LABELS[n.category] ||
+        (n.category || "").toUpperCase().replace(/_/g, " "),
+      emoji: n.emoji || "",
+      title: n.title || "",
+      excerpt: n.excerpt || "",
+      body: n.body || "",
+      media,
+      cover_image: media[0]?.url || n.cover_image || "",
+    };
+  });

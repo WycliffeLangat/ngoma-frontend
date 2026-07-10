@@ -1,5 +1,6 @@
 import EntryThumb from "../components/EntryThumb.jsx";
-import { getPublicArtists, findArtistMentionedIn, getArtistImageUrl } from "../utils/artistImages.js";
+import { getPublicArtists } from "../utils/artistImages.js";
+import { getNewsMedia, getPrimaryNewsMedia } from "../utils/newsMedia.js";
 
 const CATEGORY_COLORS = {
   chart_news: "#B8860B",
@@ -41,15 +42,27 @@ export default function NewsDetailPage({ ctx }) {
     .slice(0, 3);
 
   const publicArtists = getPublicArtists();
-  const mentionedArtist = selNews.cover_image ? null : findArtistMentionedIn(`${selNews.title} ${selNews.excerpt || ""}`, publicArtists);
-  const heroArtUrl = selNews.cover_image || (mentionedArtist ? getArtistImageUrl(mentionedArtist, { name: mentionedArtist.name, artists: publicArtists }) : "");
+  const articleMedia = getNewsMedia(selNews, publicArtists);
+  const primaryMedia = getPrimaryNewsMedia(selNews, publicArtists);
+  const heroArtUrl = primaryMedia.url;
+  const bodyParagraphs = String(selNews.body || "").split("\n\n").filter(Boolean);
+  const inlineMedia = articleMedia.slice(1);
 
   return (
 <div style={{padding:PAD,background:isDark?"#0F120F":"#FFF",border:isDark?"1px solid #2F352F":"1px solid transparent",borderRadius:isDark?"16px":"0",minHeight:"60vh",maxWidth:"680px",margin:"0 auto",boxSizing:"border-box",overflow:"hidden"}}>
           <span onClick={()=>setSelNews(null)} style={{fontFamily:F,fontSize:isMobile?"14px":"13px",color:GOLD,cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>← All News</span>
           <div style={{marginTop:"20px"}}>
             <div style={{width:"100%",height:isMobile?"220px":"380px",borderRadius:"14px",overflow:"hidden",marginBottom:"24px",background:heroArtUrl?(isDark?"#1A1E1A":"#F0EDE7"):`linear-gradient(135deg, ${color}26, ${color}08)`}}>
-              {heroArtUrl ? (
+              {heroArtUrl && articleMedia.length > 1 && !isMobile ? (
+                <div style={{display:"grid",gridTemplateColumns:"minmax(0,1.45fr) minmax(150px,0.75fr)",gap:"3px",width:"100%",height:"100%"}}>
+                  <img src={articleMedia[0].url} alt={selNews.title} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} loading="lazy"/>
+                  <div style={{display:"grid",gridTemplateRows:"1fr 1fr",gap:"3px",minWidth:0}}>
+                    {articleMedia.slice(1,3).map((item, index) => (
+                      <img key={`${item.url}-${index}`} src={item.url} alt="" style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} loading="lazy"/>
+                    ))}
+                  </div>
+                </div>
+              ) : heroArtUrl ? (
                 <img src={heroArtUrl} alt={selNews.title} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} loading="lazy"/>
               ) : (
                 <div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center"}}>
@@ -70,7 +83,23 @@ export default function NewsDetailPage({ ctx }) {
             {selNews.author && (
               <p style={{fontFamily:F,fontSize:"13px",fontWeight:650,color:isDark?"#9a9a9a":"#8A8F87",margin:"0 0 20px"}}>By {selNews.author}</p>
             )}
-            {selNews.body.split("\n\n").map((p,i)=><p key={i} style={{fontFamily:F,fontSize:isMobile?"15px":"16px",color:isDark?"#D7DBD7":"#444",lineHeight:1.8,margin:"0 0 16px"}}>{p}</p>)}
+            {bodyParagraphs.map((p,i)=>(
+              <div key={i}>
+                <p style={{fontFamily:F,fontSize:isMobile?"15px":"16px",color:isDark?"#D7DBD7":"#444",lineHeight:1.8,margin:"0 0 16px"}}>{p}</p>
+                {i === 0 && inlineMedia.length > 0 && (
+                  <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(2,minmax(0,1fr))",gap:"10px",margin:"8px 0 22px"}}>
+                    {inlineMedia.slice(0,2).map((item, index) => (
+                      <figure key={`${item.url}-${index}`} style={{margin:0,borderRadius:"12px",overflow:"hidden",background:isDark?"#14170F":"#F4F1EA",border:isDark?"1px solid #2A2E28":"1px solid #EEE9DD"}}>
+                        <img src={item.url} alt={item.caption || item.title || ""} style={{width:"100%",aspectRatio:isMobile?"16 / 10":"4 / 3",objectFit:"cover",display:"block"}} loading="lazy"/>
+                        {(item.caption || item.title) && (
+                          <figcaption style={{fontFamily:F,fontSize:"11.5px",fontWeight:650,color:isDark?"#9a9a9a":"#69716b",lineHeight:1.45,padding:"8px 10px"}}>{item.caption || item.title}</figcaption>
+                        )}
+                      </figure>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
 
             {Array.isArray(selNews.tags) && selNews.tags.length > 0 && (
               <div style={{display:"flex",gap:"8px",flexWrap:"wrap",margin:"8px 0 32px"}}>
@@ -85,10 +114,10 @@ export default function NewsDetailPage({ ctx }) {
                 <h4 style={{fontFamily:F,fontSize:"13px",fontWeight:800,letterSpacing:"0.6px",textTransform:"uppercase",color:isDark?"#9a9a9a":"#8A8F87",margin:"0 0 14px"}}>More in {selNews.cat}</h4>
                 <div style={{display:"flex",flexDirection:"column",gap:"12px"}}>
                   {related.map((n) => {
-                    const relatedArtist = n.cover_image ? null : findArtistMentionedIn(`${n.title} ${n.excerpt || ""}`, publicArtists);
+                    const relatedMedia = getPrimaryNewsMedia(n, publicArtists);
                     return (
                     <div key={n.id} onClick={()=>setSelNews(n)} style={{display:"flex",alignItems:"center",gap:"12px",cursor:"pointer",padding:"12px 14px",borderRadius:"10px",background:isDark?"#14170F":"#FAF8F3",border:isDark?"1px solid #2A2E28":"1px solid #EEE9DD"}}>
-                      <EntryThumb item={n} name={relatedArtist?.name || n.title} size={56} radius="9px" accent={CATEGORY_COLORS[n.category] || GOLD} />
+                      <EntryThumb item={{...n, cover_image: relatedMedia.url}} name={relatedMedia.artistName || n.title} size={56} radius="9px" accent={CATEGORY_COLORS[n.category] || GOLD} />
                       <div style={{minWidth:0}}>
                         <div style={{fontFamily:F,fontSize:"12px",fontWeight:600,color:isDark?"#9a9a9a":"#9a9a9a",marginBottom:"4px"}}>{n.date}</div>
                         <div style={{fontFamily:F,fontSize:"14.5px",fontWeight:750,color:isDark?"#F6F3EA":"#050505",lineHeight:1.35}}>{n.title}</div>
