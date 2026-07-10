@@ -319,8 +319,30 @@ function historyKeysForMonth(ct, plat, currentMonth) {
   let previousRanksByKey = new Map();
   let previousRanksByFallback = new Map();
   let previousRanksById = new Map();
+  let currentKeys = new Set();
+  let currentFallbackKeys = new Set();
+  let currentIds = new Set();
+  const appearanceCountsByKey = new Map();
+  const appearanceCountsByFallback = new Map();
+  const appearanceCountsById = new Map();
+  const incrementCount = (map, key) => {
+    if (!key) return;
+    map.set(key, (map.get(key) || 0) + 1);
+  };
   MONTHS.slice(0, currentIndex + 1).forEach((monthLabel, offset) => {
     const monthEntries = getRaw(monthLabel).filter((item) => Number(item.r) <= 50).slice(0, 50);
+    const seenThisMonth = new Set();
+    monthEntries.forEach((item) => {
+      const key = entryKey(item);
+      const fallbackKey = movementFallbackKey(item);
+      const id = extractReleaseId(item);
+      const identity = id ? `id:${id}` : `key:${key}`;
+      if (seenThisMonth.has(identity)) return;
+      seenThisMonth.add(identity);
+      incrementCount(appearanceCountsByKey, key);
+      incrementCount(appearanceCountsByFallback, fallbackKey);
+      incrementCount(appearanceCountsById, id);
+    });
     if (offset < currentIndex) {
       monthEntries.forEach((item) => {
         priorKeys.add(entryKey(item));
@@ -341,6 +363,11 @@ function historyKeysForMonth(ct, plat, currentMonth) {
           .filter(([id]) => Boolean(id))
       );
     }
+    if (offset === currentIndex) {
+      currentKeys = new Set(monthEntries.map(entryKey));
+      currentFallbackKeys = new Set(monthEntries.map(movementFallbackKey));
+      currentIds = new Set(monthEntries.map(extractReleaseId).filter(Boolean));
+    }
   });
   return {
     priorKeys,
@@ -352,6 +379,12 @@ function historyKeysForMonth(ct, plat, currentMonth) {
     previousRanksByKey,
     previousRanksByFallback,
     previousRanksById,
+    currentKeys,
+    currentFallbackKeys,
+    currentIds,
+    appearanceCountsByKey,
+    appearanceCountsByFallback,
+    appearanceCountsById,
   };
 }
 
@@ -371,6 +404,11 @@ function extractReleaseId(item) {
     if (Number.isFinite(parsed) && parsed > 0) return parsed;
   }
   return null;
+}
+
+function positiveChartCount(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
 }
 
 function movementFallbackKey(item) {
@@ -503,6 +541,7 @@ function enrichChartEntries(entries, getRawEntries, currentMonth, totalPlatforms
       peak_rank: peakRank === 999 ? e.r : peakRank,
       weeks_on_chart: e.w ?? "—",
       months_on_chart: monthsOnChart || "—",
+      times_on_chart: monthsOnChart || "—",
       platform_count: platformCount,
       platform_max: e.pl ? Number(String(e.pl).split("/")[1]) || totalPlatforms : totalPlatforms,
       release_year: releaseDetails.release_year ?? e.y ?? null,
@@ -856,6 +895,7 @@ const buildArtistChart = (monthLabel = CURRENT_MONTH, platform = "Combined") => 
           peak_rank: entry.peak_rank,
           weeks_on_chart: "—",
           months_on_chart: "—",
+          times_on_chart: "—",
           platform_count: null,
           platform_max: null,
           release_year: null,
@@ -950,6 +990,7 @@ const buildArtistChart = (monthLabel = CURRENT_MONTH, platform = "Combined") => 
       peak_rank: Number.isFinite(stats.peak) ? stats.peak : rank,
       weeks_on_chart: "—",
       months_on_chart: stats.months || 1,
+      times_on_chart: stats.months || 1,
       platform_count: platform === "Combined" ? platformHits.length : null,
       platform_max: platform === "Combined" ? ARTIST_PLATS.length : null,
       release_year: null,
@@ -1572,6 +1613,22 @@ export default function NgomaCharts(){
             backendLastMonth: entry.last_month,
             backendMovement: entry.movement,
           });
+          const matchedCurrent = movementHistory
+            ? (
+                matchesHistory(movementKey, resolvedReleaseId, movementHistory.currentKeys, movementHistory.currentIds) ||
+                movementHistory.currentFallbackKeys.has(fallbackKey)
+              )
+            : false;
+          const backendChartCount = positiveChartCount(entry.months_on_chart ?? entry.times_on_chart ?? entry.chart_appearances);
+          const historyChartCount = movementHistory
+            ? (
+                movementHistory.appearanceCountsById.get(resolvedReleaseId) ||
+                movementHistory.appearanceCountsByKey.get(movementKey) ||
+                movementHistory.appearanceCountsByFallback.get(fallbackKey) ||
+                0
+              )
+            : 0;
+          const timesOnChart = backendChartCount || (movementHistory ? historyChartCount + (matchedCurrent ? 0 : 1) : 1);
 
           const displayPoints = entry.total_points || 0;
 
@@ -1594,6 +1651,8 @@ export default function NgomaCharts(){
             last_month: resolvedMovement.lastMonth,
             peak_rank: entry.peak_rank,
             weeks_on_chart: entry.weeks_on_chart,
+            months_on_chart: timesOnChart,
+            times_on_chart: timesOnChart,
             platform_count: entry.platform_count,
             platform_max: entry.platform_max,
             release_year: entry.release_year,
@@ -1643,6 +1702,7 @@ export default function NgomaCharts(){
             peak_rank: e.peak_rank,
             weeks_on_chart: e.weeks_on_chart,
             months_on_chart: e.months_on_chart,
+            times_on_chart: e.times_on_chart,
             movement: e.movement,
             is_new: e.is_new,
             reentry: e.reentry,

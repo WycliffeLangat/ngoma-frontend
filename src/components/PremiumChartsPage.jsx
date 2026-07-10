@@ -418,6 +418,25 @@ export default function PremiumChartsPage({
     };
   }
 
+  function getMonthsOnChart(item) {
+    const candidates = [
+      item.times_on_chart,
+      item.months_on_chart,
+      item.chart_appearances,
+      item.appearances_on_chart,
+    ];
+
+    for (const value of candidates) {
+      if (value === undefined || value === null || value === "") continue;
+      const numeric = Number(value);
+      if (Number.isFinite(numeric) && numeric > 0) return numeric;
+      const text = String(value).trim();
+      if (text && text !== "—") return text;
+    }
+
+    return "—";
+  }
+
   function calculateStaticPeak(item) {
     if (isArtistsChart || item?.is_artist_entry) return item.peak_rank || item.rank || "—";
     let peak = item.rank || "—";
@@ -776,13 +795,14 @@ export default function PremiumChartsPage({
       return (
         <div style={gridStyle}>
           {compact && <DetailCard label="Move" value={compactMove.label || "—"} accent={compactMoveStyle.color} />}
-          {compact && <DetailCard label="L.M" value={profile.lastMonth} />}
+          {compact && <DetailCard label="Months" value={getMonthsOnChart(item)} />}
+          {compact && <DetailCard label="Last Month" value={profile.lastMonth} />}
           {compact && <DetailCard label="Peak" value={profile.peak} />}
           {hasCountry && <DetailCard label="Country" value={countryLabel} accent={badge.accent} />}
           {isCombinedChart && <DetailCard label="Platforms" value={getPlatformDetails(item)} />}
           {isCombinedChart && <DetailCard label="Points" value={Number(item.pts || 0).toLocaleString()} />}
           {isCombinedChart && <DetailCard label="Entries" value={item.entries_count || "—"} />}
-          <DetailCard label="Months" value={item.months_on_chart || "—"} />
+          {!compact && <DetailCard label="Months" value={getMonthsOnChart(item)} />}
           {(artistProfile.city_region || item.city_region) && <DetailCard label="City / Region" value={artistProfile.city_region || item.city_region} />}
           {(artistProfile.genre || item.genre) && <DetailCard label="Genre" value={artistProfile.genre || item.genre} />}
           {(artistProfile.artist_type || item.artist_type) && <DetailCard label="Artist type" value={artistProfile.artist_type || item.artist_type} />}
@@ -813,8 +833,10 @@ export default function PremiumChartsPage({
     return (
       <div style={gridStyle}>
         {compact && <DetailCard label="Move" value={compactMove.label || "—"} accent={compactMoveStyle.color} />}
-        {compact && <DetailCard label="L.M" value={profile.lastMonth} />}
+        {compact && <DetailCard label="Months" value={getMonthsOnChart(item)} />}
+        {compact && <DetailCard label="Last Month" value={profile.lastMonth} />}
         {compact && <DetailCard label="Peak" value={profile.peak} />}
+        {!compact && <DetailCard label="Months" value={getMonthsOnChart(item)} />}
         {primaryCredit && <DetailCard label="Main artist(s)" value={primaryCredit} wide />}
         {featuredCredit && <DetailCard label="Featuring" value={featuredCredit} wide />}
         {creditedArtists && <DetailCard label="Additional credits" value={creditedArtists} wide />}
@@ -869,6 +891,8 @@ export default function PremiumChartsPage({
         return num(item.rank);
       case "lastMonth":
         return num(profile.lastMonth);
+      case "monthsOnChart":
+        return num(getMonthsOnChart(item));
       case "peak":
         return num(profile.peak);
       case "platforms": {
@@ -898,7 +922,7 @@ export default function PremiumChartsPage({
     setSort((current) => {
       if (current.key !== key) {
         // Coverage reads most-first; rank history reads best-first.
-        const firstDir = key === "platforms" ? "desc" : "asc";
+        const firstDir = key === "platforms" || key === "monthsOnChart" ? "desc" : "asc";
         return { key, dir: firstDir };
       }
       return { key, dir: current.dir === "asc" ? "desc" : "asc" };
@@ -1836,6 +1860,13 @@ export default function PremiumChartsPage({
             <span style={styles.headerEntryCell}>{isArtistsChart ? "Artist" : (isSingles ? "Song" : "Album")}</span>
             <span
               style={{ ...styles.headerCell, cursor: "pointer" }}
+              onClick={() => handleSort("monthsOnChart")}
+              title="Sort by months on chart"
+            >
+              Months{sortArrow("monthsOnChart")}
+            </span>
+            <span
+              style={{ ...styles.headerCell, cursor: "pointer" }}
               onClick={() => handleSort("lastMonth")}
               title="Sort by last month"
             >
@@ -2003,6 +2034,7 @@ export default function PremiumChartsPage({
                     </div>
                   </div>
 
+                  <div style={{ ...styles.metaNumber, ...(darkMode ? styles.metaNumberDark : null) }}>{getMonthsOnChart(item)}</div>
                   <div style={{ ...styles.metaNumber, ...(darkMode ? styles.metaNumberDark : null) }}>{profile.lastMonth}</div>
                   <div style={{ ...styles.metaNumber, ...(darkMode ? styles.metaNumberDark : null) }}>{profile.peak}</div>
                   <button
@@ -2329,8 +2361,8 @@ const styles = {
 
   tableHeader: {
     display: "grid",
-    gridTemplateColumns: "54px 90px minmax(0, 1fr) 110px 86px 82px",
-    gap: "30px",
+    gridTemplateColumns: "54px 86px minmax(0, 1fr) 108px 86px 78px 70px",
+    gap: "24px",
     alignItems: "center",
     justifyItems: "center",
     padding: "12px 24px",
@@ -2373,8 +2405,8 @@ const styles = {
 
   row: {
     display: "grid",
-    gridTemplateColumns: "54px 90px minmax(0, 1fr) 110px 86px 82px",
-    gap: "30px",
+    gridTemplateColumns: "54px 86px minmax(0, 1fr) 108px 86px 78px 70px",
+    gap: "24px",
     alignItems: "center",
     padding: "20px 24px",
     borderBottom: "1px solid rgba(0,0,0,0.08)",
