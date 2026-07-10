@@ -344,7 +344,11 @@ export default function ChartEntriesPage({ user, searchJump }) {
           .map((artist) => ({
             ...artist,
             pts: artist.points,
-            songs: artist.releases.map((entry) => ({
+            // The backend-owned regional (Kenyan) artist chart is a precomputed
+            // ranking with no per-release breakdown, so `releases` is absent —
+            // fall back to its own entries_count instead of a song list.
+            entriesCount: artist.releases ? artist.releases.length : (artist.entries_count || 0),
+            songs: (artist.releases || []).map((entry) => ({
               title: entry.t || entry.title,
               rank: Number(entry.r ?? entry.rank),
               pts: Number(entry.p ?? entry.pts ?? entry.total_points) || 0,
@@ -862,7 +866,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
                           </td>
                           <td style={{ fontWeight: 700, fontSize: 13 }}>{artist.name}</td>
                           <td style={{ fontSize: 13, fontWeight: 600 }}>{artist.pts.toLocaleString()}</td>
-                          <td style={{ fontSize: 13, color: "#666" }}>{artist.songs.length}</td>
+                          <td style={{ fontSize: 13, color: "#666" }}>{artist.entriesCount}</td>
                           {canEdit && <td>
                             <button
                               type="button"
@@ -913,8 +917,13 @@ export default function ChartEntriesPage({ user, searchJump }) {
                 </button>}
 
                 <div style={{ fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", color: "#5e625c", marginBottom: 8 }}>
-                  Chart entries ({selectedArtist.songs.length})
+                  Chart entries ({selectedArtist.entriesCount})
                 </div>
+                {selectedArtist.songs.length === 0 && selectedArtist.entriesCount > 0 && (
+                  <div style={{ fontSize: 12, color: "#888", marginBottom: 8 }}>
+                    Song-level breakdown isn't available for the regional Kenyan artist chart.
+                  </div>
+                )}
                 {selectedArtist.songs.sort((a, b) => b.pts - a.pts).map(s => (
                   <div key={s.entryId} style={{ display: "flex", alignItems: "center", gap: 10, paddingBottom: 8, marginBottom: 8, borderBottom: "1px solid #f0ece5" }}>
                     {s.cover
