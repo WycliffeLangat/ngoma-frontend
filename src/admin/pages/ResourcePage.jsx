@@ -16,6 +16,91 @@ function normalizeArtistName(value) {
   return String(value || "").trim().toLowerCase();
 }
 
+function optionId(value) {
+  const raw = value && typeof value === "object" ? (value.value ?? value.id) : value;
+  const id = Number(raw);
+  return Number.isFinite(id) && id > 0 ? id : null;
+}
+
+function artistOptionLabel(value, fallbackId) {
+  return (
+    value?.label ||
+    value?.public_name ||
+    value?.display_name ||
+    value?.name ||
+    value?.artist_name ||
+    (fallbackId ? `Artist #${fallbackId}` : "")
+  );
+}
+
+function normalizeArtistOption(value) {
+  const id = optionId(value);
+  if (!id) return null;
+  return {
+    ...value,
+    value: id,
+    label: artistOptionLabel(value, id),
+    country: value?.country || "",
+    country_code: value?.country_code || "",
+  };
+}
+
+function mergeArtistOptions(...groups) {
+  const byId = new Map();
+  groups.flat().forEach((raw) => {
+    const option = normalizeArtistOption(raw);
+    if (!option) return;
+    const current = byId.get(option.value);
+    const currentIsFallback = !current || /^Artist #\d+$/.test(String(current.label || ""));
+    const optionHasName = option.label && !/^Artist #\d+$/.test(String(option.label));
+    if (!current || (currentIsFallback && optionHasName)) byId.set(option.value, option);
+  });
+  return [...byId.values()];
+}
+
+function artistOptionsFromRelease(release) {
+  if (!release) return [];
+  const options = [];
+  const addProfiles = (profiles) => {
+    (Array.isArray(profiles) ? profiles : []).forEach((profile) => {
+      const option = normalizeArtistOption(profile);
+      if (option) options.push(option);
+    });
+  };
+  addProfiles(release.primary_artists);
+  addProfiles(release.featured_artist_profiles);
+  addProfiles(release.featured_artists);
+
+  const leadId = optionId(release.artist_id ?? release.artist);
+  if (leadId) {
+    options.push({
+      value: leadId,
+      label: release.artist_name || release.primary_artist || release.artist_display || `Artist #${leadId}`,
+      country: release.country || "",
+      country_code: release.country_code || "",
+    });
+  }
+  return options;
+}
+
+function releaseArtistIds(release, idField, profileField) {
+  const explicit = Array.isArray(release?.[idField])
+    ? release[idField].map(optionId).filter(Boolean)
+    : [];
+  if (explicit.length) return explicit;
+  const profiles = Array.isArray(release?.[profileField]) ? release[profileField] : [];
+  return profiles.map(optionId).filter(Boolean);
+}
+
+function normalizeReleaseInitial(release) {
+  if (!release) return release;
+  return {
+    ...release,
+    primary_artist_ids: releaseArtistIds(release, "primary_artist_ids", "primary_artists"),
+    featured_artist_ids: releaseArtistIds(release, "featured_artist_ids", "featured_artist_profiles"),
+  };
+}
+
 function artistSlug(value) {
   return String(value || "")
     .normalize("NFD")
@@ -219,13 +304,17 @@ export default function ResourcePage({ type, searchJump, user }) {
     ...(ordering ? { ordering } : {}),
     ...(alphaFilter ? { starts_with: alphaFilter } : {}),
   }), [config, page, search, statusFilter, ordering, alphaFilter]);
+  const scopedArtistOptions = useMemo(
+    () => mergeArtistOptions(artistOptions, artistOptionsFromRelease(editing), artistOptionsFromRelease(detailRow)),
+    [artistOptions, editing, detailRow]
+  );
   const formFields = useMemo(() => {
     const baseFields = type === "songs" || type === "albums"
-      ? releaseForm(type === "albums" ? "albums" : "singles", artistOptions)
+      ? releaseForm(type === "albums" ? "albums" : "singles", scopedArtistOptions)
       : (config.form || []);
     return baseFields.map((field) => {
       if (type === "news" && field.name === "related_artist") {
-        return { ...field, options: artistOptions };
+        return { ...field, options: scopedArtistOptions };
       }
       if (type === "news" && field.name === "related_release") {
         return { ...field, options: releaseOptions };
@@ -239,7 +328,12 @@ export default function ResourcePage({ type, searchJump, user }) {
           : WORKFLOW_STATUS_OPTIONS,
       };
     });
-  }, [type, config, artistOptions, releaseOptions]);
+  }, [type, config, scopedArtistOptions, releaseOptions]);
+  const defaultFormInitial = useMemo(() => defaultInitial(formFields), [formFields]);
+  const editingFormInitial = useMemo(() => (
+    (type === "songs" || type === "albums") ? normalizeReleaseInitial(editing) : editing
+  ), [editing, type]);
+  const formInitial = editing ? editingFormInitial : defaultFormInitial;
 
   // Used after save/delete to reload without debounce
   async function load() {
@@ -294,7 +388,9 @@ export default function ResourcePage({ type, searchJump, user }) {
   }, [type, params]);
   useEffect(() => {
     if (type !== "songs" && type !== "albums" && type !== "news") return;
-    cmsApi.get("/artists/options/").then(setArtistOptions).catch((e) => setError(e.message));
+    cmsApi.get("/artists/options/")
+      .then((data) => setArtistOptions(mergeArtistOptions(Array.isArray(data) ? data : getResults(data))))
+      .catch((e) => setError(e.message));
   }, [type]);
   useEffect(() => {
     if (type !== "news") return;
@@ -399,7 +495,7 @@ export default function ResourcePage({ type, searchJump, user }) {
       const primaryIds = Array.isArray(form.primary_artist_ids)
         ? form.primary_artist_ids.map(Number).filter(Boolean)
         : [];
-      const leadOption = artistOptions.find((artist) => Number(artist.value) === primaryIds[0]);
+      const leadOption = scopedArtistOptions.find((artist) => Number(artist.value) === primaryIds[0]);
       form = {
         ...form,
         country: leadOption ? (leadOption.country || "") : (form.country || ""),
@@ -465,13 +561,29 @@ export default function ResourcePage({ type, searchJump, user }) {
 
   const isRelease = type === "songs" || type === "albums";
   const isArtist = type === "artists";
-  const isActionable = isRelease || isArtist;
+  const isNews = type === "news";
+  const canDeleteRecords = (isRelease || isArtist || isNews) && canHardDelete;
+  const canMergeRecords = isRelease || isArtist;
   const isCertifications = type === "certifications";
   const selectedRows = rows.filter((row) => selectedIds.has(row.id));
 
   function recordLabel(row) {
     if (isArtist) return row.display_name || row.name || `Artist #${row.id}`;
     return row.title || `Record #${row.id}`;
+  }
+
+  function recordTypeLabel(count = 1) {
+    if (isArtist) return count === 1 ? "artist" : "artists";
+    if (isRelease) return count === 1 ? "release" : "releases";
+    if (isNews) return count === 1 ? "news article" : "news articles";
+    return count === 1 ? "record" : "records";
+  }
+
+  function recordSubLabel(row) {
+    if (isArtist) return row.country || row.country_code || "No country";
+    if (isRelease) return row.artist_display || "No artist credit";
+    if (isNews) return [row.category, row.author].filter(Boolean).join(" / ") || row.status || "News";
+    return "";
   }
 
   function rememberSuccessfulMerge(keeper, duplicates) {
@@ -575,7 +687,7 @@ export default function ResourcePage({ type, searchJump, user }) {
         : [];
       await cmsApi.delete(`${config.endpoint}${deleteTarget.id}/hard_delete/`);
       const rankResult = await reorderAffectedChartScopes(affectedScopes);
-      clearCmsCache();
+      clearCmsCache(isRelease || isArtist ? undefined : config.endpoint);
       setDeleteTarget(null);
       showFlash(
         `"${targetName}" deleted.` +
@@ -608,12 +720,11 @@ export default function ResourcePage({ type, searchJump, user }) {
       if (!deleted.length) throw failures[0]?.error || new Error("No records were deleted.");
 
       const rankResult = await reorderAffectedChartScopes(affectedScopes);
-      clearCmsCache();
+      clearCmsCache(isRelease || isArtist ? undefined : config.endpoint);
       setBulkDeleteTargets([]);
       setSelectedIds(new Set(failures.map(({ target }) => target.id)));
       showFlash(
-        `Deleted ${deleted.length} ${isArtist ? "artist" : isRelease ? "release" : "record"}` +
-        `${deleted.length === 1 ? "" : "s"}.` +
+        `Deleted ${deleted.length} ${recordTypeLabel(deleted.length)}.` +
         (rankResult.failedScopes.length ? " Some locked chart ranks could not be refreshed." : "")
       );
       await load();
@@ -816,21 +927,23 @@ export default function ResourcePage({ type, searchJump, user }) {
   const imageField = config.imageField || (type === "artists" ? "image" : (type === "songs" || type === "albums") ? "cover_image" : null);
   const titleKey = type === "artists" ? "name" : "title";
 
-  const actionsColumn = isActionable && canHardDelete ? {
+  const actionsColumn = canDeleteRecords ? {
     key: "_actions",
     label: "",
     render: (row) => (
       <span style={{ display: "flex", gap: "5px" }} onClick={e => e.stopPropagation()}>
-        <button
-          className="cms-btn light"
-          style={{ fontSize: "11px", padding: "2px 9px" }}
-          title="Merge this into another record"
-          onClick={() => setMergeTarget({ dup: row, keeperSearch: "", keeperResults: [], keeper: null })}
-        >Merge</button>
+        {canMergeRecords && (
+          <button
+            className="cms-btn light"
+            style={{ fontSize: "11px", padding: "2px 9px" }}
+            title="Merge this into another record"
+            onClick={() => setMergeTarget({ dup: row, keeperSearch: "", keeperResults: [], keeper: null })}
+          >Merge</button>
+        )}
         <button
           className="cms-btn danger"
           style={{ fontSize: "11px", padding: "2px 9px" }}
-          title={isArtist ? "Permanently delete this artist" : "Permanently delete this release and all its chart entries"}
+          title={isArtist ? "Permanently delete this artist" : isRelease ? "Permanently delete this release and all its chart entries" : "Permanently delete this news article"}
           onClick={() => setDeleteTarget(row)}
         >Delete</button>
       </span>
@@ -967,7 +1080,7 @@ export default function ResourcePage({ type, searchJump, user }) {
             ))}
           </select>
         )}
-        {isActionable && canEdit && (
+        {canMergeRecords && canEdit && (
           <button className="cms-btn light" onClick={dupGroups === null ? loadDuplicates : () => setDupGroups(null)}>
             {dupGroups === null ? "Find duplicates" : "Hide duplicates"}
           </button>
@@ -995,10 +1108,14 @@ export default function ResourcePage({ type, searchJump, user }) {
       </div>
 
       {/* A–Z alphabet bar */}
-      {isActionable && canHardDelete && selectedRows.length > 0 && (
+      {canDeleteRecords && selectedRows.length > 0 && (
         <div className="cms-bulk-bar" role="region" aria-label="Bulk actions">
           <strong>{selectedRows.length} selected</strong>
-          <span>Select at least two records to merge them into one keeper.</span>
+          <span>
+            {canMergeRecords
+              ? "Select at least two records to merge them into one keeper."
+              : `Delete selected ${recordTypeLabel(selectedRows.length)}.`}
+          </span>
           <div>
             {isArtist && (
               <button
@@ -1009,13 +1126,15 @@ export default function ResourcePage({ type, searchJump, user }) {
                 Bulk edit country
               </button>
             )}
-            <button
-              className="cms-btn light small"
-              disabled={selectedRows.length < 2 || actionBusy}
-              onClick={() => setBulkMergeTarget({ rows: [...selectedRows], keeperId: null })}
-            >
-              Merge selected
-            </button>
+            {canMergeRecords && (
+              <button
+                className="cms-btn light small"
+                disabled={selectedRows.length < 2 || actionBusy}
+                onClick={() => setBulkMergeTarget({ rows: [...selectedRows], keeperId: null })}
+              >
+                Merge selected
+              </button>
+            )}
             <button
               className="cms-btn danger small"
               disabled={actionBusy}
@@ -1062,7 +1181,7 @@ export default function ResourcePage({ type, searchJump, user }) {
       )}
 
       {/* Duplicates panel */}
-      {isActionable && dupGroups !== null && (
+      {canMergeRecords && dupGroups !== null && (
         <div style={{ border: "1px solid #e2c97e", borderRadius: 8, margin: "12px 0", padding: "14px 18px", background: "#fffdf4" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
             <strong style={{ fontSize: 13 }}>
@@ -1132,7 +1251,7 @@ export default function ResourcePage({ type, searchJump, user }) {
           columns={finalColumns}
           rows={rows}
           onRowClick={(row) => setDetailRow(row)}
-          selectable={isActionable && canHardDelete}
+          selectable={canDeleteRecords}
           selectedIds={selectedIds}
           onToggleRow={toggleSelectedRow}
           onToggleAll={toggleAllRows}
@@ -1168,7 +1287,7 @@ export default function ResourcePage({ type, searchJump, user }) {
           )}
         </div>
       )}
-      <FormModal open={modal && canEdit} title={`${editing ? "Edit" : "Create"} ${config.title}`} entityId={editing?.id} fields={formFields} initial={editing || defaultInitial(formFields)} onSubmit={save} onClose={() => setModal(false)} />
+      <FormModal open={modal && canEdit} title={`${editing ? "Edit" : "Create"} ${config.title}`} entityId={editing?.id} fields={formFields} initial={formInitial} onSubmit={save} onClose={() => setModal(false)} />
 
       {/* Detail panel */}
       {detailRow && (() => {
@@ -1357,19 +1476,19 @@ export default function ResourcePage({ type, searchJump, user }) {
         <div className="cms-modal-backdrop" onClick={() => !actionBusy && setBulkDeleteTargets([])}>
           <div className="cms-modal" onClick={(event) => event.stopPropagation()} style={{ maxWidth: 520 }}>
             <div className="cms-modal-head">
-              <h3>Delete {bulkDeleteTargets.length} records permanently?</h3>
+              <h3>Delete {bulkDeleteTargets.length} {recordTypeLabel(bulkDeleteTargets.length)} permanently?</h3>
               <button type="button" onClick={() => setBulkDeleteTargets([])} disabled={actionBusy}>×</button>
             </div>
             <div className="cms-bulk-record-list">
               {bulkDeleteTargets.map((row) => (
                 <div key={row.id}>
                   <strong>{recordLabel(row)}</strong>
-                  <span>{isArtist ? row.country || row.country_code : row.artist_display} · id {row.id}</span>
+                  <span>{recordSubLabel(row)} · id {row.id}</span>
                 </div>
               ))}
             </div>
             <p style={{ fontSize: 13, color: "#c0392b", margin: "12px 0 16px" }}>
-              This permanently deletes every selected record
+              This permanently deletes every selected {recordTypeLabel(bulkDeleteTargets.length)}
               {isRelease ? " and its chart entries and certifications" : ""}. This cannot be undone.
             </p>
             <div className="cms-actions right">
@@ -1498,10 +1617,10 @@ export default function ResourcePage({ type, searchJump, user }) {
             </div>
             <p style={{ margin: "10px 0 4px", fontSize: 14 }}>
               <strong>"{recordLabel(deleteTarget)}"</strong>
-              {!isArtist && deleteTarget.artist_display ? ` by ${deleteTarget.artist_display}` : ""}
+              {isRelease && deleteTarget.artist_display ? ` by ${deleteTarget.artist_display}` : ""}
             </p>
             <p style={{ fontSize: 13, color: "#c0392b", margin: "0 0 16px" }}>
-              This will permanently delete the {isArtist ? "artist" : "release"}
+              This will permanently delete the {recordTypeLabel(1)}
               {isRelease ? " and all its chart entries and certifications" : ""}. This cannot be undone.
             </p>
             <div className="cms-actions right">

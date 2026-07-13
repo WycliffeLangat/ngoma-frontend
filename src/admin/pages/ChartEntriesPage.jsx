@@ -234,6 +234,12 @@ export default function ChartEntriesPage({ user, searchJump }) {
     }
   }
 
+  function refreshPublicPayloadInBackground(timeoutMs = 12_000) {
+    fetchAppData(undefined, timeoutMs)
+      .then((fresh) => { if (fresh) setPublicPayload(fresh); })
+      .catch(() => {});
+  }
+
   const uniqueMonths = useMemo(() => {
     const seen = new Set();
     return allCharts.reduce((acc, c) => {
@@ -415,8 +421,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
         ? `/regional-chart-entries/?chart=${chartId}&region=KE&ordering=rank`
         : `/chart-entries/?chart=${chartId}&platform=${platformParam}&ordering=rank`;
       setEntries(await fetchAllCmsResults(endpoint));
-      const fresh = await fetchAppData().catch(() => null);
-      if (fresh) setPublicPayload(fresh);
+      refreshPublicPayloadInBackground();
       setSelected(null);
       setImageFile(null);
     } catch (e) { setError(e.message); }
@@ -460,8 +465,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
       if (selected?.release === editRelease.id)
         setSelected(prev => ({ ...prev, title: updated.title ?? prev.title, cover_image: updated.cover_image ?? prev.cover_image }));
       setEditRelease(null);
-      const fresh = await fetchAppData().catch(() => null);
-      if (fresh) setPublicPayload(fresh);
+      refreshPublicPayloadInBackground();
     } catch(e) { setError(e.message); }
     finally { setEditBusy(false); }
   }
@@ -539,8 +543,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
       }
 
       setEditArtist(null);
-      const fresh = await fetchAppData().catch(() => null);
-      if (fresh) setPublicPayload(fresh);
+      refreshPublicPayloadInBackground();
     } catch(e) { setError(e.message); }
     finally { setEditBusy(false); }
   }

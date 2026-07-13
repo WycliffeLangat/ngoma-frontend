@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
-import { cmsApi, notifyPublicAppChanged } from "./api";
+import { cmsApi, notifyPublicAppChangedNow } from "./api";
 import LoginPage from "./pages/LoginPage";          // tiny — needed immediately for auth
 import NotificationBell from "./components/NotificationBell";
 import GlobalSearch from "./components/GlobalSearch";
@@ -168,7 +168,7 @@ export default function AdminApp() {
   function handleForcePush() {
     if (syncState === "syncing") return;
     setSyncState("syncing");
-    notifyPublicAppChanged();
+    notifyPublicAppChangedNow();
     clearTimeout(syncTimerRef.current);
     syncTimerRef.current = setTimeout(() => {
       setSyncState("done");

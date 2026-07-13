@@ -21,6 +21,30 @@ function isNetworkFailure(error) {
   return error instanceof TypeError;
 }
 
+function createAbortScope(externalSignal, timeoutMs) {
+  const controller = new AbortController();
+  let timedOut = false;
+  const timeoutId = typeof window !== "undefined" && Number.isFinite(timeoutMs) && timeoutMs > 0
+    ? window.setTimeout(() => {
+        timedOut = true;
+        controller.abort();
+      }, timeoutMs)
+    : null;
+  const abortFromExternal = () => controller.abort(externalSignal?.reason);
+  if (externalSignal) {
+    if (externalSignal.aborted) abortFromExternal();
+    else externalSignal.addEventListener("abort", abortFromExternal, { once: true });
+  }
+  return {
+    controller,
+    get timedOut() { return timedOut; },
+    cleanup() {
+      if (timeoutId) window.clearTimeout(timeoutId);
+      externalSignal?.removeEventListener?.("abort", abortFromExternal);
+    },
+  };
+}
+
 // In-flight de-duplication: several CMS pages independently call
 // fetchAppData()/etc. on mount around the same time. Sharing one promise per
 // path avoids firing duplicate large requests without caching (staleness-free).
@@ -42,16 +66,13 @@ async function publicRequest(path, options = {}) {
     const timeoutMs = typeof options.timeoutMs === "number" ? options.timeoutMs : 6000;
     let attempt = 0;
     for (;;) {
-      const controller = new AbortController();
-      const timeoutId = (typeof window !== "undefined" && timeoutMs > 0)
-        ? window.setTimeout(() => controller.abort(), timeoutMs)
-        : null;
+      const abortScope = createAbortScope(options.signal, timeoutMs);
       try {
         const res = await fetch(`${API_BASE}${withCacheBust(path)}`, {
           cache: "no-store",
           headers: options.headers || {},
           ...options,
-          signal: options.signal || controller.signal,
+          signal: abortScope.controller.signal,
         });
 
         if (!res.ok) {
@@ -61,6 +82,7 @@ async function publicRequest(path, options = {}) {
         return await res.json();
       } catch (error) {
         if (error?.name === "AbortError") {
+          if (options.signal?.aborted && !abortScope.timedOut) throw error;
           throw new Error(options.errorMessage || "Public API request timed out");
         }
         attempt += 1;
@@ -72,7 +94,7 @@ async function publicRequest(path, options = {}) {
         }
         await sleep(RETRY_DELAYS_MS[attempt - 1]);
       } finally {
-        if (timeoutId) window.clearTimeout(timeoutId);
+        abortScope.cleanup();
       }
     }
   };

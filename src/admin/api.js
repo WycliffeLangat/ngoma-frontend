@@ -4,6 +4,8 @@ export const CMS_BASE = `${API_BASE}/cms`;
 
 let csrfToken = null;
 function setCsrfToken(token) { if (token) csrfToken = token; }
+let publicNotifyTimer = null;
+let pendingPublicNotifyStamp = null;
 
 // ── GET response cache ────────────────────────────────────────────────────────
 // Caches successful GET responses for 60 seconds.
@@ -51,7 +53,33 @@ function mutationPrefix(path) {
 }
 
 export function notifyPublicAppChanged() {
-  const stamp = String(Date.now());
+  pendingPublicNotifyStamp = String(Date.now());
+  const emit = () => {
+    const stamp = pendingPublicNotifyStamp || String(Date.now());
+    pendingPublicNotifyStamp = null;
+    publicNotifyTimer = null;
+    try {
+      window.localStorage.setItem("ngoma-cms-revision", stamp);
+    } catch {}
+    try {
+      window.dispatchEvent(new CustomEvent("ngoma-cms-change", { detail: { stamp } }));
+    } catch {}
+    try {
+      const channel = new BroadcastChannel("ngoma-cms-sync");
+      channel.postMessage({ type: "cms-change", stamp });
+      channel.close();
+    } catch {}
+  };
+  clearTimeout(publicNotifyTimer);
+  publicNotifyTimer = setTimeout(emit, 400);
+}
+
+export function notifyPublicAppChangedNow() {
+  clearTimeout(publicNotifyTimer);
+  publicNotifyTimer = null;
+  pendingPublicNotifyStamp = String(Date.now());
+  const stamp = pendingPublicNotifyStamp;
+  pendingPublicNotifyStamp = null;
   try {
     window.localStorage.setItem("ngoma-cms-revision", stamp);
   } catch {}
@@ -86,7 +114,7 @@ function sleep(ms) {
 // raw "Failed to fetch" TypeError. HTTP error responses (4xx/5xx) are real
 // answers from the server and must not be retried/rewritten.
 function isNetworkFailure(error) {
-  return error?.name === "AbortError" || error instanceof TypeError;
+  return error instanceof TypeError;
 }
 
 // In-flight GET de-duplication: if two callers request the same uncached
@@ -94,17 +122,47 @@ function isNetworkFailure(error) {
 // they share one network round trip instead of firing duplicates.
 const _inFlight = new Map(); // path → Promise
 
-async function rawFetch(path, options, timeoutMs) {
+function createAbortScope(externalSignal, timeoutMs) {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  let timedOut = false;
+  const timeoutId = Number.isFinite(timeoutMs) && timeoutMs > 0
+    ? setTimeout(() => {
+        timedOut = true;
+        controller.abort();
+      }, timeoutMs)
+    : null;
+  const abortFromExternal = () => controller.abort(externalSignal?.reason);
+  if (externalSignal) {
+    if (externalSignal.aborted) abortFromExternal();
+    else externalSignal.addEventListener("abort", abortFromExternal, { once: true });
+  }
+  return {
+    controller,
+    get timedOut() { return timedOut; },
+    cleanup() {
+      if (timeoutId) clearTimeout(timeoutId);
+      externalSignal?.removeEventListener?.("abort", abortFromExternal);
+    },
+  };
+}
+
+async function rawFetch(path, options, timeoutMs) {
+  const { signal: externalSignal, timeoutMs: _ignoredTimeoutMs, ...fetchOptions } = options;
+  const abortScope = createAbortScope(externalSignal, timeoutMs);
   try {
     return await fetch(`${CMS_BASE}${path}`, {
       credentials: "include",
-      ...options,
-      signal: options.signal || controller.signal,
+      ...fetchOptions,
+      signal: abortScope.controller.signal,
     });
+  } catch (error) {
+    if (error?.name === "AbortError") {
+      error.isCallerAbort = Boolean(externalSignal?.aborted && !abortScope.timedOut);
+      error.isTimeout = Boolean(abortScope.timedOut);
+    }
+    throw error;
   } finally {
-    clearTimeout(timeoutId);
+    abortScope.cleanup();
   }
 }
 
@@ -136,10 +194,11 @@ async function request(path, options = {}) {
         response = await rawFetch(path, { ...options, headers: { ...headers, ...(options.headers || {}) } }, timeoutMs);
         break;
       } catch (networkError) {
+        if (networkError?.isCallerAbort) throw networkError;
         attempt += 1;
-        if (attempt >= maxAttempts || !isNetworkFailure(networkError)) {
+        if (attempt >= maxAttempts || networkError?.isTimeout || !isNetworkFailure(networkError)) {
           const friendly = new Error(
-            networkError?.name === "AbortError"
+            networkError?.isTimeout || networkError?.name === "AbortError"
               ? "The request timed out. Check your connection and try again."
               : "Unable to reach the server. Check your connection and try again."
           );

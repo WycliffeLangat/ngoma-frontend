@@ -14,7 +14,7 @@ import {
   normArtistKey, artistSetKey, entryKey, sameRelease, normalizeRankedRows,
   mv, resolveMovementFromHistory, mapPublicNews,
 } from "./utils/chartHelpers.js";
-import { normalizePublicPayload, publishedMonthOptions, runtimePublicData } from "./utils/publicDataRuntime.js";
+import { publishedMonthOptions, runtimePublicData } from "./utils/publicDataRuntime.js";
 import {
   BarChart,
   Bar,
@@ -1529,35 +1529,25 @@ export default function NgomaCharts(){
           const latest = String(rev?.revision || rev?.stamp || rev || "");
           if (!latest || latest === _syncedRevision) return;
           _syncedRevision = latest;
-          return fetchAppData().then(freshData => {
-            if (freshData && typeof freshData === "object") {
-              window.__NGOMA_PUBLIC_DATA__ = normalizePublicPayload(freshData);
-              window.__NGOMA_PUBLIC_REVISION__ = freshData.revision || freshData.stamp || Date.now();
-              window.location.reload();
-            }
-          });
+          window.location.reload();
         })
         .catch(() => {});
     };
 
-    // Force-refresh path: called by both same-tab (ngoma-cms-change custom event) and
-    // cross-tab (localStorage storage event) CMS mutations. Bypasses revision comparison
-    // so a country change is reflected immediately regardless of backend revision state.
+    // CMS mutation path: debounce multi-step saves, ask the lightweight
+    // revision endpoint whether public data changed, then reload once.
     // Debounced 500 ms — a cascade of N release PATCHes fires N events; we want one fetch.
-    // No document.hidden guard here: we refresh in the background so the data is already
-    // fresh when the user switches back to the public page.
     let _cmsTimer = null;
     const onCmsChange = () => {
       clearTimeout(_cmsTimer);
       _cmsTimer = setTimeout(() => {
-        fetchAppData()
-          .then(freshData => {
-            if (freshData && typeof freshData === "object") {
-              window.__NGOMA_PUBLIC_DATA__ = normalizePublicPayload(freshData);
-              _syncedRevision = String(freshData.revision || freshData.stamp || "");
-              window.__NGOMA_PUBLIC_REVISION__ = freshData.revision || freshData.stamp || Date.now();
-              window.location.reload();
-            }
+        if (document.hidden) return;
+        fetchRevision()
+          .then(rev => {
+            const latest = String(rev?.revision || rev?.stamp || rev || "");
+            if (!latest || latest === _syncedRevision) return;
+            _syncedRevision = latest;
+            window.location.reload();
           })
           .catch(() => {});
       }, 500);
