@@ -3312,38 +3312,38 @@ const top = data[0];
     : liveStatus === "syncing"
       ? "Checking for live data"
       : "Live data not connected; showing loaded data";
+  const liveIndicator = apiChecked ? (
+    <span
+      title={liveIndicatorLabel}
+      aria-label={liveIndicatorLabel}
+      role="status"
+      style={{
+        display:"inline-flex",alignItems:"center",justifyContent:"center",
+        width:isMobile?"38px":"30px",height:isMobile?"38px":"30px",borderRadius:"999px",
+        background:themeColors.elevated,
+        border:`1px solid ${themeColors.border}`,
+        boxShadow:isDark?"0 0 0 1px rgba(255,255,255,0.02)":"0 4px 14px rgba(0,0,0,0.035)",
+        flexShrink:0,
+      }}
+    >
+      <span
+        aria-hidden="true"
+        style={{
+          width:"8px",height:"8px",borderRadius:"50%",
+          background:liveIndicatorIsLive?"#2DB04A":"#9AA19A",
+          boxShadow:liveIndicatorIsLive
+            ? "0 0 0 3px rgba(45,176,74,0.18), 0 0 10px rgba(45,176,74,0.48)"
+            : "0 0 0 3px rgba(154,161,154,0.18)",
+        }}
+      />
+    </span>
+  ) : null;
 
   return(
     <div className="ngoma-app-shell" data-theme={theme} style={{fontFamily:SF,background:themeColors.page,color:themeColors.text,minHeight:"100vh",width:"100%",overflowX:"clip",isolation:"isolate"}}>
       {/* EXPERIMENT: living artist-portrait backdrop, mounted once so it shows
           through every page's transparent gaps rather than being hero-only. */}
       <ArtistAmbientField theme={theme} isMobile={isMobile} isTablet={isTablet} />
-      {apiChecked && (
-        <div
-          title={liveIndicatorLabel}
-          aria-label={liveIndicatorLabel}
-          role="status"
-          style={{
-            position:"fixed",bottom:"14px",right:"14px",zIndex:9999,
-            width:"18px",height:"18px",borderRadius:"999px",
-            display:"grid",placeItems:"center",fontSize:0,color:"transparent",overflow:"hidden",
-            background:isDark?"rgba(15,17,16,0.58)":"rgba(255,255,255,0.72)",
-            border:`1px solid ${isDark?"rgba(246,243,234,0.18)":"rgba(26,26,26,0.12)"}`,
-            boxShadow:"0 6px 18px rgba(0,0,0,0.12)",backdropFilter:"blur(6px)",
-          }}
-        >
-          <span
-            aria-hidden="true"
-            style={{
-              width:"8px",height:"8px",borderRadius:"50%",
-              background:liveIndicatorIsLive?"#2DB04A":"#9AA19A",
-              boxShadow:liveIndicatorIsLive
-                ? "0 0 0 3px rgba(45,176,74,0.18), 0 0 10px rgba(45,176,74,0.48)"
-                : "0 0 0 3px rgba(154,161,154,0.18)",
-            }}
-          />
-        </div>
-      )}
       <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700;800;900&family=Instrument+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
       <style>{`
         html, body, #root{max-width:100%;overflow-x:hidden;}
@@ -3462,7 +3462,10 @@ const top = data[0];
                   {navItems.map(t=>(
                     <span key={t} onClick={()=>navTo(t)} style={{cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"13px",fontWeight:page===t?800:600,letterSpacing:"1px",textTransform:"uppercase",color:page===t?themeColors.text:themeColors.muted,background:page===t?themeColors.active:"transparent",border:page===t?"1px solid #D4B65E":"1px solid transparent"}}>{navLabel(t)}</span>
                   ))}
-                  {themeToggle({hideDot:true,width:"100%",justifyContent:"flex-start",borderRadius:"12px",minHeight:"44px",padding:"0 14px",marginTop:"4px",fontSize:"13px",fontWeight:600,letterSpacing:"1px"})}
+                  <div style={{display:"flex",alignItems:"center",gap:"8px",marginTop:"4px"}}>
+                    {themeToggle({hideDot:true,justifyContent:"flex-start",borderRadius:"12px",minHeight:"44px",padding:"0 14px",fontSize:"13px",fontWeight:600,letterSpacing:"1px",flex:1})}
+                    {liveIndicator}
+                  </div>
                 </div>
               )}
             </>
@@ -3512,6 +3515,7 @@ const top = data[0];
                 )}
               </div>
               {themeToggle()}
+              {liveIndicator}
             </nav>
           )}
         </div>

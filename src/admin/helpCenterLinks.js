@@ -5,7 +5,17 @@ const HELP_ERROR_MATCHES = [
     test: (text, field) => (
       (field === "slug" || text.includes("slug")) &&
       text.includes("artist") &&
-      (text.includes("already exists") || text.includes("must be unique"))
+      (text.includes("already exists") || text.includes("already uses") || text.includes("must be unique"))
+    ),
+  },
+  {
+    id: "duplicate-value",
+    title: "Duplicate value",
+    test: (text) => (
+      text.includes("already uses this") ||
+      text.includes("already exists") ||
+      text.includes("already has a") ||
+      text.includes("must be unique")
     ),
   },
   {
@@ -93,6 +103,11 @@ const HELP_ERROR_MATCHES = [
       text.includes("release country") ||
       text.includes("does not match lead artist")
     ),
+  },
+  {
+    id: "general-troubleshooting",
+    title: "Troubleshoot this error",
+    test: () => true,
   },
 ];
 

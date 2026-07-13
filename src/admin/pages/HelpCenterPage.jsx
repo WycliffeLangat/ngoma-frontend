@@ -26,6 +26,52 @@ const ERROR_GUIDES = [
     keywords: ["slug", "artist", "already exists", "duplicate", "url", "unique"],
   },
   {
+    id: "duplicate-value",
+    title: "Already uses this value / already exists",
+    summary: "Another record already holds the same unique value (name, slug, key, or combination of fields).",
+    meaning: "Many CMS fields must be unique — artist names and slugs, platform names and slugs, country names, news slugs, setting keys, certification levels per release, one chart per month, one content block per page section. The error message now names the exact record and ID that already holds the value, so you can go straight to it.",
+    commonCauses: [
+      "A record with this value already exists and you are creating an unintended duplicate.",
+      "You are trying to reuse a value (slug, key, month/year, page section) that belongs to a different record.",
+      "The record you meant to edit already exists — you should update it instead of creating a new one.",
+    ],
+    fixSteps: [
+      "Read the error message — it names the conflicting record and its ID.",
+      "Open that record (search by the name or ID shown) to confirm whether it's the one you meant.",
+      "If it's the same thing, edit that existing record instead of saving a new one.",
+      "If it's a genuinely different record, change the value you're saving to something unique, then save again.",
+    ],
+    prevention: [
+      "Search before creating a new record to check whether it already exists.",
+      "Leave auto-generated fields like slug blank unless you need a specific value.",
+    ],
+    keywords: ["already exists", "already uses", "duplicate", "unique", "slug", "key"],
+  },
+  {
+    id: "general-troubleshooting",
+    title: "Any other save or validation error",
+    summary: "General steps for an error message that doesn't match a specific guide.",
+    meaning: "Not every possible error has its own article. This general guide covers the steps that resolve most CMS validation and save errors.",
+    commonCauses: [
+      "A required field is missing or blank.",
+      "A value doesn't match the expected format (date, number, URL, JSON).",
+      "A related record (artist, release, chart) was deleted, unpublished, or doesn't match what's expected.",
+      "A permissions or session issue is blocking the save.",
+    ],
+    fixSteps: [
+      "Read the exact wording of the error above each field, and the field it is attached to.",
+      "Re-check that field's value against the format implied by the message (required, valid URL, valid JSON, number range, etc.).",
+      "If the error names another record (by ID or name), open that record to understand the conflict.",
+      "Refresh the page and try again in case of a stale session or an out-of-date record.",
+      "If the message mentions a server error or connection issue, wait a moment and retry, then check with an admin if it persists.",
+    ],
+    prevention: [
+      "Save in small steps when entering a lot of data, so an error is easier to isolate.",
+      "Use Duplicate review and search before creating new artist, release, or chart records.",
+    ],
+    keywords: ["error", "validation", "save failed", "troubleshoot"],
+  },
+  {
     id: "required-field",
     title: "This field is required.",
     summary: "A required field was empty when the CMS tried to save the record.",
