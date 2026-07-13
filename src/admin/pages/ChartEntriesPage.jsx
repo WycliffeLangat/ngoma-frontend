@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cmsApi, getResults } from "../api";
 import FormModal from "../components/FormModal";
-import { fetchAppData } from "../../api/public";
+import { fetchAppDataWithFallback, readCachedAppData } from "../../api/public";
+import { normalizePublicPayload } from "../../utils/publicDataRuntime";
 import { buildArtistMonthMirror } from "../../utils/publicChartMirror";
 
 const MOVE_COLOR = { NEW: "#1565C0", up: "#1B7F3A", down: "#C62828", same: "#999" };
@@ -123,6 +124,36 @@ function splitArtistNames(value) {
 }
 
 const COMBINED = "combined";
+const PUBLIC_PAYLOAD_CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+
+function completePublicPayload(rawPayload) {
+  const payload = normalizePublicPayload(rawPayload);
+  if (!payload?.full?.singles || !payload?.full?.albums || !payload?.months?.length) {
+    throw new Error("The public chart payload is incomplete.");
+  }
+  return payload;
+}
+
+function cachedPublicPayload() {
+  const cached = readCachedAppData({ maxAgeMs: PUBLIC_PAYLOAD_CACHE_MAX_AGE_MS });
+  if (!cached) return null;
+  try {
+    return {
+      ...cached,
+      payload: completePublicPayload(cached.payload),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function formatPayloadAge(ageMs = 0) {
+  const minutes = Math.max(1, Math.round(ageMs / 60_000));
+  if (minutes < 60) return `${minutes} min old`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours} hr old`;
+  return `${Math.round(hours / 24)} day old`;
+}
 
 function appendQuery(path, params = {}) {
   const query = new URLSearchParams();
@@ -155,6 +186,7 @@ async function fetchAllCmsResults(path, pageSize = 500) {
 
 export default function ChartEntriesPage({ user, searchJump }) {
   const canEdit = Boolean(user?.permissions?.can_manage_data) && !user?.permissions?.read_only;
+  const initialPublicPayload = useMemo(cachedPublicPayload, []);
   const [allCharts, setAllCharts]       = useState([]);
   const [platforms, setPlatforms]       = useState([]);
   const [chartType, setChartType]       = useState("singles"); // "singles" | "albums" | "artists"
@@ -168,9 +200,14 @@ export default function ChartEntriesPage({ user, searchJump }) {
   const [saving, setSaving]             = useState(false);
   const [imageFile, setImageFile]       = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
-  const [publicPayload, setPublicPayload] = useState(null);
-  const [publicLoading, setPublicLoading] = useState(true);
+  const [publicPayload, setPublicPayload] = useState(() => initialPublicPayload?.payload || null);
+  const [publicLoading, setPublicLoading] = useState(() => !initialPublicPayload);
   const [publicError, setPublicError] = useState("");
+  const [publicNotice, setPublicNotice] = useState(() => (
+    initialPublicPayload
+      ? `Showing cached artist chart data while live data refreshes (${formatPayloadAge(initialPublicPayload.ageMs)}).`
+      : ""
+  ));
   // CMS-only: artist name -> country lookup, used to show a Country column
   // on the entries table. Not part of the public app's data/UI.
   const [artistCountryMap, setArtistCountryMap] = useState(new Map());
@@ -219,24 +256,42 @@ export default function ChartEntriesPage({ user, searchJump }) {
   }, []);
 
   async function loadPublicPayload() {
-    setPublicLoading(true);
+    setPublicLoading((current) => current || !publicPayload);
     setPublicError("");
     try {
-      const payload = await fetchAppData(undefined, 30_000);
-      if (!payload?.full?.singles || !payload?.full?.albums || !payload?.months?.length) {
-        throw new Error("The public chart payload is incomplete.");
-      }
+      const result = await fetchAppDataWithFallback(undefined, {
+        timeoutMs: publicPayload ? 12_000 : 30_000,
+        maxAgeMs: PUBLIC_PAYLOAD_CACHE_MAX_AGE_MS,
+      });
+      const payload = completePublicPayload(result.payload);
       setPublicPayload(payload);
+      setPublicNotice(result.stale
+        ? `Showing cached artist chart data (${formatPayloadAge(result.ageMs)}). Live refresh failed: ${result.errorMessage}.`
+        : "");
     } catch (e) {
-      setPublicError(e.message || "Unable to load public chart entries.");
+      const cached = cachedPublicPayload();
+      if (cached) {
+        setPublicPayload(cached.payload);
+        setPublicNotice(`Showing cached artist chart data (${formatPayloadAge(cached.ageMs)}). Live refresh failed: ${e.message || "Unable to load public chart entries."}.`);
+        setPublicError("");
+      } else {
+        setPublicError(e.message || "Unable to load public chart entries.");
+      }
     } finally {
       setPublicLoading(false);
     }
   }
 
   function refreshPublicPayloadInBackground(timeoutMs = 12_000) {
-    fetchAppData(undefined, timeoutMs)
-      .then((fresh) => { if (fresh) setPublicPayload(fresh); })
+    fetchAppDataWithFallback(undefined, {
+      timeoutMs,
+      maxAgeMs: PUBLIC_PAYLOAD_CACHE_MAX_AGE_MS,
+    })
+      .then((result) => {
+        const payload = completePublicPayload(result.payload);
+        setPublicPayload(payload);
+        if (!result.stale) setPublicNotice("");
+      })
       .catch(() => {});
   }
 
@@ -675,8 +730,14 @@ export default function ChartEntriesPage({ user, searchJump }) {
         }
       }
 
-      const fresh = await fetchAppData();
-      setPublicPayload(fresh);
+      const fresh = await fetchAppDataWithFallback(undefined, {
+        timeoutMs: 30_000,
+        maxAgeMs: PUBLIC_PAYLOAD_CACHE_MAX_AGE_MS,
+      });
+      setPublicPayload(completePublicPayload(fresh.payload));
+      setPublicNotice(fresh.stale
+        ? `Showing cached artist chart data (${formatPayloadAge(fresh.ageMs)}). Live refresh failed: ${fresh.errorMessage}.`
+        : "");
     } catch (e) {
       setError(e.message);
     } finally {
@@ -821,12 +882,12 @@ export default function ChartEntriesPage({ user, searchJump }) {
       )}
 
       {/* ── Body ── */}
-      {loading || (chartType === "artists" && publicLoading) ? (
+      {loading || (chartType === "artists" && publicLoading && !publicPayload) ? (
         <div className="cms-empty">Loading…</div>
 
       ) : chartType === "artists" ? (
         /* ── Artists computed chart ─────────────────────────────────────── */
-        publicError ? (
+        publicError && !publicPayload ? (
           <div className="cms-alert error">
             <strong>Artist chart could not be loaded.</strong>
             <div style={{ marginTop: 5 }}>{publicError}</div>
@@ -837,6 +898,15 @@ export default function ChartEntriesPage({ user, searchJump }) {
         ) : artistRankings.length === 0 ? (
           <div className="cms-empty">No artist entries are available for {selectedMonthLabel || "the selected month"} on {platformName}.</div>
         ) : (
+          <>
+          {publicNotice && (
+            <div className="cms-alert warning" style={{ display: "flex", alignItems: "center", gap: 12, justifyContent: "space-between", flexWrap: "wrap" }}>
+              <span>{publicNotice}</span>
+              <button type="button" className="cms-btn light small" onClick={loadPublicPayload} disabled={publicLoading}>
+                {publicLoading ? "Refreshing..." : "Refresh live data"}
+              </button>
+            </div>
+          )}
           <div className="cms-entries-layout" style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
             <div className="cms-entries-table" style={{ flex: 1, minWidth: 0 }}>
               <div className="cms-table-wrap">
@@ -946,6 +1016,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
               </div>
             )}
           </div>
+          </>
         )
 
       ) : (

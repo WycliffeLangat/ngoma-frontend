@@ -1,8 +1,8 @@
 // Public (non-CMS) API helper functions.
 //
-// These helpers are intentionally uncached. The CMS edits the backend database,
-// and the public app should read the latest API response at runtime instead of
-// relying on old static/generated frontend data.
+// These helpers prefer live backend data. The large /app-data/ payload is also
+// persisted after successful reads so chart views can fall back to recent data
+// instead of hard-failing during a temporary backend/network blip.
 
 import { API_BASE, API_CONFIGURED } from "./config.js";
 
@@ -12,6 +12,8 @@ function withCacheBust(path) {
 }
 
 const RETRY_DELAYS_MS = [300, 900]; // two retries for transient network blips
+const APP_DATA_CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+const APP_DATA_CACHE_PREFIX = "ngoma:app-data:v1:";
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -19,6 +21,55 @@ function sleep(ms) {
 
 function isNetworkFailure(error) {
   return error instanceof TypeError;
+}
+
+function appDataCacheKey() {
+  return `${APP_DATA_CACHE_PREFIX}${API_BASE || "unconfigured"}`;
+}
+
+function browserStorage() {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage || null;
+  } catch {
+    return null;
+  }
+}
+
+function hasUsableAppData(payload) {
+  return Boolean(payload?.full?.singles && payload?.full?.albums);
+}
+
+export function readCachedAppData({ maxAgeMs = APP_DATA_CACHE_MAX_AGE_MS } = {}) {
+  const storage = browserStorage();
+  if (!storage) return null;
+  try {
+    const raw = storage.getItem(appDataCacheKey());
+    if (!raw) return null;
+    const cached = JSON.parse(raw);
+    const storedAt = Number(cached?.storedAt);
+    const ageMs = Date.now() - storedAt;
+    if (!Number.isFinite(storedAt) || ageMs < 0) return null;
+    if (Number.isFinite(maxAgeMs) && maxAgeMs > 0 && ageMs > maxAgeMs) return null;
+    if (!hasUsableAppData(cached?.payload)) return null;
+    return { payload: cached.payload, storedAt, ageMs };
+  } catch {
+    return null;
+  }
+}
+
+function writeCachedAppData(payload) {
+  if (!hasUsableAppData(payload)) return;
+  const storage = browserStorage();
+  if (!storage) return;
+  try {
+    storage.setItem(appDataCacheKey(), JSON.stringify({
+      storedAt: Date.now(),
+      payload,
+    }));
+  } catch {
+    // Browser storage can be full or disabled. Live data still works.
+  }
 }
 
 function createAbortScope(externalSignal, timeoutMs) {
@@ -121,11 +172,39 @@ export async function checkApiStatus() {
 // Returns the full public payload: chart data, artists, releases,
 // certifications, news, settings, revision stamp.
 export async function fetchAppData(signal, timeoutMs = 30_000) {
-  return publicRequest("/app-data/", {
+  const payload = await publicRequest("/app-data/", {
     signal,
     timeoutMs,
     errorMessage: "App data request failed",
   });
+  writeCachedAppData(payload);
+  return payload;
+}
+
+export async function fetchAppDataWithFallback(signal, options = {}) {
+  const timeoutMs = typeof options.timeoutMs === "number" ? options.timeoutMs : 30_000;
+  const maxAgeMs = typeof options.maxAgeMs === "number" ? options.maxAgeMs : APP_DATA_CACHE_MAX_AGE_MS;
+  try {
+    return {
+      payload: await fetchAppData(signal, timeoutMs),
+      source: "live",
+      stale: false,
+      errorMessage: "",
+      ageMs: 0,
+      storedAt: Date.now(),
+    };
+  } catch (error) {
+    const cached = readCachedAppData({ maxAgeMs });
+    if (cached) {
+      return {
+        ...cached,
+        source: "cache",
+        stale: true,
+        errorMessage: error?.message || "Live app data request failed",
+      };
+    }
+    throw error;
+  }
 }
 
 // Returns the current revision string used to detect CMS changes.

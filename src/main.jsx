@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { API_BASE, API_CONFIGURED } from "./api/config.js";
-import { fetchAppData } from "./api/public.js";
+import { fetchAppDataWithFallback } from "./api/public.js";
 import { normalizePublicPayload } from "./utils/publicDataRuntime.js";
 import "./index.css";
 import "./styles/mobilePremiumFixes.css";
@@ -32,8 +32,8 @@ async function loadPublicAppData({ timeoutMs = 4000 } = {}) {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const rawPayload = await fetchAppData(controller.signal, timeoutMs);
-    const payload = normalizePublicPayload(rawPayload);
+    const result = await fetchAppDataWithFallback(controller.signal, { timeoutMs });
+    const payload = normalizePublicPayload(result.payload);
     if (
       !payload ||
       typeof payload !== "object" ||
@@ -47,8 +47,12 @@ async function loadPublicAppData({ timeoutMs = 4000 } = {}) {
 
     window.__NGOMA_PUBLIC_DATA__ = payload;
     window.__NGOMA_PUBLIC_REVISION__ = String(payload.revision || "");
+    window.__NGOMA_PUBLIC_DATA_STALE__ = Boolean(result.stale);
+    if (result.stale) {
+      console.warn(`[ngoma] Using cached app data because the live request failed: ${result.errorMessage}`);
+    }
     notifyPublicDataReady();
-    return { ok: true, payload };
+    return { ok: true, payload, stale: result.stale };
   } catch (error) {
     const message = error?.message || "The backend API is unavailable.";
     console.error(`[ngoma] Backend API request failed for ${API_BASE}: ${message}`, error);
