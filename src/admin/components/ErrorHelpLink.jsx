@@ -29,7 +29,6 @@ export default function ErrorHelpLink({
       title={`Open suggested fixes: ${help.title}`}
     >
       <span className="cms-error-help-copy">{children}</span>
-      <span className="cms-error-help-chip">Suggested fixes</span>
     </a>
   );
 }
