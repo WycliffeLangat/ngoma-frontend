@@ -138,6 +138,13 @@
 .cms-card-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px}
 .cms-card-heading h2,.cms-card h2{margin:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:19px;font-weight:600}
 .cms-count-badge{min-width:27px;height:27px;padding:0 8px;display:grid;place-items:center;border-radius:999px;background:var(--cms-gold-soft);color:#7e5b12;font-size:11px;font-weight:900}
+.cms-audit-strip{display:flex;flex-wrap:wrap;gap:7px;margin:-2px 0 12px}
+.cms-audit-chip{display:inline-flex;align-items:center;min-height:24px;padding:4px 9px;border:1px solid #d8ccaa;border-radius:999px;background:#fbf8ef;color:#675321;font-size:11px;font-weight:800;line-height:1.2}
+.cms-audit-chip.warning{border-color:#e2c36b;background:#fff7de;color:#7d4a00}
+.cms-audit-chip.error{border-color:#f0b4b4;background:#fff1f1;color:#9a1f1f}
+.cms-alert-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px}
+.cms-alert-heading b{min-width:0}
+.cms-alert-heading span{flex-shrink:0;border:1px solid rgba(0,0,0,.08);border-radius:999px;padding:3px 7px;background:rgba(255,255,255,.58);color:#6d6656;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
 .cms-text-btn{border:0;background:transparent;color:#82631b;font:inherit;font-size:12px;font-weight:850;cursor:pointer}
 .cms-text-btn:hover{text-decoration:underline}
 .cms-empty.compact{padding:20px}

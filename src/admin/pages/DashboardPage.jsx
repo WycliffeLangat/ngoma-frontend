@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { cmsApi } from "../api";
 import DataTable from "../components/DataTable";
+import { buildDashboardAudit, mergeDashboardAudit } from "../dataQualityAudit";
 
 const labels = {
   total_songs: "Total songs", total_albums: "Total albums", total_artists: "Total artists",
@@ -9,6 +10,9 @@ const labels = {
   latest_news_posts: "News posts", recently_edited_data: "Audit events", errors_warnings: "Open reports",
   system_health: "System health", last_backup_date: "Last backup", editors_admins: "Editors/admins",
   unpublished_chart_months: "Unpublished charts", certifications_unofficial: "Unofficial certifications", uploads_awaiting_review: "Uploads awaiting review",
+  data_audit_findings: "Audit findings", critical_data_issues: "Critical issues", incomplete_metadata: "Incomplete metadata",
+  missing_media_assets: "Missing media", invalid_urls_detected: "Invalid URLs", questionable_countries: "Questionable countries",
+  chart_uploads_needed: "Uploads needed",
 };
 
 const cardMeta = {
@@ -28,12 +32,25 @@ const cardMeta = {
   unpublished_chart_months: { icon: "○", hint: "Charts not yet public", target: "charts" },
   certifications_unofficial: { icon: "◇", hint: "Certifications to verify", target: "certifications" },
   uploads_awaiting_review: { icon: "↑", hint: "Imports awaiting review", target: "uploads" },
+  data_audit_findings: { icon: "QA", hint: "Deep CMS audit results", target: "reports" },
+  critical_data_issues: { icon: "!", hint: "Fix first", target: "reports" },
+  incomplete_metadata: { icon: "i", hint: "Required details missing", target: "reports" },
+  missing_media_assets: { icon: "IMG", hint: "Images and files missing", target: "media" },
+  invalid_urls_detected: { icon: "URL", hint: "Broken or wrong links", target: "reports" },
+  questionable_countries: { icon: "CC", hint: "Country data to verify", target: "countries" },
+  chart_uploads_needed: { icon: "UP", hint: "Chart periods or uploads missing", target: "uploads" },
 };
 
 // Keys where a non-zero value signals something needs attention
 const WARN_IF_NONZERO = new Set([
   "missing_artist_countries", "duplicate_artists_detected",
   "certifications_unofficial", "errors_warnings",
+  "data_audit_findings", "incomplete_metadata", "missing_media_assets",
+  "invalid_urls_detected", "questionable_countries",
+]);
+
+const DANGER_IF_NONZERO = new Set([
+  "critical_data_issues", "chart_uploads_needed",
 ]);
 
 // Where each alert's "Fix" button should land, keyed by the stable alert id
@@ -103,7 +120,7 @@ const PAGE_LABELS = {
 };
 
 function alertPage(alert) {
-  return ALERT_PAGE_BY_ID[alert.id] || ALERT_PAGE_BY_MODULE[alert.module];
+  return alert.page || ALERT_PAGE_BY_ID[alert.id] || ALERT_PAGE_BY_MODULE[alert.module];
 }
 
 // Which alert backs each "needs attention" stat card, so clicking the card
@@ -116,6 +133,13 @@ const CARD_ALERT_ID = {
   errors_warnings: "open-data-quality-reports",
   unpublished_chart_months: "charts-unpublished",
   uploads_awaiting_review: "uploads-awaiting-action",
+  data_audit_findings: "audit-open-quality-reports",
+  critical_data_issues: "audit-upload-validation-errors",
+  incomplete_metadata: "audit-artist-details-incomplete",
+  missing_media_assets: "audit-artist-image-missing",
+  invalid_urls_detected: "audit-artist-invalid-url",
+  questionable_countries: "audit-artist-country-questionable",
+  chart_uploads_needed: "audit-chart-upload-needed",
 };
 
 // Exact values returned by the backend (cms_views.py line 106)
@@ -124,6 +148,7 @@ const CARD_ALERT_ID = {
 // 'OK'             → no alerts
 
 function cardClass(key, value) {
+  if (DANGER_IF_NONZERO.has(key) && Number(value) > 0) return "danger";
   if (WARN_IF_NONZERO.has(key) && Number(value) > 0) return "warn";
   if (key === "system_health") {
     if (value === "ACTION_REQUIRED") return "danger";
@@ -136,10 +161,28 @@ function cardClass(key, value) {
 export default function DashboardPage({ user, onNavigate }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
+  const [auditLoading, setAuditLoading] = useState(true);
+  const [auditError, setAuditError] = useState("");
   useEffect(() => {
+    let active = true;
+    let auditResult = null;
     Promise.all([cmsApi.get("/dashboard/"), cmsApi.get("/dashboard/insights/")])
-      .then(([summary, insights]) => setData({ ...summary, ...insights, cards: { ...summary.cards, ...insights.cards } }))
-      .catch((e) => setError(e.message));
+      .then(([summary, insights]) => {
+        if (!active) return;
+        const baseData = { ...summary, ...insights, cards: { ...summary.cards, ...insights.cards } };
+        setData(auditResult ? mergeDashboardAudit(baseData, auditResult) : baseData);
+      })
+      .catch((e) => { if (active) setError(e.message); });
+
+    buildDashboardAudit(cmsApi)
+      .then((audit) => {
+        auditResult = audit;
+        if (!active) return;
+        setData((current) => current ? mergeDashboardAudit(current, audit) : current);
+      })
+      .catch((e) => { if (active) setAuditError(e.message || "Deep CMS audit failed."); })
+      .finally(() => { if (active) setAuditLoading(false); });
+    return () => { active = false; };
   }, []);
   if (error) return <div className="cms-alert error">{error}</div>;
   if (!data) return <div className="cms-empty">Loading dashboard...</div>;
@@ -163,9 +206,10 @@ export default function DashboardPage({ user, onNavigate }) {
         {Object.entries(data.cards || {}).map(([key, value]) => {
           const cls = cardClass(key, value);
           const meta = cardMeta[key] || { icon: "•", hint: "View details" };
-          const interactive = Boolean(meta.target && onNavigate);
-          const Card = interactive ? "button" : "div";
           const linkedAlert = (data.alerts || []).find((a) => a.id === CARD_ALERT_ID[key]);
+          const targetPage = linkedAlert ? alertPage(linkedAlert) : meta.target;
+          const interactive = Boolean(targetPage && onNavigate);
+          const Card = interactive ? "button" : "div";
           const pinpoint = (linkedAlert?.details || []).find((d) => d.id != null);
           return (
             <Card
@@ -173,7 +217,7 @@ export default function DashboardPage({ user, onNavigate }) {
               className={`cms-stat-card${cls ? ` ${cls}` : ""}${interactive ? " interactive" : ""}`}
               key={key}
               onClick={interactive ? () => (
-                pinpoint ? onNavigate(meta.target, pinpoint.label, pinpoint.id) : onNavigate(meta.target)
+                pinpoint ? onNavigate(targetPage, pinpoint.label, pinpoint.id) : onNavigate(targetPage)
               ) : undefined}
             >
               <span className="cms-stat-icon" aria-hidden="true">{meta.icon}</span>
@@ -185,13 +229,37 @@ export default function DashboardPage({ user, onNavigate }) {
         })}
       </div>
       <div className="cms-grid two">
-        <div className="cms-card"><div className="cms-card-heading"><div><span className="cms-eyebrow">Needs attention</span><h2>Alerts</h2></div><span className="cms-count-badge">{(data.alerts || []).length}</span></div>{(data.alerts || []).length === 0 && <div className="cms-empty compact">Everything looks good. No open alerts.</div>}{(data.alerts || []).map((a, i) => {
+        <div className="cms-card">
+          <div className="cms-card-heading">
+            <div><span className="cms-eyebrow">Needs attention</span><h2>Alerts</h2></div>
+            <span className="cms-count-badge">{(data.alerts || []).length}</span>
+          </div>
+          {(auditLoading || data.auditCoverage || auditError || (data.auditLoadWarnings || []).length > 0) && (
+            <div className="cms-audit-strip">
+              {auditLoading && <span className="cms-audit-chip">Deep audit running...</span>}
+              {data.auditCoverage && (
+                <span className="cms-audit-chip">
+                  Checked {Number(data.auditCoverage.recordCount || 0).toLocaleString()} records across {data.auditCoverage.moduleCount || 0} modules
+                </span>
+              )}
+              {auditError && <span className="cms-audit-chip error">Deep audit skipped: {auditError}</span>}
+              {(data.auditLoadWarnings || []).slice(0, 3).map((warning, index) => (
+                <span className="cms-audit-chip warning" key={index}>Skipped {warning}</span>
+              ))}
+            </div>
+          )}
+          {(data.alerts || []).length === 0 && <div className="cms-empty compact">Everything looks good. No open alerts.</div>}
+          {(data.alerts || []).map((a, i) => {
           const page = alertPage(a);
           const pageLabel = PAGE_LABELS[page] || page;
           const linkableDetails = (a.details || []).filter((d) => d.id != null);
           return (
             <div key={i} className={`cms-alert ${a.level}`}>
-              <b>{a.title}</b><br />{a.message}
+              <div className="cms-alert-heading">
+                <b>{a.title}</b>
+                {a.category && <span>{a.category}</span>}
+              </div>
+              <div>{a.message}</div>
               {page && onNavigate && linkableDetails.length > 0 && (
                 <ul className="cms-alert-detail-list">
                   {linkableDetails.map((d, di) => (
@@ -212,7 +280,8 @@ export default function DashboardPage({ user, onNavigate }) {
               )}
             </div>
           );
-        })}</div>
+        })}
+        </div>
         <div className="cms-card"><div className="cms-card-heading"><div><span className="cms-eyebrow">Current leaders</span><h2>Top performing releases</h2></div></div><DataTable columns={[{key:"release__title",label:"Title"},{key:"release__artist__name",label:"Artist"},{key:"points",label:"Points"}]} rows={data.top_performing || []} /></div>
       </div>
       <div className="cms-card"><div className="cms-card-heading"><div><span className="cms-eyebrow">Audit trail</span><h2>Recent activity</h2></div><button className="cms-text-btn" onClick={() => onNavigate?.("audit")}>View audit log →</button></div><DataTable columns={[{key:"created_at",label:"Time",render:(r)=>new Date(r.created_at).toLocaleString()},{key:"user_name",label:"User"},{key:"action",label:"Action"},{key:"object_repr",label:"Item"}]} rows={data.recent_activity || []} /></div>
