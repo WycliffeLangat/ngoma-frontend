@@ -4,6 +4,7 @@ import DataTable from "../components/DataTable";
 import UploadPreviewTable from "../components/UploadPreviewTable";
 import StatusBadge from "../components/StatusBadge";
 import ConfirmDialog from "../components/ConfirmDialog";
+import ErrorHelpLink from "../components/ErrorHelpLink";
 
 const RAW_WEEKLY = "weekly";
 const FINAL_CHART = "final";
@@ -318,7 +319,11 @@ export default function UploadsPage({ user, searchJump }) {
         </div>
       )}
 
-      {error && <div className="cms-alert error" role="alert">{error}</div>}
+      {error && (
+        <div className="cms-alert error" role="alert">
+          <ErrorHelpLink message={error}>{error}</ErrorHelpLink>
+        </div>
+      )}
       <div className="cms-grid two">
         {canManageData ? (
           <form className="cms-card cms-upload-form" onSubmit={submit}>

@@ -4,6 +4,7 @@ import DataTable from "../components/DataTable";
 import SearchBar from "../components/SearchBar";
 import FormModal from "../components/FormModal";
 import StatusBadge from "../components/StatusBadge";
+import ErrorHelpLink from "../components/ErrorHelpLink";
 import { fetchAppData } from "../../api/public";
 import {
   getAffectedChartScopes,
@@ -1051,7 +1052,11 @@ export default function ResourcePage({ type, searchJump, user }) {
         {canEdit && <button className="cms-btn" onClick={() => { setEditing(null); setModal(true); }}>Add new</button>}
       </div>
       {flash && <div className="cms-alert" style={{ background:"#f0fdf4", color:"#15803d", border:"1px solid #bbf7d0", borderRadius:6, padding:"10px 14px", marginBottom:10 }}>{flash}</div>}
-      {error && <div className="cms-alert error">{error}</div>}
+      {error && (
+        <div className="cms-alert error">
+          <ErrorHelpLink message={error}>{error}</ErrorHelpLink>
+        </div>
+      )}
       <div className="cms-toolbar">
         <SearchBar value={search} onChange={v => setSearch(v)} placeholder={`Search ${config.title.toLowerCase()}…`} />
         {STATUS_TYPES.has(type) && (

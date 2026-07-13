@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import ErrorHelpLink from "./ErrorHelpLink";
 
 function OrderedMultiSelect({ value = [], options = [], onChange }) {
   const selected = Array.isArray(value) ? value.map(Number).filter(Boolean) : [];
@@ -232,7 +233,9 @@ export default function FormModal({ open, title, entityId, fields = [], initial 
         </div>
         {submitError && (
           <div className="cms-alert error cms-modal-error" role="alert">
-            <strong>Unable to save.</strong> {submitError}
+            <ErrorHelpLink message={submitError}>
+              <strong>Unable to save.</strong> {submitError}
+            </ErrorHelpLink>
           </div>
         )}
         <div className="cms-form-sections">
@@ -287,8 +290,10 @@ export default function FormModal({ open, title, entityId, fields = [], initial 
                 {field.help && <small className="cms-help">{field.help}</small>}
                 {fieldError && (
                   <small className="cms-field-error" role="alert">
-                    {fieldError}
-                    {field.example ? ` Expected example: ${field.example}` : ""}
+                    <ErrorHelpLink message={fieldError} fieldName={field.name}>
+                      {fieldError}
+                      {field.example ? ` Expected example: ${field.example}` : ""}
+                    </ErrorHelpLink>
                   </small>
                 )}
               </label>

@@ -13,6 +13,7 @@ const DuplicateReviewPage = lazy(() => import("./pages/DuplicateReviewPage"));
 const UploadsPage         = lazy(() => import("./pages/UploadsPage"));
 const ChartEntriesPage    = lazy(() => import("./pages/ChartEntriesPage"));
 const YearEndPage         = lazy(() => import("./pages/YearEndPage"));
+const HelpCenterPage      = lazy(() => import("./pages/HelpCenterPage"));
 const NAV_GROUPS = [
   {
     label: "Overview",
@@ -68,6 +69,10 @@ const NAV_GROUPS = [
       ["backups", "Backups", "can_manage_users"],
     ],
   },
+  {
+    label: "Support",
+    items: [["help", "Help Center"]],
+  },
 ];
 
 const nav = NAV_GROUPS.flatMap((group) => group.items);
@@ -105,6 +110,7 @@ function renderPage(page, user, searchJump, onNavigate) {
   if (page === "year-end")        return <YearEndPage onNavigate={onNavigate} />;
   if (page === "uploads")         return <UploadsPage user={user} searchJump={searchJump} />;
   if (page === "duplicate-review")return <DuplicateReviewPage user={user} />;
+  if (page === "help")            return <HelpCenterPage />;
   if (RESOURCE_PAGES.has(page))   return <ResourcePage type={page} user={user} searchJump={searchJump} />;
   return <div className="cms-empty">This CMS page is unavailable.</div>;
 }
