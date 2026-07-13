@@ -10,6 +10,7 @@ import {
   reorderAffectedChartScopes,
   rerankAffectedChartScopes,
 } from "../chartRankMaintenance";
+import { rememberMergeRules } from "../mergeRules";
 
 function normalizeArtistName(value) {
   return String(value || "").trim().toLowerCase();
@@ -473,6 +474,15 @@ export default function ResourcePage({ type, searchJump, user }) {
     return row.title || `Record #${row.id}`;
   }
 
+  function rememberSuccessfulMerge(keeper, duplicates) {
+    rememberMergeRules({
+      kind: isArtist ? "artist" : "release",
+      chartType: type === "albums" ? "albums" : type === "songs" ? "singles" : "",
+      keeper,
+      duplicates,
+    });
+  }
+
   function toggleSelectedRow(row) {
     setSelectedIds((current) => {
       const next = new Set(current);
@@ -645,6 +655,7 @@ export default function ResourcePage({ type, searchJump, user }) {
         : [];
       await callMergeApi(mergeTarget.dup, mergeTarget.keeper);
       const rankResult = await rerankAffectedChartScopes(affectedScopes);
+      rememberSuccessfulMerge(mergeTarget.keeper, [mergeTarget.dup]);
       clearCmsCache();
       setMergeTarget(null);
       setDupGroups(null);
@@ -690,6 +701,7 @@ export default function ResourcePage({ type, searchJump, user }) {
       if (!merged.length) throw failures[0]?.error || new Error("No records were merged.");
 
       const rankResult = await rerankAffectedChartScopes(affectedScopes);
+      rememberSuccessfulMerge(keeper, merged);
       clearCmsCache();
       setBulkMergeTarget(null);
       setDupGroups(null);
@@ -782,6 +794,7 @@ export default function ResourcePage({ type, searchJump, user }) {
           await callMergeApi(dup, keeper);
         }
       }
+      rememberSuccessfulMerge(keeper, dups);
       clearCmsCache();
       showFlash(`Merged ${dups.length} duplicate${dups.length !== 1 ? "s" : ""} into "${keepName}".`);
       loadDuplicates();

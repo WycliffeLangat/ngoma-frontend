@@ -4,6 +4,15 @@ import {
   getAffectedChartScopes,
   rerankAffectedChartScopes,
 } from "../chartRankMaintenance";
+import {
+  findStoredMergeRulePlan,
+  foldReleaseTitle,
+  foldText,
+  foldTokenOrder,
+  loadMergeRules,
+  markMergeRulesApplied,
+  rememberMergeRules,
+} from "../mergeRules";
 
 const IGNORED_KEY = "cms_dup_ignored_groups";
 
@@ -25,39 +34,6 @@ function normaliseArtist(r) {
 function normaliseRelease(r, chartType) {
   const entryCount = r.entry_count ?? 0;
   return { ...r, entry_count: entryCount, _type: "release", _chartType: chartType, _label: r.title, _sub: `${r.artist_display || r.artist_name || "Unknown artist"} · ${r.chart_type || chartType} · ${entryCount} entries`, _count: entryCount };
-}
-
-function foldText(value) {
-  return String(value || "")
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/æ/gi, "ae")
-    .replace(/œ/gi, "oe")
-    .replace(/ø/gi, "o")
-    .replace(/ß/gi, "ss")
-    .replace(/[đð]/gi, "d")
-    .replace(/ł/gi, "l")
-    .replace(/&/g, " and ")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "");
-}
-
-function foldTokenOrder(value) {
-  const normalized = String(value || "")
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/&/g, " and ")
-    .toLowerCase()
-    .match(/[a-z0-9]+/g) || [];
-  return normalized.sort().join("");
-}
-
-function foldReleaseTitle(value) {
-  return foldText(
-    String(value || "")
-      .replace(/\s*[\[(]\s*(?:feat|ft|featuring|remix|remaster(?:ed)?|live|acoustic|radio\s*edit|version)[^\])]*[\])]/gi, "")
-      .replace(/\s+(?:feat|ft|featuring)\b.*$/i, "")
-  );
 }
 
 function editDistance(left, right) {
@@ -246,12 +222,92 @@ export default function DuplicateReviewPage() {
   const [busy, setBusy] = useState(null);
   const [mergedCount, setMergedCount] = useState(0);
   const [error, setError] = useState("");
+  const [autoMergeNotice, setAutoMergeNotice] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [mergeModal, setMergeModal] = useState(null);
+
+  async function performMerge(keeper, duplicates, { rememberRules = true } = {}) {
+    const isRelease = keeper._type === "release";
+    const affectedScopes = isRelease
+      ? await getAffectedChartScopes(duplicates.map((dup) => dup.id))
+      : [];
+
+    if (keeper._type === "artist") {
+      await cmsApi.post(`/artists/${keeper.id}/merge/`, {
+        artist_ids: duplicates.map((dup) => dup.id),
+      });
+    } else {
+      for (const dup of duplicates) {
+        await callMergeApi(dup, keeper);
+      }
+    }
+
+    if (rememberRules) {
+      rememberMergeRules({
+        kind: keeper._type === "artist" ? "artist" : "release",
+        chartType: keeper._chartType || keeper.chart_type,
+        keeper,
+        duplicates,
+      });
+    }
+
+    return rerankAffectedChartScopes(affectedScopes);
+  }
+
+  async function applySavedMergeRules(candidateGroups) {
+    const rules = loadMergeRules();
+    if (!rules.length) {
+      return { groups: candidateGroups, mergedCount: 0, failedRankRefresh: false, error: null };
+    }
+
+    const plans = [];
+    const claimed = new Set();
+    candidateGroups.forEach((group) => {
+      const plan = findStoredMergeRulePlan(group, rules);
+      if (!plan) return;
+      const duplicates = plan.duplicates.filter((row) => {
+        const key = `${row._type}:${row.id}`;
+        if (claimed.has(key)) return false;
+        claimed.add(key);
+        return true;
+      });
+      if (duplicates.length) plans.push({ ...plan, duplicates });
+    });
+
+    if (!plans.length) {
+      return { groups: candidateGroups, mergedCount: 0, failedRankRefresh: false, error: null };
+    }
+
+    const mergedKeys = new Set();
+    let mergedCount = 0;
+    let failedRankRefresh = false;
+    let error = null;
+    setBusy("auto-rules");
+
+    for (const plan of plans) {
+      try {
+        const rankResult = await performMerge(plan.keeper, plan.duplicates, { rememberRules: false });
+        markMergeRulesApplied(plan.ruleIds);
+        plan.duplicates.forEach((row) => mergedKeys.add(`${row._type}:${row.id}`));
+        mergedCount += plan.duplicates.length;
+        if (rankResult.failedScopes.length) failedRankRefresh = true;
+      } catch (mergeError) {
+        error = mergeError;
+        break;
+      }
+    }
+
+    const groups = candidateGroups
+      .map((group) => group.filter((row) => !mergedKeys.has(`${row._type}:${row.id}`)))
+      .filter((group) => group.length > 1);
+
+    return { groups, mergedCount, failedRankRefresh, error };
+  }
 
   const load = useCallback(async () => {
     setGroups(null);
     setError("");
+    setAutoMergeNotice("");
     try {
       const [singles, albums, artists, allSingles, allAlbums, allArtists] = await Promise.all([
         cmsApi.get(`/releases/duplicates/${qs({ chart_type: "singles" })}`),
@@ -271,8 +327,23 @@ export default function DuplicateReviewPage() {
         ...expandedCandidateGroups(allAlbums, "release").map(g => g.map(r => normaliseRelease(r, "albums"))),
         ...expandedCandidateGroups(allArtists, "artist").map(g => g.map(r => normaliseArtist(r))),
       ];
-      setGroups(consolidateGroups([...serverGroups, ...expandedGroups]));
+      const candidateGroups = consolidateGroups([...serverGroups, ...expandedGroups]);
+      const autoResult = await applySavedMergeRules(candidateGroups);
+      setGroups(autoResult.groups);
+      if (autoResult.mergedCount) {
+        setMergedCount(prev => prev + autoResult.mergedCount);
+        setAutoMergeNotice(
+          `Auto-applied saved merge rule${autoResult.mergedCount === 1 ? "" : "s"} to ${autoResult.mergedCount} record${autoResult.mergedCount === 1 ? "" : "s"}.`
+        );
+      }
+      if (autoResult.failedRankRefresh) {
+        setError("Auto-merge completed, but some locked chart ranks could not be refreshed.");
+      }
+      if (autoResult.error) {
+        setError(`Auto-merge stopped: ${autoResult.error.message}`);
+      }
     } catch(e) { setError(e.message); setGroups([]); }
+    finally { setBusy(null); }
   }, []);
 
   useEffect(() => {
@@ -318,21 +389,7 @@ export default function DuplicateReviewPage() {
     setBusy(key);
     setError("");
     try {
-      const isRelease = keeper._type === "release";
-      // Capture affected scopes BEFORE merging while entries still exist.
-      const affectedScopes = isRelease
-        ? await getAffectedChartScopes(duplicates.map((dup) => dup.id))
-        : [];
-      if (keeper._type === "artist") {
-        await cmsApi.post(`/artists/${keeper.id}/merge/`, {
-          artist_ids: duplicates.map((dup) => dup.id),
-        });
-      } else {
-        for (const dup of duplicates) {
-          await callMergeApi(dup, keeper);
-        }
-      }
-      const rankResult = await rerankAffectedChartScopes(affectedScopes);
+      const rankResult = await performMerge(keeper, duplicates);
       if (rankResult.failedScopes.length) {
         setError("Merge completed, but some locked chart ranks could not be refreshed.");
       }
@@ -387,6 +444,7 @@ export default function DuplicateReviewPage() {
       </div>
 
       {error && <div className="cms-error" style={{ margin: "10px 0" }}>{error}</div>}
+      {autoMergeNotice && <div className="cms-alert info" style={{ margin: "10px 0" }}>{autoMergeNotice}</div>}
       {groups === null && <div className="cms-empty">Scanning for duplicates across songs, albums, and artists…</div>}
 
       {groups !== null && visible.length === 0 && !error && (
