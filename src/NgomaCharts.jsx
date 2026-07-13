@@ -1,9 +1,8 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { API_BASE, resolveMediaUrl } from "./api/config.js";
 import { findArtistProfileInPublicData, getArtistImageUrl, withResolvedArtistImage } from "./utils/artistImages.js";
 import {
-  checkApiStatus, fetchNews, fetchCertifications, fetchChartImageData, fetchAppData,
-  fetchRevision,
+  fetchNews, fetchCertifications, fetchChartImageData, fetchAppData, fetchRevision,
 } from "./api/public.js";
 import {
   releaseTitle, normFt, releaseArtist, cleanArtistDisplay,
@@ -14,7 +13,7 @@ import {
   normArtistKey, artistSetKey, entryKey, sameRelease, normalizeRankedRows,
   mv, resolveMovementFromHistory, mapPublicNews,
 } from "./utils/chartHelpers.js";
-import { publishedMonthOptions, runtimePublicData } from "./utils/publicDataRuntime.js";
+import { normalizePublicPayload, publishedMonthOptions, runtimePublicData } from "./utils/publicDataRuntime.js";
 import {
   BarChart,
   Bar,
@@ -51,7 +50,16 @@ import ReleaseDetailPage from "./pages/ReleaseDetailPage";
 const PUBLIC_DATA = runtimePublicData();
 const MONTH_OPTIONS = publishedMonthOptions(PUBLIC_DATA);
 const MONTHS = MONTH_OPTIONS.map((item) => item.label);
-const FULL = PUBLIC_DATA.full;
+const FULL = PUBLIC_DATA.full || {};
+const DEFAULT_SINGLES_PLATFORM_KEYS = ["APPLE MUSIC","AUDIOMACK","BOOMPLAY","SPOTIFY","YOUTUBE","SHAZAM"];
+const DEFAULT_ALBUM_PLATFORM_KEYS = ["APPLE MUSIC","AUDIOMACK"];
+function replaceArray(target, values = []) {
+  target.splice(0, target.length, ...values);
+}
+function replaceObject(target, source = {}) {
+  Object.keys(target).forEach((key) => delete target[key]);
+  Object.assign(target, source || {});
+}
 // Ensures cover_image (and artist image) URLs are absolute so they load correctly
 // when the frontend is on a different origin (Netlify) from the backend (Railway).
 const CMS_ARTISTS_BY_ID = new Map((PUBLIC_DATA.artists || []).map((artist) => [Number(artist.id), artist]));
@@ -191,6 +199,7 @@ const PUBLIC_METHODOLOGY = (PUBLIC_DATA.methodology || [])[0] || null;
 // ===== Full Top-50 dataset supplied by the Django public API =====
 const CURRENT_MONTH = PUBLIC_DATA.latest_published_month?.label || MONTHS[MONTHS.length - 1];
 const DATA_PERIOD = `${MONTHS[0]} – ${CURRENT_MONTH}`;
+const latestPublishedMonthLabel = () => MONTHS[MONTHS.length - 1] || CURRENT_MONTH;
 const PUBLIC_PLATFORMS = PUBLIC_DATA.platforms || [];
 const chartPlatformKeys = (chartType) => Object.keys(FULL?.[chartType]?.platforms || {}).map((name) => name.toUpperCase());
 const availablePlatformKeys = (chartType, supportField, defaults) => {
@@ -206,8 +215,8 @@ const availablePlatformKeys = (chartType, supportField, defaults) => {
     ...dataKeys,
   ])];
 };
-const S_PLATS = ["Combined", ...availablePlatformKeys("singles", "supports_singles", ["APPLE MUSIC","AUDIOMACK","BOOMPLAY","SPOTIFY","YOUTUBE","SHAZAM"])];
-const A_PLATS = ["Combined", ...availablePlatformKeys("albums", "supports_albums", ["APPLE MUSIC","AUDIOMACK"])];
+const S_PLATS = ["Combined", ...availablePlatformKeys("singles", "supports_singles", DEFAULT_SINGLES_PLATFORM_KEYS)];
+const A_PLATS = ["Combined", ...availablePlatformKeys("albums", "supports_albums", DEFAULT_ALBUM_PLATFORM_KEYS)];
 const KENYAN_CHART = "Kenyan";
 const PLAT_LABEL = PUBLIC_PLATFORMS.reduce((result, item) => ({...result, [item.name.toUpperCase()]: item.name}), {"APPLE MUSIC":"Apple Music","AUDIOMACK":"Audiomack","BOOMPLAY":"Boomplay","SPOTIFY":"Spotify","YOUTUBE":"YouTube","SHAZAM":"Shazam"});
 const PC = PUBLIC_PLATFORMS.reduce((result, item) => ({...result, [item.name]: item.brand_color || item.color, [item.name.toUpperCase()]: item.brand_color || item.color}), {"Apple Music":"#FC3C44","APPLE MUSIC":"#FC3C44","Audiomack":"#F68B1F","AUDIOMACK":"#F68B1F","Boomplay":"#00FFFF","BOOMPLAY":"#00FFFF","Spotify":"#1DB954","SPOTIFY":"#1DB954","YouTube":"#FF0000","YOUTUBE":"#FF0000","Shazam":"#0088FF","SHAZAM":"#0088FF"});
@@ -322,10 +331,10 @@ function rebuildPublicLookups(freshData) {
   });
 }
 
-const rawCombined = (ct, m) => normalizeRankedRows(FULL[ct].combined[m] || []);
-const rawPlatform = (ct, pl, m) => normalizeRankedRows((FULL[ct].platforms[pl] || {})[m] || []);
-const rawKenyanCombined = (ct, m) => normalizeRankedRows((FULL[ct].regions || {}).KE?.[m] || []);
-const rawKenyanArtists = (m) => normalizeRankedRows((FULL.artists?.regions || {}).KE?.[m] || []);
+const rawCombined = (ct, m) => normalizeRankedRows(FULL?.[ct]?.combined?.[m] || []);
+const rawPlatform = (ct, pl, m) => normalizeRankedRows((FULL?.[ct]?.platforms?.[pl] || {})[m] || []);
+const rawKenyanCombined = (ct, m) => normalizeRankedRows((FULL?.[ct]?.regions || {}).KE?.[m] || []);
+const rawKenyanArtists = (m) => normalizeRankedRows((FULL?.artists?.regions || {}).KE?.[m] || []);
 const combinedEntryCache = new Map();
 const kenyanEntryCache = new Map();
 const platformEntryCache = new Map();
@@ -650,12 +659,12 @@ const getArtistSourceCombined = (chartType, monthLabel) => {
   return getCombined(chartType, monthLabel);
 };
 
-const defaultComparisonKey = (chartType, index) => {
-  const entry = getCombined(chartType, CURRENT_MONTH)[index];
+const defaultComparisonKey = (chartType, index, monthLabel = latestPublishedMonthLabel()) => {
+  const entry = getCombined(chartType, monthLabel)[index];
   return entry ? `${entry.title} — ${entry.artist}` : "";
 };
 
-const comparisonDefaultKeys = (chartType, throughMonth = CURRENT_MONTH) => {
+const comparisonDefaultKeys = (chartType, throughMonth = latestPublishedMonthLabel()) => {
   const cutoffIndex = Math.max(0, monthIndex(throughMonth));
   const includedMonths = MONTHS.slice(0, cutoffIndex + 1);
   const groups = new Map();
@@ -717,7 +726,7 @@ const buildCombinedYearEnd = (chartType) => {
 };
 
 const combinedArtistsCache = new Map();
-const buildCombinedArtists = (chartType, throughMonth = CURRENT_MONTH) => {
+const buildCombinedArtists = (chartType, throughMonth = latestPublishedMonthLabel()) => {
   const cacheKey = `${chartType}|${throughMonth}`;
   if (combinedArtistsCache.has(cacheKey)) return combinedArtistsCache.get(cacheKey);
 
@@ -790,7 +799,7 @@ const ARTIST_PLATS = S_PLATS.filter((platform) => platform !== "Combined");
 const artistPlatformSourceCache = new Map();
 const artistChartCache = new Map();
 
-const getArtistPlatformSource = (platform = "Combined", monthLabel = CURRENT_MONTH) => {
+const getArtistPlatformSource = (platform = "Combined", monthLabel = latestPublishedMonthLabel()) => {
   const cacheKey = `${platform}|${monthLabel}`;
   if (artistPlatformSourceCache.has(cacheKey)) return artistPlatformSourceCache.get(cacheKey);
 
@@ -826,7 +835,7 @@ const getArtistPlatformSource = (platform = "Combined", monthLabel = CURRENT_MON
   return rows;
 };
 
-const getArtistPlatformHits = (artistName = "", monthLabel = CURRENT_MONTH) => {
+const getArtistPlatformHits = (artistName = "", monthLabel = latestPublishedMonthLabel()) => {
   const normalized = String(artistName || "").trim().toLowerCase();
   if (!normalized) return [];
   return ARTIST_PLATS.filter((platform) =>
@@ -865,7 +874,7 @@ const embeddedArtistProfileForName = (artistName = "", entries = []) => {
   return fallback;
 };
 
-const aggregateArtistsForMonth = (monthLabel = CURRENT_MONTH, platform = "Combined") => {
+const aggregateArtistsForMonth = (monthLabel = latestPublishedMonthLabel(), platform = "Combined") => {
   const artistMap = new Map();
   const kenyanOnly = platform === KENYAN_CHART;
 
@@ -905,7 +914,7 @@ const aggregateArtistsForMonth = (monthLabel = CURRENT_MONTH, platform = "Combin
     .sort((a, b) => b.p - a.p || b.entryCount - a.entryCount || a.n.localeCompare(b.n));
 };
 
-const buildArtistChart = (monthLabel = CURRENT_MONTH, platform = "Combined") => {
+const buildArtistChart = (monthLabel = latestPublishedMonthLabel(), platform = "Combined") => {
   const cacheKey = `${platform}|${monthLabel}`;
   if (artistChartCache.has(cacheKey)) return artistChartCache.get(cacheKey);
 
@@ -1158,6 +1167,98 @@ const COMBINED_TRENDING = {
   albums: buildCombinedTrending("albums"),
 };
 
+function refreshPlatformLookups() {
+  replaceObject(
+    PLAT_LABEL,
+    PUBLIC_PLATFORMS.reduce((result, item) => ({...result, [item.name.toUpperCase()]: item.name}), {
+      "APPLE MUSIC":"Apple Music",
+      "AUDIOMACK":"Audiomack",
+      "BOOMPLAY":"Boomplay",
+      "SPOTIFY":"Spotify",
+      "YOUTUBE":"YouTube",
+      "SHAZAM":"Shazam",
+    })
+  );
+  replaceObject(
+    PC,
+    PUBLIC_PLATFORMS.reduce((result, item) => ({
+      ...result,
+      [item.name]: item.brand_color || item.color,
+      [item.name.toUpperCase()]: item.brand_color || item.color,
+    }), {
+      "Apple Music":"#FC3C44",
+      "APPLE MUSIC":"#FC3C44",
+      "Audiomack":"#F68B1F",
+      "AUDIOMACK":"#F68B1F",
+      "Boomplay":"#00FFFF",
+      "BOOMPLAY":"#00FFFF",
+      "Spotify":"#1DB954",
+      "SPOTIFY":"#1DB954",
+      "YouTube":"#FF0000",
+      "YOUTUBE":"#FF0000",
+      "Shazam":"#0088FF",
+      "SHAZAM":"#0088FF",
+    })
+  );
+}
+
+function clearDerivedPublicCaches() {
+  coverImageCache.clear();
+  combinedEntryCache.clear();
+  kenyanEntryCache.clear();
+  platformEntryCache.clear();
+  rawPlatformIndexCache.clear();
+  combinedArtistsCache.clear();
+  artistPlatformSourceCache.clear();
+  artistChartCache.clear();
+}
+
+function rebuildPublicSummaries() {
+  COMBINED_YEAR_END.singles = buildCombinedYearEnd("singles");
+  COMBINED_YEAR_END.albums = buildCombinedYearEnd("albums");
+  COMBINED_ARTISTS.singles = buildCombinedArtists("singles");
+  COMBINED_ARTISTS.albums = buildCombinedArtists("albums");
+  COMBINED_ARTISTS.artists = buildCombinedArtists("artists");
+  COMBINED_TRENDING.singles = buildCombinedTrending("singles");
+  COMBINED_TRENDING.albums = buildCombinedTrending("albums");
+}
+
+function applyRuntimePublicData(rawPayload) {
+  const freshData = normalizePublicPayload(rawPayload);
+  const monthOptions = publishedMonthOptions(freshData);
+
+  replaceArray(MONTH_OPTIONS, monthOptions);
+  replaceArray(MONTHS, monthOptions.map((item) => item.label));
+  replaceObject(FULL, freshData.full || {});
+  replaceArray(PUBLIC_PLATFORMS, freshData.platforms || []);
+  replaceObject(SITE_SETTINGS, freshData.settings || {});
+  replaceArray(S_PLATS, ["Combined", ...availablePlatformKeys("singles", "supports_singles", DEFAULT_SINGLES_PLATFORM_KEYS)]);
+  replaceArray(A_PLATS, ["Combined", ...availablePlatformKeys("albums", "supports_albums", DEFAULT_ALBUM_PLATFORM_KEYS)]);
+  replaceArray(ARTIST_PLATS, S_PLATS.filter((platform) => platform !== "Combined"));
+  refreshPlatformLookups();
+
+  replaceObject(PUBLIC_DATA, {
+    ...freshData,
+    full: FULL,
+    month_options: MONTH_OPTIONS,
+    months: MONTHS,
+    platforms: PUBLIC_PLATFORMS,
+    settings: SITE_SETTINGS,
+  });
+  rebuildPublicLookups(PUBLIC_DATA);
+  clearDerivedPublicCaches();
+  rebuildPublicSummaries();
+
+  if (typeof window !== "undefined") {
+    window.__NGOMA_PUBLIC_DATA__ = PUBLIC_DATA;
+    window.__NGOMA_PUBLIC_REVISION__ = String(PUBLIC_DATA.revision || "");
+    window.__NGOMA_PUBLIC_DATA_STALE__ = false;
+    window.dispatchEvent(new Event("ngoma-public-data-ready"));
+  }
+
+  return PUBLIC_DATA;
+}
+
 function AnalyticsDeepSection({ label, isMobile, children }) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -1364,7 +1465,8 @@ export default function NgomaCharts(){
   const [rankJourneyView,setRankJourneyView]=useState("table");
   const [viewModes,setViewModes]=useState({});
   const [loaded,setLd]=useState(false);
-  const [liveStatus, setLiveStatus] = useState("checking"); // "checking" | "live" | "degraded"
+  const [dataRevision, setDataRevision] = useState(() => String(PUBLIC_DATA.revision || ""));
+  const [liveStatus, setLiveStatus] = useState("checking"); // "checking" | "live" | "degraded" | "syncing"
   const [apiChecked, setApiChecked] = useState(false); // true once the API ping has resolved
   const [liveChartEntries, setLiveChartEntries] = useState([]);
   const [liveChartMeta, setLiveChartMeta] = useState(null);
@@ -1378,6 +1480,7 @@ export default function NgomaCharts(){
   const detailOpenRef = useRef(false);
   const detailReturnScrollRef = useRef(0);
   const publicHeaderRef = useRef(null);
+  const publicDataSyncRef = useRef(null);
   const [publicHeaderHeight, setPublicHeaderHeight] = useState(0);
   const isDark = theme === "dark";
   const themeColors = isDark
@@ -1496,15 +1599,77 @@ export default function NgomaCharts(){
   const platList = isArtists
     ? ["Combined", KENYAN_CHART, ...S_PLATS.slice(1)]
     : (isSingles ? ["Combined", KENYAN_CHART, ...S_PLATS.slice(1)] : ["Combined", KENYAN_CHART, ...A_PLATS.slice(1)]);
+  const platListKey = platList.join("|");
   const tp = isArtists ? ARTIST_PLATS.length : (isSingles ? S_PLATS.length - 1 : A_PLATS.length - 1);
 
   useEffect(() => {
-    setLiveStatus("checking");
-    checkApiStatus()
-      .then(() => setLiveStatus("live"))
-      .catch(() => setLiveStatus("degraded"))
-      .finally(() => setApiChecked(true));
+    if (!platList.includes(plat)) setPlat("Combined");
+  }, [plat, platListKey, dataRevision]);
+
+  const applyFreshPublicData = useCallback((payload) => {
+    const previousLatest = latestPublishedMonthLabel();
+    const freshData = applyRuntimePublicData(payload);
+    const nextRevision = String(freshData.revision || Date.now());
+    const nextLatest = latestPublishedMonthLabel();
+    const keepValidMonth = (current) => (
+      !MONTHS.includes(current) || current === previousLatest ? nextLatest : current
+    );
+
+    _syncedRevision = nextRevision;
+    setMonth(keepValidMonth);
+    setAnMonth(keepValidMonth);
+    setArtistMonth(keepValidMonth);
+    setLiveNews(freshData.news?.length ? mapPublicNews(freshData.news) : null);
+    setLiveCerts(mapPublicCertifications(freshData.certifications || []));
+    setLiveChartEntries([]);
+    setLiveChartMeta(null);
+    setDataRevision(`${nextRevision}:${Date.now()}`);
+    setLiveStatus("live");
+    setApiChecked(true);
+    return nextRevision;
   }, []);
+
+  const syncLatestPublicData = useCallback((forcePayload = false) => {
+    if (typeof document !== "undefined" && document.hidden) return Promise.resolve(false);
+    if (publicDataSyncRef.current) return publicDataSyncRef.current;
+
+    const run = fetchRevision()
+      .then((rev) => {
+        const latest = String(rev?.revision || rev?.stamp || rev || "");
+        const staleStartupData = Boolean(window.__NGOMA_PUBLIC_DATA_STALE__);
+        setApiChecked(true);
+
+        if (!latest) {
+          setLiveStatus("degraded");
+          return false;
+        }
+        if (latest === _syncedRevision && !forcePayload && !staleStartupData) {
+          setLiveStatus("live");
+          return false;
+        }
+
+        setLiveStatus("syncing");
+        return fetchAppData(undefined, 30_000).then((payload) => {
+          applyFreshPublicData(payload);
+          return true;
+        });
+      })
+      .catch(() => {
+        setApiChecked(true);
+        setLiveStatus("degraded");
+        return false;
+      });
+
+    publicDataSyncRef.current = run.finally(() => {
+      publicDataSyncRef.current = null;
+    });
+    return publicDataSyncRef.current;
+  }, [applyFreshPublicData]);
+
+  useEffect(() => {
+    setLiveStatus("checking");
+    syncLatestPublicData(Boolean(window.__NGOMA_PUBLIC_DATA_STALE__));
+  }, [syncLatestPublicData]);
 
   // Three-layer sync — keeps the Kenyan Top 50 current whenever artist country
   // data changes in the CMS, without requiring a page reload:
@@ -1514,13 +1679,13 @@ export default function NgomaCharts(){
   //                      instantly, so an artist country change propagates in < 1 s.
   //  2. focus event    — catches the case where the user switches back to this tab
   //                      after making CMS edits (no localStorage cross-tab needed).
-  //  3. 60 s poll      — fallback for same-tab scenarios or any other data change.
+  //  3. 15 s poll      — fallback for same-tab scenarios or any other data change.
   //
   // All three paths call doRevisionSync, which:
   //   - skips when the tab is hidden (interval fires in the background)
   //   - fetches the lightweight revision endpoint first
-  //   - if revision changed: reloads the backend-powered app so module-level
-  //     chart indexes and the latest published month are rebuilt atomically
+  //   - if revision changed: fetches app-data and rebuilds the module-level
+  //     chart indexes in place
   useEffect(() => {
     const doRevisionSync = () => {
       if (document.hidden) return; // tab is backgrounded — skip; focus event handles return
@@ -1529,15 +1694,17 @@ export default function NgomaCharts(){
           const latest = String(rev?.revision || rev?.stamp || rev || "");
           if (!latest || latest === _syncedRevision) return;
           _syncedRevision = latest;
-          window.location.reload();
+          syncLatestPublicData(true);
         })
         .catch(() => {});
     };
 
     // CMS mutation path: debounce multi-step saves, ask the lightweight
-    // revision endpoint whether public data changed, then reload once.
-    // Debounced 500 ms — a cascade of N release PATCHes fires N events; we want one fetch.
+    // revision endpoint whether public data changed, then swap app-data once.
+    // Debounced 150 ms because CMS saves often fire several mutation events.
+    // The handler below updates runtime data in place; it does not reload the document.
     let _cmsTimer = null;
+    let _cmsChannel = null;
     const onCmsChange = () => {
       clearTimeout(_cmsTimer);
       _cmsTimer = setTimeout(() => {
@@ -1547,28 +1714,43 @@ export default function NgomaCharts(){
             const latest = String(rev?.revision || rev?.stamp || rev || "");
             if (!latest || latest === _syncedRevision) return;
             _syncedRevision = latest;
-            window.location.reload();
+            syncLatestPublicData(true);
           })
           .catch(() => {});
-      }, 500);
+      }, 150);
     };
 
     const onStorageChange = (e) => {
       if (e.key === "ngoma-cms-revision") onCmsChange();
     };
+    const onVisibilityChange = () => {
+      if (!document.hidden) syncLatestPublicData(Boolean(window.__NGOMA_PUBLIC_DATA_STALE__));
+    };
+
+    try {
+      _cmsChannel = new BroadcastChannel("ngoma-cms-sync");
+      _cmsChannel.onmessage = (event) => {
+        if (event?.data?.type === "cms-change") onCmsChange();
+      };
+    } catch {}
 
     window.addEventListener("focus", doRevisionSync);
+    window.addEventListener("online", doRevisionSync);
     window.addEventListener("storage", onStorageChange);
     window.addEventListener("ngoma-cms-change", onCmsChange);
-    const pollId = setInterval(doRevisionSync, 60_000);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    const pollId = setInterval(() => syncLatestPublicData(Boolean(window.__NGOMA_PUBLIC_DATA_STALE__)), 15_000);
     return () => {
       window.removeEventListener("focus", doRevisionSync);
+      window.removeEventListener("online", doRevisionSync);
       window.removeEventListener("storage", onStorageChange);
       window.removeEventListener("ngoma-cms-change", onCmsChange);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       clearInterval(pollId);
       clearTimeout(_cmsTimer);
+      if (_cmsChannel) _cmsChannel.close();
     };
-  }, []);
+  }, [syncLatestPublicData]);
 
   useEffect(() => {
     fetchNews()
@@ -1787,7 +1969,7 @@ export default function NgomaCharts(){
       });
 
     return () => controller.abort();
-  }, [releaseCt, month, plat, tp, isArtists]);
+  }, [releaseCt, month, plat, tp, isArtists, dataRevision]);
   useEffect(()=>{setTimeout(()=>setLd(true),100);},[]);
 
   const [vw,setVw]=useState(typeof window!=="undefined"?window.innerWidth:1200);
@@ -1908,13 +2090,13 @@ const top = data[0];
     (PUBLIC_DATA.releases||[]).filter(r=>r.chart_type==="singles").forEach(r=>{
       const k=`${String(r.title||"").trim().toLowerCase()}|||${String(r.primary_artist||r.artist||"").trim().toLowerCase()}`;
       if(!map.has(k)){
-        const merged={...r,title:r.title,artist:r.primary_artist||r.artist||"",_type:"single",_months:0,_bestRank:999,_bestMonth:CURRENT_MONTH};
+        const merged={...r,title:r.title,artist:r.primary_artist||r.artist||"",_type:"single",_months:0,_bestRank:999,_bestMonth:latestPublishedMonthLabel()};
         merged._searchText=[r.title,r.primary_artist,r.artist,r.featured_artists,r.isrc,r.upc,r.label,r.canonical_title,r.songwriters,r.producers].filter(Boolean).join(" ").toLowerCase();
         map.set(k,merged);
       }
     });
     return [...map.values()].sort((a,b)=>a._bestRank-b._bestRank);
-  },[]);
+  },[dataRevision]);
   const albumSearchIndex=useMemo(()=>{
     const map=new Map();
     MONTHS.forEach(m=>{
@@ -1932,13 +2114,13 @@ const top = data[0];
     (PUBLIC_DATA.releases||[]).filter(r=>r.chart_type==="albums").forEach(r=>{
       const k=`${String(r.title||"").trim().toLowerCase()}|||${String(r.primary_artist||r.artist||"").trim().toLowerCase()}`;
       if(!map.has(k)){
-        const merged={...r,title:r.title,artist:r.primary_artist||r.artist||"",_type:"album",_months:0,_bestRank:999,_bestMonth:CURRENT_MONTH};
+        const merged={...r,title:r.title,artist:r.primary_artist||r.artist||"",_type:"album",_months:0,_bestRank:999,_bestMonth:latestPublishedMonthLabel()};
         merged._searchText=[r.title,r.primary_artist,r.artist,r.featured_artists,r.isrc,r.upc,r.label,r.canonical_title].filter(Boolean).join(" ").toLowerCase();
         map.set(k,merged);
       }
     });
     return [...map.values()].sort((a,b)=>a._bestRank-b._bestRank);
-  },[]);
+  },[dataRevision]);
   const sResults=useMemo(()=>{
     const q=srch.trim().toLowerCase();
     if(q.length<2) return null;
@@ -1963,7 +2145,7 @@ const top = data[0];
     });
     const certs=Array.from(certsByKey.values()).slice(0,4);
     return {songs,albums,artists,news:newsItems,certs};
-  },[srch,songSearchIndex,albumSearchIndex,liveNews,liveCerts]);
+  },[srch,songSearchIndex,albumSearchIndex,liveNews,liveCerts,dataRevision]);
   const sFlatResults=useMemo(()=>{
     if(!sResults) return [];
     return [
@@ -2558,7 +2740,7 @@ const top = data[0];
       });
     });
     return [...seen.values()].sort((a, b) => num(b.pts) - num(a.pts));
-  }, [ct, currentRecordsCoverageTarget, recordsActive, isArtists]);
+  }, [ct, currentRecordsCoverageTarget, recordsActive, isArtists, dataRevision]);
 
   const navTo=p=>{
     const nextPage=PUBLIC_PAGE_ROUTES[p]?p:"charts";
@@ -2747,7 +2929,7 @@ const top = data[0];
     const map={};
     analysisMonths.forEach(m=>analyticsRowsFor(m).forEach(e=>{const k=e.title+" — "+e.artist;if(!map[k])map[k]={key:k,title:e.title,artist:e.artist,primary_artist:e.primary_artist||e.artist,featured_artists:e.featured_artists||"",is_artist_entry:e.is_artist_entry,eKey:entryKey(e)};}));
     return Object.values(map).sort((a,b)=>a.title.localeCompare(b.title));
-  },[analyticsActive,ct,anMonth]);
+  },[analyticsActive,ct,anMonth,dataRevision]);
   // Build a full profile for a song key
   const songProfile=(key)=>{
     const meta=allTitles.find(t=>t.key===key);
@@ -2789,21 +2971,21 @@ const top = data[0];
     const cd=analyticsRowsFor(anMonth);
     if(cd[0])setCmpS1(cd[0].title+" — "+cd[0].artist);
     if(cd[1])setCmpS2(cd[1].title+" — "+cd[1].artist);
-  },[analyticsActive,ct,anMonth]);
+  },[analyticsActive,ct,anMonth,dataRevision]);
   useEffect(()=>{
     if(!analyticsActive||!allTitles.length)return;
     const available = new Set(allTitles.map((item) => item.key));
     const defaults = comparisonDefaultKeys(ct, anMonth).filter((key) => available.has(key));
     if(defaults[0])setCmpS1(defaults[0]);
     if(defaults[1]||defaults[0])setCmpS2(defaults[1]||defaults[0]);
-  },[analyticsActive,ct,anMonth,allTitles]);
+  },[analyticsActive,ct,anMonth,allTitles,dataRevision]);
   const [sp1,sp2]=useMemo(()=>{
     if(!analyticsActive)return [null,null];
     return [
       songProfile(cmpS1)||songProfile(allTitles[0]?.key),
       songProfile(cmpS2)||songProfile(allTitles[1]?.key),
     ];
-  },[analyticsActive,ct,cmpS1,cmpS2,allTitles]);
+  },[analyticsActive,ct,cmpS1,cmpS2,allTitles,dataRevision]);
   const songMonthlyData=analyticsActive?analysisMonths.map(m=>({month:m.split(" ")[0].slice(0,3),A:sp1?.monthly[m]?.pts||0,B:sp2?.monthly[m]?.pts||0})):[];
   const songRankData=analyticsActive?analysisMonths.map(m=>({month:m.split(" ")[0].slice(0,3),A:sp1?.monthly[m]?.rank||null,B:sp2?.monthly[m]?.rank||null})):[];
 
@@ -3124,19 +3306,42 @@ const top = data[0];
     ...(PUBLIC_DATA.page_content?.[page] || []),
     ...(page === "charts" ? (PUBLIC_DATA.page_content?.home || []) : []),
   ];
+  const liveIndicatorIsLive = liveStatus === "live";
+  const liveIndicatorLabel = liveIndicatorIsLive
+    ? "Live data connected"
+    : liveStatus === "syncing"
+      ? "Checking for live data"
+      : "Live data not connected; showing loaded data";
 
   return(
     <div className="ngoma-app-shell" data-theme={theme} style={{fontFamily:SF,background:themeColors.page,color:themeColors.text,minHeight:"100vh",width:"100%",overflowX:"clip",isolation:"isolate"}}>
       {/* EXPERIMENT: living artist-portrait backdrop, mounted once so it shows
           through every page's transparent gaps rather than being hero-only. */}
       <ArtistAmbientField theme={theme} isMobile={isMobile} isTablet={isTablet} />
-      {apiChecked && liveStatus === "degraded" && (
-        <div style={{
-          position:"fixed",bottom:"14px",right:"14px",zIndex:9999,pointerEvents:"none",
-          background:"rgba(20,20,20,0.82)",backdropFilter:"blur(6px)",color:"#ccc",
-          fontSize:"10px",letterSpacing:"0.4px",padding:"5px 11px",borderRadius:"999px",
-        }}>
-          Live refresh unavailable · showing the loaded API response
+      {apiChecked && (
+        <div
+          title={liveIndicatorLabel}
+          aria-label={liveIndicatorLabel}
+          role="status"
+          style={{
+            position:"fixed",bottom:"14px",right:"14px",zIndex:9999,
+            width:"18px",height:"18px",borderRadius:"999px",
+            display:"grid",placeItems:"center",fontSize:0,color:"transparent",overflow:"hidden",
+            background:isDark?"rgba(15,17,16,0.58)":"rgba(255,255,255,0.72)",
+            border:`1px solid ${isDark?"rgba(246,243,234,0.18)":"rgba(26,26,26,0.12)"}`,
+            boxShadow:"0 6px 18px rgba(0,0,0,0.12)",backdropFilter:"blur(6px)",
+          }}
+        >
+          <span
+            aria-hidden="true"
+            style={{
+              width:"8px",height:"8px",borderRadius:"50%",
+              background:liveIndicatorIsLive?"#2DB04A":"#9AA19A",
+              boxShadow:liveIndicatorIsLive
+                ? "0 0 0 3px rgba(45,176,74,0.18), 0 0 10px rgba(45,176,74,0.48)"
+                : "0 0 0 3px rgba(154,161,154,0.18)",
+            }}
+          />
         </div>
       )}
       <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700;800;900&family=Instrument+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>

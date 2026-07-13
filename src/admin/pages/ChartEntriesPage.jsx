@@ -582,20 +582,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
       // Cascade country change to every song/album where this artist is the
       // primary artist — keeps release.country_code (and country name) in sync so
       // the release detail and chart eligibility are consistent across the system.
-      const oldCode = (editArtist.data?.country_code || "").toUpperCase();
-      const newCode = (formData.country_code || "").toUpperCase();
-      if (newCode && oldCode !== newCode) {
-        try {
-          const artistName = primaryArtistName(editArtist.data?.name || "").toLowerCase();
-          const relData = await cmsApi.get(`/releases/?primary_artist=${editArtist.id}&page_size=500`);
-          const releases = getResults(relData).filter(r =>
-            primaryArtistName(r.artist_display || r.primary_artist || "").toLowerCase() === artistName
-          );
-          const updates = { country_code: newCode };
-          if (formData.country && formData.country.trim()) updates.country = formData.country.trim();
-          await Promise.all(releases.map(r => cmsApi.patch(`/releases/${r.id}/`, updates)));
-        } catch { /* best-effort */ }
-      }
+      // Backend cascade handles linked releases; avoid slow client-side fan-out PATCHes.
 
       setEditArtist(null);
       refreshPublicPayloadInBackground();

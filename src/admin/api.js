@@ -23,6 +23,12 @@ let pendingPublicNotifyStamp = null;
 const _getCache = new Map(); // path → { data, ts }
 const GET_CACHE_TTL = 60_000; // 60 seconds — safe because invalidation is targeted
 
+function clearMatchingEntries(map, prefix) {
+  for (const key of map.keys()) {
+    if (key.startsWith(prefix)) map.delete(key);
+  }
+}
+
 function getCached(path) {
   const entry = _getCache.get(path);
   if (entry && Date.now() - entry.ts < GET_CACHE_TTL) return entry.data;
@@ -37,10 +43,13 @@ function setCached(path, data) {
 // Clears cache entries whose path starts with `prefix`, or the entire
 // cache if prefix is omitted.
 export function clearCmsCache(prefix) {
-  if (!prefix) { _getCache.clear(); return; }
-  for (const key of _getCache.keys()) {
-    if (key.startsWith(prefix)) _getCache.delete(key);
+  if (!prefix) {
+    _getCache.clear();
+    _inFlight.clear();
+    return;
   }
+  clearMatchingEntries(_getCache, prefix);
+  clearMatchingEntries(_inFlight, prefix);
 }
 
 // Extract the first path segment so mutations only invalidate their own resource.
@@ -50,6 +59,24 @@ export function clearCmsCache(prefix) {
 function mutationPrefix(path) {
   const m = path.match(/^(\/[^/?]+\/)/);
   return m ? m[1] : null;
+}
+
+function mutationTouchesSharedPublicData(path) {
+  const cleanPath = String(path || "").split("?")[0].toLowerCase();
+  return (
+    cleanPath.startsWith("/charts/") ||
+    cleanPath.startsWith("/chart-entries/") ||
+    cleanPath.startsWith("/regional-chart-entries/") ||
+    cleanPath.includes("/hard_delete/") ||
+    cleanPath.includes("/merge/") ||
+    cleanPath.includes("/harmonize/") ||
+    cleanPath.includes("/recalculate") ||
+    cleanPath.includes("/reanaly")
+  );
+}
+
+function mutationInvalidationPrefix(path) {
+  return mutationTouchesSharedPublicData(path) ? null : mutationPrefix(path);
 }
 
 export function notifyPublicAppChanged() {
@@ -71,7 +98,7 @@ export function notifyPublicAppChanged() {
     } catch {}
   };
   clearTimeout(publicNotifyTimer);
-  publicNotifyTimer = setTimeout(emit, 400);
+  publicNotifyTimer = setTimeout(emit, 120);
 }
 
 export function notifyPublicAppChangedNow() {
@@ -236,9 +263,11 @@ async function request(path, options = {}) {
     if (!isMutation && !isAuth) {
       setCached(path, data);
     } else if (isMutation) {
-      clearCmsCache(mutationPrefix(path)); // only flush the affected resource
-      // Tell any open public app tab to refetch/reload immediately after a CMS save.
-      notifyPublicAppChanged();
+      const sharedPublicMutation = mutationTouchesSharedPublicData(path);
+      clearCmsCache(mutationInvalidationPrefix(path));
+      // Tell any open public app tab to refetch immediately after the backend confirms the save.
+      if (sharedPublicMutation) notifyPublicAppChangedNow();
+      else notifyPublicAppChanged();
     }
 
     return data;
