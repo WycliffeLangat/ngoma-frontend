@@ -98,10 +98,67 @@ const normalizeArtist = (artist) => withResolvedArtistImage(artist || {}, { name
 const PUBLIC_RELEASES_BY_ID = new Map((PUBLIC_DATA.releases || []).map((release) => [Number(release.id), normalizeRelease(release)]));
 // Fallback index by normalised title — used when chart entries lack release_id.
 const PUBLIC_RELEASES_BY_TITLE = new Map();
-(PUBLIC_DATA.releases || []).forEach((release) => {
-  const key = String(release.title || "").trim().toLowerCase();
-  if (key && !PUBLIC_RELEASES_BY_TITLE.has(key)) PUBLIC_RELEASES_BY_TITLE.set(key, normalizeRelease(release));
-});
+const releaseTitleKey = (item = {}) => String(item.t || item.title || "").trim().toLowerCase();
+const primaryReleaseArtist = (item = {}) =>
+  item.primary_artist_credit ||
+  item.primary_artist ||
+  item.pa ||
+  profileNames(item.primary_artists)[0] ||
+  item.artist ||
+  item.a ||
+  "";
+const primaryOnlyReleaseKey = (item = {}) => {
+  const title = releaseTitleKey(item);
+  const artist = normArtistKey(primaryReleaseArtist(item));
+  return title && artist ? `${title}|||${artist}` : "";
+};
+const releaseLookupKey = (release = {}) =>
+  entryKey({
+    ...release,
+    t: release.title || release.t,
+    title: release.title || release.t,
+    artist_credit: release.artist_credit || release.artist_display || "",
+    a: release.a || release.artist || "",
+    featured_artists: release.featured_artist_credit || release.featured_artists || release.fa || "",
+  });
+const entryPrimaryFallbackKey = (entry = {}) => {
+  const fallback = primaryOnlyReleaseKey(entry);
+  return fallback && entryKey(entry) === fallback ? fallback : "";
+};
+const rememberReleaseTitle = (release) => {
+  const key = releaseTitleKey(release);
+  if (!key) return;
+  const existing = PUBLIC_RELEASES_BY_TITLE.get(key);
+  if (existing && Number(existing.id) !== Number(release.id)) {
+    PUBLIC_RELEASES_BY_TITLE.set(key, null);
+    return;
+  }
+  if (!PUBLIC_RELEASES_BY_TITLE.has(key)) PUBLIC_RELEASES_BY_TITLE.set(key, release);
+};
+const releaseMatchesEntryCredit = (release, entry) => {
+  if (!release) return false;
+  const releaseKey = releaseLookupKey(release);
+  const key = entryKey(entry);
+  const fallbackKey = entryPrimaryFallbackKey(entry);
+  return releaseKey === key || (fallbackKey && releaseKey === fallbackKey);
+};
+const lookupReleaseForEntry = (entry = {}) => {
+  const id = Number(entry.release_id || entry.releaseId || entry.release || entry.release_pk);
+  if (Number.isFinite(id) && id > 0) {
+    const byId = PUBLIC_RELEASES_BY_ID.get(id);
+    if (byId) return byId;
+  }
+  const exact = PUBLIC_RELEASES_BY_KEY.get(entryKey(entry));
+  if (exact) return exact;
+  const fallbackKey = entryPrimaryFallbackKey(entry);
+  if (fallbackKey) {
+    const fallback = PUBLIC_RELEASES_BY_KEY.get(fallbackKey);
+    if (fallback) return fallback;
+  }
+  const titleFallback = PUBLIC_RELEASES_BY_TITLE.get(releaseTitleKey(entry));
+  return releaseMatchesEntryCredit(titleFallback, entry) ? titleFallback : null;
+};
+(PUBLIC_DATA.releases || []).forEach((release) => rememberReleaseTitle(normalizeRelease(release)));
 const PUBLIC_ARTISTS_BY_NAME = new Map();
 (PUBLIC_DATA.artists || []).forEach((artist) => {
   const normalizedArtist = normalizeArtist(artist);
@@ -216,18 +273,22 @@ const CountryBadge = ({ artist, item, compact = false, style = {} }) => {
 // Helpers — return entries from FULL with proper month-to-month chart history
 const monthIndex = m => MONTHS.indexOf(m);
 
-// Precise CMS release lookup keyed by title + full artist set.
-// Stores each release under BOTH its full-artist-set key and a primary-only
-// fallback key so chart entries with extra/different featured credits still match.
+// Precise CMS release lookup keyed by title + full artist set. Primary-only
+// fallback is kept only for releases that do not introduce additional artists.
 const PUBLIC_RELEASES_BY_KEY = new Map();
+const rememberReleaseLookup = (release) => {
+  const fullKey = releaseLookupKey(release);
+  if (fullKey && fullKey !== "|||" && !PUBLIC_RELEASES_BY_KEY.has(fullKey)) PUBLIC_RELEASES_BY_KEY.set(fullKey, release);
+  const primKey = primaryOnlyReleaseKey(release);
+  // Primary-only fallback is safe only for releases whose full credit is also
+  // primary-only. It must not collapse a same-title collaboration/remix into
+  // the solo version.
+  if (primKey && primKey !== fullKey) return;
+  if (primKey && primKey !== "|||" && !PUBLIC_RELEASES_BY_KEY.has(primKey)) PUBLIC_RELEASES_BY_KEY.set(primKey, release);
+};
 (PUBLIC_DATA.releases || []).forEach((release) => {
   const nr = normalizeRelease(release);
-  const featured = nr.featured_artists || nr.featured_artist_credit || "";
-  const fullKey = entryKey({ t: nr.title, a: nr.primary_artist || nr.artist || "", fa: featured });
-  if (fullKey && fullKey !== "|||" && !PUBLIC_RELEASES_BY_KEY.has(fullKey)) PUBLIC_RELEASES_BY_KEY.set(fullKey, nr);
-  // Primary-only fallback: matches chart entries that don't list the same features as the CMS record
-  const primKey = `${String(nr.title || "").trim().toLowerCase()}|||${normArtistKey(nr.primary_artist || nr.artist || "")}`;
-  if (primKey && primKey !== "|||" && !PUBLIC_RELEASES_BY_KEY.has(primKey)) PUBLIC_RELEASES_BY_KEY.set(primKey, nr);
+  rememberReleaseLookup(nr);
 });
 
 // Rebuilds all module-scope release/artist lookup maps from fresh CMS data so that
@@ -243,11 +304,7 @@ function rebuildPublicLookups(freshData) {
   releases.forEach((release) => PUBLIC_RELEASES_BY_ID.set(Number(release.id), normalizeRelease(release)));
 
   PUBLIC_RELEASES_BY_TITLE.clear();
-  releases.forEach((release) => {
-    const nr = normalizeRelease(release);
-    const key = String(nr.title || "").trim().toLowerCase();
-    if (key && !PUBLIC_RELEASES_BY_TITLE.has(key)) PUBLIC_RELEASES_BY_TITLE.set(key, nr);
-  });
+  releases.forEach((release) => rememberReleaseTitle(normalizeRelease(release)));
 
   PUBLIC_ARTISTS_BY_NAME.clear();
   artists.forEach((artist) => {
@@ -261,11 +318,7 @@ function rebuildPublicLookups(freshData) {
   PUBLIC_RELEASES_BY_KEY.clear();
   releases.forEach((release) => {
     const nr = normalizeRelease(release);
-    const featured = nr.featured_artists || nr.featured_artist_credit || "";
-    const fullKey = entryKey({ t: nr.title, a: nr.primary_artist || nr.artist || "", fa: featured });
-    if (fullKey && fullKey !== "|||" && !PUBLIC_RELEASES_BY_KEY.has(fullKey)) PUBLIC_RELEASES_BY_KEY.set(fullKey, nr);
-    const primKey = `${String(nr.title || "").trim().toLowerCase()}|||${normArtistKey(nr.primary_artist || nr.artist || "")}`;
-    if (primKey && primKey !== "|||" && !PUBLIC_RELEASES_BY_KEY.has(primKey)) PUBLIC_RELEASES_BY_KEY.set(primKey, nr);
+    rememberReleaseLookup(nr);
   });
 }
 
@@ -478,12 +531,7 @@ function enrichChartEntries(entries, getRawEntries, currentMonth, totalPlatforms
       ? Number(String(e.pl).split("/")[0]) || undefined
       : undefined;
 
-    const releaseDetails =
-      PUBLIC_RELEASES_BY_ID.get(Number(e.release_id)) ||
-      PUBLIC_RELEASES_BY_KEY.get(entryKey(e)) ||
-      PUBLIC_RELEASES_BY_KEY.get(`${String(e.t || "").trim().toLowerCase()}|||${normArtistKey(e.primary_artist || e.a || e.artist || "")}`) ||
-      PUBLIC_RELEASES_BY_TITLE.get(String(e.t || "").trim().toLowerCase()) ||
-      {};
+    const releaseDetails = lookupReleaseForEntry(e) || {};
     const primaryArtists = releaseDetails.primary_artists?.length
       ? releaseDetails.primary_artists
       : (e.primary_artists || []);
@@ -1567,40 +1615,53 @@ export default function NgomaCharts(){
           const movementType = String(entry.movement || "").toLowerCase();
           const fallbackIsNew = movementType === "new";
           const fallbackIsReentry = movementType === "reentry" || movementType === "re-entry" || movementType === "re";
-          const movementKey = entryKey({
+          const movementEntry = {
             t: entry.title,
-            a: entry.primary_artist_credit || entry.primary_artist || entry.artist || "",
-            fa: entry.featured_artists || "",
-          });
+            title: entry.title,
+            artist_credit: entry.artist_credit || entry.artist_display || entry.artist || "",
+            a: entry.artist_credit || entry.artist || "",
+            primary_artist_credit: entry.primary_artist_credit || entry.primary_artist || "",
+            primary_artist: entry.primary_artist || "",
+            featured_artists: entry.featured_artist_credit || entry.featured_artists || "",
+            primary_artists: entry.primary_artists || [],
+            featured_artist_profiles: entry.featured_artist_profiles || [],
+          };
+          const movementKey = entryKey(movementEntry);
           const movementReleaseId = extractReleaseId(entry);
           const fallbackKey = movementFallbackKey({
             title: entry.title,
             primary_artist: entry.primary_artist_credit || entry.primary_artist || entry.artist || "",
           });
-          const linkedRelease =
-            PUBLIC_RELEASES_BY_ID.get(Number(movementReleaseId)) ||
-            PUBLIC_RELEASES_BY_KEY.get(movementKey) ||
-            PUBLIC_RELEASES_BY_KEY.get(fallbackKey) ||
-            PUBLIC_RELEASES_BY_TITLE.get(String(entry.title || "").trim().toLowerCase()) ||
-            null;
+          const safeFallbackKey = entryPrimaryFallbackKey(movementEntry) ? fallbackKey : "";
+          const linkedRelease = lookupReleaseForEntry({
+            ...entry,
+            t: entry.title,
+            title: entry.title,
+            release_id: movementReleaseId || entry.release_id,
+            artist_credit: entry.artist_credit || entry.artist_display || entry.artist || "",
+            a: entry.artist_credit || entry.artist || "",
+            primary_artist_credit: entry.primary_artist_credit || entry.primary_artist || "",
+            primary_artist: entry.primary_artist || "",
+            featured_artists: entry.featured_artist_credit || entry.featured_artists || "",
+          }) || null;
           const resolvedReleaseId = movementReleaseId || extractReleaseId(linkedRelease);
           const matchedPrior = movementHistory
             ? (
                 matchesHistory(movementKey, resolvedReleaseId, movementHistory.priorKeys, movementHistory.priorIds) ||
-                movementHistory.priorFallbackKeys.has(fallbackKey)
+                (safeFallbackKey && movementHistory.priorFallbackKeys.has(safeFallbackKey))
               )
             : false;
           const matchedPrevious = movementHistory
             ? (
                 matchesHistory(movementKey, resolvedReleaseId, movementHistory.previousKeys, movementHistory.previousIds) ||
-                movementHistory.previousFallbackKeys.has(fallbackKey)
+                (safeFallbackKey && movementHistory.previousFallbackKeys.has(safeFallbackKey))
               )
             : false;
           const previousRankFromHistory = movementHistory
             ? (
                 movementHistory.previousRanksById.get(resolvedReleaseId) ||
                 movementHistory.previousRanksByKey.get(movementKey) ||
-                movementHistory.previousRanksByFallback.get(fallbackKey) ||
+                (safeFallbackKey && movementHistory.previousRanksByFallback.get(safeFallbackKey)) ||
                 null
               )
             : null;
@@ -1616,7 +1677,7 @@ export default function NgomaCharts(){
           const matchedCurrent = movementHistory
             ? (
                 matchesHistory(movementKey, resolvedReleaseId, movementHistory.currentKeys, movementHistory.currentIds) ||
-                movementHistory.currentFallbackKeys.has(fallbackKey)
+                (safeFallbackKey && movementHistory.currentFallbackKeys.has(safeFallbackKey))
               )
             : false;
           const backendChartCount = positiveChartCount(entry.months_on_chart ?? entry.times_on_chart ?? entry.chart_appearances);
@@ -1624,7 +1685,7 @@ export default function NgomaCharts(){
             ? (
                 movementHistory.appearanceCountsById.get(resolvedReleaseId) ||
                 movementHistory.appearanceCountsByKey.get(movementKey) ||
-                movementHistory.appearanceCountsByFallback.get(fallbackKey) ||
+                (safeFallbackKey && movementHistory.appearanceCountsByFallback.get(safeFallbackKey)) ||
                 0
               )
             : 0;
@@ -1667,12 +1728,7 @@ export default function NgomaCharts(){
         // CMS release records are authoritative for editable metadata and media.
         // Preserve chart-calculation fields from the chart endpoint.
         const enrichedEntries = entries.map((e) => {
-          const rel =
-            PUBLIC_RELEASES_BY_ID.get(Number(e.release_id)) ||
-            PUBLIC_RELEASES_BY_KEY.get(entryKey(e)) ||
-            PUBLIC_RELEASES_BY_KEY.get(`${String(e.title || "").trim().toLowerCase()}|||${normArtistKey(e.primary_artist || e.artist || "")}`) ||
-            PUBLIC_RELEASES_BY_TITLE.get(String(e.title || "").trim().toLowerCase()) ||
-            {};
+          const rel = lookupReleaseForEntry(e) || {};
           const primaryArtists = rel.primary_artists?.length ? rel.primary_artists : (e.primary_artists || []);
           const featuredProfiles = rel.featured_artist_profiles?.length ? rel.featured_artist_profiles : (e.featured_artist_profiles || []);
           const primaryArtist = cleanArtistDisplay(
@@ -1849,7 +1905,7 @@ const top = data[0];
     MONTHS.forEach(m=>{
       getCombined("singles",m).forEach(e=>{
         const k=`${String(e.title||"").trim().toLowerCase()}|||${String(e.artist||"").trim().toLowerCase()}`;
-        const rel=PUBLIC_RELEASES_BY_ID.get(Number(e.release_id))||PUBLIC_RELEASES_BY_TITLE.get(String(e.title||"").trim().toLowerCase())||{};
+        const rel=lookupReleaseForEntry(e)||{};
         const ex=map.get(k); const rank=Number(e.rank);
         if(!ex){
           const merged={...rel,...e,_type:"single",_months:1,_bestRank:rank,_bestMonth:m};
@@ -1874,7 +1930,7 @@ const top = data[0];
     MONTHS.forEach(m=>{
       getCombined("albums",m).forEach(e=>{
         const k=`${String(e.title||"").trim().toLowerCase()}|||${String(e.artist||"").trim().toLowerCase()}`;
-        const rel=PUBLIC_RELEASES_BY_ID.get(Number(e.release_id))||PUBLIC_RELEASES_BY_TITLE.get(String(e.title||"").trim().toLowerCase())||{};
+        const rel=lookupReleaseForEntry(e)||{};
         const ex=map.get(k); const rank=Number(e.rank);
         if(!ex){
           const merged={...rel,...e,_type:"album",_months:1,_bestRank:rank,_bestMonth:m};

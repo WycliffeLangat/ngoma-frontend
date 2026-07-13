@@ -247,8 +247,26 @@
 .cms-file-drop{padding:14px;border:1px dashed #d2c7ab;border-radius:15px;background:#fbf8f0}
 .cms-file-drop input{padding:8px;background:#fff}
 .cms-upload-summary strong{font-size:19px}
+.cms-row-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.cms-workbook-modal{width:min(1180px,96vw);height:min(84vh,820px);display:flex;flex-direction:column;overflow:hidden}
+.cms-workbook-meta{margin-top:4px;color:var(--cms-muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+.cms-workbook-tabs{display:flex;gap:6px;margin:14px 0 10px;overflow-x:auto;padding-bottom:2px}
+.cms-workbook-tabs button{border:1px solid var(--cms-line);background:#fff;color:#555;border-radius:10px;padding:7px 11px;font-size:12px;font-weight:800;white-space:nowrap;cursor:pointer}
+.cms-workbook-tabs button.active{background:#111;color:#fff;border-color:#111}
+.cms-workbook-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.cms-workbook-toolbar input{min-width:260px;flex:1;border:1px solid var(--cms-line);border-radius:10px;padding:9px 10px;font:inherit}
+.cms-workbook-grid-wrap{flex:1;overflow:auto;border:1px solid var(--cms-line);border-radius:14px;background:#fff}
+.cms-workbook-grid{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;font-size:12px}
+.cms-workbook-grid th{position:sticky;top:0;z-index:2;background:#f7f4ed;color:#777;font-size:10px;text-align:center;border-right:1px solid #e9e2d3;border-bottom:1px solid #e2d8c3;min-width:42px;height:30px}
+.cms-workbook-grid tbody th{left:0;z-index:1;background:#faf8f2}
+.cms-workbook-grid td{border-right:1px solid #eee7dc;border-bottom:1px solid #eee7dc;padding:0;background:#fff}
+.cms-workbook-grid input{width:150px;height:32px;border:0;border-radius:0;padding:0 8px;font:inherit;background:transparent;outline:none}
+.cms-workbook-grid input:focus{box-shadow:inset 0 0 0 2px var(--cms-gold);background:#fffdf5}
+.cms-workbook-grid input:disabled{color:#333}
 @media(max-width:700px){
   .cms-upload-mode{grid-template-columns:1fr}
   .cms-upload-guidance{display:block}
   .cms-upload-guidance strong{display:block;margin-bottom:5px;white-space:normal}
+  .cms-workbook-modal{height:90vh}
+  .cms-workbook-toolbar input{min-width:100%}
 }

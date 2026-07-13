@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { cmsApi, getResults } from "../api";
+import { CMS_BASE, cmsApi, getResults } from "../api";
 import DataTable from "../components/DataTable";
 import UploadPreviewTable from "../components/UploadPreviewTable";
 import StatusBadge from "../components/StatusBadge";
@@ -20,6 +20,8 @@ export default function UploadsPage({ user, searchJump }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [actionBusy, setActionBusy] = useState(false);
+  const [workbookModal, setWorkbookModal] = useState(null);
+  const [workbookBusy, setWorkbookBusy] = useState("");
   const [form, setForm] = useState({
     chart_type: "singles",
     year: new Date().getFullYear(),
@@ -140,6 +142,134 @@ export default function UploadsPage({ user, searchJump }) {
     } finally {
       setActionBusy(false);
     }
+  }
+
+  function uploadEndpoint(upload = selected) {
+    return upload?._uploadKind === RAW_WEEKLY ? "/weekly-uploads/" : "/chart-uploads/";
+  }
+
+  async function openWorkbook(upload = selected) {
+    if (!upload || workbookBusy) return;
+    setError("");
+    setWorkbookBusy(`open-${upload._uploadKind}-${upload.id}`);
+    try {
+      const data = await cmsApi.get(`${uploadEndpoint(upload)}${upload.id}/workbook/`);
+      setWorkbookModal({
+        upload,
+        filename: data.filename || upload.original_filename || "workbook.xlsx",
+        sheets: normaliseWorkbookSheets(data.sheets || []),
+        activeSheet: 0,
+      });
+    } catch (workbookError) {
+      setError(workbookError.message);
+    } finally {
+      setWorkbookBusy("");
+    }
+  }
+
+  async function saveWorkbook() {
+    if (!workbookModal || !canManageData || workbookBusy) return;
+    const { upload, filename, sheets } = workbookModal;
+    setError("");
+    setWorkbookBusy("save");
+    try {
+      const result = await cmsApi.patch(`${uploadEndpoint(upload)}${upload.id}/workbook/`, {
+        filename,
+        sheets,
+      });
+      const nextUpload = { ...(result.upload || upload), _uploadKind: upload._uploadKind };
+      setSelected(nextUpload);
+      setWorkbookModal((current) => current ? {
+        ...current,
+        upload: nextUpload,
+        filename: result.workbook?.filename || filename,
+        sheets: normaliseWorkbookSheets(result.workbook?.sheets || sheets),
+      } : null);
+      await load(upload._uploadKind);
+    } catch (workbookError) {
+      setError(workbookError.message);
+    } finally {
+      setWorkbookBusy("");
+    }
+  }
+
+  async function downloadWorkbook(upload = selected) {
+    if (!upload || workbookBusy) return;
+    setError("");
+    setWorkbookBusy(`download-${upload._uploadKind}-${upload.id}`);
+    try {
+      const response = await fetch(`${CMS_BASE}${uploadEndpoint(upload)}${upload.id}/download/`, {
+        credentials: "include",
+      });
+      if (!response.ok) {
+        let message = `Download failed (${response.status})`;
+        try {
+          const data = await response.json();
+          message = data.detail || data.error || message;
+        } catch {}
+        throw new Error(message);
+      }
+      const blob = await response.blob();
+      const disposition = response.headers.get("content-disposition") || "";
+      const match = disposition.match(/filename="?([^"]+)"?/i);
+      const filename = match?.[1] || upload.original_filename || "workbook.xlsx";
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = filename;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    } catch (downloadError) {
+      setError(downloadError.message);
+    } finally {
+      setWorkbookBusy("");
+    }
+  }
+
+  function renderUploadActions(row) {
+    const busy = Boolean(actionBusy || workbookBusy);
+    if (!row.workbook_available && !canManageData) return "—";
+    return (
+      <div className="cms-row-actions">
+        <button
+          type="button"
+          className="cms-btn light small"
+          onClick={(event) => {
+            event.stopPropagation();
+            openWorkbook(row);
+          }}
+          disabled={busy || !row.workbook_available}
+        >
+          View
+        </button>
+        <button
+          type="button"
+          className="cms-btn light small"
+          onClick={(event) => {
+            event.stopPropagation();
+            downloadWorkbook(row);
+          }}
+          disabled={busy || !row.workbook_available}
+        >
+          Download
+        </button>
+        {canManageData ? (
+          <button
+            type="button"
+            className="cms-btn danger small"
+            onClick={(event) => {
+              event.stopPropagation();
+              setDeleteTarget(row);
+            }}
+            disabled={busy}
+          >
+            Delete
+          </button>
+        ) : null}
+      </div>
+    );
   }
 
   const isWeekly = uploadKind === RAW_WEEKLY;
@@ -271,8 +401,22 @@ export default function UploadsPage({ user, searchJump }) {
           </div>
           {selected ? (
             selected._uploadKind === RAW_WEEKLY
-              ? <WeeklySummary selected={selected} />
-              : <FinalSummary selected={selected} onAction={runAction} canManageData={canManageData} canPublish={canPublish} />
+              ? <WeeklySummary
+                  selected={selected}
+                  canManageData={canManageData}
+                  workbookBusy={workbookBusy}
+                  onViewWorkbook={() => openWorkbook(selected)}
+                  onDownloadWorkbook={() => downloadWorkbook(selected)}
+                />
+              : <FinalSummary
+                  selected={selected}
+                  onAction={runAction}
+                  canManageData={canManageData}
+                  canPublish={canPublish}
+                  workbookBusy={workbookBusy}
+                  onViewWorkbook={() => openWorkbook(selected)}
+                  onDownloadWorkbook={() => downloadWorkbook(selected)}
+                />
           ) : (
             <div className="cms-empty compact">
               {isWeekly ? "Process a workbook or select a previous week below." : "Select an import to review its validation."}
@@ -300,43 +444,32 @@ export default function UploadsPage({ user, searchJump }) {
             { key: "original_filename", label: "File" },
             { key: "entries_processed", label: "Entries" },
             { key: "processed", label: "Status", render: (row) => <StatusBadge value={row.processed ? "published" : "error"} /> },
-            { key: "actions", label: "Actions", render: (row) => canManageData ? (
-              <button
-                type="button"
-                className="cms-btn danger small"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setDeleteTarget(row);
-                }}
-                disabled={actionBusy}
-              >
-                Delete
-              </button>
-            ) : "—" },
+            { key: "actions", label: "Actions", render: renderUploadActions },
           ] : [
             { key: "created_at", label: "Created", render: (row) => new Date(row.created_at).toLocaleString() },
             { key: "chart_type", label: "Type" },
             { key: "platform_name", label: "Scope", render: (row) => row.platform_name || "Combined" },
             { key: "row_count", label: "Rows" },
             { key: "status", label: "Status", render: (row) => <StatusBadge value={row.status} /> },
-            { key: "actions", label: "Actions", render: (row) => canManageData ? (
-              <button
-                type="button"
-                className="cms-btn danger small"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setDeleteTarget(row);
-                }}
-                disabled={actionBusy}
-              >
-                Delete
-              </button>
-            ) : "—" },
+            { key: "actions", label: "Actions", render: renderUploadActions },
           ]}
           rows={uploads}
           onRowClick={setSelected}
         />
       </div>
+
+      {workbookModal && (
+        <WorkbookModal
+          workbook={workbookModal}
+          canEdit={canManageData}
+          busy={workbookBusy}
+          onClose={() => {
+            if (!workbookBusy) setWorkbookModal(null);
+          }}
+          onSave={saveWorkbook}
+          onChange={setWorkbookModal}
+        />
+      )}
 
       <ConfirmDialog
         open={Boolean(deleteTarget)}
@@ -354,7 +487,7 @@ export default function UploadsPage({ user, searchJump }) {
   );
 }
 
-function WeeklySummary({ selected }) {
+function WeeklySummary({ selected, canManageData, workbookBusy, onViewWorkbook, onDownloadWorkbook }) {
   const failed = !selected.processed || String(selected.processing_notes || "").startsWith("Error:");
   return (
     <div>
@@ -370,11 +503,19 @@ function WeeklySummary({ selected }) {
           ? selected.processing_notes
           : "Platform entries were normalized and the month-to-date chart was rebuilt automatically."}
       </div>
+      <div className="cms-actions wrap">
+        <button className="cms-btn light" onClick={onViewWorkbook} disabled={!!workbookBusy || !selected.workbook_available}>
+          {canManageData ? "View / edit workbook" : "View workbook"}
+        </button>
+        <button className="cms-btn light" onClick={onDownloadWorkbook} disabled={!!workbookBusy || !selected.workbook_available}>
+          Download workbook
+        </button>
+      </div>
     </div>
   );
 }
 
-function FinalSummary({ selected, onAction, canManageData, canPublish }) {
+function FinalSummary({ selected, onAction, canManageData, canPublish, workbookBusy, onViewWorkbook, onDownloadWorkbook }) {
   const summary = selected.validation_summary || {};
   return (
     <div>
@@ -386,6 +527,14 @@ function FinalSummary({ selected, onAction, canManageData, canPublish }) {
       </div>
       {(summary.errors || []).slice(0, 5).map((item, index) => <div className="cms-alert error" key={`e${index}`}>Row {item.row || "—"}: {item.message}</div>)}
       {(summary.warnings || []).slice(0, 5).map((item, index) => <div className="cms-alert warning" key={`w${index}`}>Row {item.row || "—"}: {item.message}</div>)}
+      <div className="cms-actions wrap">
+        <button className="cms-btn light" onClick={onViewWorkbook} disabled={!!workbookBusy || !selected.workbook_available}>
+          {canManageData ? "View / edit workbook" : "View workbook"}
+        </button>
+        <button className="cms-btn light" onClick={onDownloadWorkbook} disabled={!!workbookBusy || !selected.workbook_available}>
+          Download workbook
+        </button>
+      </div>
       {canManageData && (
         <div className="cms-actions wrap">
           <button className="cms-btn light" onClick={() => onAction("revalidate")}>Re-run validation</button>
@@ -401,6 +550,148 @@ function FinalSummary({ selected, onAction, canManageData, canPublish }) {
       )}
     </div>
   );
+}
+
+function normaliseWorkbookSheets(sheets) {
+  const source = Array.isArray(sheets) && sheets.length ? sheets : [{ name: "Sheet 1", rows: [[]] }];
+  return source.map((sheet, index) => ({
+    name: sheet?.name || `Sheet ${index + 1}`,
+    rows: Array.isArray(sheet?.rows) && sheet.rows.length
+      ? sheet.rows.map((row) => Array.isArray(row) ? row.map((cell) => cell ?? "") : [])
+      : [[]],
+  }));
+}
+
+function workbookWidth(rows) {
+  return Math.max(4, ...rows.map((row) => row.length), 1);
+}
+
+function WorkbookModal({ workbook, canEdit, busy, onClose, onSave, onChange }) {
+  const activeIndex = Math.min(workbook.activeSheet || 0, workbook.sheets.length - 1);
+  const activeSheet = workbook.sheets[activeIndex] || workbook.sheets[0];
+  const rows = activeSheet?.rows || [[]];
+  const width = workbookWidth(rows);
+  const saveBusy = busy === "save";
+
+  const updateSheet = (updater) => {
+    onChange((current) => {
+      if (!current) return current;
+      const sheets = current.sheets.map((sheet, index) =>
+        index === activeIndex ? updater(sheet) : sheet
+      );
+      return { ...current, sheets };
+    });
+  };
+
+  const updateCell = (rowIndex, colIndex, value) => {
+    updateSheet((sheet) => {
+      const nextRows = sheet.rows.map((row) => [...row]);
+      while (nextRows.length <= rowIndex) nextRows.push([]);
+      while (nextRows[rowIndex].length <= colIndex) nextRows[rowIndex].push("");
+      nextRows[rowIndex][colIndex] = value;
+      return { ...sheet, rows: nextRows };
+    });
+  };
+
+  const addRow = () => updateSheet((sheet) => ({
+    ...sheet,
+    rows: [...sheet.rows, Array.from({ length: width }, () => "")],
+  }));
+
+  const addColumn = () => updateSheet((sheet) => ({
+    ...sheet,
+    rows: sheet.rows.map((row) => [...row, ""]),
+  }));
+
+  return (
+    <div className="cms-modal-backdrop" onClick={onClose}>
+      <div className="cms-modal cms-workbook-modal" onClick={(event) => event.stopPropagation()}>
+        <div className="cms-modal-head">
+          <div>
+            <h3>{workbook.filename || "Workbook"}</h3>
+            <div className="cms-workbook-meta">{workbook.upload?._uploadKind === RAW_WEEKLY ? "Weekly import" : "Final chart import"}</div>
+          </div>
+          <button type="button" onClick={onClose} disabled={!!busy}>×</button>
+        </div>
+
+        <div className="cms-workbook-tabs">
+          {workbook.sheets.map((sheet, index) => (
+            <button
+              type="button"
+              key={`${sheet.name}-${index}`}
+              className={index === activeIndex ? "active" : ""}
+              onClick={() => onChange((current) => ({ ...current, activeSheet: index }))}
+            >
+              {sheet.name}
+            </button>
+          ))}
+        </div>
+
+        <div className="cms-workbook-toolbar">
+          <input
+            value={workbook.filename || ""}
+            disabled={!canEdit || !!busy}
+            onChange={(event) => onChange((current) => ({ ...current, filename: event.target.value }))}
+          />
+          {canEdit && (
+            <>
+              <button type="button" className="cms-btn light small" disabled={!!busy} onClick={addRow}>Add row</button>
+              <button type="button" className="cms-btn light small" disabled={!!busy} onClick={addColumn}>Add column</button>
+            </>
+          )}
+        </div>
+
+        <div className="cms-workbook-grid-wrap">
+          <table className="cms-workbook-grid">
+            <thead>
+              <tr>
+                <th></th>
+                {Array.from({ length: width }, (_, colIndex) => (
+                  <th key={colIndex}>{excelColumnName(colIndex)}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, rowIndex) => (
+                <tr key={rowIndex}>
+                  <th>{rowIndex + 1}</th>
+                  {Array.from({ length: width }, (_, colIndex) => (
+                    <td key={colIndex}>
+                      <input
+                        value={row[colIndex] ?? ""}
+                        disabled={!canEdit || !!busy}
+                        onChange={(event) => updateCell(rowIndex, colIndex, event.target.value)}
+                      />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="cms-actions right">
+          <button className="cms-btn light" onClick={onClose} disabled={!!busy}>Close</button>
+          {canEdit && (
+            <button className="cms-btn" onClick={onSave} disabled={!!busy}>
+              {saveBusy ? "Saving..." : "Save workbook"}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function excelColumnName(index) {
+  let value = index + 1;
+  let label = "";
+  while (value > 0) {
+    const remainder = (value - 1) % 26;
+    label = String.fromCharCode(65 + remainder) + label;
+    value = Math.floor((value - 1) / 26);
+  }
+  return label;
 }
 
 function monthName(month) {

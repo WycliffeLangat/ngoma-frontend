@@ -173,11 +173,39 @@ export function artistSetKey(primaryStr, featuredStr) {
 }
 
 // Canonical identity key for a chart entry — used to detect duplicate releases.
+const firstText = (...values) => {
+  for (const value of values) {
+    const text = String(value || "").trim();
+    if (text) return text;
+  }
+  return "";
+};
+
 export const entryKey = (e) => {
   const title = String(e.t || e.title || "").trim().toLowerCase();
-  const primary = String(e.primary_artist || e.a || e.artist || "").trim();
-  const featured = String(e.fa || e.featured_artists || "").trim();
-  return `${title}|||${artistSetKey(primary, featured)}`;
+  const structuredPrimary = profileNames(e.primary_artists);
+  const structuredFeatured = profileNames(e.featured_artist_profiles);
+  const visibleCredit = firstText(
+    e.artist_credit,
+    e.artist_display,
+    e.a,
+    e.artist,
+    e.artist_name,
+    formatCreditMembers([...structuredPrimary, ...structuredFeatured])
+  );
+  const primary = firstText(
+    e.primary_artist_credit,
+    e.primary_artist,
+    e.pa,
+    formatCreditMembers(structuredPrimary)
+  );
+  const featured = firstText(
+    e.featured_artist_credit,
+    e.featured_artists,
+    e.fa,
+    formatCreditMembers(structuredFeatured)
+  );
+  return `${title}|||${artistSetKey(visibleCredit || primary, featured)}`;
 };
 
 export const sameRelease = (left, right) => {

@@ -85,17 +85,40 @@ function releaseTitleKeys(row) {
   return uniq(values.flatMap((value) => [foldReleaseTitle(value), foldText(value)]));
 }
 
+function splitArtistCredit(value = "") {
+  return String(value || "")
+    .split(/\s*(?:\||\bft\.?|\bfeat\.?|\bfeaturing\b|\bx\b|&|,)\s*/i)
+    .map((name) => name.trim())
+    .filter(Boolean);
+}
+
+function artistCreditSetKey(primaryValue, featuredValue = "") {
+  const names = [...splitArtistCredit(primaryValue), ...splitArtistCredit(featuredValue)]
+    .map((name) => foldText(name))
+    .filter(Boolean);
+  return [...new Set(names)].sort().join("+");
+}
+
+function artistCreditKeys(primaryValue, featuredValue = "") {
+  const joined = [primaryValue, featuredValue].filter(Boolean).join(" ");
+  return uniq([
+    artistCreditSetKey(primaryValue, featuredValue),
+    foldText(joined),
+    foldTokenOrder(joined),
+  ]);
+}
+
 function releaseArtistKeys(row) {
-  const values = [
-    row?.artist_display,
-    row?.artist_name,
-    row?.primary_artist_credit,
-    row?.primary_artist,
-    row?.artist_credit,
-    row?.artist,
-    row?.a,
+  const featured = row?.featured_artist_credit || row?.featured_artists || row?.fa || "";
+  const sourceGroups = [
+    [row?.artist_display, row?.artist_credit, row?.a, row?.artist],
+    [row?.artist_name],
+    [row?.primary_artist_credit, row?.primary_artist, row?.pa],
   ];
-  return uniq(values.flatMap((value) => [foldText(value), foldTokenOrder(value)]));
+  const values = sourceGroups.find((group) =>
+    group.some((value) => String(value || "").trim())
+  ) || [];
+  return uniq(values.flatMap((value) => artistCreditKeys(value, featured)));
 }
 
 function inferKind(row, fallbackKind = "") {

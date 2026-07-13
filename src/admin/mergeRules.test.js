@@ -91,3 +91,43 @@ test("exact-key release rule needs original keeper id to avoid guessing", () => 
   assert.equal(resolved.keeper.id, 10);
   assert.deepEqual(resolved.duplicates.map((row) => row.id), [211]);
 });
+
+test("stored release merge rule does not auto-merge same title with added artist", () => {
+  const storage = new MemoryStorage();
+  const keeper = {
+    id: 10,
+    _type: "release",
+    _chartType: "singles",
+    title: "Uhakika",
+    artist_display: "Ibraah",
+    primary_artist: "Ibraah",
+  };
+  const duplicate = {
+    id: 11,
+    _type: "release",
+    _chartType: "singles",
+    title: "Uhakika",
+    artist_display: "Ibraah",
+    primary_artist: "Ibraah",
+  };
+
+  rememberMergeRules({
+    kind: "release",
+    chartType: "singles",
+    keeper,
+    duplicates: [duplicate],
+  }, storage);
+
+  const rules = loadMergeRules(storage);
+  const collab = {
+    id: 12,
+    _type: "release",
+    _chartType: "singles",
+    title: "Uhakika",
+    artist_display: "Ibraah, Zuchu",
+    primary_artist: "Ibraah",
+  };
+  const plan = findStoredMergeRulePlan([keeper, collab], rules);
+
+  assert.equal(plan, null);
+});
