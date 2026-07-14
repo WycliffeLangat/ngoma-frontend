@@ -148,30 +148,36 @@ export default function YearEndPage({ ctx }) {
                           >
                             {item.t}
                           </button>
-                          <button
-                            type="button"
-                            onClick={(event)=>{event.stopPropagation();openArtistDetails(isArtists ? item.t : item.a);}}
-                            style={{
-                              display:"block",
-                              width:"100%",
-                              border:0,
-                              background:"transparent",
-                              padding:0,
-                              margin:"4px 0 0",
-                              textAlign:"left",
-                              fontFamily:F,
-                              fontSize:"14px",
-                              fontWeight:700,
-                              lineHeight:1.35,
-                              color:isDark?"#D7DBD7":"#59645D",
-                              whiteSpace:"nowrap",
-                              overflow:"hidden",
-                              textOverflow:"ellipsis",
-                              cursor:"pointer",
-                            }}
-                          >
-                            {item.a}
-                          </button>
+                          {isArtists ? (
+                            <div style={{margin:"4px 0 0",fontFamily:F,fontSize:"13px",fontWeight:700,lineHeight:1.35,color:isDark?"#8a9288":"#59645D",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
+                              {item.entries || 0} {item.entries===1?"entry":"entries"} · {item.months} {item.months===1?"month":"months"}
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={(event)=>{event.stopPropagation();openArtistDetails(item.a);}}
+                              style={{
+                                display:"block",
+                                width:"100%",
+                                border:0,
+                                background:"transparent",
+                                padding:0,
+                                margin:"4px 0 0",
+                                textAlign:"left",
+                                fontFamily:F,
+                                fontSize:"14px",
+                                fontWeight:700,
+                                lineHeight:1.35,
+                                color:isDark?"#D7DBD7":"#59645D",
+                                whiteSpace:"nowrap",
+                                overflow:"hidden",
+                                textOverflow:"ellipsis",
+                                cursor:"pointer",
+                              }}
+                            >
+                              {item.a}
+                            </button>
+                          )}
                           {certification&&<CertificationTag cert={certification} compact style={{marginTop:"6px"}} />}
                         </div>
                       </div>
@@ -318,19 +324,25 @@ export default function YearEndPage({ ctx }) {
                             <button type="button" onClick={()=>isArtists ? openArtistDetails(item.t) : openReleaseDetails(item,isSingles?"single":"album")} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:"inherit",fontWeight:"inherit",lineHeight:"inherit",cursor:"pointer",textAlign:"left",color:"inherit"}}>{item.t}</button>
                             {certification&&<CertificationTag cert={certification} compact />}
                           </div>
-                          <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(isArtists ? item.t : item.a);}} style={{
-                            fontSize:"13px",
-                            color:isDark?"#8a9288":"#59645D",
-                            fontFamily:F,
-                            border:0,
-                            background:"transparent",
-                            padding:0,
-                            textAlign:"left",
-                            cursor:"pointer",
-                            marginTop:"2px",
-                          }}>
-                            {item.a}
-                          </button>
+                          {isArtists ? (
+                            <div style={{fontSize:"13px",color:isDark?"#8a9288":"#59645D",fontFamily:F,marginTop:"2px"}}>
+                              {item.entries || 0} {item.entries===1?"entry":"entries"} · {item.months} {item.months===1?"month":"months"}
+                            </div>
+                          ) : (
+                            <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(item.a);}} style={{
+                              fontSize:"13px",
+                              color:isDark?"#8a9288":"#59645D",
+                              fontFamily:F,
+                              border:0,
+                              background:"transparent",
+                              padding:0,
+                              textAlign:"left",
+                              cursor:"pointer",
+                              marginTop:"2px",
+                            }}>
+                              {item.a}
+                            </button>
+                          )}
                         </div>
                       </div>
 

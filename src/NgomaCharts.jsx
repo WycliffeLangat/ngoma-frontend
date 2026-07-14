@@ -775,25 +775,40 @@ const buildYearEndArtistRows = (months, platform = "Combined") => {
         const key = artistName.toLowerCase();
         const current = artistMap.get(key) || {
           t: artistName,
-          a: artistName,
+          a: "",
+          primary_artist: artistName,
           totalPts: 0,
-          entries: 0,
+          entriesSet: new Set(),
           best: Number.POSITIVE_INFINITY,
-          cover_image: "",
           monthsSet: new Set(),
         };
         current.totalPts += artistTop50Points(entry);
-        current.entries += 1;
+        const releaseIdentity = entry.release_id ? `id:${entry.release_id}` : entryKey(entry);
+        current.entriesSet.add(`${entry.sourceChartType || entry.type || "release"}|${releaseIdentity}`);
         current.best = Math.min(current.best, Number(entry.rank ?? entry.r) || Number.POSITIVE_INFINITY);
         current.monthsSet.add(monthLabel);
-        if (!current.cover_image && entry.cover_image) current.cover_image = entry.cover_image;
         artistMap.set(key, current);
       });
     });
   });
 
   return [...artistMap.values()]
-    .map(({ monthsSet, ...rest }) => ({ ...rest, months: monthsSet.size }))
+    .map(({ monthsSet, entriesSet, t, ...rest }) => {
+      const artistProfile = publicArtistForName(t) || {};
+      const artistImage = getArtistImageUrl(
+        { ...artistProfile, title: t, artist_profile: artistProfile },
+        { name: t, artists: [artistProfile] }
+      );
+      return {
+        ...rest,
+        t,
+        months: monthsSet.size,
+        entries: entriesSet.size,
+        artist_profile: artistProfile,
+        image: artistImage,
+        cover_image: artistImage,
+      };
+    })
     .sort((a, b) => b.totalPts - a.totalPts || a.best - b.best || a.t.localeCompare(b.t));
 };
 
