@@ -42,7 +42,6 @@ import NewsDetailPage from "./pages/NewsDetailPage";
 import NewsPage from "./pages/NewsPage";
 import CertificationsPage from "./pages/CertificationsPage";
 import YearEndPage from "./pages/YearEndPage";
-import RecordsPage from "./pages/RecordsPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import ArtistDetailPage from "./pages/ArtistDetailPage";
 import ReleaseDetailPage from "./pages/ReleaseDetailPage";
@@ -723,6 +722,79 @@ const buildCombinedYearEnd = (chartType) => {
   return [...releases.values()].sort((a, b) =>
     b.totalPts - a.totalPts || a.best - b.best || a.t.localeCompare(b.t)
   );
+};
+
+// Platform- and window-aware release totals for the Year-End page's All
+// Time / Best of Year toggle. Unlike buildCombinedYearEnd (which always
+// aggregates every published month for certification math), this takes an
+// explicit months window and platform so the display can switch between
+// full history and a rolling last-12-months slice without touching
+// certification totals.
+const buildYearEndReleaseRows = (chartType, months, platform = "Combined") => {
+  const releases = new Map();
+
+  months.forEach((monthLabel) => {
+    const source = platform === "Combined" ? getCombined(chartType, monthLabel) : getPlatform(chartType, platform, monthLabel);
+    source.forEach((entry) => {
+      const key = entryKey(entry);
+      const current = releases.get(key) || {
+        t: entry.title,
+        a: entry.artist,
+        primary_artist: entry.primary_artist,
+        featured_artists: entry.featured_artists,
+        release_year: entry.release_year,
+        confidence: entry.confidence,
+        country_code: entry.country_code,
+        cover_image: entry.cover_image || "",
+        totalPts: 0,
+        months: 0,
+        best: Number.POSITIVE_INFINITY,
+      };
+
+      if (!current.cover_image && entry.cover_image) current.cover_image = entry.cover_image;
+      current.totalPts += Number(entry.pts) || 0;
+      current.months += 1;
+      current.best = Math.min(current.best, Number(entry.rank) || Number.POSITIVE_INFINITY);
+      releases.set(key, current);
+    });
+  });
+
+  return [...releases.values()].sort((a, b) =>
+    b.totalPts - a.totalPts || a.best - b.best || a.t.localeCompare(b.t)
+  );
+};
+
+// Artists counterpart to buildYearEndReleaseRows — platform- and
+// window-aware, aggregating credited artist names across the given months.
+const buildYearEndArtistRows = (months, platform = "Combined") => {
+  const artistMap = new Map();
+
+  months.forEach((monthLabel) => {
+    getArtistPlatformSource(platform, monthLabel).forEach((entry) => {
+      artistCreditMembers(entry).forEach((artistName) => {
+        const key = artistName.toLowerCase();
+        const current = artistMap.get(key) || {
+          t: artistName,
+          a: artistName,
+          totalPts: 0,
+          entries: 0,
+          best: Number.POSITIVE_INFINITY,
+          cover_image: "",
+          monthsSet: new Set(),
+        };
+        current.totalPts += artistTop50Points(entry);
+        current.entries += 1;
+        current.best = Math.min(current.best, Number(entry.rank ?? entry.r) || Number.POSITIVE_INFINITY);
+        current.monthsSet.add(monthLabel);
+        if (!current.cover_image && entry.cover_image) current.cover_image = entry.cover_image;
+        artistMap.set(key, current);
+      });
+    });
+  });
+
+  return [...artistMap.values()]
+    .map(({ monthsSet, ...rest }) => ({ ...rest, months: monthsSet.size }))
+    .sort((a, b) => b.totalPts - a.totalPts || a.best - b.best || a.t.localeCompare(b.t));
 };
 
 const combinedArtistsCache = new Map();
@@ -1412,7 +1484,6 @@ const CertificationTag = ({ cert, compact = true, style = {} }) => {
 const PUBLIC_PAGE_ROUTES = {
   charts: "/charts",
   analytics: "/analytics",
-  records: "/records",
   "year-end": "/year-end",
   certifications: "/certifications",
   news: "/news",
@@ -1421,8 +1492,7 @@ const PUBLIC_PAGE_ROUTES = {
 const PUBLIC_PAGE_TITLES = {
   charts: "Charts",
   analytics: "Analytics",
-  records: "Records & Milestones",
-  "year-end": "Year-End Charts",
+  "year-end": "All Time Charts",
   certifications: "Certifications",
   news: "News",
   about: "About",
@@ -1475,6 +1545,8 @@ export default function NgomaCharts(){
   const [liveCerts, setLiveCerts] = useState(() => PUBLIC_DATA.certifications?.length ? mapPublicCertifications(PUBLIC_DATA.certifications) : null);
   const [openRecord, setOpenRecord] = useState(null);
   const [expandedYearEndRows, setExpandedYearEndRows] = useState({});
+  const [yearEndMode, setYearEndMode] = useState("alltime"); // "alltime" | "bestofyear"
+  const [yearEndPlat, setYearEndPlat] = useState("Combined");
   const [expandedArtistRows, setExpandedArtistRows] = useState({});
   const [expandedTrendingRows, setExpandedTrendingRows] = useState({});
   const detailOpenRef = useRef(false);
@@ -1601,10 +1673,16 @@ export default function NgomaCharts(){
     : (isSingles ? ["Combined", KENYAN_CHART, ...S_PLATS.slice(1)] : ["Combined", KENYAN_CHART, ...A_PLATS.slice(1)]);
   const platListKey = platList.join("|");
   const tp = isArtists ? ARTIST_PLATS.length : (isSingles ? S_PLATS.length - 1 : A_PLATS.length - 1);
+  const yearEndPlatOptions = isArtists ? ["Combined", ...ARTIST_PLATS] : (isSingles ? S_PLATS : A_PLATS);
+  const yearEndPlatOptionsKey = yearEndPlatOptions.join("|");
 
   useEffect(() => {
     if (!platList.includes(plat)) setPlat("Combined");
   }, [plat, platListKey, dataRevision]);
+
+  useEffect(() => {
+    if (!yearEndPlatOptions.includes(yearEndPlat)) setYearEndPlat("Combined");
+  }, [yearEndPlat, yearEndPlatOptionsKey, dataRevision]);
 
   const applyFreshPublicData = useCallback((payload) => {
     const previousLatest = latestPublishedMonthLabel();
@@ -2300,7 +2378,9 @@ const top = data[0];
     : (targetPlatform === "Combined" ? getCombined(releaseCt, targetMonth) : getPlatform(releaseCt, targetPlatform, targetMonth));
   const analyticsActive = page === "analytics";
   const analysisMonths = analyticsActive ? MONTHS.slice(0, Math.max(0, monthIndex(anMonth)) + 1) : MONTHS;
-  const recordsActive = page === "records";
+  // Records & Milestones now renders as a section inside the Analytics page
+  // rather than its own route, so it shares the Analytics page's active flag.
+  const recordsActive = page === "analytics";
   const recordsCoverageTargetFor = (chartType = releaseCt) => chartType === "artists" ? ARTIST_PLATS.length : platformKeysFor(chartType).length;
   const currentRecordsCoverageTarget = recordsCoverageTargetFor(ct);
   const recordsTop50RowsFor = (chartType, targetMonth) => (
@@ -2627,9 +2707,9 @@ const top = data[0];
   };
 
   // Eligible pool for the record boxes that don't pin to a single release/artist
-  // (Total Charted X) — set inside the IIFE below and exposed via ctx so
-  // RecordsPage can rotate the box's art through every entry in the pool
-  // instead of showing it empty.
+  // (Total Charted X) — set inside the IIFE below and exposed via ctx so the
+  // Records & Milestones section can rotate the box's art through every entry
+  // in the pool instead of showing it empty.
   let currentRecordsPool = [];
   const currentRecords = recordsActive ? (() => {
     if (isArtists) {
@@ -2750,10 +2830,10 @@ const top = data[0];
     }
     setPage(nextPage);setSelA(null);setSelR(null);setSelNews(null);setMNav(false);setMoreOpen(false);
   };
-  const navItems=["charts","analytics","records","year-end","certifications","news","about"];
-  const primaryNavItems=["charts","analytics","records","year-end","certifications"];
+  const navItems=["charts","analytics","year-end","certifications","news","about"];
+  const primaryNavItems=["charts","analytics","year-end","certifications"];
   const moreNavItems=navItems.filter((item)=>!primaryNavItems.includes(item));
-  const navLabel=t=>t==="year-end"?"Year End":t;
+  const navLabel=t=>t==="year-end"?"All Time":t;
   const card=(extra={})=>({background:"#FFF",borderRadius:"14px",border:"1px solid #EFEDE7",padding:isMobile?"18px":"22px",boxSizing:"border-box",maxWidth:"100%",boxShadow:"0 1px 3px rgba(0,0,0,0.02),0 8px 24px rgba(0,0,0,0.02)",...extra});
   const TXT = {
     kicker: isMobile ? "9px" : "10.5px",
@@ -2989,8 +3069,27 @@ const top = data[0];
   const songMonthlyData=analyticsActive?analysisMonths.map(m=>({month:m.split(" ")[0].slice(0,3),A:sp1?.monthly[m]?.pts||0,B:sp2?.monthly[m]?.pts||0})):[];
   const songRankData=analyticsActive?analysisMonths.map(m=>({month:m.split(" ")[0].slice(0,3),A:sp1?.monthly[m]?.rank||null,B:sp2?.monthly[m]?.rank||null})):[];
 
+  // All-time totals used for certification math (never affected by the
+  // Year-End page's All Time / Best of Year toggle below).
   const yearEndRaw=isArtists?buildArtistYearEndRows():(isSingles?COMBINED_YEAR_END.singles:COMBINED_YEAR_END.albums);
   const yearEnd=coverImageCache.size?yearEndRaw.map(e=>{if(e.cover_image)return e;const img=coverImageCache.get(entryKey(e));return img?{...e,cover_image:img}:e;}):yearEndRaw;
+
+  // Year-End page's own display list — switches between the full published
+  // history ("All Time") and a rolling last-12-months window ("Best of
+  // Year"), scoped to the selected platform (or Combined).
+  const yearEndActive = page === "year-end";
+  const yearEndMonths = yearEndMode === "bestofyear" ? MONTHS.slice(-12) : MONTHS;
+  const yearEndDisplayRaw = yearEndActive
+    ? (isArtists
+        ? buildYearEndArtistRows(yearEndMonths, yearEndPlat)
+        : buildYearEndReleaseRows(releaseCt, yearEndMonths, yearEndPlat))
+    : [];
+  const yearEndDisplay = coverImageCache.size
+    ? yearEndDisplayRaw.map(e=>{if(e.cover_image)return e;const img=coverImageCache.get(entryKey(e));return img?{...e,cover_image:img}:e;})
+    : yearEndDisplayRaw;
+  const yearEndPeriodLabel = yearEndMode === "bestofyear"
+    ? `${yearEndMonths[0] || CURRENT_MONTH} – ${yearEndMonths[yearEndMonths.length - 1] || CURRENT_MONTH} (last 12 months)`
+    : DATA_PERIOD;
 
   const tracked=analyticsRowsFor(analyticsActive?anMonth:CURRENT_MONTH).slice(0,5).map(entry=>entry.title);
   const rankJourneyStartIndex=tracked.reduce((earliest,title)=>{
@@ -3299,7 +3398,14 @@ const top = data[0];
     uniquePlatformData,
     vc,
     viewMode,
-    yearEnd
+    yearEnd,
+    yearEndDisplay,
+    yearEndMode,
+    setYearEndMode,
+    yearEndPlat,
+    setYearEndPlat,
+    yearEndPlatOptions,
+    yearEndPeriodLabel
   };
 
   const managedSections = [
@@ -3740,11 +3846,8 @@ const top = data[0];
         />
       )}
 
-      {/* ANALYTICS PAGE */}
+      {/* ANALYTICS PAGE (includes Records & Milestones section) */}
       {page === "analytics" && !selA && !selR && <AnalyticsPage ctx={pageContext} />}
-
-      {/* RECORDS & MILESTONES PAGE */}
-      {page === "records" && !selA && !selR && <RecordsPage ctx={pageContext} />}
 
       {/* YEAR-END PAGE */}
       {page === "year-end" && !selA && !selR && <YearEndPage ctx={pageContext} />}

@@ -427,6 +427,297 @@ const ERROR_GUIDES = [
     ],
     keywords: ["country", "country code", "kenyan", "artist", "release"],
   },
+  {
+    id: "missing-main-artist",
+    title: "Row N: Missing main artist",
+    summary: "A row in a chart upload has no artist credited to it.",
+    meaning: "Every chart entry needs at least one main artist so the CMS can link it to an Artist profile, calculate points for the right person, and display correct credits publicly. A row with no artist name cannot be matched to anyone.",
+    commonCauses: [
+      "The artist column was left blank in the source workbook.",
+      "The row is a header, section label, or blank spacer that was mistakenly included in the chart range.",
+      "The artist name was typed in a column the importer doesn't read as the artist field.",
+    ],
+    fixSteps: [
+      "Open the workbook or workbook preview and find the row number shown in the error.",
+      "Enter the correct main artist name in the artist column for that row.",
+      "Remove the row instead if it isn't a real chart entry.",
+      "Save the workbook and re-run validation.",
+    ],
+    prevention: [
+      "Keep one consistent artist column in the import template and don't merge or split it for special rows.",
+      "Scan for blank artist cells before uploading, especially at the top or bottom of the sheet.",
+    ],
+    keywords: ["missing artist", "uncredited", "not credited", "artist credit", "upload", "row", "main artist"],
+  },
+  {
+    id: "missing-release-title",
+    title: "Row N: Missing release title",
+    summary: "A row in a chart upload has no song or album title.",
+    meaning: "The title is required to match the row to an existing release or create a new one. Without it, the row can't be placed on the chart.",
+    commonCauses: [
+      "The title column was left blank.",
+      "The title was merged into the artist cell instead of its own column.",
+    ],
+    fixSteps: [
+      "Open the workbook and find the row number shown in the error.",
+      "Enter the release title in the correct column.",
+      "Save and re-run validation.",
+    ],
+    prevention: [
+      "Check for blank title cells before uploading.",
+    ],
+    keywords: ["missing title", "release title", "upload", "row"],
+  },
+  {
+    id: "duplicate-rank",
+    title: "Row N: Duplicate rank #X",
+    summary: "Two or more rows in the same upload share the same chart rank.",
+    meaning: "Each rank position on a platform chart should be held by exactly one release. Duplicate ranks make it impossible to know the true chart order.",
+    commonCauses: [
+      "A row was copy-pasted without updating its rank.",
+      "Two source rows for the same position were both kept during editing.",
+      "The rank column has a formula or autofill error.",
+    ],
+    fixSteps: [
+      "Open the workbook and find both rows sharing the duplicated rank.",
+      "Correct the rank on the row that is out of place.",
+      "Re-check surrounding ranks for gaps after fixing.",
+      "Save and re-run validation.",
+    ],
+    prevention: [
+      "Avoid manual copy-paste of ranked rows; re-export from the source platform when possible.",
+    ],
+    keywords: ["duplicate rank", "rank", "upload", "row"],
+  },
+  {
+    id: "rank-outside-range",
+    title: "Row N: Rank is outside Top N",
+    summary: "A row's rank is higher than the platform's expected chart size.",
+    meaning: "Each platform has a maximum chart size (for example Top 50 or Top 100), set in Platform settings. A rank beyond that size is treated as suspicious data rather than a normal entry.",
+    commonCauses: [
+      "The source workbook includes extra rows beyond the platform's usual chart length.",
+      "The platform's max chart size setting doesn't match its current source chart format.",
+    ],
+    fixSteps: [
+      "Confirm the platform's actual current chart size on the source.",
+      "Trim extra rows from the workbook if they exceed the real chart length.",
+      "If the platform's chart size genuinely changed, update Max chart size in Platforms.",
+    ],
+    prevention: [
+      "Review Platforms settings whenever a source chart's length changes.",
+    ],
+    keywords: ["rank outside", "top 50", "top 100", "platform", "chart size", "upload"],
+  },
+  {
+    id: "missing-upload-country",
+    title: "Row N: Missing artist/release country",
+    summary: "A chart upload row's artist or release has no country set.",
+    meaning: "This is a warning, not a blocker, but it affects Kenyan charts, regional analysis, and dashboard data quality until it's fixed.",
+    commonCauses: [
+      "A new artist was auto-created during upload without a country.",
+      "An existing artist profile never had its country filled in.",
+    ],
+    fixSteps: [
+      "Open the artist record named in the row.",
+      "Set country and country code.",
+      "Save so linked releases inherit the country automatically.",
+    ],
+    prevention: [
+      "Fill in artist country before charts are uploaded for a new artist.",
+    ],
+    keywords: ["missing country", "artist country", "release country", "upload", "row", "warning"],
+  },
+  {
+    id: "missing-release-year-row",
+    title: "Row N: Missing release year",
+    summary: "A chart upload row's release has no release year set.",
+    meaning: "Release year supports certifications, year-based filtering, and data quality checks. It's a warning rather than a blocker.",
+    commonCauses: [
+      "A new release was created without a release year during upload.",
+    ],
+    fixSteps: [
+      "Open the release named in the row.",
+      "Fill in the release year and, if known, the release date.",
+      "Save the release.",
+    ],
+    prevention: [
+      "Add release year when creating songs or albums manually, ahead of chart uploads.",
+    ],
+    keywords: ["missing year", "release year", "upload", "row", "warning"],
+  },
+  {
+    id: "possible-duplicate-release-upload",
+    title: "Possible duplicate release in upload",
+    summary: "A row's title and artist closely match a release already in the CMS.",
+    meaning: "This warning helps prevent accidentally creating a second release record for a song or album that already exists.",
+    commonCauses: [
+      "The title has slightly different spelling, punctuation, or featured-artist text than the existing release.",
+      "The same song was uploaded twice from two different platform exports.",
+    ],
+    fixSteps: [
+      "Search Songs or Albums for the existing release.",
+      "If it's the same release, correct the workbook row to match the existing title exactly, or use Duplicate review after upload to merge.",
+      "If it's genuinely a different release, proceed and confirm afterward that no unwanted merge happens.",
+    ],
+    prevention: [
+      "Keep canonical titles consistent between platform exports.",
+      "Use Duplicate review regularly rather than only reacting to upload warnings.",
+    ],
+    keywords: ["duplicate release", "upload", "possible duplicate", "warning"],
+  },
+  {
+    id: "points-mismatch",
+    title: "Points mismatch. Expected X for platform Top N",
+    summary: "A row's points don't match what the platform's scoring rules should produce for its rank.",
+    meaning: "Points are calculated from rank using the platform's points base and chart size. A mismatch usually means the source file has pre-calculated points that disagree with current settings.",
+    commonCauses: [
+      "The workbook has manually entered or leftover points from a previous methodology.",
+      "The platform's points base or chart size changed after the workbook was built.",
+    ],
+    fixSteps: [
+      "Recalculate or clear the points column and let the CMS calculate points from rank.",
+      "If the platform's scoring rules changed intentionally, confirm that in Platforms before re-uploading.",
+    ],
+    prevention: [
+      "Avoid hardcoding points in source workbooks; let rank drive the calculation.",
+    ],
+    keywords: ["points mismatch", "points", "platform", "upload", "row"],
+  },
+  {
+    id: "missing-rank-list",
+    title: "Missing rank(s): list",
+    summary: "The upload is missing one or more expected rank positions entirely.",
+    meaning: "For a chart to be complete, every rank from 1 up to the platform's chart size should be present exactly once.",
+    commonCauses: [
+      "Rows were accidentally deleted from the workbook.",
+      "The export from the platform was incomplete.",
+    ],
+    fixSteps: [
+      "Compare the listed missing ranks against the original source chart.",
+      "Add the missing rows with the correct rank, title, and artist.",
+      "Re-run validation once all ranks are present.",
+    ],
+    prevention: [
+      "Confirm the row count before uploading matches the platform's expected chart size.",
+    ],
+    keywords: ["missing rank", "rank", "upload", "incomplete"],
+  },
+  {
+    id: "artists-need-sync",
+    title: "Sync artists (N missing)",
+    summary: "The Artists chart tab found artist rows with no linked Artist profile.",
+    meaning: "Chart calculations can reference an artist name that doesn't yet have a matching Artist record. This button creates the missing Artist profiles so every chart row is properly credited and linkable.",
+    commonCauses: [
+      "A new artist appeared in a chart upload before their profile was created.",
+      "An artist name in the source data doesn't match any existing profile, alias, or slug.",
+    ],
+    fixSteps: [
+      "Click Sync artists to let the CMS create the missing profiles automatically.",
+      "Open the newly created profiles and fill in country, genre, and other details.",
+      "If sync reports records needing attention, open each one named in the message and resolve the conflict (often a near-duplicate name).",
+    ],
+    prevention: [
+      "Create or confirm artist profiles before uploading a chart that introduces a new artist.",
+      "Keep artist names consistent between platform sources and the CMS.",
+    ],
+    keywords: ["sync artists", "missing artist", "artist profile", "chart entries", "unmatched"],
+  },
+  {
+    id: "delete-confirm",
+    title: "Delete this permanently? This cannot be undone.",
+    summary: "A confirmation dialog shown before hard-deleting an artist, release, chart period, or import.",
+    meaning: "Hard delete permanently removes the record from the database — unlike marking a record inactive, this cannot be reversed. Deleting a release also removes its chart entries and certifications; deleting a chart period removes its entries.",
+    commonCauses: [
+      "You clicked Delete on a single record row.",
+      "You selected multiple records and used the bulk delete action.",
+    ],
+    fixSteps: [
+      "Read the record name(s) listed in the dialog carefully before confirming.",
+      "If you're removing a duplicate rather than a genuine mistake, use Merge instead of Delete so chart history is preserved.",
+      "Confirm only when you're sure the record should no longer exist at all.",
+    ],
+    prevention: [
+      "Prefer merge over delete for duplicate artists or releases.",
+      "Reserve hard delete for records created by mistake with no real chart history.",
+    ],
+    keywords: ["delete", "permanently", "cannot be undone", "hard delete", "confirm"],
+  },
+  {
+    id: "merge-confirm",
+    title: "Confirm merge",
+    summary: "A confirmation dialog shown before merging duplicate records into a keeper.",
+    meaning: "Merging reassigns the duplicate's releases to the kept artist and preserves aliases. For releases, monthly chart points are summed into the kept record, weekly entries in the same chart and week are dropped to avoid double-counting, and certifications are recalculated.",
+    commonCauses: [
+      "You confirmed a merge from Duplicate review.",
+      "You used the Merge action on a resource table row or a bulk merge selection.",
+    ],
+    fixSteps: [
+      "Double check the keeper record is the one with the best metadata, image, and links.",
+      "For release merges, uncheck any track that is actually a different single or album — only checked tracks are merged.",
+      "After merging, open the keeper and confirm credits, releases, aliases, and chart history look right.",
+    ],
+    prevention: [
+      "Review both records side by side before confirming a merge.",
+      "Use saved merge rules for repeat duplicate patterns so future auto-merges are consistent.",
+    ],
+    keywords: ["merge", "confirm merge", "keeper", "duplicate", "aliases"],
+  },
+  {
+    id: "read-only-access-banner",
+    title: "Read-only access. You can review records and reports, but changes and publishing are disabled for your role.",
+    summary: "A persistent banner shown to users whose role cannot edit or publish.",
+    meaning: "This is not an error — it's a standing reminder of what your account can and can't do in this session.",
+    commonCauses: [
+      "Your role is Viewer or another review-only role.",
+    ],
+    fixSteps: [
+      "Continue reviewing records, reports, and dashboards as needed.",
+      "Ask an admin to change your role if you need to make edits or publish.",
+    ],
+    prevention: [
+      "Assign editing roles only to accounts that need to make changes.",
+    ],
+    keywords: ["read only", "role", "banner", "permission", "viewer"],
+  },
+  {
+    id: "review-only-restrictions",
+    title: "Your role can review this entry/import, but cannot change it.",
+    summary: "Inline notices shown on chart entries and uploads for roles without edit or upload permission.",
+    meaning: "These notices appear next to the record itself (rather than as a top banner) so it's clear exactly which action is blocked in that specific screen.",
+    commonCauses: [
+      "Your role can view chart entries or import history but not modify them.",
+      "Your role is not allowed to upload or change chart files.",
+    ],
+    fixSteps: [
+      "Use the available read-only views to complete your review.",
+      "Ask a data editor or publisher to make the change if one is needed.",
+    ],
+    prevention: [
+      "Match roles to responsibilities — reviewers don't need edit or upload permissions.",
+    ],
+    keywords: ["review only", "cannot change", "role", "chart entries", "uploads"],
+  },
+  {
+    id: "dashboard-alerts-overview",
+    title: "Dashboard data quality alerts",
+    summary: "An overview of the alert categories the dashboard's deep audit can raise.",
+    meaning: "The dashboard combines backend alerts with a deeper client-side audit across every module. Alerts are grouped by area: artists (missing images, incomplete details, unverified credited artists, possible duplicates), songs/albums (missing covers, incomplete details, questionable countries, missing release dates, catalogue codes, unlinked featured artists), chart periods and uploads (invalid setup, not publish-ready, missing entries, new month may need upload, validation errors/warnings, zero-row uploads, failed weekly processing), certifications (incomplete records, missing dates, visible-but-unofficial, below threshold, missing notes, invalid or missing active rules, non-increasing thresholds), news (incomplete published articles, conflicting publish flags, unpublished highlights, overdue scheduled posts), page content (incomplete visible sections, invalid JSON, duplicate sections), media (incomplete metadata, URLs needing cleanup), open reports, and backups (missing, failed, or stale).",
+    commonCauses: [
+      "Normal day-to-day data entry gaps that haven't been reviewed yet.",
+      "A chart month rolling over without its upload being completed.",
+      "Records created quickly during upload auto-reconciliation that still need manual detail.",
+    ],
+    fixSteps: [
+      "Open Dashboard and read each alert's title and description.",
+      "Click through to the named records and resolve the specific issue described.",
+      "Re-run Deep audit after fixes to confirm the alert clears.",
+    ],
+    prevention: [
+      "Check the dashboard regularly instead of only after something breaks publicly.",
+      "Fix critical/error-level alerts before warnings, and before any chart publish.",
+    ],
+    keywords: ["dashboard", "data quality", "alerts", "deep audit", "reports"],
+  },
 ];
 
 const GLOSSARY_TERMS = [

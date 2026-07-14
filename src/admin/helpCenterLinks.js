@@ -105,6 +105,51 @@ const HELP_ERROR_MATCHES = [
     ),
   },
   {
+    id: "missing-main-artist",
+    title: "Missing main artist",
+    test: (text) => text.includes("missing main artist") || text.includes("missing artist"),
+  },
+  {
+    id: "missing-release-title",
+    title: "Missing release title",
+    test: (text) => text.includes("missing release title") || text.includes("missing title"),
+  },
+  {
+    id: "duplicate-rank",
+    title: "Duplicate rank",
+    test: (text) => text.includes("duplicate rank"),
+  },
+  {
+    id: "rank-outside-range",
+    title: "Rank outside expected range",
+    test: (text) => text.includes("rank is outside") || text.includes("outside top"),
+  },
+  {
+    id: "missing-upload-country",
+    title: "Missing artist/release country",
+    test: (text) => text.includes("missing artist/release country") || text.includes("missing artist country") || text.includes("missing release country"),
+  },
+  {
+    id: "missing-release-year-row",
+    title: "Missing release year",
+    test: (text) => text.includes("missing release year") || text.includes("missing year"),
+  },
+  {
+    id: "possible-duplicate-release-upload",
+    title: "Possible duplicate release in upload",
+    test: (text) => text.includes("possible duplicate release"),
+  },
+  {
+    id: "points-mismatch",
+    title: "Points mismatch",
+    test: (text) => text.includes("points mismatch"),
+  },
+  {
+    id: "missing-rank-list",
+    title: "Missing rank(s)",
+    test: (text) => text.includes("missing rank(s)") || text.includes("missing ranks"),
+  },
+  {
     id: "general-troubleshooting",
     title: "Troubleshoot this error",
     test: () => true,

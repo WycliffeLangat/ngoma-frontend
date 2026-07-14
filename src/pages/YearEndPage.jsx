@@ -2,11 +2,11 @@ export default function YearEndPage({ ctx }) {
   const {
     BRONZE,
     CertificationTag,
-    DATA_PERIOD,
     F,
     GOLD,
     MEDALS,
     PAD,
+    PLAT_LABEL,
     SF,
     SILVER,
     TXT,
@@ -19,19 +19,46 @@ export default function YearEndPage({ ctx }) {
     isSingles,
     openArtistDetails,
     openReleaseDetails,
+    setYearEndMode,
+    setYearEndPlat,
     toggleYearEndRow,
-    yearEnd
+    yearEndDisplay,
+    yearEndMode,
+    yearEndPeriodLabel,
+    yearEndPlat,
+    yearEndPlatOptions,
   } = ctx;
+  const yearEnd = yearEndDisplay;
+
+  const selectStyle = {
+    padding:isMobile?"10px 12px":"8px 14px",
+    border:"1.5px solid "+(isDark?"#2F352F":"#DEDAD2"),
+    borderRadius:"10px",
+    background:isDark?"#1A1E1A":"#FAFAF8",
+    fontSize:isMobile?"13px":"12px",
+    fontFamily:F,
+    fontWeight:750,
+    cursor:"pointer",
+    outline:"none",
+    color:isDark?"#F6F3EA":"#1A1A1A",
+  };
 
   return (
 <div style={{padding:PAD,background:isDark?"#050805":"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:isMobile?"16px":"20px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
             <div>
-              <div style={{fontFamily:F,fontSize:isMobile?"10.5px":"11px",letterSpacing:isMobile?"1.8px":"2px",textTransform:"uppercase",color:GOLD,marginBottom:"6px",fontWeight:850}}>ANNUAL CHART</div>
-              <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0,color:isDark?"#F6F3EA":"#050505"}}>Best of the Year</h2>
-              <p style={{fontFamily:F,fontSize:TXT.lead,color:isDark?"#D7DBD7":"#59645D",margin:"4px 0 0",lineHeight:1.55}}>Aggregated Display Points across {DATA_PERIOD}</p>
+              <div style={{fontFamily:F,fontSize:isMobile?"10.5px":"11px",letterSpacing:isMobile?"1.8px":"2px",textTransform:"uppercase",color:GOLD,marginBottom:"6px",fontWeight:850}}>{yearEndMode==="bestofyear"?"BEST OF YEAR":"ALL TIME"}</div>
+              <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0,color:isDark?"#F6F3EA":"#050505"}}>{yearEndMode==="bestofyear"?"Best of the Year":"All Time Charts"}</h2>
+              <p style={{fontFamily:F,fontSize:TXT.lead,color:isDark?"#D7DBD7":"#59645D",margin:"4px 0 0",lineHeight:1.55}}>Aggregated Display Points across {yearEndPeriodLabel}</p>
             </div>
             <div className="year-end-actions" data-share-action-area="true" style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap",position:isMobile?"sticky":"static",top:isMobile?"0":"auto",zIndex:isMobile?5:"auto",background:isMobile?(isDark?"#050805":"#FFF"):"transparent",padding:isMobile?"8px 0 4px":"0"}}>
+              <select value={yearEndMode} onChange={e=>setYearEndMode(e.target.value)} style={{...selectStyle,minWidth:isMobile?"120px":"150px"}}>
+                <option value="alltime">All Time</option>
+                <option value="bestofyear">Best of Year</option>
+              </select>
+              <select value={yearEndPlat} onChange={e=>setYearEndPlat(e.target.value)} style={{...selectStyle,minWidth:isMobile?"110px":"140px"}}>
+                {yearEndPlatOptions.map(p=><option key={p} value={p}>{p==="Combined"?"Combined":(PLAT_LABEL[p]||p)}</option>)}
+              </select>
               <Tog sm/>
             </div>
           </div>

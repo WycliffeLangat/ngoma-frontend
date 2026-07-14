@@ -225,7 +225,7 @@ const ORDERING_OPTIONS = {
 
 const PAGE_SIZE = 50;
 
-export default function ResourcePage({ type, searchJump, user }) {
+export default function ResourcePage({ type, searchJump, user, onNavigate }) {
   const config = configs[type] || configs.artists;
   const permissions = user?.permissions || {};
   const adminOnlyType = ["users", "settings", "backups"].includes(type);
@@ -263,6 +263,7 @@ export default function ResourcePage({ type, searchJump, user }) {
   const [dupGroups, setDupGroups] = useState(null);
   const [actionBusy, setActionBusy] = useState(false);
   const [detailRow, setDetailRow] = useState(null);
+  const [creditedReleases, setCreditedReleases] = useState({ loading: false, items: [], error: "" });
   const abortRef = useRef(null);
   const keeperSearchTimerRef = useRef(null);
   const flashTimerRef = useRef(null);
@@ -295,6 +296,21 @@ export default function ResourcePage({ type, searchJump, user }) {
       .catch((err) => { if (active) setError(err.message); });
     return () => { active = false; };
   }, [searchJump, type, config.endpoint]);
+
+  // Load every release this artist is credited on (lead, secondary main, or
+  // featured) whenever the artist detail panel is opened.
+  useEffect(() => {
+    if (type !== "artists" || !detailRow?.id) {
+      setCreditedReleases({ loading: false, items: [], error: "" });
+      return;
+    }
+    let active = true;
+    setCreditedReleases({ loading: true, items: [], error: "" });
+    cmsApi.get(`/artists/${detailRow.id}/releases/`)
+      .then((data) => { if (active) setCreditedReleases({ loading: false, items: Array.isArray(data) ? data : [], error: "" }); })
+      .catch((err) => { if (active) setCreditedReleases({ loading: false, items: [], error: err.message }); });
+    return () => { active = false; };
+  }, [type, detailRow?.id]);
 
   const params = useMemo(() => ({
     ...(config.params || {}),
@@ -1438,8 +1454,51 @@ export default function ResourcePage({ type, searchJump, user }) {
                     </div>
 
                     {/* Social links */}
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
                       {[["spotify_url","Spotify"],["apple_music_url","Apple Music"],["youtube_url","YouTube"],["boomplay_url","Boomplay"],["audiomack_url","Audiomack"],["tiktok_url","TikTok"],["instagram_url","Instagram"],["x_url","X"],["facebook_url","Facebook"],["website_url","Website"]].map(([k,l]) => linkPill(r[k],l))}
+                    </div>
+
+                    {/* Credited releases */}
+                    <div>
+                      <div style={{ fontSize: 11, color: "#888", textTransform: "uppercase", letterSpacing: ".05em", marginBottom: 6 }}>
+                        Credited releases{creditedReleases.items.length > 0 ? ` (${creditedReleases.items.length})` : ""}
+                      </div>
+                      {creditedReleases.loading && <div style={{ fontSize: 12, color: "#aaa" }}>Loading credited releases…</div>}
+                      {creditedReleases.error && <div style={{ fontSize: 12, color: "#c0392b" }}>Could not load credited releases: {creditedReleases.error}</div>}
+                      {!creditedReleases.loading && !creditedReleases.error && creditedReleases.items.length === 0 && (
+                        <div style={{ fontSize: 12, color: "#aaa" }}>No songs or albums credit this artist yet.</div>
+                      )}
+                      {creditedReleases.items.length > 0 && (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 4, maxHeight: 220, overflowY: "auto" }}>
+                          {creditedReleases.items.map((release) => (
+                            <button
+                              key={release.id}
+                              type="button"
+                              onClick={() => onNavigate?.(release.chart_type === "albums" ? "albums" : "songs", release.title, release.id)}
+                              style={{
+                                display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8,
+                                textAlign: "left", background: "#fafafa", border: "1px solid #f0f0f0", borderRadius: 6,
+                                padding: "6px 10px", cursor: onNavigate ? "pointer" : "default", font: "inherit",
+                              }}
+                            >
+                              <span style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+                                <span style={{ fontSize: 12, fontWeight: 600, color: "#222", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{release.title}</span>
+                                <span style={{ fontSize: 10, color: "#999" }}>
+                                  {release.chart_type === "albums" ? "Album" : "Song"}{release.release_year ? ` · ${release.release_year}` : ""}
+                                </span>
+                              </span>
+                              <span style={{
+                                fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".04em",
+                                color: release.credit_role === "featured" ? "#1d6fa4" : "#7c5cbf",
+                                background: release.credit_role === "featured" ? "#e8f4fd" : "#f3eefb",
+                                borderRadius: 4, padding: "2px 7px", flexShrink: 0,
+                              }}>
+                                {release.credit_role === "featured" ? "Featured on" : "Main artist"}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </>
                 ) : (

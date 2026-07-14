@@ -111,7 +111,7 @@ function renderPage(page, user, searchJump, onNavigate) {
   if (page === "uploads")         return <UploadsPage user={user} searchJump={searchJump} />;
   if (page === "duplicate-review")return <DuplicateReviewPage user={user} />;
   if (page === "help")            return <HelpCenterPage />;
-  if (RESOURCE_PAGES.has(page))   return <ResourcePage type={page} user={user} searchJump={searchJump} />;
+  if (RESOURCE_PAGES.has(page))   return <ResourcePage type={page} user={user} searchJump={searchJump} onNavigate={onNavigate} />;
   return <div className="cms-empty">This CMS page is unavailable.</div>;
 }
 

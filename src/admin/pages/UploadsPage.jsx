@@ -530,8 +530,16 @@ function FinalSummary({ selected, onAction, canManageData, canPublish, workbookB
         <div><span>Warnings</span><strong>{summary.warning_count || 0}</strong></div>
         <div><span>Status</span><StatusBadge value={selected.status} /></div>
       </div>
-      {(summary.errors || []).slice(0, 5).map((item, index) => <div className="cms-alert error" key={`e${index}`}>Row {item.row || "—"}: {item.message}</div>)}
-      {(summary.warnings || []).slice(0, 5).map((item, index) => <div className="cms-alert warning" key={`w${index}`}>Row {item.row || "—"}: {item.message}</div>)}
+      {(summary.errors || []).slice(0, 5).map((item, index) => (
+        <div className="cms-alert error" key={`e${index}`}>
+          <ErrorHelpLink message={item.message}>Row {item.row || "—"}: {item.message}</ErrorHelpLink>
+        </div>
+      ))}
+      {(summary.warnings || []).slice(0, 5).map((item, index) => (
+        <div className="cms-alert warning" key={`w${index}`}>
+          <ErrorHelpLink message={item.message}>Row {item.row || "—"}: {item.message}</ErrorHelpLink>
+        </div>
+      ))}
       <div className="cms-actions wrap">
         <button className="cms-btn light" onClick={onViewWorkbook} disabled={!!workbookBusy || !selected.workbook_available}>
           {canManageData ? "View / edit workbook" : "View workbook"}
