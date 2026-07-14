@@ -1002,7 +1002,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
             {/* Artist detail + edit panel */}
             {selectedArtist && <div className="cms-entries-backdrop" onClick={() => setSelectedArtist(null)} />}
             {selectedArtist && (
-              <div className="cms-entries-panel" style={{ width: 300, flexShrink: 0, background: "#fff", border: "1px solid #E8E1D2", borderRadius: 20, padding: 20, position: "sticky", top: 90 }}>
+              <div className="cms-entries-panel" style={{ width: 300, flexShrink: 0, background: "#fff", border: "1px solid #E8E1D2", borderRadius: 20, padding: 20, position: "sticky", top: 90, maxHeight: "calc(100vh - 110px)", overflowY: "auto" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                   <div>
                     <div style={{ fontSize: 16, fontWeight: 800, lineHeight: 1.2 }}>{selectedArtist.name}</div>
@@ -1133,7 +1133,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
             {/* Entry edit / info panel */}
             {selected && <div className="cms-entries-backdrop" onClick={() => setSelected(null)} />}
             {selected && (
-              <div className="cms-entries-panel" style={{ width: 300, flexShrink: 0, background: "#fff", border: "1px solid #E8E1D2", borderRadius: 20, padding: 20, position: "sticky", top: 90 }}>
+              <div className="cms-entries-panel" style={{ width: 300, flexShrink: 0, background: "#fff", border: "1px solid #E8E1D2", borderRadius: 20, padding: 20, position: "sticky", top: 90, maxHeight: "calc(100vh - 110px)", overflowY: "auto" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontSize: 16, fontWeight: 800, lineHeight: 1.2, marginBottom: 4 }}>
