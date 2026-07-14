@@ -607,19 +607,38 @@ export default function ChartEntriesPage({ user, searchJump }) {
       });
       const rows = [...rowsByRelease.values()];
 
+      const artistLookup = new Map();
+      const artistOptions = await cmsApi.get("/artists/options/").catch(() => []);
+      (Array.isArray(artistOptions) ? artistOptions : getResults(artistOptions)).forEach((item) => {
+        const name = item.public_name || item.display_name || item.name || item.label;
+        const key = normalizeName(name);
+        if (key) artistLookup.set(key, { ...item, id: item.id || item.value, name });
+      });
+
+      // A raw credit string that exactly matches an already-registered artist's
+      // name (e.g. a duo/group whose own name contains "&") is kept intact
+      // instead of being split into individual members. Splitting it anyway
+      // would make reconciliation recreate the split-out member every time it
+      // runs, since that member's record was never meant to exist standalone.
+      const splitOrKeepRegistered = (value) => {
+        const text = String(value || "").trim();
+        if (!text) return [];
+        return artistLookup.has(normalizeName(text)) ? [text] : splitArtistNames(text);
+      };
+
       const primaryNamesFor = (row) => {
         const structured = (row.primary_artists || [])
           .map((profile) => profile?.public_name || profile?.display_name || profile?.name)
           .filter(Boolean);
         return structured.length
           ? structured
-          : splitArtistNames(row.primary_artist_credit || row.pa || row.primary_artist || row.a || row.artist_credit || row.artist);
+          : splitOrKeepRegistered(row.primary_artist_credit || row.pa || row.primary_artist || row.a || row.artist_credit || row.artist);
       };
       const featuredNamesFor = (row) => {
         const structured = (row.featured_artist_profiles || [])
           .map((profile) => profile?.public_name || profile?.display_name || profile?.name)
           .filter(Boolean);
-        const textNames = splitArtistNames(row.featured_artist_credit || row.fa || row.featured_artists || "");
+        const textNames = splitOrKeepRegistered(row.featured_artist_credit || row.fa || row.featured_artists || "");
         return [...new Map([...structured, ...textNames].map((name) => [normalizeName(name), name])).values()];
       };
 
@@ -640,13 +659,6 @@ export default function ChartEntriesPage({ user, searchJump }) {
         });
       });
 
-      const artistLookup = new Map();
-      const artistOptions = await cmsApi.get("/artists/options/").catch(() => []);
-      (Array.isArray(artistOptions) ? artistOptions : getResults(artistOptions)).forEach((item) => {
-        const name = item.public_name || item.display_name || item.name || item.label;
-        const key = normalizeName(name);
-        if (key) artistLookup.set(key, { ...item, id: item.id || item.value, name });
-      });
       for (const [key, rawName] of artistNames) {
         let record = artistLookup.get(key) || null;
         if (!record) {
