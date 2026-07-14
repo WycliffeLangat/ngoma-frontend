@@ -5,6 +5,7 @@ import { fetchAppDataWithFallback, readCachedAppData } from "../../api/public";
 import { normalizePublicPayload } from "../../utils/publicDataRuntime";
 import { buildArtistMonthMirror } from "../../utils/publicChartMirror";
 import { isDeletedArtistName } from "../deletedArtistNames";
+import { reorderAffectedChartScopes } from "../chartRankMaintenance";
 
 const MOVE_COLOR = { NEW: "#1565C0", up: "#1B7F3A", down: "#C62828", same: "#999" };
 
@@ -187,6 +188,7 @@ async function fetchAllCmsResults(path, pageSize = 500) {
 
 export default function ChartEntriesPage({ user, searchJump }) {
   const canEdit = Boolean(user?.permissions?.can_manage_data) && !user?.permissions?.read_only;
+  const canHardDelete = ["admin", "super_admin"].includes(user?.role);
   const initialPublicPayload = useMemo(cachedPublicPayload, []);
   const [allCharts, setAllCharts]       = useState([]);
   const [platforms, setPlatforms]       = useState([]);
@@ -222,6 +224,8 @@ export default function ChartEntriesPage({ user, searchJump }) {
   const [editArtist,  setEditArtist]  = useState(null);
   const [editBusy,    setEditBusy]    = useState(false);
   const [reconcileBusy, setReconcileBusy] = useState(false);
+  const [confirmDeleteEntry, setConfirmDeleteEntry] = useState(false);
+  const [deletingEntry, setDeletingEntry] = useState(false);
   const imgInputRef = useRef();
   const reconciliationRef = useRef("");
 
@@ -482,6 +486,25 @@ export default function ChartEntriesPage({ user, searchJump }) {
       setImageFile(null);
     } catch (e) { setError(e.message); }
     finally { setSaving(false); }
+  }
+
+  async function deleteEntry() {
+    if (!selected || deletingEntry || platformId === "kenyan") return;
+    setDeletingEntry(true); setError("");
+    try {
+      await cmsApi.delete(`/chart-entries/${selected.id}/`);
+      // A delete only leaves a rank gap on this one chart/platform scope —
+      // reuse the same gap-closing helper releases/artists already use after
+      // a hard delete, scoped directly instead of resolving it via release id.
+      const platformParam = platformId === COMBINED ? "combined" : platformId;
+      await reorderAffectedChartScopes([{ chart: chartId, platform: platformParam }]);
+      const endpoint = `/chart-entries/?chart=${chartId}&platform=${platformParam}&ordering=rank`;
+      setEntries(await fetchAllCmsResults(endpoint));
+      refreshPublicPayloadInBackground();
+      setSelected(null);
+      setConfirmDeleteEntry(false);
+    } catch (e) { setError(e.message); }
+    finally { setDeletingEntry(false); }
   }
 
   // ── Inline release edit ────────────────────────────────────────────────────
@@ -1218,11 +1241,45 @@ export default function ChartEntriesPage({ user, searchJump }) {
                         </button>
                       )
                     }
+                    {canHardDelete && !isRegionalScope && (
+                      <button
+                        type="button"
+                        className="cms-btn danger full"
+                        disabled={deletingEntry}
+                        onClick={() => setConfirmDeleteEntry(true)}
+                        style={{ marginTop: 8 }}
+                      >Delete this chart entry</button>
+                    )}
                 </>
               </div>
             )}
           </div>
         )
+      )}
+
+      {/* ── Delete chart entry confirm modal ── */}
+      {confirmDeleteEntry && selected && (
+        <div className="cms-modal-backdrop" onClick={() => !deletingEntry && setConfirmDeleteEntry(false)}>
+          <div className="cms-modal" onClick={(event) => event.stopPropagation()} style={{ maxWidth: 420 }}>
+            <div className="cms-modal-head">
+              <h3>Delete this chart entry?</h3>
+              <button type="button" onClick={() => setConfirmDeleteEntry(false)} disabled={deletingEntry}>×</button>
+            </div>
+            <p style={{ margin: "10px 0 4px", fontSize: 14 }}>
+              <strong>"{selected.title}"</strong> — rank #{selected.rank} on this chart/platform/month.
+            </p>
+            <p style={{ fontSize: 13, color: "#c0392b", margin: "0 0 16px" }}>
+              This permanently removes this one platform/month row (not the release itself, and not the release's
+              other chart entries). Ranks below it on this scope are closed up automatically. This cannot be undone.
+            </p>
+            <div className="cms-actions right">
+              <button className="cms-btn light" onClick={() => setConfirmDeleteEntry(false)} disabled={deletingEntry}>Cancel</button>
+              <button className="cms-btn danger" onClick={deleteEntry} disabled={deletingEntry}>
+                {deletingEntry ? "Deleting…" : "Delete permanently"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* ── Release edit modal ── */}

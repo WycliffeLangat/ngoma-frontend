@@ -14,6 +14,7 @@ import {
   rememberMergeRules,
 } from "../mergeRules";
 import { artistNameVariants, recordDeletedArtistNames } from "../deletedArtistNames";
+import ArtistImpactSummary from "../components/ArtistImpactSummary";
 
 const IGNORED_KEY = "cms_dup_ignored_groups";
 
@@ -658,11 +659,14 @@ export default function DuplicateReviewPage() {
                 </div>
               )}
 
-              <p style={{ fontSize: 12, color: "#888", margin: "0 0 14px" }}>
+              <p style={{ fontSize: 12, color: "#888", margin: "0 0 4px" }}>
                 {isArtist
                   ? "The deleted artist's releases will be reassigned to the kept artist. Aliases are preserved."
                   : "Monthly chart points are summed into the kept record. Weekly entries on the same chart in the same week are dropped. Certifications are recalculated."}
               </p>
+              {isArtist && (
+                <ArtistImpactSummary artists={dups.filter((r) => selectedIds.has(r.id))} action="merge" />
+              )}
               <div className="cms-actions right">
                 <button className="cms-btn light" onClick={() => setMergeModal(null)} disabled={!!busy}>Cancel</button>
                 <button

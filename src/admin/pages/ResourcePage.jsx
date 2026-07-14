@@ -13,6 +13,7 @@ import {
 } from "../chartRankMaintenance";
 import { rememberMergeRules } from "../mergeRules";
 import { artistNameVariants, clearDeletedArtistNames, recordDeletedArtistNames } from "../deletedArtistNames";
+import ArtistImpactSummary from "../components/ArtistImpactSummary";
 
 function normalizeArtistName(value) {
   return String(value || "").trim().toLowerCase();
@@ -823,6 +824,7 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
         await cmsApi.post(`${config.endpoint}${keeper.id}/merge/`, {
           artist_ids: duplicates.map((row) => row.id),
         });
+        recordDeletedArtistNames(duplicates.flatMap(artistNameVariants));
         merged.push(...duplicates);
       } else {
         for (const duplicate of duplicates) {
@@ -925,6 +927,7 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
         await cmsApi.post(`${config.endpoint}${keeper.id}/merge/`, {
           artist_ids: dups.map((dup) => dup.id),
         });
+        recordDeletedArtistNames(dups.flatMap(artistNameVariants));
       } else {
         for (const dup of dups) {
           await callMergeApi(dup, keeper);
@@ -1559,10 +1562,11 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
                 </div>
               ))}
             </div>
-            <p style={{ fontSize: 13, color: "#c0392b", margin: "12px 0 16px" }}>
+            <p style={{ fontSize: 13, color: "#c0392b", margin: "12px 0 4px" }}>
               This permanently deletes every selected {recordTypeLabel(bulkDeleteTargets.length)}
               {isRelease ? " and its chart entries and certifications" : ""}. This cannot be undone.
             </p>
+            {isArtist && <ArtistImpactSummary artists={bulkDeleteTargets} action="delete" onNavigate={onNavigate} />}
             <div className="cms-actions right">
               <button className="cms-btn light" onClick={() => setBulkDeleteTargets([])} disabled={actionBusy}>Cancel</button>
               <button className="cms-btn danger" onClick={hardDeleteSelected} disabled={actionBusy}>
@@ -1609,11 +1613,18 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
                 );
               })}
             </div>
-            <p style={{ fontSize: 12, color: "#888", margin: "12px 0 0" }}>
+            <p style={{ fontSize: 12, color: "#888", margin: "12px 0 4px" }}>
               {isArtist
                 ? "Releases and aliases move to the keeper."
                 : "Monthly chart points are combined, duplicate weekly entries are removed, and certifications are recalculated."}
             </p>
+            {isArtist && bulkMergeTarget.keeperId && (
+              <ArtistImpactSummary
+                artists={bulkMergeTarget.rows.filter((row) => row.id !== bulkMergeTarget.keeperId)}
+                action="merge"
+                onNavigate={onNavigate}
+              />
+            )}
             <div className="cms-actions right">
               <button className="cms-btn light" onClick={() => setBulkMergeTarget(null)} disabled={actionBusy}>Cancel</button>
               <button className="cms-btn" onClick={mergeSelected} disabled={!bulkMergeTarget.keeperId || actionBusy}>
@@ -1691,10 +1702,11 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
               <strong>"{recordLabel(deleteTarget)}"</strong>
               {isRelease && deleteTarget.artist_display ? ` by ${deleteTarget.artist_display}` : ""}
             </p>
-            <p style={{ fontSize: 13, color: "#c0392b", margin: "0 0 16px" }}>
+            <p style={{ fontSize: 13, color: "#c0392b", margin: "0 0 4px" }}>
               This will permanently delete the {recordTypeLabel(1)}
               {isRelease ? " and all its chart entries and certifications" : ""}. This cannot be undone.
             </p>
+            {isArtist && <ArtistImpactSummary artists={[deleteTarget]} action="delete" onNavigate={onNavigate} />}
             <div className="cms-actions right">
               <button className="cms-btn light" onClick={() => setDeleteTarget(null)} disabled={actionBusy}>Cancel</button>
               <button className="cms-btn danger" onClick={hardDelete} disabled={actionBusy}>
@@ -1756,11 +1768,12 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
                       >Change keeper…</button>
                     </div>
                   </div>
-                  <p style={{ fontSize: 12, color: "#888", margin: "0 0 14px" }}>
+                  <p style={{ fontSize: 12, color: "#888", margin: "0 0 4px" }}>
                     {isArtistType
                       ? "The deleted artist's releases move to the kept artist. Aliases are preserved."
                       : "Monthly chart points are summed into the kept record. Weekly entries on the same chart in the same week are dropped. Certifications are recalculated."}
                   </p>
+                  {isArtistType && <ArtistImpactSummary artists={[dup]} action="merge" onNavigate={onNavigate} />}
                 </>
               ) : (
                 /* ── Keeper not yet chosen: show search ── */
