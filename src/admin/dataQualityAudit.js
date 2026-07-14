@@ -167,6 +167,7 @@ export function auditCmsRecords(records, options = {}) {
 
   const countryContext = buildCountryContext(records.countries || []);
   const artistById = new Map((records.artists || []).map((artist) => [Number(artist.id), artist]));
+  const artistByName = buildArtistNameIndex(records.artists || []);
   const releases = [...(records.songs || []), ...(records.albums || [])];
   const releaseById = new Map(releases.map((release) => [Number(release.id), release]));
   const certRules = buildCertificationRules(records.certificationRules || []);
@@ -177,6 +178,7 @@ export function auditCmsRecords(records, options = {}) {
     summary,
     countryContext,
     artistById,
+    artistByName,
     releaseById,
     certRules,
   };
@@ -476,6 +478,19 @@ function auditReleases(releases, chartType, ctx) {
         noun: releaseName,
         messageTail: "use text-only featured credits that should be linked to artist records.",
       }, { id: release.id, label, problem: `Unlinked featured names: ${stringValue(release.featured_artists)}` }, ["incompleteMetadata"]);
+    }
+
+    const compoundProblem = compoundArtistCreditProblem(release, ctx);
+    if (compoundProblem) {
+      pushIssue(ctx, `audit-${releaseName}-compound-artist-unlinked`, {
+        title: `${capitalize(releaseName)}s may split a registered duo/group act`,
+        module: "releases",
+        page,
+        level: "error",
+        category: "Artists",
+        noun: releaseName,
+        messageTail: "credit a compound name as free text that exactly matches a single registered artist — link that one artist record instead so the chart doesn't split it into separate members.",
+      }, { id: release.id, label, problem: compoundProblem }, ["incompleteMetadata"]);
     }
 
     auditUrlFields(ctx, release, SOCIAL_URL_FIELDS, {
@@ -1264,6 +1279,43 @@ function pushDuplicateIssues(ctx, groups, meta) {
       problem: `${group.length} records share the same key`,
     }, ["incompleteMetadata"]);
   }
+}
+
+// Detects a "typed-not-linked" duo/group act: raw credit text that would be
+// split into separate chart-credited members (see splitCreditNames in
+// utils/chartHelpers.js) but exactly matches an existing single Artist
+// record's name — i.e. the act is already registered as one entity, it just
+// needs to be linked instead of retyped as free text. Left unlinked, chart
+// aggregation keeps re-deriving the split members every rebuild, so deleting
+// or merging the accidental standalone member (e.g. "Dorcas" out of
+// "Vestine & Dorcas") never sticks.
+const SPLITTABLE_CREDIT = /[,&]|\bft\.?\b|\bfeat\.?\b|\bfeaturing\b/i;
+
+function buildArtistNameIndex(artists) {
+  const index = new Map();
+  artists.forEach((artist) => {
+    [artist.name, artist.display_name, artist.public_name].forEach((value) => {
+      const key = normalizeName(value);
+      if (key) index.set(key, artist);
+    });
+  });
+  return index;
+}
+
+function compoundArtistCreditProblem(release, ctx) {
+  if (!ctx.artistByName.size) return "";
+  const candidates = [
+    release.artist_display, release.artist_credit, release.a, release.artist,
+    release.artist_name, release.primary_artist, release.pa,
+    release.featured_artist_credit, release.featured_artists, release.fa,
+  ];
+  const matches = [];
+  new Set(candidates.filter(hasValue).map(stringValue)).forEach((text) => {
+    if (!SPLITTABLE_CREDIT.test(text)) return;
+    const artist = ctx.artistByName.get(normalizeName(text));
+    if (artist) matches.push(`"${text}" matches artist record "${artistLabel(artist)}" (id ${artist.id})`);
+  });
+  return matches.join("; ");
 }
 
 function buildCountryContext(countries) {
