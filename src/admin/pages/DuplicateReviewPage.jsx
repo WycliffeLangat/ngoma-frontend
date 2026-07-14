@@ -13,6 +13,7 @@ import {
   markMergeRulesApplied,
   rememberMergeRules,
 } from "../mergeRules";
+import { artistNameVariants, recordDeletedArtistNames } from "../deletedArtistNames";
 
 const IGNORED_KEY = "cms_dup_ignored_groups";
 
@@ -236,6 +237,7 @@ export default function DuplicateReviewPage() {
       await cmsApi.post(`/artists/${keeper.id}/merge/`, {
         artist_ids: duplicates.map((dup) => dup.id),
       });
+      recordDeletedArtistNames(duplicates.flatMap(artistNameVariants));
     } else {
       for (const dup of duplicates) {
         await callMergeApi(dup, keeper);

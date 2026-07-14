@@ -4,6 +4,7 @@ import FormModal from "../components/FormModal";
 import { fetchAppDataWithFallback, readCachedAppData } from "../../api/public";
 import { normalizePublicPayload } from "../../utils/publicDataRuntime";
 import { buildArtistMonthMirror } from "../../utils/publicChartMirror";
+import { isDeletedArtistName } from "../deletedArtistNames";
 
 const MOVE_COLOR = { NEW: "#1565C0", up: "#1B7F3A", down: "#C62828", same: "#999" };
 
@@ -659,8 +660,16 @@ export default function ChartEntriesPage({ user, searchJump }) {
         });
       });
 
+      // Names an editor intentionally deleted (or merged away) never get
+      // silently recreated here — the only way one comes back is a human
+      // explicitly adding it again via the Artists resource form.
+      const skippedDeletedNames = [];
       for (const [key, rawName] of artistNames) {
         let record = artistLookup.get(key) || null;
+        if (!record && isDeletedArtistName(rawName)) {
+          skippedDeletedNames.push(rawName);
+          continue;
+        }
         if (!record) {
           try {
             record = await cmsApi.post("/artists/", {
@@ -737,6 +746,13 @@ export default function ChartEntriesPage({ user, searchJump }) {
       setPublicNotice(fresh.stale
         ? `Showing cached artist chart data (${formatPayloadAge(fresh.ageMs)}). Live refresh failed: ${fresh.errorMessage}.`
         : "");
+      if (skippedDeletedNames.length) {
+        setError(
+          `Skipped recreating ${skippedDeletedNames.length} previously deleted artist${skippedDeletedNames.length === 1 ? "" : "s"} ` +
+          `still credited in text (${skippedDeletedNames.join(", ")}). Link the correct artist on those releases, ` +
+          `or add a new Artist record for the name if it should exist again.`
+        );
+      }
     } catch (e) {
       setError(e.message);
     } finally {

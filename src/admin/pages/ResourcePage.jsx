@@ -12,6 +12,7 @@ import {
   rerankAffectedChartScopes,
 } from "../chartRankMaintenance";
 import { rememberMergeRules } from "../mergeRules";
+import { artistNameVariants, clearDeletedArtistNames, recordDeletedArtistNames } from "../deletedArtistNames";
 
 function normalizeArtistName(value) {
   return String(value || "").trim().toLowerCase();
@@ -549,6 +550,10 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
       } else {
         const created = await cmsApi.post(config.endpoint, jsonForm);
         savedId = created?.id;
+        // A human deliberately creating a new Artist record with a name that
+        // was previously deleted is exactly the exception that should let it
+        // exist again — clear its tombstone so future syncs treat it as real.
+        if (type === "artists" && savedId) clearDeletedArtistNames(artistNameVariants(jsonForm));
       }
     } catch(e) {
       // FormModal renders DRF field errors beside the corresponding inputs.
@@ -688,6 +693,7 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
   async function callMergeApi(dupRow, keeperRow) {
     if (isArtist) {
       await cmsApi.post(`${config.endpoint}${keeperRow.id}/merge/`, { artist_ids: [dupRow.id] });
+      recordDeletedArtistNames(artistNameVariants(dupRow));
     } else {
       await cmsApi.post(`${config.endpoint}${dupRow.id}/merge/`, { into_id: keeperRow.id });
     }
@@ -703,6 +709,7 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
         ? await getAffectedChartScopes(deleteTarget.id)
         : [];
       await cmsApi.delete(`${config.endpoint}${deleteTarget.id}/hard_delete/`);
+      if (isArtist) recordDeletedArtistNames(artistNameVariants(deleteTarget));
       const rankResult = await reorderAffectedChartScopes(affectedScopes);
       clearCmsCache(isRelease || isArtist ? undefined : config.endpoint);
       setDeleteTarget(null);
@@ -735,6 +742,7 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
         }
       }
       if (!deleted.length) throw failures[0]?.error || new Error("No records were deleted.");
+      if (isArtist) recordDeletedArtistNames(deleted.flatMap(artistNameVariants));
 
       const rankResult = await reorderAffectedChartScopes(affectedScopes);
       clearCmsCache(isRelease || isArtist ? undefined : config.endpoint);
