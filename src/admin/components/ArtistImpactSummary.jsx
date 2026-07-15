@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { computeArtistImpact } from "../artistImpact";
+import { computeArtistImpact, applyArtistImpactCorrections } from "../artistImpact";
+import { artistNameVariants } from "../deletedArtistNames";
 
 const MAX_ARTISTS_CHECKED = 5;
 const MAX_RISKS_SHOWN = 8;
@@ -8,15 +9,23 @@ const MAX_RISKS_SHOWN = 8;
 // before confirming, what the action actually touches — and if leftover
 // unlinked credit text means the name is likely to resurface as "missing"
 // afterward, so they can fix that first instead of finding out later.
-export default function ArtistImpactSummary({ artists = [], action = "delete", onNavigate }) {
-  const targets = artists.filter((artist) => artist?.id).slice(0, MAX_ARTISTS_CHECKED);
-  const key = targets.map((artist) => artist.id).join(",");
-  const [state, setState] = useState({ loading: true, linkedCount: 0, risks: [], error: "" });
+//
+// keeperName is only used for action="merge" — it's what the risky releases'
+// credit text gets rewritten to when "Fix now" is used before the merge
+// itself has run.
+export default function ArtistImpactSummary({ artists = [], action = "delete", keeperName = "", onNavigate }) {
+  // A target may be a name-only credit with no Artist record yet (id-less) —
+  // computeArtistImpact still finds its text-risk releases from the name alone.
+  const targets = artists.filter((artist) => artist?.id || artist?.name).slice(0, MAX_ARTISTS_CHECKED);
+  const key = targets.map((artist) => artist.id || artist.name).join(",");
+  const [state, setState] = useState({ loading: true, linkedCount: 0, risks: [], results: [], error: "" });
+  const [fixing, setFixing] = useState(false);
+  const [fixNote, setFixNote] = useState("");
 
-  useEffect(() => {
+  function scan() {
     if (!targets.length) {
-      setState({ loading: false, linkedCount: 0, risks: [], error: "" });
-      return;
+      setState({ loading: false, linkedCount: 0, risks: [], results: [], error: "" });
+      return () => {};
     }
     let active = true;
     setState((current) => ({ ...current, loading: true, error: "" }));
@@ -30,12 +39,16 @@ export default function ArtistImpactSummary({ artists = [], action = "delete", o
           loading: false,
           linkedCount,
           risks: [...riskMap.values()],
+          results,
           error: results.find((r) => r.error)?.error || "",
         });
       });
     return () => { active = false; };
+  }
+
+  useEffect(scan,
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
+    [key]);
 
   if (!targets.length) return null;
 
@@ -44,6 +57,33 @@ export default function ArtistImpactSummary({ artists = [], action = "delete", o
   const creditFate = action === "merge"
     ? "moves to the kept record"
     : "is permanently lost";
+  const canFixNow = action === "delete" || Boolean(keeperName);
+
+  async function fixNow() {
+    if (fixing) return;
+    setFixing(true);
+    setFixNote("");
+    try {
+      const fixes = await Promise.all(targets.map((artist, i) =>
+        applyArtistImpactCorrections(state.results[i], {
+          oldNames: artistNameVariants(artist),
+          newName: action === "merge" ? keeperName : null,
+        }).catch(() => null)
+      ));
+      const totalUpdated = fixes.reduce((sum, fix) => sum + (fix?.updated || 0), 0);
+      const totalFailed = fixes.reduce((sum, fix) => sum + (fix?.fixFailures?.length || 0), 0);
+      setFixNote(
+        totalUpdated
+          ? `Fixed. Updated ${totalUpdated} historical chart ${totalUpdated === 1 ? "entry" : "entries"}${totalFailed ? ` (${totalFailed} release${totalFailed === 1 ? "" : "s"} could not be updated).` : "."}`
+          : totalFailed
+            ? `Could not update ${totalFailed} release${totalFailed === 1 ? "" : "s"} — try again or edit them directly.`
+            : "Fixed."
+      );
+      scan();
+    } finally {
+      setFixing(false);
+    }
+  }
 
   return (
     <div style={{ background: "#fffaf0", border: "1px solid #f0dca0", borderRadius: 8, padding: "10px 12px", margin: "10px 0", fontSize: 12 }}>
@@ -63,7 +103,9 @@ export default function ArtistImpactSummary({ artists = [], action = "delete", o
             <div style={{ marginTop: 6 }}>
               <div style={{ color: "#c0392b", fontWeight: 700 }}>
                 ⚠ {state.risks.length} release{state.risks.length === 1 ? "" : "s"} still mention this name in unlinked credit text.
-                Fix these first, or the name will likely resurface as "missing" after this action:
+                {canFixNow
+                  ? " Fix now, or the name will likely resurface as \"missing\" after this action:"
+                  : " Fix these first, or the name will likely resurface as \"missing\" after this action:"}
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 3, marginTop: 4, maxHeight: 140, overflowY: "auto" }}>
                 {state.risks.slice(0, MAX_RISKS_SHOWN).map((release) => (
@@ -83,6 +125,22 @@ export default function ArtistImpactSummary({ artists = [], action = "delete", o
                   <div style={{ color: "#aaa", fontSize: 11 }}>+ {state.risks.length - MAX_RISKS_SHOWN} more</div>
                 )}
               </div>
+              {canFixNow && (
+                <button
+                  type="button"
+                  className="cms-btn light"
+                  disabled={fixing}
+                  onClick={fixNow}
+                  style={{ marginTop: 8, fontSize: 11.5, padding: "5px 10px" }}
+                >
+                  {fixing
+                    ? "Fixing…"
+                    : action === "merge"
+                      ? `Fix now — credit "${keeperName}" instead`
+                      : "Fix now — remove from credit text"}
+                </button>
+              )}
+              {fixNote && <div style={{ marginTop: 6, color: fixNote.startsWith("Could not") ? "#c0392b" : "#1B7F3A", fontWeight: 700 }}>{fixNote}</div>}
             </div>
           )}
           {artists.length > targets.length && (

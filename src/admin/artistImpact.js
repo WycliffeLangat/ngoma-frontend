@@ -37,17 +37,22 @@ function textRiskFields(release) {
  * duo/group act" alerts are the authoritative full-catalog version.
  */
 export async function computeArtistImpact(artist) {
-  if (!artist?.id) return { linkedReleases: [], textRiskReleases: [], error: "" };
   const names = artistNameVariants(artist);
   const nameKeys = new Set(names.map(normalize).filter(Boolean));
+  if (!nameKeys.size) return { linkedReleases: [], textRiskReleases: [], error: "" };
 
+  // A name-only "artist" (no Artist record — e.g. a credit that only ever
+  // existed as free text in Chart Entries) has nothing to look up here, but
+  // the text-risk scan below still works from the name alone.
   let linkedReleases = [];
   let error = "";
-  try {
-    const data = await cmsApi.get(`/artists/${artist.id}/releases/`);
-    linkedReleases = Array.isArray(data) ? data : [];
-  } catch (e) {
-    error = e.message;
+  if (artist?.id) {
+    try {
+      const data = await cmsApi.get(`/artists/${artist.id}/releases/`);
+      linkedReleases = Array.isArray(data) ? data : [];
+    } catch (e) {
+      error = e.message;
+    }
   }
 
   const candidates = new Map();

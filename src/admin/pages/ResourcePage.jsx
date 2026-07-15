@@ -1690,6 +1690,7 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
               <ArtistImpactSummary
                 artists={bulkMergeTarget.rows.filter((row) => row.id !== bulkMergeTarget.keeperId)}
                 action="merge"
+                keeperName={recordLabel(bulkMergeTarget.rows.find((row) => row.id === bulkMergeTarget.keeperId))}
                 onNavigate={onNavigate}
               />
             )}
@@ -1841,7 +1842,7 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
                       ? "The deleted artist's releases move to the kept artist. Aliases are preserved."
                       : "Monthly chart points are summed into the kept record. Weekly entries on the same chart in the same week are dropped. Certifications are recalculated."}
                   </p>
-                  {isArtistType && <ArtistImpactSummary artists={[dup]} action="merge" onNavigate={onNavigate} />}
+                  {isArtistType && <ArtistImpactSummary artists={[dup]} action="merge" keeperName={keeper.display_name || keeper.name} onNavigate={onNavigate} />}
                 </>
               ) : (
                 /* ── Keeper not yet chosen: show search ── */

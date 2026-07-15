@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { cmsApi, getResults } from "../api";
+import { cmsApi, getResults, clearCmsCache } from "../api";
 import FormModal from "../components/FormModal";
+import ArtistImpactSummary from "../components/ArtistImpactSummary";
 import { fetchAppDataWithFallback, readCachedAppData } from "../../api/public";
 import { normalizePublicPayload } from "../../utils/publicDataRuntime";
 import { buildArtistMonthMirror } from "../../utils/publicChartMirror";
-import { isDeletedArtistName } from "../deletedArtistNames";
+import { isDeletedArtistName, artistNameVariants, recordDeletedArtistNames } from "../deletedArtistNames";
 import { reorderAffectedChartScopes } from "../chartRankMaintenance";
 import { releaseFeaturedArtistsText, syncChartEntryFeaturedArtists } from "../chartEntryCreditSync";
+import { computeArtistImpact, applyArtistImpactCorrections } from "../artistImpact";
 
 const MOVE_COLOR = { NEW: "#1565C0", up: "#1B7F3A", down: "#C62828", same: "#999" };
 
@@ -227,6 +229,8 @@ export default function ChartEntriesPage({ user, searchJump }) {
   const [reconcileBusy, setReconcileBusy] = useState(false);
   const [confirmDeleteEntry, setConfirmDeleteEntry] = useState(false);
   const [deletingEntry, setDeletingEntry] = useState(false);
+  const [deleteArtistTarget, setDeleteArtistTarget] = useState(null);
+  const [deletingArtist, setDeletingArtist] = useState(false);
   const imgInputRef = useRef();
   const reconciliationRef = useRef("");
 
@@ -622,6 +626,43 @@ export default function ChartEntriesPage({ user, searchJump }) {
       refreshPublicPayloadInBackground();
     } catch(e) { setError(e.message); }
     finally { setEditBusy(false); }
+  }
+
+  // deleteArtistTarget is either a full Artist record (has .id — the normal
+  // case) or a name-only stand-in for a credit that was never linked to one
+  // (missingArtistRecords). Either way this removes the name from every
+  // release's credit text and every chart_entries row that still has it, so
+  // it can't resurface as "missing" and get re-synced back in.
+  async function deleteArtist() {
+    if (!deleteArtistTarget || deletingArtist) return;
+    setDeletingArtist(true); setError("");
+    try {
+      const target = deleteArtistTarget;
+      const impact = await computeArtistImpact(target);
+      if (target.id) {
+        await cmsApi.delete(`/artists/${target.id}/hard_delete/`);
+        clearCmsCache();
+        if (editArtist?.id === target.id) setEditArtist(null);
+      }
+      recordDeletedArtistNames(artistNameVariants(target));
+      const fix = await applyArtistImpactCorrections(impact, { oldNames: artistNameVariants(target), newName: null }).catch(() => null);
+      setDeleteArtistTarget(null);
+      setSelectedArtist(null);
+      // Awaited (not fire-and-forget) so the "corrected N entries" note below
+      // isn't immediately overwritten by refreshPublicPayloadInBackground's
+      // own success handler clearing publicNotice.
+      const fresh = await fetchAppDataWithFallback(undefined, {
+        timeoutMs: 12_000,
+        maxAgeMs: PUBLIC_PAYLOAD_CACHE_MAX_AGE_MS,
+      }).catch(() => null);
+      if (fresh) setPublicPayload(completePublicPayload(fresh.payload));
+      setPublicNotice(
+        fix?.updated
+          ? `Corrected ${fix.updated} historical chart ${fix.updated === 1 ? "entry" : "entries"} that still credited "${target.name}".`
+          : (fresh?.stale ? `Showing cached artist chart data (${formatPayloadAge(fresh.ageMs)}).` : "")
+      );
+    } catch(e) { setError(e.message); }
+    finally { setDeletingArtist(false); }
   }
 
   const missingArtistRecords = artistRankings.filter((artist) => !artist.profile?.id);
@@ -1032,9 +1073,21 @@ export default function ChartEntriesPage({ user, searchJump }) {
                   className="cms-btn full"
                   disabled={editBusy}
                   onClick={() => openArtistEdit(selectedArtist.name)}
-                  style={{ marginBottom: 16 }}
+                  style={{ marginBottom: 8 }}
                 >
                   {editBusy ? "Loading…" : "Edit artist record"}
+                </button>}
+
+                {canHardDelete && <button
+                  type="button"
+                  className="cms-btn danger full"
+                  disabled={deletingArtist}
+                  onClick={() => setDeleteArtistTarget(
+                    selectedArtist.profile?.id ? { ...selectedArtist.profile } : { name: selectedArtist.name }
+                  )}
+                  style={{ marginBottom: 16 }}
+                >
+                  Delete artist
                 </button>}
 
                 <div style={{ fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", color: "#5e625c", marginBottom: 8 }}>
@@ -1286,6 +1339,33 @@ export default function ChartEntriesPage({ user, searchJump }) {
               <button className="cms-btn light" onClick={() => setConfirmDeleteEntry(false)} disabled={deletingEntry}>Cancel</button>
               <button className="cms-btn danger" onClick={deleteEntry} disabled={deletingEntry}>
                 {deletingEntry ? "Deleting…" : "Delete permanently"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Delete artist confirm modal ── */}
+      {deleteArtistTarget && (
+        <div className="cms-modal-backdrop" onClick={() => !deletingArtist && setDeleteArtistTarget(null)}>
+          <div className="cms-modal" onClick={(event) => event.stopPropagation()} style={{ maxWidth: 460 }}>
+            <div className="cms-modal-head">
+              <h3>Delete this artist?</h3>
+              <button type="button" onClick={() => setDeleteArtistTarget(null)} disabled={deletingArtist}>×</button>
+            </div>
+            <p style={{ margin: "10px 0 4px", fontSize: 14 }}>
+              <strong>"{deleteArtistTarget.name}"</strong>
+            </p>
+            <p style={{ fontSize: 13, color: "#c0392b", margin: "0 0 4px" }}>
+              {deleteArtistTarget.id
+                ? "This permanently deletes the Artist record. This cannot be undone."
+                : "This name has no Artist record — it only exists as unlinked credit text on releases."}
+            </p>
+            <ArtistImpactSummary artists={[deleteArtistTarget]} action="delete" />
+            <div className="cms-actions right">
+              <button className="cms-btn light" onClick={() => setDeleteArtistTarget(null)} disabled={deletingArtist}>Cancel</button>
+              <button className="cms-btn danger" onClick={deleteArtist} disabled={deletingArtist}>
+                {deletingArtist ? "Deleting…" : "Delete artist"}
               </button>
             </div>
           </div>
