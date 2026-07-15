@@ -14,6 +14,8 @@ import {
 import { rememberMergeRules } from "../mergeRules";
 import { artistNameVariants, clearDeletedArtistNames, recordDeletedArtistNames } from "../deletedArtistNames";
 import ArtistImpactSummary from "../components/ArtistImpactSummary";
+import { computeArtistImpact, applyArtistImpactCorrections } from "../artistImpact";
+import { syncChartEntryFeaturedArtists } from "../chartEntryCreditSync";
 
 function normalizeArtistName(value) {
   return String(value || "").trim().toLowerCase();
@@ -548,6 +550,15 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
     try {
       if (savedId) {
         await cmsApi.patch(`${config.endpoint}${savedId}/`, jsonForm);
+        // Existing chart_entries rows snapshot their own copy of featured_artists
+        // text at creation time and are never touched again just because the
+        // release is edited — without this, a removed/corrected featured artist
+        // keeps showing (and keeps aggregating into the public artist chart) on
+        // every already-published month for this release.
+        if (type === "songs" || type === "albums") {
+          const { failed } = await syncChartEntryFeaturedArtists(savedId).catch(() => ({ failed: 0 }));
+          if (failed) setError(`Saved, but ${failed} historical chart ${failed === 1 ? "entry" : "entries"} could not be synced.`);
+        }
       } else {
         const created = await cmsApi.post(config.endpoint, jsonForm);
         savedId = created?.id;
@@ -709,14 +720,23 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
       const affectedScopes = isRelease
         ? await getAffectedChartScopes(deleteTarget.id)
         : [];
+      // Impact must be captured before the artist record is gone — it's what
+      // finds the releases whose free-text credit still names them.
+      const impact = isArtist ? await computeArtistImpact(deleteTarget) : null;
       await cmsApi.delete(`${config.endpoint}${deleteTarget.id}/hard_delete/`);
       if (isArtist) recordDeletedArtistNames(artistNameVariants(deleteTarget));
       const rankResult = await reorderAffectedChartScopes(affectedScopes);
+      let creditNote = "";
+      if (impact) {
+        const fix = await applyArtistImpactCorrections(impact, { oldNames: artistNameVariants(deleteTarget), newName: null }).catch(() => null);
+        if (fix?.updated) creditNote = ` Corrected ${fix.updated} historical chart ${fix.updated === 1 ? "entry" : "entries"} that still credited this name.`;
+      }
       clearCmsCache(isRelease || isArtist ? undefined : config.endpoint);
       setDeleteTarget(null);
       showFlash(
         `"${targetName}" deleted.` +
-        (rankResult.failedScopes.length ? " Some locked chart ranks could not be refreshed." : "")
+        (rankResult.failedScopes.length ? " Some locked chart ranks could not be refreshed." : "") +
+        creditNote
       );
       load();
     } catch(e) { setError(e.message); }
@@ -734,6 +754,13 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
       const affectedScopes = isRelease
         ? await getAffectedChartScopes(targets.map((target) => target.id))
         : [];
+      // Impact must be captured before each artist record is gone — it's what
+      // finds the releases whose free-text credit still names them.
+      const impactByTargetId = new Map();
+      if (isArtist) {
+        const impacts = await Promise.all(targets.map((target) => computeArtistImpact(target).catch(() => null)));
+        targets.forEach((target, i) => impactByTargetId.set(target.id, impacts[i]));
+      }
       for (const target of targets) {
         try {
           await cmsApi.delete(`${config.endpoint}${target.id}/hard_delete/`);
@@ -746,12 +773,24 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
       if (isArtist) recordDeletedArtistNames(deleted.flatMap(artistNameVariants));
 
       const rankResult = await reorderAffectedChartScopes(affectedScopes);
+      let creditNote = "";
+      if (isArtist) {
+        const fixes = await Promise.all(deleted.map((target) => {
+          const impact = impactByTargetId.get(target.id);
+          return impact
+            ? applyArtistImpactCorrections(impact, { oldNames: artistNameVariants(target), newName: null }).catch(() => null)
+            : null;
+        }));
+        const totalUpdated = fixes.reduce((sum, fix) => sum + (fix?.updated || 0), 0);
+        if (totalUpdated) creditNote = ` Corrected ${totalUpdated} historical chart ${totalUpdated === 1 ? "entry" : "entries"} still crediting deleted names.`;
+      }
       clearCmsCache(isRelease || isArtist ? undefined : config.endpoint);
       setBulkDeleteTargets([]);
       setSelectedIds(new Set(failures.map(({ target }) => target.id)));
       showFlash(
         `Deleted ${deleted.length} ${recordTypeLabel(deleted.length)}.` +
-        (rankResult.failedScopes.length ? " Some locked chart ranks could not be refreshed." : "")
+        (rankResult.failedScopes.length ? " Some locked chart ranks could not be refreshed." : "") +
+        creditNote
       );
       await load();
       if (failures.length) {
@@ -790,15 +829,24 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
       const affectedScopes = isRelease
         ? await getAffectedChartScopes(mergeTarget.dup.id)
         : [];
+      // Impact must be captured before the duplicate artist is merged away —
+      // it's what finds the releases whose free-text credit still names them.
+      const impact = isArtist ? await computeArtistImpact(mergeTarget.dup) : null;
       await callMergeApi(mergeTarget.dup, mergeTarget.keeper);
       const rankResult = await rerankAffectedChartScopes(affectedScopes);
+      let creditNote = "";
+      if (impact) {
+        const fix = await applyArtistImpactCorrections(impact, { oldNames: artistNameVariants(mergeTarget.dup), newName: keepName }).catch(() => null);
+        if (fix?.updated) creditNote = ` Updated ${fix.updated} historical chart ${fix.updated === 1 ? "entry" : "entries"} to credit "${keepName}".`;
+      }
       rememberSuccessfulMerge(mergeTarget.keeper, [mergeTarget.dup]);
       clearCmsCache();
       setMergeTarget(null);
       setDupGroups(null);
       showFlash(
         `"${dupName}" merged into "${keepName}".` +
-        (rankResult.failedScopes.length ? " Some locked chart ranks could not be refreshed." : "")
+        (rankResult.failedScopes.length ? " Some locked chart ranks could not be refreshed." : "") +
+        creditNote
       );
       load();
     } catch(e) { setError(e.message); }
@@ -820,6 +868,13 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
       const affectedScopes = isRelease
         ? await getAffectedChartScopes(duplicates.map((row) => row.id))
         : [];
+      // Impact must be captured before each duplicate artist is merged away —
+      // it's what finds the releases whose free-text credit still names them.
+      const impactByDupId = new Map();
+      if (isArtist) {
+        const impacts = await Promise.all(duplicates.map((dup) => computeArtistImpact(dup).catch(() => null)));
+        duplicates.forEach((dup, i) => impactByDupId.set(dup.id, impacts[i]));
+      }
       if (isArtist) {
         await cmsApi.post(`${config.endpoint}${keeper.id}/merge/`, {
           artist_ids: duplicates.map((row) => row.id),
@@ -839,6 +894,18 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
       if (!merged.length) throw failures[0]?.error || new Error("No records were merged.");
 
       const rankResult = await rerankAffectedChartScopes(affectedScopes);
+      let creditNote = "";
+      if (isArtist) {
+        const keepName = keeper.display_name || keeper.name;
+        const fixes = await Promise.all(merged.map((dup) => {
+          const impact = impactByDupId.get(dup.id);
+          return impact
+            ? applyArtistImpactCorrections(impact, { oldNames: artistNameVariants(dup), newName: keepName }).catch(() => null)
+            : null;
+        }));
+        const totalUpdated = fixes.reduce((sum, fix) => sum + (fix?.updated || 0), 0);
+        if (totalUpdated) creditNote = ` Updated ${totalUpdated} historical chart ${totalUpdated === 1 ? "entry" : "entries"} to credit "${recordLabel(keeper)}".`;
+      }
       rememberSuccessfulMerge(keeper, merged);
       clearCmsCache();
       setBulkMergeTarget(null);
@@ -846,7 +913,8 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
       setSelectedIds(new Set(failures.map(({ target }) => target.id)));
       showFlash(
         `Merged ${merged.length} record${merged.length === 1 ? "" : "s"} into "${recordLabel(keeper)}".` +
-        (rankResult.failedScopes.length ? " Some locked chart ranks could not be refreshed." : "")
+        (rankResult.failedScopes.length ? " Some locked chart ranks could not be refreshed." : "") +
+        creditNote
       );
       await load();
       if (failures.length) {

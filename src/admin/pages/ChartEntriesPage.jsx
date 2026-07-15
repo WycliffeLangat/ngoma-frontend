@@ -6,6 +6,7 @@ import { normalizePublicPayload } from "../../utils/publicDataRuntime";
 import { buildArtistMonthMirror } from "../../utils/publicChartMirror";
 import { isDeletedArtistName } from "../deletedArtistNames";
 import { reorderAffectedChartScopes } from "../chartRankMaintenance";
+import { releaseFeaturedArtistsText, syncChartEntryFeaturedArtists } from "../chartEntryCreditSync";
 
 const MOVE_COLOR = { NEW: "#1565C0", up: "#1B7F3A", down: "#C62828", same: "#999" };
 
@@ -535,16 +536,25 @@ export default function ChartEntriesPage({ user, searchJump }) {
         const { cover_image, ...rest } = formData;
         updated = await cmsApi.patch(`/releases/${editRelease.id}/`, rest);
       }
+      // Existing chart_entries rows snapshot their own copy of featured_artists
+      // text at creation time and are never touched again just because the
+      // release is edited — without this, a removed/corrected featured artist
+      // keeps showing (and keeps aggregating into the public artist chart) on
+      // every already-published month for this release.
+      const nextFeaturedArtists = releaseFeaturedArtistsText(updated);
       const refresh = arr => arr.map(e =>
         e.release === editRelease.id
-          ? { ...e, title: updated.title ?? e.title, cover_image: updated.cover_image ?? e.cover_image, artist_display: updated.artist_display ?? e.artist_display }
+          ? { ...e, title: updated.title ?? e.title, cover_image: updated.cover_image ?? e.cover_image, artist_display: updated.artist_display ?? e.artist_display, featured_artists: nextFeaturedArtists }
           : e
       );
       setEntries(refresh);
       if (selected?.release === editRelease.id)
-        setSelected(prev => ({ ...prev, title: updated.title ?? prev.title, cover_image: updated.cover_image ?? prev.cover_image }));
+        setSelected(prev => ({ ...prev, title: updated.title ?? prev.title, cover_image: updated.cover_image ?? prev.cover_image, featured_artists: nextFeaturedArtists }));
       setEditRelease(null);
       refreshPublicPayloadInBackground();
+      syncChartEntryFeaturedArtists(editRelease.id)
+        .then(({ failed }) => { if (failed) setError(`Release saved, but ${failed} historical chart ${failed === 1 ? "entry" : "entries"} could not be synced.`); })
+        .catch(() => {});
     } catch(e) { setError(e.message); }
     finally { setEditBusy(false); }
   }

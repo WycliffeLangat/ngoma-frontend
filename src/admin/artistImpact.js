@@ -1,5 +1,6 @@
 import { cmsApi, getResults } from "./api";
 import { artistNameVariants } from "./deletedArtistNames";
+import { creditTextMentions, rewriteCreditText, syncChartEntryFeaturedArtistsForReleases } from "./chartEntryCreditSync";
 
 const CHART_TYPES = ["singles", "albums"];
 const MAX_TEXT_RISK_RESULTS = 20;
@@ -72,4 +73,34 @@ export async function computeArtistImpact(artist) {
   );
 
   return { linkedReleases, textRiskReleases, error };
+}
+
+/**
+ * Runs right after an artist merge/delete actually completes: rewrites the
+ * writable free-text "featured artists" field on every textRiskReleases
+ * release that still names the old artist (merge: swapped to the keeper's
+ * name; delete: removed), then pushes each affected release's corrected
+ * credit into every existing chart_entries row tied to it — otherwise the
+ * old name keeps showing, and keeps aggregating into the public artist
+ * chart, on historical months even though the Artist record itself is gone.
+ * newName === null means the artist was deleted outright (name removed,
+ * not replaced).
+ */
+export async function applyArtistImpactCorrections(impact, { oldNames, newName = null } = {}) {
+  const { linkedReleases = [], textRiskReleases = [] } = impact || {};
+  let releasesFixed = 0;
+  const fixFailures = [];
+  for (const release of textRiskReleases) {
+    const current = String(release.featured_artists || "");
+    if (!creditTextMentions(current, oldNames)) continue;
+    try {
+      await cmsApi.patch(`/releases/${release.id}/`, { featured_artists: rewriteCreditText(current, oldNames, newName) });
+      releasesFixed += 1;
+    } catch (e) {
+      fixFailures.push({ release, error: e });
+    }
+  }
+  const affectedIds = [...new Set([...linkedReleases, ...textRiskReleases].map((r) => r.id).filter(Boolean))];
+  const syncResult = await syncChartEntryFeaturedArtistsForReleases(affectedIds);
+  return { releasesFixed, fixFailures, ...syncResult };
 }
