@@ -54,3 +54,34 @@ test("rewriteCreditText matches any known name variant", () => {
 test("rewriteCreditText leaves unrelated credit text untouched", () => {
   assert.equal(rewriteCreditText("Nyashinski & Bien", ["Jazzworx"], null), "Nyashinski & Bien");
 });
+
+// Regression: deleting/merging an unrelated artist ("Dorcas", solo) whose
+// name happens to be a word inside a registered duo's own name ("Vestine &
+// Dorcas") must never touch the duo's credit — otherwise the duo's name
+// gets torn apart and its other half gets replaced/dropped on every release
+// where the unrelated solo artist is genuinely credited, which is exactly
+// how "Vestine & Dorcas" ended up wrongly attached to unrelated releases.
+test("creditTextMentions does not match inside a registered duo's own name", () => {
+  const registeredKeys = new Set(["vestine & dorcas"]);
+  assert.equal(creditTextMentions("Vestine & Dorcas", ["Dorcas"], registeredKeys), false);
+  // Without the registered-name guard this would incorrectly match "Dorcas".
+  assert.equal(creditTextMentions("Vestine & Dorcas", ["Dorcas"]), true);
+});
+
+test("rewriteCreditText leaves a registered duo's credit fully intact", () => {
+  const registeredKeys = new Set(["vestine & dorcas"]);
+  assert.equal(rewriteCreditText("Vestine & Dorcas", ["Dorcas"], "Some Keeper", registeredKeys), "Vestine & Dorcas");
+  assert.equal(rewriteCreditText("Vestine & Dorcas", ["Dorcas"], null, registeredKeys), "Vestine & Dorcas");
+});
+
+test("rewriteCreditText still fixes a genuine mention of the registered duo itself, even alongside another feature", () => {
+  const registeredKeys = new Set(["vestine & dorcas"]);
+  assert.equal(rewriteCreditText("Vestine & Dorcas, Bien", ["Vestine & Dorcas"], "New Duo Name", registeredKeys), "New Duo Name & Bien");
+});
+
+test("rewriteCreditText protects a registered duo even when listed alongside another feature", () => {
+  // The duo is one of two credited entries here — the unrelated "Dorcas"
+  // deletion must still leave "Vestine & Dorcas" completely untouched.
+  const registeredKeys = new Set(["vestine & dorcas"]);
+  assert.equal(rewriteCreditText("Vestine & Dorcas, Bien", ["Dorcas"], null, registeredKeys), "Vestine & Dorcas & Bien");
+});

@@ -28,6 +28,37 @@ function splitCreditNames(value) {
     .filter(Boolean);
 }
 
+// A credit segment that exactly matches an already-registered artist's own
+// name (e.g. a duo/group act whose name contains "&", like "Vestine &
+// Dorcas") must never be torn apart into its individual words — otherwise
+// an unrelated merge/delete for someone who just happens to share one of
+// those words (e.g. a different, solo "Dorcas") would match a fragment of
+// the duo's name and rewrite the duo's credit on every release it appears
+// on. registeredKeys is a Set of normalized (trimmed, lowercased) names of
+// every currently-registered Artist record.
+//
+// Commas always separate distinct credited entries — even a duo's own name
+// never contains one — so split on commas first and only break a segment
+// further on &/ft/feat/x if that whole segment isn't itself a registered
+// act name. This protects a registered duo even when it's one of several
+// names in a longer list (e.g. "Vestine & Dorcas, Bien"), not only when it's
+// the entire credit string. Mirrors splitOrKeepRegistered in
+// ChartEntriesPage.jsx's reconcileMissingArtists(), extended to segments.
+function splitCreditNamesKeepingRegistered(value, registeredKeys) {
+  const text = String(value || "").trim();
+  if (!text) return [];
+  if (!registeredKeys || !registeredKeys.size) return splitCreditNames(text);
+  return text.split(/\s*,\s*/).flatMap((segment) => {
+    const trimmed = segment.trim();
+    if (!trimmed) return [];
+    if (registeredKeys.has(normalizeName(trimmed))) return [trimmed];
+    return trimmed
+      .split(/\s*(?:\||\bft\.?|\bfeat\.?|\bfeaturing\b|\bx\b|&)\s*/i)
+      .map((name) => name.trim())
+      .filter(Boolean);
+  });
+}
+
 // Structured Artist links win over the free-text "unlinked names" fallback —
 // the same precedence publicChartMirror.js and reconcileMissingArtists() use
 // to build the public artist chart, so this matches what the site will show.
@@ -40,22 +71,26 @@ export function releaseFeaturedArtistsText(release = {}) {
 }
 
 // True if a free-text credit string names any of the given artist name
-// variants — used to skip a PATCH when there's nothing to fix.
-export function creditTextMentions(text, oldNames) {
+// variants — used to skip a PATCH when there's nothing to fix. Pass
+// registeredKeys (a Set of normalized names of currently-registered
+// artists) so a credit that's itself a registered duo/group name isn't
+// split into words and false-matched against one of its own members.
+export function creditTextMentions(text, oldNames, registeredKeys) {
   const oldKeys = new Set((Array.isArray(oldNames) ? oldNames : [oldNames]).map(normalizeName).filter(Boolean));
   if (!oldKeys.size) return false;
-  return splitCreditNames(text).some((name) => oldKeys.has(normalizeName(name)));
+  return splitCreditNamesKeepingRegistered(text, registeredKeys).some((name) => oldKeys.has(normalizeName(name)));
 }
 
 // Replace or remove one artist's name variants inside a free-text credit
 // string without disturbing any other names already listed there. Passing
 // newName === null removes the name entirely (hard delete); otherwise it's
-// swapped in (merge), de-duplicated against a name already present.
-export function rewriteCreditText(text, oldNames, newName = null) {
+// swapped in (merge), de-duplicated against a name already present. See
+// creditTextMentions for what registeredKeys protects against.
+export function rewriteCreditText(text, oldNames, newName = null, registeredKeys) {
   const oldKeys = new Set((Array.isArray(oldNames) ? oldNames : [oldNames]).map(normalizeName).filter(Boolean));
   if (!oldKeys.size) return String(text || "").trim();
   const seen = new Set();
-  const tokens = splitCreditNames(text)
+  const tokens = splitCreditNamesKeepingRegistered(text, registeredKeys)
     .map((name) => (oldKeys.has(normalizeName(name)) ? newName : name))
     .filter(Boolean)
     .filter((name) => {
@@ -74,10 +109,14 @@ export function rewriteCreditText(text, oldNames, newName = null) {
  */
 export async function syncChartEntryFeaturedArtists(releaseId) {
   if (!releaseId) return { updated: 0, failed: 0, total: 0 };
-  const [release, entries] = await Promise.all([
+  const [release, rawEntries] = await Promise.all([
     cmsApi.get(`/releases/${releaseId}/`),
     cmsApi.get(`/chart-entries/?release=${releaseId}&page_size=500`).then(getResults),
   ]);
+  // Never trust the backend's `release` filter blindly — a request that
+  // returns even one row belonging to a different release would silently
+  // spread this release's credit text onto a completely unrelated one.
+  const entries = rawEntries.filter((entry) => Number(entry.release) === Number(releaseId));
   const nextText = releaseFeaturedArtistsText(release);
   const stale = entries.filter((entry) => String(entry.featured_artists || "").trim() !== nextText);
   let updated = 0;

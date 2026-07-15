@@ -9,9 +9,26 @@ function normalize(value) {
   return String(value || "").trim().toLowerCase();
 }
 
+// Every currently-registered artist's name, normalized — so a credit that's
+// itself a registered duo/group act (e.g. "Vestine & Dorcas") is never torn
+// apart into its individual words and false-matched against one of them (see
+// creditTextMentions/rewriteCreditText in chartEntryCreditSync.js). Cached
+// for 60s by cmsApi's GET cache, so calling this per-artist in a bulk
+// delete/merge is cheap after the first request.
+async function fetchRegisteredArtistNameKeys() {
+  const options = await cmsApi.get("/artists/options/").catch(() => []);
+  const keys = new Set();
+  (Array.isArray(options) ? options : getResults(options)).forEach((item) => {
+    const key = normalize(item.public_name || item.display_name || item.name || item.label);
+    if (key) keys.add(key);
+  });
+  return keys;
+}
+
 // A release is a "resurfacing risk" for this artist if a free-text credit
-// field literally contains their name but isn't backed by a structured
-// link to them. Deleting the artist can't touch that text, so reconciliation
+// field names them (as a distinct credited name, not merely a substring of
+// some other registered act's name) but isn't backed by a structured link
+// to them. Deleting the artist can't touch that text, so reconciliation
 // (see reconcileMissingArtists in pages/ChartEntriesPage.jsx) will keep
 // finding the name there and flag it as missing again.
 function textRiskFields(release) {
@@ -70,11 +87,9 @@ export async function computeArtistImpact(artist) {
     });
   }
 
+  const registeredKeys = await fetchRegisteredArtistNameKeys();
   const textRiskReleases = [...candidates.values()].filter((release) =>
-    textRiskFields(release).some((text) => {
-      const value = normalize(text);
-      return [...nameKeys].some((key) => value.includes(key));
-    })
+    textRiskFields(release).some((text) => creditTextMentions(text, names, registeredKeys))
   );
 
   return { linkedReleases, textRiskReleases, error };
@@ -93,13 +108,14 @@ export async function computeArtistImpact(artist) {
  */
 export async function applyArtistImpactCorrections(impact, { oldNames, newName = null } = {}) {
   const { linkedReleases = [], textRiskReleases = [] } = impact || {};
+  const registeredKeys = await fetchRegisteredArtistNameKeys();
   let releasesFixed = 0;
   const fixFailures = [];
   for (const release of textRiskReleases) {
     const current = String(release.featured_artists || "");
-    if (!creditTextMentions(current, oldNames)) continue;
+    if (!creditTextMentions(current, oldNames, registeredKeys)) continue;
     try {
-      await cmsApi.patch(`/releases/${release.id}/`, { featured_artists: rewriteCreditText(current, oldNames, newName) });
+      await cmsApi.patch(`/releases/${release.id}/`, { featured_artists: rewriteCreditText(current, oldNames, newName, registeredKeys) });
       releasesFixed += 1;
     } catch (e) {
       fixFailures.push({ release, error: e });
