@@ -149,6 +149,66 @@ const releaseMatchesEntryCredit = (release, entry) => {
   const fallbackKey = entryPrimaryFallbackKey(entry);
   return releaseKey === key || (fallbackKey && releaseKey === fallbackKey);
 };
+// Bounded edit distance — walks off early past `max` so a long mismatched
+// pair (e.g. a query word against an unrelated field) doesn't cost a full O(n*m) pass.
+const boundedLevenshtein = (a, b, max) => {
+  if (a === b) return 0;
+  const al = a.length, bl = b.length;
+  if (Math.abs(al - bl) > max) return max + 1;
+  if (!al) return bl;
+  if (!bl) return al;
+  let prev = new Array(bl + 1);
+  for (let j = 0; j <= bl; j++) prev[j] = j;
+  for (let i = 1; i <= al; i++) {
+    const cur = [i];
+    let rowMin = i;
+    for (let j = 1; j <= bl; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      const v = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost);
+      cur[j] = v;
+      if (v < rowMin) rowMin = v;
+    }
+    if (rowMin > max) return max + 1;
+    prev = cur;
+  }
+  return prev[bl];
+};
+// Score one query token against one text token: exact/prefix/substring first,
+// falling back to typo-tolerant edit distance scaled to the token's length.
+const fuzzyTokenScore = (word, q) => {
+  if (!word || !q) return 0;
+  if (word === q) return 100;
+  if (word.startsWith(q)) return 88;
+  if (word.includes(q)) return 74;
+  // Typo tolerance only kicks in past 3 characters — below that, a single
+  // edit distance is too large a fraction of the token and just adds noise.
+  if (q.length <= 3) return 0;
+  const maxDist = q.length <= 6 ? 1 : q.length <= 9 ? 2 : 3;
+  const dist = boundedLevenshtein(word, q, maxDist);
+  if (dist > maxDist) return 0;
+  return 60 - dist * 14;
+};
+// Explorative + typo-tolerant match: query tokens each need a decent match
+// against some word in the (already-lowercased) search text; score sums the
+// best per-token matches so closer/more-complete matches rank higher.
+const fuzzyMatchScore = (searchText, query) => {
+  if (!searchText || !query) return 0;
+  if (searchText.includes(query)) return 100 + query.length;
+  const words = searchText.split(/\s+/).filter(Boolean);
+  const qTokens = query.split(/\s+/).filter(Boolean);
+  let total = 0;
+  for (const qt of qTokens) {
+    let best = 0;
+    for (const w of words) {
+      const s = fuzzyTokenScore(w, qt);
+      if (s > best) best = s;
+      if (best === 100) break;
+    }
+    if (best === 0) return 0;
+    total += best;
+  }
+  return total / qTokens.length;
+};
 const lookupReleaseForEntry = (entry = {}) => {
   const id = Number(entry.release_id || entry.releaseId || entry.release || entry.release_pk);
   if (Number.isFinite(id) && id > 0) {
@@ -2117,49 +2177,48 @@ const display = data.slice(0, Math.min(vc, data.length));
 
 const top = data[0];
 
-  const themeToggle = (extra={}) => {
-    const { hideDot = false, ...extraStyle } = extra;
+  const themeToggle = (extraStyle={}) => {
+    const trackW = isMobile ? 46 : 40;
+    const trackH = isMobile ? 26 : 22;
+    const knob = trackH - 4;
     return (
     <button
       type="button"
+      role="switch"
+      aria-checked={isDark}
       onClick={() => setTheme((current) => (current === "dark" ? "light" : "dark"))}
       aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
       title={`Switch to ${isDark ? "light" : "dark"} mode`}
       className="ngoma-theme-toggle"
       style={{
-        display:"inline-flex",
-        alignItems:"center",
-        justifyContent:"center",
-        gap:"7px",
-        minHeight:isMobile?"38px":"30px",
-        padding:isMobile?"0 12px":"6px 11px",
+        position:"relative",
+        display:"inline-block",
+        flexShrink:0,
+        width:`${trackW}px`,
+        height:`${trackH}px`,
         border:`1px solid ${themeColors.border}`,
         borderRadius:"999px",
-        background:themeColors.elevated,
-        color:themeColors.text,
-        fontFamily:F,
-        fontSize:isMobile?"10px":"10px",
-        fontWeight:850,
-        letterSpacing:"1px",
-        textTransform:"uppercase",
+        background:isDark?"#3A413A":"#E7E4DA",
         cursor:"pointer",
-        whiteSpace:"nowrap",
-        boxShadow:isDark?"0 0 0 1px rgba(255,255,255,0.02)":"0 4px 14px rgba(0,0,0,0.035)",
+        padding:0,
+        transition:"background 0.2s ease",
         ...extraStyle,
       }}
     >
-      {!hideDot && <span
+      <span
         aria-hidden="true"
         style={{
-          width:"8px",
-          height:"8px",
+          position:"absolute",
+          top:"1px",
+          left:"1px",
+          width:`${knob}px`,
+          height:`${knob}px`,
           borderRadius:"50%",
           background:isDark?"#F6F3EA":"#1A1A1A",
-          boxShadow:`0 0 0 3px ${isDark?"rgba(246,243,234,0.10)":"rgba(26,26,26,0.08)"}`,
-          flexShrink:0,
+          transform:`translateX(${isDark?trackW-trackH:0}px)`,
+          transition:"transform 0.2s ease",
         }}
-      />}
-      {isDark ? "Light" : "Dark"}
+      />
     </button>
     );
   };
@@ -2217,17 +2276,37 @@ const top = data[0];
   const sResults=useMemo(()=>{
     const q=srch.trim().toLowerCase();
     if(q.length<2) return null;
-    const songs=songSearchIndex.filter(e=>e._searchText?e._searchText.includes(q):(String(e.title||"").toLowerCase().includes(q)||String(e.artist||"").toLowerCase().includes(q))).slice(0,8);
-    const albums=albumSearchIndex.filter(e=>e._searchText?e._searchText.includes(q):(String(e.title||"").toLowerCase().includes(q)||String(e.artist||"").toLowerCase().includes(q))).slice(0,6);
-    const artists=(PUBLIC_DATA.artists||[]).filter(a=>{
-      const fields=[a.name,a.display_name,a.genre,a.city_region,a.country,...(a.aliases||[])].map(s=>String(s||"").toLowerCase());
-      return fields.some(f=>f.includes(q))||(a.country_code||"").toLowerCase()===q;
-    }).slice(0,6);
-    const newsItems=(liveNews||NEWS).filter(n=>[n.title,n.excerpt,n.body,n.cat].map(s=>String(s||"").toLowerCase()).some(f=>f.includes(q))).slice(0,4);
+    const scoreRank=(list,minScore=1)=>list
+      .map(e=>({e,score:fuzzyMatchScore(e._searchText||"",q)}))
+      .filter(x=>x.score>=minScore)
+      .sort((a,b)=>b.score-a.score||(a.e._bestRank||999)-(b.e._bestRank||999))
+      .map(x=>x.e);
+    const songs=scoreRank(songSearchIndex).slice(0,8);
+    const albums=scoreRank(albumSearchIndex).slice(0,6);
+    const artists=(PUBLIC_DATA.artists||[])
+      .map(a=>{
+        const text=[a.name,a.display_name,a.genre,a.city_region,a.country,...(a.aliases||[])].filter(Boolean).join(" ").toLowerCase();
+        const exactCode=(a.country_code||"").toLowerCase()===q?100:0;
+        return {a,score:Math.max(fuzzyMatchScore(text,q),exactCode)};
+      })
+      .filter(x=>x.score>=1)
+      .sort((x,y)=>y.score-x.score)
+      .map(x=>x.a)
+      .slice(0,6);
+    const newsItems=(liveNews||NEWS)
+      .map(n=>({n,score:fuzzyMatchScore([n.title,n.excerpt,n.body,n.cat].filter(Boolean).join(" ").toLowerCase(),q)}))
+      .filter(x=>x.score>=1)
+      .sort((x,y)=>y.score-x.score)
+      .map(x=>x.n)
+      .slice(0,4);
     // A release can have one raw cert row per threshold it has ever crossed
     // (Gold, then later Platinum) — keep only the highest-ranked row per
     // release so search never lists the same song twice at two levels.
-    const matchedCerts=(liveCerts||[]).filter(c=>[String(c.t||""),String(c.a||""),String(c.level||"")].map(s=>s.toLowerCase()).some(f=>f.includes(q)));
+    const matchedCerts=(liveCerts||[])
+      .map(c=>({c,score:fuzzyMatchScore([c.t,c.a,c.level].filter(Boolean).map(String).join(" ").toLowerCase(),q)}))
+      .filter(x=>x.score>=1)
+      .sort((x,y)=>y.score-x.score)
+      .map(x=>x.c);
     const certsByKey=new Map();
     matchedCerts.forEach(c=>{
       const key=`${c.chart_type==="albums"?"albums":"singles"}|||${certificationKey(c.t,c.a)}`;
@@ -3439,25 +3518,12 @@ const top = data[0];
       aria-label={liveIndicatorLabel}
       role="status"
       style={{
-        display:"inline-flex",alignItems:"center",justifyContent:"center",
-        width:isMobile?"38px":"30px",height:isMobile?"38px":"30px",borderRadius:"999px",
-        background:themeColors.elevated,
-        border:`1px solid ${themeColors.border}`,
-        boxShadow:isDark?"0 0 0 1px rgba(255,255,255,0.02)":"0 4px 14px rgba(0,0,0,0.035)",
+        display:"inline-block",
+        width:"8px",height:"8px",borderRadius:"50%",
+        background:liveIndicatorIsLive?"#2DB04A":"#9AA19A",
         flexShrink:0,
       }}
-    >
-      <span
-        aria-hidden="true"
-        style={{
-          width:"8px",height:"8px",borderRadius:"50%",
-          background:liveIndicatorIsLive?"#2DB04A":"#9AA19A",
-          boxShadow:liveIndicatorIsLive
-            ? "0 0 0 3px rgba(45,176,74,0.18), 0 0 10px rgba(45,176,74,0.48)"
-            : "0 0 0 3px rgba(154,161,154,0.18)",
-        }}
-      />
-    </span>
+    />
   ) : null;
 
   return(
@@ -3523,10 +3589,11 @@ const top = data[0];
       {/* HEADER */}
       <header ref={publicHeaderRef} style={{background:themeColors.surface,borderBottom:`3px solid ${themeColors.text}`,position:"fixed",top:0,left:0,right:0,width:"100%",zIndex:90,boxShadow:isDark?"0 8px 24px rgba(0,0,0,0.34)":"0 8px 24px rgba(31,36,31,0.10)"}}>
         <div style={{background:"#1A1A1A",color:"#FFF"}}>
-          <div style={{...pageFrame({display:"flex",justifyContent:"flex-end",alignItems:"center",gap:"10px",padding:isMobile?"6px 16px":"5px 28px"}),fontFamily:F,fontSize:isMobile?"8px":"9.5px",letterSpacing:isMobile?"1px":"2px",textTransform:"uppercase"}}>
+          <div style={{...pageFrame({display:"flex",justifyContent:"flex-end",alignItems:"center",gap:"18px",padding:isMobile?"6px 16px":"5px 28px"}),fontFamily:F,fontSize:isMobile?"8px":"9.5px",letterSpacing:isMobile?"1px":"2px",textTransform:"uppercase"}}>
             <span style={{color:"rgba(255,255,255,0.68)",fontSize:isMobile?"8px":"9.5px",letterSpacing:isMobile?"0.5px":"1px",fontFamily:"inherit",whiteSpace:"nowrap"}}>
               {new Date().toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short",year:"numeric"})}
             </span>
+            {liveIndicator}
           </div>
         </div>
           <div style={{...pageFrame({display:"flex",justifyContent:"space-between",alignItems:"center",padding:isMobile?"14px 16px":"18px 28px 22px"}),columnGap:isMobile?"16px":"60px",rowGap:"16px",flexWrap:"wrap"}}>
@@ -3580,12 +3647,16 @@ const top = data[0];
               </button>
               {mNav&&(
                 <div style={{width:"100%",display:"flex",flexDirection:"column",gap:"2px",marginTop:"8px",borderTop:`1px solid ${themeColors.border}`,paddingTop:"10px"}}>
+                  <span onClick={()=>{setMNav(false);setSOpen(true);}} style={{display:"flex",alignItems:"center",gap:"9px",cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"13px",fontWeight:600,letterSpacing:"1px",textTransform:"uppercase",color:themeColors.muted}}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    Search
+                  </span>
                   {navItems.map(t=>(
                     <span key={t} onClick={()=>navTo(t)} style={{cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"13px",fontWeight:page===t?800:600,letterSpacing:"1px",textTransform:"uppercase",color:page===t?themeColors.text:themeColors.muted,background:page===t?themeColors.active:"transparent",border:page===t?"1px solid #D4B65E":"1px solid transparent"}}>{navLabel(t)}</span>
                   ))}
-                  <div style={{display:"flex",alignItems:"center",gap:"8px",marginTop:"4px"}}>
-                    {themeToggle({hideDot:true,justifyContent:"flex-start",borderRadius:"12px",minHeight:"44px",padding:"0 14px",fontSize:"13px",fontWeight:600,letterSpacing:"1px",flex:1})}
-                    {liveIndicator}
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px",marginTop:"8px",padding:"6px 14px"}}>
+                    <span style={{fontFamily:F,fontSize:"13px",fontWeight:600,letterSpacing:"1px",textTransform:"uppercase",color:themeColors.muted}}>Dark Mode</span>
+                    {themeToggle()}
                   </div>
                 </div>
               )}
@@ -3635,8 +3706,23 @@ const top = data[0];
                   </div>
                 )}
               </div>
+              <button
+                type="button"
+                onClick={()=>setSOpen(true)}
+                aria-label="Search"
+                title="Search"
+                style={{
+                  display:"inline-flex",alignItems:"center",justifyContent:"center",
+                  width:"30px",height:"30px",borderRadius:"999px",
+                  background:themeColors.elevated,
+                  border:`1px solid ${themeColors.border}`,
+                  boxShadow:isDark?"0 0 0 1px rgba(255,255,255,0.02)":"0 4px 14px rgba(0,0,0,0.035)",
+                  cursor:"pointer",flexShrink:0,
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={themeColors.text} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </button>
               {themeToggle()}
-              {liveIndicator}
             </nav>
           )}
         </div>
