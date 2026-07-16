@@ -10,6 +10,7 @@ dist-ssr
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.tmp/*.log
 
 # Local Netlify folder
 .netlify
