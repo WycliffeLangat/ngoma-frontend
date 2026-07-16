@@ -70,6 +70,13 @@ export function releaseFeaturedArtistsText(release = {}) {
   return String(release.featured_artists || "").trim();
 }
 
+export function releaseChartEntrySnapshot(release = {}) {
+  return {
+    featured_artists: releaseFeaturedArtistsText(release),
+    release_year: release.release_year ?? null,
+  };
+}
+
 // True if a free-text credit string names any of the given artist name
 // variants — used to skip a PATCH when there's nothing to fix. Pass
 // registeredKeys (a Set of normalized names of currently-registered
@@ -107,7 +114,7 @@ export function rewriteCreditText(text, oldNames, newName = null, registeredKeys
  * every chart_entries row already tied to it (all months, all platforms),
  * fixing any that still snapshot older/stale credit text.
  */
-export async function syncChartEntryFeaturedArtists(releaseId) {
+export async function syncChartEntryCredits(releaseId) {
   if (!releaseId) return { updated: 0, failed: 0, total: 0 };
   const [release, rawEntries] = await Promise.all([
     cmsApi.get(`/releases/${releaseId}/`),
@@ -117,13 +124,16 @@ export async function syncChartEntryFeaturedArtists(releaseId) {
   // returns even one row belonging to a different release would silently
   // spread this release's credit text onto a completely unrelated one.
   const entries = rawEntries.filter((entry) => Number(entry.release) === Number(releaseId));
-  const nextText = releaseFeaturedArtistsText(release);
-  const stale = entries.filter((entry) => String(entry.featured_artists || "").trim() !== nextText);
+  const nextSnapshot = releaseChartEntrySnapshot(release);
+  const stale = entries.filter((entry) => (
+    String(entry.featured_artists || "").trim() !== nextSnapshot.featured_artists ||
+    (entry.release_year ?? null) !== nextSnapshot.release_year
+  ));
   let updated = 0;
   let failed = 0;
   await Promise.all(stale.map(async (entry) => {
     try {
-      await cmsApi.patch(`/chart-entries/${entry.id}/`, { featured_artists: nextText });
+      await cmsApi.patch(`/chart-entries/${entry.id}/`, nextSnapshot);
       updated += 1;
     } catch {
       failed += 1;
@@ -132,10 +142,12 @@ export async function syncChartEntryFeaturedArtists(releaseId) {
   return { updated, failed, total: stale.length };
 }
 
-export async function syncChartEntryFeaturedArtistsForReleases(releaseIds) {
+export const syncChartEntryFeaturedArtists = syncChartEntryCredits;
+
+export async function syncChartEntryCreditsForReleases(releaseIds) {
   const ids = [...new Set((releaseIds || []).map((id) => Number(id)).filter(Boolean))];
   const results = await Promise.all(
-    ids.map((id) => syncChartEntryFeaturedArtists(id).catch(() => ({ updated: 0, failed: 1, total: 0 })))
+    ids.map((id) => syncChartEntryCredits(id).catch(() => ({ updated: 0, failed: 1, total: 0 })))
   );
   return results.reduce((acc, r) => ({
     updated: acc.updated + r.updated,
@@ -143,3 +155,5 @@ export async function syncChartEntryFeaturedArtistsForReleases(releaseIds) {
     total: acc.total + r.total,
   }), { updated: 0, failed: 0, total: 0 });
 }
+
+export const syncChartEntryFeaturedArtistsForReleases = syncChartEntryCreditsForReleases;

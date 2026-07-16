@@ -9,7 +9,7 @@ const labels = {
   missing_artist_countries: "Artists without country", duplicate_artists_detected: "Duplicate artists",
   latest_news_posts: "News posts", recently_edited_data: "Audit events", errors_warnings: "Open reports",
   system_health: "System health", last_backup_date: "Last backup", editors_admins: "Editors/admins",
-  unpublished_chart_months: "Unpublished charts", certifications_unofficial: "Unofficial certifications", uploads_awaiting_review: "Uploads awaiting review",
+  unpublished_chart_months: "Unpublished charts", automatic_certifications: "Automatic certifications", certifications_unofficial: "Automatic certifications", uploads_awaiting_review: "Uploads awaiting review",
   data_audit_findings: "Audit findings", critical_data_issues: "Critical issues", incomplete_metadata: "Incomplete metadata",
   missing_media_assets: "Missing media", invalid_urls_detected: "Invalid URLs", questionable_countries: "Questionable countries",
   chart_uploads_needed: "Uploads needed",
@@ -30,7 +30,8 @@ const cardMeta = {
   last_backup_date: { icon: "↧", hint: "Most recent backup", target: "backups" },
   editors_admins: { icon: "U", hint: "People with CMS access", target: "users" },
   unpublished_chart_months: { icon: "○", hint: "Charts not yet public", target: "charts" },
-  certifications_unofficial: { icon: "◇", hint: "Certifications to verify", target: "certifications" },
+  automatic_certifications: { icon: "◇", hint: "Point-driven public awards", target: "certifications" },
+  certifications_unofficial: { icon: "◇", hint: "Point-driven public awards", target: "certifications" },
   uploads_awaiting_review: { icon: "↑", hint: "Imports awaiting review", target: "uploads" },
   data_audit_findings: { icon: "QA", hint: "Deep CMS audit results", target: "reports" },
   critical_data_issues: { icon: "!", hint: "Fix first", target: "reports" },
@@ -44,7 +45,7 @@ const cardMeta = {
 // Keys where a non-zero value signals something needs attention
 const WARN_IF_NONZERO = new Set([
   "missing_artist_countries", "duplicate_artists_detected",
-  "certifications_unofficial", "errors_warnings",
+  "errors_warnings",
   "data_audit_findings", "incomplete_metadata", "missing_media_assets",
   "invalid_urls_detected", "questionable_countries",
 ]);
@@ -85,8 +86,6 @@ const ALERT_PAGE_BY_ID = {
   "scheduled-news-overdue": "news",
   "news-publication-state-mismatch": "news",
   "published-news-completeness": "news",
-  "certifications-unofficial-visible": "certifications",
-  "official-certifications-missing-date": "certifications",
   "certifications-invalid-values": "certifications",
   "certifications-below-threshold": "certifications",
   "certification-rule-configuration": "certification-rules",
@@ -129,7 +128,6 @@ function alertPage(alert) {
 const CARD_ALERT_ID = {
   missing_artist_countries: "artists-missing-country",
   duplicate_artists_detected: "possible-duplicate-artists",
-  certifications_unofficial: "certifications-unofficial-visible",
   errors_warnings: "open-data-quality-reports",
   unpublished_chart_months: "charts-unpublished",
   uploads_awaiting_review: "uploads-awaiting-action",

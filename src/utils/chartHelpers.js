@@ -46,13 +46,81 @@ export const profileNames = (profiles = []) =>
     .map((n) => String(n || "").trim())
     .filter(Boolean);
 
-export const splitCreditNames = (value = "") =>
-  String(value || "")
-    .split(/\s*,\s*|\s*&\s*|\s+ft\.?\s+|\s+feat\.?\s+|\s+featuring\s+/i)
-    .map((n) => n.trim())
-    .filter(Boolean);
+const CREDIT_SPLIT_RE = /\s*(?:\||,|\bft\.?|\bfeat\.?|\bfeaturing\b|\bx\b|&)\s*/i;
+const CREDIT_BOUNDARY = String.raw`(?:\||,|&|\bft\.?(?!\w)|\bfeat\.?(?!\w)|\bfeaturing\b|\bx\b)`;
+const CREDIT_NAME_SEPARATOR_RE = /[,&|]|\b(?:ft\.?|feat\.?|featuring|x)\b/i;
+const PROTECTED_ARTIST_TYPES = new Set(["band", "duo", "group"]);
 
-export const artistCreditMembers = (item = {}) => {
+const normalizeCreditKey = (value = "") => String(value || "").trim().toLowerCase();
+const escapeRegExp = (value = "") => String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+export const protectedArtistCreditNames = (artists = []) => {
+  const names = [];
+  const seen = new Set();
+  (Array.isArray(artists) ? artists : []).forEach((artist) => {
+    const variants = [
+      artist?.public_name,
+      artist?.display_name,
+      artist?.name,
+      ...(Array.isArray(artist?.aliases) ? artist.aliases : []),
+    ].map((name) => String(name || "").trim()).filter(Boolean);
+    const protectedByType = PROTECTED_ARTIST_TYPES.has(String(artist?.artist_type || "").trim().toLowerCase());
+    const protectedByName = variants.some((name) => CREDIT_NAME_SEPARATOR_RE.test(name));
+    if (!protectedByType && !protectedByName) return;
+    variants.forEach((name) => {
+      const key = normalizeCreditKey(name);
+      if (key && !seen.has(key)) {
+        seen.add(key);
+        names.push(name);
+      }
+    });
+  });
+  return names;
+};
+
+const protectedCreditEntries = (protectedNames = []) => {
+  const seen = new Set();
+  return (Array.isArray(protectedNames) ? protectedNames : [])
+    .map((name) => String(name || "").trim())
+    .filter(Boolean)
+    .filter((name) => {
+      const key = normalizeCreditKey(name);
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort((left, right) => right.length - left.length);
+};
+
+export const splitCreditNames = (value = "", protectedNames = []) => {
+  const text = String(value || "").trim();
+  if (!text) return [];
+
+  const entries = protectedCreditEntries(protectedNames);
+  const exact = entries.find((name) => normalizeCreditKey(name) === normalizeCreditKey(text));
+  if (exact) return [exact];
+
+  const placeholders = new Map();
+  let protectedText = text;
+  entries.forEach((name, index) => {
+    const placeholder = `__NGOMA_CREDIT_${index}__`;
+    const flexibleName = escapeRegExp(name).replace(/\s+/g, String.raw`\s+`);
+    const matcher = new RegExp(
+      `(^|\\s*${CREDIT_BOUNDARY}\\s*)(${flexibleName})(?=\\s*(?:${CREDIT_BOUNDARY}|$))`,
+      "gi"
+    );
+    protectedText = protectedText.replace(matcher, (match, prefix) => `${prefix}${placeholder}`);
+    placeholders.set(placeholder.toLowerCase(), name);
+  });
+
+  return protectedText
+    .split(CREDIT_SPLIT_RE)
+    .map((n) => n.trim())
+    .map((n) => placeholders.get(n.toLowerCase()) || n)
+    .filter(Boolean);
+};
+
+export const artistCreditMembers = (item = {}, protectedNames = []) => {
   const structuredPrimary = profileNames(item.primary_artists);
   const structuredFeatured = profileNames(item.featured_artist_profiles);
   const primaryArtist = String(
@@ -66,13 +134,13 @@ export const artistCreditMembers = (item = {}) => {
   // previous all-or-nothing branch silently dropped those featured artists.
   const resolvedPrimary = structuredPrimary.length
     ? structuredPrimary
-    : splitCreditNames(primaryArtist);
+    : splitCreditNames(primaryArtist, protectedNames);
   const resolvedFeatured = structuredFeatured.length
     ? structuredFeatured
-    : splitCreditNames(featuredArtists);
+    : splitCreditNames(featuredArtists, protectedNames);
   const source = resolvedPrimary.length || resolvedFeatured.length
     ? [...resolvedPrimary, ...resolvedFeatured]
-    : splitCreditNames(item.artist_credit || item.artist || item.a || "");
+    : splitCreditNames(item.artist_credit || item.artist || item.a || "", protectedNames);
   return [
     ...new Map(
       source
@@ -87,14 +155,15 @@ export const formatArtistCredit = (
   primaryArtist = "",
   featuredArtists = "",
   primaryArtists = [],
-  featuredProfiles = []
+  featuredProfiles = [],
+  protectedNames = []
 ) => {
   const primaryNames = profileNames(primaryArtists).length
     ? profileNames(primaryArtists)
-    : splitCreditNames(primaryArtist);
+    : splitCreditNames(primaryArtist, protectedNames);
   const featuredNames = profileNames(featuredProfiles).length
     ? profileNames(featuredProfiles)
-    : splitCreditNames(featuredArtists);
+    : splitCreditNames(featuredArtists, protectedNames);
   const primaryCredit = formatCreditMembers(primaryNames);
   const featuredCredit = formatCreditMembers(
     featuredNames.filter(
@@ -157,14 +226,12 @@ export function normArtistKey(str) {
 
 // Produces a sorted, deduplicated artist-set key so collaborations match
 // regardless of billing order ("Bien ft. Alikiba" === "Alikiba ft. Bien").
-export function artistSetKey(primaryStr, featuredStr) {
+export function artistSetKey(primaryStr, featuredStr, protectedNames = []) {
   const seen = new Set();
   const all = [];
   [
-    ...String(primaryStr || "").split(
-      /\s*(?:\||\bft\.?|\bfeat\.?|\bfeaturing\b|\bx\b|&|,)\s*/i
-    ),
-    ...String(featuredStr || "").split(/,\s*/),
+    ...splitCreditNames(primaryStr, protectedNames),
+    ...splitCreditNames(featuredStr, protectedNames),
   ].forEach((name) => {
     const n = String(name || "").trim().toLowerCase();
     if (n && !seen.has(n)) { seen.add(n); all.push(n); }
@@ -181,7 +248,7 @@ const firstText = (...values) => {
   return "";
 };
 
-export const entryKey = (e) => {
+export const entryKey = (e, protectedNames = []) => {
   const title = String(e.t || e.title || "").trim().toLowerCase();
   const structuredPrimary = profileNames(e.primary_artists);
   const structuredFeatured = profileNames(e.featured_artist_profiles);
@@ -205,7 +272,7 @@ export const entryKey = (e) => {
     e.fa,
     formatCreditMembers(structuredFeatured)
   );
-  return `${title}|||${artistSetKey(visibleCredit || primary, featured)}`;
+  return `${title}|||${artistSetKey(visibleCredit || primary, featured, protectedNames)}`;
 };
 
 export const sameRelease = (left, right) => {

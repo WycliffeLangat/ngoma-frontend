@@ -7,7 +7,7 @@ import { normalizePublicPayload } from "../../utils/publicDataRuntime";
 import { buildArtistMonthMirror } from "../../utils/publicChartMirror";
 import { isDeletedArtistName, artistNameVariants, recordDeletedArtistNames } from "../deletedArtistNames";
 import { reorderAffectedChartScopes } from "../chartRankMaintenance";
-import { releaseFeaturedArtistsText, syncChartEntryFeaturedArtists } from "../chartEntryCreditSync";
+import { releaseFeaturedArtistsText, syncChartEntryCredits } from "../chartEntryCreditSync";
 import { computeArtistImpact, applyArtistImpactCorrections } from "../artistImpact";
 
 const MOVE_COLOR = { NEW: "#1565C0", up: "#1B7F3A", down: "#C62828", same: "#999" };
@@ -20,6 +20,115 @@ function movement(entry) {
   return { label: "=", color: MOVE_COLOR.same };
 }
 
+function optionId(value) {
+  const raw = value && typeof value === "object" ? (value.value ?? value.id) : value;
+  const id = Number(raw);
+  return Number.isFinite(id) && id > 0 ? id : null;
+}
+
+function artistOptionLabel(value, fallbackId) {
+  return (
+    value?.label ||
+    value?.public_name ||
+    value?.display_name ||
+    value?.name ||
+    value?.artist_name ||
+    (fallbackId ? `Artist #${fallbackId}` : "")
+  );
+}
+
+function normalizeArtistOption(value) {
+  const id = optionId(value);
+  if (!id) return null;
+  return {
+    ...value,
+    value: id,
+    label: artistOptionLabel(value, id),
+    country: value?.country || "",
+    country_code: value?.country_code || "",
+  };
+}
+
+function mergeArtistOptions(...groups) {
+  const byId = new Map();
+  groups.flat().forEach((raw) => {
+    const option = normalizeArtistOption(raw);
+    if (!option) return;
+    const current = byId.get(option.value);
+    const currentIsFallback = !current || /^Artist #\d+$/.test(String(current.label || ""));
+    const optionHasName = option.label && !/^Artist #\d+$/.test(String(option.label));
+    if (!current || (currentIsFallback && optionHasName)) byId.set(option.value, option);
+  });
+  return [...byId.values()];
+}
+
+function artistOptionsFromRelease(release) {
+  if (!release) return [];
+  const options = [];
+  const addProfiles = (profiles) => {
+    (Array.isArray(profiles) ? profiles : []).forEach((profile) => {
+      const option = normalizeArtistOption(profile);
+      if (option) options.push(option);
+    });
+  };
+  addProfiles(release.primary_artists);
+  addProfiles(release.featured_artist_profiles);
+  addProfiles(release.featured_artists);
+
+  const leadId = optionId(release.artist_id ?? release.artist);
+  if (leadId) {
+    options.push({
+      value: leadId,
+      label: release.artist_name || release.primary_artist || release.artist_display || `Artist #${leadId}`,
+      country: release.country || "",
+      country_code: release.country_code || "",
+    });
+  }
+  return options;
+}
+
+function releaseArtistIds(release, idField, profileField) {
+  const explicit = Array.isArray(release?.[idField])
+    ? release[idField].map(optionId).filter(Boolean)
+    : [];
+  if (explicit.length) return explicit;
+  const profiles = Array.isArray(release?.[profileField]) ? release[profileField] : [];
+  return profiles.map(optionId).filter(Boolean);
+}
+
+function releaseCreditRows(release) {
+  return [
+    ...releaseArtistIds(release, "primary_artist_ids", "primary_artists")
+      .map((artistId) => ({ artist_id: artistId, role: "primary" })),
+    ...releaseArtistIds(release, "featured_artist_ids", "featured_artist_profiles")
+      .map((artistId) => ({ artist_id: artistId, role: "featured" })),
+  ];
+}
+
+function splitArtistRoleCredits(rows = []) {
+  const seen = new Set();
+  const primary_artist_ids = [];
+  const featured_artist_ids = [];
+  (Array.isArray(rows) ? rows : []).forEach((row) => {
+    const artistId = optionId(row?.artist_id ?? row?.value ?? row?.id ?? row);
+    if (!artistId || seen.has(artistId)) return;
+    seen.add(artistId);
+    if (String(row?.role || "primary") === "featured") featured_artist_ids.push(artistId);
+    else primary_artist_ids.push(artistId);
+  });
+  return { primary_artist_ids, featured_artist_ids };
+}
+
+function normalizeReleaseInitial(release) {
+  if (!release) return release;
+  return {
+    ...release,
+    primary_artist_ids: releaseArtistIds(release, "primary_artist_ids", "primary_artists"),
+    featured_artist_ids: releaseArtistIds(release, "featured_artist_ids", "featured_artist_profiles"),
+    artist_credits: releaseCreditRows(release),
+  };
+}
+
 const FIELD_DEFS = [
   { key: "rank",             label: "Rank (calculated)", type: "number", calculated: true },
   // Points here are the raw, summed score (what actually ranks the chart).
@@ -30,16 +139,17 @@ const FIELD_DEFS = [
   { key: "weeks_on_chart",   label: "Weeks on chart",   type: "number" },
   { key: "peak_rank",        label: "Peak rank (calculated)", type: "number", calculated: true },
   { key: "prev_rank",        label: "Last month (calculated)", type: "number", calculated: true },
-  { key: "featured_artists", label: "Featured artists", type: "text"   },
   { key: "confidence",       label: "Confidence",       type: "text"   },
   { key: "notes",            label: "Notes",            type: "text"   },
 ];
 
-const RELEASE_FIELDS = [
+function releaseFields(artistOptions = [], chartType = "singles") {
+  return [
   { name: "cover_image",      label: "Cover image",       type: "file",     help: "Square image, JPEG or PNG, max 2 MB." },
   { name: "title",            label: "Title" },
+  { name: "artist_credits", label: "Artists", type: "artist-role-list", options: artistOptions, help: "Add each credited artist once, then choose Primary or Featuring. Link a registered duo/group as one artist." },
+  { name: "chart_type",       label: "Chart type",        type: "select", options: [{ value: chartType, label: chartType }] },
   { name: "canonical_title",  label: "Canonical title" },
-  { name: "featured_artists", label: "Unlinked featured names", help: "Fallback for featured artists without an Artist record." },
   { name: "release_year",     label: "Release year",      type: "number" },
   { name: "release_date",     label: "Release date",      type: "date" },
   { name: "isrc",             label: "ISRC" },
@@ -59,7 +169,8 @@ const RELEASE_FIELDS = [
   { name: "shazam_url",       label: "Shazam URL" },
   { name: "radio_info",       label: "Radio info",        type: "textarea" },
   { name: "status",           label: "Status" },
-];
+  ];
+}
 
 const ARTIST_FIELDS = [
   { name: "image",            label: "Artist image",      type: "file",     help: "Square image, min 800×800 px. JPEG or PNG." },
@@ -195,6 +306,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
   const initialPublicPayload = useMemo(cachedPublicPayload, []);
   const [allCharts, setAllCharts]       = useState([]);
   const [platforms, setPlatforms]       = useState([]);
+  const [artistOptions, setArtistOptions] = useState([]);
   const [chartType, setChartType]       = useState("singles"); // "singles" | "albums" | "artists"
   const [selectedYM, setSelectedYM]     = useState("");
   const [platformId, setPlatformId]     = useState(COMBINED);
@@ -248,6 +360,9 @@ export default function ChartEntriesPage({ user, searchJump }) {
       .catch(e => setError(e.message));
     cmsApi.get("/platforms/?active=true&page_size=100")
       .then(d => setPlatforms(getResults(d)))
+      .catch(() => {});
+    cmsApi.get("/artists/options/")
+      .then((data) => setArtistOptions(mergeArtistOptions(Array.isArray(data) ? data : getResults(data))))
       .catch(() => {});
     loadPublicPayload();
     fetchAllCmsResults("/artists/?page_size=500")
@@ -363,6 +478,14 @@ export default function ChartEntriesPage({ user, searchJump }) {
     return [platform.name, platform.short_name]
       .some((name) => availablePlatformNames.has(String(name || "").toLowerCase()));
   }), [platforms, availablePlatformNames]);
+  const releaseArtistOptions = useMemo(
+    () => mergeArtistOptions(artistOptions, artistOptionsFromRelease(editRelease?.data)),
+    [artistOptions, editRelease?.data]
+  );
+  const releaseEditFields = useMemo(
+    () => releaseFields(releaseArtistOptions, editRelease?.data?.chart_type || chartType || "singles"),
+    [releaseArtistOptions, editRelease?.data?.chart_type, chartType]
+  );
 
   // The CMS can contain a newer draft chart than the latest published public
   // month. Artist rows are derived from the public payload, so always start on
@@ -444,7 +567,6 @@ export default function ChartEntriesPage({ user, searchJump }) {
       weeks_on_chart:   entry.weeks_on_chart,
       peak_rank:        entry.peak_rank,
       prev_rank:        entry.prev_rank ?? "",
-      featured_artists: entry.featured_artists || "",
       confidence:       entry.confidence || "",
       notes:            entry.notes || "",
       movement_type:    entry.movement_type || entry.movement || "",
@@ -468,7 +590,6 @@ export default function ChartEntriesPage({ user, searchJump }) {
       const payload = {
         raw_total_points: Number(form.raw_total_points),
         weeks_on_chart:   Number(form.weeks_on_chart),
-        featured_artists: form.featured_artists,
         confidence:       form.confidence,
         notes:            form.notes || null,
       };
@@ -519,7 +640,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
     setEditBusy(true); setError("");
     try {
       const data = await cmsApi.get(`/releases/${releaseId}/`);
-      setEditRelease({ id: releaseId, data });
+      setEditRelease({ id: releaseId, data: normalizeReleaseInitial(data) });
     } catch(e) { setError(e.message); }
     finally { setEditBusy(false); }
   }
@@ -528,17 +649,16 @@ export default function ChartEntriesPage({ user, searchJump }) {
     if (!editRelease) return;
     setEditBusy(true); setError("");
     try {
-      const hasFile = formData.cover_image instanceof File;
-      let updated;
-      if (hasFile) {
+      const { cover_image, artist_credits, featured_artists, ...restForm } = formData;
+      const jsonForm = {
+        ...restForm,
+        ...splitArtistRoleCredits(artist_credits),
+      };
+      let updated = await cmsApi.patch(`/releases/${editRelease.id}/`, jsonForm);
+      if (cover_image instanceof File) {
         const fd = new FormData();
-        Object.entries(formData).forEach(([k, v]) => {
-          if (v !== undefined && v !== null) fd.append(k, v instanceof File ? v : String(v));
-        });
+        fd.append("cover_image", cover_image);
         updated = await cmsApi.patch(`/releases/${editRelease.id}/`, fd);
-      } else {
-        const { cover_image, ...rest } = formData;
-        updated = await cmsApi.patch(`/releases/${editRelease.id}/`, rest);
       }
       // Existing chart_entries rows snapshot their own copy of featured_artists
       // text at creation time and are never touched again just because the
@@ -546,19 +666,34 @@ export default function ChartEntriesPage({ user, searchJump }) {
       // keeps showing (and keeps aggregating into the public artist chart) on
       // every already-published month for this release.
       const nextFeaturedArtists = releaseFeaturedArtistsText(updated);
+      const syncResult = await syncChartEntryCredits(editRelease.id).catch(() => ({ failed: 0 }));
       const refresh = arr => arr.map(e =>
         e.release === editRelease.id
-          ? { ...e, title: updated.title ?? e.title, cover_image: updated.cover_image ?? e.cover_image, artist_display: updated.artist_display ?? e.artist_display, featured_artists: nextFeaturedArtists }
+          ? {
+              ...e,
+              title: updated.title ?? e.title,
+              cover_image: updated.cover_image ?? e.cover_image,
+              artist: updated.artist_name ?? e.artist,
+              artist_display: updated.artist_credit ?? updated.artist_display ?? e.artist_display,
+              featured_artists: nextFeaturedArtists,
+              release_year: updated.release_year ?? null,
+            }
           : e
       );
       setEntries(refresh);
       if (selected?.release === editRelease.id)
-        setSelected(prev => ({ ...prev, title: updated.title ?? prev.title, cover_image: updated.cover_image ?? prev.cover_image, featured_artists: nextFeaturedArtists }));
+        setSelected(prev => ({
+          ...prev,
+          title: updated.title ?? prev.title,
+          cover_image: updated.cover_image ?? prev.cover_image,
+          artist: updated.artist_name ?? prev.artist,
+          artist_display: updated.artist_credit ?? updated.artist_display ?? prev.artist_display,
+          featured_artists: nextFeaturedArtists,
+          release_year: updated.release_year ?? null,
+        }));
       setEditRelease(null);
       refreshPublicPayloadInBackground();
-      syncChartEntryFeaturedArtists(editRelease.id)
-        .then(({ failed }) => { if (failed) setError(`Release saved, but ${failed} historical chart ${failed === 1 ? "entry" : "entries"} could not be synced.`); })
-        .catch(() => {});
+      if (syncResult.failed) setError(`Release saved, but ${syncResult.failed} historical chart ${syncResult.failed === 1 ? "entry" : "entries"} could not be synced.`);
     } catch(e) { setError(e.message); }
     finally { setEditBusy(false); }
   }
@@ -1378,7 +1513,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
           open
           title="Edit Release"
           entityId={editRelease.id}
-          fields={RELEASE_FIELDS}
+          fields={releaseEditFields}
           initial={editRelease.data}
           onSubmit={saveRelease}
           onClose={() => setEditRelease(null)}

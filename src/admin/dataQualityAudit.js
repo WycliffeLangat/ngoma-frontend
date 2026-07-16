@@ -471,13 +471,13 @@ function auditReleases(releases, chartType, ctx) {
 
     if (hasValue(release.featured_artists) && !releaseHasFeaturedArtistLinks(release)) {
       pushIssue(ctx, `audit-${releaseName}-featured-unlinked`, {
-        title: `${capitalize(releaseName)} featured artists are unlinked`,
+        title: `${capitalize(releaseName)} featuring artists are unlinked`,
         module: "releases",
         page,
         category: "Artists",
         noun: releaseName,
         messageTail: "use text-only featured credits that should be linked to artist records.",
-      }, { id: release.id, label, problem: `Unlinked featured names: ${stringValue(release.featured_artists)}` }, ["incompleteMetadata"]);
+      }, { id: release.id, label, problem: `Unlinked featuring names: ${stringValue(release.featured_artists)}` }, ["incompleteMetadata"]);
     }
 
     const compoundProblem = compoundArtistCreditProblem(release, ctx);
@@ -879,26 +879,6 @@ function auditCertifications(certifications, ctx) {
         messageTail: "have missing or invalid core fields.",
       }, { id: cert.id, label, problem: [...missing.map((item) => `missing ${item}`), !CERT_LEVELS.includes(level) ? `invalid level: ${cert.level || "blank"}` : ""].filter(Boolean).join("; ") }, ["incompleteMetadata"]);
     }
-    if (cert.is_official && !hasValue(cert.certification_date)) {
-      pushIssue(ctx, "audit-certification-official-date-missing", {
-        title: "Official certifications missing dates",
-        module: "certifications",
-        page: "certifications",
-        category: "Certifications",
-        noun: "certification",
-        messageTail: "are official but do not have certification dates.",
-      }, { id: cert.id, label, problem: "Missing certification date" }, ["incompleteMetadata"]);
-    }
-    if (!cert.is_official && cert.is_hidden !== true) {
-      pushIssue(ctx, "audit-certification-unofficial-visible", {
-        title: "Unofficial certifications are visible",
-        module: "certifications",
-        page: "certifications",
-        category: "Certifications",
-        noun: "certification",
-        messageTail: "are not official but are not hidden.",
-      }, { id: cert.id, label, problem: "Mark official or hide from public surfaces" }, ["incompleteMetadata"]);
-    }
     const threshold = ctx.certRules.get(level);
     const points = Number(cert.total_points);
     if (threshold && Number.isFinite(points) && points < threshold) {
@@ -911,16 +891,6 @@ function auditCertifications(certifications, ctx) {
         noun: "certification",
         messageTail: "do not meet the active points threshold.",
       }, { id: cert.id, label, problem: `${points} points is below ${level} threshold ${threshold}` }, ["incompleteMetadata"]);
-    }
-    if (cert.is_official && !hasValue(cert.notes)) {
-      pushIssue(ctx, "audit-certification-notes-missing", {
-        title: "Official certifications missing notes",
-        module: "certifications",
-        page: "certifications",
-        category: "Certifications",
-        noun: "certification",
-        messageTail: "should include notes/source context.",
-      }, { id: cert.id, label, problem: "Missing notes/source context" }, ["incompleteMetadata"]);
     }
   });
 

@@ -1,7 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { entryKey, mv, resolveMovementFromHistory, sameRelease } from "./chartHelpers.js";
+import {
+  artistCreditMembers,
+  entryKey,
+  mv,
+  protectedArtistCreditNames,
+  resolveMovementFromHistory,
+  sameRelease,
+  splitCreditNames,
+} from "./chartHelpers.js";
 
 test("published month history overrides stale backend re-entry values", () => {
   const resolved = resolveMovementFromHistory({
@@ -79,5 +87,23 @@ test("entry identity includes featured artists even when display credit is spars
       featured_artists: "Zuchu",
     }),
     "uhakika|||ibraah+zuchu",
+  );
+});
+
+test("registered compound artist credits stay atomic", () => {
+  const protectedNames = protectedArtistCreditNames([
+    { name: "Vestine & Dorcas", public_name: "Vestine & Dorcas", artist_type: "duo" },
+  ]);
+
+  assert.deepEqual(protectedNames, ["Vestine & Dorcas"]);
+  assert.deepEqual(splitCreditNames("Vestine & Dorcas", protectedNames), ["Vestine & Dorcas"]);
+  assert.deepEqual(splitCreditNames("Bien ft. Vestine & Dorcas", protectedNames), ["Bien", "Vestine & Dorcas"]);
+  assert.deepEqual(
+    artistCreditMembers({ artist_credit: "Vestine & Dorcas" }, protectedNames),
+    ["Vestine & Dorcas"],
+  );
+  assert.equal(
+    entryKey({ title: "Yebo (Nitawale)", artist_credit: "Vestine & Dorcas" }, protectedNames),
+    "yebo (nitawale)|||vestine & dorcas",
   );
 });

@@ -8,12 +8,19 @@ import {
   releaseTitle, normFt, releaseArtist, cleanArtistDisplay,
   formatCreditMembers, profileNames, splitCreditNames,
   artistCreditMembers, formatArtistCredit,
+  protectedArtistCreditNames,
   firstFiniteNumber, certificationKey,
   getMonthYearParts, platformToSlug,
   normArtistKey, artistSetKey, entryKey, sameRelease, normalizeRankedRows,
   mv, resolveMovementFromHistory, mapPublicNews,
 } from "./utils/chartHelpers.js";
 import { normalizePublicPayload, publishedMonthOptions, runtimePublicData } from "./utils/publicDataRuntime.js";
+import {
+  buildAutomaticCertifications,
+  buildAutomaticNews,
+  mergeCertifications,
+  mergeNews,
+} from "./utils/automaticPublicContent.js";
 import {
   BarChart,
   Bar,
@@ -59,6 +66,7 @@ function replaceObject(target, source = {}) {
   Object.keys(target).forEach((key) => delete target[key]);
   Object.assign(target, source || {});
 }
+const PROTECTED_ARTIST_CREDIT_NAMES = protectedArtistCreditNames(PUBLIC_DATA.artists || []);
 // Ensures cover_image (and artist image) URLs are absolute so they load correctly
 // when the frontend is on a different origin (Netlify) from the backend (Railway).
 const CMS_ARTISTS_BY_ID = new Map((PUBLIC_DATA.artists || []).map((artist) => [Number(artist.id), artist]));
@@ -244,6 +252,8 @@ const publicArtistForName = (name = "") => {
     null
   );
 };
+const publicArtistCreditMembers = (entry = {}) =>
+  artistCreditMembers(entry, PROTECTED_ARTIST_CREDIT_NAMES);
 const SITE_SETTINGS = PUBLIC_DATA.settings || {};
 const settingValue = (key, fallback = {}) => SITE_SETTINGS[key] ?? fallback;
 const siteNameSetting = settingValue("site_name", {});
@@ -289,12 +299,22 @@ const F = SYSTEM_SANS;
 const SF = SYSTEM_SANS;
 const CC = [GOLD,"#E53935","#2DB04A","#1565C0","#7B1FA2","#E65100","#00897B","#37474F","#AD1457","#558B2F"];
 const VO = [{l:"Top 10",c:10},{l:"Top 20",c:20},{l:"Top 50",c:50}];
+const CERTIFICATION_DEFAULT_THRESHOLDS = { diamond: 600, platinum: 400, gold: 200 };
 const certificationThresholds = Object.fromEntries((PUBLIC_DATA.certification_rules || []).map((item) => [item.level, Number(item.threshold)]));
 const CERTIFICATION_LEVELS = [
-  { level: "diamond", label: "Diamond", icon: "💎", pts: certificationThresholds.diamond || 600, color: "#7B1FA2" },
-  { level: "platinum", label: "Platinum", icon: "🎵", pts: certificationThresholds.platinum || 400, color: PLATINUM_SILVER, iconFilter: "grayscale(1) brightness(1.7)" },
-  { level: "gold", label: "Gold", icon: "📀", pts: certificationThresholds.gold || 200, color: GOLD },
+  { level: "diamond", label: "Diamond", icon: "💎", pts: certificationThresholds.diamond || CERTIFICATION_DEFAULT_THRESHOLDS.diamond, color: "#7B1FA2" },
+  { level: "platinum", label: "Platinum", icon: "🎵", pts: certificationThresholds.platinum || CERTIFICATION_DEFAULT_THRESHOLDS.platinum, color: PLATINUM_SILVER, iconFilter: "grayscale(1) brightness(1.7)" },
+  { level: "gold", label: "Gold", icon: "📀", pts: certificationThresholds.gold || CERTIFICATION_DEFAULT_THRESHOLDS.gold, color: GOLD },
 ];
+function refreshCertificationThresholds() {
+  replaceObject(
+    certificationThresholds,
+    Object.fromEntries((PUBLIC_DATA.certification_rules || []).map((item) => [item.level, Number(item.threshold)]))
+  );
+  CERTIFICATION_LEVELS.forEach((item) => {
+    item.pts = certificationThresholds[item.level] || CERTIFICATION_DEFAULT_THRESHOLDS[item.level];
+  });
+}
 // Lower index = higher tier. A release keeps one Certification row per
 // threshold it has ever crossed (see recalculate_certifications on the
 // backend), so anywhere a release's "current" level is shown must pick the
@@ -305,15 +325,6 @@ const getCertificationLevel = (totalPts = 0) => {
   return CERTIFICATION_LEVELS.find((item) => points >= item.pts)?.level || null;
 };
 
-const buildCertifications = (items = []) => items
-  .map((item) => ({
-    t: item.t,
-    a: item.a,
-    totalPts: Number(item.totalPts) || 0,
-    level: getCertificationLevel(item.totalPts),
-    cover_image: item.cover_image || item.image || "",
-  }))
-  .filter((item) => item.level);
 const certificationMetaForLevel = (level) => CERTIFICATION_LEVELS.find((item) => item.level === level) || null;
 const COUNTRY_ACCENTS = {
   BB:"#00267F",CA:"#D80621",CD:"#007FFF",CI:"#F77F00",CL:"#D52B1E",DE:"#FFCE00",FR:"#0055A4",GB:"#012169",
@@ -831,7 +842,7 @@ const buildYearEndArtistRows = (months, platform = "Combined") => {
 
   months.forEach((monthLabel) => {
     getArtistPlatformSource(platform, monthLabel).forEach((entry) => {
-      artistCreditMembers(entry).forEach((artistName) => {
+      publicArtistCreditMembers(entry).forEach((artistName) => {
         const key = artistName.toLowerCase();
         const current = artistMap.get(key) || {
           t: artistName,
@@ -885,7 +896,7 @@ const buildCombinedArtists = (chartType, throughMonth = latestPublishedMonthLabe
 
   includedMonths.forEach((monthLabel, monthOffset) => {
     getArtistSourceCombined(chartType, monthLabel).forEach((entry) => {
-      artistCreditMembers(entry).forEach((artistName) => {
+      publicArtistCreditMembers(entry).forEach((artistName) => {
         const key = artistName.toLowerCase();
         const current = artistMap.get(key) || {
           n: artistName,
@@ -987,7 +998,7 @@ const getArtistPlatformHits = (artistName = "", monthLabel = latestPublishedMont
   if (!normalized) return [];
   return ARTIST_PLATS.filter((platform) =>
     getArtistPlatformSource(platform, monthLabel).some((entry) =>
-      artistCreditMembers(entry).some((member) => member.toLowerCase() === normalized)
+      publicArtistCreditMembers(entry).some((member) => member.toLowerCase() === normalized)
     )
   );
 };
@@ -1026,7 +1037,7 @@ const aggregateArtistsForMonth = (monthLabel = latestPublishedMonthLabel(), plat
   const kenyanOnly = platform === KENYAN_CHART;
 
   getArtistPlatformSource(platform, monthLabel).forEach((entry) => {
-    artistCreditMembers(entry).forEach((artistName) => {
+    publicArtistCreditMembers(entry).forEach((artistName) => {
       const key = artistName.toLowerCase();
       const country = getArtistCountry({ artist: artistName });
       if (
@@ -1379,6 +1390,7 @@ function applyRuntimePublicData(rawPayload) {
   replaceObject(FULL, freshData.full || {});
   replaceArray(PUBLIC_PLATFORMS, freshData.platforms || []);
   replaceObject(SITE_SETTINGS, freshData.settings || {});
+  replaceArray(PROTECTED_ARTIST_CREDIT_NAMES, protectedArtistCreditNames(freshData.artists || []));
   replaceArray(S_PLATS, ["Combined", ...availablePlatformKeys("singles", "supports_singles", DEFAULT_SINGLES_PLATFORM_KEYS)]);
   replaceArray(A_PLATS, ["Combined", ...availablePlatformKeys("albums", "supports_albums", DEFAULT_ALBUM_PLATFORM_KEYS)]);
   replaceArray(ARTIST_PLATS, S_PLATS.filter((platform) => platform !== "Combined"));
@@ -1392,6 +1404,7 @@ function applyRuntimePublicData(rawPayload) {
     platforms: PUBLIC_PLATFORMS,
     settings: SITE_SETTINGS,
   });
+  refreshCertificationThresholds();
   rebuildPublicLookups(PUBLIC_DATA);
   clearDerivedPublicCaches();
   rebuildPublicSummaries();
@@ -1518,7 +1531,7 @@ const mapPublicCertifications = (items = []) => items.map((c) => ({
   level: c.level || getCertificationLevel(c.total_points),
   country_code: c.country_code || "",
   chart_type: c.chart_type || "singles",
-})).filter((c) => c.level);
+})).filter((c) => c.level && c.is_hidden !== true);
 
 // Defined at module scope so React does not recreate it on every render.
 const CertificationTag = ({ cert, compact = true, style = {} }) => {
@@ -2362,7 +2375,7 @@ const top = data[0];
     const requestedName = String(name || "").trim();
     const allCurrentArtists = buildCombinedArtists("artists", CURRENT_MONTH);
     const resolvedName = allCurrentArtists.find((item) => item.n.toLowerCase() === requestedName.toLowerCase())?.n
-      || artistCreditMembers({ artist: requestedName })[0]
+      || publicArtistCreditMembers({ artist: requestedName })[0]
       || requestedName;
     const cumulativeProfile = allCurrentArtists.find((item) => item.n === resolvedName);
     if (!cumulativeProfile) {
@@ -2440,7 +2453,7 @@ const top = data[0];
     }
     const normalizedType = String(type || entry.type || "single").toLowerCase().includes("album") ? "album" : "single";
     const displayArtist = releaseArtist(entry);
-    const primaryArtist = entry.primary_artist || entry.pa || artistCreditMembers({ artist: displayArtist })[0] || displayArtist;
+    const primaryArtist = entry.primary_artist || entry.pa || publicArtistCreditMembers({ artist: displayArtist })[0] || displayArtist;
     setCt(normalizedType === "album" ? "albums" : "singles");
     setPlat("Combined");
     setSelA(null);
@@ -3192,7 +3205,10 @@ const top = data[0];
   },analysisMonths.length);
   const rankJourneyMonths=rankJourneyStartIndex<analysisMonths.length?analysisMonths.slice(rankJourneyStartIndex):analysisMonths;
 
-  const certs=buildCertifications(yearEnd);
+  const automaticCerts = useMemo(() => buildAutomaticCertifications({
+    singles: COMBINED_YEAR_END.singles,
+    albums: COMBINED_YEAR_END.albums,
+  }, CERTIFICATION_LEVELS), [dataRevision]);
   const certIcons=CERTIFICATION_LEVELS.reduce((acc, item) => {
     acc[item.level] = item.icon;
     return acc;
@@ -3201,23 +3217,23 @@ const top = data[0];
     acc[item.level] = item.color;
     return acc;
   }, {});
-  // Certification level and cumulative points come from the backend's
-  // published Combined Top 50 history; the browser does not recalculate it.
+  // Certification level and cumulative points follow the published Combined
+  // Top 50 history. Live CMS rows supply editorial metadata when available,
+  // while automatic rows keep public badges current as soon as points change.
   const normalizedLiveCerts = useMemo(() => {
-    if (!liveCerts) return null;
-    return liveCerts.map((cert) => {
+    const mergedCerts = mergeCertifications(automaticCerts, liveCerts || [], CERTIFICATION_LEVELS);
+    return mergedCerts.map((cert) => {
       const meta = certificationMetaForLevel(cert.level);
       if (!meta) return null;
       return { ...cert, ...meta, totalPts: Number(cert.totalPts) || 0 };
     }).filter(Boolean);
-  }, [liveCerts]);
+  }, [automaticCerts, liveCerts]);
 
   // Collapse the raw certification rows down to one per release — the
   // highest level it has reached — before anything downstream reads them,
   // so the Charts badges, the news matcher, and the Certifications page can
   // never disagree about which level a release is currently at.
   const dedupedLiveCerts = useMemo(() => {
-    if (!normalizedLiveCerts) return null;
     const bucket = new Map();
     normalizedLiveCerts.forEach((cert) => {
       const key = `${cert.chart_type === "albums" ? "albums" : "singles"}|||${certificationKey(cert.t, cert.a)}`;
@@ -3255,6 +3271,19 @@ const top = data[0];
       type: cert.chart_type === "albums" ? "album" : "single",
     })).sort((a, b) => b.totalPts - a.totalPts);
   }, [dedupedLiveCerts]);
+  const publicNews = useMemo(() => {
+    const monthLabel = latestPublishedMonthLabel();
+    const automaticNews = buildAutomaticNews({
+      latestMonth: monthLabel,
+      singlesRows: getCombined("singles", monthLabel),
+      albumsRows: getCombined("albums", monthLabel),
+      certifications: allCertifiedReleases,
+      levels: CERTIFICATION_LEVELS,
+      generatedAt: PUBLIC_DATA.generated_at || PUBLIC_DATA.revision || "",
+      siteName: SITE_NAME,
+    });
+    return mergeNews(liveNews || [], automaticNews);
+  }, [allCertifiedReleases, liveNews, dataRevision]);
 
   const getCertificationsForNews = (news = {}, limit = 3) => {
     const text = `${news.title || ""} ${news.excerpt || ""} ${news.body || ""}`.toLowerCase();
@@ -3293,7 +3322,7 @@ const top = data[0];
   const allArtistNames=[...new Set(artists.map(a=>a.n))].sort();
   const selectedArtistEntries = selA ? MONTHS.flatMap((monthLabel) =>
     getArtistSourceCombined("artists", monthLabel)
-      .filter((entry) => artistCreditMembers(entry).some((name) => normArtistKey(name) === normArtistKey(selA.n)))
+      .filter((entry) => publicArtistCreditMembers(entry).some((name) => normArtistKey(name) === normArtistKey(selA.n)))
       .map((entry) => ({
         ...entry,
         month: monthLabel,
@@ -3354,7 +3383,7 @@ const top = data[0];
     LineChart,
     MEDALS,
     MONTHS,
-    NEWS: liveNews || NEWS,
+    NEWS: publicNews,
     PAD,
     PAGE_MAX,
     PC,
@@ -3389,7 +3418,7 @@ const top = data[0];
     card,
     certColors,
     certIcons,
-    certs: dedupedLiveCerts ? dedupedLiveCerts.filter(c => c.chart_type === ct) : certs,
+    certs: dedupedLiveCerts.filter(c => c.chart_type === ct),
     chartTypeLabel,
     closeDetails,
     cmp1,

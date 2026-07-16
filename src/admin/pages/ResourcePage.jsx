@@ -16,6 +16,7 @@ import { artistNameVariants, clearDeletedArtistNames, recordDeletedArtistNames }
 import ArtistImpactSummary from "../components/ArtistImpactSummary";
 import { computeArtistImpact, applyArtistImpactCorrections } from "../artistImpact";
 import { syncChartEntryFeaturedArtists } from "../chartEntryCreditSync";
+import { artistCreditMembers, protectedArtistCreditNames } from "../../utils/chartHelpers.js";
 
 function normalizeArtistName(value) {
   return String(value || "").trim().toLowerCase();
@@ -97,12 +98,36 @@ function releaseArtistIds(release, idField, profileField) {
   return profiles.map(optionId).filter(Boolean);
 }
 
+function releaseCreditRows(release) {
+  return [
+    ...releaseArtistIds(release, "primary_artist_ids", "primary_artists")
+      .map((artistId) => ({ artist_id: artistId, role: "primary" })),
+    ...releaseArtistIds(release, "featured_artist_ids", "featured_artist_profiles")
+      .map((artistId) => ({ artist_id: artistId, role: "featured" })),
+  ];
+}
+
+function splitArtistRoleCredits(rows = []) {
+  const seen = new Set();
+  const primary_artist_ids = [];
+  const featured_artist_ids = [];
+  (Array.isArray(rows) ? rows : []).forEach((row) => {
+    const artistId = optionId(row?.artist_id ?? row?.value ?? row?.id ?? row);
+    if (!artistId || seen.has(artistId)) return;
+    seen.add(artistId);
+    if (String(row?.role || "primary") === "featured") featured_artist_ids.push(artistId);
+    else primary_artist_ids.push(artistId);
+  });
+  return { primary_artist_ids, featured_artist_ids };
+}
+
 function normalizeReleaseInitial(release) {
   if (!release) return release;
   return {
     ...release,
     primary_artist_ids: releaseArtistIds(release, "primary_artist_ids", "primary_artists"),
     featured_artist_ids: releaseArtistIds(release, "featured_artist_ids", "featured_artist_profiles"),
+    artist_credits: releaseCreditRows(release),
   };
 }
 
@@ -114,13 +139,6 @@ function artistSlug(value) {
     .replace(/&/g, " and ")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "") || "artist";
-}
-
-function splitArtistNames(value) {
-  return String(value || "")
-    .split(/\s*(?:\||\bft\.?|\bfeat\.?|\bfeaturing\b|\bx\b|&|,)\s*/i)
-    .map((name) => name.trim())
-    .filter(Boolean);
 }
 
 // Runs `worker` over `items` with at most `limit` in flight at once — used
@@ -140,25 +158,8 @@ async function runWithConcurrency(items, limit, worker) {
   return results;
 }
 
-function creditedArtistNames(release) {
-  const primaryProfiles = (release.primary_artists || [])
-    .map((profile) => profile?.public_name || profile?.display_name || profile?.name)
-    .filter(Boolean);
-  const featuredProfiles = (release.featured_artist_profiles || [])
-    .map((profile) => profile?.public_name || profile?.display_name || profile?.name)
-    .filter(Boolean);
-  const primaryText = splitArtistNames(
-    release.primary_artist_credit || release.pa || release.primary_artist ||
-    release.a || release.artist_credit || release.artist
-  );
-  const featuredText = splitArtistNames(
-    release.featured_artist_credit || release.fa || release.featured_artists || ""
-  );
-  return [
-    ...(primaryProfiles.length ? primaryProfiles : primaryText),
-    ...featuredProfiles,
-    ...featuredText,
-  ];
+function creditedArtistNames(release, protectedNames = []) {
+  return artistCreditMembers(release, protectedNames);
 }
 
 function forEachPublicCreditEntry(payload, visit) {
@@ -202,7 +203,7 @@ const configs = {
   platforms: { title: "Platforms", endpoint: "/platforms/", columns: [{key:"name",label:"Platform"},{key:"short_name",label:"Short"},{key:"color",label:"Color"},{key:"max_chart_size",label:"Max"},{key:"active",label:"Active"}], form: [{name:"name",label:"Name"},{name:"slug",label:"Slug"},{name:"short_name",label:"Short name"},{name:"color",label:"Color"},{name:"brand_color",label:"Brand color"},{name:"chart_size",label:"Source chart size",type:"number"},{name:"max_chart_size",label:"Max chart size",type:"number"},{name:"points_base",label:"Points base",type:"number"},{name:"points_method",label:"Points method"},{name:"supports_singles",label:"Supports singles",type:"checkbox"},{name:"supports_albums",label:"Supports albums",type:"checkbox"},{name:"display_order",label:"Display order",type:"number"},{name:"active",label:"Active",type:"checkbox"}] },
   news: { title: "News CMS", endpoint: "/news/", imageField: "cover_image", columns: [{key:"title",label:"Headline"},{key:"category",label:"Category"},{key:"author",label:"Author"},{key:"status",label:"Status"},{key:"updated_at",label:"Updated",render:(r)=>new Date(r.updated_at).toLocaleDateString()}], form: [{name:"cover_image",label:"Cover image",type:"file",help:"Article hero image. JPEG or PNG, max 5 MB."},{name:"title",label:"Headline"},{name:"slug",label:"Slug"},{name:"subheadline",label:"Subheadline"},{name:"category",label:"Category",type:"select",options:["chart_news","milestones","new_releases","industry_news","artist_news","awards","certifications","records","interviews","editorials","artist_spotlight","albums","analytics","announcement"].map(v=>({value:v,label:v.replace(/_/g," ")}))},{name:"related_artist",label:"Related artist",type:"select",options:[],help:"Use this so news images follow the artist being discussed."},{name:"related_release",label:"Related song / album",type:"select",options:[],help:"Use this so news images can pull the song or album cover."},{name:"author",label:"Author"},{name:"excerpt",label:"Excerpt",type:"textarea"},{name:"body",label:"Body",type:"textarea"},{name:"gallery",label:"Gallery JSON",type:"json",help:"Optional extra related images. Each item can be a URL or {url, caption}."},{name:"tags",label:"Tags JSON",type:"json"},{name:"source_links",label:"Source links JSON",type:"json"},{name:"seo_title",label:"SEO title"},{name:"seo_description",label:"SEO description",type:"textarea"},{name:"featured",label:"Featured",type:"checkbox"},{name:"pinned",label:"Pinned",type:"checkbox"},{name:"breaking",label:"Breaking",type:"checkbox"},{name:"is_published",label:"Published",type:"checkbox"},{name:"status",label:"Status"}] },
   charts: { title: "Chart Periods", endpoint: "/charts/", columns: [{key:"label",label:"Month"},{key:"chart_type",label:"Type"},{key:"combined_entries_count",label:"Combined entries"},{key:"status",label:"Status"}], form: [{name:"year",label:"Year",type:"number",help:"Four-digit chart year, for example 2026."},{name:"month",label:"Month number",type:"number",help:"Use 1 for January through 12 for December."},{name:"chart_type",label:"Chart type",type:"select",options:[{value:"singles",label:"Singles"},{value:"albums",label:"Albums"}]},{name:"status",label:"Review status",type:"select",options:CHART_STATUS_OPTIONS,help:"Publishing is a separate, protected action after entries are reviewed."}] },
-  certifications: { title: "Certifications", endpoint: "/certifications/", columns: [{key:"title",label:"Release"},{key:"artist",label:"Artist"},{key:"level",label:"Level"},{key:"total_points",label:"Points"},{key:"is_official",label:"Official"}], form: [{name:"release",label:"Release ID",type:"number"},{name:"level",label:"Level",type:"select",options:[{value:"gold",label:"Gold"},{value:"platinum",label:"Platinum"},{value:"diamond",label:"Diamond"}]},{name:"total_points",label:"Points",type:"number"},{name:"is_official",label:"Official",type:"checkbox"},{name:"is_hidden",label:"Hidden from app",type:"checkbox"},{name:"certification_date",label:"Certification date",type:"date"},{name:"previous_level",label:"Previous level"},{name:"notes",label:"Notes",type:"textarea"}] },
+  certifications: { title: "Certifications", endpoint: "/certifications/", columns: [{key:"title",label:"Release"},{key:"artist",label:"Artist"},{key:"level",label:"Level"},{key:"total_points",label:"Points"}], form: [{name:"release",label:"Release ID",type:"number"},{name:"level",label:"Level",type:"select",options:[{value:"gold",label:"Gold"},{value:"platinum",label:"Platinum"},{value:"diamond",label:"Diamond"}]},{name:"total_points",label:"Points",type:"number"},{name:"is_hidden",label:"Hidden from app",type:"checkbox"},{name:"certification_date",label:"Certification date",type:"date"},{name:"previous_level",label:"Previous level"},{name:"notes",label:"Notes",type:"textarea"}] },
   "certification-rules": { title: "Certification Rules", endpoint: "/certification-rules/", columns: [{key:"label",label:"Level"},{key:"threshold",label:"Points threshold"},{key:"active",label:"Active"},{key:"updated_at",label:"Updated",render:(r)=>new Date(r.updated_at).toLocaleDateString()}], form: [{name:"level",label:"Level",type:"select",options:[{value:"gold",label:"Gold"},{value:"platinum",label:"Platinum"},{value:"diamond",label:"Diamond"}]},{name:"threshold",label:"Points threshold",type:"number"},{name:"active",label:"Active",type:"checkbox"}] },
   methodology: { title: "Methodology", endpoint: "/methodology/", columns: [{key:"version",label:"Version"},{key:"name",label:"Name"},{key:"is_active",label:"Active"},{key:"created_at",label:"Created",render:(r)=>new Date(r.created_at).toLocaleDateString()}], form: [{name:"version",label:"Version"},{name:"name",label:"Name"},{name:"config",label:"Methodology JSON",type:"json"},{name:"is_active",label:"Active",type:"checkbox"}] },
   "page-content": { title: "Page Content", endpoint: "/page-content/", columns: [{key:"page",label:"Page"},{key:"section",label:"Section"},{key:"title",label:"Title"},{key:"is_visible",label:"Visible"},{key:"display_order",label:"Order"}], form: [{name:"page",label:"Page"},{name:"section",label:"Section"},{name:"title",label:"Title"},{name:"content",label:"Content",type:"textarea"},{name:"data",label:"Section data JSON",type:"json"},{name:"is_visible",label:"Visible",type:"checkbox"},{name:"display_order",label:"Display order",type:"number"}] },
@@ -214,7 +215,7 @@ const configs = {
   backups: { title: "Backups", endpoint: "/backups/", columns: [{key:"status",label:"Status"},{key:"file",label:"File"},{key:"created_at",label:"Created",render:(r)=>new Date(r.created_at).toLocaleString()}], form: [{name:"status",label:"Status"},{name:"notes",label:"Notes",type:"textarea"}] },
 };
 
-function releaseForm(chartType, artistOptions){ return [{name:"cover_image",label:"Cover image",type:"file",help:"Square image, min 1000×1000 px. JPEG or PNG, max 2 MB."},{name:"title",label:"Title"},{name:"primary_artist_ids",label:"Main artists (ordered)",type:"ordered-multiselect",options:artistOptions,help:"The first artist is the lead. Multiple linked artists are usually joined with commas and & before the last — but if this release credits a duo/group act whose own registered name already contains \"&\", link that single artist record instead of splitting it into separate artists."},{name:"featured_artist_ids",label:"Featuring (ordered)",type:"ordered-multiselect",options:artistOptions,help:"Featured artists display after ft and may include more than one artist."},{name:"chart_type",label:"Chart type",type:"select",options:[{value:chartType,label:chartType}]},{name:"canonical_title",label:"Canonical title"},{name:"featured_artists",label:"Unlinked featured names",help:"Fallback for a featured artist who does not yet have an Artist record."},{name:"credited_artists",label:"Other credited artists / notes"},{name:"songwriters",label:"Songwriters",type:"tags"},{name:"producers",label:"Producers",type:"tags"},{name:"release_year",label:"Release year",type:"number"},{name:"release_date",label:"Release date",type:"date"},{name:"isrc",label:"ISRC"},{name:"upc",label:"UPC"},{name:"number_of_tracks",label:"Number of tracks",type:"number"},{name:"country",label:"Country",readOnly:true,help:"Always the main artist's country — edit the artist record to change it."},{name:"country_code",label:"Country code",readOnly:true,help:"Always the main artist's country code — edit the artist record to change it."},{name:"genre",label:"Genre"},{name:"label",label:"Label"},{name:"distributor",label:"Distributor"},{name:"spotify_url",label:"Spotify URL"},{name:"apple_music_url",label:"Apple Music URL"},{name:"boomplay_url",label:"Boomplay URL"},{name:"audiomack_url",label:"Audiomack URL"},{name:"youtube_url",label:"YouTube URL"},{name:"tiktok_url",label:"TikTok URL"},{name:"shazam_url",label:"Shazam URL"},{name:"radio_info",label:"Radio info",type:"textarea"},{name:"status",label:"Status"}]; }
+function releaseForm(chartType, artistOptions){ return [{name:"cover_image",label:"Cover image",type:"file",help:"Square image, min 1000×1000 px. JPEG or PNG, max 2 MB."},{name:"title",label:"Title"},{name:"artist_credits",label:"Artists",type:"artist-role-list",options:artistOptions,help:"Add each credited artist once, then choose Primary or Featuring. Link a registered duo/group as one artist."},{name:"chart_type",label:"Chart type",type:"select",options:[{value:chartType,label:chartType}]},{name:"canonical_title",label:"Canonical title"},{name:"credited_artists",label:"Other credited artists / notes"},{name:"songwriters",label:"Songwriters",type:"tags"},{name:"producers",label:"Producers",type:"tags"},{name:"release_year",label:"Release year",type:"number"},{name:"release_date",label:"Release date",type:"date"},{name:"isrc",label:"ISRC"},{name:"upc",label:"UPC"},{name:"number_of_tracks",label:"Number of tracks",type:"number"},{name:"country",label:"Country",readOnly:true,help:"Always the main artist's country — edit the artist record to change it."},{name:"country_code",label:"Country code",readOnly:true,help:"Always the main artist's country code — edit the artist record to change it."},{name:"genre",label:"Genre"},{name:"label",label:"Label"},{name:"distributor",label:"Distributor"},{name:"spotify_url",label:"Spotify URL"},{name:"apple_music_url",label:"Apple Music URL"},{name:"boomplay_url",label:"Boomplay URL"},{name:"audiomack_url",label:"Audiomack URL"},{name:"youtube_url",label:"YouTube URL"},{name:"tiktok_url",label:"TikTok URL"},{name:"shazam_url",label:"Shazam URL"},{name:"radio_info",label:"Radio info",type:"textarea"},{name:"status",label:"Status"}]; }
 
 // Resources that support status filtering and ordering in the CMS toolbar
 const STATUS_TYPES    = new Set(["songs", "albums", "artists"]);
@@ -431,6 +432,10 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
         cmsApi.get("/artists/options/"),
       ]);
       const options = Array.isArray(optionData) ? optionData : getResults(optionData);
+      const protectedNames = protectedArtistCreditNames([
+        ...(payload?.artists || []),
+        ...options,
+      ]);
       const byName = new Map();
       const bySlug = new Map();
       options.forEach((artist) => {
@@ -443,7 +448,7 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
 
       const credited = new Map();
       forEachPublicCreditEntry(payload, (release) => {
-        creditedArtistNames(release).forEach((name) => {
+        creditedArtistNames(release, protectedNames).forEach((name) => {
           const key = normalizeArtistName(name);
           if (key && !credited.has(key)) credited.set(key, String(name).trim());
         });
@@ -513,12 +518,14 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
       form = { ...form, slug: artistSlug(form.name) };
     }
     if (type === "songs" || type === "albums") {
-      const primaryIds = Array.isArray(form.primary_artist_ids)
-        ? form.primary_artist_ids.map(Number).filter(Boolean)
-        : [];
+      const { primary_artist_ids, featured_artist_ids } = splitArtistRoleCredits(form.artist_credits);
+      const { artist_credits, featured_artists, ...restForm } = form;
+      const primaryIds = primary_artist_ids;
       const leadOption = scopedArtistOptions.find((artist) => Number(artist.value) === primaryIds[0]);
       form = {
-        ...form,
+        ...restForm,
+        primary_artist_ids,
+        featured_artist_ids,
         country: leadOption ? (leadOption.country || "") : (form.country || ""),
         country_code: leadOption
           ? String(leadOption.country_code || "").trim().toUpperCase()
@@ -678,24 +685,6 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
         showFlash(`Fixed ${fixed} certification level${fixed !== 1 ? "s" : ""}.`);
         load();
       }
-    } catch(e) { setError(e.message); }
-    finally { setActionBusy(false); }
-  }
-
-  async function markAllOfficial() {
-    if (actionBusy) return;
-    if (!window.confirm("Mark all non-official certifications as official? This makes them fully public.")) return;
-    setActionBusy(true);
-    setError("");
-    try {
-      const all = getResults(await cmsApi.get("/certifications/?page_size=2000"));
-      const unofficial = all.filter(c => !c.is_official);
-      if (unofficial.length === 0) { showFlash("No unofficial certifications found."); return; }
-      for (const cert of unofficial) {
-        await cmsApi.patch(`/certifications/${cert.id}/`, { is_official: true });
-      }
-      showFlash(`Marked ${unofficial.length} certification${unofficial.length !== 1 ? "s" : ""} as official.`);
-      load();
     } catch(e) { setError(e.message); }
     finally { setActionBusy(false); }
   }
@@ -1195,14 +1184,6 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
             >
               {actionBusy ? "Fixing…" : "Recalculate levels"}
             </button>
-            <button
-              className="cms-btn light"
-              disabled={actionBusy}
-              title="Mark all unofficial certifications as is_official=true"
-              onClick={markAllOfficial}
-            >
-              Mark all official
-            </button>
           </>
         )}
       </div>
@@ -1572,7 +1553,7 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
                                 background: release.credit_role === "featured" ? "#e8f4fd" : "#f3eefb",
                                 borderRadius: 4, padding: "2px 7px", flexShrink: 0,
                               }}>
-                                {release.credit_role === "featured" ? "Featured on" : "Main artist"}
+                                {release.credit_role === "featured" ? "Featuring on" : "Main artist"}
                               </span>
                             </button>
                           ))}
@@ -1905,6 +1886,7 @@ function defaultInitial(fields = []) {
     field.name,
     field.defaultValue ??
       (field.type === "ordered-multiselect"
+        || field.type === "artist-role-list"
         ? []
         : field.name === "status"
           ? ([WORKFLOW_STATUS_OPTIONS, CHART_STATUS_OPTIONS].includes(field.options) ? "draft" : "active")

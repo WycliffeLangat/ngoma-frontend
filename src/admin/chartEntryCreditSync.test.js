@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   creditTextMentions,
+  releaseChartEntrySnapshot,
   releaseFeaturedArtistsText,
   rewriteCreditText,
 } from "./chartEntryCreditSync.js";
@@ -24,6 +25,18 @@ test("releaseFeaturedArtistsText joins multiple structured names with commas and
     featured_artist_profiles: [{ name: "A" }, { name: "B" }, { name: "C" }],
   };
   assert.equal(releaseFeaturedArtistsText(release), "A, B & C");
+});
+
+test("releaseChartEntrySnapshot includes authoritative featured credit and release year", () => {
+  const release = {
+    featured_artist_profiles: [{ name: "A" }, { name: "B" }],
+    featured_artists: "Old Text",
+    release_year: 2026,
+  };
+  assert.deepEqual(releaseChartEntrySnapshot(release), {
+    featured_artists: "A & B",
+    release_year: 2026,
+  });
 });
 
 test("creditTextMentions finds a name regardless of separator style", () => {

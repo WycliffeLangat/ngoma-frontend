@@ -1,31 +1,10 @@
 import { resolveMediaUrl } from "../api/config.js";
+import { artistCreditMembers, protectedArtistCreditNames } from "./chartHelpers.js";
 
 const normalized = (value) => String(value || "").trim().toLowerCase();
 
-const splitCredit = (value) => String(value || "")
-  .split(/\s*(?:\||\bft\.?|\bfeat\.?|\bfeaturing\b|\bx\b|&|,)\s*/i)
-  .map((name) => name.trim())
-  .filter(Boolean);
-
-export function artistCreditNames(entry = {}) {
-  const names = [];
-  const add = (value) => {
-    const name = String(value || "").trim();
-    if (name && !names.some((item) => normalized(item) === normalized(name))) names.push(name);
-  };
-
-  const primaryProfiles = entry.primary_artists || [];
-  const featuredProfiles = entry.featured_artist_profiles || [];
-  primaryProfiles.forEach((profile) => add(profile?.public_name || profile?.display_name || profile?.name));
-  featuredProfiles.forEach((profile) => add(profile?.public_name || profile?.display_name || profile?.name));
-  if (!primaryProfiles.length) {
-    splitCredit(entry.primary_artist_credit || entry.pa || entry.primary_artist || entry.a).forEach(add);
-  }
-  if (!featuredProfiles.length) {
-    splitCredit(entry.featured_artist_credit || entry.fa || entry.featured_artists).forEach(add);
-  }
-  if (!names.length) splitCredit(entry.artist_credit || entry.artist || entry.a).forEach(add);
-  return names;
+export function artistCreditNames(entry = {}, protectedNames = []) {
+  return artistCreditMembers(entry, protectedNames);
 }
 
 function rankedTop50(rows = []) {
@@ -107,6 +86,7 @@ function artistImage(profile = {}) {
 
 export function buildArtistMonthMirror(payload, month, platform = "Combined") {
   const profiles = artistProfileMap(payload);
+  const protectedNames = protectedArtistCreditNames(payload?.artists || []);
   const regionalArtistRows = normalized(platform) === "kenyan"
     ? rankedTop50(payload?.full?.artists?.regions?.KE?.[month])
     : [];
@@ -131,7 +111,7 @@ export function buildArtistMonthMirror(payload, month, platform = "Combined") {
   artistSourceRows(payload, month, platform).forEach((entry) => {
     const rank = Number(entry.r ?? entry.rank);
     const points = Number(entry.p ?? entry.pts ?? entry.total_points) || 0;
-    artistCreditNames(entry).forEach((name) => {
+    artistCreditNames(entry, protectedNames).forEach((name) => {
       const key = normalized(name);
       const profile = profiles.get(key) || {};
       if (
@@ -206,12 +186,13 @@ export function buildYearEndMirror(payload, type) {
   }
 
   const profiles = artistProfileMap(payload);
+  const protectedNames = protectedArtistCreditNames(payload?.artists || []);
   const artists = new Map();
   const cumulative = new Map();
   months.forEach((month) => {
     artistSourceRows(payload, month, "Combined").forEach((entry) => {
       const points = Number(entry.p ?? entry.pts ?? entry.total_points) || 0;
-      artistCreditNames(entry).forEach((name) => {
+      artistCreditNames(entry, protectedNames).forEach((name) => {
         const key = normalized(name);
         const current = artists.get(key) || {
           name,

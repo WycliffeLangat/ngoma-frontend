@@ -77,6 +77,41 @@ test("every collaboration member receives full backend public points", () => {
   assert.equal(byName.get("Scar"), 41);
 });
 
+test("registered duo points come only from allowed group releases", () => {
+  const vestine = profile(4, "Vestine");
+  const dorcas = profile(5, "Dorcas");
+  const vestineDorcas = {
+    id: 6,
+    name: "Vestine & Dorcas",
+    public_name: "Vestine & Dorcas",
+    artist_type: "duo",
+  };
+  const data = {
+    months: [MONTH],
+    artists: [vestine, dorcas, vestineDorcas],
+    full: {
+      singles: {
+        combined: {
+          [MONTH]: [
+            { r: 1, p: 50, t: "Emmanuel", release_id: 30, artist_credit: "Vestine & Dorcas" },
+            { r: 2, p: 49, t: "Yebo (Nitawale)", release_id: 31, primary_artists: [vestineDorcas] },
+          ],
+        },
+        platforms: {},
+      },
+      albums: { combined: { [MONTH]: [] }, platforms: {} },
+    },
+  };
+
+  const byName = new Map(
+    buildArtistMonthMirror(data, MONTH, "Combined")
+      .map((row) => [row.name, row.points]),
+  );
+  assert.equal(byName.get("Vestine & Dorcas"), 99);
+  assert.equal(byName.has("Vestine"), false);
+  assert.equal(byName.has("Dorcas"), false);
+});
+
 test("platform artist chart combines that platform's supported singles and albums", () => {
   const data = payload({
     singles: {

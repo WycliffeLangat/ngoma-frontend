@@ -42,6 +42,74 @@ function OrderedMultiSelect({ value = [], options = [], onChange }) {
   );
 }
 
+function normalizeArtistCreditRows(value = []) {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set();
+  return value.map((item) => {
+    const id = Number(item && typeof item === "object" ? (item.artist_id ?? item.value ?? item.id) : item);
+    const role = String(item?.role || "primary") === "featured" ? "featured" : "primary";
+    return { artist_id: id, role };
+  }).filter((row) => {
+    if (!row.artist_id || seen.has(row.artist_id)) return false;
+    seen.add(row.artist_id);
+    return true;
+  });
+}
+
+function ArtistRoleList({ value = [], options = [], onChange }) {
+  const rows = normalizeArtistCreditRows(value);
+  const optionById = new Map(options.map((option) => [Number(option.value), option]));
+  const setRows = (nextRows) => onChange(normalizeArtistCreditRows(nextRows));
+  const add = (artistId) => {
+    const id = Number(artistId);
+    if (id && !rows.some((row) => row.artist_id === id)) {
+      setRows([...rows, { artist_id: id, role: rows.length ? "featured" : "primary" }]);
+    }
+  };
+  const move = (index, direction) => {
+    const nextIndex = index + direction;
+    if (nextIndex < 0 || nextIndex >= rows.length) return;
+    const next = [...rows];
+    [next[index], next[nextIndex]] = [next[nextIndex], next[index]];
+    setRows(next);
+  };
+  return (
+    <div className="cms-credit-picker">
+      <select value="" onChange={(event) => add(event.target.value)}>
+        <option value="">Add artist...</option>
+        {options.filter((option) => !rows.some((row) => row.artist_id === Number(option.value))).map((option) => (
+          <option key={option.value} value={option.value}>{option.label}{option.country_code ? ` (${option.country_code})` : ""}</option>
+        ))}
+      </select>
+      <div className="cms-credit-list">
+        {rows.map((row, index) => {
+          const option = optionById.get(row.artist_id);
+          return (
+            <div key={row.artist_id} className="cms-credit-item">
+              <b>{index + 1}. {option?.label || `Artist #${row.artist_id}`}</b>
+              <select
+                value={row.role}
+                onChange={(event) => setRows(rows.map((item, i) => (
+                  i === index ? { ...item, role: event.target.value } : item
+                )))}
+                aria-label={`Role for ${option?.label || `Artist #${row.artist_id}`}`}
+              >
+                <option value="primary">Primary</option>
+                <option value="featured">Featuring</option>
+              </select>
+              <span>
+                <button type="button" onClick={() => move(index, -1)} disabled={index === 0} aria-label="Move artist up">↑</button>
+                <button type="button" onClick={() => move(index, 1)} disabled={index === rows.length - 1} aria-label="Move artist down">↓</button>
+                <button type="button" onClick={() => setRows(rows.filter((item) => item.artist_id !== row.artist_id))} aria-label="Remove artist">×</button>
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function TagsInput({ value = "", onChange }) {
   const tags = String(value || "").split(",").map((t) => t.trim()).filter(Boolean);
   const [input, setInput] = useState("");
@@ -166,7 +234,7 @@ export default function FormModal({ open, title, entityId, fields = [], initial 
       return next;
     });
   };
-  const wideTypes = ["textarea", "json", "ordered-multiselect", "tags"];
+  const wideTypes = ["textarea", "json", "ordered-multiselect", "artist-role-list", "tags"];
   const requiredNames = new Set(["name", "title", "year", "month", "chart_type", "category", "key"]);
   const sectionFor = (field) => {
     if (field.section) return field.section;
@@ -198,8 +266,12 @@ export default function FormModal({ open, title, entityId, fields = [], initial 
       if (data && typeof data === "object") {
         Object.entries(data).forEach(([key, value]) => {
           if (key === "detail" || key === "error" || value == null) return;
+          const fieldKey = (
+            ["primary_artist_ids", "featured_artist_ids"].includes(key) &&
+            fields.some((field) => field.name === "artist_credits")
+          ) ? "artist_credits" : key;
           const messages = Array.isArray(value) ? value : [value];
-          nextFieldErrors[key] = messages
+          nextFieldErrors[fieldKey] = messages
             .map((message) => typeof message === "object" ? JSON.stringify(message) : String(message))
             .join(" ");
         });
@@ -270,6 +342,8 @@ export default function FormModal({ open, title, entityId, fields = [], initial 
                   </select>
                 ) : field.type === "ordered-multiselect" ? (
                   <OrderedMultiSelect value={v} options={field.options || []} onChange={(val) => set(field.name, val)} />
+                ) : field.type === "artist-role-list" ? (
+                  <ArtistRoleList value={v} options={field.options || []} onChange={(val) => set(field.name, val)} />
                 ) : field.type === "json" ? (
                   <textarea
                     value={typeof v === "string" ? v : JSON.stringify(v || {}, null, 2)}
