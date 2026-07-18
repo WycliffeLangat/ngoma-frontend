@@ -1,5 +1,10 @@
 import { resolveMediaUrl } from "../api/config.js";
-import { artistCreditMembers, protectedArtistCreditNames } from "./chartHelpers.js";
+import {
+  artistCreditMembers,
+  normArtistKey,
+  profileNames,
+  protectedArtistCreditNames,
+} from "./chartHelpers.js";
 
 const normalized = (value) => String(value || "").trim().toLowerCase();
 
@@ -48,9 +53,32 @@ function artistProfileMap(payload) {
     [artist.name, artist.display_name, artist.public_name, ...(artist.aliases || [])].forEach((name) => {
       const key = normalized(name);
       if (key) map.set(key, artist);
+      const normalizedKey = normArtistKey(name);
+      if (normalizedKey && !map.has(normalizedKey)) map.set(normalizedKey, artist);
     });
   });
   return map;
+}
+
+function artistProfileForName(profiles, name) {
+  const key = normalized(name);
+  if (!key) return null;
+  return profiles.get(key) || profiles.get(normArtistKey(name)) || null;
+}
+
+function chartArtistCreditNames(entry = {}, protectedNames = [], profiles = new Map()) {
+  const structuredKeys = new Set(
+    [
+      ...profileNames(entry.primary_artists),
+      ...profileNames(entry.featured_artist_profiles),
+    ].map(normArtistKey).filter(Boolean)
+  );
+
+  return artistCreditNames(entry, protectedNames).filter((name) => {
+    const key = normArtistKey(name);
+    if (!key) return false;
+    return structuredKeys.has(key) || Boolean(artistProfileForName(profiles, name));
+  });
 }
 
 function artistSourceRows(payload, month, platform = "Combined") {
@@ -111,7 +139,7 @@ export function buildArtistMonthMirror(payload, month, platform = "Combined") {
   artistSourceRows(payload, month, platform).forEach((entry) => {
     const rank = Number(entry.r ?? entry.rank);
     const points = Number(entry.p ?? entry.pts ?? entry.total_points) || 0;
-    artistCreditNames(entry, protectedNames).forEach((name) => {
+    chartArtistCreditNames(entry, protectedNames, profiles).forEach((name) => {
       const key = normalized(name);
       const profile = profiles.get(key) || {};
       if (
@@ -192,7 +220,7 @@ export function buildYearEndMirror(payload, type) {
   months.forEach((month) => {
     artistSourceRows(payload, month, "Combined").forEach((entry) => {
       const points = Number(entry.p ?? entry.pts ?? entry.total_points) || 0;
-      artistCreditNames(entry, protectedNames).forEach((name) => {
+      chartArtistCreditNames(entry, protectedNames, profiles).forEach((name) => {
         const key = normalized(name);
         const current = artists.get(key) || {
           name,

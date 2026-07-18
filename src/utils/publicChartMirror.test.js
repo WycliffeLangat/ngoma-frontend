@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildArtistMonthMirror } from "./publicChartMirror.js";
+import { buildArtistMonthMirror, buildYearEndMirror } from "./publicChartMirror.js";
 
 const MONTH = "July 2026";
 const profile = (id, name) => ({ id, name, public_name: name });
@@ -110,6 +110,45 @@ test("registered duo points come only from allowed group releases", () => {
   assert.equal(byName.get("Vestine & Dorcas"), 99);
   assert.equal(byName.has("Vestine"), false);
   assert.equal(byName.has("Dorcas"), false);
+});
+
+test("unlinked text-only feature credits do not create image-less artist rows", () => {
+  const clipse = { ...profile(7, "Clipse"), image: "/media/artists/clipse.jpg" };
+  const pusha = { ...profile(8, "Pusha T"), image: "/media/artists/pusha-t.jpg" };
+  const data = {
+    months: [MONTH],
+    artists: [clipse],
+    full: {
+      singles: { combined: { [MONTH]: [] }, platforms: {} },
+      albums: {
+        combined: {
+          [MONTH]: [
+            {
+              r: 3,
+              p: 48,
+              t: "Let God Sort Em Out",
+              release_id: 40,
+              primary_artists: [clipse],
+              featured_artists: "Malice & Pusha T",
+              artist_credit: "Clipse ft. Malice & Pusha T",
+            },
+          ],
+        },
+        platforms: {},
+      },
+    },
+  };
+
+  const chartNames = buildArtistMonthMirror(data, MONTH, "Combined").map((row) => row.name);
+  assert.deepEqual(chartNames, ["Clipse"]);
+
+  const yearEndNames = buildYearEndMirror(data, "artists").map((row) => row.name);
+  assert.deepEqual(yearEndNames, ["Clipse"]);
+
+  data.artists.push(pusha);
+  const namesWithProfile = buildArtistMonthMirror(data, MONTH, "Combined").map((row) => row.name);
+  assert.equal(namesWithProfile.includes("Pusha T"), true);
+  assert.equal(namesWithProfile.includes("Malice"), false);
 });
 
 test("platform artist chart combines that platform's supported singles and albums", () => {

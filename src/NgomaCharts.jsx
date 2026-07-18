@@ -256,6 +256,20 @@ const publicArtistForName = (name = "") => {
 };
 const publicArtistCreditMembers = (entry = {}) =>
   artistCreditMembers(entry, PROTECTED_ARTIST_CREDIT_NAMES);
+const publicArtistChartCreditMembers = (entry = {}) => {
+  const structuredKeys = new Set(
+    [
+      ...profileNames(entry.primary_artists),
+      ...profileNames(entry.featured_artist_profiles),
+    ].map(normArtistKey).filter(Boolean)
+  );
+
+  return publicArtistCreditMembers(entry).filter((artistName) => {
+    const key = normArtistKey(artistName);
+    if (!key) return false;
+    return structuredKeys.has(key) || Boolean(publicArtistForName(artistName));
+  });
+};
 const SITE_SETTINGS = PUBLIC_DATA.settings || {};
 const settingValue = (key, fallback = {}) => SITE_SETTINGS[key] ?? fallback;
 const siteNameSetting = settingValue("site_name", {});
@@ -846,7 +860,7 @@ const buildYearEndArtistRows = (months, platform = "Combined") => {
 
   months.forEach((monthLabel) => {
     getArtistPlatformSource(platform, monthLabel).forEach((entry) => {
-      publicArtistCreditMembers(entry).forEach((artistName) => {
+      publicArtistChartCreditMembers(entry).forEach((artistName) => {
         const key = artistName.toLowerCase();
         const current = artistMap.get(key) || {
           t: artistName,
@@ -900,7 +914,7 @@ const buildCombinedArtists = (chartType, throughMonth = latestPublishedMonthLabe
 
   includedMonths.forEach((monthLabel, monthOffset) => {
     getArtistSourceCombined(chartType, monthLabel).forEach((entry) => {
-      publicArtistCreditMembers(entry).forEach((artistName) => {
+      publicArtistChartCreditMembers(entry).forEach((artistName) => {
         const key = artistName.toLowerCase();
         const current = artistMap.get(key) || {
           n: artistName,
@@ -1002,7 +1016,7 @@ const getArtistPlatformHits = (artistName = "", monthLabel = latestPublishedMont
   if (!normalized) return [];
   return ARTIST_PLATS.filter((platform) =>
     getArtistPlatformSource(platform, monthLabel).some((entry) =>
-      publicArtistCreditMembers(entry).some((member) => member.toLowerCase() === normalized)
+      publicArtistChartCreditMembers(entry).some((member) => member.toLowerCase() === normalized)
     )
   );
 };
@@ -1035,7 +1049,7 @@ const aggregateArtistsForMonth = (monthLabel = latestPublishedMonthLabel(), plat
   const kenyanOnly = platform === KENYAN_CHART;
 
   getArtistPlatformSource(platform, monthLabel).forEach((entry) => {
-    publicArtistCreditMembers(entry).forEach((artistName) => {
+    publicArtistChartCreditMembers(entry).forEach((artistName) => {
       const key = artistName.toLowerCase();
       const country = getArtistCountry({ artist: artistName });
       if (
@@ -3320,7 +3334,7 @@ const top = data[0];
   const allArtistNames=[...new Set(artists.map(a=>a.n))].sort();
   const selectedArtistEntries = selA ? MONTHS.flatMap((monthLabel) =>
     getArtistSourceCombined("artists", monthLabel)
-      .filter((entry) => publicArtistCreditMembers(entry).some((name) => normArtistKey(name) === normArtistKey(selA.n)))
+      .filter((entry) => publicArtistChartCreditMembers(entry).some((name) => normArtistKey(name) === normArtistKey(selA.n)))
       .map((entry) => ({
         ...entry,
         month: monthLabel,
