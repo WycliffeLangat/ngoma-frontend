@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { API_BASE, resolveMediaUrl } from "./api/config.js";
-import { findArtistProfileInPublicData, getArtistImageUrl, withResolvedArtistImage } from "./utils/artistImages.js";
+import { artistNameVariants, findArtistProfileInPublicData, getArtistImageUrl, withResolvedArtistImage } from "./utils/artistImages.js";
 import {
   fetchNews, fetchCertifications, fetchChartImageData, fetchAppData, fetchRevision,
 } from "./api/public.js";
@@ -237,9 +237,11 @@ const lookupReleaseForEntry = (entry = {}) => {
 const PUBLIC_ARTISTS_BY_NAME = new Map();
 (PUBLIC_DATA.artists || []).forEach((artist) => {
   const normalizedArtist = normalizeArtist(artist);
-  [artist.name, artist.display_name, artist.public_name, ...(artist.aliases || [])].forEach((name) => {
+  artistNameVariants(artist).forEach((name) => {
     const key = String(name || "").trim().toLowerCase();
     if (key && !PUBLIC_ARTISTS_BY_NAME.has(key)) PUBLIC_ARTISTS_BY_NAME.set(key, normalizedArtist);
+    const normalizedKey = normArtistKey(key);
+    if (normalizedKey && !PUBLIC_ARTISTS_BY_NAME.has(normalizedKey)) PUBLIC_ARTISTS_BY_NAME.set(normalizedKey, normalizedArtist);
   });
 });
 const publicArtistForName = (name = "") => {
@@ -388,9 +390,11 @@ function rebuildPublicLookups(freshData) {
   PUBLIC_ARTISTS_BY_NAME.clear();
   artists.forEach((artist) => {
     const normalizedArtist = normalizeArtist(artist);
-    [artist.name, artist.display_name, artist.public_name, ...(artist.aliases || [])].forEach((name) => {
+    artistNameVariants(artist).forEach((name) => {
       const k = String(name || "").trim().toLowerCase();
       if (k && !PUBLIC_ARTISTS_BY_NAME.has(k)) PUBLIC_ARTISTS_BY_NAME.set(k, normalizedArtist);
+      const normalizedKey = normArtistKey(k);
+      if (normalizedKey && !PUBLIC_ARTISTS_BY_NAME.has(normalizedKey)) PUBLIC_ARTISTS_BY_NAME.set(normalizedKey, normalizedArtist);
     });
   });
 
@@ -1017,13 +1021,7 @@ const embeddedArtistProfileForName = (artistName = "", entries = []) => {
     ].filter((candidate) => candidate && typeof candidate === "object");
 
     for (const candidate of candidates) {
-      const names = [
-        candidate.name,
-        candidate.display_name,
-        candidate.public_name,
-        candidate.artist_name,
-        ...(Array.isArray(candidate.aliases) ? candidate.aliases : []),
-      ];
+      const names = artistNameVariants(candidate);
       if (!names.some((name) => normArtistKey(name) === wanted)) continue;
       if (getArtistImageUrl(candidate, { name: artistName, artists: [candidate] })) return candidate;
       fallback ||= candidate;
@@ -2298,7 +2296,7 @@ const top = data[0];
     const albums=scoreRank(albumSearchIndex).slice(0,6);
     const artists=(PUBLIC_DATA.artists||[])
       .map(a=>{
-        const text=[a.name,a.display_name,a.genre,a.city_region,a.country,...(a.aliases||[])].filter(Boolean).join(" ").toLowerCase();
+        const text=[...artistNameVariants(a),a.genre,a.city_region,a.country].filter(Boolean).join(" ").toLowerCase();
         const exactCode=(a.country_code||"").toLowerCase()===q?100:0;
         return {a,score:Math.max(fuzzyMatchScore(text,q),exactCode)};
       })
@@ -2383,18 +2381,13 @@ const top = data[0];
       // Artist is not in the cross-platform combined chart (e.g., Kenyan-only artists, or
       // removed from the Kenyan chart after a country change). Open a profile-only panel
       // using the CMS record — same fallback pattern as the search result handler.
-      const _pd = typeof window !== "undefined" ? (window.__NGOMA_PUBLIC_DATA__ || {}) : {};
-      const cmsArtist = (_pd.artists || []).find(a =>
-        [a.name, a.display_name, a.public_name].some(n =>
-          String(n || "").trim().toLowerCase() === requestedName.toLowerCase()
-        )
-      );
+      const cmsArtist = publicArtistForName(requestedName);
       setSelR(null);
       setSelA({
         n: (cmsArtist && (cmsArtist.display_name || cmsArtist.name)) || requestedName,
         rh: {}, mp: {}, pk: "—", rank: "—", p: 0, m: 0, t: 0, prevRank: null,
         artist_profile: cmsArtist || {},
-        image: getArtistImageUrl(cmsArtist || { title: requestedName }, { name: requestedName }),
+        image: getArtistImageUrl(cmsArtist || { title: requestedName }, { name: requestedName, isArtist: true }),
       });
       prepareDetailNavigation();
       return;
@@ -3302,11 +3295,16 @@ const top = data[0];
   };
 
 
-  // Hall of Fame: #1 each month for both singles and albums
+  // Hall of Fame: #1 each month for singles, albums, and artists.
   const hof=MONTHS.flatMap(m=>{
     const s=getCombined("singles",m)[0];
     const a=getCombined("albums",m)[0];
-    return [s?{...s,month:m,type:"single"}:null,a?{...a,month:m,type:"album"}:null];
+    const artist=buildArtistChart(m,"Combined")[0];
+    return [
+      s?{...s,month:m,type:"single"}:null,
+      a?{...a,month:m,type:"album"}:null,
+      artist?{...artist,month:m,type:"artist",is_artist_entry:true}:null,
+    ];
   }).filter(Boolean);
 
   const releaseJourney=r=>{

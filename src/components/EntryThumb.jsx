@@ -5,16 +5,28 @@ import { resolveMediaUrl } from "../api/config.js";
 const COVER_FIELDS = [
   "cover_image",
   "cover_image_url",
+  "cover_image_file",
+  "cover_image_file_url",
+  "image",
+  "image_url",
+  "image_file",
+  "image_file_url",
+  "img",
+  "img_url",
   "artwork",
   "artwork_url",
   "artworkUrl",
   "cover",
   "cover_url",
+  "cover_file",
+  "cover_file_url",
   "coverUrl",
   "cover_art",
   "album_art",
   "thumbnail",
   "thumbnail_url",
+  "file",
+  "file_url",
 ];
 
 function cleanString(value) {
@@ -24,7 +36,10 @@ function cleanString(value) {
 
 function coverUrlFromItem(item = {}) {
   for (const field of COVER_FIELDS) {
-    const value = cleanString(item?.[field]);
+    const raw = item?.[field];
+    const value = typeof raw === "object" && raw
+      ? cleanString(raw.url || raw.secure_url || raw.image || raw.src || raw.path)
+      : cleanString(raw);
     if (value) return resolveMediaUrl(value);
   }
   return "";
@@ -50,7 +65,7 @@ export function resolveEntryImageUrl(item = {}, { name, isArtist = false } = {})
   const displayName = name || getArtistDisplayName(item) || item?.a || item?.artist || "";
   const isArtistEntry = isArtist || item?.is_artist_entry || item?.type === "artist";
   return isArtistEntry
-    ? getArtistImageUrl(item, { name: displayName })
+    ? getArtistImageUrl(item, { name: displayName, isArtist: true })
     : coverUrlFromItem(item) || getArtistImageUrl(item, { name: displayName });
 }
 

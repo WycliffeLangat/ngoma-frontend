@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
-import { getArtistImageUrl } from "../utils/artistImages.js";
-import PlatformPerformance from "../components/PlatformPerformance.jsx";
+import { artistAliasValues, findArtistProfileInPublicData, getArtistImageUrl } from "../utils/artistImages.js";
 
 export default function ArtistDetailPage({ ctx }) {
   const {
     Bar,
     BarChart,
-    ARTIST_PLATS,
     CartesianGrid,
     CertificationTag,
     CountryBadge,
@@ -15,8 +13,6 @@ export default function ArtistDetailPage({ ctx }) {
     Line,
     LineChart,
     PAD,
-    PC,
-    PLAT_LABEL,
     ResponsiveContainer,
     SF,
     SecMark,
@@ -40,11 +36,7 @@ export default function ArtistDetailPage({ ctx }) {
     selectedArtistReleases
   } = ctx;
 
-  const publicData = typeof window !== "undefined" ? (window.__NGOMA_PUBLIC_DATA__ || {}) : {};
-  const artistMetadata = (publicData.artists || []).find((artist) =>
-    [artist.name, artist.display_name, artist.public_name, ...(artist.aliases || [])]
-      .some((name) => String(name || "").trim().toLowerCase() === String(selA?.n || "").trim().toLowerCase())
-  ) || {};
+  const artistMetadata = findArtistProfileInPublicData(selA?.n) || {};
 
   const [liveArtist, setLiveArtist] = useState(null);
 
@@ -63,7 +55,7 @@ export default function ArtistDetailPage({ ctx }) {
   const profile = liveArtist || artistMetadata;
   const artistImage = getArtistImageUrl(
     { ...selA, ...profile, title: selA?.n, artist_profile: profile, image: profile.image || selA?.image },
-    { name: selA?.n }
+    { name: selA?.n, isArtist: true }
   );
   const artistLinks = Object.entries(profile.social_links || {}).filter(([, url]) => url);
 
@@ -78,10 +70,8 @@ export default function ArtistDetailPage({ ctx }) {
     artist: selA.n,
   };
 
-  const aliases = profile.aliases;
-  const aliasesDisplay = Array.isArray(aliases) && aliases.length
-    ? JSON.stringify(aliases)
-    : (typeof aliases === "string" && aliases) ? aliases : "[]";
+  const aliases = artistAliasValues(profile.aliases);
+  const aliasesDisplay = aliases.length ? JSON.stringify(aliases) : "[]";
 
   const artistInfoRows = [
     ["Artist name", selA.n],
@@ -129,36 +119,6 @@ export default function ArtistDetailPage({ ctx }) {
   const numberOnePlacements = selectedArtistEntries.filter((entry) => Number(entry.rank) === 1).length;
   const releaseRanks = selectedArtistEntries.map((entry) => Number(entry.rank)).filter(Number.isFinite);
   const bestReleaseRank = releaseRanks.length ? Math.min(...releaseRanks) : null;
-  const artistPlatformData = [...selectedArtistEntries.reduce((map, entry) => {
-    const platform = entry.sourcePlatform || entry.platform;
-    if (!platform) return map;
-    const current = map.get(platform) || {
-      platform,
-      points: 0,
-      placements: 0,
-      peakRank: Number.POSITIVE_INFINITY,
-      months: new Set(),
-      releases: new Set(),
-    };
-    const rank = Number(entry.rank ?? entry.r);
-    current.points += Number(entry.pts ?? entry.p ?? entry.total_points) || 0;
-    current.placements += 1;
-    current.peakRank = Math.min(current.peakRank, rank || Number.POSITIVE_INFINITY);
-    if (entry.month) current.months.add(entry.month);
-    current.releases.add(
-      entry.release_id
-        ? `${entry.sourceChartType || entry.chart_type || "release"}|${entry.release_id}`
-        : `${entry.sourceChartType || entry.chart_type || "release"}|${entry.title}|${entry.artist}`
-    );
-    map.set(platform, current);
-    return map;
-  }, new Map()).values()].map((row) => ({
-    ...row,
-    peakRank: Number.isFinite(row.peakRank) ? row.peakRank : "—",
-    months: row.months.size,
-    releases: row.releases.size,
-  }));
-
   // Shared chart theming — mirrors ReleaseDetailPage/AnalyticsPage so every
   // Recharts panel reacts to dark mode instead of hardcoded light colors.
   const gridStroke = isDark ? "#242923" : "#EDEAE2";
@@ -266,17 +226,6 @@ export default function ArtistDetailPage({ ctx }) {
               {label:"Best Release Rank",value:bestReleaseRank?`#${bestReleaseRank}`:"—"},
             ].map((stat)=><div key={stat.label} style={{padding:"14px 15px",border:"1px solid "+(isDark?"#2B302B":"#ECE9E1"),borderRadius:"10px",background:isDark?"#151815":"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#8F968F":"#7B857D"}}>{stat.label}</div><div style={{fontFamily:F,fontSize:"22px",fontWeight:900,color:isDark?"#F6F3EA":"#1A1A1A",marginTop:"5px"}}>{stat.value}</div></div>)}
           </div>
-          <PlatformPerformance
-            rows={artistPlatformData}
-            isDark={isDark}
-            isMobile={isMobile}
-            F={F}
-            SF={SF}
-            GOLD={GOLD}
-            PC={PC}
-            showReleases
-            expectedPlatforms={(ARTIST_PLATS || []).map((platform) => PLAT_LABEL[platform] || platform)}
-          />
           <h3 style={secLbl()}>Charted Entries Across Months</h3>
           {selectedArtistEntryGroups.map((group)=>{
             const releaseType = group.chart_type === "albums" || group.chart_type === "album" ? "album" : "single";

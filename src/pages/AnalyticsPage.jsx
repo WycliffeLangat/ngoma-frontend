@@ -208,6 +208,7 @@ export default function AnalyticsPage({ ctx }) {
     fullCoverageClub,
     getCertificationForEntry,
     getCombined,
+    hof,
     isDark,
     isMobile,
     isTablet,
@@ -239,6 +240,42 @@ export default function AnalyticsPage({ ctx }) {
   const leaderPool = anRows.filter(e => Number(e.rank) === 1);
   const xHitsRows = crossPlatformRows.filter(e => e.count >= tp);
   const xHitsCount = xHitsRows.length;
+  const hofType = isArtists ? "artist" : (isSingles ? "single" : "album");
+  const hofMonthIndex = new Map(MONTHS.map((monthLabel, index) => [monthLabel, index]));
+  const hofEntryKey = (entry = {}) => {
+    if (isArtists) {
+      return `artist|${String(entry.title || entry.n || entry.primary_artist || entry.artist || "").trim().toLowerCase()}`;
+    }
+    const releaseId = entry.release_id || entry.releaseId || "";
+    if (releaseId) return `${hofType}|id:${releaseId}`;
+    return `${hofType}|${String(entry.title || entry.t || "").trim().toLowerCase()}|${String(entry.artist || entry.a || entry.primary_artist || "").trim().toLowerCase()}`;
+  };
+  const hofItems = [...(hof || [])
+    .filter((entry) => entry.type === hofType)
+    .reduce((map, entry) => {
+      const key = hofEntryKey(entry);
+      if (!key || key.endsWith("|")) return map;
+      const monthRank = hofMonthIndex.get(entry.month) ?? -1;
+      const current = map.get(key) || { ...entry, hofMonths: [], latestHofMonthRank: -1 };
+      current.hofMonths.push(entry.month);
+      if (monthRank >= current.latestHofMonthRank) {
+        Object.assign(current, entry, {
+          hofMonths: current.hofMonths,
+          latestHofMonthRank: monthRank,
+        });
+      }
+      map.set(key, current);
+      return map;
+    }, new Map()).values()]
+    .map((entry) => ({
+      ...entry,
+      hofMonths: [...new Set(entry.hofMonths)].sort((a, b) => (hofMonthIndex.get(b) ?? -1) - (hofMonthIndex.get(a) ?? -1)),
+    }))
+    .sort((a, b) =>
+      b.latestHofMonthRank - a.latestHofMonthRank ||
+      String(a.title || "").localeCompare(String(b.title || ""))
+    );
+  const hofLabel = isArtists ? "Artists" : (isSingles ? "Singles / Songs" : "Albums");
   const [platCompareView, setPlatCompareView] = useState("table");
 
   // Records & Milestones theming — matches the standalone record cards' look
@@ -534,6 +571,39 @@ export default function AnalyticsPage({ ctx }) {
           </div>
           </AnalyticsDeepSection>
 
+          {hofItems.length > 0 && (
+          <AnalyticsDeepSection label="Hall of Fame" isMobile={isMobile}>
+          <div style={{...card({marginBottom:isMobile?"20px":"26px"}),background:isDark?"#111208":"#FAF5EA",borderColor:GOLD+"44"}}>
+            <h3 style={{fontFamily:F,fontSize:"13px",fontWeight:700,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 18px"}}>{isMobile?"Monthly #1s":"Hall of Fame — Monthly #1s"}</h3>
+            {(()=>{
+              const HofSection = ({items, label}) => items.length === 0 ? null : (
+                <div style={{marginBottom:"20px"}}>
+                  <div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1.8px",textTransform:"uppercase",color:GOLD,marginBottom:"12px",paddingBottom:"6px",borderBottom:"1px solid "+GOLD+"33"}}>{label}</div>
+                  <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(3,1fr)",gap:"10px"}}>
+                    {items.map((e,i)=>(
+                      <div key={`${e.type}-${e.month}-${i}`} style={{display:"flex",gap:"11px",alignItems:"center",padding:"12px",background:isDark?"#1A1810":"#FFF",borderRadius:"8px",border:"1px solid "+GOLD+"33",minWidth:0}}>
+                        <EntryThumb item={e} name={isArtists?e.title:e.artist} isArtist={isArtists} size={isMobile?62:72} accent={GOLD} />
+                        <div style={{minWidth:0}}>
+                          <div style={{fontFamily:F,fontSize:"11px",letterSpacing:"1.5px",textTransform:"uppercase",color:GOLD,marginBottom:"4px"}}>{e.hofMonths.length > 1 ? `${e.hofMonths.length} months at #1` : e.month}</div>
+                          <button type="button" onClick={()=>openReleaseDetails(e,e.type)} style={{display:"block",border:0,background:"transparent",padding:0,fontFamily:SF,fontWeight:800,fontSize:"15px",marginBottom:"2px",lineHeight:1.2,cursor:"pointer",textAlign:"left",color:isDark?"#F6F3EA":"inherit",maxWidth:"100%",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{e.title}</button>
+                          <div style={{fontFamily:F,fontSize:"13px",color:isDark?"#AEB6AE":"#69716B",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{isArtists?"Artist #1":e.artist}</div>
+                          {e.hofMonths.length > 1 && (
+                            <div title={e.hofMonths.join(", ")} style={{fontFamily:F,fontSize:"11px",color:isDark?"#8F968F":"#7B857D",marginTop:"3px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
+                              {e.hofMonths.join(", ")}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+              return <HofSection items={hofItems} label={hofLabel} />;
+            })()}
+          </div>
+          </AnalyticsDeepSection>
+          )}
+
           {/* Head-to-head deep dive — an interactive tool, so it closes out the page */}
           <AnalyticsDeepSection label="Head-to-Head" isMobile={isMobile}>
           <div style={{...card(),padding:isMobile?"16px":"18px",...sectionGap,background:isDark?"#0F120F":"linear-gradient(135deg,#FAFAF8,#FFFFFF)",borderColor:isDark?"#2F352F":"#EFEDE7"}}>
@@ -643,9 +713,9 @@ export default function AnalyticsPage({ ctx }) {
                 {platCompareView==="table" ? (
                 <div style={{border:"1px solid "+(isDark?"#2F352F":"#E4E1D8"),borderRadius:"12px",overflow:"hidden",background:isDark?"#0F120F":"#FFF"}}>
                   <div style={{display:"grid",gridTemplateColumns:isMobile?"minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)":"minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)",gap:"8px",padding:isMobile?"10px 9px":"12px 16px",background:"#1F241F",fontFamily:F,fontSize:"11px",fontWeight:850,letterSpacing:"1px",textTransform:"uppercase",color:"#C9CEC9"}}>
-                    <div style={{color:"#E4BE55",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{sp1.title.length>16?sp1.title.slice(0,14)+"…":sp1.title}</div>
+                    <div style={{textAlign:"center",color:"#E4BE55",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{sp1.title.length>16?sp1.title.slice(0,14)+"…":sp1.title}</div>
                     <div style={{textAlign:"center"}}>Platform</div>
-                    <div style={{textAlign:"right",color:"#72A7E8",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{sp2.title.length>16?sp2.title.slice(0,14)+"…":sp2.title}</div>
+                    <div style={{textAlign:"center",color:"#72A7E8",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{sp2.title.length>16?sp2.title.slice(0,14)+"…":sp2.title}</div>
                   </div>
                   {PLATS_FOR.map((pl,i)=>{
                     const a=sp1.platforms[pl],b=sp2.platforms[pl];

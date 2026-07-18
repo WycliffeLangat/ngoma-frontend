@@ -3,10 +3,16 @@ import { resolveMediaUrl } from "../api/config.js";
 const ARTIST_IMAGE_FIELDS = [
   "image",
   "image_url",
+  "image_file",
+  "image_file_url",
   "artist_image",
   "artist_image_url",
+  "artist_image_file",
+  "artist_image_file_url",
   "profile_image",
   "profile_image_url",
+  "profile_image_file",
+  "profile_image_file_url",
   "photo",
   "photo_url",
   "avatar",
@@ -17,6 +23,8 @@ const ARTIST_IMAGE_FIELDS = [
   "thumbnail_url",
   "cover_image",
   "cover_image_url",
+  "cover_image_file",
+  "cover_image_file_url",
   "profile_photo",
   "profile_photo_url",
   "hero_image",
@@ -39,6 +47,38 @@ function cleanString(value) {
   const text = String(value || "").trim();
   if (!text || text === "—" || text.toLowerCase() === "null" || text.toLowerCase() === "undefined") return "";
   return text;
+}
+
+export function artistAliasValues(aliases) {
+  if (Array.isArray(aliases)) return aliases;
+  const text = cleanString(aliases);
+  if (!text || text === "[]") return [];
+  try {
+    const parsed = JSON.parse(text);
+    if (Array.isArray(parsed)) return parsed;
+  } catch {
+    // Keep plain text aliases below.
+  }
+  return text.includes("|") ? text.split("|") : [text];
+}
+
+export function artistNameVariants(artist = {}) {
+  const names = [
+    artist?.name,
+    artist?.display_name,
+    artist?.public_name,
+    artist?.artist_name,
+    artist?.title,
+    ...artistAliasValues(artist?.aliases),
+  ];
+  return [
+    ...new Map(
+      names
+        .map((name) => cleanString(name))
+        .filter(Boolean)
+        .map((name) => [name.toLowerCase(), name])
+    ).values(),
+  ];
 }
 
 function hasImageLikeKey(key = "") {
@@ -67,8 +107,12 @@ function looksLikeReleaseCandidate(candidate) {
   const releaseArtworkFields = [
     "cover_image",
     "cover_image_url",
+    "cover_image_file",
+    "cover_image_file_url",
     "cover",
     "cover_url",
+    "cover_file",
+    "cover_file_url",
     "artwork",
     "artwork_url",
     "album_art",
@@ -150,6 +194,23 @@ function valueFromCandidate(candidate, fields = ARTIST_IMAGE_FIELDS) {
   return "";
 }
 
+function directImageFromCandidate(candidate, fields = ARTIST_IMAGE_FIELDS) {
+  if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return "";
+  for (const field of fields) {
+    const value = candidate[field];
+    if (typeof value === "string") {
+      const cleaned = cleanString(value);
+      if (cleaned) return cleaned;
+    }
+    if (value && typeof value === "object") {
+      const nested = value.url || value.secure_url || value.image || value.src || value.path;
+      const cleaned = cleanString(nested);
+      if (cleaned) return cleaned;
+    }
+  }
+  return "";
+}
+
 function versionFromCandidate(candidate) {
   if (!candidate || typeof candidate !== "object") return "";
   for (const field of VERSION_FIELDS) {
@@ -195,17 +256,8 @@ export function getArtistDisplayName(item = {}) {
 }
 
 function artistNameKeys(artist = {}) {
-  const names = [
-    artist?.name,
-    artist?.display_name,
-    artist?.public_name,
-    artist?.artist_name,
-    artist?.title,
-    ...(Array.isArray(artist?.aliases) ? artist.aliases : []),
-  ];
-
   const keys = new Set();
-  names.forEach((name) => {
+  artistNameVariants(artist).forEach((name) => {
     const cleaned = cleanString(name).toLowerCase();
     if (!cleaned) return;
     keys.add(cleaned);
@@ -330,12 +382,7 @@ export function findArtistMentionedIn(text = "", artists) {
 
   let best = null;
   for (const artist of pool) {
-    const candidates = [
-      artist?.name,
-      artist?.display_name,
-      artist?.public_name,
-      ...(Array.isArray(artist?.aliases) ? artist.aliases : []),
-    ];
+    const candidates = artistNameVariants(artist);
     for (const candidate of candidates) {
       const needle = cleanString(candidate).toLowerCase();
       if (needle.length < 3) continue;
@@ -350,12 +397,30 @@ export function findArtistMentionedIn(text = "", artists) {
 export function getArtistImageUrl(item = {}, options = {}) {
   const publicArtists = options.artists || getPublicArtists();
   const explicitName = options.name || getArtistDisplayName(item);
+  const isArtistEntry = options.isArtist || item?.is_artist_entry || item?.type === "artist";
+  if (isArtistEntry) {
+    const directImage = directImageFromCandidate(item);
+    if (directImage) return addVersion(directImage, versionFromCandidate(item));
+  }
   const publicProfile = findArtistProfileByName(explicitName, publicArtists);
+  const nestedProfiles = [
+    ...(Array.isArray(item?.artists) ? item.artists : []),
+    ...(Array.isArray(item?.primary_artists) ? item.primary_artists : []),
+    ...(Array.isArray(item?.featured_artist_profiles) ? item.featured_artist_profiles : []),
+    ...(Array.isArray(item?.featured_artists) ? item.featured_artists : []),
+  ].filter((candidate) => candidate && typeof candidate === "object");
+  const wanted = cleanString(explicitName).toLowerCase();
+  const normalizedWanted = normaliseArtistName(wanted);
+  const matchingNestedProfiles = nestedProfiles.filter((candidate) => {
+    const keys = artistNameKeys(candidate);
+    return keys.includes(wanted) || keys.includes(normalizedWanted);
+  });
 
   const candidates = [
     item?.artist_profile,
     item?.artistProfile,
     item?.profile,
+    ...matchingNestedProfiles,
     publicProfile,
     item,
   ].filter(Boolean);

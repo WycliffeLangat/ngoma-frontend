@@ -573,6 +573,7 @@ export default function PremiumChartsPage({
       return getArtistImageUrl(item, {
         name: item?.title || item?.n || item?.primary_artist || item?.artist,
         artists: publicArtists,
+        isArtist: true,
       });
     }
 
@@ -580,20 +581,33 @@ export default function PremiumChartsPage({
       item,
       [
         "cover_image",
+        "cover_image_url",
+        "cover_image_file",
+        "cover_image_file_url",
+        "image",
+        "image_url",
+        "image_file",
+        "image_file_url",
+        "img",
+        "img_url",
         "artwork",
         "artwork_url",
         "artworkUrl",
         "cover",
         "cover_url",
+        "cover_file",
+        "cover_file_url",
         "coverUrl",
         "cover_art",
         "album_art",
         "thumbnail",
         "thumbnail_url",
+        "file",
+        "file_url",
       ],
       ""
     );
-    return value && value !== "—" ? value : "";
+    return value && value !== "—" ? resolveMediaUrl(value) : "";
   }
 
   function getArtworkLabel(item) {

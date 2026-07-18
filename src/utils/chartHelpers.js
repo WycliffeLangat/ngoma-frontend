@@ -53,6 +53,18 @@ const PROTECTED_ARTIST_TYPES = new Set(["band", "duo", "group"]);
 
 const normalizeCreditKey = (value = "") => String(value || "").trim().toLowerCase();
 const escapeRegExp = (value = "") => String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const artistAliasValues = (aliases) => {
+  if (Array.isArray(aliases)) return aliases;
+  const text = String(aliases || "").trim();
+  if (!text || text === "[]") return [];
+  try {
+    const parsed = JSON.parse(text);
+    if (Array.isArray(parsed)) return parsed;
+  } catch {
+    // Keep plain text aliases below.
+  }
+  return text.includes("|") ? text.split("|") : [text];
+};
 
 export const protectedArtistCreditNames = (artists = []) => {
   const names = [];
@@ -62,7 +74,7 @@ export const protectedArtistCreditNames = (artists = []) => {
       artist?.public_name,
       artist?.display_name,
       artist?.name,
-      ...(Array.isArray(artist?.aliases) ? artist.aliases : []),
+      ...artistAliasValues(artist?.aliases),
     ].map((name) => String(name || "").trim()).filter(Boolean);
     const protectedByType = PROTECTED_ARTIST_TYPES.has(String(artist?.artist_type || "").trim().toLowerCase());
     const protectedByName = variants.some((name) => CREDIT_NAME_SEPARATOR_RE.test(name));

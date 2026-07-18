@@ -1,4 +1,3 @@
-import EntryThumb from "../components/EntryThumb.jsx";
 import { getPublicArtists, getArtistImageUrl } from "../utils/artistImages.js";
 
 export default function AboutPage({ ctx }) {
@@ -14,11 +13,9 @@ export default function AboutPage({ ctx }) {
     SITE_NAME,
     TXT,
     card,
-    hof,
     isDark,
     isMobile,
     navTo,
-    openReleaseDetails
   } = ctx;
 
   const featuredPortraits = (() => {
@@ -82,39 +79,8 @@ export default function AboutPage({ ctx }) {
             </div>
             <div style={card()}>
               <h3 style={{fontFamily:F,fontSize:"16px",fontWeight:800,letterSpacing:"0.5px",textTransform:"uppercase",color:GOLD,margin:"0 0 12px"}}>Hall of Fame</h3>
-              <p style={{fontSize:"14px",color:isDark?"#AEB6AE":"#555F59",lineHeight:1.68,margin:0,fontFamily:F}}>Songs and albums that reach #1 on the Combined chart enter the Hall of Fame. The monthly leaders below cover the complete {DATA_PERIOD} dataset.</p>
+              <p style={{fontSize:"14px",color:isDark?"#AEB6AE":"#555F59",lineHeight:1.68,margin:0,fontFamily:F}}>Songs and albums that reach #1 on the Combined chart enter the Hall of Fame. The full monthly leaders list covers the complete {DATA_PERIOD} dataset in Analytics.</p>
             </div>
-          </div>
-          {/* Hall of Fame */}
-          <div style={{...card({marginTop:"14px"}),background:isDark?"#111208":"#FAF5EA",borderColor:GOLD+"44"}}>
-            <h3 style={{fontFamily:F,fontSize:"13px",fontWeight:700,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 18px"}}>{isMobile?"Monthly #1s":"Hall of Fame — Monthly #1s"}</h3>
-            {(()=>{
-              const singlesHof = hof.filter(e => e.type === "single");
-              const albumsHof = hof.filter(e => e.type === "album");
-              const HofSection = ({items, label}) => items.length === 0 ? null : (
-                <div style={{marginBottom:"20px"}}>
-                  <div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1.8px",textTransform:"uppercase",color:GOLD,marginBottom:"12px",paddingBottom:"6px",borderBottom:"1px solid "+GOLD+"33"}}>{label}</div>
-                  <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"10px"}}>
-                    {items.map((e,i)=>(
-                      <div key={i} style={{display:"flex",gap:"11px",alignItems:"center",padding:"12px",background:isDark?"#1A1810":"#FFF",borderRadius:"8px",border:"1px solid "+GOLD+"33"}}>
-                        <EntryThumb item={e} name={e.artist} size={isMobile?62:72} accent={GOLD} />
-                        <div style={{minWidth:0}}>
-                          <div style={{fontFamily:F,fontSize:"11px",letterSpacing:"1.5px",textTransform:"uppercase",color:GOLD,marginBottom:"4px"}}>{e.month}</div>
-                          <button type="button" onClick={()=>openReleaseDetails(e,e.type)} style={{display:"block",border:0,background:"transparent",padding:0,fontFamily:SF,fontWeight:800,fontSize:"15px",marginBottom:"2px",lineHeight:1.2,cursor:"pointer",textAlign:"left",color:isDark?"#F6F3EA":"inherit"}}>{e.title}</button>
-                          <div style={{fontFamily:F,fontSize:"13px",color:isDark?"#AEB6AE":"#69716B"}}>{e.artist}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-              return (
-                <>
-                  <HofSection items={singlesHof} label="Singles / Songs" />
-                  <HofSection items={albumsHof} label="Albums" />
-                </>
-              );
-            })()}
           </div>
           <div style={{display:"flex",justifyContent:"center",marginTop:"18px"}}><button type="button" onClick={()=>navTo("charts")} style={{padding:"12px 18px",borderRadius:"999px",border:"1px solid #B8860B55",background:"#B8860B",color:"#FFF",fontFamily:F,fontSize:"12px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",cursor:"pointer",boxShadow:"0 8px 20px rgba(184,134,11,0.18)"}}>Explore Current Charts</button></div>
           {/* Brand */}
