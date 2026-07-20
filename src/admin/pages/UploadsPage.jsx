@@ -23,6 +23,7 @@ export default function UploadsPage({ user, searchJump }) {
   const [actionBusy, setActionBusy] = useState(false);
   const [workbookModal, setWorkbookModal] = useState(null);
   const [workbookBusy, setWorkbookBusy] = useState("");
+  const [jobs, setJobs] = useState([]);
   const [form, setForm] = useState({
     chart_type: "singles",
     year: new Date().getFullYear(),
@@ -35,6 +36,14 @@ export default function UploadsPage({ user, searchJump }) {
   useEffect(() => {
     cmsApi.get("/platforms/").then((data) => setPlatforms(getResults(data))).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    loadJobs();
+    const timer = window.setInterval(() => {
+      if (jobs.some((job) => ["queued", "running"].includes(job.status))) loadJobs();
+    }, 4000);
+    return () => window.clearInterval(timer);
+  }, [jobs]);
 
   useEffect(() => {
     setSelected(null);
@@ -65,6 +74,15 @@ export default function UploadsPage({ user, searchJump }) {
     }
   }
 
+  async function loadJobs() {
+    try {
+      const data = getResults(await cmsApi.get("/chart-jobs/?page_size=8"));
+      setJobs(data);
+    } catch {
+      // Job status is helpful, not required for the upload workflow.
+    }
+  }
+
   function set(key, value) {
     setForm((current) => ({ ...current, [key]: value }));
   }
@@ -89,6 +107,7 @@ export default function UploadsPage({ user, searchJump }) {
       });
       setSelected({ ...upload, _uploadKind: uploadKind });
       await load(uploadKind);
+      await loadJobs();
     } catch (uploadError) {
       setError(uploadError.message);
     } finally {
@@ -116,6 +135,7 @@ export default function UploadsPage({ user, searchJump }) {
       );
       setSelected({ ...(next.upload || next), _uploadKind: FINAL_CHART });
       await load(FINAL_CHART);
+      await loadJobs();
     } catch (actionError) {
       setError(actionError.message);
     } finally {
@@ -138,6 +158,7 @@ export default function UploadsPage({ user, searchJump }) {
       }
       setDeleteTarget(null);
       await load(kind);
+      await loadJobs();
     } catch (deleteError) {
       setError(deleteError.message);
     } finally {
@@ -187,6 +208,7 @@ export default function UploadsPage({ user, searchJump }) {
         sheets: normaliseWorkbookSheets(result.workbook?.sheets || sheets),
       } : null);
       await load(upload._uploadKind);
+      await loadJobs();
     } catch (workbookError) {
       setError(workbookError.message);
     } finally {
@@ -308,6 +330,29 @@ export default function UploadsPage({ user, searchJump }) {
         </button>
       </div>
 
+      {jobs.length > 0 && (
+        <div className="cms-card cms-job-panel">
+          <div className="cms-card-heading">
+            <div>
+              <span className="cms-eyebrow">Background calculations</span>
+              <h2>Calculation jobs</h2>
+            </div>
+            <button type="button" className="cms-btn light small" onClick={loadJobs}>Refresh</button>
+          </div>
+          <div className="cms-job-list">
+            {jobs.map((job) => (
+              <div className="cms-job-row" key={job.id}>
+                <div>
+                  <strong>{jobLabel(job)}</strong>
+                  <span>{job.created_at ? new Date(job.created_at).toLocaleString() : ""}</span>
+                </div>
+                <StatusBadge value={job.status === "succeeded" ? "published" : job.status === "failed" ? "error" : "pending_review"} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {isWeekly && (
         <div className="cms-alert info cms-upload-guidance">
           <strong>Use your raw weekly workbook as-is.</strong>
@@ -387,7 +432,7 @@ export default function UploadsPage({ user, searchJump }) {
               </small>
             </label>
             <button className="cms-btn full" disabled={loading || !form.file}>
-              {loading ? "Processing workbook…" : isWeekly ? "Process Week" : "Upload and validate"}
+              {loading ? "Uploading workbook..." : isWeekly ? "Queue Week" : "Upload and validate"}
             </button>
           </form>
         ) : (
@@ -448,7 +493,7 @@ export default function UploadsPage({ user, searchJump }) {
             { key: "week", label: "Period", render: (row) => `${monthName(row.month)} ${row.year} · Week ${row.week}` },
             { key: "original_filename", label: "File" },
             { key: "entries_processed", label: "Entries" },
-            { key: "processed", label: "Status", render: (row) => <StatusBadge value={row.processed ? "published" : "error"} /> },
+            { key: "processed", label: "Status", render: (row) => <StatusBadge value={weeklyStatus(row)} /> },
             { key: "actions", label: "Actions", render: renderUploadActions },
           ] : [
             { key: "created_at", label: "Created", render: (row) => new Date(row.created_at).toLocaleString() },
@@ -493,7 +538,9 @@ export default function UploadsPage({ user, searchJump }) {
 }
 
 function WeeklySummary({ selected, canManageData, workbookBusy, onViewWorkbook, onDownloadWorkbook }) {
-  const failed = !selected.processed || String(selected.processing_notes || "").startsWith("Error:");
+  const notes = String(selected.processing_notes || "");
+  const queued = !selected.processed && /queued|background|processing/i.test(notes);
+  const failed = !selected.processed && !queued || notes.startsWith("Error:");
   return (
     <div>
       <div className="cms-upload-summary">
@@ -503,8 +550,8 @@ function WeeklySummary({ selected, canManageData, workbookBusy, onViewWorkbook, 
         <div><span>Duplicates removed</span><strong>{selected.duplicates_dropped || 0}</strong></div>
       </div>
       <div className={`cms-alert ${failed ? "error" : "info"}`}>
-        <strong>{failed ? "Processing failed" : "Week processed successfully"}</strong><br />
-        {failed
+        <strong>{failed ? "Processing failed" : queued ? "Calculation queued" : "Week processed successfully"}</strong><br />
+        {failed || queued
           ? selected.processing_notes
           : "Platform entries were normalized and the month-to-date chart was rebuilt automatically."}
       </div>
@@ -540,6 +587,12 @@ function FinalSummary({ selected, onAction, canManageData, canPublish, workbookB
           <ErrorHelpLink message={item.message}>Row {item.row || "—"}: {item.message}</ErrorHelpLink>
         </div>
       ))}
+      {selected.queued && selected.job && (
+        <div className="cms-alert info">
+          <strong>Calculation queued</strong><br />
+          Publishing will finish in the background. Watch Calculation jobs for progress.
+        </div>
+      )}
       <div className="cms-actions wrap">
         <button className="cms-btn light" onClick={onViewWorkbook} disabled={!!workbookBusy || !selected.workbook_available}>
           {canManageData ? "View / edit workbook" : "View workbook"}
@@ -709,4 +762,20 @@ function excelColumnName(index) {
 
 function monthName(month) {
   return new Date(2000, Number(month || 1) - 1, 1).toLocaleString(undefined, { month: "short" });
+}
+
+function weeklyStatus(row) {
+  if (row.processed) return "published";
+  if (String(row.processing_notes || "").startsWith("Error:")) return "error";
+  return "pending_review";
+}
+
+function jobLabel(job) {
+  const labels = {
+    process_weekly_upload: "Process weekly upload",
+    rebuild_month: "Rebuild monthly chart",
+    publish_chart_upload: "Publish chart upload",
+    harmonize_chart_history: "Harmonize chart history",
+  };
+  return labels[job.job_type] || job.job_type || "Chart job";
 }
