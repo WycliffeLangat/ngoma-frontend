@@ -5,6 +5,7 @@ import UploadPreviewTable from "../components/UploadPreviewTable";
 import StatusBadge from "../components/StatusBadge";
 import ConfirmDialog from "../components/ConfirmDialog";
 import ErrorHelpLink from "../components/ErrorHelpLink";
+import { AFRICA_REGION_GROUPS, KENYA_COUNTRY_CODE, africaCountryForCode } from "../../utils/africaRegions";
 
 const RAW_WEEKLY = "weekly";
 const FINAL_CHART = "final";
@@ -29,6 +30,7 @@ export default function UploadsPage({ user, searchJump }) {
     year: new Date().getFullYear(),
     month: new Date().getMonth() + 1,
     week: 1,
+    region: KENYA_COUNTRY_CODE,
     platform: "",
     file: null,
   });
@@ -95,7 +97,7 @@ export default function UploadsPage({ user, searchJump }) {
     try {
       const body = new FormData();
       const fields = uploadKind === RAW_WEEKLY
-        ? ["chart_type", "year", "month", "week"]
+        ? ["chart_type", "year", "month", "week", "region"]
         : ["chart_type", "year", "month", "platform"];
       fields.forEach((key) => {
         if (form[key] !== "") body.append(key, form[key]);
@@ -400,12 +402,27 @@ export default function UploadsPage({ user, searchJump }) {
               </select>
             </label>
             {isWeekly ? (
-              <label>
-                <span>Week of month</span>
-                <select value={form.week} onChange={(event) => set("week", event.target.value)}>
-                  {[1, 2, 3, 4, 5].map((week) => <option value={week} key={week}>Week {week}</option>)}
-                </select>
-              </label>
+              <>
+                <label>
+                  <span>Week of month</span>
+                  <select value={form.week} onChange={(event) => set("week", event.target.value)}>
+                    {[1, 2, 3, 4, 5].map((week) => <option value={week} key={week}>Week {week}</option>)}
+                  </select>
+                </label>
+                <label>
+                  <span>Country</span>
+                  <select value={form.region} onChange={(event) => set("region", event.target.value)}>
+                    {AFRICA_REGION_GROUPS.map((region) => (
+                      <optgroup key={region.key} label={region.label}>
+                        {region.countries.map((country) => (
+                          <option value={country.code} key={country.code}>{country.name}</option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
+                  <small>Which country this workbook's rows belong to. New artists created from this upload default to this country.</small>
+                </label>
+              </>
             ) : (
               <label>
                 <span>Chart scope</span>
@@ -491,6 +508,7 @@ export default function UploadsPage({ user, searchJump }) {
             { key: "uploaded_at", label: "Uploaded", render: (row) => new Date(row.uploaded_at).toLocaleString() },
             { key: "chart_type", label: "Type" },
             { key: "week", label: "Period", render: (row) => `${monthName(row.month)} ${row.year} · Week ${row.week}` },
+            { key: "region", label: "Country", render: (row) => countryName(row.region) },
             { key: "original_filename", label: "File" },
             { key: "entries_processed", label: "Entries" },
             { key: "processed", label: "Status", render: (row) => <StatusBadge value={weeklyStatus(row)} /> },
@@ -546,6 +564,7 @@ function WeeklySummary({ selected, canManageData, workbookBusy, onViewWorkbook, 
       <div className="cms-upload-summary">
         <div><span>Month</span><strong>{monthName(selected.month)}</strong></div>
         <div><span>Week</span><strong>{selected.week}</strong></div>
+        <div><span>Country</span><strong>{countryName(selected.region)}</strong></div>
         <div><span>Entries</span><strong>{selected.entries_processed || 0}</strong></div>
         <div><span>Duplicates removed</span><strong>{selected.duplicates_dropped || 0}</strong></div>
       </div>
@@ -762,6 +781,11 @@ function excelColumnName(index) {
 
 function monthName(month) {
   return new Date(2000, Number(month || 1) - 1, 1).toLocaleString(undefined, { month: "short" });
+}
+
+function countryName(code) {
+  if (!code) return "Kenya";
+  return africaCountryForCode(code)?.name || code;
 }
 
 function weeklyStatus(row) {

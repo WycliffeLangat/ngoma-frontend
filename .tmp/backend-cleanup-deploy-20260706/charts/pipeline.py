@@ -8,6 +8,7 @@ from collections import defaultdict, Counter
 from django.db import transaction
 from .artist_credits import format_artist_list, parse_artist_credit
 from .methodology import (
+    AFRICAN_COUNTRY_NAMES,
     PUBLIC_CHART_LIMIT,
     WEEKLY_CHART_LIMIT,
     platform_max_for,
@@ -111,7 +112,9 @@ def normalize_entry(title, artist, artist_rules, title_rules, is_album=False):
     return canonical_title, canonical_artist, key
 
 
-def get_or_create_artist(name):
+def get_or_create_artist(name, region=None):
+    """region (ISO 3166-1 alpha-2) seeds country/country_code for a BRAND NEW artist
+    only — an existing artist's own country is never overwritten by an upload."""
     from django.utils.text import slugify
     base_slug = slugify(name)[:50]
     slug = base_slug
@@ -120,7 +123,11 @@ def get_or_create_artist(name):
         suffix = f"-{i}"
         slug = f"{base_slug[:50 - len(suffix)]}{suffix}"
         i += 1
-    artist, _ = Artist.objects.get_or_create(name=name, defaults={'slug': slug})
+    defaults = {'slug': slug}
+    if region and region in AFRICAN_COUNTRY_NAMES:
+        defaults['country_code'] = region
+        defaults['country'] = AFRICAN_COUNTRY_NAMES[region]
+    artist, _ = Artist.objects.get_or_create(name=name, defaults=defaults)
     return artist
 
 
@@ -136,9 +143,9 @@ def parsed_artist_names(artist_credit):
     )
 
 
-def _sync_release_credits(release, primary_names, featured_names):
-    desired_primary = [get_or_create_artist(name) for name in primary_names]
-    desired_featured = [get_or_create_artist(name) for name in featured_names]
+def _sync_release_credits(release, primary_names, featured_names, region=None):
+    desired_primary = [get_or_create_artist(name, region=region) for name in primary_names]
+    desired_featured = [get_or_create_artist(name, region=region) for name in featured_names]
     existing = list(release.artist_credits.select_related('artist'))
 
     primary_artists = list(desired_primary)
@@ -196,11 +203,14 @@ def _sync_release_credits(release, primary_names, featured_names):
         release.save(update_fields=['featured_artists', 'updated_at'])
 
 
-def get_or_create_release(title, artist_credit, chart_type):
+def get_or_create_release(title, artist_credit, chart_type, region=None):
+    """region (ISO 3166-1 alpha-2) is the uploading WeeklyUpload's country. It only ever
+    seeds a BRAND NEW artist's or release's country — existing metadata always wins, so a
+    re-upload or a shared artist across countries never gets silently reassigned."""
     primary_names, featured_names = parsed_artist_names(artist_credit)
     if not primary_names:
         primary_names = [artist_credit or 'Unknown Artist']
-    artist_obj = get_or_create_artist(primary_names[0])
+    artist_obj = get_or_create_artist(primary_names[0], region=region)
     canonical = title.lower().strip()
     try:
         release = Release.objects.get(
@@ -209,11 +219,14 @@ def get_or_create_release(title, artist_credit, chart_type):
             chart_type=chart_type,
         )
     except Release.DoesNotExist:
+        release_defaults = {}
+        if region and region in AFRICAN_COUNTRY_NAMES:
+            release_defaults = {'country_code': region, 'country': AFRICAN_COUNTRY_NAMES[region]}
         release = Release.objects.create(
             title=title, artist=artist_obj, chart_type=chart_type,
-            canonical_title=canonical
+            canonical_title=canonical, **release_defaults,
         )
-    _sync_release_credits(release, primary_names, featured_names)
+    _sync_release_credits(release, primary_names, featured_names, region=region)
     return release
 
 
@@ -335,7 +348,7 @@ def process_weekly_upload(upload: WeeklyUpload, file_obj=None, harmonize=True) -
             )
             release_obj = release_cache.get(release_key)
             if release_obj is None:
-                release_obj = get_or_create_release(ct, ca, upload.chart_type)
+                release_obj = get_or_create_release(ct, ca, upload.chart_type, region=upload.region)
                 release_cache[release_key] = release_obj
             platform_entries_to_create.append(PlatformChartEntry(
                 upload=upload, platform=plat, release=release_obj,

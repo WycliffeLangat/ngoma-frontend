@@ -199,6 +199,13 @@ class WeeklyUpload(models.Model):
     year = models.IntegerField()
     month = models.IntegerField()
     week = models.IntegerField()
+    # ISO 3166-1 alpha-2 code for the country this workbook's rows belong to. Defaults to
+    # Kenya to match every historical upload, which predates country-scoped uploads. New
+    # artists/releases created while processing this upload inherit this as their country
+    # (see get_or_create_artist/get_or_create_release in pipeline.py) so the existing
+    # artist-country-driven regional chart split (resolve_release_country_code in
+    # cms_utils.py) picks them up automatically — no separate per-entry region field needed.
+    region = models.CharField(max_length=2, blank=True, default='KE')
     file = models.FileField(upload_to='uploads/weekly/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
     uploaded_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True)
@@ -208,11 +215,14 @@ class WeeklyUpload(models.Model):
     entries_processed = models.IntegerField(default=0)
 
     class Meta:
-        unique_together = ['chart_type', 'year', 'month', 'week']
+        # region is part of the uniqueness key so two countries can each upload their own
+        # week N workbook for the same chart_type/year/month without colliding.
+        unique_together = ['chart_type', 'year', 'month', 'week', 'region']
         ordering = ['-year', '-month', '-week']
 
     def __str__(self):
-        return f"{self.chart_type} W{self.week} {self.year}-{self.month:02d}"
+        region_suffix = f" [{self.region}]" if self.region and self.region != 'KE' else ""
+        return f"{self.chart_type} W{self.week} {self.year}-{self.month:02d}{region_suffix}"
 
 
 class NormalizationRule(models.Model):

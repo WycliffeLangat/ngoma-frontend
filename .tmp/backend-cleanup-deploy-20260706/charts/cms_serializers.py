@@ -618,7 +618,7 @@ class CmsWeeklyUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = WeeklyUpload
         fields = [
-            'id', 'chart_type', 'year', 'month', 'week', 'file',
+            'id', 'chart_type', 'year', 'month', 'week', 'region', 'file',
             'original_filename', 'processed', 'processing_notes',
             'duplicates_dropped', 'entries_processed', 'uploaded_at',
         ]
