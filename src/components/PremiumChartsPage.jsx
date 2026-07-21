@@ -992,7 +992,7 @@ export default function PremiumChartsPage({
       fontSize: mobile ? (topThree ? "15px" : "13.5px") : (topThree ? "17px" : "15px"),
       fontWeight: 850,
       ...(mobile
-        ? { whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }
+        ? { whiteSpace: "normal", overflow: "visible", textOverflow: "clip", overflowWrap: "anywhere" }
         : { whiteSpace: "normal", overflow: "visible", textOverflow: "clip" }),
     };
   }
@@ -1030,25 +1030,6 @@ export default function PremiumChartsPage({
             </button>
           );
         })}
-      </div>
-    );
-  }
-
-  function MobileStat({ label, value }) {
-    return (
-      <div
-        className={label === "Plat." ? "ngoma-platform-cell" : undefined}
-        style={{
-          ...styles.mobileMiniStat,
-          ...(darkMode ? styles.mobileMiniStatDark : null),
-        }}
-      >
-        <span style={{ ...styles.mobileMiniStatLabel, ...(darkMode ? styles.mobileMiniStatLabelDark : null) }}>
-          {label}
-        </span>
-        <span style={{ ...styles.mobileMiniStatValue, ...(darkMode ? styles.mobileMiniStatValueDark : null) }}>
-          {value}
-        </span>
       </div>
     );
   }
@@ -1490,6 +1471,17 @@ export default function PremiumChartsPage({
         .ngoma-carousel-arrow:hover { opacity: 0.7; }
         .ngoma-chart-row-stripe:nth-child(even) { background: ${darkMode ? "#121612" : "transparent"} !important; }
         .ngoma-chart-row-stripe:nth-child(odd)  { background: ${darkMode ? "#0f120f" : "transparent"} !important; }
+        .ngoma-mobile-table-row {
+          transition: background 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+        }
+        .ngoma-mobile-table-row:active {
+          transform: translateY(1px);
+        }
+        @media (hover: hover) {
+          .ngoma-mobile-table-row:hover {
+            background: ${darkMode ? "#121612" : "#fbfaf7"} !important;
+          }
+        }
       `}</style>
       <div className={`ngoma-premium-charts ${darkMode ? "ngoma-premium-charts-dark" : ""}`} style={{...styles.page, padding: mobile ? `0 ${safeGutter} 28px` : "0 28px 34px", boxSizing: "border-box"}}>
       <section
@@ -1930,9 +1922,20 @@ export default function PremiumChartsPage({
           margin: mobile ? "16px auto 28px" : "24px auto 34px",
           boxSizing: "border-box",
           borderRadius: 0,
+          ...(mobile ? {
+            background: darkMode ? "#0d0f0d" : "#ffffff",
+            border: `1px solid ${darkMode ? "#242923" : "#e4e1d8"}`,
+            boxShadow: darkMode ? "0 10px 28px rgba(0,0,0,0.28)" : "0 10px 28px rgba(31,36,31,0.05)",
+          } : null),
         }}
       >
-        {!mobile && (
+        {mobile ? (
+          <div style={{...styles.mobileTableHeader, background: darkMode ? "#0f120f" : "#f0ede6", borderBottom: `2px solid ${chartAccent}33`, color: darkMode ? "#8a9288" : "#3d4440"}}>
+            <span style={styles.mobileTableHeaderCell}>#</span>
+            <span style={{...styles.mobileTableHeaderCell, textAlign: "left"}}>{isArtistsChart ? "Artist" : (isSingles ? "Song" : "Album")}</span>
+            <span style={styles.mobileTableHeaderCell}>Info</span>
+          </div>
+        ) : (
           <div style={{...styles.tableHeader, background: darkMode ? "#0f120f" : "#f0ede6", borderBottom: `2px solid ${chartAccent}33`, color: darkMode ? "#8a9288" : "#3d4440"}}>
             <span
               style={{ ...styles.headerCell, cursor: "pointer" }}
@@ -1973,7 +1976,7 @@ export default function PremiumChartsPage({
             const profile = getReleaseProfile(item);
             const move = movement(item);
             const moveStyle = movementStyle(item);
-            const medalColor = item.rank <= 3 ? MEDALS[item.rank - 1] : "#050505";
+            const medalColor = item.rank <= 3 ? MEDALS[item.rank - 1] : (darkMode ? "#f6f3ea" : "#050505");
             const artistCountry = getArtistCountry(item);
             const badge = regionBadge(artistCountry.code);
             const certification = isArtistsChart ? null : certificationForEntry(item, isSingles ? "single" : "album");
@@ -1985,47 +1988,56 @@ export default function PremiumChartsPage({
               return (
                 <div
                   key={rowKey}
+                  className="ngoma-mobile-chart-row-wrap"
                   style={{
-                    ...styles.mobileRow,
-                    ...(darkMode ? styles.mobileRowDark : null),
-                    boxShadow: expanded
-                      ? `inset 4px 0 0 ${chartAccent}, 0 8px 22px rgba(0,0,0,${darkMode ? "0.26" : "0.045"})`
-                      : (darkMode ? "0 2px 10px rgba(0,0,0,0.16)" : "0 2px 10px rgba(0,0,0,0.025)"),
+                    ...styles.mobileDesktopRowWrap,
+                    ...(darkMode ? styles.mobileDesktopRowWrapDark : null),
                     animationDelay: `${Math.min(index * 20, 400)}ms`,
-                    maxWidth: "100%",
-                    boxSizing: "border-box",
                   }}
                 >
                   <div
-                    style={{ ...styles.mobileCompactRow, cursor: "pointer" }}
+                    className="ngoma-mobile-table-row"
+                    style={{
+                      ...styles.mobileDesktopRow,
+                      ...(darkMode ? styles.mobileDesktopRowDark : null),
+                      ...(item.rank === 1 ? { borderLeftColor: chartAccent } : null),
+                      ...(expanded ? { boxShadow: `inset 4px 0 0 ${chartAccent}` } : null),
+                    }}
                     onClick={() => toggleRow(rowKey)}
                     role="button"
                     aria-expanded={expanded}
                   >
-                    <div style={{ ...styles.mobileRank, color: medalColor }}>{item.rank}</div>
-                    <ReleaseArtwork item={item} size={56} />
+                    <div style={styles.mobileDesktopRankStack}>
+                      <div style={{ ...styles.mobileDesktopRank, color: medalColor }}>{item.rank}</div>
+                      <div style={{ ...styles.mobileDesktopMove, color: moveStyle.color, background: moveStyle.background }}>
+                        {move.label || "-"}
+                      </div>
+                    </div>
 
-                    <div style={styles.mobileEntryMain}>
-                      <button
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          openRelease(item);
-                        }}
-                        className="ngoma-title-link"
-                        style={{ ...styles.titleButton, ...yearEndTitleStyle(item), fontFamily: SF, ...(darkMode ? styles.titleButtonDark : null), color: darkMode ? "#FFFFFF" : "#050505" }}
-                        title={`Open ${item.title}`}
-                      >
-                        {item.title}
-                      </button>
+                    <div style={styles.mobileDesktopEntryCell}>
+                      <ReleaseArtwork item={item} size={42} />
+                      <div style={styles.mobileDesktopEntryText}>
+                        <button
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            openRelease(item);
+                          }}
+                          className="ngoma-title-link"
+                          style={{ ...styles.titleButton, ...yearEndTitleStyle(item), fontFamily: SF, ...(darkMode ? styles.titleButtonDark : null), color: darkMode ? "#FFFFFF" : "#050505" }}
+                          title={`Open ${item.title}`}
+                        >
+                          {item.title}
+                        </button>
 
-                      {isArtistsChart ? (
-                        item.artist ? (
-                          <div style={{...styles.artistLinksWrap, fontFamily: F, ...(darkMode ? styles.artistButtonDark : null), cursor:"default"}}>
-                            {item.artist}
-                          </div>
-                        ) : null
-                      ) : <ArtistLinks item={item} />}
-                      {certification && <CertificationTag cert={certification} compact style={{ marginTop: "6px" }} />}
+                        {isArtistsChart ? (
+                          item.artist ? (
+                            <div style={{...styles.artistLinksWrap, fontFamily: F, ...(darkMode ? styles.artistButtonDark : null), cursor:"default"}}>
+                              {item.artist}
+                            </div>
+                          ) : null
+                        ) : <ArtistLinks item={item} />}
+                        {certification && <CertificationTag cert={certification} compact style={{ marginTop: "6px" }} />}
+                      </div>
                     </div>
 
                     <button
@@ -2034,16 +2046,16 @@ export default function PremiumChartsPage({
                         event.stopPropagation();
                         toggleRow(rowKey);
                       }}
-                      style={{ ...styles.mobileDetailsToggle, ...(darkMode ? styles.mobileDetailsToggleDark : null) }}
+                      style={{ ...styles.mobileDesktopDetailsToggle, ...(darkMode ? styles.mobileDesktopDetailsToggleDark : null) }}
                       aria-label={expanded ? "Hide chart details" : "Show chart details"}
                       aria-expanded={expanded}
                     >
-                      {expanded ? "▴" : "▾"}
+                      {expanded ? "-" : "+"}
                     </button>
                   </div>
 
                   {expanded && (
-                    <div style={{ ...styles.mobileExpandedDetails, ...(darkMode ? styles.mobileExpandedDetailsDark : null) }}>
+                    <div style={{ ...styles.mobileDesktopExpandedDetails, ...(darkMode ? styles.mobileDesktopExpandedDetailsDark : null) }}>
                       <DetailPanel
                         item={item}
                         profile={profile}
@@ -2484,8 +2496,144 @@ const styles = {
   },
 
   mobileRowsGrid: {
+    display: "flex",
+    flexDirection: "column",
+  },
+
+  mobileTableHeader: {
     display: "grid",
-    gap: "10px",
+    gridTemplateColumns: "38px minmax(0, 1fr) 34px",
+    gap: "9px",
+    alignItems: "center",
+    padding: "10px 12px",
+    fontSize: "9px",
+    fontWeight: 900,
+    letterSpacing: "0.8px",
+    textTransform: "uppercase",
+  },
+
+  mobileTableHeaderCell: {
+    width: "100%",
+    textAlign: "center",
+    justifySelf: "center",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
+
+  mobileDesktopRowWrap: {
+    borderBottom: "1px solid rgba(0,0,0,0.08)",
+    animation: "fadeUp 0.35s ease both",
+    maxWidth: "100%",
+    boxSizing: "border-box",
+  },
+
+  mobileDesktopRowWrapDark: {
+    borderBottom: "1px solid rgba(255,255,255,0.10)",
+  },
+
+  mobileDesktopRow: {
+    display: "grid",
+    gridTemplateColumns: "38px minmax(0, 1fr) 34px",
+    gap: "9px",
+    alignItems: "center",
+    minWidth: 0,
+    maxWidth: "100%",
+    padding: "12px 10px 12px 8px",
+    borderLeft: "3px solid transparent",
+    background: "#ffffff",
+    color: "#050505",
+    cursor: "pointer",
+    boxSizing: "border-box",
+  },
+
+  mobileDesktopRowDark: {
+    background: "#0d0f0d",
+    color: "#fffdf7",
+  },
+
+  mobileDesktopRankStack: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "5px",
+    minWidth: 0,
+  },
+
+  mobileDesktopRank: {
+    fontSize: "20px",
+    fontWeight: 950,
+    lineHeight: 1,
+    textAlign: "center",
+  },
+
+  mobileDesktopMove: {
+    minWidth: "32px",
+    maxWidth: "36px",
+    borderRadius: "999px",
+    padding: "3px 5px",
+    fontSize: "9px",
+    fontWeight: 950,
+    lineHeight: 1,
+    textAlign: "center",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
+
+  mobileDesktopEntryCell: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    minWidth: 0,
+    maxWidth: "100%",
+  },
+
+  mobileDesktopEntryText: {
+    minWidth: 0,
+    maxWidth: "100%",
+  },
+
+  mobileDesktopDetailsToggle: {
+    justifySelf: "center",
+    width: "32px",
+    height: "32px",
+    border: "1px solid rgba(0,0,0,0.08)",
+    borderRadius: "10px",
+    background: "#fbfaf7",
+    color: "#555555",
+    fontSize: "18px",
+    fontWeight: 900,
+    lineHeight: 1,
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "0 0 2px",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+  },
+
+  mobileDesktopDetailsToggleDark: {
+    border: "1px solid rgba(255,255,255,0.12)",
+    background: "#151815",
+    color: "#fffdf7",
+    boxShadow: "0 2px 10px rgba(0,0,0,0.22)",
+  },
+
+  mobileDesktopExpandedDetails: {
+    margin: 0,
+    padding: "12px 12px 14px 49px",
+    borderTop: "1px solid rgba(0,0,0,0.06)",
+    background: "#fbfaf7",
+    boxShadow: "none",
+    animation: "slideDown 220ms ease both",
+  },
+
+  mobileDesktopExpandedDetailsDark: {
+    borderTop: "1px solid rgba(255,255,255,0.10)",
+    background: "#0b0e0b",
+    color: "#fffdf7",
   },
 
   row: {
@@ -2498,179 +2646,6 @@ const styles = {
     color: "#050505",
     animation: "fadeUp 0.35s ease both",
     transition: "background 180ms ease, box-shadow 180ms ease",
-  },
-
-  mobileRow: {
-    padding: "18px 18px",
-    border: "1px solid rgba(0,0,0,0.08)",
-    borderRadius: "16px",
-    background: "#ffffff",
-    color: "#050505",
-    animation: "fadeUp 0.35s ease both",
-    transition: "background 180ms ease, box-shadow 180ms ease",
-  },
-
-  mobileRowDark: {
-    border: "1px solid rgba(255,255,255,0.12)",
-    background: "#0F120F",
-    color: "#F6F3EA",
-  },
-
-  mobileRowTop: {
-    display: "grid",
-    gridTemplateColumns: "42px minmax(0, 1fr) 54px",
-    gap: "10px",
-    alignItems: "center",
-  },
-
-  mobileCompactRow: {
-    display: "grid",
-    gridTemplateColumns: "34px 56px minmax(0, 1fr) max-content",
-    gap: "10px",
-    alignItems: "center",
-    minWidth: 0,
-    maxWidth: "100%",
-  },
-
-  mobileMovementWrap: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "flex-end",
-    gap: "6px",
-    minWidth: 0,
-    maxWidth: "100%",
-  },
-
-  mobileDetailsToggle: {
-    width: "38px",
-    height: "34px",
-    border: "1px solid rgba(0,0,0,0.08)",
-    borderRadius: "14px",
-    background: "#fbfaf7",
-    color: "#555555",
-    fontSize: "18px",
-    fontWeight: 900,
-    lineHeight: 1,
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "0 0 2px",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-    transition: "background 160ms ease, transform 160ms ease, box-shadow 160ms ease",
-  },
-
-  mobileDetailsToggleDark: {
-    border: "1px solid rgba(255,255,255,0.12)",
-    background: "#151815",
-    color: "#fffdf7",
-    boxShadow: "0 2px 10px rgba(0,0,0,0.22)",
-  },
-
-  mobileExpandedDetails: {
-    margin: "12px 0 0",
-    padding: "14px 16px 12px",
-    border: "1px solid rgba(0,0,0,0.06)",
-    borderRadius: "14px",
-    background: "#fbfaf7",
-    boxShadow: "none",
-    animation: "slideDown 220ms ease both",
-  },
-
-  mobileExpandedDetailsDark: {
-    border: "1px solid rgba(255,255,255,0.10)",
-    background: "#0b0e0b",
-    color: "#fffdf7",
-    boxShadow: "none",
-  },
-
-  mobileCountryRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    marginBottom: "11px",
-    minWidth: 0,
-  },
-
-  mobileDetailLabel: {
-    fontSize: "8.5px",
-    color: "#777777",
-    fontWeight: 900,
-    letterSpacing: "1px",
-    textTransform: "uppercase",
-  },
-
-  mobileDetailValue: {
-    marginTop: "3px",
-    fontSize: "11px",
-    color: "#050505",
-    fontWeight: 900,
-    overflowWrap: "anywhere",
-  },
-
-  mobileRank: {
-    fontSize: "22px",
-    fontWeight: 950,
-    lineHeight: 1,
-  },
-
-  mobileEntryMain: {
-    minWidth: 0,
-    maxWidth: "100%",
-  },
-
-  mobileStatsRow: {
-    display: "grid",
-    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-    gap: "8px",
-    marginTop: "12px",
-  },
-
-  mobileMiniStat: {
-    background: "#f7f7f7",
-    border: "1px solid rgba(0,0,0,0.06)",
-    borderRadius: "12px",
-    padding: "8px 6px",
-    minWidth: 0,
-    maxWidth: "100%",
-    boxSizing: "border-box",
-  },
-
-  mobileMiniStatDark: {
-    background: "#151815",
-    border: "1px solid rgba(255,255,255,0.10)",
-    color: "#fffdf7",
-  },
-
-  mobileMiniStatLabel: {
-    display: "block",
-    fontSize: "8px",
-    color: "#777777",
-    fontWeight: 900,
-    letterSpacing: "1px",
-    textTransform: "uppercase",
-    textAlign: "center",
-  },
-
-  mobileMiniStatLabelDark: {
-    color: "#c8d0c8",
-  },
-
-  mobileMiniStatValue: {
-    display: "block",
-    marginTop: "4px",
-    color: "#050505",
-    fontSize: "11px",
-    fontWeight: 900,
-    textAlign: "center",
-    whiteSpace: "normal",
-    overflow: "visible",
-    textOverflow: "clip",
-  },
-
-
-  mobileMiniStatValueDark: {
-    color: "#fffdf7",
   },
 
   releaseArtwork: {
