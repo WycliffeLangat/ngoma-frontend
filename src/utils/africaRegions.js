@@ -2,24 +2,30 @@ export const KENYA_COUNTRY_CODE = "KE";
 export const AFRICA_COUNTRY_CHART_PREFIX = "africa-country:";
 export const AFRICA_REGION_CHART_PREFIX = "africa-region:";
 
-// Flag-derived accent colors, one unique hex per country — shared by the public charts
-// hero, Year End country tags, and artist country badges. Every entry must stay unique;
-// several African flags share the same Pan-African red/green/gold family, so those are
-// deliberately shifted to a different (but still flag-plausible) shade of that color
-// rather than reusing an identical hex.
+// African accents are ONE dominant color per country, picked from that flag's own color
+// ratios (e.g. Nigeria = Green 66.7% + White 33.3% -> Green; Somalia = Light Blue 95% ->
+// Light Blue), rendered as a bright/vivid shade rather than a literal muted flag swatch.
+// Where a country's top colors are tied, the tie is broken to keep the 55 countries spread
+// across color families as evenly as possible, then each country sharing a dominant color
+// gets a distinct shade (hue/lightness) of that family so the full set stays unique. Flags
+// whose dominant color is Black get a bright violet instead (true black can't be "bright"),
+// a hue none of the other families use. Kenya is pinned to its long-standing site-brand
+// green (#006600) rather than the auto-generated shade, since that exact color already
+// means "Kenya" everywhere else in the app. Non-African codes are unrelated artist-origin
+// accents, unchanged.
 export const COUNTRY_ACCENTS = {
-  AO: "#C8102E", BB: "#00267F", BF: "#009E49", BI: "#1EB53A", BJ: "#008751", BW: "#6DA9D2",
-  CA: "#D80621", CD: "#007FFF", CF: "#003082", CG: "#009543", CI: "#F77F00", CL: "#D52B1E",
-  CM: "#007A5E", CV: "#003893", DE: "#FFCE00", DJ: "#6AB2E7", DZ: "#006233", EG: "#CE1126",
-  EH: "#007A3D", ER: "#12AD2B", ET: "#078930", FR: "#0055A4", GA: "#009E60", GB: "#012169",
-  GH: "#FCD116", GM: "#3A75C4", GN: "#CE2B37", GQ: "#3E9A00", GW: "#A6192E", IN: "#FF9933",
-  JM: "#009B3A", KE: "#006600", KM: "#FFC61E", KR: "#CD2E3A", LR: "#BF0A30", LS: "#00209F",
-  LY: "#239E46", MA: "#C1272D", MG: "#007E3A", ML: "#14B53A", MR: "#00A95C", MU: "#EA2839",
-  MW: "#D21034", MZ: "#007168", NA: "#003580", NE: "#E05206", NG: "#00A651", NO: "#BA0C2F",
-  PR: "#ED0000", RW: "#00A1DE", SC: "#003F87", SD: "#C4111B", SE: "#006AA7", SL: "#6CACE4",
-  SN: "#00853F", SO: "#4189DD", SS: "#0F47AF", ST: "#E4002B", SZ: "#3E5EB9", TD: "#002664",
-  TG: "#006A4E", TN: "#E70013", TZ: "#00A3DD", UG: "#D90000", US: "#3C3B6E", ZA: "#007749",
-  ZM: "#198A00", ZW: "#319208",
+  AO: "#722CD1", BB: "#00267F", BF: "#EA2D39", BI: "#EB3339", BJ: "#F5A510", BW: "#47C5E1",
+  CA: "#D80621", CD: "#54BEE3", CF: "#1F6DE3", CG: "#EB3939", CI: "#F7AC3B", CL: "#D52B1E",
+  CM: "#F5AE15", CV: "#1879BF", DE: "#FFCE00", DJ: "#7BB4EA", DZ: "#14B838", EG: "#7D33D4",
+  EH: "#873AD5", ER: "#DF1645", ET: "#F6C020", FR: "#0055A4", GA: "#F6C925", GB: "#012169",
+  GH: "#F6D12B", GM: "#EC453F", GN: "#F6D930", GQ: "#1EE678", GW: "#F7E036", IN: "#FF9933",
+  JM: "#009B3A", KE: "#006600", KM: "#276BE4", KR: "#CD2E3A", LR: "#E81A3C", LS: "#1978C7",
+  LY: "#682BCA", MA: "#E9203B", MG: "#ED5145", ML: "#2CE88D", MR: "#15BF40", MU: "#2F6AE5",
+  MW: "#9B49D8", MZ: "#A450DA", NA: "#1A76CF", NE: "#F5510A", NG: "#16C648", NO: "#BA0C2F",
+  PR: "#ED0000", RW: "#61B9E5", SC: "#3769E6", SD: "#9142D7", SE: "#006AA7", SL: "#1B73D6",
+  SN: "#F7E73B", SO: "#6EB6E7", SS: "#B55FDD", ST: "#17CD50", SZ: "#E51740", TD: "#F5B71B",
+  TG: "#18DB63", TN: "#EA263A", TZ: "#1B70DE", UG: "#AD58DC", US: "#3C3B6E", ZA: "#18D45A",
+  ZM: "#19E26D", ZW: "#F59B0A",
 };
 
 export const AFRICA_REGION_GROUPS = [

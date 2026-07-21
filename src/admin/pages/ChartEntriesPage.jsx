@@ -9,6 +9,15 @@ import { isDeletedArtistName, artistNameVariants, recordDeletedArtistNames } fro
 import { reorderAffectedChartScopes } from "../chartRankMaintenance";
 import { releaseFeaturedArtistsText, syncChartEntryCredits } from "../chartEntryCreditSync";
 import { computeArtistImpact, applyArtistImpactCorrections } from "../artistImpact";
+import {
+  AFRICA_REGION_GROUPS,
+  COUNTRY_ACCENTS,
+  KENYA_COUNTRY_CODE,
+  africaChartLabel,
+  africaCountryChartKey,
+  countryCodeFromAfricaChart,
+  isAfricaChart,
+} from "../../utils/africaRegions";
 
 const MOVE_COLOR = { NEW: "#1565C0", up: "#1B7F3A", down: "#C62828", same: "#999" };
 
@@ -242,6 +251,12 @@ function splitArtistNames(value) {
 const COMBINED = "combined";
 const PUBLIC_PAYLOAD_CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
+// A regional/country entry scope is either the legacy "kenyan" pill or one of the
+// africa-country:XX values from the country <select> below — mirrors the public
+// app's isRegionalChartScope so the CMS can browse any country's chart, not just Kenya.
+const isCountryChartScope = (id) => id === "kenyan" || isAfricaChart(id);
+const countryCodeForChartScope = (id) => (id === "kenyan" ? KENYA_COUNTRY_CODE : countryCodeFromAfricaChart(id));
+
 function completePublicPayload(rawPayload) {
   const payload = normalizePublicPayload(rawPayload);
   if (!payload?.full?.singles || !payload?.full?.albums || !payload?.months?.length) {
@@ -460,7 +475,20 @@ export default function ChartEntriesPage({ user, searchJump }) {
   }, [selectedYM]);
   const platformName = useMemo(() => {
     if (platformId === COMBINED) return "Combined";
+    if (isCountryChartScope(platformId)) {
+      const code = countryCodeForChartScope(platformId);
+      return code === KENYA_COUNTRY_CODE ? "Kenyan" : africaChartLabel(platformId).replace(/\s+Top 50$/i, "");
+    }
+    const platform = platforms.find(p => String(p.id) === String(platformId));
+    return platform?.name || platform?.short_name || "";
+  }, [platformId, platforms]);
+  // buildArtistMonthMirror needs the actual scope key ("Kenyan" / "africa-country:NG"), not
+  // the human-readable platformName above ("Nigeria") — isRegionalScope in
+  // publicChartMirror.js only recognizes the former.
+  const artistChartScope = useMemo(() => {
+    if (platformId === COMBINED) return "Combined";
     if (platformId === "kenyan") return "Kenyan";
+    if (isAfricaChart(platformId)) return platformId;
     const platform = platforms.find(p => String(p.id) === String(platformId));
     return platform?.name || platform?.short_name || "";
   }, [platformId, platforms]);
@@ -517,8 +545,8 @@ export default function ChartEntriesPage({ user, searchJump }) {
     }
     setLoading(true); setError(""); setSelected(null);
     const platformParam = platformId === COMBINED ? "combined" : platformId;
-    const endpoint = platformId === "kenyan"
-      ? `/regional-chart-entries/?chart=${chartId}&region=KE&ordering=rank`
+    const endpoint = isCountryChartScope(platformId)
+      ? `/regional-chart-entries/?chart=${chartId}&region=${countryCodeForChartScope(platformId)}&ordering=rank`
       : `/chart-entries/?chart=${chartId}&platform=${platformParam}&ordering=rank`;
     fetchAllCmsResults(endpoint)
       .then(setEntries)
@@ -534,7 +562,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
 
     try {
       setArtistRankings(
-        buildArtistMonthMirror(publicPayload, selectedMonthLabel, platformName)
+        buildArtistMonthMirror(publicPayload, selectedMonthLabel, artistChartScope)
           .map((artist) => ({
             ...artist,
             pts: artist.points,
@@ -557,7 +585,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
     } finally {
       setLoading(false);
     }
-  }, [chartType, publicPayload, selectedMonthLabel, platformName]);
+  }, [chartType, publicPayload, selectedMonthLabel, artistChartScope]);
 
   function pickEntry(entry) {
     setSelected(entry);
@@ -584,7 +612,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
   }
 
   async function save() {
-    if (!selected || saving || platformId === "kenyan") return;
+    if (!selected || saving || isCountryChartScope(platformId)) return;
     setSaving(true); setError("");
     try {
       const payload = {
@@ -603,8 +631,8 @@ export default function ChartEntriesPage({ user, searchJump }) {
       }
 
       const platformParam = platformId === COMBINED ? "combined" : platformId;
-      const endpoint = platformId === "kenyan"
-        ? `/regional-chart-entries/?chart=${chartId}&region=KE&ordering=rank`
+      const endpoint = isCountryChartScope(platformId)
+        ? `/regional-chart-entries/?chart=${chartId}&region=${countryCodeForChartScope(platformId)}&ordering=rank`
         : `/chart-entries/?chart=${chartId}&platform=${platformParam}&ordering=rank`;
       setEntries(await fetchAllCmsResults(endpoint));
       refreshPublicPayloadInBackground();
@@ -615,7 +643,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
   }
 
   async function deleteEntry() {
-    if (!selected || deletingEntry || platformId === "kenyan") return;
+    if (!selected || deletingEntry || isCountryChartScope(platformId)) return;
     setDeletingEntry(true); setError("");
     try {
       await cmsApi.delete(`/chart-entries/${selected.id}/`);
@@ -984,9 +1012,9 @@ export default function ChartEntriesPage({ user, searchJump }) {
 
   const activePlatform =
     platformId === COMBINED ? { name: "Combined", color: "#B8860B" } :
-    platformId === "kenyan" ? { name: "Kenyan", color: "#006600" } :
+    isCountryChartScope(platformId) ? { name: platformName, color: COUNTRY_ACCENTS[countryCodeForChartScope(platformId)] || "#006600" } :
     platforms.find(p => String(p.id) === String(platformId));
-  const isRegionalScope = platformId === "kenyan";
+  const isRegionalScope = isCountryChartScope(platformId);
 
   const panelLabel = (label) => (
     <span style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", color: "#5e625c", display: "block", marginBottom: 5 }}>
@@ -1102,6 +1130,32 @@ export default function ChartEntriesPage({ user, searchJump }) {
           {visiblePlatforms.map(p =>
             pillBtn(p.id, p.short_name || p.name, p.color || "#555")
           )}
+          {/* Any other African country's regional chart — only shows entries once the
+              backend has data for that country (see REGIONAL_CHART_CODES server-side). */}
+          <select
+            className="cms-select"
+            aria-label="Other country"
+            value={isAfricaChart(platformId) ? platformId : ""}
+            onChange={(e) => { if (e.target.value) setPlatformId(e.target.value); }}
+            style={{
+              borderRadius: 999,
+              border: isAfricaChart(platformId) ? `2px solid ${COUNTRY_ACCENTS[countryCodeForChartScope(platformId)] || "#555"}` : "2px solid #E8E1D2",
+              padding: "4px 10px",
+              fontSize: 12,
+              fontWeight: 750,
+              color: isAfricaChart(platformId) ? (COUNTRY_ACCENTS[countryCodeForChartScope(platformId)] || "#555") : "#555",
+              background: "#fff",
+            }}
+          >
+            <option value="">Other country…</option>
+            {AFRICA_REGION_GROUPS.map((region) => (
+              <optgroup key={region.key} label={region.label}>
+                {region.countries.filter((country) => country.code !== KENYA_COUNTRY_CODE).map((country) => (
+                  <option key={country.code} value={africaCountryChartKey(country.code)}>{country.name}</option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
         </div>
       )}
 
@@ -1230,7 +1284,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
                 </div>
                 {selectedArtist.songs.length === 0 && selectedArtist.entriesCount > 0 && (
                   <div style={{ fontSize: 12, color: "#888", marginBottom: 8 }}>
-                    Song-level breakdown isn't available for the regional Kenyan artist chart.
+                    Song-level breakdown isn't available for the regional {platformName} artist chart.
                   </div>
                 )}
                 {selectedArtist.songs.sort((a, b) => b.pts - a.pts).map(s => (

@@ -3141,7 +3141,11 @@ const top = data[0];
   const CountryScopeSelect=({compact=false, fullWidth=false}={})=>(
     <select
       aria-label="Country or region"
-      value={selectedCountryScope}
+      // The legacy "Kenyan" scope value has no matching <option> below (Kenya's own
+      // option is keyed by its country-chart value) — map it so the dropdown actually
+      // shows Kenya selected by default instead of silently falling back to whichever
+      // option happens to be first in the list.
+      value={selectedCountryScope === KENYAN_CHART ? africaCountryChartKey(KENYA_COUNTRY_CODE) : selectedCountryScope}
       onChange={(event)=>applyCountryScope(event.target.value)}
       style={countryScopeSelectStyle(compact, fullWidth)}
     >
