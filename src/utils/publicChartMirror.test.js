@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildArtistMonthMirror, buildYearEndMirror } from "./publicChartMirror.js";
+import { buildArtistMonthMirror, buildYearEndMirror, publicChartRows } from "./publicChartMirror.js";
+import {
+  AFRICA_COUNTRIES,
+  africaCountryChartKey,
+  africaRegionChartKey,
+} from "./africaRegions.js";
 
 const MONTH = "July 2026";
 const profile = (id, name) => ({ id, name, public_name: name });
@@ -16,6 +21,13 @@ function payload(full) {
     full,
   };
 }
+
+test("Africa country catalog covers 55 countries with Kenya in Eastern Africa", () => {
+  assert.equal(AFRICA_COUNTRIES.length, 55);
+  const kenya = AFRICA_COUNTRIES.find((country) => country.code === "KE");
+  assert.equal(kenya?.name, "Kenya");
+  assert.equal(kenya?.region, "eastern-africa");
+});
 
 test("Combined Artist Chart uses only Combined Singles and Albums Top 50", () => {
   const data = payload({
@@ -217,4 +229,51 @@ test("Kenyan Artist Chart ranks from all regional candidates, not regional relea
   assert.deepEqual(chart.map((row) => row.name), ["Scar", "Bien"]);
   assert.equal(chart[0].points, 50);
   assert.equal(chart[0].raw_points, 500);
+});
+
+test("country and macro-region chart scopes read regional country rows", () => {
+  const bienKe = { ...bien, country: "Kenya", country_code: "KE" };
+  const alikibaTz = { ...alikiba, country: "Tanzania", country_code: "TZ" };
+  const scarGh = { ...scar, country: "Ghana", country_code: "GH" };
+  const data = payload({
+    singles: {
+      combined: { [MONTH]: [] },
+      platforms: {},
+      regions: {
+        KE: {
+          [MONTH]: [
+            { r: 1, p: 50, t: "Nairobi Hit", release_id: 90, primary_artists: [bienKe] },
+            { r: 2, p: 49, t: "Accra Feature", release_id: 91, primary_artists: [scarGh] },
+          ],
+        },
+        TZ: {
+          [MONTH]: [
+            { r: 1, p: 50, t: "Dar Song", release_id: 92, primary_artists: [alikibaTz] },
+          ],
+        },
+      },
+    },
+    albums: { combined: { [MONTH]: [] }, platforms: {}, regions: {} },
+  });
+  data.artists = [bienKe, alikibaTz, scarGh];
+
+  assert.deepEqual(
+    publicChartRows(data, "singles", MONTH, africaCountryChartKey("KE")).map((row) => row.t),
+    ["Nairobi Hit", "Accra Feature"],
+  );
+
+  assert.deepEqual(
+    publicChartRows(data, "singles", MONTH, africaRegionChartKey("eastern-africa")).map((row) => row.t),
+    ["Dar Song", "Nairobi Hit", "Accra Feature"],
+  );
+
+  assert.deepEqual(
+    buildArtistMonthMirror(data, MONTH, africaCountryChartKey("KE")).map((row) => row.name),
+    ["Bien"],
+  );
+
+  assert.deepEqual(
+    buildArtistMonthMirror(data, MONTH, africaRegionChartKey("eastern-africa")).map((row) => row.name),
+    ["Alikiba", "Bien"],
+  );
 });

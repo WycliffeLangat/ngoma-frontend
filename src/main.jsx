@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { API_BASE, API_CONFIGURED } from "./api/config.js";
-import { fetchAppDataWithFallback } from "./api/public.js";
+import { fetchAppDataWithFallback, readCachedAppDataAsync } from "./api/public.js";
 import { normalizePublicPayload } from "./utils/publicDataRuntime.js";
 import "./index.css";
 import "./styles/mobilePremiumFixes.css";
@@ -19,8 +19,64 @@ function notifyPublicDataReady() {
   }
 }
 
+function completePublicPayload(rawPayload) {
+  const payload = normalizePublicPayload(rawPayload || {});
+  return (
+    payload &&
+    typeof payload === "object" &&
+    payload.full?.singles &&
+    payload.full?.albums &&
+    payload.months?.length &&
+    payload.latest_published_month
+  ) ? payload : null;
+}
+
+function applyPublicPayload(payload, { stale = false } = {}) {
+  window.__NGOMA_PUBLIC_DATA__ = payload;
+  window.__NGOMA_PUBLIC_REVISION__ = String(payload.revision || "");
+  window.__NGOMA_PUBLIC_DATA_STALE__ = Boolean(stale);
+  notifyPublicDataReady();
+}
+
+async function readStartupSnapshot() {
+  const candidates = [
+    window.__NGOMA_PUBLIC_DATA__,
+    window.__NGOMA_STATIC_PUBLIC_DATA__,
+  ];
+
+  const inlineSnapshot = document.getElementById("ngoma-public-data-snapshot")?.textContent;
+  if (inlineSnapshot) {
+    try {
+      candidates.push(JSON.parse(inlineSnapshot));
+    } catch {
+      console.warn("[ngoma] Ignoring invalid inline public data snapshot.");
+    }
+  }
+
+  for (const candidate of candidates) {
+    const payload = completePublicPayload(candidate);
+    if (payload) return { payload, stale: Boolean(candidate !== window.__NGOMA_PUBLIC_DATA__), source: "snapshot" };
+  }
+
+  const cached = await readCachedAppDataAsync({ maxAgeMs: Number.POSITIVE_INFINITY });
+  const cachedPayload = completePublicPayload(cached?.payload);
+  return cachedPayload
+    ? { ...cached, payload: cachedPayload, stale: true, source: "cache" }
+    : null;
+}
+
 async function loadPublicAppData({ timeoutMs = 4000 } = {}) {
   if (!isPublicAppPath()) return { ok: true };
+
+  const snapshot = await readStartupSnapshot();
+  if (snapshot) {
+    applyPublicPayload(snapshot.payload, { stale: snapshot.stale });
+    if (snapshot.source === "cache") {
+      console.warn("[ngoma] Starting from cached public app data while live data refreshes in the background.");
+    }
+    return { ok: true, payload: snapshot.payload, stale: snapshot.stale, source: snapshot.source };
+  }
+
   if (!API_CONFIGURED) {
     return {
       ok: false,
@@ -32,26 +88,19 @@ async function loadPublicAppData({ timeoutMs = 4000 } = {}) {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const result = await fetchAppDataWithFallback(controller.signal, { timeoutMs });
-    const payload = normalizePublicPayload(result.payload);
-    if (
-      !payload ||
-      typeof payload !== "object" ||
-      !payload.full?.singles ||
-      !payload.full?.albums ||
-      !payload.months.length ||
-      !payload.latest_published_month
-    ) {
+    const result = await fetchAppDataWithFallback(controller.signal, {
+      timeoutMs,
+      maxAgeMs: Number.POSITIVE_INFINITY,
+    });
+    const payload = completePublicPayload(result.payload);
+    if (!payload) {
       throw new Error("Live app data payload was incomplete.");
     }
 
-    window.__NGOMA_PUBLIC_DATA__ = payload;
-    window.__NGOMA_PUBLIC_REVISION__ = String(payload.revision || "");
-    window.__NGOMA_PUBLIC_DATA_STALE__ = Boolean(result.stale);
+    applyPublicPayload(payload, { stale: result.stale });
     if (result.stale) {
       console.warn(`[ngoma] Using cached app data because the live request failed: ${result.errorMessage}`);
     }
-    notifyPublicDataReady();
     return { ok: true, payload, stale: result.stale };
   } catch (error) {
     const message = error?.message || "The backend API is unavailable.";
@@ -72,8 +121,8 @@ function PublicStartupError({ state }) {
         </strong>
         <div style={{marginTop:10,color:"#60645b",fontSize:14}}>
           {configurationError
-            ? "Set VITE_API_BASE to the Django API base URL, then rebuild the frontend."
-            : `The frontend could not reach ${API_BASE}. Please try again after the backend is available.`}
+            ? "Set VITE_API_BASE to the Django API base URL, or ship a public data snapshot with the frontend."
+            : `The frontend could not reach ${API_BASE}, and no cached or bundled public data snapshot was available.`}
         </div>
         {!configurationError && (
           <button type="button" onClick={() => window.location.reload()} style={{marginTop:18,border:0,borderRadius:999,padding:"10px 18px",background:"#1d4f35",color:"#fff",fontWeight:700,cursor:"pointer"}}>

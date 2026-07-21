@@ -19,6 +19,7 @@ export default function YearEndPage({ ctx }) {
     isSingles,
     openArtistDetails,
     openReleaseDetails,
+    platformLabelForScope,
     setYearEndMode,
     setYearEndPlat,
     toggleYearEndRow,
@@ -57,7 +58,7 @@ export default function YearEndPage({ ctx }) {
                 <option value="bestofyear">Best of Year</option>
               </select>
               <select value={yearEndPlat} onChange={e=>setYearEndPlat(e.target.value)} style={{...selectStyle,minWidth:isMobile?"110px":"140px"}}>
-                {yearEndPlatOptions.map(p=><option key={p} value={p}>{p==="Combined"?"Combined":(PLAT_LABEL[p]||p)}</option>)}
+                {yearEndPlatOptions.map(p=><option key={p} value={p}>{platformLabelForScope ? platformLabelForScope(p) : (p==="Combined"?"Combined":(PLAT_LABEL[p]||p))}</option>)}
               </select>
               <Tog sm/>
             </div>

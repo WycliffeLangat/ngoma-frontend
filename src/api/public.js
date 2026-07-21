@@ -14,6 +14,9 @@ function withCacheBust(path) {
 const RETRY_DELAYS_MS = [300, 900]; // two retries for transient network blips
 const APP_DATA_CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const APP_DATA_CACHE_PREFIX = "ngoma:app-data:v1:";
+const APP_DATA_IDB_NAME = "ngoma-public-cache";
+const APP_DATA_IDB_STORE = "app-data";
+const APP_DATA_IDB_VERSION = 1;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -40,36 +43,96 @@ function hasUsableAppData(payload) {
   return Boolean(payload?.full?.singles && payload?.full?.albums);
 }
 
+function validateCachedAppData(cached, { maxAgeMs = APP_DATA_CACHE_MAX_AGE_MS } = {}) {
+  const storedAt = Number(cached?.storedAt);
+  const ageMs = Date.now() - storedAt;
+  if (!Number.isFinite(storedAt) || ageMs < 0) return null;
+  if (Number.isFinite(maxAgeMs) && maxAgeMs > 0 && ageMs > maxAgeMs) return null;
+  if (!hasUsableAppData(cached?.payload)) return null;
+  return { payload: cached.payload, storedAt, ageMs };
+}
+
 export function readCachedAppData({ maxAgeMs = APP_DATA_CACHE_MAX_AGE_MS } = {}) {
   const storage = browserStorage();
   if (!storage) return null;
   try {
     const raw = storage.getItem(appDataCacheKey());
     if (!raw) return null;
-    const cached = JSON.parse(raw);
-    const storedAt = Number(cached?.storedAt);
-    const ageMs = Date.now() - storedAt;
-    if (!Number.isFinite(storedAt) || ageMs < 0) return null;
-    if (Number.isFinite(maxAgeMs) && maxAgeMs > 0 && ageMs > maxAgeMs) return null;
-    if (!hasUsableAppData(cached?.payload)) return null;
-    return { payload: cached.payload, storedAt, ageMs };
+    return validateCachedAppData(JSON.parse(raw), { maxAgeMs });
   } catch {
     return null;
   }
 }
 
-function writeCachedAppData(payload) {
-  if (!hasUsableAppData(payload)) return;
-  const storage = browserStorage();
-  if (!storage) return;
+function openCacheDb() {
+  if (typeof window === "undefined" || !window.indexedDB) return Promise.resolve(null);
+  return new Promise((resolve) => {
+    const request = window.indexedDB.open(APP_DATA_IDB_NAME, APP_DATA_IDB_VERSION);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(APP_DATA_IDB_STORE)) {
+        db.createObjectStore(APP_DATA_IDB_STORE);
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => resolve(null);
+    request.onblocked = () => resolve(null);
+  });
+}
+
+function idbRequest(request) {
+  return new Promise((resolve, reject) => {
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function readIndexedDbAppData({ maxAgeMs = APP_DATA_CACHE_MAX_AGE_MS } = {}) {
+  const db = await openCacheDb();
+  if (!db) return null;
   try {
-    storage.setItem(appDataCacheKey(), JSON.stringify({
-      storedAt: Date.now(),
-      payload,
-    }));
+    const transaction = db.transaction(APP_DATA_IDB_STORE, "readonly");
+    const record = await idbRequest(transaction.objectStore(APP_DATA_IDB_STORE).get(appDataCacheKey()));
+    return validateCachedAppData(record, { maxAgeMs });
   } catch {
-    // Browser storage can be full or disabled. Live data still works.
+    return null;
+  } finally {
+    db.close();
   }
+}
+
+async function writeIndexedDbAppData(record) {
+  const db = await openCacheDb();
+  if (!db) return;
+  try {
+    const transaction = db.transaction(APP_DATA_IDB_STORE, "readwrite");
+    await idbRequest(transaction.objectStore(APP_DATA_IDB_STORE).put(record, appDataCacheKey()));
+  } catch {
+    // IndexedDB can be unavailable in private browsing or blocked by policy.
+  } finally {
+    db.close();
+  }
+}
+
+export async function readCachedAppDataAsync({ maxAgeMs = APP_DATA_CACHE_MAX_AGE_MS } = {}) {
+  return readCachedAppData({ maxAgeMs }) || await readIndexedDbAppData({ maxAgeMs });
+}
+
+async function writeCachedAppData(payload) {
+  if (!hasUsableAppData(payload)) return;
+  const record = {
+    storedAt: Date.now(),
+    payload,
+  };
+  const storage = browserStorage();
+  if (storage) {
+    try {
+      storage.setItem(appDataCacheKey(), JSON.stringify(record));
+    } catch {
+      // Browser storage is often too small for the full app payload.
+    }
+  }
+  await writeIndexedDbAppData(record);
 }
 
 function createAbortScope(externalSignal, timeoutMs) {
@@ -177,7 +240,7 @@ export async function fetchAppData(signal, timeoutMs = 30_000) {
     timeoutMs,
     errorMessage: "App data request failed",
   });
-  writeCachedAppData(payload);
+  await writeCachedAppData(payload);
   return payload;
 }
 
@@ -194,7 +257,7 @@ export async function fetchAppDataWithFallback(signal, options = {}) {
       storedAt: Date.now(),
     };
   } catch (error) {
-    const cached = readCachedAppData({ maxAgeMs });
+    const cached = await readCachedAppDataAsync({ maxAgeMs });
     if (cached) {
       return {
         ...cached,

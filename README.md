@@ -72,7 +72,7 @@ Production hosting must set `VITE_API_BASE` to the public Django API URL before
 building. Netlify is already configured to use `/api/v1` as a same-origin proxy
 to Railway, which keeps CMS session cookies first-party.
 
-At startup the frontend requests `/app-data/`, sorts the published periods by numeric year/month, and activates the latest published month. If `VITE_API_BASE` is missing or the backend is unavailable, the public app shows a clear configuration or connection error; it never loads local chart records.
+At startup the public app uses the latest available public payload immediately: an injected `window.__NGOMA_PUBLIC_DATA__`, an inline `#ngoma-public-data-snapshot`, or the browser's cached `/app-data/` payload. The live API then refreshes in the background and swaps in newer CMS data when `/app-data/revision/` changes. A startup error is shown only when neither live data nor a cached/static public snapshot exists.
 
 The **AI Analyst** is currently disabled and is not mounted in the public app.
 

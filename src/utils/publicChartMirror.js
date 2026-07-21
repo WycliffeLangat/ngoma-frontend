@@ -5,8 +5,21 @@ import {
   profileNames,
   protectedArtistCreditNames,
 } from "./chartHelpers.js";
+import {
+  KENYA_COUNTRY_CODE,
+  africaCountryCodesForRegion,
+  africaCountryForCode,
+  africaRegionBackendKeys,
+  countryCodeFromAfricaChart,
+  isAfricaChart,
+  isAfricaRegionChart,
+  regionKeyFromAfricaChart,
+} from "./africaRegions.js";
 
 const normalized = (value) => String(value || "").trim().toLowerCase();
+const KENYAN_CHART = "Kenyan";
+const isRegionalScope = (platform = "") => platform === KENYAN_CHART || isAfricaChart(platform);
+const countryCodeForScope = (platform = "") => platform === KENYAN_CHART ? KENYA_COUNTRY_CODE : countryCodeFromAfricaChart(platform);
 
 export function artistCreditNames(entry = {}, protectedNames = []) {
   return artistCreditMembers(entry, protectedNames);
@@ -37,12 +50,76 @@ function platformRows(full, type, platform, month) {
   return key ? rankedTop50(platforms[key]?.[month]) : [];
 }
 
+function countryRows(full, type, code, month) {
+  return rankedTop50(full?.[type]?.regions?.[code]?.[month]);
+}
+
+function rankRegionalRows(rows = []) {
+  const grouped = new Map();
+  rows.forEach(({ row, countryCode = "" }) => {
+    if (!row) return;
+    const key = row.release_id
+      ? `id:${row.release_id}`
+      : `${normalized(row.t || row.title)}|${normalized(row.artist_credit || row.a || row.artist)}`;
+    if (!key || key === "|") return;
+    const points = Number(row.p ?? row.pts ?? row.total_points) || 0;
+    const rank = Number(row.r ?? row.rank) || Number.POSITIVE_INFINITY;
+    const current = grouped.get(key) || {
+      template: row,
+      points: 0,
+      bestRank: Number.POSITIVE_INFINITY,
+      countryCodes: new Set(),
+    };
+    current.points += points;
+    current.bestRank = Math.min(current.bestRank, rank);
+    if (countryCode) current.countryCodes.add(countryCode);
+    const templateRank = Number(current.template?.r ?? current.template?.rank) || Number.POSITIVE_INFINITY;
+    const templatePoints = Number(current.template?.p ?? current.template?.pts ?? current.template?.total_points) || 0;
+    if (rank < templateRank || (rank === templateRank && points > templatePoints)) current.template = row;
+    grouped.set(key, current);
+  });
+
+  return [...grouped.values()]
+    .sort((a, b) =>
+      b.points - a.points ||
+      a.bestRank - b.bestRank ||
+      String(a.template?.t || a.template?.title || "").localeCompare(String(b.template?.t || b.template?.title || ""))
+    )
+    .slice(0, 50)
+    .map((item, index) => ({
+      ...item.template,
+      r: index + 1,
+      rank: index + 1,
+      p: item.points,
+      pts: item.points,
+      region_country_codes: [...item.countryCodes],
+    }));
+}
+
+function regionalRows(full, type, platform, month) {
+  const countryCode = countryCodeForScope(platform);
+  if (countryCode) return countryRows(full, type, countryCode, month);
+
+  const regionKey = regionKeyFromAfricaChart(platform);
+  if (!regionKey) return [];
+  const regions = full?.[type]?.regions || {};
+  for (const key of africaRegionBackendKeys(regionKey)) {
+    const rows = rankedTop50(regions?.[key]?.[month]);
+    if (rows.length) return rows;
+  }
+  return rankRegionalRows(
+    africaCountryCodesForRegion(regionKey).flatMap((code) =>
+      countryRows(full, type, code, month).map((row) => ({ row, countryCode: code }))
+    )
+  );
+}
+
 export function publicChartRows(payload, type, month, platform = "Combined") {
   if (normalized(platform) === "combined") {
     return rankedTop50(payload?.full?.[type]?.combined?.[month]);
   }
-  if (normalized(platform) === "kenyan") {
-    return rankedTop50(payload?.full?.[type]?.regions?.KE?.[month]);
+  if (isRegionalScope(platform)) {
+    return regionalRows(payload?.full, type, platform, month);
   }
   return platformRows(payload?.full, type, platform, month);
 }
@@ -89,9 +166,9 @@ function artistSourceRows(payload, month, platform = "Combined") {
   });
 
   if (normalized(platform) !== "combined") {
-    if (normalized(platform) === "kenyan") {
-      add("singles", platform, publicChartRows(payload, "singles", month, "Kenyan"));
-      add("albums", platform, publicChartRows(payload, "albums", month, "Kenyan"));
+    if (isRegionalScope(platform)) {
+      add("singles", platform, publicChartRows(payload, "singles", month, platform));
+      add("albums", platform, publicChartRows(payload, "albums", month, platform));
       return sources;
     }
     add("singles", platform, platformRows(full, "singles", platform, month));
@@ -115,9 +192,18 @@ function artistImage(profile = {}) {
 export function buildArtistMonthMirror(payload, month, platform = "Combined") {
   const profiles = artistProfileMap(payload);
   const protectedNames = protectedArtistCreditNames(payload?.artists || []);
-  const regionalArtistRows = normalized(platform) === "kenyan"
-    ? rankedTop50(payload?.full?.artists?.regions?.KE?.[month])
-    : [];
+  const regionalArtistRows = (() => {
+    if (!isRegionalScope(platform)) return [];
+    const countryCode = countryCodeForScope(platform);
+    if (countryCode) return rankedTop50(payload?.full?.artists?.regions?.[countryCode]?.[month]);
+    const regionKey = regionKeyFromAfricaChart(platform);
+    const regions = payload?.full?.artists?.regions || {};
+    for (const key of africaRegionBackendKeys(regionKey)) {
+      const rows = rankedTop50(regions?.[key]?.[month]);
+      if (rows.length) return rows;
+    }
+    return [];
+  })();
   if (regionalArtistRows.length) {
     return regionalArtistRows.map((row) => {
       const name = row.t || row.title || row.pa || "";
@@ -134,7 +220,20 @@ export function buildArtistMonthMirror(payload, month, platform = "Combined") {
     });
   }
   const artists = new Map();
-  const kenyanOnly = normalized(platform) === "kenyan";
+  const scopedCountryCode = countryCodeForScope(platform);
+  const scopedRegionCodes = isAfricaRegionChart(platform)
+    ? new Set(africaCountryCodesForRegion(regionKeyFromAfricaChart(platform)))
+    : null;
+  const countryMatchesScope = (profile = {}) => {
+    const listedCode = String(profile.country_code || "").trim().toUpperCase();
+    if (scopedCountryCode) {
+      const expected = africaCountryForCode(scopedCountryCode);
+      return listedCode === scopedCountryCode ||
+        normalized(profile.country) === normalized(expected?.name);
+    }
+    if (scopedRegionCodes?.size) return scopedRegionCodes.has(listedCode);
+    return true;
+  };
 
   artistSourceRows(payload, month, platform).forEach((entry) => {
     const rank = Number(entry.r ?? entry.rank);
@@ -142,13 +241,7 @@ export function buildArtistMonthMirror(payload, month, platform = "Combined") {
     chartArtistCreditNames(entry, protectedNames, profiles).forEach((name) => {
       const key = normalized(name);
       const profile = profiles.get(key) || {};
-      if (
-        kenyanOnly &&
-        (
-          normalized(profile.country) !== "kenya" ||
-          String(profile.country_code || "").trim().toUpperCase() !== "KE"
-        )
-      ) return;
+      if (!countryMatchesScope(profile)) return;
       const current = artists.get(key) || {
         name,
         points: 0,

@@ -22,6 +22,20 @@ import {
   mergeNews,
 } from "./utils/automaticPublicContent.js";
 import {
+  AFRICA_REGION_GROUPS,
+  COUNTRY_ACCENTS,
+  KENYA_COUNTRY_CODE,
+  africaChartLabel,
+  africaCountryChartKey,
+  africaCountryCodesForRegion,
+  africaCountryForCode,
+  africaRegionBackendKeys,
+  countryCodeFromAfricaChart,
+  isAfricaChart,
+  isAfricaRegionChart,
+  regionKeyFromAfricaChart,
+} from "./utils/africaRegions.js";
+import {
   BarChart,
   Bar,
   XAxis,
@@ -303,8 +317,31 @@ const availablePlatformKeys = (chartType, supportField, defaults) => {
 const S_PLATS = ["Combined", ...availablePlatformKeys("singles", "supports_singles", DEFAULT_SINGLES_PLATFORM_KEYS)];
 const A_PLATS = ["Combined", ...availablePlatformKeys("albums", "supports_albums", DEFAULT_ALBUM_PLATFORM_KEYS)];
 const KENYAN_CHART = "Kenyan";
+const isRegionalChartScope = (scope) => scope === KENYAN_CHART || isAfricaChart(scope);
+const countryCodeForRegionalScope = (scope) => scope === KENYAN_CHART ? KENYA_COUNTRY_CODE : countryCodeFromAfricaChart(scope);
+// Per-platform (Spotify/Audiomack/etc) breakdown only exists for Kenya today — other
+// countries and regions only have a combined Top 50. Platform tabs have nothing to show
+// for those scopes, so callers should render an empty chart rather than the global platform chart.
+const isNonKenyaCountryScope = (scope) => isAfricaChart(scope) && countryCodeForRegionalScope(scope) !== KENYA_COUNTRY_CODE;
 const PLAT_LABEL = PUBLIC_PLATFORMS.reduce((result, item) => ({...result, [item.name.toUpperCase()]: item.name}), {"APPLE MUSIC":"Apple Music","AUDIOMACK":"Audiomack","BOOMPLAY":"Boomplay","SPOTIFY":"Spotify","YOUTUBE":"YouTube","SHAZAM":"Shazam"});
 const PC = PUBLIC_PLATFORMS.reduce((result, item) => ({...result, [item.name]: item.brand_color || item.color, [item.name.toUpperCase()]: item.brand_color || item.color}), {"Apple Music":"#FC3C44","APPLE MUSIC":"#FC3C44","Audiomack":"#F68B1F","AUDIOMACK":"#F68B1F","Boomplay":"#00FFFF","BOOMPLAY":"#00FFFF","Spotify":"#1DB954","SPOTIFY":"#1DB954","YouTube":"#FF0000","YOUTUBE":"#FF0000","Shazam":"#0088FF","SHAZAM":"#0088FF"});
+const platformLabelForScope = (scope) => {
+  if (scope === KENYAN_CHART) return "Kenyan";
+  if (isAfricaChart(scope)) return africaChartLabel(scope).replace(/\s+Top 50$/i, "");
+  return scope === "Combined" ? "Combined" : (PLAT_LABEL[scope] || scope);
+};
+const COUNTRY_SCOPE_STORAGE_KEY = "ngoma-country-scope";
+const defaultCountryScope = KENYAN_CHART;
+const isCountryScope = (scope = "") => scope === KENYAN_CHART || isAfricaChart(scope);
+const normalizeCountryScope = (scope = "") => isCountryScope(scope) ? scope : defaultCountryScope;
+const readStoredCountryScope = () => {
+  if (typeof window === "undefined") return defaultCountryScope;
+  try {
+    return normalizeCountryScope(window.localStorage.getItem(COUNTRY_SCOPE_STORAGE_KEY) || defaultCountryScope);
+  } catch {
+    return defaultCountryScope;
+  }
+};
 const GOLD=THEME_SETTING.primary || "#B8860B"; const SILVER="#8C8C8C"; const BRONZE="#CD7F32";
 // Distinct from SILVER (used for #2 rank medals elsewhere) so the Platinum
 // certification badge can read as a brighter silver-white on its own.
@@ -342,11 +379,6 @@ const getCertificationLevel = (totalPts = 0) => {
 };
 
 const certificationMetaForLevel = (level) => CERTIFICATION_LEVELS.find((item) => item.level === level) || null;
-const COUNTRY_ACCENTS = {
-  BB:"#00267F",CA:"#D80621",CD:"#007FFF",CI:"#F77F00",CL:"#D52B1E",DE:"#FFCE00",FR:"#0055A4",GB:"#012169",
-  GH:"#CE1126",IN:"#FF9933",JM:"#009B3A",KE:"#006600",KR:"#CD2E3A",NG:"#008751",
-  NO:"#BA0C2F",PR:"#ED0000",RW:"#00A1DE",SE:"#006AA7",TZ:"#1EB53A",UG:"#D90000",US:"#3C3B6E",ZA:"#007749",ZW:"#319208",
-};
 const CountryBadge = ({ artist, item, compact = false, style = {} }) => {
   const country = getArtistCountry(item || { artist });
   const accent = COUNTRY_ACCENTS[country.code] || "#69716B";
@@ -421,10 +453,86 @@ function rebuildPublicLookups(freshData) {
 
 const rawCombined = (ct, m) => normalizeRankedRows(FULL?.[ct]?.combined?.[m] || []);
 const rawPlatform = (ct, pl, m) => normalizeRankedRows((FULL?.[ct]?.platforms?.[pl] || {})[m] || []);
-const rawKenyanCombined = (ct, m) => normalizeRankedRows((FULL?.[ct]?.regions || {}).KE?.[m] || []);
-const rawKenyanArtists = (m) => normalizeRankedRows((FULL?.artists?.regions || {}).KE?.[m] || []);
+const rawCountryCombined = (ct, code, m) => normalizeRankedRows((FULL?.[ct]?.regions || {})[code]?.[m] || []);
+const rawCountryArtists = (code, m) => normalizeRankedRows((FULL?.artists?.regions || {})[code]?.[m] || []);
+const rankRegionalRows = (rows = []) => {
+  const grouped = new Map();
+  rows.forEach(({ row, countryCode = "" }) => {
+    if (!row) return;
+    const releaseIdentity = row.release_id ? `id:${row.release_id}` : entryKey(row);
+    if (!releaseIdentity || releaseIdentity === "|||") return;
+    const points = Number(row.p ?? row.pts ?? row.total_points) || 0;
+    const rank = Number(row.r ?? row.rank) || Number.POSITIVE_INFINITY;
+    const current = grouped.get(releaseIdentity) || {
+      template: row,
+      totalPoints: 0,
+      bestRank: Number.POSITIVE_INFINITY,
+      countryCodes: new Set(),
+    };
+    current.totalPoints += points;
+    current.bestRank = Math.min(current.bestRank, rank);
+    if (countryCode) current.countryCodes.add(countryCode);
+    const currentTemplateRank = Number(current.template?.r ?? current.template?.rank) || Number.POSITIVE_INFINITY;
+    const currentTemplatePoints = Number(current.template?.p ?? current.template?.pts ?? current.template?.total_points) || 0;
+    if (rank < currentTemplateRank || (rank === currentTemplateRank && points > currentTemplatePoints)) {
+      current.template = row;
+    }
+    grouped.set(releaseIdentity, current);
+  });
+
+  return [...grouped.values()]
+    .sort((a, b) =>
+      b.totalPoints - a.totalPoints ||
+      a.bestRank - b.bestRank ||
+      String(a.template?.t || a.template?.title || "").localeCompare(String(b.template?.t || b.template?.title || ""))
+    )
+    .slice(0, 50)
+    .map((item, index) => ({
+      ...item.template,
+      r: index + 1,
+      rank: index + 1,
+      p: item.totalPoints,
+      pts: item.totalPoints,
+      rp: item.template?.rp ?? item.template?.rawPts ?? null,
+      region_country_codes: [...item.countryCodes],
+    }));
+};
+const rawAfricaRegionCombined = (ct, regionKey, m) => {
+  const regions = FULL?.[ct]?.regions || {};
+  for (const key of africaRegionBackendKeys(regionKey)) {
+    const rows = normalizeRankedRows(regions?.[key]?.[m] || []);
+    if (rows.length) return rows;
+  }
+
+  return rankRegionalRows(
+    africaCountryCodesForRegion(regionKey).flatMap((code) =>
+      rawCountryCombined(ct, code, m).map((row) => ({ row, countryCode: code }))
+    )
+  );
+};
+const rawAfricaCombined = (ct, scope, m) => {
+  if (scope === KENYAN_CHART) return rawCountryCombined(ct, KENYA_COUNTRY_CODE, m);
+  const countryCode = countryCodeFromAfricaChart(scope);
+  if (countryCode) return rawCountryCombined(ct, countryCode, m);
+  const regionKey = regionKeyFromAfricaChart(scope);
+  if (regionKey) return rawAfricaRegionCombined(ct, regionKey, m);
+  return [];
+};
+const rawAfricaArtists = (scope, m) => {
+  if (scope === KENYAN_CHART) return rawCountryArtists(KENYA_COUNTRY_CODE, m);
+  const countryCode = countryCodeFromAfricaChart(scope);
+  if (countryCode) return rawCountryArtists(countryCode, m);
+  const regionKey = regionKeyFromAfricaChart(scope);
+  if (!regionKey) return [];
+  const regions = FULL?.artists?.regions || {};
+  for (const key of africaRegionBackendKeys(regionKey)) {
+    const rows = normalizeRankedRows(regions?.[key]?.[m] || []);
+    if (rows.length) return rows;
+  }
+  return [];
+};
 const combinedEntryCache = new Map();
-const kenyanEntryCache = new Map();
+const regionalEntryCache = new Map();
 const platformEntryCache = new Map();
 
 // Last revision we synced from the server — used by the focus handler to skip
@@ -711,15 +819,15 @@ const getCombined = (ct, m) => {
   return combinedEntryCache.get(cacheKey);
 };
 
-const getKenyanCombined = (ct, m) => {
-  const cacheKey = `${ct}|${m}`;
-  if (!kenyanEntryCache.has(cacheKey)) {
-    kenyanEntryCache.set(
+const getRegionalCombined = (ct, scope, m) => {
+  const cacheKey = `${ct}|${scope}|${m}`;
+  if (!regionalEntryCache.has(cacheKey)) {
+    regionalEntryCache.set(
       cacheKey,
-      enrichChartEntries(rawKenyanCombined(ct, m), (monthLabel) => rawKenyanCombined(ct, monthLabel), m, ct === "albums" ? A_PLATS.length - 1 : S_PLATS.length - 1)
+      enrichChartEntries(rawAfricaCombined(ct, scope, m), (monthLabel) => rawAfricaCombined(ct, scope, monthLabel), m, ct === "albums" ? A_PLATS.length - 1 : S_PLATS.length - 1)
     );
   }
-  return kenyanEntryCache.get(cacheKey);
+  return regionalEntryCache.get(cacheKey);
 };
 
 const getPlatform = (ct, pl, m) => {
@@ -823,7 +931,9 @@ const buildYearEndReleaseRows = (chartType, months, platform = "Combined") => {
   const releases = new Map();
 
   months.forEach((monthLabel) => {
-    const source = platform === "Combined" ? getCombined(chartType, monthLabel) : getPlatform(chartType, platform, monthLabel);
+    const source = isRegionalChartScope(platform)
+      ? getRegionalCombined(chartType, platform, monthLabel)
+      : (platform === "Combined" ? getCombined(chartType, monthLabel) : getPlatform(chartType, platform, monthLabel));
     source.forEach((entry) => {
       const key = entryKey(entry);
       const current = releases.get(key) || {
@@ -994,9 +1104,9 @@ const getArtistPlatformSource = (platform = "Combined", monthLabel = latestPubli
     addArtistSourceRows(chartType, sourcePlatform, releaseType, getPlatform(chartType, sourcePlatform, monthLabel));
   };
 
-  if (platform === KENYAN_CHART) {
-    addArtistSourceRows("singles", KENYAN_CHART, "single", getKenyanCombined("singles", monthLabel));
-    addArtistSourceRows("albums", KENYAN_CHART, "album", getKenyanCombined("albums", monthLabel));
+  if (isRegionalChartScope(platform)) {
+    addArtistSourceRows("singles", platform, "single", getRegionalCombined("singles", platform, monthLabel));
+    addArtistSourceRows("albums", platform, "album", getRegionalCombined("albums", platform, monthLabel));
   } else if (platform === "Combined") {
     addArtistSourceRows("singles", "Combined", "single", getCombined("singles", monthLabel));
     addArtistSourceRows("albums", "Combined", "album", getCombined("albums", monthLabel));
@@ -1046,19 +1156,26 @@ const embeddedArtistProfileForName = (artistName = "", entries = []) => {
 
 const aggregateArtistsForMonth = (monthLabel = latestPublishedMonthLabel(), platform = "Combined") => {
   const artistMap = new Map();
-  const kenyanOnly = platform === KENYAN_CHART;
+  const scopedCountryCode = countryCodeForRegionalScope(platform);
+  const scopedRegionCodes = isAfricaRegionChart(platform)
+    ? new Set(africaCountryCodesForRegion(regionKeyFromAfricaChart(platform)))
+    : null;
+  const countryMatchesScope = (country = {}) => {
+    const listedCode = String(country.listedCode || country.code || "").trim().toUpperCase();
+    if (scopedCountryCode) {
+      const expectedCountry = africaCountryForCode(scopedCountryCode);
+      return listedCode === scopedCountryCode ||
+        String(country.listedCountry || country.country || "").trim().toLowerCase() === String(expectedCountry?.name || "").toLowerCase();
+    }
+    if (scopedRegionCodes?.size) return scopedRegionCodes.has(listedCode);
+    return true;
+  };
 
   getArtistPlatformSource(platform, monthLabel).forEach((entry) => {
     publicArtistChartCreditMembers(entry).forEach((artistName) => {
       const key = artistName.toLowerCase();
       const country = getArtistCountry({ artist: artistName });
-      if (
-        kenyanOnly &&
-        (
-          String(country.listedCountry || "").trim().toLowerCase() !== "kenya" ||
-          String(country.listedCode || "").trim().toUpperCase() !== "KE"
-        )
-      ) return;
+      if (!countryMatchesScope(country)) return;
       const current = artistMap.get(key) || {
         n: artistName,
         p: 0,
@@ -1088,8 +1205,8 @@ const buildArtistChart = (monthLabel = latestPublishedMonthLabel(), platform = "
   const cacheKey = `${platform}|${monthLabel}`;
   if (artistChartCache.has(cacheKey)) return artistChartCache.get(cacheKey);
 
-  if (platform === KENYAN_CHART) {
-    const backendRows = rawKenyanArtists(monthLabel);
+  if (isRegionalChartScope(platform)) {
+    const backendRows = rawAfricaArtists(platform, monthLabel);
     if (backendRows.length) {
       const result = backendRows.slice(0, 50).map((entry) => {
         const artistName = entry.t || entry.title || entry.pa || "";
@@ -1112,7 +1229,7 @@ const buildArtistChart = (monthLabel = latestPublishedMonthLabel(), platform = "
           featured_artists: "",
           pts: Number(entry.p) || 0,
           rawPts: Number(entry.rp) || 0,
-          points_source: "Full Kenyan singles + albums platform candidate pool",
+          points_source: `Full ${platformLabelForScope(platform)} singles + albums platform candidate pool`,
           plat: "",
           prev: entry.prev_rank ?? null,
           last_month: entry.last_month ?? entry.prev_rank ?? "—",
@@ -1207,7 +1324,7 @@ const buildArtistChart = (monthLabel = latestPublishedMonthLabel(), platform = "
       rawPts: null,
       points_source: platform === "Combined"
         ? "Combined Singles Top 50 + Combined Albums Top 50"
-        : `${platform} Top 50 Singles + supported Albums`,
+        : `${platformLabelForScope(platform)} Top 50 Singles + supported Albums`,
       plat: platform === "Combined" ? `${platformHits.length}/${ARTIST_PLATS.length}` : "",
       prev: previousRank,
       last_month: previousRank || "—",
@@ -1375,7 +1492,7 @@ function refreshPlatformLookups() {
 function clearDerivedPublicCaches() {
   coverImageCache.clear();
   combinedEntryCache.clear();
-  kenyanEntryCache.clear();
+  regionalEntryCache.clear();
   platformEntryCache.clear();
   rawPlatformIndexCache.clear();
   combinedArtistsCache.clear();
@@ -1615,7 +1732,8 @@ export default function NgomaCharts(){
   });
   const [ct,setCt]=useState(["singles","albums"].includes(DEFAULT_CHART_SETTING.chart_type) ? DEFAULT_CHART_SETTING.chart_type : "singles");
   const [month,setMonth]=useState(CURRENT_MONTH);
-  const [plat,setPlat]=useState("Combined");
+  const [selectedCountryScope,setSelectedCountryScope]=useState(readStoredCountryScope);
+  const [plat,setPlat]=useState(readStoredCountryScope);
   const [vc,setVc]=useState(10);
   const [hr,setHr]=useState(null);
   const [srch,setSrch]=useState("");
@@ -1646,7 +1764,7 @@ export default function NgomaCharts(){
   const [openRecord, setOpenRecord] = useState(null);
   const [expandedYearEndRows, setExpandedYearEndRows] = useState({});
   const [yearEndMode, setYearEndMode] = useState("alltime"); // "alltime" | "bestofyear"
-  const [yearEndPlat, setYearEndPlat] = useState("Combined");
+  const [yearEndPlat, setYearEndPlat] = useState(readStoredCountryScope);
   const [expandedArtistRows, setExpandedArtistRows] = useState({});
   const [expandedTrendingRows, setExpandedTrendingRows] = useState({});
   const detailOpenRef = useRef(false);
@@ -1687,6 +1805,20 @@ export default function NgomaCharts(){
       // Theme still works for the current session if storage is unavailable.
     }
   }, [theme]);
+
+  useEffect(() => {
+    try {
+      if (typeof window !== "undefined") window.localStorage.setItem(COUNTRY_SCOPE_STORAGE_KEY, selectedCountryScope);
+    } catch {
+      // Country selection still works for the current session if storage is unavailable.
+    }
+  }, [selectedCountryScope]);
+
+  useEffect(() => {
+    if (isCountryScope(plat) && plat !== selectedCountryScope) {
+      setSelectedCountryScope(plat);
+    }
+  }, [plat, selectedCountryScope]);
 
   useEffect(() => {
     const header = publicHeaderRef.current;
@@ -1773,11 +1905,14 @@ export default function NgomaCharts(){
     : (isSingles ? ["Combined", KENYAN_CHART, ...S_PLATS.slice(1)] : ["Combined", KENYAN_CHART, ...A_PLATS.slice(1)]);
   const platListKey = platList.join("|");
   const tp = isArtists ? ARTIST_PLATS.length : (isSingles ? S_PLATS.length - 1 : A_PLATS.length - 1);
-  const yearEndPlatOptions = isArtists ? ["Combined", ...ARTIST_PLATS] : (isSingles ? S_PLATS : A_PLATS);
+  const baseYearEndPlatOptions = isArtists ? ["Combined", ...ARTIST_PLATS] : (isSingles ? S_PLATS : A_PLATS);
+  const yearEndPlatOptions = isCountryScope(selectedCountryScope) && !baseYearEndPlatOptions.includes(selectedCountryScope)
+    ? [baseYearEndPlatOptions[0], selectedCountryScope, ...baseYearEndPlatOptions.slice(1)]
+    : baseYearEndPlatOptions;
   const yearEndPlatOptionsKey = yearEndPlatOptions.join("|");
 
   useEffect(() => {
-    if (!platList.includes(plat)) setPlat("Combined");
+    if (!platList.includes(plat) && !isAfricaChart(plat)) setPlat("Combined");
   }, [plat, platListKey, dataRevision]);
 
   useEffect(() => {
@@ -1947,7 +2082,7 @@ export default function NgomaCharts(){
     setLiveChartMeta(null);
     setLiveChartLoading(false);
 
-    if (isArtists || plat === KENYAN_CHART) return;
+    if (isArtists || isRegionalChartScope(plat) || isNonKenyaCountryScope(selectedCountryScope)) return;
 
     const { monthNumber, year } = getMonthYearParts(month);
     if (!monthNumber || !year) return;
@@ -2147,7 +2282,7 @@ export default function NgomaCharts(){
       });
 
     return () => controller.abort();
-  }, [releaseCt, month, plat, tp, isArtists, dataRevision]);
+  }, [releaseCt, month, plat, tp, isArtists, dataRevision, selectedCountryScope]);
   useEffect(()=>{setTimeout(()=>setLd(true),100);},[]);
 
   const [vw,setVw]=useState(typeof window!=="undefined"?window.innerWidth:1200);
@@ -2179,23 +2314,37 @@ export default function NgomaCharts(){
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
+const withCoverImageFallback = (rows) => {
+  if (!coverImageCache.size) return rows;
+  return rows.map((e) => {
+    if (e.cover_image) return e;
+    const img = coverImageCache.get(entryKey(e));
+    return img ? { ...e, cover_image: img } : e;
+  });
+};
+
 const getData = () => {
-  if (isArtists) return buildArtistChart(month, plat);
-  if (plat === KENYAN_CHART) {
-    const kenyan = getKenyanCombined(releaseCt, month);
-    if (!coverImageCache.size) return kenyan;
-    return kenyan.map((e) => {
-      if (e.cover_image) return e;
-      const img = coverImageCache.get(entryKey(e));
-      return img ? { ...e, cover_image: img } : e;
-    });
-  }
+  // Once a non-Kenya country/region is selected, the "Combined" tab is scoped to that
+  // country too (there's no separate all-country-global concept exposed once you've
+  // picked a country) — a specific platform tab (Spotify, Audiomack, etc.) still has
+  // nothing to show since only a combined Top 50 per country exists in the backend.
+  const nonKenyaCountrySelected = isNonKenyaCountryScope(selectedCountryScope);
+  if (plat !== "Combined" && !isRegionalChartScope(plat) && nonKenyaCountrySelected) return [];
+
+  const combinedScope = plat === "Combined" && nonKenyaCountrySelected ? selectedCountryScope : null;
+
+  if (isArtists) return buildArtistChart(month, combinedScope || plat);
+  if (isRegionalChartScope(plat)) return withCoverImageFallback(getRegionalCombined(releaseCt, plat, month));
+  if (combinedScope) return withCoverImageFallback(getRegionalCombined(releaseCt, combinedScope, month));
+
   return plat === "Combined" ? getCombined(releaseCt, month) : getPlatform(releaseCt, plat, month);
 };
 
 const appDataEntries = getData();
 
-const sourceData = liveChartEntries.length ? liveChartEntries : appDataEntries;
+const sourceData = liveChartEntries.length && !isArtists && !isRegionalChartScope(plat)
+  ? liveChartEntries
+  : appDataEntries;
 const data = sourceData.filter((entry) => Number(entry.rank) <= 50).slice(0, 50);
 
 const display = data.slice(0, Math.min(vc, data.length));
@@ -2419,7 +2568,7 @@ const top = data[0];
       pk: rankedMonths.length ? Math.min(...rankedMonths) : "â€”",
       rh: monthlyRanks,
     };
-    setPlat("Combined");
+    setPlat((current) => isRegionalChartScope(current) ? current : "Combined");
     setSelR(null);
     setSelA(profile);
     prepareDetailNavigation();
@@ -2462,7 +2611,7 @@ const top = data[0];
     const displayArtist = releaseArtist(entry);
     const primaryArtist = entry.primary_artist || entry.pa || publicArtistCreditMembers({ artist: displayArtist })[0] || displayArtist;
     setCt(normalizedType === "album" ? "albums" : "singles");
-    setPlat("Combined");
+    setPlat((current) => isRegionalChartScope(current) ? current : "Combined");
     setSelA(null);
     setSelR({
       ...entry,
@@ -2487,9 +2636,17 @@ const top = data[0];
   const releaseSingularLower = isArtists ? "artist" : (isSingles ? "song" : "album");
   const platformKeysFor = (chartType = releaseCt) => chartType === "artists" ? ARTIST_PLATS : (chartType === "singles" ? S_PLATS : A_PLATS).filter((platform) => platform !== "Combined");
   const currentPlatformKeys = platformKeysFor(ct);
-  const analyticsRowsFor = (targetMonth, targetPlatform = "Combined") => isArtists
+  // Mirrors getData()'s handling of the "Combined" tab: once a non-Kenya country/region is
+  // selected, "Combined" itself means that country's combined chart, so Analytics should
+  // read from the same scope rather than reverting to the fully global chart.
+  const analyticsDefaultPlatform = isRegionalChartScope(plat)
+    ? plat
+    : (plat === "Combined" && isNonKenyaCountryScope(selectedCountryScope) ? selectedCountryScope : "Combined");
+  const analyticsRowsFor = (targetMonth, targetPlatform = analyticsDefaultPlatform) => isArtists
     ? buildArtistChart(targetMonth, targetPlatform)
-    : (targetPlatform === "Combined" ? getCombined(releaseCt, targetMonth) : getPlatform(releaseCt, targetPlatform, targetMonth));
+    : (isRegionalChartScope(targetPlatform)
+        ? getRegionalCombined(releaseCt, targetPlatform, targetMonth)
+        : (targetPlatform === "Combined" ? getCombined(releaseCt, targetMonth) : getPlatform(releaseCt, targetPlatform, targetMonth)));
   const analyticsActive = page === "analytics";
   const analysisMonths = analyticsActive ? MONTHS.slice(0, Math.max(0, monthIndex(anMonth)) + 1) : MONTHS;
   // Records & Milestones now renders as a section inside the Analytics page
@@ -2499,8 +2656,10 @@ const top = data[0];
   const currentRecordsCoverageTarget = recordsCoverageTargetFor(ct);
   const recordsTop50RowsFor = (chartType, targetMonth) => (
     chartType === "artists"
-      ? buildArtistChart(targetMonth, "Combined")
-      : getCombined(chartType, targetMonth)
+      ? buildArtistChart(targetMonth, analyticsDefaultPlatform)
+      : (isRegionalChartScope(analyticsDefaultPlatform)
+          ? getRegionalCombined(chartType, analyticsDefaultPlatform, targetMonth)
+          : getCombined(chartType, targetMonth))
   )
     .filter((entry) => Number(entry.rank ?? entry.r) >= 1 && Number(entry.rank ?? entry.r) <= 50)
     .slice(0, 50);
@@ -2714,9 +2873,14 @@ const top = data[0];
 
   const buildMovementData = (chartType, targetMonth) => {
     const currentIndex = monthIndex(targetMonth);
-    const currentRows = chartType === "artists" ? buildArtistChart(targetMonth, "Combined") : getCombined(chartType, targetMonth);
+    const movementRowsFor = (monthLabel) => chartType === "artists"
+      ? buildArtistChart(monthLabel, analyticsDefaultPlatform)
+      : (isRegionalChartScope(analyticsDefaultPlatform)
+          ? getRegionalCombined(chartType, analyticsDefaultPlatform, monthLabel)
+          : getCombined(chartType, monthLabel));
+    const currentRows = movementRowsFor(targetMonth);
     const previousMonth = currentIndex > 0 ? MONTHS[currentIndex - 1] : null;
-    const previousRows = previousMonth ? (chartType === "artists" ? buildArtistChart(previousMonth, "Combined") : getCombined(chartType, previousMonth)) : [];
+    const previousRows = previousMonth ? movementRowsFor(previousMonth) : [];
 
     const moves = currentRows
       .map((entry) => {
@@ -2934,7 +3098,7 @@ const top = data[0];
       });
     });
     return [...seen.values()].sort((a, b) => num(b.pts) - num(a.pts));
-  }, [ct, currentRecordsCoverageTarget, recordsActive, isArtists, dataRevision]);
+  }, [ct, currentRecordsCoverageTarget, recordsActive, isArtists, analyticsDefaultPlatform, dataRevision]);
 
   const navTo=p=>{
     const nextPage=PUBLIC_PAGE_ROUTES[p]?p:"charts";
@@ -2948,6 +3112,48 @@ const top = data[0];
   const primaryNavItems=["charts","analytics","year-end","certifications"];
   const moreNavItems=navItems.filter((item)=>!primaryNavItems.includes(item));
   const navLabel=t=>t==="year-end"?"All Time":t;
+  const applyCountryScope=(scope)=>{
+    const nextScope=normalizeCountryScope(scope);
+    setSelectedCountryScope(nextScope);
+    // "Combined" is always the default view after switching country — it now sources
+    // that country's own combined chart (see getData()) rather than the fully global one.
+    setPlat("Combined");
+    setYearEndPlat("Combined");
+  };
+  const countryScopeSelectStyle=(compact=false, fullWidth=false)=>({
+    minWidth: fullWidth ? 0 : (compact ? "138px" : "154px"),
+    width: fullWidth ? "100%" : (compact ? "138px" : "154px"),
+    maxWidth:"100%",
+    padding:compact?"8px 28px 8px 10px":"8px 30px 8px 11px",
+    borderRadius:"999px",
+    border:`1px solid ${themeColors.border}`,
+    background:themeColors.elevated,
+    color:themeColors.text,
+    fontFamily:F,
+    fontSize:compact?"11px":"11px",
+    fontWeight:850,
+    letterSpacing:compact?"0.4px":"0.7px",
+    textTransform:"none",
+    outline:"none",
+    cursor:"pointer",
+    boxShadow:isDark?"0 0 0 1px rgba(255,255,255,0.02)":"0 4px 14px rgba(0,0,0,0.035)",
+  });
+  const CountryScopeSelect=({compact=false, fullWidth=false}={})=>(
+    <select
+      aria-label="Country or region"
+      value={selectedCountryScope}
+      onChange={(event)=>applyCountryScope(event.target.value)}
+      style={countryScopeSelectStyle(compact, fullWidth)}
+    >
+      {AFRICA_REGION_GROUPS.map((region)=>(
+        <optgroup key={region.key} label={region.label}>
+          {region.countries.map((country)=>(
+            <option key={country.code} value={africaCountryChartKey(country.code)}>{country.name}</option>
+          ))}
+        </optgroup>
+      ))}
+    </select>
+  );
   const card=(extra={})=>({background:"#FFF",borderRadius:"14px",border:"1px solid #EFEDE7",padding:isMobile?"18px":"22px",boxSizing:"border-box",maxWidth:"100%",boxShadow:"0 1px 3px rgba(0,0,0,0.02),0 8px 24px rgba(0,0,0,0.02)",...extra});
   const TXT = {
     kicker: isMobile ? "9px" : "10.5px",
@@ -3037,7 +3243,7 @@ const top = data[0];
     >
       {["singles","albums","artists"].map(t=><button
         key={t}
-        onClick={()=>{setCt(t);setPlat("Combined");}}
+        onClick={()=>{setCt(t);setPlat((current)=>isRegionalChartScope(current)?current:"Combined");}}
         style={{
           padding:sm?"7px 14px":"8px 18px",
           background:ct===t?GOLD:(isDark?"transparent":"#FFF"),
@@ -3123,7 +3329,7 @@ const top = data[0];
     const map={};
     analysisMonths.forEach(m=>analyticsRowsFor(m).forEach(e=>{const k=e.title+" — "+e.artist;if(!map[k])map[k]={key:k,title:e.title,artist:e.artist,primary_artist:e.primary_artist||e.artist,featured_artists:e.featured_artists||"",is_artist_entry:e.is_artist_entry,eKey:entryKey(e)};}));
     return Object.values(map).sort((a,b)=>a.title.localeCompare(b.title));
-  },[analyticsActive,ct,anMonth,dataRevision]);
+  },[analyticsActive,ct,anMonth,analyticsDefaultPlatform,dataRevision]);
   // Build a full profile for a song key
   const songProfile=(key)=>{
     const meta=allTitles.find(t=>t.key===key);
@@ -3165,7 +3371,7 @@ const top = data[0];
     const cd=analyticsRowsFor(anMonth);
     if(cd[0])setCmpS1(cd[0].title+" — "+cd[0].artist);
     if(cd[1])setCmpS2(cd[1].title+" — "+cd[1].artist);
-  },[analyticsActive,ct,anMonth,dataRevision]);
+  },[analyticsActive,ct,anMonth,analyticsDefaultPlatform,dataRevision]);
   useEffect(()=>{
     if(!analyticsActive||!allTitles.length)return;
     const available = new Set(allTitles.map((item) => item.key));
@@ -3179,7 +3385,7 @@ const top = data[0];
       songProfile(cmpS1)||songProfile(allTitles[0]?.key),
       songProfile(cmpS2)||songProfile(allTitles[1]?.key),
     ];
-  },[analyticsActive,ct,cmpS1,cmpS2,allTitles,dataRevision]);
+  },[analyticsActive,ct,cmpS1,cmpS2,allTitles,analyticsDefaultPlatform,dataRevision]);
   const songMonthlyData=analyticsActive?analysisMonths.map(m=>({month:m.split(" ")[0].slice(0,3),A:sp1?.monthly[m]?.pts||0,B:sp2?.monthly[m]?.pts||0})):[];
   const songRankData=analyticsActive?analysisMonths.map(m=>({month:m.split(" ")[0].slice(0,3),A:sp1?.monthly[m]?.rank||null,B:sp2?.monthly[m]?.rank||null})):[];
 
@@ -3193,10 +3399,18 @@ const top = data[0];
   // Year"), scoped to the selected platform (or Combined).
   const yearEndActive = page === "year-end";
   const yearEndMonths = yearEndMode === "bestofyear" ? MONTHS.slice(-12) : MONTHS;
-  const yearEndDisplayRaw = yearEndActive
+  const yearEndNonKenyaCountrySelected = isNonKenyaCountryScope(selectedCountryScope);
+  const yearEndPlatformUnavailableForCountry = yearEndPlat !== "Combined"
+    && !isRegionalChartScope(yearEndPlat)
+    && yearEndNonKenyaCountrySelected;
+  const yearEndCombinedScope = yearEndPlat === "Combined" && yearEndNonKenyaCountrySelected
+    ? selectedCountryScope
+    : null;
+  const yearEndEffectivePlat = yearEndCombinedScope || yearEndPlat;
+  const yearEndDisplayRaw = yearEndActive && !yearEndPlatformUnavailableForCountry
     ? (isArtists
-        ? buildYearEndArtistRows(yearEndMonths, yearEndPlat)
-        : buildYearEndReleaseRows(releaseCt, yearEndMonths, yearEndPlat))
+        ? buildYearEndArtistRows(yearEndMonths, yearEndEffectivePlat)
+        : buildYearEndReleaseRows(releaseCt, yearEndMonths, yearEndEffectivePlat))
     : [];
   const yearEndDisplay = coverImageCache.size
     ? yearEndDisplayRaw.map(e=>{if(e.cover_image)return e;const img=coverImageCache.get(entryKey(e));return img?{...e,cover_image:img}:e;})
@@ -3309,11 +3523,14 @@ const top = data[0];
   };
 
 
-  // Hall of Fame: #1 each month for singles, albums, and artists.
+  // Hall of Fame: #1 each month for singles, albums, and artists — scoped to
+  // whichever country is currently selected (empty months fall out naturally
+  // when that country has no chart data yet).
+  const hofScope = isRegionalChartScope(selectedCountryScope) ? selectedCountryScope : "Combined";
   const hof=MONTHS.flatMap(m=>{
-    const s=getCombined("singles",m)[0];
-    const a=getCombined("albums",m)[0];
-    const artist=buildArtistChart(m,"Combined")[0];
+    const s=(hofScope==="Combined"?getCombined("singles",m):getRegionalCombined("singles",hofScope,m))[0];
+    const a=(hofScope==="Combined"?getCombined("albums",m):getRegionalCombined("albums",hofScope,m))[0];
+    const artist=buildArtistChart(m,hofScope)[0];
     return [
       s?{...s,month:m,type:"single"}:null,
       a?{...a,month:m,type:"album"}:null,
@@ -3395,7 +3612,7 @@ const top = data[0];
     LineChart,
     MEDALS,
     MONTHS,
-    NEWS: publicNews,
+    NEWS: isNonKenyaCountryScope(selectedCountryScope) ? [] : publicNews,
     PAD,
     PAGE_MAX,
     PC,
@@ -3430,7 +3647,7 @@ const top = data[0];
     card,
     certColors,
     certIcons,
-    certs: dedupedLiveCerts.filter(c => c.chart_type === ct),
+    certs: isNonKenyaCountryScope(selectedCountryScope) ? [] : dedupedLiveCerts.filter(c => c.chart_type === ct),
     chartTypeLabel,
     closeDetails,
     cmp1,
@@ -3458,7 +3675,9 @@ const top = data[0];
     getArtistImageUrl,
     getCertificationForEntry,
     getCombined,
-    getChartHistory: plat === KENYAN_CHART ? getKenyanCombined : getCombined,
+    getChartHistory: isRegionalChartScope(analyticsDefaultPlatform)
+      ? ((chartType, monthLabel) => getRegionalCombined(chartType, analyticsDefaultPlatform, monthLabel))
+      : getCombined,
     hof,
     isDark,
     isMobile,
@@ -3482,6 +3701,7 @@ const top = data[0];
     openMomentumRelease,
     openRecord,
     openReleaseDetails,
+    platformLabelForScope,
     plat,
     platList,
     platOnes,
@@ -3510,6 +3730,7 @@ const top = data[0];
     setOpenRecord,
     setPlat,
     setRankJourneyView,
+    selectedCountryScope,
     setSelA,
     setSelNews,
     setSelR,
@@ -3686,6 +3907,9 @@ const top = data[0];
                 <span style={{display:"block",height:"2px",background:themeColors.text,borderRadius:"2px",opacity:mNav?0:1,transition:"opacity .2s"}}/>
                 <span style={{display:"block",height:"2px",background:themeColors.text,borderRadius:"2px",transition:"all .2s",transform:mNav?"translateY(-6px) rotate(-45deg)":"none"}}/>
               </button>
+              <div style={{width:"100%",display:"flex",alignItems:"center",gap:"10px",marginTop:"-4px"}}>
+                <CountryScopeSelect compact fullWidth />
+              </div>
               {mNav&&(
                 <div style={{width:"100%",display:"flex",flexDirection:"column",gap:"2px",marginTop:"8px",borderTop:`1px solid ${themeColors.border}`,paddingTop:"10px"}}>
                   <span onClick={()=>{setMNav(false);setSOpen(true);}} style={{display:"flex",alignItems:"center",gap:"9px",cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"13px",fontWeight:600,letterSpacing:"1px",textTransform:"uppercase",color:themeColors.muted}}>
@@ -3747,6 +3971,7 @@ const top = data[0];
                   </div>
                 )}
               </div>
+              <CountryScopeSelect />
               <button
                 type="button"
                 onClick={()=>setSOpen(true)}
@@ -3978,7 +4203,14 @@ const top = data[0];
           setSelR={setSelR}
           onOpenArtist={openArtistDetails}
           onOpenRelease={openReleaseDetails}
-          getCombined={plat === KENYAN_CHART ? getKenyanCombined : getCombined}
+          getCombined={
+            isRegionalChartScope(plat)
+              ? ((chartType, monthLabel) => getRegionalCombined(chartType, plat, monthLabel))
+              : (plat === "Combined" && isNonKenyaCountryScope(selectedCountryScope))
+                ? ((chartType, monthLabel) => getRegionalCombined(chartType, selectedCountryScope, monthLabel))
+                : getCombined
+          }
+          selectedCountryScope={selectedCountryScope}
           liveChartLoading={liveChartLoading}
           liveChartMeta={liveChartMeta}
           liveStatus={liveStatus}

@@ -2,19 +2,19 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { getArtistImageUrl } from "../utils/artistImages.js";
 import { sameRelease } from "../utils/chartHelpers.js";
 import { API_BASE, resolveMediaUrl } from "../api/config.js";
+import {
+  COUNTRY_ACCENTS,
+  KENYA_COUNTRY_CODE,
+  africaChartLabel,
+  countryCodeFromAfricaChart,
+  isAfricaChart,
+  isAfricaCountryChart,
+} from "../utils/africaRegions.js";
 import EntryThumb from "./EntryThumb.jsx";
 
 // Module-level cache: artist name (lowercase) → resolved image URL (or "" if none found).
 // Persists across re-renders and chart switches so each artist is only fetched once.
 const _artistImgCache = new Map();
-
-// Flag-derived accent colors shared with the Year End country tags.
-const COUNTRY_ACCENTS = {
-  BB: "#00267F", CA: "#D80621", CD: "#007FFF", CI: "#F77F00", CL: "#D52B1E", DE: "#FFCE00", FR: "#0055A4",
-  GB: "#012169", GH: "#CE1126", IN: "#FF9933", JM: "#009B3A", KE: "#006600",
-  KR: "#CD2E3A", NG: "#008751", NO: "#BA0C2F", PR: "#ED0000", RW: "#00A1DE", SE: "#006AA7",
-  TZ: "#1EB53A", UG: "#D90000", US: "#3C3B6E", ZA: "#007749", ZW: "#319208",
-};
 
 function regionBadge(code) {
   const key = String(code || "").trim().toUpperCase();
@@ -181,6 +181,7 @@ export default function PremiumChartsPage({
   plat,
   setPlat,
   platList,
+  selectedCountryScope,
   vc,
   setVc,
   data,
@@ -326,15 +327,48 @@ export default function PremiumChartsPage({
 
     return () => { cancelled = true; };
   }, [isArtistsChart, data, publicArtists, publicDataRefreshKey]);
-  const isKenyanChart = plat === "Kenyan";
+  const selectedAfricaCountryCode = countryCodeFromAfricaChart(plat);
+  const isAfricaScope = isAfricaChart(plat);
+  const isKenyanChart = plat === "Kenyan" || selectedAfricaCountryCode === KENYA_COUNTRY_CODE;
+
+  // `plat` only carries the country identity while the country's own pill is active — on
+  // the "Combined" pill (the post-switch default) or a platform pill with no data for that
+  // country yet, `plat` says nothing about which country is selected. The persistent
+  // `selectedCountryScope` is what should name the header in those cases.
+  const selectedScopeCountryCode = countryCodeFromAfricaChart(selectedCountryScope);
+  const isViewingNonKenyaCountry = isAfricaChart(selectedCountryScope) && selectedScopeCountryCode !== KENYA_COUNTRY_CODE;
+  const headerIsAfricaScope = isAfricaScope || isViewingNonKenyaCountry;
+  const headerScopeSource = isAfricaScope ? plat : selectedCountryScope;
+  const headerCountryCode = isAfricaScope ? selectedAfricaCountryCode : selectedScopeCountryCode;
+  const africaScopeLabel = headerIsAfricaScope ? africaChartLabel(headerScopeSource).replace(/\s+Top 50$/i, "") : "";
 
   const chartTitle = "NGOMA TOP 50";
-  const kenyanChartLabel = isArtistsChart ? "Kenyan Artists" : (isSingles ? "Kenyan Songs" : "Kenyan Albums");
-  const chartRegion = isKenyanChart ? `(${kenyanChartLabel.toUpperCase()})` : "(KENYA)";
-  const chartDisplayTitle = `${chartTitle} ${chartRegion}`;
   const chartLabel = isArtistsChart ? "Artists" : (isSingles ? "Singles" : "Albums");
-  const platformLabel = liveChartMeta?.platform || (isKenyanChart ? kenyanChartLabel : (plat === "Combined" ? "Combined" : PLAT_LABEL[plat] || plat));
-  const chartAccent = isKenyanChart ? COUNTRY_ACCENTS.KE : (plat === "Combined" ? GOLD : PC[plat] || GOLD);
+  const regionalScopeLabel = headerIsAfricaScope
+    ? (headerCountryCode === KENYA_COUNTRY_CODE ? "Kenyan" : africaScopeLabel)
+    : "Kenyan";
+  const regionalChartLabel = `${regionalScopeLabel} ${chartLabel}`;
+  const regionalTop50Label = isAfricaChart(selectedCountryScope)
+    ? `${africaChartLabel(selectedCountryScope).replace(/\s+Top 50$/i, "")} Top 50`
+    : "Kenyan Top 50";
+  // The hero subtitle is always just the country name — "(KENYA)", "(COMOROS)" — never
+  // suffixed with the chart type (Singles/Albums/Artists).
+  const countryDisplayName = headerIsAfricaScope
+    ? (headerCountryCode === KENYA_COUNTRY_CODE ? "Kenya" : africaScopeLabel)
+    : "Kenya";
+  const chartRegion = `(${countryDisplayName.toUpperCase()})`;
+  const chartDisplayTitle = `${chartTitle} ${chartRegion}`;
+  const platformLabel = liveChartMeta?.platform || (
+    (isKenyanChart || headerIsAfricaScope) ? regionalChartLabel :
+    (plat === "Combined" ? "Combined" : PLAT_LABEL[plat] || plat)
+  );
+  const chartAccent = isKenyanChart
+    ? COUNTRY_ACCENTS.KE
+    : isAfricaCountryChart(headerScopeSource)
+      ? (COUNTRY_ACCENTS[headerCountryCode] || "#1A8A5A")
+      : headerIsAfricaScope
+        ? "#1A8A5A"
+        : (plat === "Combined" ? GOLD : PC[plat] || GOLD);
   const chartAccentInk = plat === "BOOMPLAY" ? "#007C7C" : chartAccent;
 
   function movement(item) {
@@ -982,7 +1016,7 @@ export default function PremiumChartsPage({
               key={item}
               onClick={() => {
                 setCt(item);
-                setPlat("Combined");
+                setPlat((current) => current === "Kenyan" || isAfricaChart(current) ? current : "Combined");
               }}
               style={{
                 ...styles.toggleButton,
@@ -1026,7 +1060,7 @@ export default function PremiumChartsPage({
     year: "numeric",
   });
 
-  const isCombinedChart = plat === "Combined" || isKenyanChart;
+  const isCombinedChart = plat === "Combined" || isKenyanChart || isAfricaScope;
 
   // A single continuously-scrolling "conveyor belt" strip of the full Top 50
   // for whatever's active right now — Top Singles / Top Albums / Top Artists —
@@ -1041,7 +1075,21 @@ export default function PremiumChartsPage({
   const marqueeViewportRef = useRef(null);
   const marqueeTrackRef = useRef(null);
   const marqueeHoveredRef = useRef(false);
-  const marqueeDragRef = useRef({ dragging: false, startX: 0, startScrollLeft: 0, lastX: 0, lastT: 0, velocity: 0, dragDistance: 0, suppressClickUntil: 0, downTarget: null });
+  const marqueeDragRef = useRef({
+    tracking: false,
+    dragging: false,
+    captured: false,
+    pointerId: null,
+    startX: 0,
+    startY: 0,
+    startScrollLeft: 0,
+    lastX: 0,
+    lastT: 0,
+    velocity: 0,
+    dragDistance: 0,
+    verticalDistance: 0,
+    suppressClickUntil: 0,
+  });
 
   useEffect(() => {
     const viewport = marqueeViewportRef.current;
@@ -1101,27 +1149,47 @@ export default function PremiumChartsPage({
   function handleMarqueePointerDown(event) {
     const viewport = marqueeViewportRef.current;
     if (!viewport) return;
+    if (event.pointerType === "mouse" && event.button !== 0) return;
     const drag = marqueeDragRef.current;
-    drag.dragging = true;
+    drag.tracking = true;
+    drag.dragging = false;
+    drag.captured = false;
+    drag.pointerId = event.pointerId;
     drag.startX = event.clientX;
+    drag.startY = event.clientY;
     drag.startScrollLeft = viewport.scrollLeft;
     drag.lastX = event.clientX;
     drag.lastT = performance.now();
     drag.velocity = 0;
     drag.dragDistance = 0;
-    drag.downTarget = event.target;
+    drag.verticalDistance = 0;
     viewport.style.cursor = "grabbing";
-    viewport.setPointerCapture?.(event.pointerId);
   }
 
   function handleMarqueePointerMove(event) {
     const drag = marqueeDragRef.current;
-    if (!drag.dragging) return;
+    if (!drag.tracking) return;
     const viewport = marqueeViewportRef.current;
     const track = marqueeTrackRef.current;
     if (!viewport || !track) return;
     const dx = event.clientX - drag.startX;
+    const dy = event.clientY - drag.startY;
     drag.dragDistance = Math.max(drag.dragDistance, Math.abs(dx));
+    drag.verticalDistance = Math.max(drag.verticalDistance, Math.abs(dy));
+
+    if (!drag.dragging) {
+      if (drag.verticalDistance > 8 && drag.verticalDistance > drag.dragDistance) {
+        drag.tracking = false;
+        drag.suppressClickUntil = performance.now() + 250;
+        viewport.style.cursor = "grab";
+        return;
+      }
+      if (drag.dragDistance <= 10 || drag.dragDistance <= drag.verticalDistance) return;
+      drag.dragging = true;
+      drag.captured = true;
+      viewport.setPointerCapture?.(event.pointerId);
+    }
+
     const setWidth = track.scrollWidth / 2;
     let next = drag.startScrollLeft - dx;
     if (setWidth > 0) {
@@ -1137,24 +1205,21 @@ export default function PremiumChartsPage({
 
   function handleMarqueePointerUp(event) {
     const drag = marqueeDragRef.current;
-    if (!drag.dragging) return;
+    if (!drag.tracking && !drag.dragging) return;
+    const wasDragging = drag.dragging;
     drag.dragging = false;
+    drag.tracking = false;
     const viewport = marqueeViewportRef.current;
     if (viewport) {
       viewport.style.cursor = "grab";
-      viewport.releasePointerCapture?.(event.pointerId);
+      if (drag.captured) viewport.releasePointerCapture?.(event.pointerId);
     }
-    if (drag.dragDistance > 6) {
-      drag.suppressClickUntil = performance.now() + 80;
+    if (wasDragging || drag.dragDistance > 10 || drag.verticalDistance > 8) {
+      drag.suppressClickUntil = performance.now() + 250;
       if (Math.abs(drag.velocity) > 0.03) marqueeGlide(-drag.velocity * 1000);
-    } else {
-      // setPointerCapture above retargets the native click event that
-      // normally follows pointerup to the viewport itself, so the card
-      // button never sees it — fire the button's click directly instead.
-      const card = drag.downTarget?.closest?.("button");
-      if (card) card.click();
     }
-    drag.downTarget = null;
+    drag.captured = false;
+    drag.pointerId = null;
   }
 
   function handleMarqueeClickCapture(event) {
@@ -1762,15 +1827,21 @@ export default function PremiumChartsPage({
             }}
           >
             {platList.map((item) => {
-              const active = plat === item;
-              const color = item === "Kenyan" ? COUNTRY_ACCENTS.KE : (item === "Combined" ? GOLD : PC[item] || GOLD);
+              // The "Kenyan" pill is a shortcut to whichever country is currently
+              // selected (it defaults to Kenya) — always target selectedCountryScope
+              // directly rather than the active tab's `plat`, since `plat` is "Combined"
+              // by default after switching country.
+              const active = item === "Kenyan"
+                ? plat === selectedCountryScope
+                : plat === item;
+              const color = item === "Kenyan" ? chartAccent : (item === "Combined" ? GOLD : PC[item] || GOLD);
               const ink = item === "BOOMPLAY" ? "#007C7C" : color;
-              const label = item === "Kenyan" ? "Kenyan Top 50" : (item === "Combined" ? item : PLAT_LABEL[item] || item);
+              const label = item === "Kenyan" ? regionalTop50Label : (item === "Combined" ? item : PLAT_LABEL[item] || item);
 
               return (
                 <button
                   key={item}
-                  onClick={() => setPlat(item)}
+                  onClick={() => setPlat(item === "Kenyan" ? selectedCountryScope : item)}
                   style={{
                     ...styles.platformButton,
                     padding: mobile ? "9px 15px" : "8px 12px",
