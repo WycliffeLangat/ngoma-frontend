@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { API_BASE, resolveMediaUrl } from "./api/config.js";
 import { artistNameVariants, findArtistProfileInPublicData, getArtistImageUrl, withResolvedArtistImage } from "./utils/artistImages.js";
 import {
@@ -35,6 +35,18 @@ import {
   isAfricaRegionChart,
   regionKeyFromAfricaChart,
 } from "./utils/africaRegions.js";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+  LineChart,
+  Line,
+  CartesianGrid,
+} from "recharts";
 import PremiumChartsPage, { getArtistCountry } from "./components/PremiumChartsPage";
 import ArtistAmbientField from "./components/ArtistAmbientField.jsx";
 import EntryThumb from "./components/EntryThumb.jsx";
@@ -43,18 +55,14 @@ import EntryThumb from "./components/EntryThumb.jsx";
 // (which never calls the API directly) can still show artwork.
 const coverImageCache = new Map();
 
-// Lazy-loaded: each of these (plus its own dependencies — Analytics pulls in
-// the recharts library) is only fetched once the visitor actually navigates
-// there, instead of bloating the initial bundle everyone downloads to see
-// the Charts page.
-const AboutPage = lazy(() => import("./pages/AboutPage"));
-const NewsDetailPage = lazy(() => import("./pages/NewsDetailPage"));
-const NewsPage = lazy(() => import("./pages/NewsPage"));
-const CertificationsPage = lazy(() => import("./pages/CertificationsPage"));
-const YearEndPage = lazy(() => import("./pages/YearEndPage"));
-const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage"));
-const ArtistDetailPage = lazy(() => import("./pages/ArtistDetailPage"));
-const ReleaseDetailPage = lazy(() => import("./pages/ReleaseDetailPage"));
+import AboutPage from "./pages/AboutPage";
+import NewsDetailPage from "./pages/NewsDetailPage";
+import NewsPage from "./pages/NewsPage";
+import CertificationsPage from "./pages/CertificationsPage";
+import YearEndPage from "./pages/YearEndPage";
+import AnalyticsPage from "./pages/AnalyticsPage";
+import ArtistDetailPage from "./pages/ArtistDetailPage";
+import ReleaseDetailPage from "./pages/ReleaseDetailPage";
 
 const PUBLIC_DATA = runtimePublicData();
 const MONTH_OPTIONS = publishedMonthOptions(PUBLIC_DATA);
@@ -2685,7 +2693,7 @@ const top = data[0];
     );
   };
 
-  const crossPlatformRows = useMemo(() => analyticsActive ? analyticsRowsFor(anMonth)
+  const crossPlatformRows = analyticsActive ? analyticsRowsFor(anMonth)
     .map((entry) => {
       const hits = platformHitsFor(ct, anMonth, entry.title, entry.primary_artist || entry.artist);
       const fallbackCount = Number(String(entry.plat || "").split("/")[0]) || 0;
@@ -2700,8 +2708,7 @@ const top = data[0];
       };
     })
     .filter((entry) => entry.count > 0)
-    .sort((a, b) => b.count - a.count || Number(b.pts || 0) - Number(a.pts || 0)) : [],
-    [analyticsActive, ct, anMonth, analyticsDefaultPlatform, dataRevision]);
+    .sort((a, b) => b.count - a.count || Number(b.pts || 0) - Number(a.pts || 0)) : [];
 
   const coverageBucket = crossPlatformRows.reduce((acc, entry) => {
     acc[entry.count] = (acc[entry.count] || 0) + 1;
@@ -2712,7 +2719,7 @@ const top = data[0];
     .map(([count, value]) => ({ name: `${count} platform${Number(count) === 1 ? "" : "s"}`, value, count: Number(count) }))
     .sort((a, b) => b.count - a.count);
 
-  const platTotalsData = useMemo(() => analyticsActive ? currentPlatformKeys
+  const platTotalsData = analyticsActive ? currentPlatformKeys
     .map((platform) => {
       const entries = isArtists
         ? buildArtistChart(anMonth, platform).length
@@ -2726,10 +2733,9 @@ const top = data[0];
         color: PC[platform] || "#888",
       };
     })
-    .filter((entry) => entry.entries > 0) : [],
-    [analyticsActive, ct, anMonth, dataRevision]);
+    .filter((entry) => entry.entries > 0) : [];
 
-  const uniquePlatformData = useMemo(() => analyticsActive ? (() => {
+  const uniquePlatformData = analyticsActive ? (() => {
     const top50RowsByPlatform = new Map(
       currentPlatformKeys.map((platform) => [
         platform,
@@ -2775,10 +2781,9 @@ const top = data[0];
         entries: uniqueEntries.slice(0, 6),
       };
     });
-  })() : [],
-    [analyticsActive, ct, anMonth, dataRevision]);
+  })() : [];
 
-  const topCountryData = useMemo(() => analyticsActive ? (() => {
+  const topCountryData = analyticsActive ? (() => {
     const countryMap = new Map();
     analyticsRowsFor(anMonth).forEach((entry) => {
       const country = getArtistCountry(entry);
@@ -2801,8 +2806,7 @@ const top = data[0];
     return [...countryMap.values()]
       .sort((a, b) => b.entries - a.entries || b.points - a.points || a.code.localeCompare(b.code))
       .slice(0, 5);
-  })() : [],
-    [analyticsActive, ct, anMonth, analyticsDefaultPlatform, dataRevision]);
+  })() : [];
 
   const buildMovementData = (chartType, targetMonth) => {
     const currentIndex = monthIndex(targetMonth);
@@ -2850,10 +2854,9 @@ const top = data[0];
   };
 
   // Movement data for the current analytics month and selected chart type
-  const mvData = useMemo(() => analyticsActive
+  const mvData = analyticsActive
     ? buildMovementData(ct, anMonth)
-    : { new: 0, ret: 0, debut: 0, newEntries: [], reEntries: [], risers: [], fallers: [] },
-    [analyticsActive, ct, anMonth, analyticsDefaultPlatform, dataRevision]);
+    : { new: 0, ret: 0, debut: 0, newEntries: [], reEntries: [], risers: [], fallers: [] };
 
   const num = (value) => {
     const parsed = Number(String(value ?? 0).replace(/,/g, ""));
@@ -2919,10 +2922,9 @@ const top = data[0];
   };
 
   // Eligible pool for the record boxes that don't pin to a single release/artist
-  // (Total Charted X) — set inside the memo below and exposed via ctx so the
+  // (Total Charted X) — set inside the IIFE below and exposed via ctx so the
   // Records & Milestones section can rotate the box's art through every entry
   // in the pool instead of showing it empty.
-  const { records: currentRecords, pool: currentRecordsPool } = useMemo(() => {
   let currentRecordsPool = [];
   const currentRecords = recordsActive ? (() => {
     if (isArtists) {
@@ -3018,8 +3020,6 @@ const top = data[0];
       },
     ];
   })() : [];
-  return { records: currentRecords, pool: currentRecordsPool };
-  }, [recordsActive, isArtists, ct, analyticsDefaultPlatform, currentRecordsCoverageTarget, dataRevision]);
 
   const fullCoverageClub = useMemo(() => {
     if (!recordsActive) return [];
@@ -3516,13 +3516,19 @@ const top = data[0];
     ARTIST_PLATS,
     AnalyticsDeepSection,
     BRONZE,
+    Bar,
+    BarChart,
     CC,
     CERTIFICATION_LEVELS,
+    CartesianGrid,
+    Cell,
     CertificationTag,
     CountryBadge,
     DATA_PERIOD,
     F,
     GOLD,
+    Line,
+    LineChart,
     MEDALS,
     MONTHS,
     NEWS: isNonKenyaCountryScope(selectedCountryScope) ? [] : publicNews,
@@ -3534,6 +3540,7 @@ const top = data[0];
     PLATS_FOR,
     PLAT_LABEL,
     RecordIcon,
+    ResponsiveContainer,
     SF,
     S_PLATS,
     SILVER,
@@ -3541,9 +3548,12 @@ const top = data[0];
     SecMark,
     TXT,
     Tog,
+    Tooltip,
     TrendBars,
     VO,
     ViewToggle,
+    XAxis,
+    YAxis,
     allArtistNames,
     allTitles,
     anMonth,
@@ -4073,13 +4083,11 @@ const top = data[0];
         {section.data?.image&&<img src={section.data.image} alt={section.data.alt || section.title || ""} style={{display:"block",marginTop:"12px",maxHeight:"360px",borderRadius:"10px",objectFit:"cover"}} />}
         {section.data?.cta_url&&<a href={section.data.cta_url} style={{display:"inline-flex",marginTop:"12px",padding:"9px 14px",borderRadius:"999px",background:GOLD,color:"#FFF",fontFamily:F,fontSize:"11px",fontWeight:850,textDecoration:"none"}}>{section.data.cta_label || "Learn more"}</a>}
       </section>)}
-      <Suspense fallback={null}>
       {/* RELEASE DETAIL */}
       {selR && <ReleaseDetailPage ctx={pageContext} />}
 
       {/* ARTIST PROFILE */}
       {selA && !selR && <ArtistDetailPage ctx={pageContext} />}
-      </Suspense>
 
       {/* CHARTS PAGE */}
       {page === "charts" && !selA && !selR && (
@@ -4131,7 +4139,6 @@ const top = data[0];
         />
       )}
 
-      <Suspense fallback={null}>
       {/* ANALYTICS PAGE (includes Records & Milestones section) */}
       {page === "analytics" && !selA && !selR && <AnalyticsPage ctx={pageContext} />}
 
@@ -4147,7 +4154,6 @@ const top = data[0];
 
       {/* ABOUT PAGE */}
       {page === "about" && !selA && !selR && <AboutPage ctx={pageContext} />}
-      </Suspense>
 
       </main>
 
