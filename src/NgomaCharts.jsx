@@ -340,6 +340,7 @@ const platformLabelForScope = (scope) => {
 };
 const defaultCountryScope = KENYAN_CHART;
 const isCountryScope = (scope = "") => scope === KENYAN_CHART || isAfricaChart(scope);
+const normalizeCountryScope = (scope = "") => isCountryScope(scope) ? scope : defaultCountryScope;
 // Country selection is intentionally session-only — every fresh page load or
 // refresh should start back on Kenya rather than resuming whatever country
 // the visitor last browsed to.
@@ -1734,7 +1735,7 @@ export default function NgomaCharts(){
   const [ct,setCt]=useState(["singles","albums"].includes(DEFAULT_CHART_SETTING.chart_type) ? DEFAULT_CHART_SETTING.chart_type : "singles");
   const [month,setMonth]=useState(CURRENT_MONTH);
   const [selectedCountryScope,setSelectedCountryScope]=useState(readStoredCountryScope);
-  const [plat,setPlat]=useState(readStoredCountryScope);
+  const [plat,setPlat]=useState("Combined");
   const [vc,setVc]=useState(10);
   const [hr,setHr]=useState(null);
   const [srch,setSrch]=useState("");
@@ -1765,7 +1766,7 @@ export default function NgomaCharts(){
   const [openRecord, setOpenRecord] = useState(null);
   const [expandedYearEndRows, setExpandedYearEndRows] = useState({});
   const [yearEndMode, setYearEndMode] = useState("alltime"); // "alltime" | "bestofyear"
-  const [yearEndPlat, setYearEndPlat] = useState(readStoredCountryScope);
+  const [yearEndPlat, setYearEndPlat] = useState("Combined");
   const [expandedArtistRows, setExpandedArtistRows] = useState({});
   const [expandedTrendingRows, setExpandedTrendingRows] = useState({});
   const detailOpenRef = useRef(false);
@@ -2693,7 +2694,7 @@ const top = data[0];
     );
   };
 
-  const crossPlatformRows = analyticsActive ? analyticsRowsFor(anMonth)
+  const crossPlatformRows = useMemo(() => analyticsActive ? analyticsRowsFor(anMonth)
     .map((entry) => {
       const hits = platformHitsFor(ct, anMonth, entry.title, entry.primary_artist || entry.artist);
       const fallbackCount = Number(String(entry.plat || "").split("/")[0]) || 0;
@@ -2708,7 +2709,8 @@ const top = data[0];
       };
     })
     .filter((entry) => entry.count > 0)
-    .sort((a, b) => b.count - a.count || Number(b.pts || 0) - Number(a.pts || 0)) : [];
+    .sort((a, b) => b.count - a.count || Number(b.pts || 0) - Number(a.pts || 0)) : [],
+    [analyticsActive, ct, anMonth, analyticsDefaultPlatform, dataRevision]);
 
   const coverageBucket = crossPlatformRows.reduce((acc, entry) => {
     acc[entry.count] = (acc[entry.count] || 0) + 1;
@@ -2719,7 +2721,7 @@ const top = data[0];
     .map(([count, value]) => ({ name: `${count} platform${Number(count) === 1 ? "" : "s"}`, value, count: Number(count) }))
     .sort((a, b) => b.count - a.count);
 
-  const platTotalsData = analyticsActive ? currentPlatformKeys
+  const platTotalsData = useMemo(() => analyticsActive ? currentPlatformKeys
     .map((platform) => {
       const entries = isArtists
         ? buildArtistChart(anMonth, platform).length
@@ -2733,9 +2735,10 @@ const top = data[0];
         color: PC[platform] || "#888",
       };
     })
-    .filter((entry) => entry.entries > 0) : [];
+    .filter((entry) => entry.entries > 0) : [],
+    [analyticsActive, ct, anMonth, dataRevision]);
 
-  const uniquePlatformData = analyticsActive ? (() => {
+  const uniquePlatformData = useMemo(() => analyticsActive ? (() => {
     const top50RowsByPlatform = new Map(
       currentPlatformKeys.map((platform) => [
         platform,
@@ -2781,9 +2784,10 @@ const top = data[0];
         entries: uniqueEntries.slice(0, 6),
       };
     });
-  })() : [];
+  })() : [],
+    [analyticsActive, ct, anMonth, dataRevision]);
 
-  const topCountryData = analyticsActive ? (() => {
+  const topCountryData = useMemo(() => analyticsActive ? (() => {
     const countryMap = new Map();
     analyticsRowsFor(anMonth).forEach((entry) => {
       const country = getArtistCountry(entry);
@@ -2806,7 +2810,8 @@ const top = data[0];
     return [...countryMap.values()]
       .sort((a, b) => b.entries - a.entries || b.points - a.points || a.code.localeCompare(b.code))
       .slice(0, 5);
-  })() : [];
+  })() : [],
+    [analyticsActive, ct, anMonth, analyticsDefaultPlatform, dataRevision]);
 
   const buildMovementData = (chartType, targetMonth) => {
     const currentIndex = monthIndex(targetMonth);
@@ -2854,9 +2859,10 @@ const top = data[0];
   };
 
   // Movement data for the current analytics month and selected chart type
-  const mvData = analyticsActive
+  const mvData = useMemo(() => analyticsActive
     ? buildMovementData(ct, anMonth)
-    : { new: 0, ret: 0, debut: 0, newEntries: [], reEntries: [], risers: [], fallers: [] };
+    : { new: 0, ret: 0, debut: 0, newEntries: [], reEntries: [], risers: [], fallers: [] },
+    [analyticsActive, ct, anMonth, analyticsDefaultPlatform, dataRevision]);
 
   const num = (value) => {
     const parsed = Number(String(value ?? 0).replace(/,/g, ""));
@@ -2922,9 +2928,10 @@ const top = data[0];
   };
 
   // Eligible pool for the record boxes that don't pin to a single release/artist
-  // (Total Charted X) — set inside the IIFE below and exposed via ctx so the
+  // (Total Charted X) — set inside the memo below and exposed via ctx so the
   // Records & Milestones section can rotate the box's art through every entry
   // in the pool instead of showing it empty.
+  const { records: currentRecords, pool: currentRecordsPool } = useMemo(() => {
   let currentRecordsPool = [];
   const currentRecords = recordsActive ? (() => {
     if (isArtists) {
@@ -3020,6 +3027,8 @@ const top = data[0];
       },
     ];
   })() : [];
+  return { records: currentRecords, pool: currentRecordsPool };
+  }, [recordsActive, isArtists, ct, analyticsDefaultPlatform, currentRecordsCoverageTarget, dataRevision]);
 
   const fullCoverageClub = useMemo(() => {
     if (!recordsActive) return [];
