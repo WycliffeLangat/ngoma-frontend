@@ -1,112 +1,72 @@
 import { useState } from "react";
-import EntryThumb, { resolveEntryImageUrl } from "../components/EntryThumb.jsx";
+import EntryThumb from "../components/EntryThumb.jsx";
 import { useRotatingArt } from "../hooks/useRotatingArt.js";
 
-// A single Records & Milestones stat card — cover art bleeds through the
-// background when the record pins to one release/artist, or rotates through
-// the eligible pool for aggregate records like "Total Charted Songs".
-function RecordCard({ r, expanded, onToggle, pool, ctx, theme }) {
+// A single Records & Milestones row — styled to match the Hall of Fame
+// "Monthly #1s" cards (small thumbnail + label/title/sub in a flex row)
+// instead of the old big art-bleed tile. Records that don't pin to a single
+// release/artist (e.g. "Total Charted Songs") rotate their thumbnail through
+// the eligible pool; "Perfect Coverage Club" stays clickable and expands
+// in place to list its full-coverage releases.
+function RecordRow({ r, expanded, onToggle, pool, ctx, theme }) {
   const {
     CertificationTag, F, GOLD, RecordIcon, SF,
     fullCoverageClub, getCertificationForEntry, isArtists, isMobile, isSingles,
     openArtistDetails, openReleaseDetails, releaseLabelLower,
   } = ctx;
-  const { isDark, textPrimary, textMuted, cardBg, dividerColor, rowBorder, recordCard } = theme;
+  const { isDark, textPrimary, textMuted, dividerColor, rowBorder } = theme;
 
   const recordCertification = !isArtists && r.certificationEntry ? getCertificationForEntry(r.certificationEntry, isSingles ? "single" : "album") : null;
-  const artEntryName = r.certificationEntry ? (r.certificationEntry.artist || r.certificationEntry.title) : "";
-  const staticArtUrl = r.certificationEntry
-    ? resolveEntryImageUrl(r.certificationEntry, { name: artEntryName, isArtist: Boolean(r.certificationEntry.is_artist_entry) })
-    : "";
   const rotating = useRotatingArt(pool);
-  const artUrl = staticArtUrl || rotating?.url || "";
-  const hasArt = Boolean(artUrl);
-
-  const valueNode = r.certificationEntry ? (
-    <button
-      type="button"
-      onClick={(event) => { event.stopPropagation(); isArtists ? openArtistDetails(r.value) : openReleaseDetails(r.certificationEntry, isSingles ? "single" : "album"); }}
-      style={{ display: "block", border: 0, background: "transparent", padding: 0, fontFamily: SF, fontSize: isMobile ? "20px" : "21px", fontWeight: 900, lineHeight: 1.12, marginBottom: recordCertification ? "7px" : "5px", cursor: "pointer", textAlign: "left", color: hasArt ? "#FFFFFF" : textPrimary, textShadow: hasArt ? "0 1px 8px rgba(0,0,0,0.55)" : "none" }}
-    >{r.value}</button>
-  ) : (
-    <div style={{ fontFamily: SF, fontSize: isMobile ? "20px" : "21px", fontWeight: 900, lineHeight: 1.12, marginBottom: "5px", color: hasArt ? "#FFFFFF" : textPrimary, textShadow: hasArt ? "0 1px 8px rgba(0,0,0,0.55)" : "none" }}>{r.value}</div>
-  );
+  const thumbItem = r.certificationEntry || rotating?.entry || null;
+  const thumbName = r.certificationEntry ? (r.certificationEntry.artist || r.value) : (rotating?.name || r.value);
+  const thumbSize = isMobile ? 62 : 72;
 
   return (
     <div
-      className="ngoma-record-card"
-      onClick={onToggle}
+      onClick={r.isCoverage ? onToggle : undefined}
       style={{
-        ...recordCard({ padding: 0, borderRadius: "16px" }),
-        position: "relative",
-        overflow: "hidden",
+        display: "flex", flexDirection: "column",
+        padding: "12px", background: isDark ? "#151915" : "#FAFAF8", borderRadius: "8px", border: "1px solid " + (isDark ? "#242923" : "#EFEDE7"),
+        minWidth: 0, gridColumn: expanded ? "1 / -1" : "auto",
         cursor: r.isCoverage ? "pointer" : "default",
-        gridColumn: expanded ? "1 / -1" : "auto",
-        minHeight: hasArt ? (isMobile ? "216px" : "248px") : "auto",
       }}
     >
-      {hasArt ? (
-        <>
-          <img
-            key={rotating?.entry ? (rotating.entry.key || rotating.name) : "static"}
-            className="ngoma-record-art"
-            src={artUrl}
-            alt=""
-            loading="lazy"
-            decoding="async"
-            onError={(event) => { event.currentTarget.style.display = "none"; }}
-            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-          />
-          <div
-            style={{
-              position: "absolute", inset: 0,
-              background: "linear-gradient(0deg, rgba(6,7,6,0.94) 0%, rgba(6,7,6,0.82) 32%, rgba(6,7,6,0.38) 58%, rgba(6,7,6,0.08) 78%, rgba(6,7,6,0.28) 100%)",
-            }}
-          />
-          <div style={{ position: "relative", zIndex: 1, padding: isMobile ? "19px" : "24px", display: "flex", flexDirection: "column", height: "100%", boxSizing: "border-box", justifyContent: "space-between" }}>
-            <span style={{
-              display: "inline-flex", alignItems: "center", justifyContent: "center",
-              width: isMobile ? "30px" : "32px", height: isMobile ? "30px" : "32px", borderRadius: "10px",
-              background: "rgba(6,7,6,0.55)", backdropFilter: "blur(6px)", flexShrink: 0, alignSelf: "flex-start",
-            }}>
-              <RecordIcon label={r.displayLabel} size={isMobile ? 17 : 18} />
-            </span>
-
-            <div>
-              <div style={{ fontFamily: F, fontSize: isMobile ? "10px" : "10.5px", fontWeight: 850, letterSpacing: "2px", textTransform: "uppercase", color: GOLD, marginBottom: "9px", lineHeight: 1.35, textShadow: "0 1px 6px rgba(0,0,0,0.6)" }}>{r.displayLabel}</div>
-              {valueNode}
-              {recordCertification && <CertificationTag cert={recordCertification} compact style={{ marginBottom: "8px" }} />}
-              <div style={{ fontFamily: F, fontSize: "13px", color: "rgba(255,255,255,0.82)", lineHeight: 1.45, display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", textShadow: "0 1px 6px rgba(0,0,0,0.55)" }}>
-                <span>{r.displaySub}</span>
-                {r.climbDelta && <span style={{ display: "inline-flex", alignItems: "center", padding: "2px 7px", borderRadius: "999px", background: "rgba(45,176,74,0.35)", color: "#8CF0A6", fontSize: "10px", fontWeight: 900, letterSpacing: "0.4px" }}>+{r.climbDelta}</span>}
-              </div>
+      <div style={{ display: "flex", gap: "11px", alignItems: "center", minWidth: 0 }}>
+        {thumbItem ? (
+          <EntryThumb item={thumbItem} name={thumbName} isArtist={isArtists} size={thumbSize} accent={GOLD} />
+        ) : (
+          <div style={{ width: thumbSize, height: thumbSize, borderRadius: "10px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: isDark ? "#151915" : "#F0EDE7" }}>
+            <RecordIcon label={r.displayLabel} size={isMobile ? 26 : 30} />
+          </div>
+        )}
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontFamily: F, fontSize: "11px", letterSpacing: "1.5px", textTransform: "uppercase", color: GOLD, marginBottom: "4px" }}>{r.displayLabel}</div>
+          {r.certificationEntry ? (
+            <button
+              type="button"
+              onClick={(event) => { event.stopPropagation(); isArtists ? openArtistDetails(r.value) : openReleaseDetails(r.certificationEntry, isSingles ? "single" : "album"); }}
+              style={{ display: "block", border: 0, background: "transparent", padding: 0, fontFamily: SF, fontWeight: 800, fontSize: "15px", marginBottom: "2px", lineHeight: 1.2, cursor: "pointer", textAlign: "left", color: isDark ? "#F6F3EA" : "inherit", maxWidth: "100%", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+            >{r.value}</button>
+          ) : (
+            <div style={{ fontFamily: SF, fontWeight: 800, fontSize: "15px", marginBottom: "2px", lineHeight: 1.2, color: isDark ? "#F6F3EA" : "inherit", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.value}</div>
+          )}
+          {recordCertification && <CertificationTag cert={recordCertification} compact style={{ marginBottom: "2px" }} />}
+          <div style={{ fontFamily: F, fontSize: "13px", color: isDark ? "#AEB6AE" : "#69716B", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "flex", alignItems: "center", gap: "6px" }}>
+            <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{r.displaySub}</span>
+            {r.climbDelta && <span style={{ display: "inline-flex", flexShrink: 0, alignItems: "center", padding: "1px 6px", borderRadius: "999px", background: isDark ? "rgba(45,176,74,0.16)" : "#EAF8EF", color: isDark ? "#4FCB6F" : "#1E8E3E", fontSize: "10px", fontWeight: 900 }}>+{r.climbDelta}</span>}
+          </div>
+          {r.isCoverage && (
+            <div style={{ display: "flex", alignItems: "center", gap: "5px", fontFamily: F, fontSize: "10.5px", color: GOLD, fontWeight: 800, letterSpacing: "0.5px", marginTop: "6px" }}>
+              <span>{expanded ? `Hide ${releaseLabelLower}` : `View ${releaseLabelLower}`}</span>
+              <span style={{ fontSize: "11px", transform: expanded ? "rotate(180deg)" : "none", transition: "transform 0.22s ease", display: "inline-block" }}>▾</span>
             </div>
-          </div>
-        </>
-      ) : (
-        <div style={{ position: "relative", zIndex: 1, padding: isMobile ? "19px" : "24px", boxSizing: "border-box" }}>
-          <div style={{ position: "absolute", top: isMobile ? "8px" : "12px", right: isMobile ? "10px" : "14px" }}><RecordIcon label={r.displayLabel} size={isMobile ? 54 : 66} muted /></div>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "13px", position: "relative", zIndex: 1 }}>
-            <RecordIcon label={r.displayLabel} size={isMobile ? 28 : 30} />
-          </div>
-          <div style={{ fontFamily: F, fontSize: isMobile ? "10px" : "10.5px", fontWeight: 850, letterSpacing: "2px", textTransform: "uppercase", color: GOLD, marginBottom: "9px", position: "relative", zIndex: 1, lineHeight: 1.35 }}>{r.displayLabel}</div>
-          {valueNode}
-          <div style={{ fontFamily: F, fontSize: "13px", color: textMuted, lineHeight: 1.45, position: "relative", zIndex: 1, display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-            <span>{r.displaySub}</span>
-            {r.climbDelta && <span style={{ display: "inline-flex", alignItems: "center", padding: "2px 7px", borderRadius: "999px", background: isDark ? "rgba(45,176,74,0.16)" : "#EAF8EF", color: isDark ? "#4FCB6F" : "#1E8E3E", fontSize: "10px", fontWeight: 900, letterSpacing: "0.4px" }}>+{r.climbDelta}</span>}
-          </div>
+          )}
         </div>
-      )}
+      </div>
 
-      {r.isCoverage && (
-        <div className="ngoma-record-view-toggle" style={{ display: "flex", alignItems: "center", gap: "5px", fontFamily: F, fontSize: "10.5px", color: GOLD, fontWeight: 800, letterSpacing: "0.5px", padding: hasArt ? "0" : `0 ${isMobile ? "19px" : "24px"} ${isMobile ? "19px" : "24px"}`, margin: hasArt ? `0 ${isMobile ? "19px" : "24px"} ${isMobile ? "19px" : "24px"} ${isMobile ? "19px" : "24px"}` : "0", position: "relative", zIndex: 1 }}>
-          <span>{expanded ? `Hide ${releaseLabelLower}` : `View ${releaseLabelLower}`}</span>
-          <span style={{ fontSize: "11px", transform: expanded ? "rotate(180deg)" : "none", transition: "transform 0.22s ease", display: "inline-block" }}>▾</span>
-        </div>
-      )}
-
-      {expanded && (
-        <div style={{ position: "relative", zIndex: 1, margin: isMobile ? "0 19px 19px" : "0 24px 24px", paddingTop: "12px", borderTop: `1px solid ${dividerColor}`, background: cardBg, display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(2,minmax(0,1fr))", columnGap: "22px" }}>
+      {expanded && r.isCoverage && (
+        <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: `1px solid ${dividerColor}`, display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(2,minmax(0,1fr))", columnGap: "22px" }}>
           {fullCoverageClub.length ? fullCoverageClub.map((song, idx) => {
             const certification = getCertificationForEntry(song, isSingles ? "single" : "album");
             return (
@@ -123,100 +83,6 @@ function RecordCard({ r, expanded, onToggle, pool, ctx, theme }) {
               </div>
             );
           }) : <div style={{ fontFamily: F, fontSize: "12px", color: textMuted }}>No full-coverage entries found for this view.</div>}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// The headline overview tiles (New Entries, Re-Entries, Cross-Platform Hits,
-// Chart Leader) — the flat, no-bleed variant of the Records & Milestones card
-// below, so the two sections read as one system. Tiles that pin to a single
-// release (Chart Leader) show its thumbnail inline; tiles backed by a list
-// (New/Re-Entries, Cross-Platform Hits) are clickable and expand into that
-// list, each row carrying its own thumbnail — same pattern as "Perfect
-// Coverage Club" in Records & Milestones, just without a full-bleed background.
-function OverviewStatCard({ r, expanded, onToggle, ctx, theme }) {
-  const {
-    CertificationTag, F, GOLD, RecordIcon, SF,
-    getCertificationForEntry, isArtists, isMobile, isSingles,
-    openArtistDetails, openReleaseDetails, releaseLabelLower,
-  } = ctx;
-  const { textPrimary, textMuted, cardBg, dividerColor, rowBorder, recordCard } = theme;
-
-  const leaderCertification = !isArtists && r.certificationEntry ? getCertificationForEntry(r.certificationEntry, isSingles ? "single" : "album") : null;
-
-  const valueNode = r.certificationEntry ? (
-    <button
-      type="button"
-      onClick={(event) => { event.stopPropagation(); isArtists ? openArtistDetails(r.value) : openReleaseDetails(r.certificationEntry, isSingles ? "single" : "album"); }}
-      style={{ display: "block", border: 0, background: "transparent", padding: 0, fontFamily: SF, fontSize: isMobile ? "20px" : "21px", fontWeight: 900, lineHeight: 1.12, marginBottom: leaderCertification ? "7px" : "5px", cursor: "pointer", textAlign: "left", color: textPrimary }}
-    >{r.value}</button>
-  ) : (
-    <div style={{ fontFamily: SF, fontSize: isMobile ? "20px" : "21px", fontWeight: 900, lineHeight: 1.12, marginBottom: "5px", color: textPrimary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.value}</div>
-  );
-
-  return (
-    <div
-      className="ngoma-record-card"
-      onClick={r.list ? onToggle : undefined}
-      style={{
-        ...recordCard({ padding: 0, borderRadius: "16px" }),
-        position: "relative",
-        overflow: "hidden",
-        cursor: r.list ? "pointer" : "default",
-        gridColumn: expanded ? "1 / -1" : "auto",
-      }}
-    >
-      <div style={{ position: "relative", zIndex: 1, padding: isMobile ? "19px" : "24px", boxSizing: "border-box" }}>
-        <div style={{ position: "absolute", top: isMobile ? "8px" : "12px", right: isMobile ? "10px" : "14px" }}><RecordIcon label={r.displayLabel} size={isMobile ? 54 : 66} muted /></div>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "13px", position: "relative", zIndex: 1 }}>
-          {r.certificationEntry ? (
-            <EntryThumb item={r.certificationEntry} name={r.certificationEntry.artist || r.value} isArtist={isArtists} size={isMobile ? 34 : 38} accent={GOLD} />
-          ) : (
-            <RecordIcon label={r.displayLabel} size={isMobile ? 28 : 30} />
-          )}
-        </div>
-        <div style={{ fontFamily: F, fontSize: isMobile ? "10px" : "10.5px", fontWeight: 850, letterSpacing: "2px", textTransform: "uppercase", color: GOLD, marginBottom: "9px", position: "relative", zIndex: 1, lineHeight: 1.35 }}>{r.displayLabel}</div>
-        {valueNode}
-        {leaderCertification && <CertificationTag cert={leaderCertification} compact style={{ marginBottom: "6px" }} />}
-        <div style={{ fontFamily: F, fontSize: "13px", color: textMuted, lineHeight: 1.45, position: "relative", zIndex: 1 }}>{r.displaySub}</div>
-      </div>
-
-      {r.list && (isMobile ? (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px", padding: `10px ${isMobile ? "19px" : "24px"}`, borderTop: `1px solid ${dividerColor}`, position: "relative", zIndex: 1 }}>
-          <span style={{ fontFamily: F, fontSize: "10.5px", color: GOLD, fontWeight: 800, letterSpacing: "0.5px" }}>{expanded ? "Hide list" : "View list"}</span>
-          <span
-            aria-hidden="true"
-            style={{ width: "26px", height: "26px", borderRadius: "8px", border: `1px solid ${dividerColor}`, background: cardBg, color: GOLD, fontSize: "15px", fontWeight: 900, lineHeight: 1, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
-          >{expanded ? "-" : "+"}</span>
-        </div>
-      ) : (
-        <div className="ngoma-record-view-toggle" style={{ display: "flex", alignItems: "center", gap: "5px", fontFamily: F, fontSize: "10.5px", color: GOLD, fontWeight: 800, letterSpacing: "0.5px", padding: `0 24px 24px`, position: "relative", zIndex: 1 }}>
-          <span>{expanded ? "Hide list" : "View list"}</span>
-          <span style={{ fontSize: "11px", transform: expanded ? "rotate(180deg)" : "none", transition: "transform 0.22s ease", display: "inline-block" }}>▾</span>
-        </div>
-      ))}
-
-      {expanded && r.list && (
-        <div style={{ position: "relative", zIndex: 1, margin: isMobile ? "0 19px 19px" : "0 24px 24px", paddingTop: "12px", borderTop: `1px solid ${dividerColor}`, background: cardBg, display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(2,minmax(0,1fr))", columnGap: "22px" }}>
-          {r.list.length ? r.list.map((song, idx) => {
-            const certification = isArtists ? null : getCertificationForEntry(song, isSingles ? "single" : "album");
-            const name = isArtists ? (song.t || song.title) : (song.title || song.t);
-            return (
-              <div key={`${name}-${song.artist || song.a || idx}`} className="ngoma-coverage-row" style={{ display: "grid", gridTemplateColumns: "22px 42px minmax(0,1fr)", gap: "8px", alignItems: "center", padding: "8px 6px", fontFamily: F, borderBottom: `1px solid ${rowBorder}` }}>
-                <span style={{ fontSize: "10px", fontWeight: 900, color: GOLD }}>#{idx + 1}</span>
-                <EntryThumb item={song} name={song.artist || song.a || name} isArtist={isArtists} size={42} accent={GOLD} />
-                <span style={{ minWidth: 0 }}>
-                  <span style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
-                    <button type="button" onClick={(event) => { event.stopPropagation(); isArtists ? openArtistDetails(name) : openReleaseDetails(song, isSingles ? "single" : "album"); }} style={{ border: 0, background: "transparent", padding: 0, fontFamily: SF, fontSize: "12px", fontWeight: 850, color: textPrimary, cursor: "pointer", textAlign: "left" }}>{name}</button>
-                    {certification && <CertificationTag cert={certification} compact />}
-                  </span>
-                  {!isArtists && <span style={{ display: "block", fontSize: "11px", color: textMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{song.artist || song.a}</span>}
-                </span>
-              </div>
-            );
-          }) : <div style={{ fontFamily: F, fontSize: "12px", color: textMuted }}>{`No ${releaseLabelLower} found for this view.`}</div>}
         </div>
       )}
     </div>
@@ -271,7 +137,6 @@ export default function AnalyticsPage({ ctx }) {
     hof,
     isDark,
     isMobile,
-    isTablet,
     isArtists,
     isSingles,
     mvData,
@@ -295,11 +160,7 @@ export default function AnalyticsPage({ ctx }) {
     viewMode
   } = ctx;
 
-  const [openOverviewStat, setOpenOverviewStat] = useState(null);
-  const anRows = analyticsRowsFor(anMonth);
-  const anLeader = anRows.find(e => Number(e.rank) === 1) || anRows[0];
   const xHitsRows = crossPlatformRows.filter(e => e.count >= tp);
-  const xHitsCount = xHitsRows.length;
   const hofType = isArtists ? "artist" : (isSingles ? "single" : "album");
   const hofMonthIndex = new Map(MONTHS.map((monthLabel, index) => [monthLabel, index]));
   const hofEntryKey = (entry = {}) => {
@@ -338,26 +199,15 @@ export default function AnalyticsPage({ ctx }) {
   const hofLabel = isArtists ? "Artists" : (isSingles ? "Singles / Songs" : "Albums");
   const [platCompareView, setPlatCompareView] = useState("table");
 
-  // Records & Milestones theming — matches the standalone record cards' look
-  const recordGridColumns = isMobile ? "1fr" : isTablet ? "repeat(2,1fr)" : "repeat(3,1fr)";
-  const recordsCardBg = isDark ? "#141814" : "#FFFFFF";
-  const recordsCardBorder = isDark ? "#242923" : "#EFEDE7";
-  const recordsCardShadow = isDark ? "0 8px 24px rgba(0,0,0,0.32)" : "0 1px 3px rgba(0,0,0,0.02),0 8px 24px rgba(0,0,0,0.02)";
+  // Records & Milestones theming — matches the Hall of Fame rows' look
   const recordsTextPrimary = isDark ? "#F6F3EA" : "#1A1A1A";
   const recordsTextMuted = isDark ? "#8F968F" : "#59645D";
   const recordsDividerColor = isDark ? "#242923" : "#F0EEE8";
   const recordsRowBorder = isDark ? "#1E231E" : "#F2F0EA";
-  const recordCard = (extra = {}) => card({
-    background: recordsCardBg,
-    border: `1px solid ${recordsCardBorder}`,
-    boxShadow: recordsCardShadow,
-    ...extra,
-  });
   const recordsTheme = {
     isDark, isMobile,
     textPrimary: recordsTextPrimary, textMuted: recordsTextMuted,
-    cardBg: recordsCardBg, cardBorder: recordsCardBorder, cardShadow: recordsCardShadow,
-    dividerColor: recordsDividerColor, rowBorder: recordsRowBorder, recordCard,
+    dividerColor: recordsDividerColor, rowBorder: recordsRowBorder,
   };
 
   // Shared chart theming — every Recharts instance below reads from this so
@@ -401,26 +251,7 @@ export default function AnalyticsPage({ ctx }) {
             </div>
           </div>
 
-          {/* Overview stats — the headline snapshot, always visible */}
-          <div className="ngoma-detail-stat-grid anl-grid-4" style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(4,1fr)",gap:isMobile?"12px":"14px",...sectionGap}}>
-            {[
-              {displayLabel:"New Entries",value:mvData.new,displaySub:"not in prev month",list:mvData.newEntries},
-              {displayLabel:"Re-Entries",value:mvData.ret,displaySub:"returned to chart",list:mvData.reEntries},
-              {displayLabel:"Cross-Platform Hits",value:xHitsCount,displaySub:`on all ${tp} platforms`,list:xHitsRows},
-              {displayLabel:"Chart Leader",value:anLeader?.title||"—",displaySub:anLeader?.artist||"",certificationEntry:anLeader||null},
-            ].map((r,i)=>(
-              <OverviewStatCard
-                key={r.displayLabel}
-                r={r}
-                expanded={openOverviewStat===i}
-                onToggle={()=>setOpenOverviewStat(openOverviewStat===i?null:i)}
-                ctx={ctx}
-                theme={recordsTheme}
-              />
-            ))}
-          </div>
-
-          {/* Climbers & Fallers — what moved this month */}
+          {/* Climbers, Fallers, New Entries & Re-Entries — what moved this month */}
           <AnalyticsDeepSection label="Climbers & Drops" isMobile={isMobile}>
           <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px",...sectionGap}}>
             <div style={card()}>
@@ -436,7 +267,7 @@ export default function AnalyticsPage({ ctx }) {
                         <button type="button" onClick={()=>openReleaseDetails(s,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15,cursor:"pointer",textAlign:"left"}}>{s.t}</button>
                         {certification&&<CertificationTag cert={certification} compact />}
                       </div>
-                      <div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginTop:"3px"}}>{s.a}</div>
+                      {!isArtists && <div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginTop:"3px"}}>{s.a}</div>}
                     </div>
                   </div>
                   <div style={{textAlign:"right",fontFamily:F,whiteSpace:"nowrap",flexShrink:0}}>
@@ -461,7 +292,7 @@ export default function AnalyticsPage({ ctx }) {
                         <button type="button" onClick={()=>openReleaseDetails(s,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15,cursor:"pointer",textAlign:"left"}}>{s.t}</button>
                         {certification&&<CertificationTag cert={certification} compact />}
                       </div>
-                      <div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginTop:"3px"}}>{s.a}</div>
+                      {!isArtists && <div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginTop:"3px"}}>{s.a}</div>}
                     </div>
                   </div>
                   <div style={{textAlign:"right",fontFamily:F,whiteSpace:"nowrap",flexShrink:0}}>
@@ -473,12 +304,63 @@ export default function AnalyticsPage({ ctx }) {
               })}
               {!mvData.fallers.length&&<div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:"#CCC",padding:"20px 0",textAlign:"center"}}>No drops (debut month)</div>}
             </div>
+            <div style={card()}>
+              <div style={{...secLbl("#2DB04A"), fontSize:"20px"}}><SecMark c="#2DB04A"/>New Entries — {anMonth}</div>
+              {mvData.newEntries.slice(0,5).map((s,i)=>{
+                const certification = isArtists ? null : getCertificationForEntry(s, isSingles ? "single" : "album");
+                return (
+                <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:isMobile?"8px 0":"6px 0",borderBottom:"1px solid #F0F0EC"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:"10px",minWidth:0}}>
+                    <EntryThumb item={s} name={isArtists?s.title:s.artist} isArtist={isArtists} size={46} accent="#2DB04A" />
+                    <div style={{minWidth:0}}>
+                      <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
+                        <button type="button" onClick={()=>openReleaseDetails(s,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15,cursor:"pointer",textAlign:"left"}}>{s.title}</button>
+                        {certification&&<CertificationTag cert={certification} compact />}
+                      </div>
+                      {!isArtists && <div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginTop:"3px"}}>{s.artist}</div>}
+                    </div>
+                  </div>
+                  <div style={{textAlign:"right",fontFamily:F,whiteSpace:"nowrap",flexShrink:0}}>
+                    <div style={{display:"inline-flex",alignItems:"center",gap:"4px",background:"rgba(45,176,74,0.10)",borderRadius:"6px",padding:"3px 8px",color:"#2DB04A",fontSize:"12px",fontWeight:900}}>NEW</div>
+                    <div style={{fontSize:TXT.micro,color:"#7B857D",marginTop:"3px"}}>#{s.rank}</div>
+                  </div>
+                </div>
+                );
+              })}
+              {!mvData.newEntries.length&&<div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:"#CCC",padding:"20px 0",textAlign:"center"}}>No new entries (debut month)</div>}
+            </div>
+            <div style={card()}>
+              <div style={{...secLbl("#1565C0"), fontSize:"20px"}}><SecMark c="#1565C0"/>Re-Entries — {anMonth}</div>
+              {mvData.reEntries.slice(0,5).map((s,i)=>{
+                const certification = isArtists ? null : getCertificationForEntry(s, isSingles ? "single" : "album");
+                return (
+                <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:isMobile?"8px 0":"6px 0",borderBottom:"1px solid #F0F0EC"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:"10px",minWidth:0}}>
+                    <EntryThumb item={s} name={isArtists?s.title:s.artist} isArtist={isArtists} size={46} accent="#1565C0" />
+                    <div style={{minWidth:0}}>
+                      <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
+                        <button type="button" onClick={()=>openReleaseDetails(s,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15,cursor:"pointer",textAlign:"left"}}>{s.title}</button>
+                        {certification&&<CertificationTag cert={certification} compact />}
+                      </div>
+                      {!isArtists && <div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginTop:"3px"}}>{s.artist}</div>}
+                    </div>
+                  </div>
+                  <div style={{textAlign:"right",fontFamily:F,whiteSpace:"nowrap",flexShrink:0}}>
+                    <div style={{display:"inline-flex",alignItems:"center",gap:"4px",background:"rgba(21,101,192,0.10)",borderRadius:"6px",padding:"3px 8px",color:"#1565C0",fontSize:"12px",fontWeight:900}}>BACK</div>
+                    <div style={{fontSize:TXT.micro,color:"#7B857D",marginTop:"3px"}}>#{s.rank}</div>
+                  </div>
+                </div>
+                );
+              })}
+              {!mvData.reEntries.length&&<div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:"#CCC",padding:"20px 0",textAlign:"center"}}>No re-entries (debut month)</div>}
+            </div>
           </div>
           </AnalyticsDeepSection>
 
           {/* Cross-platform overlap */}
           <AnalyticsDeepSection label="Cross-Platform Reach" isMobile={isMobile}>
-          <div style={{...card(),...sectionGap}}>
+          <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px",...sectionGap}}>
+          <div style={card()}>
             <div style={{...secLbl(), fontSize:"20px"}}><SecMark/>Cross-Platform Reach — {anMonth}</div>
             <p style={{fontFamily:F,fontSize:"12px",color:"#59645D",margin:"-4px 0 12px",lineHeight:1.45}}>{releaseLabel} charting on most platforms simultaneously.</p>
             {crossPlatformRows.slice(0,8).map((s,i)=>{
@@ -492,7 +374,7 @@ export default function AnalyticsPage({ ctx }) {
                       <button type="button" onClick={()=>openReleaseDetails(s,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,cursor:"pointer",textAlign:"left"}}>{s.t}</button>
                       {certification&&<CertificationTag cert={certification} compact />}
                     </div>
-                    <div style={{fontSize:TXT.cardMeta,color:"#59645D",fontFamily:F,marginTop:"2px"}}>{s.a}</div>
+                    {!isArtists && <div style={{fontSize:TXT.cardMeta,color:"#59645D",fontFamily:F,marginTop:"2px"}}>{s.a}</div>}
                   </div>
                 </div>
                 <div style={{display:"flex",gap:"3px",alignItems:"center",flexShrink:0}}>
@@ -502,6 +384,30 @@ export default function AnalyticsPage({ ctx }) {
               </div>
               );
             })}
+          </div>
+          <div style={card()}>
+            <div style={{...secLbl("#00897B"), fontSize:"20px"}}><SecMark c="#00897B"/>Cross-Platform Hits — {anMonth}</div>
+            <p style={{fontFamily:F,fontSize:"12px",color:"#59645D",margin:"-4px 0 12px",lineHeight:1.45}}>{releaseLabel} charting on all {tp} tracked platforms at once.</p>
+            {xHitsRows.slice(0,8).map((s,i)=>{
+              const certification = isArtists ? null : getCertificationForEntry(s, isSingles ? "single" : "album");
+              return (
+              <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:"7px 0",borderBottom:"1px solid #F0F0EC"}}>
+                <div style={{display:"flex",alignItems:"center",gap:"10px",flex:1,minWidth:0}}>
+                  <EntryThumb item={s} name={isArtists?s.t:s.a} isArtist={isArtists} size={44} accent="#00897B" />
+                  <div style={{minWidth:0}}>
+                    <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
+                      <button type="button" onClick={()=>openReleaseDetails(s,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,cursor:"pointer",textAlign:"left"}}>{s.t}</button>
+                      {certification&&<CertificationTag cert={certification} compact />}
+                    </div>
+                    {!isArtists && <div style={{fontSize:TXT.cardMeta,color:"#59645D",fontFamily:F,marginTop:"2px"}}>{s.a}</div>}
+                  </div>
+                </div>
+                <div style={{display:"inline-flex",alignItems:"center",gap:"4px",background:"rgba(0,137,123,0.10)",borderRadius:"6px",padding:"3px 8px",color:"#00897B",fontSize:"12px",fontWeight:900,flexShrink:0}}>{s.count}/{currentPlatformKeys.length}</div>
+              </div>
+              );
+            })}
+            {!xHitsRows.length&&<div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:"#CCC",padding:"20px 0",textAlign:"center"}}>No full cross-platform hits this month</div>}
+          </div>
           </div>
           </AnalyticsDeepSection>
 
@@ -527,7 +433,7 @@ export default function AnalyticsPage({ ctx }) {
                   <XAxis dataKey="platform" tick={isMobile?false:axisTick(10)} tickLine={false} axisLine={false}/>
                   <YAxis domain={[dataMin => Math.max(0, Math.floor(dataMin * 0.9)), dataMax => Math.ceil(dataMax * 1.05)]} allowDecimals={false} tick={axisTick(isMobile?10.5:10)} axisLine={false} tickLine={false}/>
                   <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} cursor={{fill:barCursorFill}} formatter={v=>[v,"Combined entries"]}/>
-                  <Bar dataKey="entries" radius={[4,4,0,0]} maxBarSize={26}>{platTotalsData.map((e,i)=><Cell key={i} fill={e.color}/>)}</Bar>
+                  <Bar dataKey="entries" radius={[4,4,0,0]} maxBarSize={44}>{platTotalsData.map((e,i)=><Cell key={i} fill={e.color}/>)}</Bar>
                 </BarChart>
               </ResponsiveContainer>
               )}
@@ -560,7 +466,7 @@ export default function AnalyticsPage({ ctx }) {
                   <XAxis type="number" allowDecimals={false} tick={axisTick(10)} axisLine={false} tickLine={false}/>
                   <YAxis type="category" dataKey="code" width={38} tick={axisTick(11,{fontWeight:850})} axisLine={false} tickLine={false}/>
                   <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} cursor={{fill:barCursorFill}} formatter={(v,n)=>[v,n==="entries"?"Entries":"Points"]}/>
-                  <Bar dataKey="entries" radius={[0,4,4,0]} maxBarSize={22}>{topCountryData.map((entry)=><Cell key={entry.code} fill={entry.color}/>)}</Bar>
+                  <Bar dataKey="entries" radius={[0,4,4,0]} maxBarSize={36}>{topCountryData.map((entry)=><Cell key={entry.code} fill={entry.color}/>)}</Bar>
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -583,8 +489,8 @@ export default function AnalyticsPage({ ctx }) {
                       <div key={`${entry.title}-${entry.artist}`} style={{display:"flex",alignItems:"center",gap:"9px",padding:"6px 0",borderBottom:"1px solid "+(isDark?"#2F352F":"#F0F0EC")}}>
                         <EntryThumb item={entry} name={isArtists?entry.title:entry.artist} isArtist={isArtists} size={40} accent={platform.color} />
                         <div style={{minWidth:0}}>
-                          <button type="button" onClick={()=>openReleaseDetails(entry,isSingles?"single":"album")} style={{border:0,background:"transparent",padding:0,textAlign:"left",fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:850,color:isDark?"#F6F3EA":"#050505",cursor:"pointer"}}>{entry.title}</button>
-                          <div style={{fontFamily:F,fontSize:TXT.cardMeta,color:isDark?"#AEB6AE":"#69716B"}}>#{entry.rank} · {entry.artist}</div>
+                          <button type="button" onClick={()=>openReleaseDetails(entry,isArtists?"artist":(isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,textAlign:"left",fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:850,color:isDark?"#F6F3EA":"#050505",cursor:"pointer"}}>{entry.title}</button>
+                          <div style={{fontFamily:F,fontSize:TXT.cardMeta,color:isDark?"#AEB6AE":"#69716B"}}>{isArtists ? `#${entry.rank}` : `#${entry.rank} · ${entry.artist}`}</div>
                         </div>
                       </div>
                     ))}
@@ -598,49 +504,47 @@ export default function AnalyticsPage({ ctx }) {
                   <XAxis dataKey="label" tick={isMobile?false:axisTick(10)} tickLine={false} axisLine={false}/>
                   <YAxis allowDecimals={false} tick={axisTick(10)} axisLine={false} tickLine={false}/>
                   <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} cursor={{fill:barCursorFill}} formatter={v=>[v,"Unique entries"]}/>
-                  <Bar dataKey="count" radius={[4,4,0,0]} maxBarSize={26}>{uniquePlatformData.map((entry)=><Cell key={entry.platform} fill={entry.color}/>)}</Bar>
+                  <Bar dataKey="count" radius={[4,4,0,0]} maxBarSize={44}>{uniquePlatformData.map((entry)=><Cell key={entry.platform} fill={entry.color}/>)}</Bar>
                 </BarChart>
               </ResponsiveContainer>
             )}
           </div>
           </AnalyticsDeepSection>
 
-          {/* Records & Milestones — all-time achievements for the selected chart type */}
+          {/* Records & Milestones — all-time achievements for the selected chart type,
+              arranged like the Hall of Fame section below: one tinted card holding a
+              grid of small thumbnail rows instead of large art-bleed tiles. */}
           <AnalyticsDeepSection label="Records & Milestones" isMobile={isMobile}>
           <style>{`
-            .ngoma-record-card { transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease; }
-            .ngoma-record-card:hover { transform: translateY(-4px); border-color: ${GOLD}55 !important; }
-            .ngoma-record-card:hover .ngoma-record-art { transform: scale(1.05); }
-            .ngoma-record-art { transition: transform 0.5s ease, opacity 0.5s ease; animation: ngoma-record-art-fade 0.6s ease; }
-            @keyframes ngoma-record-art-fade { from { opacity: 0; } to { opacity: 1; } }
-            .ngoma-record-view-toggle { transition: gap 0.18s ease, color 0.18s ease; }
-            .ngoma-record-card:hover .ngoma-record-view-toggle { gap: 8px; }
             .ngoma-coverage-row { transition: background 0.16s ease; border-radius: 8px; }
             .ngoma-coverage-row:hover { background: ${isDark ? "rgba(184,134,11,0.08)" : "rgba(184,134,11,0.05)"}; }
           `}</style>
-          <p style={{fontFamily:F,fontSize:"13px",color:isDark?"#8F968F":"#69716B",margin:"-10px 0 14px",lineHeight:1.5}}>{chartTypeLabel} achievements calculated solely from published public Top 50 charts across all tracked months.</p>
-          <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:recordGridColumns,gap:isMobile?"14px":"16px",...sectionGap}}>
-            {currentRecords.map((r,i)=>{
-              const expanded = r.isCoverage && openRecord === i;
-              const pool = r.isCoverage ? fullCoverageClub : r.isTotalCount ? currentRecordsPool : [];
-              return (
-                <RecordCard
-                  key={`${r.displayLabel}-${r.value}`}
-                  r={r}
-                  expanded={expanded}
-                  onToggle={()=>{if(r.isCoverage)setOpenRecord(expanded?null:i);}}
-                  pool={pool}
-                  ctx={ctx}
-                  theme={recordsTheme}
-                />
-              );
-            })}
+          <div style={{...card(),...sectionGap}}>
+            <h3 style={{fontFamily:F,fontSize:"13px",fontWeight:700,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 6px"}}>{isMobile?"Records & Milestones":"Records & Milestones — All Time"}</h3>
+            <p style={{fontFamily:F,fontSize:"13px",color:isDark?"#8F968F":"#69716B",margin:"0 0 18px",lineHeight:1.5}}>{chartTypeLabel} achievements calculated solely from published public Top 50 charts across all tracked months.</p>
+            <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(3,1fr)",gap:"10px"}}>
+              {currentRecords.map((r,i)=>{
+                const expanded = r.isCoverage && openRecord === i;
+                const pool = r.isCoverage ? fullCoverageClub : r.isTotalCount ? currentRecordsPool : [];
+                return (
+                  <RecordRow
+                    key={`${r.displayLabel}-${r.value}`}
+                    r={r}
+                    expanded={expanded}
+                    onToggle={()=>{if(r.isCoverage)setOpenRecord(expanded?null:i);}}
+                    pool={pool}
+                    ctx={ctx}
+                    theme={recordsTheme}
+                  />
+                );
+              })}
+            </div>
           </div>
           </AnalyticsDeepSection>
 
           {hofItems.length > 0 && (
           <AnalyticsDeepSection label="Hall of Fame" isMobile={isMobile}>
-          <div style={{...card({marginBottom:isMobile?"20px":"26px"}),background:isDark?"#111208":"#FAF5EA",borderColor:GOLD+"44"}}>
+          <div style={card({marginBottom:isMobile?"20px":"26px"})}>
             <h3 style={{fontFamily:F,fontSize:"13px",fontWeight:700,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 18px"}}>{isMobile?"Monthly #1s":"Hall of Fame — Monthly #1s"}</h3>
             {(()=>{
               const HofSection = ({items, label}) => items.length === 0 ? null : (
@@ -648,7 +552,7 @@ export default function AnalyticsPage({ ctx }) {
                   <div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1.8px",textTransform:"uppercase",color:GOLD,marginBottom:"12px",paddingBottom:"6px",borderBottom:"1px solid "+GOLD+"33"}}>{label}</div>
                   <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(3,1fr)",gap:"10px"}}>
                     {items.map((e,i)=>(
-                      <div key={`${e.type}-${e.month}-${i}`} style={{display:"flex",gap:"11px",alignItems:"center",padding:"12px",background:isDark?"#1A1810":"#FFF",borderRadius:"8px",border:"1px solid "+GOLD+"33",minWidth:0}}>
+                      <div key={`${e.type}-${e.month}-${i}`} style={{display:"flex",gap:"11px",alignItems:"center",padding:"12px",background:isDark?"#151915":"#FAFAF8",borderRadius:"8px",border:"1px solid "+(isDark?"#242923":"#EFEDE7"),minWidth:0}}>
                         <EntryThumb item={e} name={isArtists?e.title:e.artist} isArtist={isArtists} size={isMobile?62:72} accent={GOLD} />
                         <div style={{minWidth:0}}>
                           <div style={{fontFamily:F,fontSize:"11px",letterSpacing:"1.5px",textTransform:"uppercase",color:GOLD,marginBottom:"4px"}}>{e.hofMonths.length > 1 ? `${e.hofMonths.length} months at #1` : e.month}</div>
@@ -679,18 +583,18 @@ export default function AnalyticsPage({ ctx }) {
             <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"minmax(0,1fr) auto minmax(0,1fr)",gap:isMobile?"10px":"12px",alignItems:"center",marginBottom:isMobile?"14px":"14px"}}>
               <div style={{minWidth:0}}>
                 {isMobile&&<div style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:GOLD,marginBottom:"6px"}}>{isArtists ? "Artist" : (isSingles?"Song":"Album")} One</div>}
-                <select value={cmpS1} onChange={e=>setCmpS1(e.target.value)} title={sp1?`${sp1.title} — ${sp1.artist}`:""} style={{width:"100%",minWidth:0,padding:isMobile?"11px 12px":"8px 10px",border:"1.5px solid "+GOLD+"55",borderRadius:"8px",background:"#FFF",fontSize:isMobile?"12px":"11px",fontFamily:F,fontWeight:700,cursor:"pointer",outline:"none",color:"#1F241F"}}>
+                <select value={cmpS1} onChange={e=>setCmpS1(e.target.value)} title={sp1?(isArtists?sp1.title:`${sp1.title} — ${sp1.artist}`):""} style={{width:"100%",minWidth:0,padding:isMobile?"11px 12px":"8px 10px",border:"1.5px solid "+GOLD+"55",borderRadius:"8px",background:"#FFF",fontSize:isMobile?"12px":"11px",fontFamily:F,fontWeight:700,cursor:"pointer",outline:"none",color:"#1F241F"}}>
                   {allTitles.map(t=><option key={t.key} value={t.key}>{t.title} — {t.artist}</option>)}
                 </select>
-                {isMobile&&sp1&&<div style={{marginTop:"7px",padding:"8px 10px",borderRadius:"9px",background:GOLD+"0B",fontFamily:F,lineHeight:1.35,color:"#1F241F",overflowWrap:"anywhere"}}><strong style={{display:"block",fontSize:"12px"}}>{sp1.title}</strong><span style={{display:"block",fontSize:"11px",color:"#59645D",marginTop:"2px"}}>{sp1.artist}</span></div>}
+                {isMobile&&sp1&&<div style={{marginTop:"7px",padding:"8px 10px",borderRadius:"9px",background:GOLD+"0B",fontFamily:F,lineHeight:1.35,color:"#1F241F",overflowWrap:"anywhere"}}><strong style={{display:"block",fontSize:"12px"}}>{sp1.title}</strong>{!isArtists && <span style={{display:"block",fontSize:"11px",color:"#59645D",marginTop:"2px"}}>{sp1.artist}</span>}</div>}
               </div>
               <span style={{fontFamily:F,fontSize:"11px",color:isDark?"#5A625A":"#8A928B",fontWeight:900,textAlign:"center",letterSpacing:"1px",textTransform:"uppercase",background:isDark?"#1A1E1A":"#F0EDE6",padding:"5px 12px",borderRadius:"999px",whiteSpace:"nowrap",alignSelf:"center"}}>vs</span>
               <div style={{minWidth:0}}>
                 {isMobile&&<div style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:"#1565C0",marginBottom:"6px"}}>{isArtists ? "Artist" : (isSingles?"Song":"Album")} Two</div>}
-                <select value={cmpS2} onChange={e=>setCmpS2(e.target.value)} title={sp2?`${sp2.title} — ${sp2.artist}`:""} style={{width:"100%",minWidth:0,padding:isMobile?"11px 12px":"8px 10px",border:"1.5px solid #1565C055",borderRadius:"8px",background:"#FFF",fontSize:isMobile?"12px":"11px",fontFamily:F,fontWeight:700,cursor:"pointer",outline:"none",color:"#1F241F"}}>
+                <select value={cmpS2} onChange={e=>setCmpS2(e.target.value)} title={sp2?(isArtists?sp2.title:`${sp2.title} — ${sp2.artist}`):""} style={{width:"100%",minWidth:0,padding:isMobile?"11px 12px":"8px 10px",border:"1.5px solid #1565C055",borderRadius:"8px",background:"#FFF",fontSize:isMobile?"12px":"11px",fontFamily:F,fontWeight:700,cursor:"pointer",outline:"none",color:"#1F241F"}}>
                   {allTitles.map(t=><option key={t.key} value={t.key}>{t.title} — {t.artist}</option>)}
                 </select>
-                {isMobile&&sp2&&<div style={{marginTop:"7px",padding:"8px 10px",borderRadius:"9px",background:"#1565C00B",fontFamily:F,lineHeight:1.35,color:"#1F241F",overflowWrap:"anywhere"}}><strong style={{display:"block",fontSize:"12px"}}>{sp2.title}</strong><span style={{display:"block",fontSize:"11px",color:"#59645D",marginTop:"2px"}}>{sp2.artist}</span></div>}
+                {isMobile&&sp2&&<div style={{marginTop:"7px",padding:"8px 10px",borderRadius:"9px",background:"#1565C00B",fontFamily:F,lineHeight:1.35,color:"#1F241F",overflowWrap:"anywhere"}}><strong style={{display:"block",fontSize:"12px"}}>{sp2.title}</strong>{!isArtists && <span style={{display:"block",fontSize:"11px",color:"#59645D",marginTop:"2px"}}>{sp2.artist}</span>}</div>}
               </div>
             </div>
             {sp1&&sp2&&(<>
@@ -705,7 +609,7 @@ export default function AnalyticsPage({ ctx }) {
                       <button type="button" onClick={()=>openReleaseDetails(d,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:"15px",fontWeight:800,lineHeight:1.2,whiteSpace:isMobile?"normal":"nowrap",overflow:isMobile?"visible":"hidden",textOverflow:isMobile?"clip":"ellipsis",overflowWrap:"anywhere",minWidth:0,cursor:"pointer",textAlign:"left",color:isDark?"#F6F3EA":"#1F241F"}}>{d.title}</button>
                       {isArtists ? null : getCertificationForEntry(d, isSingles ? "single" : "album")&&<CertificationTag cert={isArtists ? null : getCertificationForEntry(d, isSingles ? "single" : "album")} compact />}
                     </div>
-                    <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(d.artist);}} style={{display:"block",maxWidth:"100%",fontFamily:F,fontSize:"12px",color:isDark?"#F6F3EA":"#59645D",marginTop:"3px",padding:0,border:0,background:"transparent",fontWeight:700,whiteSpace:isMobile?"normal":"nowrap",overflow:isMobile?"visible":"hidden",textOverflow:isMobile?"clip":"ellipsis",overflowWrap:"anywhere",cursor:"pointer",textAlign:"left"}}>{d.artist}</button>
+                    {!isArtists && <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(d.artist);}} style={{display:"block",maxWidth:"100%",fontFamily:F,fontSize:"12px",color:isDark?"#F6F3EA":"#59645D",marginTop:"3px",padding:0,border:0,background:"transparent",fontWeight:700,whiteSpace:isMobile?"normal":"nowrap",overflow:isMobile?"visible":"hidden",textOverflow:isMobile?"clip":"ellipsis",overflowWrap:"anywhere",cursor:"pointer",textAlign:"left"}}>{d.artist}</button>}
                     </div>
                     </div>
                     {isMobile&&<button type="button" onClick={()=>openReleaseDetails(d,isArtists ? "artist" : (isSingles?"single":"album"))} style={{marginTop:"9px",border:"1px solid "+c+"55",borderRadius:"999px",background:isDark?"rgba(255,255,255,0.04)":"#FFF",color:isDark&&i===1?"#72A7E8":c,fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",padding:"7px 10px",cursor:"pointer"}}>View Details</button>}
@@ -810,8 +714,8 @@ export default function AnalyticsPage({ ctx }) {
                     <XAxis dataKey="platform" tick={axisTick(isMobile?9:9.5)} tickLine={false} axisLine={false} angle={isMobile?-30:0} textAnchor={isMobile?"end":"middle"}/>
                     <YAxis domain={[0,50]} tick={axisTick(10)} tickFormatter={v=>v===0?"":v===50?"#1":"#"+(51-v)} axisLine={false} tickLine={false} ticks={[0,10,20,30,40,50]}/>
                     <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} formatter={(v,n,p)=>["#"+(51-v),n==="aVal"?sp1.title:sp2.title]} cursor={{fill:barCursorFill}}/>
-                    <Bar dataKey="aVal" fill={GOLD} radius={[4,4,0,0]} maxBarSize={22} name="aVal"/>
-                    <Bar dataKey="bVal" fill="#1565C0" radius={[4,4,0,0]} maxBarSize={22} name="bVal"/>
+                    <Bar dataKey="aVal" fill={GOLD} radius={[4,4,0,0]} maxBarSize={32} name="aVal"/>
+                    <Bar dataKey="bVal" fill="#1565C0" radius={[4,4,0,0]} maxBarSize={32} name="bVal"/>
                   </BarChart>
                 </ResponsiveContainer>
                 </div>

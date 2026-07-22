@@ -2646,12 +2646,14 @@ const top = data[0];
   const releaseSingularLower = isArtists ? "artist" : (isSingles ? "song" : "album");
   const platformKeysFor = (chartType = releaseCt) => chartType === "artists" ? ARTIST_PLATS : (chartType === "singles" ? S_PLATS : A_PLATS).filter((platform) => platform !== "Combined");
   const currentPlatformKeys = platformKeysFor(ct);
-  // Mirrors getData()'s handling of the "Combined" tab: once a non-Kenya country/region is
-  // selected, "Combined" itself means that country's combined chart, so Analytics should
-  // read from the same scope rather than reverting to the fully global chart.
-  const analyticsDefaultPlatform = isRegionalChartScope(plat)
-    ? plat
-    : (plat === "Combined" && isNonKenyaCountryScope(selectedCountryScope) ? selectedCountryScope : "Combined");
+  // Analytics/Records/etc. (everything outside the Charts page itself) always reads the
+  // Combined chart — never a single platform's Top 50, regardless of which platform pill
+  // happens to be active on the Charts page. Only route through the narrower,
+  // country-tagged regional dataset when a non-Kenya country is actually selected: Kenya's
+  // "Combined" IS the real global Combined chart, not a country-tagged subset of it, so
+  // treating the default Kenya scope as regional here would silently shrink the dataset to
+  // just Kenya-tagged entries and starve things like Top 5 Countries of any diversity.
+  const analyticsDefaultPlatform = isNonKenyaCountryScope(selectedCountryScope) ? selectedCountryScope : "Combined";
   const analyticsRowsFor = (targetMonth, targetPlatform = analyticsDefaultPlatform) => isArtists
     ? buildArtistChart(targetMonth, targetPlatform)
     : (isRegionalChartScope(targetPlatform)
@@ -2813,7 +2815,11 @@ const top = data[0];
     const countryMap = new Map();
     analyticsRowsFor(anMonth).forEach((entry) => {
       const country = getArtistCountry(entry);
-      const code = country.code || "—";
+      const code = country.code;
+      // Skip entries with no resolvable artist country — the Top 5 should only ever
+      // surface real countries actually present in the chart entries, never a
+      // catch-all "unknown" bucket standing in for missing CMS data.
+      if (!code) return;
       const current = countryMap.get(code) || {
         code,
         country: country.country || code,
