@@ -222,7 +222,12 @@ export default function PremiumChartsPage({
   isDark = false,
 }) {
   const mobile = useRealMobile(isMobile);
-  const safeGutter = mobile ? "clamp(20px, 5vw, 28px)" : "28px";
+  const tablet = !mobile && isTablet;
+  const safeGutter = mobile ? "clamp(18px, 4.8vw, 26px)" : (tablet ? "clamp(22px, 3vw, 30px)" : "28px");
+  const heroSidePadding = mobile
+    ? safeGutter
+    : `max(${tablet ? "22px" : "28px"}, calc((100vw - ${pageMax}) / 2 + ${tablet ? "22px" : "28px"}))`;
+  const activePlatformPillRef = useRef(null);
   const [expandedRowKey, setExpandedRowKey] = useState(null);
   const [artistImageOverrides, setArtistImageOverrides] = useState({});
   const [publicDataRefreshKey, setPublicDataRefreshKey] = useState(() => {
@@ -1040,7 +1045,7 @@ export default function PremiumChartsPage({
   function yearEndTitleStyle(item) {
     const topThree = Number(item?.rank) <= 3;
     return {
-      fontSize: mobile ? (topThree ? "15px" : "13.5px") : (topThree ? "17px" : "15px"),
+      fontSize: mobile ? (topThree ? "14.5px" : "13.25px") : (tablet ? (topThree ? "16px" : "14.25px") : (topThree ? "17px" : "15px")),
       fontWeight: 850,
       ...(mobile
         ? { whiteSpace: "normal", overflow: "visible", textOverflow: "clip", overflowWrap: "anywhere" }
@@ -1055,6 +1060,15 @@ export default function PremiumChartsPage({
   useEffect(() => {
     setExpandedRowKey(null);
   }, [ct, month, plat, vc]);
+
+  useEffect(() => {
+    if (!mobile || !activePlatformPillRef.current) return;
+    activePlatformPillRef.current.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "center",
+    });
+  }, [mobile, plat, selectedCountryScope, ct]);
 
   function ChartToggle() {
     return (
@@ -1075,6 +1089,7 @@ export default function PremiumChartsPage({
                 borderColor: active ? chartAccent : (darkMode ? "transparent" : "rgba(0,0,0,0.14)"),
                 boxShadow: active ? `0 2px 10px ${chartAccentShadow}` : "none",
                 flex: mobile ? 1 : "initial",
+                minHeight: mobile ? "38px" : (tablet ? "36px" : undefined),
               }}
             >
               {item}
@@ -1184,8 +1199,8 @@ export default function PremiumChartsPage({
         }
         @media (max-width: 768px) {
           .ytc-masthead-heading {
-            font-size: 44px !important;
-            line-height: 1 !important;
+            font-size: 40px !important;
+            line-height: 1.02 !important;
             letter-spacing: 0 !important;
           }
         }
@@ -1193,6 +1208,18 @@ export default function PremiumChartsPage({
           .ngoma-mobile-table-row:hover {
             background: ${darkMode ? "#121612" : "#fbfaf7"} !important;
           }
+        }
+        .ngoma-source-selector-option {
+          background: var(--platform-pill-bg) !important;
+          color: var(--platform-pill-text) !important;
+          border-color: var(--platform-pill-border) !important;
+          box-shadow: var(--platform-pill-shadow) !important;
+        }
+        .ngoma-source-selector-option[aria-current="true"] {
+          background: var(--platform-pill-active-bg) !important;
+          color: var(--platform-pill-active-text) !important;
+          border-color: var(--platform-pill-active-border) !important;
+          box-shadow: var(--platform-pill-active-shadow) !important;
         }
       `}</style>
       <div
@@ -1221,8 +1248,8 @@ export default function PremiumChartsPage({
           margin: 0,
           boxSizing: "border-box",
           padding: mobile
-            ? `46px ${safeGutter}`
-            : `80px max(28px, calc((100vw - ${pageMax}) / 2 + 28px))`,
+            ? `40px ${safeGutter}`
+            : `${tablet ? "62px" : "80px"} ${heroSidePadding}`,
           opacity: loaded ? 1 : 0,
           transform: loaded ? "none" : "translateY(8px)",
           color: mastheadText,
@@ -1233,8 +1260,8 @@ export default function PremiumChartsPage({
           className="ngoma-hero-main"
           style={{
             ...styles.heroMain,
-            gridTemplateColumns: (!mobile && heroItems.length > 0) ? "minmax(0, 1fr) minmax(240px, 352px)" : "1fr",
-            gap: heroItems.length > 0 ? (mobile ? "32px" : "72px") : 0,
+            gridTemplateColumns: (!mobile && heroItems.length > 0) ? `minmax(0, 1fr) minmax(220px, ${tablet ? "300px" : "352px"})` : "1fr",
+            gap: heroItems.length > 0 ? (mobile ? "28px" : (tablet ? "44px" : "72px")) : 0,
             alignItems: "center",
             justifyContent: "space-between",
             zIndex: 2,
@@ -1256,11 +1283,11 @@ export default function PremiumChartsPage({
               style={{
                 ...styles.eyebrowRow,
                 color: mastheadMuted,
-                fontSize: mobile ? "15px" : "22px",
+                fontSize: mobile ? "14px" : (tablet ? "18px" : "22px"),
                 fontWeight: 650,
                 letterSpacing: 0,
                 textTransform: "none",
-                marginBottom: mobile ? "26px" : "28px",
+                marginBottom: mobile ? "20px" : (tablet ? "22px" : "28px"),
                 zIndex: 2,
               }}
             >
@@ -1274,15 +1301,15 @@ export default function PremiumChartsPage({
             </div>
 
             <h1
-              className="ytc-masthead-heading"
+              className="ytc-masthead-heading ngoma-chart-hero-title"
               aria-label={mastheadTitle}
               style={{
                 ...styles.heroTitle,
                 color: mastheadText,
                 fontFamily: F,
-                fontSize: mobile ? "44px" : (isTablet ? "64px" : "76px"),
+                fontSize: mobile ? "40px" : (tablet ? "56px" : "76px"),
                 letterSpacing: 0,
-                lineHeight: mobile ? 1 : 0.96,
+                lineHeight: mobile ? 1.02 : 0.98,
                 margin: 0,
                 textTransform: "none",
                 maxWidth: mobile ? "12ch" : "760px",
@@ -1296,14 +1323,14 @@ export default function PremiumChartsPage({
                 ...styles.heroMeta,
                 flexDirection: "column",
                 alignItems: "flex-start",
-                gap: mobile ? "26px" : "72px",
-                marginTop: mobile ? "20px" : "42px",
+                gap: mobile ? "20px" : (tablet ? "34px" : "72px"),
+                marginTop: mobile ? "18px" : (tablet ? "30px" : "42px"),
               }}
             >
               <p
                 style={{
                   margin: 0,
-                  fontSize: mobile ? "18px" : "24px",
+                  fontSize: mobile ? "16px" : (tablet ? "20px" : "24px"),
                   fontWeight: 650,
                   lineHeight: 1.42,
                   color: mastheadMuted,
@@ -1324,7 +1351,7 @@ export default function PremiumChartsPage({
                 <label
                   style={{
                     ...styles.mastheadPill,
-                    width: mobile ? "100%" : "212px",
+                    width: mobile ? "100%" : (tablet ? "190px" : "212px"),
                     background: "transparent",
                     backgroundColor: "transparent",
                     borderColor: mastheadBorder,
@@ -1386,7 +1413,7 @@ export default function PremiumChartsPage({
                   borderRadius: "8px",
                   overflow: "hidden",
                   background: `linear-gradient(135deg, ${chartAccent}42 0%, #cfd6d3 100%)`,
-                  width: mobile ? "min(72vw, 285px)" : "min(24vw, 352px)",
+                  width: mobile ? "min(74vw, 278px)" : (tablet ? "min(28vw, 300px)" : "min(24vw, 352px)"),
                   aspectRatio: "1 / 1",
                   cursor: "pointer",
                   boxShadow: cardShadow,
@@ -1454,7 +1481,7 @@ export default function PremiumChartsPage({
           boxSizing: "border-box",
           flexDirection: mobile ? "column" : "row",
           alignItems: mobile ? "stretch" : "center",
-          padding: mobile ? "16px 18px" : "16px 28px",
+          padding: mobile ? "14px 16px" : (tablet ? "14px 22px" : "16px 28px"),
         }}
       >
         <ChartToggle />
@@ -1463,7 +1490,7 @@ export default function PremiumChartsPage({
           <div
             style={{
               ...styles.platforms,
-              gap: mobile ? "9px" : "6px",
+              gap: mobile ? "8px" : (tablet ? "7px" : "6px"),
               flexWrap: mobile ? "nowrap" : "wrap",
               overflowX: mobile ? "auto" : "visible",
               paddingBottom: mobile ? "6px" : 0,
@@ -1485,10 +1512,21 @@ export default function PremiumChartsPage({
               return (
                 <button
                   key={item}
+                  ref={active ? activePlatformPillRef : null}
+                  className="ngoma-source-selector-option"
+                  aria-current={active ? "true" : undefined}
                   onClick={() => setPlat(item === "Kenyan" ? selectedCountryScope : item)}
                   style={{
                     ...styles.platformButton,
-                    padding: mobile ? "9px 15px" : "8px 12px",
+                    "--platform-pill-bg": darkMode ? "#151815" : "#ffffff",
+                    "--platform-pill-text": darkMode ? "#B8BDB8" : "#6b7280",
+                    "--platform-pill-border": darkMode ? "#2F352F" : "rgba(0,0,0,0.12)",
+                    "--platform-pill-shadow": "none",
+                    "--platform-pill-active-bg": color,
+                    "--platform-pill-active-text": ink,
+                    "--platform-pill-active-border": color,
+                    "--platform-pill-active-shadow": `0 2px 10px ${color}33`,
+                    padding: mobile ? "8px 13px" : (tablet ? "7px 10px" : "8px 12px"),
                     borderColor: active ? color : (darkMode ? "#2F352F" : "rgba(0,0,0,0.12)"),
                     background: active ? color : (darkMode ? "#151815" : "#ffffff"),
                     color: active ? ink : (darkMode ? "#B8BDB8" : "#6b7280"),
@@ -1523,13 +1561,13 @@ export default function PremiumChartsPage({
         }}
       >
         {mobile ? (
-          <div style={{...styles.mobileTableHeader, background: darkMode ? "#0f120f" : "#f0ede6", borderBottom: `2px solid ${chartAccentBorder}`, color: darkMode ? "#8a9288" : "#3d4440"}}>
+          <div className="ngoma-mobile-table-header" style={{...styles.mobileTableHeader, background: darkMode ? "#0f120f" : "#f0ede6", borderBottom: `2px solid ${chartAccentBorder}`, color: darkMode ? "#8a9288" : "#3d4440"}}>
             <span style={styles.mobileTableHeaderCell}>#</span>
             <span style={{...styles.mobileTableHeaderCell, textAlign: "left"}}>{isArtistsChart ? "Artist" : (isSingles ? "Song" : "Album")}</span>
             <span style={styles.mobileTableHeaderCell}>Info</span>
           </div>
         ) : (
-          <div style={{...styles.tableHeader, background: darkMode ? "#0f120f" : "#f0ede6", borderBottom: `2px solid ${chartAccentBorder}`, color: darkMode ? "#8a9288" : "#3d4440"}}>
+          <div className="ngoma-table-header" style={{...styles.tableHeader, ...(tablet ? { gridTemplateColumns: "48px 72px minmax(0, 1fr) 82px 74px 66px 58px", gap: "14px", padding: "11px 18px", fontSize: "9.5px" } : null), background: darkMode ? "#0f120f" : "#f0ede6", borderBottom: `2px solid ${chartAccentBorder}`, color: darkMode ? "#8a9288" : "#3d4440"}}>
             <span
               style={{ ...styles.headerCell, cursor: "pointer" }}
               onClick={() => handleSort("rank")}
@@ -1538,7 +1576,7 @@ export default function PremiumChartsPage({
               #{sortArrow("rank")}
             </span>
             <span style={styles.headerCell}>Move</span>
-            <span style={styles.headerEntryCell}>{isArtistsChart ? "Artist" : (isSingles ? "Song" : "Album")}</span>
+            <span style={{ ...styles.headerEntryCell, ...(tablet ? { paddingLeft: "52px" } : null) }}>{isArtistsChart ? "Artist" : (isSingles ? "Song" : "Album")}</span>
             <span
               style={{ ...styles.headerCell, cursor: "pointer" }}
               onClick={() => handleSort("monthsOnChart")}
@@ -1608,7 +1646,7 @@ export default function PremiumChartsPage({
                     </div>
 
                     <div style={styles.mobileDesktopEntryCell}>
-                      <ReleaseArtwork item={item} size={42} />
+                      <ReleaseArtwork item={item} size={40} />
                       <div style={styles.mobileDesktopEntryText}>
                         <button
                           onClick={(event) => {
@@ -1668,6 +1706,7 @@ export default function PremiumChartsPage({
                   className="ngoma-table-row"
                   style={{
                     ...styles.row,
+                    ...(tablet ? { gridTemplateColumns: "48px 72px minmax(0, 1fr) 82px 74px 66px 58px", gap: "14px", padding: "16px 18px" } : null),
                     background: darkMode ? "#0d0f0d" : "transparent",
                     color: darkMode ? "#fffdf7" : "#050505",
                     animationDelay: `${Math.min(index * 20, 400)}ms`,
@@ -1680,7 +1719,7 @@ export default function PremiumChartsPage({
                       color: medalColor,
                       justifySelf: "center",
                       textAlign: "center",
-                      fontSize: item.rank === 1 ? "26px" : item.rank <= 3 ? "22px" : undefined,
+                      fontSize: tablet ? (item.rank === 1 ? "24px" : item.rank <= 3 ? "20px" : "28px") : (item.rank === 1 ? "26px" : item.rank <= 3 ? "22px" : undefined),
                       fontWeight: item.rank <= 3 ? 950 : 900,
                     }}
                   >
@@ -1699,7 +1738,7 @@ export default function PremiumChartsPage({
                   </div>
 
                   <div style={styles.entryCell}>
-                    <ReleaseArtwork item={item} size={66} />
+                    <ReleaseArtwork item={item} size={tablet ? 58 : 66} />
 
                     <div style={styles.entryText}>
                       <div style={{ display: "flex", alignItems: "center", gap: "7px", flexWrap: "wrap" }}>
@@ -1724,9 +1763,9 @@ export default function PremiumChartsPage({
                     </div>
                   </div>
 
-                  <div style={{ ...styles.metaNumber, ...(darkMode ? styles.metaNumberDark : null) }}>{getMonthsOnChart(item)}</div>
-                  <div style={{ ...styles.metaNumber, ...(darkMode ? styles.metaNumberDark : null) }}>{profile.lastMonth}</div>
-                  <div style={{ ...styles.metaNumber, ...(darkMode ? styles.metaNumberDark : null) }}>{profile.peak}</div>
+                  <div style={{ ...styles.metaNumber, ...(tablet ? { fontSize: "13.5px" } : null), ...(darkMode ? styles.metaNumberDark : null) }}>{getMonthsOnChart(item)}</div>
+                  <div style={{ ...styles.metaNumber, ...(tablet ? { fontSize: "13.5px" } : null), ...(darkMode ? styles.metaNumberDark : null) }}>{profile.lastMonth}</div>
+                  <div style={{ ...styles.metaNumber, ...(tablet ? { fontSize: "13.5px" } : null), ...(darkMode ? styles.metaNumberDark : null) }}>{profile.peak}</div>
                   <button
                     type="button"
                     onClick={() => toggleRow(rowKey)}
@@ -1739,7 +1778,7 @@ export default function PremiumChartsPage({
                 </div>
 
                 {expanded && (
-                  <div style={{ ...styles.desktopExpandedDetails, ...(darkMode ? styles.desktopExpandedDetailsDark : null) }}>
+                  <div style={{ ...styles.desktopExpandedDetails, ...(tablet ? { margin: "0 18px 14px 132px", padding: "16px 18px" } : null), ...(darkMode ? styles.desktopExpandedDetailsDark : null) }}>
                     <DetailPanel
                       item={item}
                       profile={profile}

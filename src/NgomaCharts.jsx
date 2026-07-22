@@ -3121,18 +3121,18 @@ const top = data[0];
     setYearEndPlat("Combined");
   };
   const countryScopeSelectStyle=(compact=false, fullWidth=false)=>({
-    minWidth: fullWidth ? 0 : (compact ? "138px" : "154px"),
-    width: fullWidth ? "100%" : (compact ? "138px" : "154px"),
+    minWidth: fullWidth ? 0 : (compact ? "138px" : (isTablet ? "136px" : "154px")),
+    width: fullWidth ? "100%" : (compact ? "138px" : (isTablet ? "136px" : "154px")),
     maxWidth:"100%",
-    padding:compact?"8px 28px 8px 10px":"8px 30px 8px 11px",
+    padding:compact?"8px 28px 8px 10px":(isTablet?"7px 26px 7px 10px":"8px 30px 8px 11px"),
     borderRadius:"999px",
     border:`1px solid ${themeColors.border}`,
     background:isDark?"transparent":themeColors.elevated,
     color:themeColors.text,
     fontFamily:F,
-    fontSize:compact?"13px":"13px",
+    fontSize:compact?"13px":(isTablet?"12px":"13px"),
     fontWeight:850,
-    letterSpacing:compact?"0.4px":"0.7px",
+    letterSpacing:compact?"0.4px":(isTablet?"0.4px":"0.7px"),
     textTransform:"none",
     outline:"none",
     cursor:"pointer",
@@ -3862,7 +3862,7 @@ const top = data[0];
             {liveIndicator}
           </div>
         </div>
-          <div style={{...pageFrame({display:"flex",justifyContent:"space-between",alignItems:"center",padding:isMobile?"14px 16px":"18px 28px 22px"}),columnGap:isMobile?"16px":"60px",rowGap:"16px",flexWrap:"wrap"}}>
+          <div style={{...pageFrame({display:"flex",justifyContent:"space-between",alignItems:"center",padding:isMobile?"14px 16px":(isTablet?"16px 22px 18px":"18px 28px 22px")}),columnGap:isMobile?"16px":(isTablet?"24px":"60px"),rowGap:isTablet?"12px":"16px",flexWrap:"wrap"}}>
           <div onClick={()=>navTo("charts")} style={{display:"flex",alignItems:"center",gap:"14px",cursor:"pointer"}}>
             <svg width={isMobile?"24":"32"} height={isMobile?"26":"34"} viewBox="0 0 22 24" style={{flexShrink:0}}>
               <rect x="0" y="15" width="3.5" height="9" fill={themeColors.text} rx="0.5"/>
@@ -3874,9 +3874,9 @@ const top = data[0];
               <span
                 style={{
                   fontFamily:F,
-                  fontSize:isMobile?"20px":"28px",
+                  fontSize:isMobile?"20px":(isTablet?"24px":"28px"),
                   fontWeight:950,
-                  letterSpacing:isMobile?"2px":"4px",
+                  letterSpacing:isMobile?"2px":(isTablet?"2.8px":"4px"),
                   color:themeColors.text,
                   textTransform:"uppercase",
                 }}
@@ -3887,9 +3887,9 @@ const top = data[0];
                 style={{
                   marginTop:"4px",
                   fontFamily:F,
-                  fontSize:isMobile?"9.5px":"13px",
+                  fontSize:isMobile?"9.5px":(isTablet?"11px":"13px"),
                   fontWeight:900,
-                  letterSpacing:isMobile?"1.4px":"2.2px",
+                  letterSpacing:isMobile?"1.4px":(isTablet?"1.6px":"2.2px"),
                   color:themeColors.muted,
                   textTransform:"uppercase",
                   whiteSpace:"nowrap",
@@ -3931,9 +3931,9 @@ const top = data[0];
               )}
             </>
           ) : (
-            <nav style={{display:"flex",gap:"14px",fontFamily:F,fontSize:"13px",fontWeight:700,letterSpacing:"1.5px",textTransform:"uppercase",alignItems:"center",flexShrink:0,position:"relative"}}>
+            <nav style={{display:"flex",gap:isTablet?"8px":"14px",fontFamily:F,fontSize:isTablet?"11.5px":"13px",fontWeight:700,letterSpacing:isTablet?"0.9px":"1.5px",textTransform:"uppercase",alignItems:"center",flexShrink:0,position:"relative"}}>
               {primaryNavItems.map(t=>(
-                <span key={t} onClick={()=>navTo(t)} style={{color:page===t?themeColors.text:themeColors.muted,cursor:"pointer",whiteSpace:"nowrap",padding:"6px 12px",borderRadius:"20px",background:page===t?themeColors.active:"transparent",fontWeight:page===t?800:700,transition:"all 0.15s",border:page===t?"1px solid #D4B65E":"1px solid transparent"}}
+                <span key={t} onClick={()=>navTo(t)} style={{color:page===t?themeColors.text:themeColors.muted,cursor:"pointer",whiteSpace:"nowrap",padding:isTablet?"6px 8px":"6px 12px",borderRadius:"20px",background:page===t?themeColors.active:"transparent",fontWeight:page===t?800:700,transition:"all 0.15s",border:page===t?"1px solid #D4B65E":"1px solid transparent"}}
                   onMouseEnter={e=>{if(page!==t)e.currentTarget.style.color=themeColors.text;}}
                   onMouseLeave={e=>{if(page!==t)e.currentTarget.style.color=themeColors.muted;}}
                 >{navLabel(t)}</span>
@@ -3948,13 +3948,13 @@ const top = data[0];
                     cursor:"pointer",
                     color:moreNavItems.includes(page)?themeColors.text:themeColors.muted,
                     whiteSpace:"nowrap",
-                    padding:"6px 12px",
+                    padding:isTablet?"6px 8px":"6px 12px",
                     borderRadius:"20px",
                     background:moreNavItems.includes(page)?themeColors.active:"transparent",
                     fontFamily:F,
-                    fontSize:"13px",
+                    fontSize:isTablet?"11.5px":"13px",
                     fontWeight:moreNavItems.includes(page)?800:700,
-                    letterSpacing:"1.5px",
+                    letterSpacing:isTablet?"0.9px":"1.5px",
                     textTransform:"uppercase",
                     border:moreNavItems.includes(page)?"1px solid #D4B65E":"1px solid transparent",
                     display:"inline-flex",
