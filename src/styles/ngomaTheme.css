@@ -3139,7 +3139,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell select optgroup {
   flex-shrink: 0;
 }
 .cert-wall-card.diamond { border-left-color: #7b1fa2; }
-.cert-wall-card.platinum { border-left-color: #A9AFB5; }
+.cert-wall-card.platinum { border-left-color: #868C97; }
 .cert-wall-card.gold     { border-left-color: var(--ngoma-gold); }
 
 /* --- News publication layout --------------------------- */

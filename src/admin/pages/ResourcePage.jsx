@@ -1444,7 +1444,7 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
                         <span style={{ fontSize: 11, color: "#888" }}>Certifications:</span>
                         {r.certifications.map((c, i) => {
                           const lvl = typeof c === "string" ? c : c.level;
-                          const colors = { gold: ["#fef9e7","#b8860b"], platinum: ["#f4f4f4","#777"], diamond: ["#eef6ff","#1d6fa4"] };
+                          const colors = { gold: ["#fef9e7","#b8860b"], platinum: ["#f4f4f4","#868C97"], diamond: ["#eef6ff","#1d6fa4"] };
                           const [bg, fg] = colors[lvl] || ["#f0f0f0","#555"];
                           return <span key={i} style={{ fontSize: 11, fontWeight: 700, background: bg, color: fg, border: `1px solid ${fg}`, borderRadius: 4, padding: "2px 9px", textTransform: "capitalize" }}>{lvl}</span>;
                         })}

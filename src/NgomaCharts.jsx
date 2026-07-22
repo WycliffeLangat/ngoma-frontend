@@ -345,7 +345,7 @@ const readStoredCountryScope = () => {
 const GOLD=THEME_SETTING.primary || "#B8860B"; const SILVER="#8C8C8C"; const BRONZE="#CD7F32";
 // Distinct from SILVER (used for #2 rank medals elsewhere) so the Platinum
 // certification badge can read as a brighter silver-white on its own.
-const PLATINUM_SILVER="#A9AFB5";
+const PLATINUM_SILVER="#868C97";
 const MEDALS=[GOLD,SILVER,BRONZE];
 const SYSTEM_SANS = "'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
 const F = SYSTEM_SANS;
