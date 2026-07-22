@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getArtistImageUrl } from "../utils/artistImages.js";
-import { sameRelease } from "../utils/chartHelpers.js";
 import { API_BASE, resolveMediaUrl } from "../api/config.js";
 import {
   COUNTRY_ACCENTS,
@@ -10,7 +9,6 @@ import {
   isAfricaChart,
   isAfricaCountryChart,
 } from "../utils/africaRegions.js";
-import EntryThumb from "./EntryThumb.jsx";
 
 // Module-level cache: artist name (lowercase) → resolved image URL (or "" if none found).
 // Persists across re-renders and chart switches so each artist is only fetched once.
@@ -19,6 +17,25 @@ const _artistImgCache = new Map();
 function regionBadge(code) {
   const key = String(code || "").trim().toUpperCase();
   return { accent: COUNTRY_ACCENTS[key] || "#69716B" };
+}
+
+function readableInk(color) {
+  const raw = String(color || "").trim();
+  const hex = raw.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+  if (!hex) return "#050505";
+  let value = hex[1];
+  if (value.length === 3) {
+    value = value.split("").map((char) => char + char).join("");
+  }
+  const int = Number.parseInt(value, 16);
+  const srgb = [(int >> 16) & 255, (int >> 8) & 255, int & 255].map((channel) => {
+    const normalized = channel / 255;
+    return normalized <= 0.03928
+      ? normalized / 12.92
+      : Math.pow((normalized + 0.055) / 1.055, 2.4);
+  });
+  const luminance = 0.2126 * srgb[0] + 0.7152 * srgb[1] + 0.0722 * srgb[2];
+  return luminance > 0.35 ? "#050505" : "#ffffff";
 }
 
 function useRealMobile(isMobileFromParent) {
@@ -201,6 +218,7 @@ export default function PremiumChartsPage({
   pageMax = "1240px",
   certificationForEntry = () => null,
   CertificationTag = () => null,
+  isTablet = false,
   isDark = false,
 }) {
   const mobile = useRealMobile(isMobile);
@@ -342,8 +360,9 @@ export default function PremiumChartsPage({
   const headerCountryCode = isAfricaScope ? selectedAfricaCountryCode : selectedScopeCountryCode;
   const africaScopeLabel = headerIsAfricaScope ? africaChartLabel(headerScopeSource).replace(/\s+Top 50$/i, "") : "";
 
-  const chartTitle = "NGOMA TOP 50";
   const chartLabel = isArtistsChart ? "Artists" : (isSingles ? "Singles" : "Albums");
+  const mastheadSubject = isArtistsChart ? "Artists" : (isSingles ? "Songs" : "Albums");
+  const mastheadSubjectLower = mastheadSubject.toLowerCase();
   const regionalScopeLabel = headerIsAfricaScope
     ? (headerCountryCode === KENYA_COUNTRY_CODE ? "Kenyan" : africaScopeLabel)
     : "Kenyan";
@@ -356,20 +375,52 @@ export default function PremiumChartsPage({
   const countryDisplayName = headerIsAfricaScope
     ? (headerCountryCode === KENYA_COUNTRY_CODE ? "Kenya" : africaScopeLabel)
     : "Kenya";
-  const chartRegion = `(${countryDisplayName.toUpperCase()})`;
-  const chartDisplayTitle = `${chartTitle} ${chartRegion}`;
+  const countryAccent = COUNTRY_ACCENTS[headerCountryCode || selectedScopeCountryCode || KENYA_COUNTRY_CODE] || "#1A8A5A";
+  const isExplicitPlatformChart = Boolean(PC[plat]) && plat !== "Combined" && plat !== "Kenyan" && !isAfricaChart(plat);
   const platformLabel = liveChartMeta?.platform || (
+    isExplicitPlatformChart ? (PLAT_LABEL[plat] || plat) :
     (isKenyanChart || headerIsAfricaScope) ? regionalChartLabel :
     (plat === "Combined" ? "Combined" : PLAT_LABEL[plat] || plat)
   );
-  const chartAccent = isKenyanChart
-    ? COUNTRY_ACCENTS.KE
-    : isAfricaCountryChart(headerScopeSource)
-      ? (COUNTRY_ACCENTS[headerCountryCode] || "#1A8A5A")
-      : headerIsAfricaScope
-        ? "#1A8A5A"
-        : (plat === "Combined" ? GOLD : PC[plat] || GOLD);
-  const chartAccentInk = plat === "BOOMPLAY" ? "#007C7C" : chartAccent;
+  const chartAccent = isExplicitPlatformChart
+    ? (PC[plat] || GOLD)
+    : (plat === "Combined" || isKenyanChart || headerIsAfricaScope || isAfricaCountryChart(headerScopeSource))
+      ? countryAccent
+      : (PC[plat] || GOLD);
+  const chartAccentSoft = `${chartAccent}18`;
+  const chartAccentBorder = `${chartAccent}33`;
+  const chartAccentShadow = `${chartAccent}33`;
+  const chartAccentInk = readableInk(chartAccent);
+  function formatChartDate(value) {
+    if (!value) return "";
+    const raw = String(value);
+    const date = value instanceof Date ? value : new Date(raw.includes("T") ? raw : `${raw}T00:00:00`);
+    if (Number.isNaN(date.getTime())) return String(value);
+    return new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }).format(date);
+  }
+
+  function formatChartPeriod(meta = {}) {
+    const direct = meta.week_label || meta.period_label || meta.date_range || meta.range_label || meta.range;
+    if (direct) return String(direct);
+    const start = meta.week_start || meta.start_date || meta.period_start;
+    const end = meta.week_end || meta.end_date || meta.period_end;
+    if (start && end) return `${formatChartDate(start)} - ${formatChartDate(end)}`;
+    return month;
+  }
+
+  const mastheadMeta = liveChartMeta || {};
+  const mastheadPeriodLabel = formatChartPeriod(mastheadMeta);
+  const mastheadTitle = "NGOMA TOP 50";
+  const mastheadSubtitle = `${countryDisplayName}'s most popular ${mastheadSubjectLower} across Ngoma Charts.`;
+  const mastheadSurface = darkMode ? "#0b0e0b" : "#ffffff";
+  const mastheadText = darkMode ? "#f6f3ea" : "#050505";
+  const mastheadMuted = darkMode ? "rgba(246,243,234,0.64)" : "#59645d";
+  const mastheadBorder = darkMode ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.10)";
+  const mastheadAccentBorder = chartAccent;
 
   function movement(item) {
     const movementType = String(item.movement || item.movement_type || "").toLowerCase();
@@ -417,15 +468,15 @@ export default function PremiumChartsPage({
 
     if (m.type === "new") {
       return {
-        color: GOLD,
-        background: "rgba(184,134,11,0.14)",
+        color: chartAccent,
+        background: chartAccentSoft,
       };
     }
 
     if (m.type === "reentry") {
       return {
-        color: "#1565C0",
-        background: "rgba(21,101,192,0.12)",
+        color: chartAccent,
+        background: chartAccentSoft,
       };
     }
 
@@ -763,7 +814,7 @@ export default function PremiumChartsPage({
         <span
           style={{
             ...styles.detailCardLabel,
-            ...(mobile ? { fontSize: "9.5px" } : null),
+            ...(mobile ? { fontSize: "11px" } : null),
             ...(darkMode ? styles.detailCardLabelDark : null),
           }}
         >
@@ -772,7 +823,7 @@ export default function PremiumChartsPage({
         <span
           style={{
             ...styles.detailCardValue,
-            ...(mobile ? { fontSize: "13px" } : null),
+            ...(mobile ? { fontSize: "15px" } : null),
             ...(darkMode ? styles.detailCardValueDark : null),
             ...(accent && !darkMode ? { color: accent } : null),
           }}
@@ -1016,13 +1067,13 @@ export default function PremiumChartsPage({
               key={item}
               onClick={() => {
                 setCt(item);
-                setPlat((current) => current === "Kenyan" || isAfricaChart(current) ? current : "Combined");
               }}
               style={{
                 ...styles.toggleButton,
                 background: active ? chartAccent : (darkMode ? "transparent" : "#ffffff"),
-                color: active ? (darkMode ? "#F6F3EA" : "#090909") : (darkMode ? "#B8BDB8" : "#111111"),
+                color: active ? chartAccentInk : (darkMode ? "#B8BDB8" : "#111111"),
                 borderColor: active ? chartAccent : (darkMode ? "transparent" : "rgba(0,0,0,0.14)"),
+                boxShadow: active ? `0 2px 10px ${chartAccentShadow}` : "none",
                 flex: mobile ? 1 : "initial",
               }}
             >
@@ -1034,405 +1085,21 @@ export default function PremiumChartsPage({
     );
   }
 
-  const sourceLabel = new Date().toLocaleDateString(undefined, {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-
   const isCombinedChart = plat === "Combined" || isKenyanChart || isAfricaScope;
 
-  // A single continuously-scrolling "conveyor belt" strip of the full Top 50
-  // for whatever's active right now — Top Singles / Top Albums / Top Artists —
-  // rendered as cover-art cards (releases) or circular avatars (artists).
-  // Auto-scrolls via rAF (not a CSS animation) so it can be grabbed and
-  // dragged/flicked by the user to fast-track through the strip.
-  const marqueeItems = data;
-  const marqueeCardW = isArtistsChart ? (mobile ? 84 : 96) : (mobile ? 126 : 152);
-  const marqueeGap = isArtistsChart ? (mobile ? 16 : 22) : (mobile ? 12 : 16);
-  const MARQUEE_SPEED_PX_PER_SEC = 55; // "fair" pace — tuned so a card is comfortably readable as it passes
-
-  const marqueeViewportRef = useRef(null);
-  const marqueeTrackRef = useRef(null);
-  const marqueeHoveredRef = useRef(false);
-  const marqueeDragRef = useRef({
-    tracking: false,
-    dragging: false,
-    captured: false,
-    pointerId: null,
-    startX: 0,
-    startY: 0,
-    startScrollLeft: 0,
-    lastX: 0,
-    lastT: 0,
-    velocity: 0,
-    dragDistance: 0,
-    verticalDistance: 0,
-    suppressClickUntil: 0,
-  });
-
-  useEffect(() => {
-    const viewport = marqueeViewportRef.current;
-    const track = marqueeTrackRef.current;
-    if (!viewport || !track || !marqueeItems.length) return undefined;
-
-    const reduceMotion = typeof window !== "undefined" && window.matchMedia
-      ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
-      : false;
-
-    let rafId;
-    let lastTime = null;
-
-    const step = (time) => {
-      rafId = requestAnimationFrame(step);
-      if (lastTime === null) { lastTime = time; return; }
-      const dt = (time - lastTime) / 1000;
-      lastTime = time;
-      const drag = marqueeDragRef.current;
-      if (reduceMotion || drag.dragging || marqueeHoveredRef.current) return;
-      const setWidth = track.scrollWidth / 2;
-      if (setWidth <= 0) return;
-      let next = viewport.scrollLeft + MARQUEE_SPEED_PX_PER_SEC * dt;
-      if (next >= setWidth) next -= setWidth;
-      viewport.scrollLeft = next;
-    };
-
-    rafId = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(rafId);
-  }, [marqueeItems.length]);
-
-  function marqueeGlide(startVelocity) {
-    const viewport = marqueeViewportRef.current;
-    const track = marqueeTrackRef.current;
-    if (!viewport || !track) return;
-    let velocity = startVelocity;
-    let lastT = null;
-    const frame = (time) => {
-      if (marqueeDragRef.current.dragging) return;
-      if (lastT === null) { lastT = time; requestAnimationFrame(frame); return; }
-      const dt = (time - lastT) / 1000;
-      lastT = time;
-      velocity *= 0.94;
-      if (Math.abs(velocity) < 4) return;
-      const setWidth = track.scrollWidth / 2;
-      if (setWidth > 0) {
-        let next = viewport.scrollLeft + velocity * dt;
-        if (next < 0) next += setWidth;
-        if (next >= setWidth) next -= setWidth;
-        viewport.scrollLeft = next;
-      }
-      requestAnimationFrame(frame);
-    };
-    requestAnimationFrame(frame);
-  }
-
-  function handleMarqueePointerDown(event) {
-    const viewport = marqueeViewportRef.current;
-    if (!viewport) return;
-    if (event.pointerType === "mouse" && event.button !== 0) return;
-    const drag = marqueeDragRef.current;
-    drag.tracking = true;
-    drag.dragging = false;
-    drag.captured = false;
-    drag.pointerId = event.pointerId;
-    drag.startX = event.clientX;
-    drag.startY = event.clientY;
-    drag.startScrollLeft = viewport.scrollLeft;
-    drag.lastX = event.clientX;
-    drag.lastT = performance.now();
-    drag.velocity = 0;
-    drag.dragDistance = 0;
-    drag.verticalDistance = 0;
-    viewport.style.cursor = "grabbing";
-  }
-
-  function handleMarqueePointerMove(event) {
-    const drag = marqueeDragRef.current;
-    if (!drag.tracking) return;
-    const viewport = marqueeViewportRef.current;
-    const track = marqueeTrackRef.current;
-    if (!viewport || !track) return;
-    const dx = event.clientX - drag.startX;
-    const dy = event.clientY - drag.startY;
-    drag.dragDistance = Math.max(drag.dragDistance, Math.abs(dx));
-    drag.verticalDistance = Math.max(drag.verticalDistance, Math.abs(dy));
-
-    if (!drag.dragging) {
-      if (drag.verticalDistance > 8 && drag.verticalDistance > drag.dragDistance) {
-        drag.tracking = false;
-        drag.suppressClickUntil = performance.now() + 250;
-        viewport.style.cursor = "grab";
-        return;
-      }
-      if (drag.dragDistance <= 10 || drag.dragDistance <= drag.verticalDistance) return;
-      drag.dragging = true;
-      drag.captured = true;
-      viewport.setPointerCapture?.(event.pointerId);
-    }
-
-    const setWidth = track.scrollWidth / 2;
-    let next = drag.startScrollLeft - dx;
-    if (setWidth > 0) {
-      next = ((next % setWidth) + setWidth) % setWidth;
-    }
-    viewport.scrollLeft = next;
-    const now = performance.now();
-    const dt = now - drag.lastT;
-    if (dt > 0) drag.velocity = (event.clientX - drag.lastX) / dt;
-    drag.lastX = event.clientX;
-    drag.lastT = now;
-  }
-
-  function handleMarqueePointerUp(event) {
-    const drag = marqueeDragRef.current;
-    if (!drag.tracking && !drag.dragging) return;
-    const wasDragging = drag.dragging;
-    drag.dragging = false;
-    drag.tracking = false;
-    const viewport = marqueeViewportRef.current;
-    if (viewport) {
-      viewport.style.cursor = "grab";
-      if (drag.captured) viewport.releasePointerCapture?.(event.pointerId);
-    }
-    if (wasDragging || drag.dragDistance > 10 || drag.verticalDistance > 8) {
-      drag.suppressClickUntil = performance.now() + 250;
-      if (Math.abs(drag.velocity) > 0.03) marqueeGlide(-drag.velocity * 1000);
-    }
-    drag.captured = false;
-    drag.pointerId = null;
-  }
-
-  function handleMarqueeClickCapture(event) {
-    const drag = marqueeDragRef.current;
-    if (drag.suppressClickUntil && performance.now() < drag.suppressClickUntil) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-  }
-
-  const highlightLabelStyle = {
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    fontFamily: F,
-    fontSize: mobile ? "11px" : "12px",
-    fontWeight: 850,
-    letterSpacing: "1.6px",
-    textTransform: "uppercase",
-    color: darkMode ? "#F6F3EA" : "#1A1A1A",
-  };
-  const highlightCountStyle = {
-    marginLeft: "auto",
-    fontSize: "10px",
-    fontWeight: 700,
-    letterSpacing: "0.4px",
-    textTransform: "none",
-    color: darkMode ? "#8F968F" : "#69716B",
-  };
-  const edgeFadeStyle = (side = "right") => ({
-    position: "absolute",
-    top: 0,
-    [side]: 0,
-    bottom: 0,
-    width: "56px",
-    pointerEvents: "none",
-    zIndex: 2,
-    background: side === "right"
-      ? `linear-gradient(90deg, transparent, ${darkMode ? "#10140F" : "#FFFFFF"} 82%)`
-      : `linear-gradient(270deg, transparent, ${darkMode ? "#10140F" : "#FFFFFF"} 82%)`,
-  });
-
-  function renderMarqueeCard(item, key) {
-    if (isArtistsChart) {
-      const rank = Number(item.rank) || 0;
-      const medalColor = rank >= 1 && rank <= 3 ? MEDALS[rank - 1] : chartAccent;
-      return (
-        <button
-          type="button"
-          className="ngoma-artist-avatar"
-          key={key}
-          onClick={() => openRelease(item)}
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "9px",
-            width: marqueeCardW,
-            flexShrink: 0,
-            border: 0,
-            background: "transparent",
-            cursor: "pointer",
-            padding: 0,
-            fontFamily: F,
-          }}
-          title={item.title}
-        >
-          <div style={{ position: "relative" }}>
-            <EntryThumb item={item} name={item.title} isArtist size={marqueeCardW} accent={chartAccent} />
-            <span
-              style={{
-                position: "absolute",
-                bottom: "-4px",
-                right: "-4px",
-                minWidth: "20px",
-                height: "20px",
-                padding: "0 5px",
-                borderRadius: "999px",
-                background: medalColor,
-                color: "#050505",
-                fontSize: "10px",
-                fontWeight: 900,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                boxShadow: darkMode ? "0 0 0 2px #10140F" : "0 0 0 2px #ffffff",
-              }}
-            >
-              {rank}
-            </span>
-          </div>
-          <span
-            style={{
-              fontSize: mobile ? "11px" : "12px",
-              fontWeight: 700,
-              color: darkMode ? "#F6F3EA" : "#111111",
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              maxWidth: "100%",
-            }}
-          >
-            {item.title}
-          </span>
-        </button>
-      );
-    }
-
-    const art = getArtworkUrl(item);
-    const label = getArtworkLabel(item);
-    const mv = movement(item);
-    const mvStyle = movementStyle(item);
-    return (
-      <button
-        type="button"
-        className="ngoma-rising-card"
-        key={key}
-        onClick={() => openRelease(item)}
-        style={{
-          width: marqueeCardW,
-          flexShrink: 0,
-          border: 0,
-          background: "transparent",
-          cursor: "pointer",
-          padding: 0,
-          textAlign: "left",
-          fontFamily: F,
-        }}
-      >
-        <div
-          className="ngoma-rising-art"
-          style={{
-            position: "relative",
-            width: marqueeCardW,
-            height: marqueeCardW,
-            borderRadius: "13px",
-            overflow: "hidden",
-            background: `linear-gradient(135deg, ${chartAccent}44 0%, ${darkMode ? "#111" : "#e8e8e8"} 100%)`,
-            // Without its own compositing layer, this rounded/clipped box can
-            // fail to clip its absolutely-positioned children (rank number,
-            // NEW/RE badge) while the ancestor button is mid hover-transform —
-            // a known browser bug where content briefly leaks past the
-            // border-radius during a parent transform.
-            transform: "translateZ(0)",
-            WebkitMaskImage: "-webkit-radial-gradient(white, black)",
-          }}
-        >
-          {art ? (
-            <img src={art} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-          ) : (
-            <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", fontWeight: 900, color: chartAccent }}>{label}</div>
-          )}
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              background: "linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0) 46%)",
-              pointerEvents: "none",
-            }}
-          />
-          <span
-            style={{
-              position: "absolute",
-              left: "10px",
-              bottom: "8px",
-              fontSize: mobile ? "24px" : "30px",
-              fontWeight: 900,
-              color: "#FFFFFF",
-              lineHeight: 1,
-              letterSpacing: "-1px",
-              textShadow: "0 2px 10px rgba(0,0,0,0.5)",
-            }}
-          >
-            {item.rank}
-          </span>
-          {(mv.type === "new" || mv.type === "reentry") && (
-            <span
-              style={{
-                position: "absolute",
-                top: "8px",
-                right: "8px",
-                fontSize: "10px",
-                fontWeight: 900,
-                letterSpacing: "0.4px",
-                color: mvStyle.color,
-                background: darkMode ? "rgba(11,14,11,0.85)" : "rgba(255,255,255,0.92)",
-                borderRadius: "5px",
-                padding: "2px 6px",
-              }}
-            >
-              {mv.label}
-            </span>
-          )}
-        </div>
-        <div
-          style={{
-            marginTop: "9px",
-            fontSize: mobile ? "12px" : "13px",
-            fontWeight: 800,
-            color: darkMode ? "#F6F3EA" : "#050505",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          {item.title}
-        </div>
-        <div
-          style={{
-            fontSize: mobile ? "11px" : "12px",
-            color: darkMode ? "#8F968F" : "#69716B",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          {item.primary_artist || item.artist}
-        </div>
-      </button>
-    );
-  }
+  const mastheadItem = heroItems[slideIdx] || heroItems[0] || top || data[0] || null;
+  const mastheadItemIsArtist = Boolean(mastheadItem && (isArtistsChart || mastheadItem?.is_artist_entry));
+  const mastheadImageLabel = mastheadItem
+    ? (mastheadItemIsArtist
+        ? (mastheadItem.title || mastheadItem.n || mastheadItem.artist || "Featured artist")
+        : [mastheadItem.title || mastheadItem.t, mastheadItem.primary_artist || mastheadItem.artist_display || mastheadItem.artist || mastheadItem.a]
+            .filter(Boolean)
+            .join(" by "))
+    : `${mastheadTitle} artwork`;
 
   return (
     <>
       <style>{`
-        .ngoma-marquee-viewport { user-select: none; -webkit-user-select: none; }
-        .ngoma-marquee-viewport::-webkit-scrollbar { display: none; }
-        .ngoma-marquee-track { will-change: scroll-position; }
-        .ngoma-marquee-track a, .ngoma-marquee-track button { -webkit-user-drag: none; }
-        .ngoma-rising-card, .ngoma-artist-avatar { transition: transform 0.22s ease; }
-        .ngoma-rising-card:hover, .ngoma-rising-card:focus-visible { transform: translateY(-5px); }
-        .ngoma-artist-avatar:hover, .ngoma-artist-avatar:focus-visible { transform: translateY(-3px); }
         .ngoma-table-row {
           transition: transform 0.16s ease, box-shadow 0.16s ease;
           position: relative;
@@ -1440,7 +1107,7 @@ export default function PremiumChartsPage({
         }
         .ngoma-table-row:hover {
           transform: translateY(-2px) scale(1.003);
-          box-shadow: ${darkMode ? `0 10px 24px rgba(0,0,0,0.4), 0 0 0 1px ${chartAccent}40` : `0 10px 24px rgba(31,36,31,0.10), 0 0 0 1px ${chartAccent}30`};
+          box-shadow: ${darkMode ? `0 10px 24px rgba(0,0,0,0.4), 0 0 0 1px ${chartAccentBorder}` : `0 10px 24px rgba(31,36,31,0.10), 0 0 0 1px ${chartAccentBorder}`};
           z-index: 2;
         }
       `}</style>
@@ -1461,14 +1128,18 @@ export default function PremiumChartsPage({
           to   { opacity: 1; transform: none; }
         }
         .ngoma-hero-slide { animation: ngoma-slide-in 0.38s cubic-bezier(.22,.68,0,1.2) both; }
-        .ngoma-dot-btn { transition: width 0.32s ease, background 0.32s ease; }
-        .ngoma-carousel-arrow {
-          width: 30px; height: 30px; border-radius: 50%;
-          cursor: pointer; font-size: 16px; line-height: 1;
-          display: flex; align-items: center; justify-content: center;
-          backdrop-filter: blur(8px); transition: opacity 0.2s;
+        .ytc-masthead {
+          isolation: isolate;
         }
-        .ngoma-carousel-arrow:hover { opacity: 0.7; }
+        .ytc-masthead::before {
+          content: "";
+          position: absolute;
+          pointer-events: none;
+          inset: ${mobile ? "12px" : `18px max(18px, calc((100vw - ${pageMax}) / 2 + 18px)) 18px`};
+          border: 1px solid var(--ngoma-hero-border);
+          border-radius: 8px;
+          z-index: 1;
+        }
         .ngoma-chart-row-stripe:nth-child(even) { background: ${darkMode ? "#121612" : "transparent"} !important; }
         .ngoma-chart-row-stripe:nth-child(odd)  { background: ${darkMode ? "#0f120f" : "transparent"} !important; }
         .ngoma-mobile-table-row {
@@ -1477,58 +1148,99 @@ export default function PremiumChartsPage({
         .ngoma-mobile-table-row:active {
           transform: translateY(1px);
         }
+        .ytc-masthead-select {
+          appearance: none;
+          -webkit-appearance: none;
+          width: 100%;
+          border: 0 !important;
+          outline: 0;
+          background: transparent !important;
+          background-color: transparent !important;
+          color: ${mastheadText} !important;
+          font: inherit;
+          font-weight: 800;
+          padding: 0 28px 0 0;
+          cursor: pointer;
+        }
+        html[data-ngoma-theme="dark"] .ngoma-app-shell .ytc-masthead-select,
+        .ngoma-premium-charts-dark .ytc-masthead-select {
+          background: transparent !important;
+          background-color: transparent !important;
+          color: #f6f3ea !important;
+          border-color: transparent !important;
+          box-shadow: none !important;
+        }
+        .ytc-masthead-select option {
+          background: #ffffff;
+          color: #111111;
+        }
+        .ytc-masthead-select:focus-visible {
+          outline: 2px solid rgba(255,255,255,0.82);
+          outline-offset: 4px;
+          border-radius: 999px;
+        }
+        .ytc-masthead-heading {
+          letter-spacing: 0 !important;
+        }
+        @media (max-width: 768px) {
+          .ytc-masthead-heading {
+            font-size: 44px !important;
+            line-height: 1 !important;
+            letter-spacing: 0 !important;
+          }
+        }
         @media (hover: hover) {
           .ngoma-mobile-table-row:hover {
             background: ${darkMode ? "#121612" : "#fbfaf7"} !important;
           }
         }
       `}</style>
-      <div className={`ngoma-premium-charts ${darkMode ? "ngoma-premium-charts-dark" : ""}`} style={{...styles.page, padding: mobile ? `0 ${safeGutter} 28px` : "0 28px 34px", boxSizing: "border-box"}}>
-      <section
+      <div
+        className={`ngoma-premium-charts ${darkMode ? "ngoma-premium-charts-dark" : ""}`}
         style={{
-          ...styles.hero,
-          background: darkMode ? "#0b0e0b" : "#ffffff",
-          maxWidth: pageMax,
-          margin: "0 auto",
+          ...styles.page,
+          "--ngoma-chart-accent": chartAccent,
+          "--ngoma-chart-accent-soft": chartAccentSoft,
+          "--ngoma-chart-accent-border": chartAccentBorder,
+          "--ngoma-chart-accent-ink": chartAccentInk,
+          width: "100vw",
+          maxWidth: "100vw",
+          marginLeft: "calc(50% - 50vw)",
+          marginRight: "calc(50% - 50vw)",
+          padding: "0 0 34px",
           boxSizing: "border-box",
-          padding: mobile ? "28px 0 24px" : "42px 0 38px",
-          opacity: loaded ? 1 : 0,
-          transform: loaded ? "none" : "translateY(8px)",
         }}
       >
-
-        <div style={{...styles.heroGlow,background:`linear-gradient(120deg, ${chartAccent}12 0%, transparent 54%, ${chartAccent}08 100%)`}} />
-
-        <div
-          style={{
-            ...styles.eyebrowRow,
-            color: darkMode ? "rgba(255,255,255,0.5)" : "#69716b",
-            fontSize: mobile ? "10px" : "11px",
-            marginBottom: 0,
-          }}
-        >
-          <span style={{ opacity: 0.65, letterSpacing: "0.5px" }}>{sourceLabel}</span>
-          <span style={{color: chartAccent}}>/</span>
-          <span>{platformLabel}</span>
-          {liveChartLoading && (
-            <>
-              <span style={{color: chartAccent}}>/</span>
-              <span>Loading</span>
-            </>
-          )}
-        </div>
+      <section
+        className="ytc-masthead"
+        style={{
+          ...styles.hero,
+          "--ngoma-hero-border": mastheadAccentBorder,
+          background: mastheadSurface,
+          maxWidth: "100%",
+          margin: 0,
+          boxSizing: "border-box",
+          padding: mobile
+            ? `46px ${safeGutter}`
+            : `80px max(28px, calc((100vw - ${pageMax}) / 2 + 28px))`,
+          opacity: loaded ? 1 : 0,
+          transform: loaded ? "none" : "translateY(8px)",
+          color: mastheadText,
+        }}
+      >
 
         <div
           className="ngoma-hero-main"
           style={{
             ...styles.heroMain,
-            gridTemplateColumns: (!mobile && heroItems.length > 0) ? `minmax(260px, 1fr) auto` : "1fr",
-            gap: heroItems.length > 0 ? (mobile ? "22px" : "28px") : 0,
-            alignItems: "stretch",
+            gridTemplateColumns: (!mobile && heroItems.length > 0) ? "minmax(0, 1fr) minmax(240px, 352px)" : "1fr",
+            gap: heroItems.length > 0 ? (mobile ? "32px" : "72px") : 0,
+            alignItems: "center",
             justifyContent: "space-between",
+            zIndex: 2,
           }}
         >
-          {/* ── Left: chart title ── */}
+          {/* Left: chart title. */}
           <div
             style={{
               ...styles.heroLeft,
@@ -1540,56 +1252,111 @@ export default function PremiumChartsPage({
               justifyContent: "center",
             }}
           >
-            <h1
-              className="ngoma-chart-hero-title"
-              aria-label={chartDisplayTitle}
+            <div
               style={{
-                ...styles.heroTitle,
-                color: darkMode ? "rgba(255,255,255,0.92)" : "#050505",
-                fontSize: mobile ? "30px" : "72px",
-                letterSpacing: mobile ? "-0.45px" : "-2.6px",
-                lineHeight: mobile ? 0.96 : 0.9,
-                margin: mobile ? "28px 0 28px" : "38px 0 38px",
+                ...styles.eyebrowRow,
+                color: mastheadMuted,
+                fontSize: mobile ? "15px" : "22px",
+                fontWeight: 650,
+                letterSpacing: 0,
+                textTransform: "none",
+                marginBottom: mobile ? "26px" : "28px",
+                zIndex: 2,
               }}
             >
-              <span style={{ display: "block", whiteSpace: "nowrap" }}>{chartTitle}</span>
-              <span
-                style={{
-                  display: "block",
-                  marginTop: mobile ? "7px" : "10px",
-                  fontFamily: "Inter, Arial, sans-serif",
-                  fontSize: mobile ? "14px" : "24px",
-                  fontWeight: 900,
-                  lineHeight: 1,
-                  letterSpacing: mobile ? "2.4px" : "4px",
-                  color: chartAccentInk,
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {chartRegion}
-              </span>
+              <span style={{ color: countryAccent, fontWeight: 800 }}>{countryDisplayName}</span>
+              {liveChartLoading && (
+                <>
+                  <span style={{color: darkMode ? "rgba(255,255,255,0.42)" : "#a3aaa5"}}>/</span>
+                  <span>Loading</span>
+                </>
+              )}
+            </div>
+
+            <h1
+              className="ytc-masthead-heading"
+              aria-label={mastheadTitle}
+              style={{
+                ...styles.heroTitle,
+                color: mastheadText,
+                fontFamily: F,
+                fontSize: mobile ? "44px" : (isTablet ? "64px" : "76px"),
+                letterSpacing: 0,
+                lineHeight: mobile ? 1 : 0.96,
+                margin: 0,
+                textTransform: "none",
+                maxWidth: mobile ? "12ch" : "760px",
+              }}
+            >
+              {mastheadTitle}
             </h1>
 
             <div
               style={{
                 ...styles.heroMeta,
-                alignItems: "baseline",
+                flexDirection: "column",
+                alignItems: "flex-start",
+                gap: mobile ? "26px" : "72px",
+                marginTop: mobile ? "20px" : "42px",
               }}
             >
-              <span
+              <p
                 style={{
-                  fontSize: mobile ? "20px" : "24px",
-                  fontWeight: 850,
-                  letterSpacing: "-0.5px",
-                  color: darkMode ? "rgba(255,255,255,0.65)" : "#050505",
+                  margin: 0,
+                  fontSize: mobile ? "18px" : "24px",
+                  fontWeight: 650,
+                  lineHeight: 1.42,
+                  color: mastheadMuted,
+                  maxWidth: "620px",
                 }}
               >
-                {month}
-              </span>
+                {mastheadSubtitle}
+              </p>
+
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: mobile ? "10px" : "16px",
+                  width: mobile ? "100%" : "auto",
+                }}
+              >
+                <label
+                  style={{
+                    ...styles.mastheadPill,
+                    width: mobile ? "100%" : "212px",
+                    background: "transparent",
+                    backgroundColor: "transparent",
+                    borderColor: mastheadBorder,
+                    color: mastheadText,
+                  }}
+                >
+                  <span style={styles.screenReaderOnly}>Chart period</span>
+                  <select
+                    className="ytc-masthead-select"
+                    value={month}
+                    onChange={(event) => setMonth(event.target.value)}
+                    aria-label="Chart period"
+                  >
+                    {mastheadPeriodLabel !== month && (
+                      <option value={month}>{mastheadPeriodLabel}</option>
+                    )}
+                    {MONTHS.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                  <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ ...styles.mastheadPillIcon, color: mastheadText }}>
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </label>
+
+              </div>
             </div>
           </div>
 
-          {/* ── Right: full-bleed auto-sliding showcase, cycles the whole Top 50 ── */}
+          {/* Right: rotating cover-art tile. */}
           {heroItems.length > 0 && (() => {
             const item        = heroItems[slideIdx] || heroItems[0];
             const isArtist    = isArtistsChart || !!item?.is_artist_entry;
@@ -1597,25 +1364,6 @@ export default function PremiumChartsPage({
             const img         = isArtist
               ? (artistImageOverrides[String(item?.title || "").trim().toLowerCase()] || artProfile?.image || getArtworkUrl(item) || "")
               : getArtworkUrl(item);
-            const cardTitle   = isArtist
-              ? (item.title || item.n || item.a || "")
-              : (item.title || item.t || "");
-            const cardSub     = isArtist
-              ? [artProfile?.genre || item.genre, artProfile?.city_region || item.city_region].filter(Boolean).join(" · ")
-              : (item.primary_artist || item.artist_display || item.artist || item.a || "");
-            // All-time Combined Top 50 points: sum this release's Combined
-            // score across every month it has charted, not just the active
-            // tab's scope or the current month alone.
-            const pts = !isArtist
-              ? MONTHS.reduce((sum, m) => {
-                  const entry = (getCombined(ct, m) || []).find((e) => sameRelease(e, item));
-                  return sum + Number(entry?.total_points ?? entry?.pts ?? 0);
-                }, 0)
-              : Number(item.total_points ?? item.pts ?? 0);
-            const rank        = Number(item.rank || item.r || slideIdx + 1);
-            const mvmt        = movement(item);
-            const mvStyle     = movementStyle(item);
-            const cert        = isArtist ? null : certificationForEntry(item, isSingles ? "single" : "album");
             const pauseTimer  = () => clearInterval(slideTimerRef.current);
             const resumeTimer = () => {
               clearInterval(slideTimerRef.current);
@@ -1627,34 +1375,39 @@ export default function PremiumChartsPage({
               }
             };
 
-            const cardBorder = darkMode ? "#242923" : "#EFEDE7";
-            const cardShadow  = darkMode
-              ? `0 0 0 1px ${cardBorder}, 0 14px 36px rgba(0,0,0,0.5)`
-              : `0 0 0 1px ${cardBorder}, 0 14px 36px rgba(31,36,31,0.14)`;
-            const arrowBorder = `${chartAccent}99`;
-            const arrowBg     = `${chartAccent}44`;
-            const arrowColor  = chartAccent;
+            const cardBorder = "rgba(255,255,255,0.34)";
+            const cardShadow  = `0 0 0 1px ${cardBorder}, 0 28px 90px ${chartAccentShadow}, 0 24px 70px rgba(0,0,0,0.36)`;
 
             return (
               <div
-                className="ngoma-hero-showcase"
+                className="ngoma-hero-showcase ytc-masthead-art"
                 style={{
                   position: "relative",
-                  borderRadius: "22px",
+                  borderRadius: "8px",
                   overflow: "hidden",
-                  background: `linear-gradient(135deg, ${chartAccent}55 0%, ${darkMode ? "#161a16" : "#2a2a2a"} 100%)`,
-                  width: mobile ? "75%" : "clamp(240px, 24vw, 345px)",
+                  background: `linear-gradient(135deg, ${chartAccent}42 0%, #cfd6d3 100%)`,
+                  width: mobile ? "min(72vw, 285px)" : "min(24vw, 352px)",
                   aspectRatio: "1 / 1",
                   cursor: "pointer",
                   boxShadow: cardShadow,
-                  justifySelf: "end",
-                  marginRight: mobile ? 0 : "76px",
+                  justifySelf: "center",
+                  marginLeft: "auto",
+                  marginRight: "auto",
                 }}
                 onMouseEnter={pauseTimer}
                 onMouseLeave={resumeTimer}
                 onClick={() => openRelease(item)}
+                aria-label={`Open ${mastheadImageLabel || mastheadTitle}`}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    openRelease(item);
+                  }
+                }}
               >
-                {/* Full-bleed art */}
+                {/* Cover art */}
                 {img && (
                   <img
                     key={`hero-img-${slideIdx}`}
@@ -1664,112 +1417,26 @@ export default function PremiumChartsPage({
                     style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                   />
                 )}
-
-                {/* Bottom-up scrim so the details stay legible over the dominant image */}
-                <div style={{
-                  position: "absolute", inset: 0, pointerEvents: "none",
-                  background: "linear-gradient(0deg, rgba(6,7,6,0.92) 0%, rgba(6,7,6,0.72) 26%, rgba(6,7,6,0.2) 54%, rgba(6,7,6,0.02) 72%, rgba(6,7,6,0.22) 100%)",
-                }} />
-
-                {/* Rank number, top-right corner */}
-                <div
-                  key={`wm-${slideIdx}`}
-                  style={{
-                    position: "absolute", top: "16px", right: "20px",
-                    fontSize: "clamp(32px, 4vw, 44px)", fontWeight: 900, lineHeight: 1,
-                    fontFamily: F, color: "#FFFFFF",
-                    textShadow: "0 4px 16px rgba(0,0,0,0.55)",
-                    pointerEvents: "none", userSelect: "none",
-                    letterSpacing: "-1.5px", zIndex: 2,
-                  }}
-                >{rank}</div>
-
-                {/* Top-left type chip */}
-                <div style={{
-                  position: "absolute", top: "20px", left: "24px", zIndex: 2,
-                  display: "inline-flex", alignItems: "center", gap: "6px",
-                  padding: "6px 11px", borderRadius: "999px",
-                  background: "rgba(6,7,6,0.55)", backdropFilter: "blur(6px)",
-                  fontSize: "11px", fontWeight: 800, letterSpacing: "1px",
-                  textTransform: "uppercase", color: "#FFFFFF", fontFamily: F,
-                }}>
-                  <span>{isArtist ? "Artist" : isSingles ? "Single" : "Album"}</span>
-                </div>
-
-                {/* Text block, bottom */}
-                <div
-                  key={`slide-${slideIdx}`}
-                  className="ngoma-hero-slide"
-                  style={{ position: "absolute", left: "24px", right: "24px", bottom: "48px", zIndex: 2 }}
-                >
-                  <div style={{
-                    fontSize: "clamp(20px, 2.2vw, 27px)", fontWeight: 850,
-                    color: "#FFFFFF",
-                    lineHeight: 1.15, marginBottom: "6px",
-                    fontFamily: SF,
-                    textShadow: "0 2px 12px rgba(0,0,0,0.55)",
-                    overflow: "hidden",
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                  }}>{cardTitle || "—"}</div>
-
-                  {cardSub && (
-                    <div style={{
-                      fontSize: "14px",
-                      color: "rgba(255,255,255,0.82)",
-                      marginBottom: "12px",
-                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                {!img && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#ffffff",
                       fontFamily: F,
-                      textShadow: "0 1px 8px rgba(0,0,0,0.5)",
-                    }}>{cardSub}</div>
-                  )}
-
-                  <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
-                    {pts > 0 && (
-                      <span style={{
-                        fontSize: "12px", fontWeight: 700,
-                        color: "#FFFFFF",
-                        background: "rgba(255,255,255,0.16)",
-                        border: "1px solid rgba(255,255,255,0.3)",
-                        borderRadius: "5px", padding: "3px 9px",
-                        fontFamily: F,
-                        letterSpacing: "0.3px",
-                        backdropFilter: "blur(4px)",
-                      }}>{pts.toLocaleString()} pts</span>
-                    )}
-                    <span style={{
-                      fontSize: "12px", fontWeight: 800,
-                      color: mvStyle.color,
-                      background: "rgba(6,7,6,0.5)",
-                      borderRadius: "5px", padding: "3px 8px",
-                      fontFamily: F,
-                      backdropFilter: "blur(4px)",
-                    }}>{mvmt.label}</span>
-                    {cert && <CertificationTag entry={item} />}
+                      fontSize: mobile ? "42px" : "56px",
+                      fontWeight: 900,
+                      background: `linear-gradient(135deg, ${chartAccent}66 0%, rgba(255,255,255,0.16) 100%)`,
+                    }}
+                    aria-hidden="true"
+                  >
+                    {getArtworkLabel(item)}
                   </div>
-                </div>
+                )}
 
-                {/* Bottom-right: prev / next arrows */}
-                <div className="ngoma-hero-controls" style={{
-                  position: "absolute", right: "18px", bottom: "16px", zIndex: 2,
-                  display: "flex", gap: "6px",
-                }}>
-                  <button
-                    type="button"
-                    aria-label="Show previous entry"
-                    className="ngoma-carousel-arrow"
-                    style={{ borderColor: arrowBorder, background: arrowBg, color: arrowColor }}
-                    onClick={e => { e.stopPropagation(); setSlideIdx(i => (i - 1 + heroItems.length) % heroItems.length); }}
-                  >‹</button>
-                  <button
-                    type="button"
-                    aria-label="Show next entry"
-                    className="ngoma-carousel-arrow"
-                    style={{ borderColor: arrowBorder, background: arrowBg, color: arrowColor }}
-                    onClick={e => { e.stopPropagation(); setSlideIdx(i => (i + 1) % heroItems.length); }}
-                  >›</button>
-                </div>
               </div>
             );
           })()}
@@ -1781,7 +1448,7 @@ export default function PremiumChartsPage({
         style={{
           ...styles.controls,
           background: darkMode ? "#0b0e0b" : "#ffffff",
-          borderBottom: `1px solid ${darkMode ? "#1f261f" : "#EAEAE6"}`,
+          borderBottom: `1px solid ${chartAccentBorder}`,
           maxWidth: pageMax,
           margin: "0 auto",
           boxSizing: "border-box",
@@ -1791,21 +1458,6 @@ export default function PremiumChartsPage({
         }}
       >
         <ChartToggle />
-
-        <select
-          value={month}
-          onChange={(event) => setMonth(event.target.value)}
-          style={{
-            ...styles.select,
-            width: mobile ? "100%" : "auto",
-          }}
-        >
-          {MONTHS.map((item) => (
-            <option key={item} value={item}>
-              {item}
-            </option>
-          ))}
-        </select>
 
         <div style={mobile ? { position: "relative", width: "100%", minWidth: 0 } : { display: "contents" }}>
           <div
@@ -1826,8 +1478,8 @@ export default function PremiumChartsPage({
               const active = item === "Kenyan"
                 ? plat === selectedCountryScope
                 : plat === item;
-              const color = item === "Kenyan" ? chartAccent : (item === "Combined" ? GOLD : PC[item] || GOLD);
-              const ink = item === "BOOMPLAY" ? "#007C7C" : color;
+              const color = item === "Kenyan" ? countryAccent : (item === "Combined" ? GOLD : PC[item] || GOLD);
+              const ink = readableInk(color);
               const label = item === "Kenyan" ? regionalTop50Label : (item === "Combined" ? item : PLAT_LABEL[item] || item);
 
               return (
@@ -1838,8 +1490,9 @@ export default function PremiumChartsPage({
                     ...styles.platformButton,
                     padding: mobile ? "9px 15px" : "8px 12px",
                     borderColor: active ? color : (darkMode ? "#2F352F" : "rgba(0,0,0,0.12)"),
-                    background: active ? `${color}18` : (darkMode ? "#151815" : "#ffffff"),
+                    background: active ? color : (darkMode ? "#151815" : "#ffffff"),
                     color: active ? ink : (darkMode ? "#B8BDB8" : "#6b7280"),
+                    boxShadow: active ? `0 2px 10px ${color}33` : "none",
                     flexShrink: 0,
                   }}
                 >
@@ -1853,90 +1506,30 @@ export default function PremiumChartsPage({
 
       </section>
 
-      {marqueeItems.length > 0 && (
-        <section
-          style={{
-            maxWidth: pageMax,
-            margin: "0 auto",
-            padding: mobile ? "18px 18px 0" : "24px 28px 0",
-            boxSizing: "border-box",
-          }}
-        >
-          <div
-            style={{
-              background: darkMode ? "#10140F" : "#FFFFFF",
-              border: `1px solid ${darkMode ? "#242923" : "#EFEDE7"}`,
-              borderRadius: "18px",
-              boxShadow: darkMode ? "0 10px 28px rgba(0,0,0,0.34)" : "0 10px 28px rgba(31,36,31,0.05)",
-              padding: mobile ? "20px 0" : "26px 0",
-              boxSizing: "border-box",
-              overflow: "hidden",
-            }}
-          >
-            <div style={{ padding: mobile ? "0 18px 16px" : "0 26px 18px" }}>
-              <div style={highlightLabelStyle}>
-                <span style={{ width: "14px", height: "2px", borderRadius: "1px", background: chartAccent, display: "inline-block" }} />
-                Top {chartLabel}
-                <span style={highlightCountStyle}>{month}</span>
-              </div>
-            </div>
-            <div
-              ref={marqueeViewportRef}
-              className="ngoma-marquee-viewport"
-              style={{ position: "relative", overflow: "hidden", cursor: "grab", touchAction: "pan-y" }}
-              onPointerDown={handleMarqueePointerDown}
-              onPointerMove={handleMarqueePointerMove}
-              onPointerUp={handleMarqueePointerUp}
-              onPointerCancel={handleMarqueePointerUp}
-              onPointerLeave={(event) => { marqueeHoveredRef.current = false; handleMarqueePointerUp(event); }}
-              onPointerEnter={() => { marqueeHoveredRef.current = true; }}
-              onClickCapture={handleMarqueeClickCapture}
-            >
-              <div
-                ref={marqueeTrackRef}
-                className="ngoma-marquee-track"
-                style={{
-                  display: "flex",
-                  gap: `${marqueeGap}px`,
-                  width: "max-content",
-                  padding: mobile ? "0 18px 6px" : "0 26px 6px",
-                }}
-              >
-                {[0, 1].map((setIndex) =>
-                  marqueeItems.map((item) => renderMarqueeCard(item, `marquee-${setIndex}-${item.rank}-${item.title}`))
-                )}
-              </div>
-              <div style={edgeFadeStyle("left")} />
-              <div style={edgeFadeStyle("right")} />
-            </div>
-          </div>
-        </section>
-      )}
-
       <section
         style={{
           ...styles.tableShell,
           borderTop: mobile ? "none" : `3px solid ${chartAccent}`,
           maxWidth: pageMax,
-          width: "100%",
-          margin: mobile ? "16px auto 28px" : "24px auto 34px",
+          width: mobile ? "auto" : "100%",
+          margin: mobile ? `16px ${safeGutter} 28px` : "24px auto 34px",
           boxSizing: "border-box",
           borderRadius: 0,
           ...(mobile ? {
             background: darkMode ? "#0d0f0d" : "#ffffff",
-            border: `1px solid ${darkMode ? "#242923" : "#e4e1d8"}`,
+            border: `1px solid ${chartAccentBorder}`,
             boxShadow: darkMode ? "0 10px 28px rgba(0,0,0,0.28)" : "0 10px 28px rgba(31,36,31,0.05)",
           } : null),
         }}
       >
         {mobile ? (
-          <div style={{...styles.mobileTableHeader, background: darkMode ? "#0f120f" : "#f0ede6", borderBottom: `2px solid ${chartAccent}33`, color: darkMode ? "#8a9288" : "#3d4440"}}>
+          <div style={{...styles.mobileTableHeader, background: darkMode ? "#0f120f" : "#f0ede6", borderBottom: `2px solid ${chartAccentBorder}`, color: darkMode ? "#8a9288" : "#3d4440"}}>
             <span style={styles.mobileTableHeaderCell}>#</span>
             <span style={{...styles.mobileTableHeaderCell, textAlign: "left"}}>{isArtistsChart ? "Artist" : (isSingles ? "Song" : "Album")}</span>
             <span style={styles.mobileTableHeaderCell}>Info</span>
           </div>
         ) : (
-          <div style={{...styles.tableHeader, background: darkMode ? "#0f120f" : "#f0ede6", borderBottom: `2px solid ${chartAccent}33`, color: darkMode ? "#8a9288" : "#3d4440"}}>
+          <div style={{...styles.tableHeader, background: darkMode ? "#0f120f" : "#f0ede6", borderBottom: `2px solid ${chartAccentBorder}`, color: darkMode ? "#8a9288" : "#3d4440"}}>
             <span
               style={{ ...styles.headerCell, cursor: "pointer" }}
               onClick={() => handleSort("rank")}
@@ -2141,7 +1734,7 @@ export default function PremiumChartsPage({
                     aria-label={expanded ? "Hide chart details" : "Show chart details"}
                     aria-expanded={expanded}
                   >
-                    {expanded ? "▴" : "▾"}
+                    {expanded ? "-" : "+"}
                   </button>
                 </div>
 
@@ -2201,13 +1794,6 @@ const styles = {
     maxWidth: "100%",
   },
 
-  heroGlow: {
-    position: "absolute",
-    inset: 0,
-    background: "transparent",
-    pointerEvents: "none",
-  },
-
   eyebrowRow: {
     position: "relative",
     display: "flex",
@@ -2221,7 +1807,7 @@ const styles = {
   },
 
   eyebrowDivider: {
-    color: "#B8860B",
+    color: "var(--ngoma-chart-accent)",
   },
 
   heroMain: {
@@ -2280,6 +1866,44 @@ const styles = {
     textTransform: "uppercase",
   },
 
+  mastheadPill: {
+    position: "relative",
+    display: "inline-flex",
+    alignItems: "center",
+    minHeight: "44px",
+    padding: "0 16px",
+    borderRadius: "999px",
+    border: "1px solid rgba(255,255,255,0.28)",
+    background: "transparent",
+    color: "#050505",
+    fontSize: "17px",
+    fontWeight: 800,
+    lineHeight: 1,
+    boxSizing: "border-box",
+    backdropFilter: "none",
+  },
+
+  mastheadPillIcon: {
+    position: "absolute",
+    right: "14px",
+    top: "50%",
+    transform: "translateY(-50%)",
+    color: "#ffffff",
+    pointerEvents: "none",
+  },
+
+  screenReaderOnly: {
+    position: "absolute",
+    width: "1px",
+    height: "1px",
+    padding: 0,
+    margin: "-1px",
+    overflow: "hidden",
+    clip: "rect(0, 0, 0, 0)",
+    whiteSpace: "nowrap",
+    border: 0,
+  },
+
   numberOneCard: {
     background: "#ffffff",
     border: "1px solid rgba(0,0,0,0.08)",
@@ -2299,7 +1923,7 @@ const styles = {
     marginTop: "12px",
     lineHeight: 0.85,
     fontWeight: 950,
-    color: "#B8860B",
+    color: "var(--ngoma-chart-accent)",
   },
 
   numberOneTitle: {
@@ -2333,8 +1957,8 @@ const styles = {
     marginTop: "18px",
     padding: "8px 13px",
     borderRadius: "999px",
-    background: "rgba(184,134,11,0.14)",
-    color: "#B8860B",
+    background: "var(--ngoma-chart-accent-soft)",
+    color: "var(--ngoma-chart-accent)",
     fontSize: "12px",
     fontWeight: 900,
   },
@@ -2448,8 +2072,8 @@ const styles = {
   tableRange: {
     padding: "10px 14px",
     borderRadius: "999px",
-    background: "rgba(184,134,11,0.14)",
-    color: "#B8860B",
+    background: "var(--ngoma-chart-accent-soft)",
+    color: "var(--ngoma-chart-accent)",
     fontSize: "13px",
     fontWeight: 900,
     letterSpacing: "1px",
@@ -2469,7 +2093,7 @@ const styles = {
     fontWeight: 900,
     letterSpacing: "0.9px",
     textTransform: "uppercase",
-    borderBottom: "2px solid rgba(184,134,11,0.20)",
+    borderBottom: "2px solid var(--ngoma-chart-accent-border)",
   },
 
   headerCell: {
@@ -2603,7 +2227,7 @@ const styles = {
     borderRadius: "10px",
     background: "#fbfaf7",
     color: "#555555",
-    fontSize: "18px",
+    fontSize: "20px",
     fontWeight: 900,
     lineHeight: 1,
     cursor: "pointer",
@@ -2683,7 +2307,7 @@ const styles = {
     borderRadius: "14px",
     background: "#fbfaf7",
     color: "#555555",
-    fontSize: "18px",
+    fontSize: "22px",
     fontWeight: 900,
     lineHeight: 1,
     cursor: "pointer",
@@ -2755,7 +2379,7 @@ const styles = {
 
   detailCardLabel: {
     display: "block",
-    fontSize: "11px",
+    fontSize: "12px",
     color: "#777777",
     fontWeight: 900,
     letterSpacing: "1px",
@@ -2770,7 +2394,7 @@ const styles = {
     display: "block",
     marginTop: "4px",
     color: "#050505",
-    fontSize: "15px",
+    fontSize: "17px",
     fontWeight: 900,
     lineHeight: 1.28,
     overflowWrap: "anywhere",
@@ -2812,13 +2436,13 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: "linear-gradient(135deg, #d4af37 0%, #b88914 100%)",
+    background: "linear-gradient(135deg, var(--ngoma-chart-accent) 0%, #111111 100%)",
     border: "1px solid rgba(0,0,0,0.08)",
     boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 6px 18px rgba(0,0,0,0.12)",
   },
 
   flagText: {
-    color: "#111111",
+    color: "var(--ngoma-chart-accent-ink)",
     fontSize: "13px",
     fontWeight: 900,
     letterSpacing: "1.2px",

@@ -3127,16 +3127,16 @@ const top = data[0];
     padding:compact?"8px 28px 8px 10px":"8px 30px 8px 11px",
     borderRadius:"999px",
     border:`1px solid ${themeColors.border}`,
-    background:themeColors.elevated,
+    background:isDark?"transparent":themeColors.elevated,
     color:themeColors.text,
     fontFamily:F,
-    fontSize:compact?"11px":"11px",
+    fontSize:compact?"13px":"13px",
     fontWeight:850,
     letterSpacing:compact?"0.4px":"0.7px",
     textTransform:"none",
     outline:"none",
     cursor:"pointer",
-    boxShadow:isDark?"0 0 0 1px rgba(255,255,255,0.02)":"0 4px 14px rgba(0,0,0,0.035)",
+    boxShadow:isDark?"none":"0 4px 14px rgba(0,0,0,0.035)",
   });
   const CountryScopeSelect=({compact=false, fullWidth=false}={})=>(
     <select
@@ -3931,7 +3931,7 @@ const top = data[0];
               )}
             </>
           ) : (
-            <nav style={{display:"flex",gap:"14px",fontFamily:F,fontSize:"11px",fontWeight:700,letterSpacing:"1.5px",textTransform:"uppercase",alignItems:"center",flexShrink:0,position:"relative"}}>
+            <nav style={{display:"flex",gap:"14px",fontFamily:F,fontSize:"13px",fontWeight:700,letterSpacing:"1.5px",textTransform:"uppercase",alignItems:"center",flexShrink:0,position:"relative"}}>
               {primaryNavItems.map(t=>(
                 <span key={t} onClick={()=>navTo(t)} style={{color:page===t?themeColors.text:themeColors.muted,cursor:"pointer",whiteSpace:"nowrap",padding:"6px 12px",borderRadius:"20px",background:page===t?themeColors.active:"transparent",fontWeight:page===t?800:700,transition:"all 0.15s",border:page===t?"1px solid #D4B65E":"1px solid transparent"}}
                   onMouseEnter={e=>{if(page!==t)e.currentTarget.style.color=themeColors.text;}}
@@ -3952,7 +3952,7 @@ const top = data[0];
                     borderRadius:"20px",
                     background:moreNavItems.includes(page)?themeColors.active:"transparent",
                     fontFamily:F,
-                    fontSize:"11px",
+                    fontSize:"13px",
                     fontWeight:moreNavItems.includes(page)?800:700,
                     letterSpacing:"1.5px",
                     textTransform:"uppercase",
@@ -3963,11 +3963,11 @@ const top = data[0];
                   }}
                   onMouseEnter={e=>{e.currentTarget.style.color=themeColors.text;e.currentTarget.style.background=moreNavItems.includes(page)?themeColors.active:themeColors.hover;}}
                   onMouseLeave={e=>{e.currentTarget.style.color=moreNavItems.includes(page)?themeColors.text:themeColors.muted;e.currentTarget.style.background=moreNavItems.includes(page)?themeColors.active:"transparent";}}
-                >More <span style={{fontSize:"10px",lineHeight:1}}>{moreOpen?"▴":"▾"}</span></button>
+                >More <span style={{fontSize:"16px",lineHeight:1}}>{moreOpen?"-":"+"}</span></button>
                 {moreOpen&&(
                   <div role="menu" style={{position:"absolute",right:0,top:"calc(100% + 10px)",minWidth:"176px",padding:"8px",borderRadius:"14px",background:themeColors.elevated,border:`1px solid ${themeColors.border}`,boxShadow:isDark?"0 18px 35px rgba(0,0,0,0.36)":"0 18px 35px rgba(31,36,31,0.14)",zIndex:80}}>
                     {moreNavItems.map(t=>(
-                      <button key={t} type="button" role="menuitem" onClick={()=>navTo(t)} style={{display:"flex",width:"100%",alignItems:"center",justifyContent:"space-between",border:0,borderRadius:"10px",background:page===t?themeColors.active:"transparent",color:page===t?themeColors.text:themeColors.muted,padding:"10px 11px",fontFamily:F,fontSize:"11px",fontWeight:page===t?850:750,letterSpacing:"1.1px",textTransform:"uppercase",cursor:"pointer",textAlign:"left"}}
+                      <button key={t} type="button" role="menuitem" onClick={()=>navTo(t)} style={{display:"flex",width:"100%",alignItems:"center",justifyContent:"space-between",border:0,borderRadius:"10px",background:page===t?themeColors.active:"transparent",color:page===t?themeColors.text:themeColors.muted,padding:"10px 11px",fontFamily:F,fontSize:"13px",fontWeight:page===t?850:750,letterSpacing:"1.1px",textTransform:"uppercase",cursor:"pointer",textAlign:"left"}}
                         onMouseEnter={e=>{e.currentTarget.style.color=themeColors.text;e.currentTarget.style.background=page===t?themeColors.active:themeColors.hover;}}
                         onMouseLeave={e=>{e.currentTarget.style.color=page===t?themeColors.text:themeColors.muted;e.currentTarget.style.background=page===t?themeColors.active:"transparent";}}
                       >{navLabel(t)}<span aria-hidden="true" style={{color:GOLD}}>›</span></button>
