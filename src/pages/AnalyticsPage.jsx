@@ -1,4 +1,16 @@
 import { useState } from "react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import EntryThumb from "../components/EntryThumb.jsx";
 import { useRotatingArt } from "../hooks/useRotatingArt.js";
 
@@ -92,16 +104,10 @@ function RecordRow({ r, expanded, onToggle, pool, ctx, theme }) {
 export default function AnalyticsPage({ ctx }) {
   const {
     AnalyticsDeepSection,
-    Bar,
-    BarChart,
     CC,
-    CartesianGrid,
-    Cell,
     CertificationTag,
     F,
     GOLD,
-    Line,
-    LineChart,
     MEDALS,
     MONTHS,
     PAD,
@@ -109,15 +115,11 @@ export default function AnalyticsPage({ ctx }) {
     PLATS_FOR,
     PLAT_LABEL,
     RecordIcon,
-    ResponsiveContainer,
     SF,
     SecMark,
     TXT,
     Tog,
-    Tooltip,
     ViewToggle,
-    XAxis,
-    YAxis,
     allTitles,
     anMonth,
     analyticsRowsFor,
