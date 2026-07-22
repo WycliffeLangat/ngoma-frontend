@@ -66,11 +66,37 @@ export default function YearEndPage({ ctx }) {
 
           {/* Full list */}
           {isMobile ? (
-            <div style={{display:"grid",gap:"10px"}}>
+            <div style={{
+              border:"1px solid "+(isDark?"#242923":"#e4e1d8"),
+              borderRadius:"14px",
+              overflow:"hidden",
+              background:isDark?"#0d0f0d":"#ffffff",
+              boxShadow:isDark?"0 10px 28px rgba(0,0,0,0.28)":"0 10px 28px rgba(31,36,31,0.05)",
+            }}>
+              <div style={{
+                display:"grid",
+                gridTemplateColumns:"38px minmax(0,1fr) 34px",
+                gap:"9px",
+                alignItems:"center",
+                padding:"10px 12px",
+                fontSize:"9px",
+                fontWeight:900,
+                letterSpacing:"0.8px",
+                textTransform:"uppercase",
+                background:isDark?"#0f120f":"#f0ede6",
+                borderBottom:"2px solid "+(isDark?"#2F352F":"#e4e1d8"),
+                color:isDark?"#8a9288":"#3d4440",
+              }}>
+                <span style={{textAlign:"center"}}>#</span>
+                <span>{isArtists?"ARTIST":"TITLE"}</span>
+                <span style={{textAlign:"center"}}>INFO</span>
+              </div>
+
               {yearEnd.slice(0,50).map((item,idx)=>{
                 const rowKey = `${item.t}-${item.a}-${idx}`;
                 const expanded = Boolean(expandedYearEndRows[rowKey]);
                 const t3 = idx < 3;
+                const isLast = idx === Math.min(yearEnd.length,50)-1;
                 const medalColor = t3 ? MEDALS[idx] : (isDark?"#F6F3EA":"#050505");
                 const itemTypeLabel = isArtists ? "Artist" : (isSingles ? "Single" : "Album");
                 const certification = isArtists ? null : getCertificationForEntry(item, isSingles ? "single" : "album");
@@ -93,13 +119,9 @@ export default function YearEndPage({ ctx }) {
                   <div
                     key={rowKey}
                     style={{
-                      padding:"15px 16px",
-                      border:"1px solid "+(isDark?"rgba(255,255,255,0.12)":"rgba(0,0,0,0.08)"),
-                      borderRadius:"16px",
-                      background:isDark?"#0F120F":"#FFF",
+                      borderBottom:isLast?"none":"1px solid "+(isDark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.08)"),
+                      background:isDark?"#0d0f0d":"#ffffff",
                       color:isDark?"#F6F3EA":"#050505",
-                      boxShadow:expanded ? (isDark?"inset 4px 0 0 #B8860B, 0 8px 22px rgba(0,0,0,0.26)":"inset 4px 0 0 #B8860B, 0 8px 22px rgba(0,0,0,0.045)") : (isDark?"0 2px 10px rgba(0,0,0,0.16)":"0 2px 10px rgba(0,0,0,0.025)"),
-                      transition:"background 180ms ease, box-shadow 180ms ease, transform 180ms ease",
                     }}
                   >
                     <div
@@ -108,17 +130,21 @@ export default function YearEndPage({ ctx }) {
                       aria-expanded={expanded}
                       style={{
                         display:"grid",
-                        gridTemplateColumns:"34px minmax(0,1fr) 38px",
-                        gap:"10px",
+                        gridTemplateColumns:"38px minmax(0,1fr) 34px",
+                        gap:"9px",
                         alignItems:"center",
                         cursor:"pointer",
                         minWidth:0,
+                        padding:"12px 10px 12px 8px",
+                        borderLeft:"3px solid "+(idx===0?GOLD:"transparent"),
+                        boxSizing:"border-box",
+                        ...(expanded ? { boxShadow:`inset 4px 0 0 ${GOLD}` } : null),
                       }}
                     >
-                      <div style={{fontSize:t3?"32px":"26px",fontWeight:950,lineHeight:1,color:medalColor,textAlign:"center",fontFamily:F}}>{idx+1}</div>
+                      <div style={{fontSize:t3?"20px":"16px",fontWeight:950,lineHeight:1,color:medalColor,textAlign:"center",fontFamily:F}}>{idx+1}</div>
 
                       <div style={{display:"flex",alignItems:"center",gap:"11px",minWidth:0,maxWidth:"100%"}}>
-                        <div style={{width:"46px",height:"46px",minWidth:"46px",borderRadius:"10px",overflow:"hidden",flexShrink:0,background:isDark?"#1A1E1A":"#F0EDE7",position:"relative"}}>
+                        <div style={{width:"42px",height:"42px",minWidth:"42px",borderRadius:"10px",overflow:"hidden",flexShrink:0,background:isDark?"#1A1E1A":"#F0EDE7",position:"relative"}}>
                           {item.cover_image
                             ? <img src={item.cover_image} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",display:"block"}} loading="lazy"/>
                             : <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:isDark?"#1e221e":"#e8e5de"}}><svg viewBox="0 0 24 24" width="40%" height="40%" fill="none"><circle cx="12" cy="12" r="3" fill={isDark?"#4a524a":"#a8a09a"}/><path d="M9 12a3 3 0 1 0 6 0V6l4-1" stroke={isDark?"#4a524a":"#a8a09a"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
@@ -137,20 +163,21 @@ export default function YearEndPage({ ctx }) {
                               margin:0,
                               textAlign:"left",
                               fontFamily:SF,
-                              fontSize:t3?"18px":"16.5px",
+                              fontSize:t3?"15px":"13.5px",
                               fontWeight:850,
                               lineHeight:1.15,
                               color:isDark?"#F6F3EA":"#050505",
-                              whiteSpace:"nowrap",
-                              overflow:"hidden",
-                              textOverflow:"ellipsis",
+                              whiteSpace:"normal",
+                              overflow:"visible",
+                              textOverflow:"clip",
+                              overflowWrap:"anywhere",
                               cursor:"pointer",
                             }}
                           >
                             {item.t}
                           </button>
                           {isArtists ? (
-                            <div style={{margin:"4px 0 0",fontFamily:F,fontSize:"13px",fontWeight:700,lineHeight:1.35,color:isDark?"#8a9288":"#59645D",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
+                            <div style={{margin:"4px 0 0",fontFamily:F,fontSize:"12px",fontWeight:700,lineHeight:1.35,color:isDark?"#8a9288":"#59645D",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
                               {item.entries || 0} {item.entries===1?"entry":"entries"} · {item.months} {item.months===1?"month":"months"}
                             </div>
                           ) : (
@@ -166,7 +193,7 @@ export default function YearEndPage({ ctx }) {
                                 margin:"4px 0 0",
                                 textAlign:"left",
                                 fontFamily:F,
-                                fontSize:"14px",
+                                fontSize:"12.5px",
                                 fontWeight:700,
                                 lineHeight:1.35,
                                 color:isDark?"#D7DBD7":"#59645D",
@@ -183,38 +210,36 @@ export default function YearEndPage({ ctx }) {
                         </div>
                       </div>
 
-                      <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:"6px",minWidth:0}}>
-                        <button
-                          type="button"
-                          onClick={(event)=>{event.stopPropagation();toggleYearEndRow(rowKey);}}
-                          aria-label={expanded ? "Hide year-end details" : "Show year-end details"}
-                          aria-expanded={expanded}
-                          style={{
-                            width:"38px",
-                            height:"34px",
-                            border:"1px solid "+(isDark?"rgba(255,255,255,0.14)":"rgba(0,0,0,0.08)"),
-                            borderRadius:"14px",
-                            background:isDark?"#151915":"#FBFAF7",
-                            color:isDark?"#F6F3EA":"#555",
-                            fontSize:"18px",
-                            fontWeight:900,
-                            lineHeight:1,
-                            cursor:"pointer",
-                            display:"flex",
-                            alignItems:"center",
-                            justifyContent:"center",
-                            padding:"0 0 2px",
-                            boxShadow:"0 2px 8px rgba(0,0,0,0.04)",
-                          }}
-                        >
-                          {expanded ? "▴" : "▾"}
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={(event)=>{event.stopPropagation();toggleYearEndRow(rowKey);}}
+                        aria-label={expanded ? "Hide year-end details" : "Show year-end details"}
+                        aria-expanded={expanded}
+                        style={{
+                          width:"30px",
+                          height:"30px",
+                          border:"1px solid "+(isDark?"rgba(255,255,255,0.14)":"rgba(0,0,0,0.08)"),
+                          borderRadius:"9px",
+                          background:isDark?"#151915":"#FBFAF7",
+                          color:isDark?"#F6F3EA":"#555",
+                          fontSize:"16px",
+                          fontWeight:900,
+                          lineHeight:1,
+                          cursor:"pointer",
+                          display:"flex",
+                          alignItems:"center",
+                          justifyContent:"center",
+                          justifySelf:"center",
+                          padding:0,
+                        }}
+                      >
+                        {expanded ? "-" : "+"}
+                      </button>
                     </div>
 
                     {expanded && (
                       <div style={{
-                        marginTop:"14px",
+                        margin:"0 10px 14px",
                         padding:"14px 16px 12px",
                         border:"1px solid "+(isDark?"rgba(255,255,255,0.12)":"rgba(0,0,0,0.06)"),
                         borderRadius:"16px",

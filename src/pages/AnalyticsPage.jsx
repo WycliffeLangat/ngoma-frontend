@@ -129,36 +129,96 @@ function RecordCard({ r, expanded, onToggle, pool, ctx, theme }) {
   );
 }
 
-// A headline stat tile whose background bleeds cover art from whichever
-// entries qualify for it (e.g. this month's new entries), cycling through
-// them when more than one is eligible so no single release hogs the tile.
-function AnalyticsStatBox({ label, value, sub, color, compact, pool, isMobile, isDark, F, card, driveText }) {
-  const rotating = useRotatingArt(pool);
-  const hasArt = Boolean(rotating?.url);
-  const displayValue = driveText ? (rotating?.entry?.title || value) : value;
-  const displaySub = driveText ? (rotating?.entry?.artist || sub) : sub;
+// The headline overview tiles (New Entries, Re-Entries, Cross-Platform Hits,
+// Chart Leader) — the flat, no-bleed variant of the Records & Milestones card
+// below, so the two sections read as one system. Tiles that pin to a single
+// release (Chart Leader) show its thumbnail inline; tiles backed by a list
+// (New/Re-Entries, Cross-Platform Hits) are clickable and expand into that
+// list, each row carrying its own thumbnail — same pattern as "Perfect
+// Coverage Club" in Records & Milestones, just without a full-bleed background.
+function OverviewStatCard({ r, expanded, onToggle, ctx, theme }) {
+  const {
+    CertificationTag, F, GOLD, RecordIcon, SF,
+    getCertificationForEntry, isArtists, isMobile, isSingles,
+    openArtistDetails, openReleaseDetails, releaseLabelLower,
+  } = ctx;
+  const { textPrimary, textMuted, cardBg, dividerColor, rowBorder, recordCard } = theme;
+
+  const leaderCertification = !isArtists && r.certificationEntry ? getCertificationForEntry(r.certificationEntry, isSingles ? "single" : "album") : null;
+
+  const valueNode = r.certificationEntry ? (
+    <button
+      type="button"
+      onClick={(event) => { event.stopPropagation(); isArtists ? openArtistDetails(r.value) : openReleaseDetails(r.certificationEntry, isSingles ? "single" : "album"); }}
+      style={{ display: "block", border: 0, background: "transparent", padding: 0, fontFamily: SF, fontSize: isMobile ? "20px" : "21px", fontWeight: 900, lineHeight: 1.12, marginBottom: leaderCertification ? "7px" : "5px", cursor: "pointer", textAlign: "left", color: textPrimary }}
+    >{r.value}</button>
+  ) : (
+    <div style={{ fontFamily: SF, fontSize: isMobile ? "20px" : "21px", fontWeight: 900, lineHeight: 1.12, marginBottom: "5px", color: textPrimary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.value}</div>
+  );
 
   return (
-    <div style={{ ...card({ padding: isMobile ? "14px" : "20px 22px" }), position: "relative", overflow: "hidden", borderTop: `3px solid ${color}` }}>
-      {hasArt && (
-        <>
-          <img
-            key={rotating.entry?.key || rotating.name}
-            src={rotating.url}
-            alt=""
-            loading="lazy"
-            decoding="async"
-            onError={(event) => { event.currentTarget.style.display = "none"; }}
-            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-          />
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(160deg, rgba(6,7,6,0.90) 0%, rgba(6,7,6,0.74) 45%, rgba(6,7,6,0.36) 100%)" }} />
-        </>
-      )}
-      <div style={{ position: "relative", zIndex: 1 }}>
-        <div style={{ fontSize: "11px", fontWeight: 900, letterSpacing: "1.2px", textTransform: "uppercase", color: hasArt ? "#FFFFFF" : color, marginBottom: "8px", fontFamily: F, textShadow: hasArt ? "0 1px 6px rgba(0,0,0,0.55)" : "none" }}>{label}</div>
-        <div style={{ fontSize: compact ? (isMobile ? "14px" : "18px") : (isMobile ? "24px" : "32px"), fontWeight: 900, color: hasArt ? "#FFFFFF" : (isDark ? "#F6F3EA" : "#1A1A1A"), lineHeight: 1.1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textShadow: hasArt ? "0 1px 8px rgba(0,0,0,0.6)" : "none" }}>{displayValue}</div>
-        <div style={{ fontSize: "12px", color: hasArt ? "rgba(255,255,255,0.85)" : (isDark ? "#8F968F" : "#69716B"), fontFamily: F, lineHeight: 1.35, marginTop: "5px", textShadow: hasArt ? "0 1px 6px rgba(0,0,0,0.55)" : "none" }}>{displaySub}</div>
+    <div
+      className="ngoma-record-card"
+      onClick={r.list ? onToggle : undefined}
+      style={{
+        ...recordCard({ padding: 0, borderRadius: "16px" }),
+        position: "relative",
+        overflow: "hidden",
+        cursor: r.list ? "pointer" : "default",
+        gridColumn: expanded ? "1 / -1" : "auto",
+      }}
+    >
+      <div style={{ position: "relative", zIndex: 1, padding: isMobile ? "19px" : "24px", boxSizing: "border-box" }}>
+        <div style={{ position: "absolute", top: isMobile ? "8px" : "12px", right: isMobile ? "10px" : "14px" }}><RecordIcon label={r.displayLabel} size={isMobile ? 54 : 66} muted /></div>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "13px", position: "relative", zIndex: 1 }}>
+          {r.certificationEntry ? (
+            <EntryThumb item={r.certificationEntry} name={r.certificationEntry.artist || r.value} isArtist={isArtists} size={isMobile ? 34 : 38} accent={GOLD} />
+          ) : (
+            <RecordIcon label={r.displayLabel} size={isMobile ? 28 : 30} />
+          )}
+        </div>
+        <div style={{ fontFamily: F, fontSize: isMobile ? "10px" : "10.5px", fontWeight: 850, letterSpacing: "2px", textTransform: "uppercase", color: GOLD, marginBottom: "9px", position: "relative", zIndex: 1, lineHeight: 1.35 }}>{r.displayLabel}</div>
+        {valueNode}
+        {leaderCertification && <CertificationTag cert={leaderCertification} compact style={{ marginBottom: "6px" }} />}
+        <div style={{ fontFamily: F, fontSize: "13px", color: textMuted, lineHeight: 1.45, position: "relative", zIndex: 1 }}>{r.displaySub}</div>
       </div>
+
+      {r.list && (isMobile ? (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px", padding: `10px ${isMobile ? "19px" : "24px"}`, borderTop: `1px solid ${dividerColor}`, position: "relative", zIndex: 1 }}>
+          <span style={{ fontFamily: F, fontSize: "10.5px", color: GOLD, fontWeight: 800, letterSpacing: "0.5px" }}>{expanded ? "Hide list" : "View list"}</span>
+          <span
+            aria-hidden="true"
+            style={{ width: "26px", height: "26px", borderRadius: "8px", border: `1px solid ${dividerColor}`, background: cardBg, color: GOLD, fontSize: "15px", fontWeight: 900, lineHeight: 1, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
+          >{expanded ? "-" : "+"}</span>
+        </div>
+      ) : (
+        <div className="ngoma-record-view-toggle" style={{ display: "flex", alignItems: "center", gap: "5px", fontFamily: F, fontSize: "10.5px", color: GOLD, fontWeight: 800, letterSpacing: "0.5px", padding: `0 24px 24px`, position: "relative", zIndex: 1 }}>
+          <span>{expanded ? "Hide list" : "View list"}</span>
+          <span style={{ fontSize: "11px", transform: expanded ? "rotate(180deg)" : "none", transition: "transform 0.22s ease", display: "inline-block" }}>▾</span>
+        </div>
+      ))}
+
+      {expanded && r.list && (
+        <div style={{ position: "relative", zIndex: 1, margin: isMobile ? "0 19px 19px" : "0 24px 24px", paddingTop: "12px", borderTop: `1px solid ${dividerColor}`, background: cardBg, display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(2,minmax(0,1fr))", columnGap: "22px" }}>
+          {r.list.length ? r.list.map((song, idx) => {
+            const certification = isArtists ? null : getCertificationForEntry(song, isSingles ? "single" : "album");
+            const name = isArtists ? (song.t || song.title) : (song.title || song.t);
+            return (
+              <div key={`${name}-${song.artist || song.a || idx}`} className="ngoma-coverage-row" style={{ display: "grid", gridTemplateColumns: "22px 42px minmax(0,1fr)", gap: "8px", alignItems: "center", padding: "8px 6px", fontFamily: F, borderBottom: `1px solid ${rowBorder}` }}>
+                <span style={{ fontSize: "10px", fontWeight: 900, color: GOLD }}>#{idx + 1}</span>
+                <EntryThumb item={song} name={song.artist || song.a || name} isArtist={isArtists} size={42} accent={GOLD} />
+                <span style={{ minWidth: 0 }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                    <button type="button" onClick={(event) => { event.stopPropagation(); isArtists ? openArtistDetails(name) : openReleaseDetails(song, isSingles ? "single" : "album"); }} style={{ border: 0, background: "transparent", padding: 0, fontFamily: SF, fontSize: "12px", fontWeight: 850, color: textPrimary, cursor: "pointer", textAlign: "left" }}>{name}</button>
+                    {certification && <CertificationTag cert={certification} compact />}
+                  </span>
+                  {!isArtists && <span style={{ display: "block", fontSize: "11px", color: textMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{song.artist || song.a}</span>}
+                </span>
+              </div>
+            );
+          }) : <div style={{ fontFamily: F, fontSize: "12px", color: textMuted }}>{`No ${releaseLabelLower} found for this view.`}</div>}
+        </div>
+      )}
     </div>
   );
 }
@@ -235,9 +295,9 @@ export default function AnalyticsPage({ ctx }) {
     viewMode
   } = ctx;
 
+  const [openOverviewStat, setOpenOverviewStat] = useState(null);
   const anRows = analyticsRowsFor(anMonth);
   const anLeader = anRows.find(e => Number(e.rank) === 1) || anRows[0];
-  const leaderPool = anRows.filter(e => Number(e.rank) === 1);
   const xHitsRows = crossPlatformRows.filter(e => e.count >= tp);
   const xHitsCount = xHitsRows.length;
   const hofType = isArtists ? "artist" : (isSingles ? "single" : "album");
@@ -342,14 +402,21 @@ export default function AnalyticsPage({ ctx }) {
           </div>
 
           {/* Overview stats — the headline snapshot, always visible */}
-          <div className="ngoma-detail-stat-grid" style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(4,1fr)",gap:isMobile?"12px":"14px",...sectionGap}}>
+          <div className="ngoma-detail-stat-grid anl-grid-4" style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(4,1fr)",gap:isMobile?"12px":"14px",...sectionGap}}>
             {[
-              {l:"New Entries",v:mvData.new,c:"#2DB04A",s:"not in prev month",pool:mvData.newEntries},
-              {l:"Re-Entries",v:mvData.ret,c:"#1565C0",s:"returned to chart",pool:mvData.reEntries},
-              {l:"Cross-Platform Hits",v:xHitsCount,c:"#00897B",s:`on all ${tp} platforms`,pool:xHitsRows},
-              {l:"Chart Leader",v:anLeader?.title||"—",s:anLeader?.artist||"",compact:true,c:GOLD,pool:leaderPool,driveText:true},
-            ].map((s,i)=>(
-              <AnalyticsStatBox key={i} label={s.l} value={s.v} sub={s.s} color={s.c} compact={s.compact} pool={s.pool} driveText={s.driveText} isMobile={isMobile} isDark={isDark} F={F} card={card} />
+              {displayLabel:"New Entries",value:mvData.new,displaySub:"not in prev month",list:mvData.newEntries},
+              {displayLabel:"Re-Entries",value:mvData.ret,displaySub:"returned to chart",list:mvData.reEntries},
+              {displayLabel:"Cross-Platform Hits",value:xHitsCount,displaySub:`on all ${tp} platforms`,list:xHitsRows},
+              {displayLabel:"Chart Leader",value:anLeader?.title||"—",displaySub:anLeader?.artist||"",certificationEntry:anLeader||null},
+            ].map((r,i)=>(
+              <OverviewStatCard
+                key={r.displayLabel}
+                r={r}
+                expanded={openOverviewStat===i}
+                onToggle={()=>setOpenOverviewStat(openOverviewStat===i?null:i)}
+                ctx={ctx}
+                theme={recordsTheme}
+              />
             ))}
           </div>
 

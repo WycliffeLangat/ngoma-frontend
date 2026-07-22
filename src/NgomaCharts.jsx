@@ -324,7 +324,18 @@ const countryCodeForRegionalScope = (scope) => scope === KENYAN_CHART ? KENYA_CO
 // for those scopes, so callers should render an empty chart rather than the global platform chart.
 const isNonKenyaCountryScope = (scope) => isAfricaChart(scope) && countryCodeForRegionalScope(scope) !== KENYA_COUNTRY_CODE;
 const PLAT_LABEL = PUBLIC_PLATFORMS.reduce((result, item) => ({...result, [item.name.toUpperCase()]: item.name}), {"APPLE MUSIC":"Apple Music","AUDIOMACK":"Audiomack","BOOMPLAY":"Boomplay","SPOTIFY":"Spotify","YOUTUBE":"YouTube","SHAZAM":"Shazam"});
-const PC = PUBLIC_PLATFORMS.reduce((result, item) => ({...result, [item.name]: item.brand_color || item.color, [item.name.toUpperCase()]: item.brand_color || item.color}), {"Apple Music":"#FC3C44","APPLE MUSIC":"#FC3C44","Audiomack":"#F68B1F","AUDIOMACK":"#F68B1F","Boomplay":"#00FFFF","BOOMPLAY":"#00FFFF","Spotify":"#1DB954","SPOTIFY":"#1DB954","YouTube":"#FF0000","YOUTUBE":"#FF0000","Shazam":"#0088FF","SHAZAM":"#0088FF"});
+// Platform.color defaults to a generic '#888888' in the CMS until someone sets a real
+// brand color there — that gray default shouldn't clobber the known-good brand palette
+// below, or every un-configured platform pill ends up the same dull gray on selection.
+const GENERIC_PLATFORM_COLOR = "#888888";
+const brandPlatformColor = (item) => {
+  const supplied = item.brand_color || item.color;
+  return supplied && supplied.toUpperCase() !== GENERIC_PLATFORM_COLOR ? supplied : "";
+};
+const PC = PUBLIC_PLATFORMS.reduce((result, item) => {
+  const color = brandPlatformColor(item);
+  return color ? {...result, [item.name]: color, [item.name.toUpperCase()]: color} : result;
+}, {"Apple Music":"#FC3C44","APPLE MUSIC":"#FC3C44","Audiomack":"#F68B1F","AUDIOMACK":"#F68B1F","Boomplay":"#00FFFF","BOOMPLAY":"#00FFFF","Spotify":"#1DB954","SPOTIFY":"#1DB954","YouTube":"#FF0000","YOUTUBE":"#FF0000","Shazam":"#0088FF","SHAZAM":"#0088FF"});
 const platformLabelForScope = (scope) => {
   if (scope === KENYAN_CHART) return "Kenyan";
   if (isAfricaChart(scope)) return africaChartLabel(scope).replace(/\s+Top 50$/i, "");
@@ -1468,11 +1479,10 @@ function refreshPlatformLookups() {
   );
   replaceObject(
     PC,
-    PUBLIC_PLATFORMS.reduce((result, item) => ({
-      ...result,
-      [item.name]: item.brand_color || item.color,
-      [item.name.toUpperCase()]: item.brand_color || item.color,
-    }), {
+    PUBLIC_PLATFORMS.reduce((result, item) => {
+      const color = brandPlatformColor(item);
+      return color ? {...result, [item.name]: color, [item.name.toUpperCase()]: color} : result;
+    }, {
       "Apple Music":"#FC3C44",
       "APPLE MUSIC":"#FC3C44",
       "Audiomack":"#F68B1F",
@@ -3901,25 +3911,32 @@ const top = data[0];
           </div>
           {isMobile ? (
             <>
-              <button
-                onClick={()=>setMNav(o=>!o)}
-                aria-label="Toggle menu"
-                aria-expanded={mNav}
-                style={{display:"flex",flexDirection:"column",justifyContent:"center",gap:"4px",width:"42px",height:"38px",border:`1px solid ${themeColors.border}`,borderRadius:"11px",background:themeColors.elevated,cursor:"pointer",padding:"0 10px",flexShrink:0,marginLeft:"auto"}}
-              >
-                <span style={{display:"block",height:"2px",background:themeColors.text,borderRadius:"2px",transition:"all .2s",transform:mNav?"translateY(6px) rotate(45deg)":"none"}}/>
-                <span style={{display:"block",height:"2px",background:themeColors.text,borderRadius:"2px",opacity:mNav?0:1,transition:"opacity .2s"}}/>
-                <span style={{display:"block",height:"2px",background:themeColors.text,borderRadius:"2px",transition:"all .2s",transform:mNav?"translateY(-6px) rotate(-45deg)":"none"}}/>
-              </button>
+              <div style={{display:"flex",alignItems:"center",gap:"8px",marginLeft:"auto",flexShrink:0}}>
+                <button
+                  type="button"
+                  onClick={()=>setSOpen(true)}
+                  aria-label="Search"
+                  title="Search"
+                  style={{display:"flex",alignItems:"center",justifyContent:"center",width:"38px",height:"38px",border:`1px solid ${themeColors.border}`,borderRadius:"11px",background:themeColors.elevated,cursor:"pointer",flexShrink:0}}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={themeColors.text} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                </button>
+                <button
+                  onClick={()=>setMNav(o=>!o)}
+                  aria-label="Toggle menu"
+                  aria-expanded={mNav}
+                  style={{display:"flex",flexDirection:"column",justifyContent:"center",gap:"4px",width:"42px",height:"38px",border:`1px solid ${themeColors.border}`,borderRadius:"11px",background:themeColors.elevated,cursor:"pointer",padding:"0 10px",flexShrink:0}}
+                >
+                  <span style={{display:"block",height:"2px",background:themeColors.text,borderRadius:"2px",transition:"all .2s",transform:mNav?"translateY(6px) rotate(45deg)":"none"}}/>
+                  <span style={{display:"block",height:"2px",background:themeColors.text,borderRadius:"2px",opacity:mNav?0:1,transition:"opacity .2s"}}/>
+                  <span style={{display:"block",height:"2px",background:themeColors.text,borderRadius:"2px",transition:"all .2s",transform:mNav?"translateY(-6px) rotate(-45deg)":"none"}}/>
+                </button>
+              </div>
               <div style={{width:"100%",display:"flex",alignItems:"center",gap:"10px",marginTop:"-4px"}}>
                 <CountryScopeSelect compact fullWidth />
               </div>
               {mNav&&(
                 <div style={{width:"100%",display:"flex",flexDirection:"column",gap:"2px",marginTop:"8px",borderTop:`1px solid ${themeColors.border}`,paddingTop:"10px"}}>
-                  <span onClick={()=>{setMNav(false);setSOpen(true);}} style={{display:"flex",alignItems:"center",gap:"9px",cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"13px",fontWeight:600,letterSpacing:"1px",textTransform:"uppercase",color:themeColors.muted}}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    Search
-                  </span>
                   {navItems.map(t=>(
                     <span key={t} onClick={()=>navTo(t)} style={{cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"13px",fontWeight:page===t?800:600,letterSpacing:"1px",textTransform:"uppercase",color:page===t?themeColors.text:themeColors.muted,background:page===t?themeColors.active:"transparent",border:page===t?"1px solid #D4B65E":"1px solid transparent"}}>{navLabel(t)}</span>
                   ))}

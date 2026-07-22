@@ -372,9 +372,10 @@ export default function PremiumChartsPage({
     ? (headerCountryCode === KENYA_COUNTRY_CODE ? "Kenyan" : africaScopeLabel)
     : "Kenyan";
   const regionalChartLabel = `${regionalScopeLabel} ${chartLabel}`;
-  const regionalTop50Label = isAfricaChart(selectedCountryScope)
-    ? `${africaChartLabel(selectedCountryScope).replace(/\s+Top 50$/i, "")} Top 50`
-    : "Kenyan Top 50";
+  const regionalScopeShortLabel = isAfricaChart(selectedCountryScope)
+    ? africaChartLabel(selectedCountryScope).replace(/\s+Top 50$/i, "")
+    : "Kenyan";
+  const regionalTop50Label = `${regionalScopeShortLabel} Top 50`;
   // The hero subtitle is always just the country name — "(KENYA)", "(COMOROS)" — never
   // suffixed with the chart type (Singles/Albums/Artists).
   const countryDisplayName = headerIsAfricaScope
@@ -1507,7 +1508,7 @@ export default function PremiumChartsPage({
                 : plat === item;
               const color = item === "Kenyan" ? countryAccent : (item === "Combined" ? GOLD : PC[item] || GOLD);
               const ink = readableInk(color);
-              const label = item === "Kenyan" ? regionalTop50Label : (item === "Combined" ? item : PLAT_LABEL[item] || item);
+              const label = item === "Kenyan" ? (mobile ? regionalScopeShortLabel : regionalTop50Label) : (item === "Combined" ? item : PLAT_LABEL[item] || item);
 
               return (
                 <button
