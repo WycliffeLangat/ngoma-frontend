@@ -520,8 +520,8 @@ export default function AnalyticsPage({ ctx }) {
             .ngoma-coverage-row:hover { background: ${isDark ? "rgba(184,134,11,0.08)" : "rgba(184,134,11,0.05)"}; }
           `}</style>
           <div style={{...card(),...sectionGap}}>
-            <h3 style={{fontFamily:F,fontSize:"13px",fontWeight:700,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 6px"}}>{isMobile?"Records & Milestones":"Records & Milestones — All Time"}</h3>
-            <p style={{fontFamily:F,fontSize:"13px",color:isDark?"#8F968F":"#69716B",margin:"0 0 18px",lineHeight:1.5}}>{chartTypeLabel} achievements calculated solely from published public Top 50 charts across all tracked months.</p>
+            <div style={{...secLbl(), fontSize:"20px"}}><SecMark/>{isMobile?"Records & Milestones":"Records & Milestones — All Time"}</div>
+            <p style={{fontFamily:F,fontSize:"13px",color:isDark?"#8F968F":"#69716B",margin:"-4px 0 18px",lineHeight:1.5}}>{chartTypeLabel} achievements calculated solely from published public Top 50 charts across all tracked months.</p>
             <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(3,1fr)",gap:"10px"}}>
               {currentRecords.map((r,i)=>{
                 const expanded = r.isCoverage && openRecord === i;
@@ -545,7 +545,8 @@ export default function AnalyticsPage({ ctx }) {
           {hofItems.length > 0 && (
           <AnalyticsDeepSection label="Hall of Fame" isMobile={isMobile}>
           <div style={card({marginBottom:isMobile?"20px":"26px"})}>
-            <h3 style={{fontFamily:F,fontSize:"13px",fontWeight:700,letterSpacing:"2px",textTransform:"uppercase",color:GOLD,margin:"0 0 18px"}}>{isMobile?"Monthly #1s":"Hall of Fame — Monthly #1s"}</h3>
+            <div style={{...secLbl(), fontSize:"20px"}}><SecMark/>{isMobile?"Monthly #1s":"Hall of Fame — Monthly #1s"}</div>
+            <p style={{fontFamily:F,fontSize:"13px",color:isDark?"#8F968F":"#69716B",margin:"-4px 0 18px",lineHeight:1.5}}>Monthly leaders from the published public Top 50 charts across the full tracked dataset.</p>
             {(()=>{
               const HofSection = ({items, label}) => items.length === 0 ? null : (
                 <div style={{marginBottom:"20px"}}>

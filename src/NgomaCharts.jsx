@@ -3109,7 +3109,7 @@ const top = data[0];
     kicker: isMobile ? "9px" : "10.5px",
     pageTitle: isMobile ? "24px" : "24px",
     lead: isMobile ? "12px" : "11px",
-    section: isMobile ? "10.5px" : "10px",
+    section: "20px",
     rowTitle: isMobile ? "15px" : "15px",
     rowMeta: isMobile ? "12px" : "12px",
     cardTitle: isMobile ? "15px" : "15px",

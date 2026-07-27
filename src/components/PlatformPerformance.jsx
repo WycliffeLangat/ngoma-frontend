@@ -87,10 +87,11 @@ export default function PlatformPerformance({
     }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "14px", flexWrap: "wrap", marginBottom: "18px" }}>
         <div>
-          <h3 style={{ margin: 0, fontFamily: SF, fontSize: isMobile ? "18px" : "21px", fontWeight: 850, color: isDark ? "#F6F3EA" : "#1A1A1A" }}>
+          <div style={{ margin: 0, fontFamily: F, fontSize: "20px", fontWeight: 800, letterSpacing: isMobile ? "2px" : "2.4px", textTransform: "uppercase", color: GOLD, display: "flex", alignItems: "center", gap: "7px", lineHeight: 1.35 }}>
+            <span style={{ display: "inline-block", width: "14px", height: "2px", background: GOLD, borderRadius: "1px", flexShrink: 0 }} />
             Points by Platform
-          </h3>
-          <p style={{ margin: "5px 0 0", fontFamily: F, fontSize: "12px", lineHeight: 1.5, color: isDark ? "#AEB6AE" : "#69716B" }}>
+          </div>
+          <p style={{ margin: "-4px 0 0", fontFamily: F, fontSize: "12px", lineHeight: 1.5, color: isDark ? "#AEB6AE" : "#69716B" }}>
             Comparable Top-50 points are calculated as 51 − rank for every monthly platform placement.
           </p>
         </div>

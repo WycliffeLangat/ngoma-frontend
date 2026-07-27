@@ -7,6 +7,7 @@ export default function CertificationsPage({ ctx }) {
     F,
     PAD,
     SF,
+    SecMark,
     TXT,
     Tog,
     card,
@@ -93,7 +94,7 @@ export default function CertificationsPage({ ctx }) {
               const filtered=deduplicatedCerts.filter(c=>c.level===level).sort((a,b)=>(b.totalPts||0)-(a.totalPts||0));
               if(!filtered.length)return null;
               return(<div key={level} style={{marginBottom:"32px"}}>
-                <div style={{...secLbl(certColors[level]),marginBottom:"16px",fontSize:"15px",letterSpacing:"0.5px"}}><span style={certIconFilters[level]?{filter:certIconFilters[level]}:undefined}>{certIcons[level]}</span> {level.charAt(0).toUpperCase()+level.slice(1)} Certified ({filtered.length})</div>
+                <div style={{...secLbl(certColors[level]),marginBottom:"16px"}}><SecMark c={certColors[level]}/><span style={certIconFilters[level]?{filter:certIconFilters[level]}:undefined}>{certIcons[level]}</span> {level.charAt(0).toUpperCase()+level.slice(1)} Certified ({filtered.length})</div>
                 <div className="cert-wall">
                   {filtered.map((c,i)=>(
                     <div key={i} className={`cert-wall-card ${level}`} style={{background:certColors[level]+"08"}}>

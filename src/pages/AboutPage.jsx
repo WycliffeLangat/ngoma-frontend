@@ -10,12 +10,14 @@ export default function AboutPage({ ctx }) {
     PUBLIC_PLATFORMS,
     PUBLIC_METHODOLOGY,
     SF,
+    SecMark,
     SITE_NAME,
     TXT,
     card,
     isDark,
     isMobile,
     navTo,
+    secLbl,
   } = ctx;
 
   const featuredPortraits = (() => {
@@ -28,6 +30,9 @@ export default function AboutPage({ ctx }) {
     }
     return urls;
   })();
+  const aboutSectionTitle = (label) => (
+    <div style={secLbl()}><SecMark/>{label}</div>
+  );
 
   return (
 <div style={{padding:PAD,background:isDark?"#050505":"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
@@ -52,7 +57,7 @@ export default function AboutPage({ ctx }) {
           )}
           <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px"}}>
             <div style={card()}>
-              <h3 style={{fontFamily:F,fontSize:"16px",fontWeight:800,letterSpacing:"0.5px",textTransform:"uppercase",color:GOLD,margin:"0 0 12px"}}>How It Works</h3>
+              {aboutSectionTitle("How It Works")}
               <p style={{fontSize:"14px",color:isDark?"#D7DBD7":"#555F59",lineHeight:1.72,margin:0,fontFamily:F}}>{PUBLIC_METHODOLOGY?.config?.description || "Every month, Ngoma Charts reviews platform chart positions for singles and albums. Each platform ranking is normalized into points, the platform results are combined, and the highest-scoring releases form the Combined Top 50. Movement, peak, months on chart and platform coverage are then calculated from the release's full chart history."}</p>
               <div style={{marginTop:"15px",padding:"12px",background:isDark?"#151815":"#FAF8F2",borderRadius:"12px",border:isDark?"1px solid #2F352F":"1px solid #EDE6D6"}}>
                 <div style={{height:"8px",borderRadius:"999px",background:"linear-gradient(90deg,#B8860B 0%,#D4A017 48%,#E9E7E0 100%)"}}></div>
@@ -60,25 +65,25 @@ export default function AboutPage({ ctx }) {
               </div>
             </div>
             <div style={card()}>
-              <h3 style={{fontFamily:F,fontSize:"16px",fontWeight:800,letterSpacing:"0.5px",textTransform:"uppercase",color:GOLD,margin:"0 0 12px"}}>Platforms Tracked</h3>
+              {aboutSectionTitle("Platforms Tracked")}
               <div style={{display:"flex",flexWrap:"wrap",gap:"7px"}}>{(PUBLIC_PLATFORMS.length?PUBLIC_PLATFORMS:[{name:"Apple Music",color:"#FC3C44"},{name:"Audiomack",color:"#F68B1F"},{name:"Boomplay",color:"#00FFFF"},{name:"Spotify",color:"#1DB954"},{name:"YouTube",color:"#FF0000"},{name:"Shazam",color:"#0088FF"}]).map((platform)=>{const p=platform.name,c=platform.brand_color||platform.color||"#69716B";return <span key={p} style={{display:"inline-flex",alignItems:"center",minHeight:"28px",padding:"5px 10px",background:c+"18",borderRadius:"999px",fontSize:"13px",fontFamily:F,fontWeight:750,color:p==="Boomplay"?"#007C7C":c,border:`1px solid ${c}35`}}>{p}</span>;})}</div>
             </div>
             <div style={card()}>
-              <h3 style={{fontFamily:F,fontSize:"16px",fontWeight:800,letterSpacing:"0.5px",textTransform:"uppercase",color:GOLD,margin:"0 0 12px"}}>Singles Chart</h3>
+              {aboutSectionTitle("Singles Chart")}
               <p style={{fontSize:"14px",color:isDark?"#AEB6AE":"#555F59",lineHeight:1.65,margin:"0 0 13px",fontFamily:F}}>The singles chart combines performance across all six tracked platforms.</p>
               <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>{["Apple Music","Audiomack","Boomplay","Spotify","YouTube","Shazam"].map(p=><span key={p} style={{padding:"5px 9px",borderRadius:"9px",background:isDark?"#1A1E1A":"#F7F6F2",border:"1px solid "+(isDark?"#2F352F":"#E9E6DE"),fontFamily:F,fontSize:"12px",fontWeight:800,color:isDark?"#C5C5C0":"#4F5751"}}>{p}</span>)}</div>
             </div>
             <div style={card()}>
-              <h3 style={{fontFamily:F,fontSize:"16px",fontWeight:800,letterSpacing:"0.5px",textTransform:"uppercase",color:GOLD,margin:"0 0 12px"}}>Albums Chart</h3>
+              {aboutSectionTitle("Albums Chart")}
               <p style={{fontSize:"14px",color:isDark?"#AEB6AE":"#555F59",lineHeight:1.65,margin:"0 0 13px",fontFamily:F}}>Album rankings are based on Apple Music and Audiomack. Their platform data determines the Combined order, which is then displayed on the same 50-to-1 scale as singles.</p>
               <div style={{display:"flex",flexWrap:"wrap",gap:"7px"}}><span style={{padding:"6px 10px",borderRadius:"9px",background:"#FC3C4412",border:"1px solid #FC3C4435",fontFamily:F,fontSize:"12px",fontWeight:850,color:"#FC3C44"}}>Apple Music</span><span style={{padding:"6px 10px",borderRadius:"9px",background:"#F68B1F12",border:"1px solid #F68B1F35",fontFamily:F,fontSize:"12px",fontWeight:850,color:"#D66E00"}}>Audiomack</span></div>
             </div>
             <div style={card()}>
-              <h3 style={{fontFamily:F,fontSize:"16px",fontWeight:800,letterSpacing:"0.5px",textTransform:"uppercase",color:GOLD,margin:"0 0 12px"}}>Certifications</h3>
+              {aboutSectionTitle("Certifications")}
               <div style={{display:"grid",gap:"8px"}}>{CERTIFICATION_LEVELS.map(level=><div key={level.level} style={{display:"grid",gridTemplateColumns:"34px minmax(0,1fr) auto",gap:"9px",alignItems:"center",padding:"9px 10px",borderRadius:"11px",background:`${level.color}0B`,border:`1px solid ${level.color}25`}}><span style={{fontSize:"22px",textAlign:"center"}}>{level.icon}</span><strong style={{fontFamily:F,fontSize:"14px",color:level.color}}>{level.label}</strong><span style={{fontFamily:F,fontSize:"13px",fontWeight:800,color:isDark?"#AEB6AE":"#59645D"}}>{level.pts.toLocaleString()}+ pts</span></div>)}</div>
             </div>
             <div style={card()}>
-              <h3 style={{fontFamily:F,fontSize:"16px",fontWeight:800,letterSpacing:"0.5px",textTransform:"uppercase",color:GOLD,margin:"0 0 12px"}}>Hall of Fame</h3>
+              {aboutSectionTitle("Hall of Fame")}
               <p style={{fontSize:"14px",color:isDark?"#AEB6AE":"#555F59",lineHeight:1.68,margin:0,fontFamily:F}}>Songs and albums that reach #1 on the Combined chart enter the Hall of Fame. The full monthly leaders list covers the complete {DATA_PERIOD} dataset in Analytics.</p>
             </div>
           </div>

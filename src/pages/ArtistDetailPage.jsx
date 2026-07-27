@@ -226,7 +226,7 @@ export default function ArtistDetailPage({ ctx }) {
               {label:"Best Release Rank",value:bestReleaseRank?`#${bestReleaseRank}`:"—"},
             ].map((stat)=><div key={stat.label} style={{padding:"14px 15px",border:"1px solid "+(isDark?"#2B302B":"#ECE9E1"),borderRadius:"10px",background:isDark?"#151815":"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#8F968F":"#7B857D"}}>{stat.label}</div><div style={{fontFamily:F,fontSize:"22px",fontWeight:900,color:isDark?"#F6F3EA":"#1A1A1A",marginTop:"5px"}}>{stat.value}</div></div>)}
           </div>
-          <h3 style={secLbl()}>Charted Entries Across Months</h3>
+          <div style={secLbl()}><SecMark/>Charted Entries Across Months</div>
           {selectedArtistEntryGroups.map((group)=>{
             const releaseType = group.chart_type === "albums" || group.chart_type === "album" ? "album" : "single";
             const certification = getCertificationForEntry(group, releaseType);
