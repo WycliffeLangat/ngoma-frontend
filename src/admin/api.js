@@ -174,7 +174,12 @@ function createAbortScope(externalSignal, timeoutMs) {
 }
 
 async function rawFetch(path, options, timeoutMs) {
-  const { signal: externalSignal, timeoutMs: _ignoredTimeoutMs, ...fetchOptions } = options;
+  const {
+    signal: externalSignal,
+    timeoutMs: _ignoredTimeoutMs,
+    skipCache: _ignoredSkipCache,
+    ...fetchOptions
+  } = options;
   const abortScope = createAbortScope(externalSignal, timeoutMs);
   try {
     return await fetch(`${CMS_BASE}${path}`, {
@@ -197,10 +202,11 @@ async function request(path, options = {}) {
   const method = (options.method || "GET").toUpperCase();
   const isMutation = ["POST", "PATCH", "PUT", "DELETE"].includes(method);
   const isAuth = path.startsWith("/auth/");
+  const skipCache = Boolean(options.skipCache);
   const timeoutMs = typeof options.timeoutMs === "number" ? options.timeoutMs : DEFAULT_TIMEOUT_MS;
 
   // Return cached response for non-auth GET requests
-  if (!isMutation && !isAuth) {
+  if (!isMutation && !isAuth && !skipCache) {
     const cached = getCached(path);
     if (cached !== null) return cached;
     const pending = _inFlight.get(path);
@@ -260,7 +266,7 @@ async function request(path, options = {}) {
     }
 
     // Cache successful GET responses; targeted-invalidate on mutations.
-    if (!isMutation && !isAuth) {
+    if (!isMutation && !isAuth && !skipCache) {
       setCached(path, data);
     } else if (isMutation) {
       const sharedPublicMutation = mutationTouchesSharedPublicData(path);
@@ -273,7 +279,7 @@ async function request(path, options = {}) {
     return data;
   };
 
-  if (!isMutation && !isAuth) {
+  if (!isMutation && !isAuth && !skipCache) {
     const promise = run().finally(() => _inFlight.delete(path));
     _inFlight.set(path, promise);
     return promise;

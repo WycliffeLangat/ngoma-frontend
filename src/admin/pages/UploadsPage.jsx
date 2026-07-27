@@ -66,11 +66,69 @@ export default function UploadsPage({ user, searchJump }) {
       .catch((jumpError) => setError(jumpError.message));
   }, [searchJump, uploadKind]);
 
+  useEffect(() => {
+    if (!selected?.id) return;
+    const job = selected._processingJob || selected.job;
+    if (!uploadNeedsRefresh(selected) && !jobIsPending(job)) return;
+
+    let cancelled = false;
+    const refresh = async () => {
+      try {
+        const [freshUpload, freshJob] = await Promise.all([
+          cmsApi.get(`${uploadEndpoint(selected)}${selected.id}/`, { skipCache: true }),
+          job?.id
+            ? cmsApi.get(`/chart-jobs/${job.id}/`, { skipCache: true }).catch(() => job)
+            : Promise.resolve(job),
+        ]);
+        if (cancelled) return;
+
+        const nextJob = freshJob || job;
+        const nextUpload = decorateUpload(freshUpload, selected._uploadKind, {
+          job: nextJob,
+          queued: jobIsPending(nextJob) || uploadNeedsRefresh(freshUpload),
+        });
+        replaceUpload(nextUpload);
+
+        if (!jobIsPending(nextJob) && !uploadNeedsRefresh(nextUpload)) {
+          await load(selected._uploadKind);
+          await loadJobs();
+        }
+      } catch (refreshError) {
+        if (!cancelled) setError(refreshError.message);
+      }
+    };
+
+    refresh();
+    const timer = window.setInterval(refresh, 3000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [
+    selected?.id,
+    selected?._uploadKind,
+    selected?.processed,
+    selected?.processing_notes,
+    selected?.queued,
+    selected?._processingJob?.id,
+    selected?._processingJob?.status,
+  ]);
+
   async function load(kind = uploadKind) {
     const endpoint = kind === RAW_WEEKLY ? "/weekly-uploads/" : "/chart-uploads/";
     try {
-      const data = getResults(await cmsApi.get(endpoint));
-      setUploads(data.map((item) => ({ ...item, _uploadKind: kind })));
+      const data = getResults(await cmsApi.get(endpoint, { skipCache: true }));
+      const rows = data.map((item) => decorateUpload(item, kind));
+      setUploads(rows);
+      setSelected((current) => {
+        if (!current || current._uploadKind !== kind) return current;
+        const fresh = rows.find((row) => sameUpload(row, current));
+        const job = current._processingJob || current.job;
+        return fresh ? decorateUpload(fresh, kind, {
+          job,
+          queued: jobIsPending(job) || uploadNeedsRefresh(fresh),
+        }) : current;
+      });
     } catch (loadError) {
       setError(loadError.message);
     }
@@ -78,11 +136,32 @@ export default function UploadsPage({ user, searchJump }) {
 
   async function loadJobs() {
     try {
-      const data = getResults(await cmsApi.get("/chart-jobs/?page_size=8"));
+      const data = getResults(await cmsApi.get("/chart-jobs/?page_size=8", { skipCache: true }));
       setJobs(data);
     } catch {
       // Job status is helpful, not required for the upload workflow.
     }
+  }
+
+  function decorateUpload(upload, kind = uploadKind, meta = {}) {
+    if (!upload) return upload;
+    const job = meta.job || upload._processingJob || upload.job || null;
+    return {
+      ...upload,
+      _uploadKind: kind,
+      _processingJob: job,
+      queued: Boolean(meta.queued ?? upload.queued ?? jobIsPending(job)),
+    };
+  }
+
+  function sameUpload(a, b) {
+    return Boolean(a && b && a.id === b.id && a._uploadKind === b._uploadKind);
+  }
+
+  function replaceUpload(nextUpload) {
+    if (!nextUpload) return;
+    setSelected((current) => sameUpload(current, nextUpload) ? nextUpload : current);
+    setUploads((current) => current.map((row) => sameUpload(row, nextUpload) ? nextUpload : row));
   }
 
   function set(key, value) {
@@ -107,7 +186,8 @@ export default function UploadsPage({ user, searchJump }) {
       const upload = await cmsApi.post(endpoint, body, {
         timeoutMs: UPLOAD_PROCESSING_TIMEOUT_MS,
       });
-      setSelected({ ...upload, _uploadKind: uploadKind });
+      const nextUpload = decorateUpload(upload, uploadKind, upload);
+      setSelected(nextUpload);
       await load(uploadKind);
       await loadJobs();
     } catch (uploadError) {
@@ -135,7 +215,8 @@ export default function UploadsPage({ user, searchJump }) {
               : undefined,
         },
       );
-      setSelected({ ...(next.upload || next), _uploadKind: FINAL_CHART });
+      const nextUpload = decorateUpload(next.upload || next, FINAL_CHART, next);
+      setSelected(nextUpload);
       await load(FINAL_CHART);
       await loadJobs();
     } catch (actionError) {
@@ -201,7 +282,7 @@ export default function UploadsPage({ user, searchJump }) {
         filename,
         sheets,
       });
-      const nextUpload = { ...(result.upload || upload), _uploadKind: upload._uploadKind };
+      const nextUpload = decorateUpload(result.upload || upload, upload._uploadKind, result);
       setSelected(nextUpload);
       setWorkbookModal((current) => current ? {
         ...current,
@@ -792,6 +873,18 @@ function weeklyStatus(row) {
   if (row.processed) return "published";
   if (String(row.processing_notes || "").startsWith("Error:")) return "error";
   return "pending_review";
+}
+
+function jobIsPending(job) {
+  return ["queued", "running"].includes(String(job?.status || ""));
+}
+
+function uploadNeedsRefresh(upload) {
+  const notes = String(upload?.processing_notes || "");
+  if (upload?._uploadKind === RAW_WEEKLY) {
+    return !upload.processed && /queued|background|processing/i.test(notes);
+  }
+  return Boolean(upload?.queued) || jobIsPending(upload?._processingJob || upload?.job);
 }
 
 function jobLabel(job) {
