@@ -44,6 +44,73 @@ export default function YearEndPage({ ctx }) {
     color:isDark?"#F6F3EA":"#1A1A1A",
   };
 
+  const detailPanelStyle = {
+    margin:"0 10px 12px",
+    padding:"10px",
+    border:"1px solid "+(isDark?"rgba(255,255,255,0.12)":"rgba(0,0,0,0.06)"),
+    borderRadius:"12px",
+    background:isDark?"#0B0E0B":"#FBFAF7",
+    boxShadow:isDark?"inset 0 0 0 1px rgba(255,255,255,0.02)":"inset 0 0 0 1px rgba(255,255,255,0.65)",
+  };
+
+  const detailGridStyle = {
+    display:"grid",
+    gridTemplateColumns:"repeat(2,minmax(0,1fr))",
+    gap:"7px",
+  };
+
+  const detailStatStyle = {
+    background:isDark?"#151915":"#FFF",
+    border:"1px solid "+(isDark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.06)"),
+    borderRadius:"9px",
+    padding:"8px 9px",
+    minWidth:0,
+    minHeight:"54px",
+    boxSizing:"border-box",
+    display:"flex",
+    flexDirection:"column",
+    justifyContent:"center",
+  };
+
+  const detailLabelStyle = {
+    display:"block",
+    fontFamily:F,
+    fontSize:"8.8px",
+    color:isDark?"#AEB6AE":"#777",
+    fontWeight:900,
+    letterSpacing:"0.7px",
+    lineHeight:1.15,
+    textTransform:"uppercase",
+  };
+
+  const detailValueStyle = {
+    display:"block",
+    marginTop:"5px",
+    fontFamily:F,
+    color:isDark?"#F6F3EA":"#050505",
+    fontSize:"12px",
+    fontWeight:500,
+    lineHeight:1.2,
+    whiteSpace:"normal",
+    overflowWrap:"anywhere",
+  };
+
+  const detailActionStyle = {
+    marginTop:"9px",
+    width:"100%",
+    border:"1px solid "+(isDark?"rgba(184,134,11,0.42)":"rgba(184,134,11,0.22)"),
+    borderRadius:"10px",
+    background:isDark?"#151915":"#FFF",
+    color:GOLD,
+    fontFamily:F,
+    fontSize:"10.5px",
+    fontWeight:900,
+    letterSpacing:"0.8px",
+    textTransform:"uppercase",
+    padding:"9px 10px",
+    cursor:"pointer",
+  };
+
   return (
 <div style={{padding:PAD,background:isDark?"#050805":"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:isMobile?"16px":"20px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
@@ -238,18 +305,12 @@ export default function YearEndPage({ ctx }) {
                     </div>
 
                     {expanded && (
-                      <div style={{
-                        margin:"0 10px 14px",
-                        padding:"14px 16px 12px",
-                        border:"1px solid "+(isDark?"rgba(255,255,255,0.12)":"rgba(0,0,0,0.06)"),
-                        borderRadius:"16px",
-                        background:isDark?"#0B0E0B":"#FBFAF7",
-                      }}>
-                        <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:"8px"}}>
+                      <div style={detailPanelStyle}>
+                        <div style={detailGridStyle}>
                           {statItems.map((stat)=>(
-                            <div key={stat.label} style={{background:isDark?"#151915":"#F7F7F7",border:"1px solid "+(isDark?"rgba(255,255,255,0.12)":"rgba(0,0,0,0.06)"),borderRadius:"12px",padding:"8px 6px",minWidth:0,boxSizing:"border-box"}}>
-                              <span style={{display:"block",fontFamily:F,fontSize:"11px",color:isDark?"#AEB6AE":"#777",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",textAlign:"center"}}>{stat.label}</span>
-                              <span style={{display:"block",marginTop:"4px",fontFamily:F,color:isDark?"#F6F3EA":"#050505",fontSize:"14px",fontWeight:900,textAlign:"center",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{stat.value}</span>
+                            <div key={stat.label} style={detailStatStyle}>
+                              <span style={detailLabelStyle}>{stat.label}</span>
+                              <span style={detailValueStyle}>{stat.value}</span>
                             </div>
                           ))}
                         </div>
@@ -257,21 +318,7 @@ export default function YearEndPage({ ctx }) {
                         <button
                           type="button"
                           onClick={()=>isArtists ? openArtistDetails(item.t) : openReleaseDetails(item,isSingles?"single":"album")}
-                          style={{
-                            marginTop:"11px",
-                            width:"100%",
-                            border:"1px solid "+(isDark?"rgba(184,134,11,0.42)":"rgba(184,134,11,0.22)"),
-                            borderRadius:"13px",
-                            background:isDark?"#151915":"#FFF",
-                            color:GOLD,
-                            fontFamily:F,
-                            fontSize:"12px",
-                            fontWeight:900,
-                            letterSpacing:"1px",
-                            textTransform:"uppercase",
-                            padding:"10px 12px",
-                            cursor:"pointer",
-                          }}
+                          style={detailActionStyle}
                         >
                           View {itemTypeLabel} Details
                         </button>

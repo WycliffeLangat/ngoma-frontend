@@ -820,22 +820,22 @@ export default function PremiumChartsPage({
         <span
           style={{
             ...styles.detailCardLabel,
-            ...(mobile ? { fontSize: "11px" } : null),
+            ...(mobile ? { fontSize: "9.5px" } : null),
             ...(darkMode ? styles.detailCardLabelDark : null),
           }}
         >
           {label}
         </span>
-        <span
+        <div
           style={{
             ...styles.detailCardValue,
-            ...(mobile ? { fontSize: "15px" } : null),
+            ...(mobile ? { fontSize: "12px" } : null),
             ...(darkMode ? styles.detailCardValueDark : null),
             ...(accent && !darkMode ? { color: accent } : null),
           }}
         >
           {value || "—"}
-        </span>
+        </div>
       </div>
     );
   }
@@ -873,9 +873,9 @@ export default function PremiumChartsPage({
     ].filter(([, url]) => Boolean(url));
     if (!entries.length) return null;
     return (
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "7px" }}>
+      <div style={styles.detailLinks}>
         {entries.map(([label, url]) => (
-          <a key={`${label}-${url}`} href={url} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()} style={{ color: chartAccent, fontWeight: 850, textDecoration: "none" }}>
+          <a key={`${label}-${url}`} href={url} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()} style={{ ...styles.detailLink, color: chartAccent, borderColor: darkMode ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)", background: darkMode ? "#101310" : "#ffffff" }}>
             {label} ↗
           </a>
         ))}
@@ -904,7 +904,7 @@ export default function PremiumChartsPage({
           {compact && <DetailCard label="Last Month" value={profile.lastMonth} />}
           {compact && <DetailCard label="Peak" value={profile.peak} />}
           {hasCountry && <DetailCard label="Country" value={countryLabel} accent={badge.accent} />}
-          {isCombinedChart && <DetailCard label="Platforms" value={getPlatformDetails(item)} />}
+          {isCombinedChart && <DetailCard label="Platforms" value={getPlatformDetails(item)} wide={!compact} />}
           {isCombinedChart && <DetailCard label="Points" value={Number(item.pts || 0).toLocaleString()} />}
           {isCombinedChart && <DetailCard label="Entries" value={item.entries_count || "—"} />}
           {!compact && <DetailCard label="Months" value={getMonthsOnChart(item)} />}
@@ -1779,7 +1779,7 @@ export default function PremiumChartsPage({
                 </div>
 
                 {expanded && (
-                  <div style={{ ...styles.desktopExpandedDetails, ...(tablet ? { margin: "0 18px 14px 132px", padding: "16px 18px" } : null), ...(darkMode ? styles.desktopExpandedDetailsDark : null) }}>
+                  <div style={{ ...styles.desktopExpandedDetails, ...(tablet ? { margin: "0 18px 14px 132px", padding: "14px 16px" } : null), ...(darkMode ? styles.desktopExpandedDetailsDark : null) }}>
                     <DetailPanel
                       item={item}
                       profile={profile}
@@ -2287,7 +2287,7 @@ const styles = {
 
   mobileDesktopExpandedDetails: {
     margin: 0,
-    padding: "12px 12px 14px 49px",
+    padding: "10px 12px 14px",
     borderTop: "1px solid rgba(0,0,0,0.06)",
     background: "#fbfaf7",
     boxShadow: "none",
@@ -2366,10 +2366,10 @@ const styles = {
   },
 
   desktopExpandedDetails: {
-    margin: "0 24px 16px 176px",
-    padding: "18px 20px",
+    margin: "0 24px 16px 164px",
+    padding: "16px 18px",
     border: "1px solid rgba(0,0,0,0.06)",
-    borderRadius: "16px",
+    borderRadius: "12px",
     background: "#fbfaf7",
   },
 
@@ -2382,21 +2382,21 @@ const styles = {
 
   desktopDetailsGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-    gap: "12px",
+    gridTemplateColumns: "repeat(3, minmax(150px, 1fr))",
+    gap: "9px",
   },
 
   mobileDetailsGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-    gap: "10px",
+    gap: "8px",
   },
 
   detailCard: {
-    background: "#f7f7f7",
+    background: "#ffffff",
     border: "1px solid rgba(0,0,0,0.06)",
-    borderRadius: "12px",
-    padding: "12px 13px",
+    borderRadius: "10px",
+    padding: "9px 10px",
     minWidth: 0,
     boxSizing: "border-box",
   },
@@ -2419,11 +2419,12 @@ const styles = {
 
   detailCardLabel: {
     display: "block",
-    fontSize: "12px",
+    fontSize: "10px",
     color: "#777777",
     fontWeight: 900,
-    letterSpacing: "1px",
+    letterSpacing: "0.8px",
     textTransform: "uppercase",
+    lineHeight: 1.15,
   },
 
   detailCardLabelDark: {
@@ -2432,16 +2433,35 @@ const styles = {
 
   detailCardValue: {
     display: "block",
-    marginTop: "4px",
+    marginTop: "5px",
     color: "#050505",
-    fontSize: "17px",
-    fontWeight: 900,
-    lineHeight: 1.28,
+    fontSize: "13px",
+    fontWeight: 500,
+    lineHeight: 1.25,
     overflowWrap: "anywhere",
   },
 
   detailCardValueDark: {
     color: "#fffdf7",
+  },
+
+  detailLinks: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "6px",
+  },
+
+  detailLink: {
+    display: "inline-flex",
+    alignItems: "center",
+    minHeight: "28px",
+    padding: "6px 9px",
+    border: "1px solid rgba(0,0,0,0.08)",
+    borderRadius: "8px",
+    fontSize: "10.5px",
+    fontWeight: 600,
+    lineHeight: 1,
+    textDecoration: "none",
   },
 
   rank: {
