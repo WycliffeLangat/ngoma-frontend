@@ -1,4 +1,4 @@
-import { cmsApi, clearCmsCache, getResults } from "./api";
+import { cmsApi, clearCmsCache, getResults } from "./api.js";
 
 const READ_CONCURRENCY = 6;
 

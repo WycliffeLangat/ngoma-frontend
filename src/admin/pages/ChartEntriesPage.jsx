@@ -8,6 +8,7 @@ import { buildArtistMonthMirror } from "../../utils/publicChartMirror";
 import { isDeletedArtistName, artistNameVariants, recordDeletedArtistNames } from "../deletedArtistNames";
 import { reorderAffectedChartScopes } from "../chartRankMaintenance";
 import { releaseFeaturedArtistsText, syncChartEntryCredits } from "../chartEntryCreditSync";
+import { applyReleaseDateDefaults } from "../releaseDateDefaults";
 import { computeArtistImpact, applyArtistImpactCorrections } from "../artistImpact";
 import {
   AFRICA_REGION_GROUPS,
@@ -159,7 +160,7 @@ function releaseFields(artistOptions = [], chartType = "singles") {
   { name: "artist_credits", label: "Artists", type: "artist-role-list", options: artistOptions, help: "Add each credited artist once, then choose Primary or Featuring. Link a registered duo/group as one artist." },
   { name: "chart_type",       label: "Chart type",        type: "select", options: [{ value: chartType, label: chartType }] },
   { name: "canonical_title",  label: "Canonical title" },
-  { name: "release_year",     label: "Release year",      type: "number" },
+  { name: "release_year",     label: "Release year",      type: "number", readOnly: true, help: "Auto-filled from Release date." },
   { name: "release_date",     label: "Release date",      type: "date" },
   { name: "isrc",             label: "ISRC" },
   { name: "upc",              label: "UPC" },
@@ -344,6 +345,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
   // CMS-only: artist name -> country lookup, used to show a Country column
   // on the entries table. Not part of the public app's data/UI.
   const [artistCountryMap, setArtistCountryMap] = useState(new Map());
+  const [countryOptions, setCountryOptions] = useState([]);
 
   // Artists tab state
   const [artistRankings, setArtistRankings] = useState([]);
@@ -378,6 +380,9 @@ export default function ChartEntriesPage({ user, searchJump }) {
       .catch(() => {});
     cmsApi.get("/artists/options/")
       .then((data) => setArtistOptions(mergeArtistOptions(Array.isArray(data) ? data : getResults(data))))
+      .catch(() => {});
+    cmsApi.get("/countries/?page_size=500")
+      .then((data) => setCountryOptions(getResults(data)))
       .catch(() => {});
     loadPublicPayload();
     fetchAllCmsResults("/artists/?page_size=500")
@@ -679,7 +684,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
     try {
       const { cover_image, artist_credits, featured_artists, ...restForm } = formData;
       const jsonForm = {
-        ...restForm,
+        ...applyReleaseDateDefaults(restForm),
         ...splitArtistRoleCredits(artist_credits),
       };
       let updated = await cmsApi.patch(`/releases/${editRelease.id}/`, jsonForm);
@@ -1569,6 +1574,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
           entityId={editRelease.id}
           fields={releaseEditFields}
           initial={editRelease.data}
+          countryOptions={countryOptions}
           onSubmit={saveRelease}
           onClose={() => setEditRelease(null)}
         />
@@ -1582,6 +1588,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
           entityId={editArtist.id}
           fields={ARTIST_FIELDS}
           initial={editArtist.data}
+          countryOptions={countryOptions}
           onSubmit={saveArtist}
           onClose={() => setEditArtist(null)}
         />

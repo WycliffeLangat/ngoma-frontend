@@ -47,6 +47,28 @@ test("automatic certification points win over stale live CMS rows", () => {
   assert.equal(merged[0].is_official, true);
 });
 
+test("live CMS certifications below threshold are not published", () => {
+  const merged = mergeCertifications([], [
+    { id: 7, t: "Almost", a: "Artist B", chart_type: "singles", level: "gold", totalPts: 199 },
+  ], levels);
+
+  assert.equal(merged.length, 0);
+});
+
+test("stale live CMS certification levels are capped by current points", () => {
+  const automatic = buildAutomaticCertifications({
+    singles: [{ t: "Steady Hit", a: "Artist C", totalPts: 410, best: 2 }],
+  }, levels);
+  const merged = mergeCertifications(automatic, [
+    { id: 8, t: "Steady Hit", a: "Artist C", chart_type: "singles", level: "diamond", totalPts: 610 },
+  ], levels);
+
+  assert.equal(merged.length, 1);
+  assert.equal(merged[0].id, 8);
+  assert.equal(merged[0].level, "platinum");
+  assert.equal(merged[0].totalPts, 410);
+});
+
 test("automatic news includes chart recaps and certification stories", () => {
   const news = buildAutomaticNews({
     latestMonth: "July 2026",

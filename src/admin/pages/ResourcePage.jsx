@@ -16,7 +16,14 @@ import { artistNameVariants, clearDeletedArtistNames, recordDeletedArtistNames }
 import ArtistImpactSummary from "../components/ArtistImpactSummary";
 import { computeArtistImpact, applyArtistImpactCorrections } from "../artistImpact";
 import { syncChartEntryFeaturedArtists } from "../chartEntryCreditSync";
+import { buildAlertCaseReview } from "../alertResolutions";
+import {
+  enforceCertificationEligibility,
+  normalizeCertificationRules,
+} from "../certificationEligibility";
+import { applyReleaseDateDefaults } from "../releaseDateDefaults";
 import { artistCreditMembers, protectedArtistCreditNames } from "../../utils/chartHelpers.js";
+import { buildCountryCodeIndex } from "../../utils/countryCodes.js";
 
 function normalizeArtistName(value) {
   return String(value || "").trim().toLowerCase();
@@ -195,6 +202,10 @@ const RECORD_STATUS_OPTIONS = [
   { value: "inactive", label: "Inactive" },
 ];
 
+function attrSelectorValue(value) {
+  return String(value || "").replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+}
+
 const configs = {
   artists: { title: "Artists", endpoint: "/artists/", search: true, fields: ["name", "display_name", "country", "country_code", "genre", "artist_type", "status"], columns: [{key:"name",label:"Artist"},{key:"country_code",label:"Country"},{key:"genre",label:"Genre"},{key:"total_releases",label:"Releases"},{key:"status",label:"Status"}], form: [{name:"image",label:"Artist image",type:"file",help:"Square image, min 800×800 px. JPEG or PNG, max 2 MB."},{name:"name",label:"Artist name",help:"The artist's official or commonly credited name."},{name:"display_name",label:"Display name",help:"Optional public-facing spelling. Leave blank to use Artist name."},{name:"slug",label:"Slug",help:"URL-safe identifier. Leave blank and it will be generated from Artist name.",example:"fik-fameica"},{name:"aliases",label:"Aliases JSON",type:"json"},{name:"country",label:"Country"},{name:"country_code",label:"Country code"},{name:"city_region",label:"City/region"},{name:"genre",label:"Genre"},{name:"biography",label:"Biography",type:"textarea"},{name:"artist_type",label:"Artist type"},{name:"verified",label:"Verified",type:"checkbox"},{name:"spotify_url",label:"Spotify URL"},{name:"apple_music_url",label:"Apple Music URL"},{name:"youtube_url",label:"YouTube URL"},{name:"boomplay_url",label:"Boomplay URL"},{name:"audiomack_url",label:"Audiomack URL"},{name:"tiktok_url",label:"TikTok URL"},{name:"instagram_url",label:"Instagram URL"},{name:"x_url",label:"X URL"},{name:"facebook_url",label:"Facebook URL"},{name:"website_url",label:"Website URL"},{name:"status",label:"Status"}] },
   songs: { title: "Songs", endpoint: "/releases/", params:{chart_type:"singles"}, fields: [], columns: [{key:"title",label:"Song"},{key:"artist_display",label:"Main artist(s)"},{key:"country_code",label:"Country"},{key:"release_year",label:"Year"},{key:"status",label:"Status"}] },
@@ -203,7 +214,7 @@ const configs = {
   platforms: { title: "Platforms", endpoint: "/platforms/", columns: [{key:"name",label:"Platform"},{key:"short_name",label:"Short"},{key:"color",label:"Color"},{key:"max_chart_size",label:"Max"},{key:"active",label:"Active"}], form: [{name:"name",label:"Name"},{name:"slug",label:"Slug"},{name:"short_name",label:"Short name"},{name:"color",label:"Color"},{name:"brand_color",label:"Brand color"},{name:"chart_size",label:"Source chart size",type:"number"},{name:"max_chart_size",label:"Max chart size",type:"number"},{name:"points_base",label:"Points base",type:"number"},{name:"points_method",label:"Points method"},{name:"supports_singles",label:"Supports singles",type:"checkbox"},{name:"supports_albums",label:"Supports albums",type:"checkbox"},{name:"display_order",label:"Display order",type:"number"},{name:"active",label:"Active",type:"checkbox"}] },
   news: { title: "News CMS", endpoint: "/news/", imageField: "cover_image", columns: [{key:"title",label:"Headline"},{key:"category",label:"Category"},{key:"author",label:"Author"},{key:"status",label:"Status"},{key:"updated_at",label:"Updated",render:(r)=>new Date(r.updated_at).toLocaleDateString()}], form: [{name:"cover_image",label:"Cover image",type:"file",help:"Article hero image. JPEG or PNG, max 5 MB."},{name:"title",label:"Headline"},{name:"slug",label:"Slug"},{name:"subheadline",label:"Subheadline"},{name:"category",label:"Category",type:"select",options:["chart_news","milestones","new_releases","industry_news","artist_news","awards","certifications","records","interviews","editorials","artist_spotlight","albums","analytics","announcement"].map(v=>({value:v,label:v.replace(/_/g," ")}))},{name:"related_artist",label:"Related artist",type:"select",options:[],help:"Use this so news images follow the artist being discussed."},{name:"related_release",label:"Related song / album",type:"select",options:[],help:"Use this so news images can pull the song or album cover."},{name:"author",label:"Author"},{name:"excerpt",label:"Excerpt",type:"textarea"},{name:"body",label:"Body",type:"textarea"},{name:"gallery",label:"Gallery JSON",type:"json",help:"Optional extra related images. Each item can be a URL or {url, caption}."},{name:"tags",label:"Tags JSON",type:"json"},{name:"source_links",label:"Source links JSON",type:"json"},{name:"seo_title",label:"SEO title"},{name:"seo_description",label:"SEO description",type:"textarea"},{name:"featured",label:"Featured",type:"checkbox"},{name:"pinned",label:"Pinned",type:"checkbox"},{name:"breaking",label:"Breaking",type:"checkbox"},{name:"is_published",label:"Published",type:"checkbox"},{name:"status",label:"Status"}] },
   charts: { title: "Chart Periods", endpoint: "/charts/", columns: [{key:"label",label:"Month"},{key:"chart_type",label:"Type"},{key:"combined_entries_count",label:"Combined entries"},{key:"status",label:"Status"}], form: [{name:"year",label:"Year",type:"number",help:"Four-digit chart year, for example 2026."},{name:"month",label:"Month number",type:"number",help:"Use 1 for January through 12 for December."},{name:"chart_type",label:"Chart type",type:"select",options:[{value:"singles",label:"Singles"},{value:"albums",label:"Albums"}]},{name:"status",label:"Review status",type:"select",options:CHART_STATUS_OPTIONS,help:"Publishing is a separate, protected action after entries are reviewed."}] },
-  certifications: { title: "Certifications", endpoint: "/certifications/", columns: [{key:"title",label:"Release"},{key:"artist",label:"Artist"},{key:"level",label:"Level"},{key:"total_points",label:"Points"}], form: [{name:"release",label:"Release ID",type:"number"},{name:"level",label:"Level",type:"select",options:[{value:"gold",label:"Gold"},{value:"platinum",label:"Platinum"},{value:"diamond",label:"Diamond"}]},{name:"total_points",label:"Points",type:"number"},{name:"is_hidden",label:"Hidden from app",type:"checkbox"},{name:"certification_date",label:"Certification date",type:"date"},{name:"previous_level",label:"Previous level"},{name:"notes",label:"Notes",type:"textarea"}] },
+  certifications: { title: "Certifications", endpoint: "/certifications/", columns: [{key:"title",label:"Release"},{key:"artist",label:"Artist"},{key:"level",label:"Level"},{key:"total_points",label:"Points"}], form: [{name:"release",label:"Release ID",type:"number"},{name:"level",label:"Level",type:"select",readOnly:true,help:"Auto-filled from Points using the active certification rules.",options:[{value:"gold",label:"Gold"},{value:"platinum",label:"Platinum"},{value:"diamond",label:"Diamond"}]},{name:"total_points",label:"Points",type:"number",help:"If points are below the lowest active threshold, the CMS automatically hides the certification."},{name:"is_hidden",label:"Hidden from app",type:"checkbox"},{name:"certification_date",label:"Certification date",type:"date"},{name:"previous_level",label:"Previous level"},{name:"notes",label:"Notes",type:"textarea"}] },
   "certification-rules": { title: "Certification Rules", endpoint: "/certification-rules/", columns: [{key:"label",label:"Level"},{key:"threshold",label:"Points threshold"},{key:"active",label:"Active"},{key:"updated_at",label:"Updated",render:(r)=>new Date(r.updated_at).toLocaleDateString()}], form: [{name:"level",label:"Level",type:"select",options:[{value:"gold",label:"Gold"},{value:"platinum",label:"Platinum"},{value:"diamond",label:"Diamond"}]},{name:"threshold",label:"Points threshold",type:"number"},{name:"active",label:"Active",type:"checkbox"}] },
   methodology: { title: "Methodology", endpoint: "/methodology/", columns: [{key:"version",label:"Version"},{key:"name",label:"Name"},{key:"is_active",label:"Active"},{key:"created_at",label:"Created",render:(r)=>new Date(r.created_at).toLocaleDateString()}], form: [{name:"version",label:"Version"},{name:"name",label:"Name"},{name:"config",label:"Methodology JSON",type:"json"},{name:"is_active",label:"Active",type:"checkbox"}] },
   "page-content": { title: "Page Content", endpoint: "/page-content/", columns: [{key:"page",label:"Page"},{key:"section",label:"Section"},{key:"title",label:"Title"},{key:"is_visible",label:"Visible"},{key:"display_order",label:"Order"}], form: [{name:"page",label:"Page"},{name:"section",label:"Section"},{name:"title",label:"Title"},{name:"content",label:"Content",type:"textarea"},{name:"data",label:"Section data JSON",type:"json"},{name:"is_visible",label:"Visible",type:"checkbox"},{name:"display_order",label:"Display order",type:"number"}] },
@@ -215,7 +226,7 @@ const configs = {
   backups: { title: "Backups", endpoint: "/backups/", columns: [{key:"status",label:"Status"},{key:"file",label:"File"},{key:"created_at",label:"Created",render:(r)=>new Date(r.created_at).toLocaleString()}], form: [{name:"status",label:"Status"},{name:"notes",label:"Notes",type:"textarea"}] },
 };
 
-function releaseForm(chartType, artistOptions){ return [{name:"cover_image",label:"Cover image",type:"file",help:"Square image, min 1000×1000 px. JPEG or PNG, max 2 MB."},{name:"title",label:"Title"},{name:"artist_credits",label:"Artists",type:"artist-role-list",options:artistOptions,help:"Add each credited artist once, then choose Primary or Featuring. Link a registered duo/group as one artist."},{name:"chart_type",label:"Chart type",type:"select",options:[{value:chartType,label:chartType}]},{name:"canonical_title",label:"Canonical title"},{name:"credited_artists",label:"Other credited artists / notes"},{name:"songwriters",label:"Songwriters",type:"tags"},{name:"producers",label:"Producers",type:"tags"},{name:"release_year",label:"Release year",type:"number"},{name:"release_date",label:"Release date",type:"date"},{name:"isrc",label:"ISRC"},{name:"upc",label:"UPC"},{name:"number_of_tracks",label:"Number of tracks",type:"number"},{name:"country",label:"Country",readOnly:true,help:"Always the main artist's country — edit the artist record to change it."},{name:"country_code",label:"Country code",readOnly:true,help:"Always the main artist's country code — edit the artist record to change it."},{name:"genre",label:"Genre"},{name:"label",label:"Label"},{name:"distributor",label:"Distributor"},{name:"spotify_url",label:"Spotify URL"},{name:"apple_music_url",label:"Apple Music URL"},{name:"boomplay_url",label:"Boomplay URL"},{name:"audiomack_url",label:"Audiomack URL"},{name:"youtube_url",label:"YouTube URL"},{name:"tiktok_url",label:"TikTok URL"},{name:"shazam_url",label:"Shazam URL"},{name:"radio_info",label:"Radio info",type:"textarea"},{name:"status",label:"Status"}]; }
+function releaseForm(chartType, artistOptions){ return [{name:"cover_image",label:"Cover image",type:"file",help:"Square image, min 1000×1000 px. JPEG or PNG, max 2 MB."},{name:"title",label:"Title"},{name:"artist_credits",label:"Artists",type:"artist-role-list",options:artistOptions,help:"Add each credited artist once, then choose Primary or Featuring. Link a registered duo/group as one artist."},{name:"chart_type",label:"Chart type",type:"select",options:[{value:chartType,label:chartType}]},{name:"canonical_title",label:"Canonical title"},{name:"credited_artists",label:"Other credited artists / notes"},{name:"songwriters",label:"Songwriters",type:"tags"},{name:"producers",label:"Producers",type:"tags"},{name:"release_year",label:"Release year",type:"number",readOnly:true,help:"Auto-filled from Release date."},{name:"release_date",label:"Release date",type:"date"},{name:"isrc",label:"ISRC"},{name:"upc",label:"UPC"},{name:"number_of_tracks",label:"Number of tracks",type:"number"},{name:"country",label:"Country",readOnly:true,help:"Always the main artist's country — edit the artist record to change it."},{name:"country_code",label:"Country code",readOnly:true,help:"Always the main artist's country code — edit the artist record to change it."},{name:"genre",label:"Genre"},{name:"label",label:"Label"},{name:"distributor",label:"Distributor"},{name:"spotify_url",label:"Spotify URL"},{name:"apple_music_url",label:"Apple Music URL"},{name:"boomplay_url",label:"Boomplay URL"},{name:"audiomack_url",label:"Audiomack URL"},{name:"youtube_url",label:"YouTube URL"},{name:"tiktok_url",label:"TikTok URL"},{name:"shazam_url",label:"Shazam URL"},{name:"radio_info",label:"Radio info",type:"textarea"},{name:"status",label:"Status"}]; }
 
 // Resources that support status filtering and ordering in the CMS toolbar
 const STATUS_TYPES    = new Set(["songs", "albums", "artists"]);
@@ -256,8 +267,16 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
   const [flash, setFlash] = useState("");
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [entryReview, setEntryReview] = useState(null);
+  const [entryReviewLoading, setEntryReviewLoading] = useState(false);
+  const [entryReviewBusy, setEntryReviewBusy] = useState("");
+  const [entryReviewError, setEntryReviewError] = useState("");
+  const [entryReviewNotice, setEntryReviewNotice] = useState("");
+  const [entryReviewReturn, setEntryReviewReturn] = useState(null);
+  const [entryReviewPrompt, setEntryReviewPrompt] = useState(null);
   const [artistOptions, setArtistOptions] = useState([]);
   const [releaseOptions, setReleaseOptions] = useState([]);
+  const [countryOptions, setCountryOptions] = useState([]);
   const [imageModal, setImageModal] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [mergeTarget, setMergeTarget] = useState(null);
@@ -273,11 +292,117 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
   const keeperSearchTimerRef = useRef(null);
   const flashTimerRef = useRef(null);
   const artistSyncRef = useRef(false);
+  const certAutoCorrectRef = useRef("");
 
   function showFlash(msg) {
     setFlash(msg);
     clearTimeout(flashTimerRef.current);
     flashTimerRef.current = setTimeout(() => setFlash(""), 5000);
+  }
+
+  function clearEntryReview() {
+    setEntryReview(null);
+    setEntryReviewLoading(false);
+    setEntryReviewBusy("");
+    setEntryReviewError("");
+    setEntryReviewNotice("");
+    setEntryReviewReturn(null);
+    setEntryReviewPrompt(null);
+  }
+
+  async function loadEntryReview(alert, detail) {
+    if (!alert || !detail) {
+      clearEntryReview();
+      return;
+    }
+    setEntryReview({ alert, detail, page: type, solutions: [] });
+    setEntryReviewLoading(true);
+    setEntryReviewBusy("");
+    setEntryReviewError("");
+    setEntryReviewNotice("");
+    setEntryReviewPrompt(null);
+    try {
+      const review = await buildAlertCaseReview({
+        alert,
+        detail,
+        page: type,
+        canApply: canEdit,
+      });
+      setEntryReview({
+        ...review,
+        solutions: (review.solutions || []).filter((solution) => solution.kind !== "navigate"),
+      });
+    } catch (reviewError) {
+      setEntryReviewError(reviewError.message || "Could not prepare suggested fixes.");
+    } finally {
+      setEntryReviewLoading(false);
+    }
+  }
+
+  async function runEntryReviewSolution(solution) {
+    if (!solution || entryReviewBusy) return;
+    if (solution.kind === "navigate") {
+      onNavigate?.(solution.page, solution.search, solution.recordId);
+      return;
+    }
+    if (solution.kind === "guidance") {
+      setEntryReviewPrompt(null);
+      const firstField = (solution.fields || []).find(Boolean);
+      const target = firstField
+        ? document.querySelector(`.cms-modal [name="${attrSelectorValue(firstField)}"]`)
+        : null;
+      target?.scrollIntoView?.({ block: "center", behavior: "smooth" });
+      target?.focus?.({ preventScroll: true });
+      setEntryReviewNotice(solution.confirmation || solution.description || "Review the fields below, save, then the dashboard audit will re-check it.");
+      return;
+    }
+    setEntryReviewBusy(solution.id);
+    setEntryReviewError("");
+    setEntryReviewNotice("");
+    setEntryReviewPrompt(null);
+    try {
+      const message = await solution.run();
+      if (editing?.id) {
+        const updated = await cmsApi.get(`${config.endpoint}${editing.id}/`, { skipCache: true });
+        setEditing((current) => current?.id === updated?.id ? updated : current);
+      }
+      await load();
+      await loadEntryReview(entryReview?.alert, entryReview?.detail);
+      setEntryReviewNotice(message || "Fix applied.");
+    } catch (solutionError) {
+      setEntryReviewError(solutionError.message || "Could not apply that fix.");
+    } finally {
+      setEntryReviewBusy("");
+    }
+  }
+
+  function promptEntryReviewSolution(solution) {
+    if (!solution || entryReviewBusy) return;
+    if (solution.kind === "guidance" || solution.kind === "navigate") {
+      runEntryReviewSolution(solution);
+      return;
+    }
+    setEntryReviewError("");
+    setEntryReviewNotice("");
+    setEntryReviewPrompt(solution);
+  }
+
+  function closeEditModal() {
+    setModal(false);
+    setEditing(null);
+    clearEntryReview();
+  }
+
+  function returnToEntryReviewSource() {
+    const target = entryReviewReturn || {};
+    setModal(false);
+    setEditing(null);
+    clearEntryReview();
+    onNavigate?.(target.page || "dashboard", "", null, {
+      focusAlertId: target.alertId,
+      focusDetailId: target.detailId,
+      returnFromAlertCase: true,
+    });
   }
 
   // Apply search term from global search result click
@@ -297,6 +422,17 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
         if (!active) return;
         setEditing(record);
         setModal(true);
+        if (searchJump.openCase && searchJump.alert && searchJump.detail) {
+          setEntryReviewReturn(searchJump.returnTo || {
+            page: "dashboard",
+            alertId: searchJump.alert?.id,
+            detailId: searchJump.detail?.id,
+            label: "Alerts",
+          });
+          loadEntryReview(searchJump.alert, searchJump.detail);
+        } else {
+          clearEntryReview();
+        }
       })
       .catch((err) => { if (active) setError(err.message); });
     return () => { active = false; };
@@ -330,6 +466,7 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
     () => mergeArtistOptions(artistOptions, artistOptionsFromRelease(editing), artistOptionsFromRelease(detailRow)),
     [artistOptions, editing, detailRow]
   );
+  const countryIndex = useMemo(() => buildCountryCodeIndex(countryOptions), [countryOptions]);
   const formFields = useMemo(() => {
     const baseFields = type === "songs" || type === "albums"
       ? releaseForm(type === "albums" ? "albums" : "singles", scopedArtistOptions)
@@ -356,6 +493,64 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
     (type === "songs" || type === "albums") ? normalizeReleaseInitial(editing) : editing
   ), [editing, type]);
   const formInitial = editing ? editingFormInitial : defaultFormInitial;
+
+  function applyCountryCodeDefaults(form) {
+    let next = form;
+    const applyPair = (source, target) => {
+      const code = countryIndex.codeForCountry(next?.[source]);
+      if (code && String(next?.[target] || "").trim().toUpperCase() !== code) {
+        next = { ...next, [target]: code };
+      }
+    };
+    applyPair("country", "country_code");
+    if (type === "countries") {
+      const profile = countryIndex.profileForCountry(next?.name) || countryIndex.profileForCode(next?.code);
+      if (profile) {
+        next = {
+          ...next,
+          code: profile.code,
+          region: profile.region,
+          flag: profile.flag,
+          display_order: profile.display_order,
+        };
+      } else {
+        applyPair("name", "code");
+      }
+    }
+    return next;
+  }
+
+  async function applyCertificationEligibilityDefaults(form) {
+    if (type !== "certifications") return { form, correction: null };
+    const rules = normalizeCertificationRules(
+      await cmsApi.get("/certification-rules/?page_size=500").catch(() => [])
+    );
+    const correction = enforceCertificationEligibility(form, rules);
+    return { form: correction.record, correction };
+  }
+
+  async function correctCertificationRecordsFromPoints() {
+    const rules = normalizeCertificationRules(
+      await cmsApi.get("/certification-rules/?page_size=500").catch(() => [])
+    );
+    const all = getResults(await cmsApi.get("/certifications/?page_size=2000"));
+    let fixed = 0;
+    let hidden = 0;
+    for (const cert of all) {
+      const correction = enforceCertificationEligibility(cert, rules);
+      const patch = {};
+      if (correction.visibilityChanged) {
+        patch.is_hidden = correction.record.is_hidden;
+        hidden++;
+      }
+      if (correction.levelChanged) {
+        patch.level = correction.record.level;
+        fixed++;
+      }
+      if (Object.keys(patch).length) await cmsApi.patch(`/certifications/${cert.id}/`, patch);
+    }
+    return { fixed, hidden, changed: fixed + hidden };
+  }
 
   // Used after save/delete to reload without debounce
   async function load() {
@@ -418,6 +613,35 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
     if (type !== "news") return;
     cmsApi.get("/releases/options/").then(setReleaseOptions).catch((e) => setError(e.message));
   }, [type]);
+  useEffect(() => {
+    let active = true;
+    cmsApi.get("/countries/?page_size=500")
+      .then((data) => { if (active) setCountryOptions(getResults(data)); })
+      .catch(() => { if (active) setCountryOptions([]); });
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    if (type !== "certifications" || !canEdit || loading || actionBusy || rows.length === 0) return undefined;
+    const signature = rows
+      .map((row) => `${row.id}:${row.level}:${row.total_points ?? row.totalPts ?? row.points}:${row.is_hidden}`)
+      .join("|");
+    if (!signature || certAutoCorrectRef.current === signature) return undefined;
+    certAutoCorrectRef.current = signature;
+    let active = true;
+    (async () => {
+      const result = await correctCertificationRecordsFromPoints();
+      if (!active || !result.changed) return;
+      const parts = [];
+      if (result.fixed) parts.push(`fixed ${result.fixed} level${result.fixed !== 1 ? "s" : ""}`);
+      if (result.hidden) parts.push(`hid ${result.hidden} below-threshold certification${result.hidden !== 1 ? "s" : ""}`);
+      showFlash(`Certification records auto-corrected from points: ${parts.join(", ")}.`);
+      await load();
+    })().catch((certError) => {
+      if (active) setError(`Certification auto-correction failed: ${certError.message}`);
+    });
+    return () => { active = false; };
+  }, [type, canEdit, loading, actionBusy, rows]);
 
   // Keep Artists exhaustive even when an editor opens this page directly.
   // This includes primary and text-only featured credits from every published
@@ -514,10 +738,12 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
   async function save(form) {
     if (!canEdit) throw new Error("Your role has read-only access to this section.");
     setError("");
+    form = applyCountryCodeDefaults(form);
     if (type === "artists" && !String(form.slug || "").trim() && String(form.name || "").trim()) {
       form = { ...form, slug: artistSlug(form.name) };
     }
     if (type === "songs" || type === "albums") {
+      form = applyReleaseDateDefaults(form);
       const { primary_artist_ids, featured_artist_ids } = splitArtistRoleCredits(form.artist_credits);
       const { artist_credits, featured_artists, ...restForm } = form;
       const primaryIds = primary_artist_ids;
@@ -531,6 +757,7 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
           ? String(leadOption.country_code || "").trim().toUpperCase()
           : String(form.country_code || "").trim().toUpperCase(),
       };
+      form = applyCountryCodeDefaults(form);
     }
     if (type === "news") {
       form = {
@@ -538,6 +765,15 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
         related_artist: form.related_artist || null,
         related_release: form.related_release || null,
       };
+    }
+    const certificationDefaults = await applyCertificationEligibilityDefaults(form);
+    form = certificationDefaults.form;
+    const certificationCorrection = certificationDefaults.correction;
+    if (type === "certifications" && !editing?.id && certificationCorrection?.hidden) {
+      closeEditModal();
+      setDetailRow(null);
+      showFlash("Certification not created: points are below the active threshold.");
+      return;
     }
     const fileFieldNames = new Set(formFields.filter(f => f.type === "file").map(f => f.name));
     const fileEntries = Object.entries(form).filter(([, v]) => v instanceof File);
@@ -587,7 +823,7 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
         await cmsApi.patch(`${config.endpoint}${savedId}/`, fd);
       } catch(e) {
         // Record was saved in Step 1 — close modal and reload, but surface the image error
-        setModal(false); setEditing(null); setDetailRow(null); load();
+        closeEditModal(); setDetailRow(null); load();
         setError(`Record saved, but image upload failed: ${e.message}`);
         return;
       }
@@ -597,7 +833,12 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
     // release where they're the main performer (see CmsArtistSerializer.update()
     // in cms_serializers.py) — no client-side follow-up PATCHes needed here.
 
-    setModal(false); setEditing(null); setDetailRow(null); load();
+    closeEditModal(); setDetailRow(null); load();
+    if (certificationCorrection?.hidden) {
+      showFlash("Certification not applied: points are below the active threshold, so the row was hidden from the app.");
+    } else if (certificationCorrection?.levelChanged) {
+      showFlash(`Certification level auto-corrected to ${certificationCorrection.eligibleLevel}.`);
+    }
   }
 
   const isRelease = type === "songs" || type === "albums";
@@ -656,34 +897,21 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
     });
   }
 
-  // Canonical thresholds: Diamond ≥600, Platinum ≥400, Gold ≥200
-  function correctCertLevel(points) {
-    const p = Number(points) || 0;
-    if (p >= 600) return "diamond";
-    if (p >= 400) return "platinum";
-    if (p >= 200) return "gold";
-    return null;
-  }
-
   async function recalcCertLevels() {
     if (actionBusy) return;
     setActionBusy(true);
     setError("");
     try {
-      const all = getResults(await cmsApi.get("/certifications/?page_size=2000"));
-      let fixed = 0;
-      for (const cert of all) {
-        const correct = correctCertLevel(cert.total_points);
-        if (correct && cert.level !== correct) {
-          await cmsApi.patch(`/certifications/${cert.id}/`, { level: correct });
-          fixed++;
-        }
-      }
-      if (fixed === 0) {
-        showFlash("All certification levels are already correct.");
+      const { fixed, hidden, changed } = await correctCertificationRecordsFromPoints();
+      if (changed === 0) {
+        showFlash("All certification records already match the active thresholds.");
       } else {
-        showFlash(`Fixed ${fixed} certification level${fixed !== 1 ? "s" : ""}.`);
+        const parts = [];
+        if (fixed) parts.push(`fixed ${fixed} level${fixed !== 1 ? "s" : ""}`);
+        if (hidden) parts.push(`hid ${hidden} below-threshold certification${hidden !== 1 ? "s" : ""}`);
+        showFlash(`Certification correction complete: ${parts.join(", ")}.`);
         load();
+        if (entryReview?.alert) loadEntryReview(entryReview.alert, entryReview.detail);
       }
     } catch(e) { setError(e.message); }
     finally { setActionBusy(false); }
@@ -925,7 +1153,7 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
   async function bulkEditCountry() {
     if (!bulkEditTarget || actionBusy) return;
     const country = bulkEditTarget.country.trim();
-    const countryCode = bulkEditTarget.country_code.trim().toUpperCase();
+    const countryCode = (countryIndex.codeForCountry(country) || bulkEditTarget.country_code).trim().toUpperCase();
     if (!country && !countryCode) return;
     const updates = {};
     if (country) updates.country = country;
@@ -1128,12 +1356,92 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
     ...(chartActionsColumn ? [chartActionsColumn] : []),
     ...(actionsColumn ? [actionsColumn] : []),
   ];
+  const entrySolutions = (entryReview?.solutions || []).filter((solution) => solution.kind !== "navigate");
+  const entryReviewPanel = entryReview ? (
+    <div className="cms-entry-review-panel">
+      {entryReviewReturn && (
+        <div className="cms-entry-review-actions">
+          <button type="button" className="cms-btn light small" onClick={returnToEntryReviewSource}>
+            Back to Alerts
+          </button>
+        </div>
+      )}
+      <div className={`cms-alert ${entryReview.alert?.level || "warning"} cms-alert-case-summary`}>
+        <strong>{entryReview.alert?.title || "Alert review"}</strong>
+        <span>
+          {entryReview.detail?.label || "This entry"}
+          {entryReview.detail?.problem ? ` - ${entryReview.detail.problem}` : ""}
+        </span>
+      </div>
+      {entryReviewLoading && <div className="cms-empty compact">Preparing possible solutions...</div>}
+      {!entryReviewLoading && entryReview.recordError && (
+        <div className="cms-alert warning">{entryReview.recordError}</div>
+      )}
+      {entryReviewError && <div className="cms-alert error">{entryReviewError}</div>}
+      {entryReviewNotice && <div className="cms-alert info">{entryReviewNotice}</div>}
+      {entryReviewPrompt && (
+        <div className="cms-local-fix-prompt">
+          <div>
+            <strong>Apply selected fix?</strong>
+            <span>{entryReviewPrompt.description || entryReviewPrompt.label}</span>
+          </div>
+          <div className="cms-local-fix-actions">
+            <button
+              type="button"
+              className="cms-btn"
+              disabled={!!entryReviewBusy}
+              onClick={() => runEntryReviewSolution(entryReviewPrompt)}
+            >
+              {entryReviewBusy === entryReviewPrompt.id ? "Applying..." : entryReviewPrompt.actionLabel || "Apply fix"}
+            </button>
+            <button
+              type="button"
+              className="cms-btn light"
+              disabled={!!entryReviewBusy}
+              onClick={() => setEntryReviewPrompt(null)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+      {!entryReviewLoading && (
+        <div className="cms-alert-solution-list">
+          {entrySolutions.length === 0 && (
+            <div className="cms-alert info">
+              Resolution path: review the fields named by this alert, save the entry, and the dashboard audit will re-check it.
+            </div>
+          )}
+          {entrySolutions.map((solution) => {
+            const running = entryReviewBusy === solution.id;
+            const guided = solution.kind === "guidance";
+            return (
+              <div className={`cms-alert-solution${guided ? " guidance" : ""}`} key={solution.id}>
+                <div>
+                  <strong>{solution.label}</strong>
+                  <span>{solution.description}</span>
+                </div>
+                <button
+                  type="button"
+                  className={`cms-btn${solution.tone === "light" || guided ? " light" : ""}`}
+                  disabled={!!entryReviewBusy}
+                  onClick={() => promptEntryReviewSolution(solution)}
+                >
+                  {running ? "Applying..." : solution.actionLabel || (guided ? "Review fields" : "Select")}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  ) : null;
 
   return (
     <section>
       <div className="cms-page-head">
         <div><h1>{config.title}</h1><p>Manage {config.title.toLowerCase()} from the CMS.</p></div>
-        {canEdit && <button className="cms-btn" onClick={() => { setEditing(null); setModal(true); }}>Add new</button>}
+        {canEdit && <button className="cms-btn" onClick={() => { setEditing(null); clearEntryReview(); setModal(true); }}>Add new</button>}
       </div>
       {flash && <div className="cms-alert" style={{ background:"#f0fdf4", color:"#15803d", border:"1px solid #bbf7d0", borderRadius:6, padding:"10px 14px", marginBottom:10 }}>{flash}</div>}
       {error && (
@@ -1179,10 +1487,10 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
             <button
               className="cms-btn light"
               disabled={actionBusy}
-              title="Recalculate every certification's level from its total points (💎 ≥600, 🎵 ≥400, 📀 ≥200)"
+              title="Correct certification levels from active rules and hide rows that no longer meet any threshold."
               onClick={recalcCertLevels}
             >
-              {actionBusy ? "Fixing…" : "Recalculate levels"}
+              {actionBusy ? "Fixing..." : "Correct certifications"}
             </button>
           </>
         )}
@@ -1368,7 +1676,17 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
           )}
         </div>
       )}
-      <FormModal open={modal && canEdit} title={`${editing ? "Edit" : "Create"} ${config.title}`} entityId={editing?.id} fields={formFields} initial={formInitial} onSubmit={save} onClose={() => setModal(false)} />
+      <FormModal
+        open={modal && canEdit}
+        title={`${editing ? "Edit" : "Create"} ${config.title}`}
+        entityId={editing?.id}
+        fields={formFields}
+        initial={formInitial}
+        reviewPanel={entryReviewPanel}
+        countryOptions={countryOptions}
+        onSubmit={save}
+        onClose={closeEditModal}
+      />
 
       {/* Detail panel */}
       {detailRow && (() => {
@@ -1403,7 +1721,7 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
                 <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                   {canEdit && (
                     <button className="cms-btn light" style={{ fontSize: 12, padding: "4px 12px" }}
-                      onClick={() => { setDetailRow(null); setEditing(r); setModal(true); }}>
+                      onClick={() => { setDetailRow(null); setEditing(r); clearEntryReview(); setModal(true); }}>
                       Edit
                     </button>
                   )}
@@ -1704,7 +2022,16 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
                   placeholder="e.g. Uganda"
                   value={bulkEditTarget.country}
                   disabled={actionBusy}
-                  onChange={(e) => setBulkEditTarget((current) => ({ ...current, country: e.target.value }))}
+                  list="cms-bulk-country-list"
+                  onChange={(e) => {
+                    const country = e.target.value;
+                    const code = countryIndex.codeForCountry(country);
+                    setBulkEditTarget((current) => ({
+                      ...current,
+                      country,
+                      country_code: code || "",
+                    }));
+                  }}
                 />
               </label>
               <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 12, color: "#666" }}>
@@ -1714,10 +2041,15 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
                   placeholder="e.g. UG"
                   value={bulkEditTarget.country_code}
                   disabled={actionBusy}
-                  onChange={(e) => setBulkEditTarget((current) => ({ ...current, country_code: e.target.value }))}
+                  onChange={(e) => setBulkEditTarget((current) => ({ ...current, country_code: e.target.value.toUpperCase() }))}
                 />
               </label>
             </div>
+            <datalist id="cms-bulk-country-list">
+              {countryIndex.countries.map((country) => (
+                <option key={country.code} value={country.name}>{country.code}</option>
+              ))}
+            </datalist>
             <div className="cms-bulk-record-list">
               {bulkEditTarget.rows.map((row) => (
                 <div key={row.id}>

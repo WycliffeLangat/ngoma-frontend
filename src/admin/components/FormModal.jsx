@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import ErrorHelpLink from "./ErrorHelpLink";
+import { buildCountryCodeIndex } from "../../utils/countryCodes.js";
+import { applyReleaseDateDefaults, releaseYearFromDate } from "../releaseDateDefaults.js";
 
-function OrderedMultiSelect({ value = [], options = [], onChange }) {
+function OrderedMultiSelect({ name = "", value = [], options = [], onChange }) {
   const selected = Array.isArray(value) ? value.map(Number).filter(Boolean) : [];
   const optionById = new Map(options.map((option) => [Number(option.value), option]));
   const add = (artistId) => {
@@ -17,7 +19,7 @@ function OrderedMultiSelect({ value = [], options = [], onChange }) {
   };
   return (
     <div className="cms-credit-picker">
-      <select value="" onChange={(event) => add(event.target.value)}>
+      <select name={name} value="" onChange={(event) => add(event.target.value)}>
         <option value="">Add artist...</option>
         {options.filter((option) => !selected.includes(Number(option.value))).map((option) => (
           <option key={option.value} value={option.value}>{option.label}{option.country_code ? ` (${option.country_code})` : ""}</option>
@@ -56,7 +58,7 @@ function normalizeArtistCreditRows(value = []) {
   });
 }
 
-function ArtistRoleList({ value = [], options = [], onChange }) {
+function ArtistRoleList({ name = "", value = [], options = [], onChange }) {
   const rows = normalizeArtistCreditRows(value);
   const optionById = new Map(options.map((option) => [Number(option.value), option]));
   const setRows = (nextRows) => onChange(normalizeArtistCreditRows(nextRows));
@@ -75,7 +77,7 @@ function ArtistRoleList({ value = [], options = [], onChange }) {
   };
   return (
     <div className="cms-credit-picker">
-      <select value="" onChange={(event) => add(event.target.value)}>
+      <select name={name} value="" onChange={(event) => add(event.target.value)}>
         <option value="">Add artist...</option>
         {options.filter((option) => !rows.some((row) => row.artist_id === Number(option.value))).map((option) => (
           <option key={option.value} value={option.value}>{option.label}{option.country_code ? ` (${option.country_code})` : ""}</option>
@@ -110,7 +112,7 @@ function ArtistRoleList({ value = [], options = [], onChange }) {
   );
 }
 
-function TagsInput({ value = "", onChange }) {
+function TagsInput({ name = "", value = "", onChange }) {
   const tags = String(value || "").split(",").map((t) => t.trim()).filter(Boolean);
   const [input, setInput] = useState("");
   const add = () => {
@@ -134,6 +136,7 @@ function TagsInput({ value = "", onChange }) {
       </div>
       <div className="cms-tags-add">
         <input
+          name={name}
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -186,6 +189,7 @@ function ImageUploadBox({ fieldName, label, help, form, set }) {
           }
           <input
             ref={inputRef}
+            name={fieldName}
             type="file"
             accept="image/*"
             style={{ display: "none" }}
@@ -213,24 +217,98 @@ function ImageUploadBox({ fieldName, label, help, form, set }) {
   );
 }
 
-export default function FormModal({ open, title, entityId, fields = [], initial = {}, onSubmit, onClose }) {
+export default function FormModal({ open, title, entityId, fields = [], initial = {}, onSubmit, onClose, reviewPanel = null, countryOptions = [] }) {
   const [form, setForm] = useState(initial || {});
   const [submitError, setSubmitError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const countryListIdRef = useRef(`cms-country-list-${Math.random().toString(36).slice(2)}`);
+  const fieldNames = useMemo(() => new Set(fields.map((field) => field.name)), [fields]);
+  const countryIndex = useMemo(() => buildCountryCodeIndex(countryOptions), [countryOptions]);
+  const countryPairs = useMemo(() => [
+    fieldNames.has("country") && fieldNames.has("country_code")
+      ? { source: "country", target: "country_code" }
+      : null,
+    fieldNames.has("name") && fieldNames.has("code")
+      ? { source: "name", target: "code" }
+      : null,
+  ].filter(Boolean), [fieldNames]);
+  const countrySourceFields = useMemo(() => new Set(countryPairs.map((pair) => pair.source)), [countryPairs]);
+  const countryCodeFields = useMemo(() => new Set([
+    ...countryPairs.map((pair) => pair.target),
+    fieldNames.has("flag") ? "flag" : null,
+  ].filter(Boolean)), [countryPairs, fieldNames]);
+  const countryProfileFields = useMemo(() => ["code", "region", "flag", "display_order"].filter((field) => fieldNames.has(field)), [fieldNames]);
+  const countryProfilePatch = (source, value) => {
+    const profile = countryIndex.profileForCountry(value);
+    if (!profile) return {};
+    if (source === "country") return { country_code: profile.code };
+    if (source !== "name") return {};
+    return Object.fromEntries(
+      countryProfileFields
+        .map((field) => [field, profile[field]])
+        .filter(([, fieldValue]) => fieldValue !== undefined && fieldValue !== null && fieldValue !== "")
+    );
+  };
+  const hasReleaseDatePair = fieldNames.has("release_date") && fieldNames.has("release_year");
   useEffect(() => {
     setForm(initial || {});
     setSubmitError("");
     setFieldErrors({});
     setSubmitting(false);
   }, [initial, open]);
+  useEffect(() => {
+    if (!open || countryPairs.length === 0) return;
+    setForm((current) => {
+      let next = current;
+      countryPairs.forEach(({ source, target }) => {
+        const patch = countryProfilePatch(source, next?.[source]);
+        if (Object.keys(patch).length) {
+          const shouldPatch = Object.entries(patch).some(([field, value]) => String(next?.[field] ?? "").trim() !== String(value));
+          if (shouldPatch) next = { ...next, ...patch };
+        } else {
+          const code = countryIndex.codeForCountry(next?.[source]);
+          if (code && !String(next?.[target] || "").trim()) {
+            next = { ...next, [target]: code };
+          }
+        }
+      });
+      return next;
+    });
+  }, [open, countryIndex, countryPairs, countryProfileFields]);
+  useEffect(() => {
+    if (!open || !hasReleaseDatePair) return;
+    setForm((current) => applyReleaseDateDefaults(current));
+  }, [open, hasReleaseDatePair]);
   if (!open) return null;
   const set = (key, value) => {
-    setForm((current) => ({ ...current, [key]: value }));
+    const nextValue = countryCodeFields.has(key) ? String(value || "").toUpperCase() : value;
+    const pair = countryPairs.find((item) => item.source === key);
+    const countryPatch = pair ? countryProfilePatch(key, nextValue) : {};
+    const generatedCode = pair ? (countryPatch[pair.target] || countryIndex.codeForCountry(nextValue)) : "";
+    const dateYear = key === "release_date" ? releaseYearFromDate(nextValue) : null;
+    const profileClearKeys = pair?.source === "name" ? countryProfileFields : [];
+    const clearKeys = [key, pair?.target, ...profileClearKeys, dateYear ? "release_year" : null].filter(Boolean);
+    setForm((current) => {
+      const next = { ...current, [key]: nextValue };
+      if (pair) {
+        if (Object.keys(countryPatch).length) {
+          Object.assign(next, countryPatch);
+        } else if (pair.source === "name") {
+          countryProfileFields.forEach((field) => { next[field] = ""; });
+        } else {
+          next[pair.target] = generatedCode || "";
+        }
+      }
+      if (dateYear) {
+        next.release_year = dateYear;
+      }
+      return next;
+    });
     setFieldErrors((current) => {
-      if (!current[key]) return current;
+      if (!clearKeys.some((field) => current[field])) return current;
       const next = { ...current };
-      delete next[key];
+      clearKeys.forEach((field) => delete next[field]);
       return next;
     });
   };
@@ -310,6 +388,7 @@ export default function FormModal({ open, title, entityId, fields = [], initial 
             </ErrorHelpLink>
           </div>
         )}
+        {reviewPanel}
         <div className="cms-form-sections">
           {orderedSections.map(([section, sectionFields]) => (
             <section className="cms-form-section" key={section}>
@@ -332,31 +411,34 @@ export default function FormModal({ open, title, entityId, fields = [], initial 
               <label key={field.name} className={`${wide ? "wide " : ""}${fieldError ? "cms-field-invalid" : ""}`.trim()}>
                 <span>{field.label}{required && <b className="cms-required" aria-label="required"> *</b>}</span>
                 {field.type === "checkbox" ? (
-                  <input type="checkbox" checked={Boolean(v)} onChange={(e) => set(field.name, e.target.checked)} />
+                  <input name={field.name} type="checkbox" disabled={field.readOnly} checked={Boolean(v)} onChange={(e) => set(field.name, e.target.checked)} />
                 ) : field.type === "textarea" ? (
-                  <textarea required={required} value={v || ""} onChange={(e) => set(field.name, e.target.value)} rows={5} />
+                  <textarea name={field.name} required={required} disabled={field.readOnly} value={v || ""} onChange={(e) => set(field.name, e.target.value)} rows={5} />
                 ) : field.type === "select" ? (
-                  <select required={required} value={v ?? ""} onChange={(e) => set(field.name, e.target.value)}>
+                  <select name={field.name} required={required} disabled={field.readOnly} value={v ?? ""} onChange={(e) => set(field.name, e.target.value)}>
                     <option value="">Select...</option>
                     {(field.options || []).map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                   </select>
                 ) : field.type === "ordered-multiselect" ? (
-                  <OrderedMultiSelect value={v} options={field.options || []} onChange={(val) => set(field.name, val)} />
+                  <OrderedMultiSelect name={field.name} value={v} options={field.options || []} onChange={(val) => set(field.name, val)} />
                 ) : field.type === "artist-role-list" ? (
-                  <ArtistRoleList value={v} options={field.options || []} onChange={(val) => set(field.name, val)} />
+                  <ArtistRoleList name={field.name} value={v} options={field.options || []} onChange={(val) => set(field.name, val)} />
                 ) : field.type === "json" ? (
                   <textarea
+                    name={field.name}
                     value={typeof v === "string" ? v : JSON.stringify(v || {}, null, 2)}
                     onChange={(e) => { try { set(field.name, JSON.parse(e.target.value)); } catch { set(field.name, e.target.value); } }}
                     rows={6}
                   />
                 ) : field.type === "tags" ? (
-                  <TagsInput value={v} onChange={(val) => set(field.name, val)} />
+                  <TagsInput name={field.name} value={v} onChange={(val) => set(field.name, val)} />
                 ) : (
                   <input
+                    name={field.name}
                     type={field.type || "text"}
                     required={required}
                     disabled={field.readOnly}
+                    list={countrySourceFields.has(field.name) ? countryListIdRef.current : undefined}
                     value={v ?? ""}
                     onChange={(e) => set(field.name, field.type === "number" ? Number(e.target.value) : e.target.value)}
                   />
@@ -381,6 +463,13 @@ export default function FormModal({ open, title, entityId, fields = [], initial 
           <button type="button" className="cms-btn light" onClick={onClose} disabled={submitting}>Cancel</button>
           <button className="cms-btn" disabled={submitting}>{submitting ? "Saving..." : "Save"}</button>
         </div>
+        {countryPairs.length > 0 && (
+          <datalist id={countryListIdRef.current}>
+            {countryIndex.countries.map((country) => (
+              <option key={country.code} value={country.name}>{country.code}</option>
+            ))}
+          </datalist>
+        )}
       </form>
     </div>
   );

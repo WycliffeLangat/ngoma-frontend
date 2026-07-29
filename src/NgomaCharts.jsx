@@ -2441,6 +2441,36 @@ const top = data[0];
     });
     return [...map.values()].sort((a,b)=>a._bestRank-b._bestRank);
   },[dataRevision]);
+  const automaticCerts = useMemo(() => buildAutomaticCertifications({
+    singles: COMBINED_YEAR_END.singles,
+    albums: COMBINED_YEAR_END.albums,
+  }, CERTIFICATION_LEVELS), [dataRevision]);
+  // Certification level and cumulative points follow the published Combined
+  // Top 50 history. Live CMS rows supply editorial metadata when available,
+  // while automatic rows keep public badges current as soon as points change.
+  const normalizedLiveCerts = useMemo(() => {
+    const mergedCerts = mergeCertifications(automaticCerts, liveCerts || [], CERTIFICATION_LEVELS);
+    return mergedCerts.map((cert) => {
+      const meta = certificationMetaForLevel(cert.level);
+      if (!meta) return null;
+      return { ...cert, ...meta, totalPts: Number(cert.totalPts) || 0 };
+    }).filter(Boolean);
+  }, [automaticCerts, liveCerts]);
+
+  // Collapse the raw certification rows down to one per release before any
+  // public surface reads them, so search, badges, news, and certification
+  // pages all agree on the current threshold-safe level.
+  const dedupedLiveCerts = useMemo(() => {
+    const bucket = new Map();
+    normalizedLiveCerts.forEach((cert) => {
+      const key = `${cert.chart_type === "albums" ? "albums" : "singles"}|||${certificationKey(cert.t, cert.a)}`;
+      const existing = bucket.get(key);
+      if (!existing || (CERTIFICATION_LEVEL_RANK[cert.level] ?? 99) < (CERTIFICATION_LEVEL_RANK[existing.level] ?? 99)) {
+        bucket.set(key, cert);
+      }
+    });
+    return Array.from(bucket.values());
+  }, [normalizedLiveCerts]);
   const sResults=useMemo(()=>{
     const q=srch.trim().toLowerCase();
     if(q.length<2) return null;
@@ -2470,7 +2500,7 @@ const top = data[0];
     // A release can have one raw cert row per threshold it has ever crossed
     // (Gold, then later Platinum) — keep only the highest-ranked row per
     // release so search never lists the same song twice at two levels.
-    const matchedCerts=(liveCerts||[])
+    const matchedCerts=(dedupedLiveCerts||[])
       .map(c=>({c,score:fuzzyMatchScore([c.t,c.a,c.level].filter(Boolean).map(String).join(" ").toLowerCase(),q)}))
       .filter(x=>x.score>=1)
       .sort((x,y)=>y.score-x.score)
@@ -2485,7 +2515,7 @@ const top = data[0];
     });
     const certs=Array.from(certsByKey.values()).slice(0,4);
     return {songs,albums,artists,news:newsItems,certs};
-  },[srch,songSearchIndex,albumSearchIndex,liveNews,liveCerts,dataRevision]);
+  },[srch,songSearchIndex,albumSearchIndex,liveNews,dedupedLiveCerts,dataRevision]);
   const sFlatResults=useMemo(()=>{
     if(!sResults) return [];
     return [
@@ -3355,10 +3385,6 @@ const top = data[0];
   },analysisMonths.length);
   const rankJourneyMonths=rankJourneyStartIndex<analysisMonths.length?analysisMonths.slice(rankJourneyStartIndex):analysisMonths;
 
-  const automaticCerts = useMemo(() => buildAutomaticCertifications({
-    singles: COMBINED_YEAR_END.singles,
-    albums: COMBINED_YEAR_END.albums,
-  }, CERTIFICATION_LEVELS), [dataRevision]);
   const certIcons=CERTIFICATION_LEVELS.reduce((acc, item) => {
     acc[item.level] = item.icon;
     return acc;
@@ -3367,34 +3393,6 @@ const top = data[0];
     acc[item.level] = item.color;
     return acc;
   }, {});
-  // Certification level and cumulative points follow the published Combined
-  // Top 50 history. Live CMS rows supply editorial metadata when available,
-  // while automatic rows keep public badges current as soon as points change.
-  const normalizedLiveCerts = useMemo(() => {
-    const mergedCerts = mergeCertifications(automaticCerts, liveCerts || [], CERTIFICATION_LEVELS);
-    return mergedCerts.map((cert) => {
-      const meta = certificationMetaForLevel(cert.level);
-      if (!meta) return null;
-      return { ...cert, ...meta, totalPts: Number(cert.totalPts) || 0 };
-    }).filter(Boolean);
-  }, [automaticCerts, liveCerts]);
-
-  // Collapse the raw certification rows down to one per release — the
-  // highest level it has reached — before anything downstream reads them,
-  // so the Charts badges, the news matcher, and the Certifications page can
-  // never disagree about which level a release is currently at.
-  const dedupedLiveCerts = useMemo(() => {
-    const bucket = new Map();
-    normalizedLiveCerts.forEach((cert) => {
-      const key = `${cert.chart_type === "albums" ? "albums" : "singles"}|||${certificationKey(cert.t, cert.a)}`;
-      const existing = bucket.get(key);
-      if (!existing || (CERTIFICATION_LEVEL_RANK[cert.level] ?? 99) < (CERTIFICATION_LEVEL_RANK[existing.level] ?? 99)) {
-        bucket.set(key, cert);
-      }
-    });
-    return Array.from(bucket.values());
-  }, [normalizedLiveCerts]);
-
   const certificationLookup = useMemo(() => {
     const result = { singles: new Map(), albums: new Map() };
     (dedupedLiveCerts || []).forEach((cert) => {

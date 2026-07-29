@@ -105,7 +105,7 @@ function PageLoader() {
 }
 
 function renderPage(page, user, searchJump, onNavigate) {
-  if (page === "dashboard")       return <DashboardPage user={user} onNavigate={onNavigate} />;
+  if (page === "dashboard")       return <DashboardPage user={user} onNavigate={onNavigate} searchJump={searchJump} />;
   if (page === "chart-entries")   return <ChartEntriesPage user={user} searchJump={searchJump} />;
   if (page === "year-end")        return <YearEndPage onNavigate={onNavigate} />;
   if (page === "uploads")         return <UploadsPage user={user} searchJump={searchJump} />;
@@ -157,9 +157,9 @@ export default function AdminApp() {
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
 
-  function handleGlobalNavigate(targetPage, term, id) {
+  function handleGlobalNavigate(targetPage, term, id, context = {}) {
     setPage(targetPage);
-    setSearchJump({ page: targetPage, term, id, ts: Date.now() });
+    setSearchJump({ page: targetPage, term, id, ...context, ts: Date.now() });
   }
 
   const unread = useMemo(() => 0, []);

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { cmsApi } from "../api";
 import DataTable from "../components/DataTable";
 import { buildDashboardAudit, mergeDashboardAudit } from "../dataQualityAudit";
@@ -127,16 +127,16 @@ function alertPage(alert) {
 // unfiltered list.
 const CARD_ALERT_ID = {
   missing_artist_countries: "artists-missing-country",
-  duplicate_artists_detected: "possible-duplicate-artists",
+  duplicate_artists_detected: ["possible-duplicate-artists", "audit-artist-duplicate-name", "audit-song-duplicate-title", "audit-album-duplicate-title"],
   errors_warnings: "open-data-quality-reports",
   unpublished_chart_months: "charts-unpublished",
   uploads_awaiting_review: "uploads-awaiting-action",
   data_audit_findings: "audit-open-quality-reports",
   critical_data_issues: "audit-upload-validation-errors",
-  incomplete_metadata: "audit-artist-details-incomplete",
-  missing_media_assets: "audit-artist-image-missing",
-  invalid_urls_detected: "audit-artist-invalid-url",
-  questionable_countries: "audit-artist-country-questionable",
+  incomplete_metadata: ["audit-song-details-incomplete", "audit-album-details-incomplete", "audit-artist-details-incomplete"],
+  missing_media_assets: ["audit-song-cover-missing", "audit-album-cover-missing", "audit-artist-image-missing"],
+  invalid_urls_detected: ["audit-song-invalid-url", "audit-album-invalid-url", "audit-artist-invalid-url"],
+  questionable_countries: ["audit-song-country-questionable", "audit-album-country-questionable", "audit-artist-country-questionable", "audit-inactive-country-in-use"],
   chart_uploads_needed: "audit-chart-upload-needed",
 };
 
@@ -156,32 +156,83 @@ function cardClass(key, value) {
   return "";
 }
 
-export default function DashboardPage({ user, onNavigate }) {
+function cardAlert(alerts, key) {
+  const ids = [CARD_ALERT_ID[key]].flat().filter(Boolean);
+  return ids.map((id) => alerts.find((alert) => alert.id === id)).find(Boolean);
+}
+
+export default function DashboardPage({ user, onNavigate, searchJump }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   const [auditLoading, setAuditLoading] = useState(true);
   const [auditError, setAuditError] = useState("");
+  const alertRefs = useRef(new Map());
+
+  const loadDashboard = useCallback(async ({ keepCurrent = false } = {}) => {
+    if (!keepCurrent) setData(null);
+    setError("");
+    setAuditError("");
+    setAuditLoading(true);
+    let baseData = null;
+    let auditResult = null;
+    try {
+      const [summary, insights] = await Promise.all([
+        cmsApi.get("/dashboard/"),
+        cmsApi.get("/dashboard/insights/"),
+      ]);
+      baseData = { ...summary, ...insights, cards: { ...summary.cards, ...insights.cards } };
+      setData(auditResult ? mergeDashboardAudit(baseData, auditResult) : baseData);
+    } catch (e) {
+      setError(e.message);
+    }
+
+    try {
+      auditResult = await buildDashboardAudit(cmsApi);
+      setData((current) => {
+        const target = current || baseData;
+        return target ? mergeDashboardAudit(target, auditResult) : target;
+      });
+    } catch (e) {
+      setAuditError(e.message || "Deep CMS audit failed.");
+    } finally {
+      setAuditLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     let active = true;
-    let auditResult = null;
-    Promise.all([cmsApi.get("/dashboard/"), cmsApi.get("/dashboard/insights/")])
-      .then(([summary, insights]) => {
-        if (!active) return;
-        const baseData = { ...summary, ...insights, cards: { ...summary.cards, ...insights.cards } };
-        setData(auditResult ? mergeDashboardAudit(baseData, auditResult) : baseData);
-      })
-      .catch((e) => { if (active) setError(e.message); });
-
-    buildDashboardAudit(cmsApi)
-      .then((audit) => {
-        auditResult = audit;
-        if (!active) return;
-        setData((current) => current ? mergeDashboardAudit(current, audit) : current);
-      })
-      .catch((e) => { if (active) setAuditError(e.message || "Deep CMS audit failed."); })
-      .finally(() => { if (active) setAuditLoading(false); });
+    loadDashboard().catch((e) => { if (active) setError(e.message); });
     return () => { active = false; };
-  }, []);
+  }, [loadDashboard]);
+
+  function navigateToAlertEntry(alert, detail, page) {
+    if (!page) return;
+    onNavigate?.(page, detail?.label || "", detail?.id, {
+      alert,
+      detail,
+      openCase: true,
+      returnTo: {
+        page: "dashboard",
+        alertId: alert?.id,
+        detailId: detail?.id,
+        label: "Alerts",
+      },
+    });
+  }
+
+  useEffect(() => {
+    const focusAlertId = searchJump?.page === "dashboard" ? searchJump.focusAlertId : null;
+    if (!focusAlertId || !(data?.alerts || []).length) return undefined;
+    const target = alertRefs.current.get(String(focusAlertId));
+    if (!target) return undefined;
+    target.scrollIntoView({ block: "center", behavior: "smooth" });
+    target.classList.add("cms-alert-return-focus");
+    const timer = window.setTimeout(() => {
+      target.classList.remove("cms-alert-return-focus");
+    }, 2200);
+    return () => window.clearTimeout(timer);
+  }, [searchJump?.page, searchJump?.focusAlertId, searchJump?.ts, data?.alerts]);
+
   if (error) return <div className="cms-alert error">{error}</div>;
   if (!data) return <div className="cms-empty">Loading dashboard...</div>;
   const firstName = user?.first_name || user?.username || "there";
@@ -204,7 +255,7 @@ export default function DashboardPage({ user, onNavigate }) {
         {Object.entries(data.cards || {}).map(([key, value]) => {
           const cls = cardClass(key, value);
           const meta = cardMeta[key] || { icon: "•", hint: "View details" };
-          const linkedAlert = (data.alerts || []).find((a) => a.id === CARD_ALERT_ID[key]);
+          const linkedAlert = cardAlert(data.alerts || [], key);
           const targetPage = linkedAlert ? alertPage(linkedAlert) : meta.target;
           const interactive = Boolean(targetPage && onNavigate);
           const Card = interactive ? "button" : "div";
@@ -215,7 +266,7 @@ export default function DashboardPage({ user, onNavigate }) {
               className={`cms-stat-card${cls ? ` ${cls}` : ""}${interactive ? " interactive" : ""}`}
               key={key}
               onClick={interactive ? () => (
-                pinpoint ? onNavigate(targetPage, pinpoint.label, pinpoint.id) : onNavigate(targetPage)
+                pinpoint ? navigateToAlertEntry(linkedAlert, pinpoint, targetPage) : onNavigate(targetPage)
               ) : undefined}
             >
               <span className="cms-stat-icon" aria-hidden="true">{meta.icon}</span>
@@ -240,6 +291,11 @@ export default function DashboardPage({ user, onNavigate }) {
                   Checked {Number(data.auditCoverage.recordCount || 0).toLocaleString()} records across {data.auditCoverage.moduleCount || 0} modules
                 </span>
               )}
+              {data.auditCoverage?.releaseAuditScope === "public-top-50" && (
+                <span className="cms-audit-chip">
+                  Release alerts scoped to {Number(data.auditCoverage.publicTop50Releases || 0).toLocaleString()} public Top 50 releases
+                </span>
+              )}
               {auditError && <span className="cms-audit-chip error">Deep audit skipped: {auditError}</span>}
               {(data.auditLoadWarnings || []).slice(0, 3).map((warning, index) => (
                 <span className="cms-audit-chip warning" key={index}>Skipped {warning}</span>
@@ -250,20 +306,36 @@ export default function DashboardPage({ user, onNavigate }) {
           {(data.alerts || []).map((a, i) => {
           const page = alertPage(a);
           const pageLabel = PAGE_LABELS[page] || page;
-          const linkableDetails = (a.details || []).filter((d) => d.id != null);
+          const details = a.details || [];
+          const alertKey = a.id || `alert-${i}`;
           return (
-            <div key={i} className={`cms-alert ${a.level}`}>
+            <div
+              key={alertKey}
+              ref={(node) => {
+                const key = String(alertKey);
+                if (node) alertRefs.current.set(key, node);
+                else alertRefs.current.delete(key);
+              }}
+              data-cms-alert-id={alertKey}
+              className={`cms-alert ${a.level}`}
+            >
               <div className="cms-alert-heading">
                 <b>{a.title}</b>
                 {a.category && <span>{a.category}</span>}
               </div>
               <div>{a.message}</div>
-              {page && onNavigate && linkableDetails.length > 0 && (
+              {details.length > 0 && (
                 <ul className="cms-alert-detail-list">
-                  {linkableDetails.map((d, di) => (
-                    <li key={di}>
-                      <button className="cms-text-btn" onClick={() => onNavigate(page, d.label, d.id)}>
+                  {details.map((d, di) => (
+                    <li key={di} className="cms-alert-detail-row">
+                      <button className="cms-text-btn" onClick={() => navigateToAlertEntry(a, d, page)}>
                         {d.label}{d.problem ? ` — ${d.problem}` : ""}
+                      </button>
+                      <button
+                        className="cms-btn light cms-alert-review-btn"
+                        onClick={() => navigateToAlertEntry(a, d, page)}
+                      >
+                        Open review
                       </button>
                     </li>
                   ))}

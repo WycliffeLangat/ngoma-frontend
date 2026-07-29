@@ -1,7 +1,16 @@
 import { getResults } from "./api.js";
+import {
+  foldReleaseTitle,
+  foldText,
+  foldTokenOrder,
+  mergeRuleKeysForRow,
+} from "./mergeRules.js";
+import { fetchAppDataWithFallback } from "../api/public.js";
+import { normalizePublicPayload } from "../utils/publicDataRuntime.js";
 
 const PAGE_SIZE = 500;
 const MAX_ALERT_DETAILS = 14;
+const PUBLIC_PAYLOAD_CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const FINAL_STATUSES = new Set(["approved", "published", "complete", "completed", "processed", "archived"]);
 const OPEN_REPORT_STATUSES = new Set(["open", "new", "todo", "pending", "in_progress", "needs_attention"]);
 const RELEASE_TYPES = ["singles", "albums"];
@@ -78,14 +87,20 @@ async function fetchAllCmsResults(api, request) {
 }
 
 export async function buildDashboardAudit(api, options = {}) {
-  const settled = await Promise.allSettled(
-    RESOURCE_REQUESTS.map((request) => fetchAllCmsResults(api, request))
-  );
+  const settled = await Promise.allSettled([
+    ...RESOURCE_REQUESTS.map((request) => fetchAllCmsResults(api, request)),
+    options.publicPayload
+      ? Promise.resolve({ payload: options.publicPayload, source: "provided", stale: false })
+      : fetchAppDataWithFallback(undefined, {
+          timeoutMs: options.publicPayloadTimeoutMs || 15_000,
+          maxAgeMs: options.publicPayloadMaxAgeMs || PUBLIC_PAYLOAD_CACHE_MAX_AGE_MS,
+        }),
+  ]);
   const records = {};
   const loadWarnings = [];
 
-  settled.forEach((result, index) => {
-    const request = RESOURCE_REQUESTS[index];
+  RESOURCE_REQUESTS.forEach((request, index) => {
+    const result = settled[index];
     if (result.status === "fulfilled") {
       records[request.key] = result.value;
     } else {
@@ -94,22 +109,51 @@ export async function buildDashboardAudit(api, options = {}) {
     }
   });
 
+  const publicResult = settled[RESOURCE_REQUESTS.length];
+  const publicPayload = publicResult?.status === "fulfilled" ? publicResult.value?.payload : null;
+  if (publicResult?.status === "rejected") {
+    loadWarnings.push(`Public Top 50 releases: ${publicResult.reason?.message || "unavailable"}; release audit skipped`);
+  } else if (publicResult?.value?.stale) {
+    loadWarnings.push("Public Top 50 releases: using cached public chart data");
+  }
+
   return {
-    ...auditCmsRecords(records, options),
+    ...auditCmsRecords(records, {
+      ...options,
+      publicPayload,
+      publicReleasesOnly: options.publicReleasesOnly !== false,
+    }),
     loadWarnings,
   };
 }
 
 export function mergeDashboardAudit(data, audit) {
   if (!audit) return data;
+  const scopedBaseAlerts = filterAlertsForPublicReleaseScope(data?.alerts || [], audit.publicReleaseScope);
+  const baseAlerts = filterBackendAlertsResolvedByAudit(scopedBaseAlerts, audit);
   return {
     ...data,
     cards: { ...(data?.cards || {}), ...(audit.cards || {}) },
-    alerts: mergeAlerts(data?.alerts || [], audit.alerts || []),
+    alerts: mergeAlerts(baseAlerts, audit.alerts || []),
     auditCoverage: audit.coverage,
     auditSummary: audit.summary,
     auditLoadWarnings: audit.loadWarnings || [],
   };
+}
+
+function filterBackendAlertsResolvedByAudit(alerts, audit) {
+  const certificationAuditReliable = !(audit?.loadWarnings || []).some((warning) =>
+    /^Certifications:|^Certification rules:/i.test(String(warning || ""))
+  );
+  if (!certificationAuditReliable) return alerts;
+  return alerts.filter((alert) => !isBackendCertificationThresholdAlert(alert));
+}
+
+function isBackendCertificationThresholdAlert(alert = {}) {
+  const id = String(alert.id || "").toLowerCase();
+  const title = String(alert.title || "").toLowerCase();
+  return id === "certifications-below-threshold" ||
+    (title.includes("certification") && title.includes("threshold") && (title.includes("below") || title.includes("fall")));
 }
 
 function mergeAlerts(baseAlerts, auditAlerts) {
@@ -142,6 +186,47 @@ function mergeDetails(left, right) {
   });
 }
 
+function filterAlertsForPublicReleaseScope(alerts, publicReleaseScope) {
+  if (!publicReleaseScope?.enabled) return alerts;
+  return alerts
+    .map((alert) => {
+      if (!isReleaseScopedAlert(alert)) return alert;
+      const details = (alert.details || []).filter((detail) => detailMatchesPublicReleaseScope(detail, publicReleaseScope));
+      if (!details.length) return null;
+      return {
+        ...alert,
+        details,
+        total: details.length,
+        message: `${details.length} ${plural("public Top 50 release", details.length)} need attention.`,
+      };
+    })
+    .filter(Boolean);
+}
+
+function isReleaseScopedAlert(alert = {}) {
+  const id = String(alert.id || "").toLowerCase();
+  const module = String(alert.module || "").toLowerCase();
+  const page = String(alert.page || "").toLowerCase();
+  if (id.includes("duplicate")) return false;
+  return (
+    module === "releases" ||
+    page === "songs" ||
+    page === "albums" ||
+    /^audit-(song|album)-/.test(id) ||
+    /^releases?[-_]/.test(id)
+  );
+}
+
+function detailMatchesPublicReleaseScope(detail = {}, scope) {
+  if (!scope?.hasEntries) return false;
+  const id = Number(detail.release_id ?? detail.release ?? detail.id);
+  if (Number.isFinite(id) && id > 0) {
+    if (scope.idsByType?.singles?.has(id) || scope.idsByType?.albums?.has(id)) return true;
+  }
+  const key = releaseLookupKey(detail);
+  return Boolean(key && (scope.keysByType?.singles?.has(key) || scope.keysByType?.albums?.has(key)));
+}
+
 function higherLevel(a, b) {
   return severityRank(a) <= severityRank(b) ? a : b;
 }
@@ -171,6 +256,9 @@ export function auditCmsRecords(records, options = {}) {
   const releases = [...(records.songs || []), ...(records.albums || [])];
   const releaseById = new Map(releases.map((release) => [Number(release.id), release]));
   const certRules = buildCertificationRules(records.certificationRules || []);
+  const publicReleasesOnly = Boolean(options.publicReleasesOnly);
+  const publicReleaseScope = buildPublicReleaseScope(options.publicPayload, publicReleasesOnly);
+  const chartedArtistScope = buildChartedArtistScope(releases, publicReleaseScope);
 
   const ctx = {
     now,
@@ -181,6 +269,9 @@ export function auditCmsRecords(records, options = {}) {
     artistByName,
     releaseById,
     certRules,
+    publicReleasesOnly,
+    publicReleaseScope,
+    chartedArtistScope,
   };
 
   auditArtists(records.artists || [], ctx);
@@ -209,8 +300,15 @@ export function auditCmsRecords(records, options = {}) {
   return {
     alerts,
     cards: buildCards(summary),
-    coverage: { recordCount, moduleCount, checkedAt: now.toISOString() },
+    coverage: {
+      recordCount,
+      moduleCount,
+      checkedAt: now.toISOString(),
+      releaseAuditScope: publicReleasesOnly ? "public-top-50" : "catalog",
+      publicTop50Releases: publicReleaseScope.releaseCount || 0,
+    },
     summary,
+    publicReleaseScope,
   };
 }
 
@@ -268,14 +366,323 @@ function buildCards(summary) {
   return Object.fromEntries(Object.entries(cards).filter(([, value]) => Number(value) > 0));
 }
 
+function editDistance(left, right) {
+  if (left === right) return 0;
+  if (!left.length) return right.length;
+  if (!right.length) return left.length;
+  let previous = Array.from({ length: right.length + 1 }, (_, index) => index);
+  for (let i = 1; i <= left.length; i += 1) {
+    const current = [i];
+    for (let j = 1; j <= right.length; j += 1) {
+      current[j] = Math.min(
+        current[j - 1] + 1,
+        previous[j] + 1,
+        previous[j - 1] + (left[i - 1] === right[j - 1] ? 0 : 1)
+      );
+    }
+    previous = current;
+  }
+  return previous[right.length];
+}
+
+function isConservativeNearMatch(left, right) {
+  if (!left || !right || left === right || left[0] !== right[0]) return false;
+  const minLength = Math.min(left.length, right.length);
+  if (minLength < 5 || Math.abs(left.length - right.length) > 2) return false;
+  return editDistance(left, right) <= 1;
+}
+
+const SERIES_MARKER_WORDS = new Set([
+  "i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x",
+  "xi", "xii", "xiii", "xiv", "xv", "xvi", "xvii", "xviii", "xix", "xx",
+]);
+
+function seriesMarkerSignature(value) {
+  const words = String(value || "").toLowerCase().match(/[a-z0-9]+/g) || [];
+  return words.filter((word) => /^\d+$/.test(word) || SERIES_MARKER_WORDS.has(word)).join(",");
+}
+
+function normalizedIdentifier(value) {
+  return String(value || "").replace(/[^a-z0-9]/gi, "").toUpperCase();
+}
+
+function duplicateRows(group) {
+  return Array.isArray(group) ? group : (group?.rows || []);
+}
+
+function duplicateSignals(group) {
+  return Array.isArray(group) ? [] : [...(group?.signals || [])].filter(Boolean);
+}
+
+function buildDeepDuplicateGroups(rows, kind, { chartType = "" } = {}) {
+  const records = (rows || []).filter((row) => row?.id && normalizedStatus(row) !== "archived");
+  const parent = new Map(records.map((row) => [Number(row.id), Number(row.id)]));
+  const byId = new Map(records.map((row) => [Number(row.id), row]));
+  const edges = [];
+  const find = (id) => {
+    let root = id;
+    while (parent.get(root) !== root) root = parent.get(root);
+    while (parent.get(id) !== id) {
+      const next = parent.get(id);
+      parent.set(id, root);
+      id = next;
+    }
+    return root;
+  };
+  const union = (left, right, signal) => {
+    const leftId = Number(left?.id ?? left);
+    const rightId = Number(right?.id ?? right);
+    if (!parent.has(leftId) || !parent.has(rightId) || leftId === rightId) return;
+    const a = find(leftId);
+    const b = find(rightId);
+    if (a !== b) parent.set(b, a);
+    edges.push({ leftId, rightId, signal });
+  };
+  const addBucketKey = (buckets, key, row, signal) => {
+    if (!key) return;
+    const previous = buckets.get(key);
+    if (previous) union(previous, row, signal);
+    else buckets.set(key, row);
+  };
+
+  const exactBuckets = new Map();
+  records.forEach((row) => {
+    if (kind === "artist") {
+      mergeRuleKeysForRow(row, { kind: "artist" }).forEach((key) =>
+        addBucketKey(exactBuckets, key, row, "same normalized artist name, display name, public name, or alias")
+      );
+      const slug = foldText(row.slug);
+      if (slug) addBucketKey(exactBuckets, `artist-slug:${slug}`, row, "same artist slug");
+      return;
+    }
+
+    mergeRuleKeysForRow(row, { kind: "release", chartType }).forEach((key) =>
+      addBucketKey(exactBuckets, key, row, "same normalized title and artist credit")
+    );
+    const isrc = normalizedIdentifier(row.isrc);
+    if (isrc) addBucketKey(exactBuckets, `release-isrc:${isrc}`, row, "same ISRC");
+    const upc = normalizedIdentifier(row.upc);
+    if (upc) addBucketKey(exactBuckets, `release-upc:${upc}`, row, "same UPC");
+  });
+
+  const fuzzyBuckets = new Map();
+  records.forEach((row) => {
+    const canonical = kind === "artist"
+      ? foldText(row.display_name || row.name || row.public_name)
+      : foldReleaseTitle(row.title || row.canonical_title);
+    if (!canonical) return;
+    const artistKey = kind === "release" ? releaseArtistComparisonKey(row) : "";
+    const bucketKey = kind === "artist"
+      ? canonical[0]
+      : `${artistKey}|${canonical[0]}`;
+    if (kind === "release" && !artistKey) return;
+    if (!fuzzyBuckets.has(bucketKey)) fuzzyBuckets.set(bucketKey, []);
+    fuzzyBuckets.get(bucketKey).push({ row, canonical });
+  });
+  fuzzyBuckets.forEach((bucket) => {
+    for (let left = 0; left < bucket.length; left += 1) {
+      for (let right = left + 1; right < bucket.length; right += 1) {
+        const leftRow = bucket[left].row;
+        const rightRow = bucket[right].row;
+        if (
+          kind === "release" &&
+          seriesMarkerSignature(leftRow.title || leftRow.canonical_title) !==
+            seriesMarkerSignature(rightRow.title || rightRow.canonical_title)
+        ) continue;
+        if (isConservativeNearMatch(bucket[left].canonical, bucket[right].canonical)) {
+          union(
+            leftRow,
+            rightRow,
+            kind === "artist"
+              ? "near artist-name spelling match"
+              : "near title spelling match for the same artist credit"
+          );
+        }
+      }
+    }
+  });
+
+  const groups = new Map();
+  records.forEach((row) => {
+    const root = find(Number(row.id));
+    if (!groups.has(root)) groups.set(root, { rows: [], signals: new Set() });
+    groups.get(root).rows.push(row);
+  });
+  edges.forEach((edge) => {
+    const root = find(edge.leftId);
+    if (groups.has(root) && byId.has(edge.leftId) && byId.has(edge.rightId)) {
+      groups.get(root).signals.add(edge.signal);
+    }
+  });
+
+  return [...groups.values()]
+    .filter((group) => group.rows.length > 1)
+    .map((group) => ({
+      rows: group.rows.sort((left, right) =>
+        Number(right.entry_count || right.release_count || right.total_releases || 0) -
+          Number(left.entry_count || left.release_count || left.total_releases || 0) ||
+        Number(Boolean(right.cover_image || right.image)) - Number(Boolean(left.cover_image || left.image)) ||
+        Number(left.id) - Number(right.id)
+      ),
+      signals: group.signals,
+    }))
+    .sort((left, right) =>
+      right.rows.length - left.rows.length ||
+      String(duplicateRows(left)[0]?.title || duplicateRows(left)[0]?.name || "").localeCompare(
+        String(duplicateRows(right)[0]?.title || duplicateRows(right)[0]?.name || "")
+      )
+    );
+}
+
+function releaseArtistComparisonKey(row = {}) {
+  const fromIds = releaseArtistIds(row).map(String).sort().join("+");
+  if (fromIds) return `ids:${fromIds}`;
+  return foldTokenOrder(
+    row.artist_display ||
+    row.artist_credit ||
+    row.artist_name ||
+    row.primary_artist ||
+    row.a ||
+    row.pa ||
+    ""
+  );
+}
+
+function emptyTypeSets() {
+  return Object.fromEntries(RELEASE_TYPES.map((type) => [type, new Set()]));
+}
+
+function buildPublicReleaseScope(payload, enabled) {
+  const scope = {
+    enabled: Boolean(enabled),
+    hasPayload: Boolean(payload),
+    hasEntries: false,
+    idsByType: emptyTypeSets(),
+    keysByType: emptyTypeSets(),
+    releaseTokens: new Set(),
+    releaseCount: 0,
+  };
+  if (!enabled || !payload) return scope;
+
+  const normalizedPayload = normalizePublicPayload(payload);
+  const addRow = (type, row, index) => {
+    const chartType = normalizeChartType(type);
+    const rank = Number(row?.r ?? row?.rank ?? index + 1);
+    if (!Number.isFinite(rank) || rank < 1 || rank > 50) return;
+    const releaseId = Number(row?.release_id ?? row?.releaseId ?? row?.release?.id);
+    const key = releaseLookupKey(row);
+    if (Number.isFinite(releaseId) && releaseId > 0) {
+      scope.idsByType[chartType].add(releaseId);
+      scope.releaseTokens.add(`${chartType}|id:${releaseId}`);
+      scope.hasEntries = true;
+    }
+    if (key) {
+      scope.keysByType[chartType].add(key);
+      if (!Number.isFinite(releaseId) || releaseId <= 0) scope.releaseTokens.add(`${chartType}|key:${key}`);
+      scope.hasEntries = true;
+    }
+  };
+  const walkRows = (type, value) => {
+    if (Array.isArray(value)) {
+      value.forEach((row, index) => addRow(type, row, index));
+      return;
+    }
+    if (value && typeof value === "object") {
+      Object.values(value).forEach((child) => walkRows(type, child));
+    }
+  };
+
+  RELEASE_TYPES.forEach((type) => {
+    const chart = normalizedPayload.full?.[type] || {};
+    walkRows(type, chart.combined);
+    walkRows(type, chart.platforms);
+    walkRows(type, chart.regions);
+  });
+  scope.releaseCount = scope.releaseTokens.size;
+  return scope;
+}
+
+function buildChartedArtistScope(releases, publicReleaseScope) {
+  const scope = { ids: new Set(), names: new Set() };
+  if (!publicReleaseScope?.enabled) return scope;
+  releases.forEach((release) => {
+    if (!releaseMatchesPublicScope(release, release.chart_type, publicReleaseScope)) return;
+    releaseArtistIds(release).forEach((id) => scope.ids.add(Number(id)));
+    [
+      release.artist_display,
+      release.artist_credit,
+      release.artist_name,
+      release.primary_artist,
+      release.a,
+      release.pa,
+    ].forEach((value) => {
+      const key = normalizeName(value);
+      if (key) scope.names.add(key);
+    });
+  });
+  return scope;
+}
+
+function normalizeChartType(value, fallback = "singles") {
+  const raw = String(value || fallback).trim().toLowerCase();
+  return raw.includes("album") ? "albums" : "singles";
+}
+
+function releaseMatchesPublicScope(release, chartType, scope) {
+  if (!scope?.enabled) return true;
+  if (!scope.hasEntries) return false;
+  const type = normalizeChartType(chartType || release?.chart_type);
+  const releaseId = Number(release?.id ?? release?.release_id ?? release?.release);
+  if (Number.isFinite(releaseId) && releaseId > 0 && scope.idsByType?.[type]?.has(releaseId)) return true;
+  const key = releaseLookupKey(release);
+  return Boolean(key && scope.keysByType?.[type]?.has(key));
+}
+
+function artistMatchesPublicReleaseScope(artist, ctx) {
+  if (!ctx.publicReleasesOnly) return true;
+  if (!ctx.publicReleaseScope?.hasEntries) return false;
+  const id = Number(artist?.id);
+  if (Number.isFinite(id) && ctx.chartedArtistScope?.ids?.has(id)) return true;
+  return [artist?.name, artist?.display_name, artist?.public_name]
+    .some((value) => ctx.chartedArtistScope?.names?.has(normalizeName(value)));
+}
+
+function recordMatchesPublicAuditScope(row, ctx) {
+  if (!ctx.publicReleasesOnly) return true;
+  if (hasValue(row?.title)) return releaseMatchesPublicScope(row, row.chart_type, ctx.publicReleaseScope);
+  return artistMatchesPublicReleaseScope(row, ctx);
+}
+
+function certificationMatchesPublicScope(cert, release, ctx) {
+  if (!ctx.publicReleasesOnly) return true;
+  if (release) return releaseMatchesPublicScope(release, release.chart_type || cert.chart_type, ctx.publicReleaseScope);
+  return releaseMatchesPublicScope({
+    id: cert.release_id ?? cert.release,
+    release_id: cert.release_id ?? cert.release,
+    title: cert.title || cert.t || cert.release_title,
+    artist_display: cert.artist || cert.a || cert.release_artist || cert.artist_display,
+    chart_type: cert.chart_type,
+  }, cert.chart_type, ctx.publicReleaseScope);
+}
+
 function auditArtists(artists, ctx) {
-  const nameGroups = new Map();
+  const duplicateGroups = buildDeepDuplicateGroups(artists, "artist");
+  pushDuplicateIssues(ctx, duplicateGroups, {
+    id: "audit-artist-duplicate-name",
+    title: "Possible duplicate artists",
+    module: "artists",
+    page: "duplicate-review",
+    category: "Duplicates",
+    noun: "artist candidate group",
+    messageTail: "may be duplicate artist records and should be reviewed in Duplicate Review.",
+    labelFor: (group) => group.map(artistLabel).join(" / "),
+  });
+
   artists.forEach((artist) => {
+    if (!artistMatchesPublicReleaseScope(artist, ctx)) return;
     const status = normalizedStatus(artist);
     const label = artistLabel(artist);
     const inactive = ["archived", "inactive"].includes(status);
-    const key = normalizeName(artist.display_name || artist.name);
-    if (key) addGroup(nameGroups, key, artist);
     if (inactive) return;
 
     if (!hasMedia(artist.image || artist.image_url || artist.profile_image || artist.photo)) {
@@ -357,35 +764,28 @@ function auditArtists(artists, ctx) {
       }, { id: artist.id, label, problem: aliasesProblem }, ["incompleteMetadata"]);
     }
   });
-
-  pushDuplicateIssues(ctx, nameGroups, {
-    id: "audit-artist-duplicate-name",
-    title: "Possible duplicate artists",
-    module: "artists",
-    page: "duplicate-review",
-    category: "Duplicates",
-    noun: "artist name group",
-    messageTail: "look like duplicate artist records.",
-    labelFor: (group) => group.map(artistLabel).join(" / "),
-  });
 }
 
 function auditReleases(releases, chartType, ctx) {
   const page = chartType === "albums" ? "albums" : "songs";
   const releaseName = chartType === "albums" ? "album" : "song";
-  const duplicateGroups = new Map();
+  const duplicateGroups = buildDeepDuplicateGroups(releases, "release", { chartType });
+  pushDuplicateIssues(ctx, duplicateGroups, {
+    id: `audit-${releaseName}-duplicate-title`,
+    title: `Possible duplicate ${releaseName}s`,
+    module: "releases",
+    page: "duplicate-review",
+    category: "Duplicates",
+    noun: `${releaseName} candidate group`,
+    messageTail: `may be duplicate ${releaseName} records and should be reviewed in Duplicate Review.`,
+    labelFor: (group) => group.map(releaseLabel).join(" / "),
+  });
 
   releases.forEach((release) => {
+    if (!releaseMatchesPublicScope(release, chartType, ctx.publicReleaseScope)) return;
     const status = normalizedStatus(release);
     if (["archived", "inactive"].includes(status)) return;
     const label = releaseLabel(release);
-    const artistIds = releaseArtistIds(release);
-    const duplicateKey = [
-      chartType,
-      normalizeName(release.title || release.canonical_title),
-      artistIds.join(",") || normalizeName(release.artist_display || release.artist_name || release.primary_artist),
-    ].join("|");
-    if (!duplicateKey.includes("||")) addGroup(duplicateGroups, duplicateKey, release);
 
     if (!hasMedia(release.cover_image || release.cover_image_url || release.image || release.artwork)) {
       pushIssue(ctx, `audit-${releaseName}-cover-missing`, {
@@ -503,17 +903,6 @@ function auditReleases(releases, chartType, ctx) {
       label,
     });
   });
-
-  pushDuplicateIssues(ctx, duplicateGroups, {
-    id: `audit-${releaseName}-duplicate-title`,
-    title: `Possible duplicate ${releaseName}s`,
-    module: "releases",
-    page,
-    category: "Duplicates",
-    noun: `${releaseName} group`,
-    messageTail: `look like duplicate ${releaseName} records.`,
-    labelFor: (group) => group.map(releaseLabel).join(" / "),
-  });
 }
 
 function auditCountries(countries, records, ctx) {
@@ -575,7 +964,9 @@ function auditCountries(countries, records, ctx) {
   });
 
   const activeByCode = new Map(countries.map((country) => [normalizeCode(country.code), country]));
-  [...(records.artists || []), ...(records.songs || []), ...(records.albums || [])].forEach((row) => {
+  [...(records.artists || []), ...(records.songs || []), ...(records.albums || [])]
+    .filter((row) => recordMatchesPublicAuditScope(row, ctx))
+    .forEach((row) => {
     const code = normalizeCode(row.country_code);
     const country = activeByCode.get(code);
     if (country && country.active === false) {
@@ -861,6 +1252,7 @@ function auditCertifications(certifications, ctx) {
   certifications.forEach((cert) => {
     const releaseId = Number(cert.release_id ?? cert.release);
     const release = ctx.releaseById.get(releaseId);
+    if (!certificationMatchesPublicScope(cert, release, ctx)) return;
     const label = certLabel(cert, release);
     const level = String(cert.level || "").toLowerCase();
     if (releaseId && level) addGroup(duplicateGroups, `${releaseId}|${level}`, cert);
@@ -880,8 +1272,8 @@ function auditCertifications(certifications, ctx) {
       }, { id: cert.id, label, problem: [...missing.map((item) => `missing ${item}`), !CERT_LEVELS.includes(level) ? `invalid level: ${cert.level || "blank"}` : ""].filter(Boolean).join("; ") }, ["incompleteMetadata"]);
     }
     const threshold = ctx.certRules.get(level);
-    const points = Number(cert.total_points);
-    if (threshold && Number.isFinite(points) && points < threshold) {
+    const points = Number(String(cert.total_points ?? cert.totalPts ?? cert.points ?? "").replace(/,/g, ""));
+    if (!booleanValue(cert.is_hidden) && threshold && Number.isFinite(points) && points < threshold) {
       pushIssue(ctx, "audit-certification-below-threshold", {
         title: "Certifications below threshold",
         module: "certifications",
@@ -1235,7 +1627,9 @@ function auditJsonUrls(ctx, row, field, meta) {
 
 function pushDuplicateIssues(ctx, groups, meta) {
   for (const group of groups.values()) {
-    if (group.length < 2) continue;
+    const rows = duplicateRows(group);
+    if (rows.length < 2) continue;
+    const signals = duplicateSignals(group);
     pushIssue(ctx, meta.id, {
       title: meta.title,
       module: meta.module,
@@ -1244,9 +1638,11 @@ function pushDuplicateIssues(ctx, groups, meta) {
       noun: meta.noun,
       messageTail: meta.messageTail,
     }, {
-      id: group[0]?.id,
-      label: meta.labelFor(group),
-      problem: `${group.length} records share the same key`,
+      id: rows[0]?.id,
+      label: meta.labelFor(rows),
+      problem: signals.length
+        ? `${rows.length} records matched: ${signals.slice(0, 4).join("; ")}`
+        : `${rows.length} records share the same key`,
     }, ["incompleteMetadata"]);
   }
 }
@@ -1505,6 +1901,12 @@ function stringValue(value) {
   return String(value ?? "").trim();
 }
 
+function booleanValue(value) {
+  if (value === true || value === 1) return true;
+  if (typeof value === "string") return /^(true|1|yes)$/i.test(value.trim());
+  return false;
+}
+
 function missingFields(row, fields) {
   return fields.filter(([field]) => !hasValue(row[field])).map(([, label]) => label);
 }
@@ -1529,6 +1931,34 @@ function normalizeCountryName(value) {
 
 function normalizeCode(value) {
   return stringValue(value).toUpperCase();
+}
+
+function profileLabel(profile) {
+  return profile?.display_name || profile?.public_name || profile?.name || profile?.artist_name || "";
+}
+
+function releaseTitleValue(row = {}) {
+  return row.title || row.t || row.canonical_title || row.release_title || row.name || "";
+}
+
+function releaseArtistValue(row = {}) {
+  return (
+    row.artist_display ||
+    row.artist_credit ||
+    row.artist_name ||
+    row.primary_artist ||
+    row.pa ||
+    row.a ||
+    row.artist ||
+    profileLabel(Array.isArray(row.primary_artists) ? row.primary_artists[0] : null) ||
+    profileLabel(Array.isArray(row.artists) ? row.artists[0] : null)
+  );
+}
+
+function releaseLookupKey(row = {}) {
+  const title = normalizeName(releaseTitleValue(row));
+  const artist = normalizeName(releaseArtistValue(row));
+  return title && artist ? `${title}|${artist}` : "";
 }
 
 function addGroup(map, key, item) {

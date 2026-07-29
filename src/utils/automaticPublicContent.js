@@ -7,21 +7,20 @@ const CATEGORY_LABELS = {
   analytics: "ANALYTICS",
 };
 
-const LEVEL_RANK = {
-  diamond: 0,
-  platinum: 1,
-  gold: 2,
-};
-
-const DEFAULT_LEVEL_RANK = 99;
-
 const titleText = (entry = {}) => entry.t || entry.title || entry.release_title || "";
 const artistText = (entry = {}) => entry.a || entry.artist || entry.artist_credit || entry.primary_artist || "";
 const chartTypeForBucket = (bucket) => (bucket === "albums" ? "albums" : "singles");
+const numberValue = (value) => Number(String(value ?? "").replace(/,/g, "")) || 0;
+const truthyValue = (value) => value === true || value === 1 || (typeof value === "string" && /^(true|1|yes)$/i.test(value.trim()));
+const totalPointsFrom = (entry = {}) => numberValue(entry.totalPts ?? entry.total_points ?? entry.points ?? 0);
+const levelPoints = (level = {}) => numberValue(level.pts ?? level.threshold ?? 0);
+const sortedLevels = (levels = []) => [...levels]
+  .filter((level) => level?.level && levelPoints(level) > 0)
+  .sort((left, right) => levelPoints(right) - levelPoints(left));
 
 function levelForPoints(points, levels = []) {
-  const total = Number(points) || 0;
-  return levels.find((level) => total >= Number(level.pts || 0))?.level || null;
+  const total = numberValue(points);
+  return sortedLevels(levels).find((level) => total >= levelPoints(level))?.level || null;
 }
 
 function levelLabel(level, levels = []) {
@@ -29,7 +28,7 @@ function levelLabel(level, levels = []) {
 }
 
 function levelThreshold(level, levels = []) {
-  return Number(levels.find((item) => item.level === level)?.pts || 0);
+  return levelPoints(levels.find((item) => item.level === level));
 }
 
 function dateLabel(value) {
@@ -63,7 +62,7 @@ export function buildAutomaticCertifications(yearEndByType = {}, levels = []) {
     const chartType = chartTypeForBucket(bucket);
     return (rows || [])
       .map((entry) => {
-        const totalPts = Number(entry.totalPts ?? entry.total_points ?? entry.points ?? 0) || 0;
+        const totalPts = totalPointsFrom(entry);
         const level = levelForPoints(totalPts, levels);
         if (!level) return null;
         const title = titleText(entry);
@@ -92,25 +91,46 @@ export function buildAutomaticCertifications(yearEndByType = {}, levels = []) {
 }
 
 export function mergeCertifications(automaticRows = [], liveRows = [], levels = []) {
-  const levelRank = Object.fromEntries(levels.map((item, index) => [item.level, index]));
-  const rankFor = (level) => levelRank[level] ?? LEVEL_RANK[level] ?? DEFAULT_LEVEL_RANK;
   const merged = new Map();
 
   (automaticRows || []).forEach((row) => {
     const key = `${chartTypeForBucket(row.chart_type)}|||${certificationKey(row.t, row.a)}`;
-    merged.set(key, row);
+    const totalPts = totalPointsFrom(row);
+    const level = levelForPoints(totalPts, levels);
+    if (!level) return;
+    merged.set(key, {
+      ...row,
+      level,
+      totalPts,
+      total_points: totalPts,
+      is_hidden: false,
+    });
   });
 
   (liveRows || []).forEach((row) => {
     const key = `${chartTypeForBucket(row.chart_type)}|||${certificationKey(row.t, row.a)}`;
     const automatic = merged.get(key);
     if (!automatic) {
-      merged.set(key, row);
+      if (truthyValue(row.is_hidden)) return;
+      const totalPts = totalPointsFrom(row);
+      const eligibleLevel = levelForPoints(totalPts, levels);
+      if (!eligibleLevel) return;
+      merged.set(key, {
+        ...row,
+        level: eligibleLevel,
+        totalPts,
+        total_points: totalPts,
+        is_hidden: false,
+      });
       return;
     }
-    const automaticRank = rankFor(automatic.level);
-    const liveRank = rankFor(row.level);
-    const winner = automaticRank <= liveRank ? automatic : row;
+    const totalPts = totalPointsFrom(automatic);
+    const eligibleLevel = levelForPoints(totalPts, levels);
+    if (!eligibleLevel) {
+      merged.delete(key);
+      return;
+    }
+    const winner = { ...automatic, level: eligibleLevel };
     merged.set(key, {
       ...row,
       ...winner,
@@ -119,6 +139,8 @@ export function mergeCertifications(automaticRows = [], liveRows = [], levels = 
       certification_date: row.certification_date || winner.certification_date || "",
       certified_at: row.certified_at || winner.certified_at || "",
       notes: row.notes || winner.notes || "",
+      totalPts,
+      total_points: totalPts,
       is_automatic: true,
       is_official: true,
       is_hidden: false,
