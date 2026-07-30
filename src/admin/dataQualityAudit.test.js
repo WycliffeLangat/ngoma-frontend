@@ -342,6 +342,110 @@ test("dashboard merge filters backend release alerts to public Top 50 releases",
   assert.equal(releaseAlert.details[0].id, 20);
 });
 
+test("dashboard merge filters backend artist alerts to Top 50 charted artists", () => {
+  const audit = auditCmsRecords({
+    countries: [],
+    artists: [
+      { id: 10, name: "Charted Artist", status: "active" },
+      { id: 11, name: "Uncharted Artist", status: "active" },
+    ],
+    songs: [
+      { id: 20, title: "Public Hit", chart_type: "singles", primary_artist_ids: [10], artist_display: "Charted Artist", status: "active" },
+      { id: 21, title: "Catalogue Cut", chart_type: "singles", primary_artist_ids: [11], artist_display: "Uncharted Artist", status: "active" },
+    ],
+    albums: [],
+    charts: [], chartUploads: [], weeklyUploads: [], certifications: [], certificationRules: [],
+    news: [], pageContent: [], media: [], reports: [],
+    backups: [{ id: 1, status: "success", file: "backup.zip", created_at: "2026-07-12T00:00:00Z" }],
+  }, {
+    now: "2026-07-13T00:00:00Z",
+    publicReleasesOnly: true,
+    publicPayload: publicPayload([{ r: 1, t: "Public Hit", a: "Charted Artist", release_id: 20 }]),
+  });
+
+  const merged = mergeDashboardAudit({
+    cards: {},
+    alerts: [{
+      id: "artists-missing-country",
+      module: "artists",
+      level: "warning",
+      title: "Artist countries missing",
+      details: [
+        { id: 10, label: "Charted Artist", problem: "Missing country" },
+        { id: 11, label: "Uncharted Artist", problem: "Missing country" },
+      ],
+    }],
+  }, audit);
+
+  const artistAlert = merged.alerts.find((alert) => alert.id === "artists-missing-country");
+  assert.equal(artistAlert.total, 1);
+  assert.equal(artistAlert.details[0].id, 10);
+});
+
+test("dashboard merge filters backend certification alerts to Top 50 charted certifications", () => {
+  const audit = auditCmsRecords({
+    countries: [],
+    artists: [],
+    songs: [
+      { id: 20, title: "Public Hit", chart_type: "singles", artist_display: "Charted Artist", status: "active" },
+      { id: 21, title: "Catalogue Cut", chart_type: "singles", artist_display: "Uncharted Artist", status: "active" },
+    ],
+    albums: [],
+    charts: [], chartUploads: [], weeklyUploads: [],
+    certifications: [
+      { id: 100, release: 20, release_id: 20, level: "gold", total_points: 5000, is_hidden: false },
+      { id: 101, release: 21, release_id: 21, level: "gold", total_points: 5000, is_hidden: false },
+    ],
+    certificationRules: [{ id: 1, level: "gold", threshold: 1000, active: true }],
+    news: [], pageContent: [], media: [], reports: [],
+    backups: [{ id: 1, status: "success", file: "backup.zip", created_at: "2026-07-12T00:00:00Z" }],
+  }, {
+    now: "2026-07-13T00:00:00Z",
+    publicReleasesOnly: true,
+    publicPayload: publicPayload([{ r: 1, t: "Public Hit", a: "Charted Artist", release_id: 20 }]),
+  });
+
+  const merged = mergeDashboardAudit({
+    cards: {},
+    alerts: [{
+      id: "certifications-invalid-values",
+      module: "certifications",
+      level: "error",
+      title: "Certifications contain invalid values",
+      details: [
+        { id: 100, label: "Public Hit — Gold", problem: "Future certification date" },
+        { id: 101, label: "Catalogue Cut — Gold", problem: "Future certification date" },
+      ],
+    }],
+  }, { ...audit, loadWarnings: [] });
+
+  const certAlert = merged.alerts.find((alert) => alert.id === "certifications-invalid-values");
+  assert.equal(certAlert.total, 1);
+  assert.equal(certAlert.details[0].id, 100);
+});
+
+test("alerts panel drops modules with no Top 50 charting concept", () => {
+  const audit = auditCmsRecords({
+    countries: [], artists: [], songs: [], albums: [],
+    charts: [], chartUploads: [], weeklyUploads: [], certifications: [], certificationRules: [],
+    news: [{ id: 1, title: "Draft", status: "draft", is_published: false, pinned: true }],
+    pageContent: [], media: [{ id: 1 }], reports: [],
+    backups: [],
+  }, { now: "2026-07-13T00:00:00Z" });
+
+  const merged = mergeDashboardAudit({
+    cards: {},
+    alerts: [
+      { id: "platform-settings-invalid", module: "platforms", level: "warning", title: "Platform settings", details: [{ id: 1, label: "Spotify", problem: "Missing color" }] },
+      { id: "inactive-editor-accounts", module: "users", level: "warning", title: "Inactive editors", details: [{ id: 1, label: "editor@ngoma.test", problem: "Inactive 90 days" }] },
+    ],
+  }, audit);
+
+  ["platforms", "users", "backups", "media", "news", "page_content", "certification_rules"].forEach((module) => {
+    assert.ok(!merged.alerts.some((alert) => alert.module === module), `expected no ${module} alerts`);
+  });
+});
+
 test("deep CMS audit flags a registered duo credited as unlinked free text", () => {
   const baseArtist = {
     id: 10,

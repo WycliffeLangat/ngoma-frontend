@@ -16,6 +16,10 @@ const OPEN_REPORT_STATUSES = new Set(["open", "new", "todo", "pending", "in_prog
 const RELEASE_TYPES = ["singles", "albums"];
 const CERT_LEVELS = ["gold", "platinum", "diamond"];
 const TECHNICAL_ALERT_PATTERN = /\b(isrc|upc|url|urls|link|links|source links?|source_links|gallery urls?|catalogue codes?|catalog codes?|spotify|apple music|youtube|boomplay|audiomack|tiktok|shazam|instagram|facebook|website)\b/i;
+// Modules with no "made the Top 50 chart" concept — Alerts & Needs Attention
+// only surfaces issues tied to charted releases/artists/certifications, so
+// these are dropped entirely rather than scoped.
+const NON_CHART_ALERT_MODULES = new Set(["news", "page_content", "media", "platforms", "certification_rules", "backups", "users"]);
 
 const RESOURCE_REQUESTS = [
   { key: "artists", label: "Artists", path: "/artists/" },
@@ -131,7 +135,11 @@ export async function buildDashboardAudit(api, options = {}) {
 export function mergeDashboardAudit(data, audit) {
   if (!audit) return data;
   const cleanData = sanitizeDashboardAttention(data || {});
-  const scopedBaseAlerts = filterAlertsForPublicReleaseScope(cleanData.alerts || [], audit.publicReleaseScope);
+  const scopedBaseAlerts = filterAlertsForChartScope(cleanData.alerts || [], {
+    publicReleaseScope: audit.publicReleaseScope,
+    chartedArtistScope: audit.chartedArtistScope,
+    certScopeIds: audit.certScopeIds,
+  });
   const baseAlerts = filterBackendAlertsResolvedByAudit(scopedBaseAlerts, audit);
   const mergedCards = { ...(cleanData.cards || {}), ...(audit.cards || {}) };
   delete mergedCards.invalid_urls_detected;
@@ -160,6 +168,7 @@ function sanitizeAlerts(alerts = []) {
 }
 
 function sanitizeAlert(alert = {}) {
+  if (NON_CHART_ALERT_MODULES.has(String(alert.module || "").toLowerCase())) return null;
   const text = `${alert.id || ""} ${alert.title || ""} ${alert.category || ""} ${alert.message || ""}`;
   if (isTechnicalAlertText(text)) return null;
   const hasDetails = Array.isArray(alert.details);
@@ -226,35 +235,54 @@ function mergeDetails(left, right) {
   });
 }
 
-function filterAlertsForPublicReleaseScope(alerts, publicReleaseScope) {
+// Alerts & Needs Attention only covers releases, artists, and certifications
+// that are actually on a Top 50 chart (combined, regional/Kenyan, or
+// platform) — everything else in these modules (catalogue-wide issues for
+// entries that never charted) is dropped, not just de-emphasized.
+function filterAlertsForChartScope(alerts, chartScope) {
+  const { publicReleaseScope, chartedArtistScope, certScopeIds } = chartScope || {};
   if (!publicReleaseScope?.enabled) return alerts;
+  const nounByKind = {
+    release: "public Top 50 release",
+    artist: "Top 50 charted artist",
+    certification: "Top 50 charted certification",
+  };
   return alerts
     .map((alert) => {
-      if (!isReleaseScopedAlert(alert)) return alert;
-      const details = (alert.details || []).filter((detail) => detailMatchesPublicReleaseScope(detail, publicReleaseScope));
+      const kind = chartAlertEntityKind(alert);
+      if (!kind || !Array.isArray(alert.details)) return alert;
+      const details = alert.details.filter((detail) => {
+        if (kind === "release") return detailMatchesPublicReleaseScope(detail, publicReleaseScope);
+        if (kind === "artist") return chartedArtistScope?.ids?.has(Number(detail.id));
+        return certScopeIds?.has(Number(detail.id));
+      });
       if (!details.length) return null;
+      if (details.length === alert.details.length) return alert;
       return {
         ...alert,
         details,
         total: details.length,
-        message: `${details.length} ${plural("public Top 50 release", details.length)} need attention.`,
+        message: `${details.length} ${plural(nounByKind[kind], details.length)} need attention.`,
       };
     })
     .filter(Boolean);
 }
 
-function isReleaseScopedAlert(alert = {}) {
+function chartAlertEntityKind(alert = {}) {
   const id = String(alert.id || "").toLowerCase();
   const module = String(alert.module || "").toLowerCase();
   const page = String(alert.page || "").toLowerCase();
-  if (id.includes("duplicate")) return false;
-  return (
-    module === "releases" ||
-    page === "songs" ||
-    page === "albums" ||
-    /^audit-(song|album)-/.test(id) ||
-    /^releases?[-_]/.test(id)
-  );
+  if (id.includes("duplicate")) return null;
+  if (module === "releases" || page === "songs" || page === "albums" || /^audit-(song|album)-/.test(id) || /^releases?[-_]/.test(id)) {
+    return "release";
+  }
+  if (module === "artists" || page === "artists" || /^audit-artist-/.test(id) || /^artists?[-_]/.test(id)) {
+    return "artist";
+  }
+  if (module === "certifications" || page === "certifications" || /^audit-certification-(?!rule)/.test(id) || /^certifications?[-_](?!rule)/.test(id)) {
+    return "certification";
+  }
+  return null;
 }
 
 function detailMatchesPublicReleaseScope(detail = {}, scope) {
@@ -312,6 +340,7 @@ export function auditCmsRecords(records, options = {}) {
     publicReleasesOnly,
     publicReleaseScope,
     chartedArtistScope,
+    certScopeIds: new Set(),
   };
 
   auditArtists(records.artists || [], ctx);
@@ -349,6 +378,8 @@ export function auditCmsRecords(records, options = {}) {
     },
     summary,
     publicReleaseScope,
+    chartedArtistScope,
+    certScopeIds: ctx.certScopeIds,
   };
 }
 
@@ -1258,6 +1289,7 @@ function auditCertifications(certifications, ctx) {
     const releaseId = Number(cert.release_id ?? cert.release);
     const release = ctx.releaseById.get(releaseId);
     if (!certificationMatchesPublicScope(cert, release, ctx)) return;
+    if (Number.isFinite(Number(cert.id))) ctx.certScopeIds.add(Number(cert.id));
     const label = certLabel(cert, release);
     const level = String(cert.level || "").toLowerCase();
     if (releaseId && level) addGroup(duplicateGroups, `${releaseId}|${level}`, cert);
