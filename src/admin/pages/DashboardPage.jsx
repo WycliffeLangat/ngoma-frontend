@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cmsApi } from "../api";
 import DataTable from "../components/DataTable";
-import { buildDashboardAudit, mergeDashboardAudit } from "../dataQualityAudit";
+import { buildDashboardAudit, mergeDashboardAudit, sanitizeDashboardAttention } from "../dataQualityAudit";
 
 const labels = {
   total_songs: "Total songs", total_albums: "Total albums", total_artists: "Total artists",
@@ -180,7 +180,7 @@ export default function DashboardPage({ user, onNavigate, searchJump }) {
         cmsApi.get("/dashboard/"),
         cmsApi.get("/dashboard/insights/"),
       ]);
-      baseData = { ...summary, ...insights, cards: { ...summary.cards, ...insights.cards } };
+      baseData = sanitizeDashboardAttention({ ...summary, ...insights, cards: { ...summary.cards, ...insights.cards } });
       setData(auditResult ? mergeDashboardAudit(baseData, auditResult) : baseData);
     } catch (e) {
       setError(e.message);
@@ -203,6 +203,12 @@ export default function DashboardPage({ user, onNavigate, searchJump }) {
     let active = true;
     loadDashboard().catch((e) => { if (active) setError(e.message); });
     return () => { active = false; };
+  }, [loadDashboard]);
+
+  useEffect(() => {
+    const refresh = () => loadDashboard({ keepCurrent: true }).catch((e) => setAuditError(e.message || "Deep CMS audit failed."));
+    window.addEventListener("ngoma-cms-change", refresh);
+    return () => window.removeEventListener("ngoma-cms-change", refresh);
   }, [loadDashboard]);
 
   function navigateToAlertEntry(alert, detail, page) {

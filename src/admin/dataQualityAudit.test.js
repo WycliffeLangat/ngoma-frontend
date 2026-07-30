@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { auditCmsRecords, mergeDashboardAudit } from "./dataQualityAudit.js";
+import { auditCmsRecords, mergeDashboardAudit, sanitizeDashboardAttention } from "./dataQualityAudit.js";
 
 function alertMap(result) {
   return new Map(result.alerts.map((alert) => [alert.id, alert]));
@@ -17,7 +17,7 @@ function publicPayload(rows, type = "singles") {
   };
 }
 
-test("deep CMS audit catches media, URL, and country issues", () => {
+test("deep CMS audit catches media and country issues without URL alerts", () => {
   const result = auditCmsRecords({
     countries: [
       { id: 1, name: "Kenya", code: "KE", region: "East Africa", flag: "KE", display_order: 1, active: true },
@@ -77,10 +77,99 @@ test("deep CMS audit catches media, URL, and country issues", () => {
   const alerts = alertMap(result);
   assert.ok(alerts.has("audit-artist-image-missing"));
   assert.ok(alerts.has("audit-song-cover-missing"));
-  assert.ok(alerts.has("audit-artist-invalid-url"));
+  assert.ok(!alerts.has("audit-artist-invalid-url"));
   assert.match(alerts.get("audit-song-country-questionable").details[0].problem, /does not match lead artist/);
-  assert.equal(result.cards.invalid_urls_detected, 1);
+  assert.equal(result.cards.invalid_urls_detected, undefined);
   assert.equal(result.cards.missing_media_assets, 2);
+});
+
+test("deep CMS audit keeps catalogue codes and links out of dashboard alerts", () => {
+  const result = auditCmsRecords({
+    countries: [],
+    artists: [{ id: 10, name: "Lead Artist", display_name: "Lead Artist", status: "active", spotify_url: "not-a-url" }],
+    songs: [{
+      id: 20,
+      title: "Code Missing",
+      canonical_title: "Code Missing",
+      chart_type: "singles",
+      primary_artist_ids: [10],
+      artist_display: "Lead Artist",
+      country: "Kenya",
+      country_code: "KE",
+      genre: "Afropop",
+      label: "Label",
+      distributor: "Distributor",
+      release_year: 2026,
+      release_date: "2026-05-01",
+      isrc: "",
+      spotify_url: "not-a-url",
+      songwriters: "Writer",
+      producers: "Producer",
+      status: "active",
+    }],
+    albums: [{
+      id: 30,
+      title: "Album Code Missing",
+      canonical_title: "Album Code Missing",
+      chart_type: "albums",
+      primary_artist_ids: [10],
+      artist_display: "Lead Artist",
+      country: "Kenya",
+      country_code: "KE",
+      genre: "Afropop",
+      label: "Label",
+      distributor: "Distributor",
+      release_year: 2026,
+      release_date: "2026-05-01",
+      upc: "",
+      number_of_tracks: 10,
+      status: "active",
+    }],
+    charts: [], chartUploads: [], weeklyUploads: [], certifications: [], certificationRules: [],
+    news: [{ id: 40, title: "Linked", status: "draft", source_links: '[{"url":"not-a-url"}]', gallery: '["not-a-url"]' }],
+    pageContent: [], media: [{ id: 50, title: "Asset", file: "not-a-url", folder: "covers", alt_text: "Cover", usage_notes: "CMS" }],
+    reports: [],
+    backups: [{ id: 1, status: "success", file: "backup.zip", created_at: "2026-07-12T00:00:00Z" }],
+  }, { now: "2026-07-13T00:00:00Z" });
+
+  const alerts = alertMap(result);
+  assert.ok(!alerts.has("audit-artist-invalid-url"));
+  assert.ok(!alerts.has("audit-song-invalid-url"));
+  assert.ok(!alerts.has("audit-song-codes-questionable"));
+  assert.ok(!alerts.has("audit-album-codes-questionable"));
+  assert.ok(!alerts.has("audit-news-invalid-url"));
+  assert.ok(!alerts.has("audit-news-gallery-invalid-url"));
+  assert.ok(!alerts.has("audit-media-url-invalid"));
+  assert.equal(result.cards.invalid_urls_detected, undefined);
+});
+
+test("dashboard attention sanitizer removes backend link and catalogue-code alerts", () => {
+  const sanitized = sanitizeDashboardAttention({
+    cards: { invalid_urls_detected: 3, incomplete_metadata: 2 },
+    alerts: [
+      {
+        id: "release-metadata-completeness",
+        title: "Release metadata incomplete",
+        message: "Some releases need attention.",
+        details: [
+          { id: 1, label: "Song A", problem: "Missing: ISRC" },
+          { id: 2, label: "Song B", problem: "Missing: genre" },
+        ],
+      },
+      {
+        id: "artist-invalid-url",
+        title: "Artist URLs need cleanup",
+        message: "Profile links are invalid.",
+        details: [{ id: 3, label: "Artist", problem: "Spotify: missing https" }],
+      },
+    ],
+  });
+
+  assert.equal(sanitized.cards.invalid_urls_detected, undefined);
+  assert.equal(sanitized.cards.incomplete_metadata, 2);
+  assert.equal(sanitized.alerts.length, 1);
+  assert.equal(sanitized.alerts[0].details.length, 1);
+  assert.equal(sanitized.alerts[0].details[0].problem, "Missing: genre");
 });
 
 test("deep CMS audit scopes release and credited artist alerts to public Top 50 releases", () => {

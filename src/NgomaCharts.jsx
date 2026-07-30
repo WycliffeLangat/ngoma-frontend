@@ -287,7 +287,6 @@ const siteNameSetting = settingValue("site_name", {});
 const SITE_NAME = typeof siteNameSetting === "string" ? siteNameSetting : (siteNameSetting.name || "Ngoma Charts");
 const THEME_SETTING = settingValue("theme", {});
 const SOCIAL_LINKS = settingValue("social_links", {});
-const FOOTER_SETTING = settingValue("footer", {});
 const DEFAULT_CHART_SETTING = settingValue("default_chart", {});
 const MAINTENANCE_SETTING = settingValue("maintenance_mode", {});
 const PUBLIC_METHODOLOGY = (PUBLIC_DATA.methodology || [])[0] || null;
@@ -4165,16 +4164,31 @@ const top = data[0];
       </main>
 
       {/* FOOTER */}
-      <footer style={{padding:isMobile?"32px 18px 36px":"22px 28px",borderTop:"3px solid #1A1A1A",background:"#1A1A1A",fontFamily:F,boxSizing:"border-box",overflow:"hidden"}}>
-        <div style={{...pageFrame(),display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:isMobile?"18px":"14px",flexDirection:isMobile?"column":"row",textAlign:isMobile?"center":"left"}}>
-          <div onClick={()=>navTo("charts")} style={{display:"flex",alignItems:"center",gap:"9px",cursor:"pointer"}}>
+      <footer style={{padding:isMobile?"34px 18px 38px":"30px 28px",borderTop:`1px solid ${GOLD}66`,background:"linear-gradient(180deg,#181A15 0%,#0B0C09 100%)",fontFamily:F,boxSizing:"border-box",overflow:"hidden",boxShadow:"inset 0 1px 0 rgba(255,255,255,0.04)"}}>
+        <div style={{...pageFrame(),display:"flex",justifyContent:"space-between",alignItems:isMobile?"center":"flex-start",flexWrap:"wrap",gap:isMobile?"20px":"24px",flexDirection:isMobile?"column":"row",textAlign:isMobile?"center":"left"}}>
+          <div onClick={()=>navTo("charts")} style={{display:"flex",alignItems:"center",gap:"12px",cursor:"pointer",minWidth:isMobile?"auto":"250px"}}>
             <svg width="16" height="18" viewBox="0 0 22 24" style={{flexShrink:0}}>
               <rect x="0" y="15" width="3.5" height="9" fill="#FFF" rx="0.5"/>
               <rect x="5.5" y="10" width="3.5" height="14" fill="#FFF" rx="0.5"/>
               <rect x="11" y="5" width="3.5" height="19" fill={GOLD} rx="0.5"/>
               <rect x="16.5" y="0" width="3.5" height="24" fill="#FFF" rx="0.5"/>
             </svg>
-            <span style={{fontFamily:F,fontSize:isMobile?"12px":"11px",fontWeight:800,letterSpacing:"2.5px",color:GOLD,textTransform:"uppercase"}}>{SITE_NAME}</span>
+            <span style={{display:"grid",gap:"3px"}}>
+              <span style={{fontFamily:F,fontSize:isMobile?"13px":"12px",fontWeight:900,letterSpacing:"2.4px",color:GOLD,textTransform:"uppercase"}}>{SITE_NAME}</span>
+              <small style={{fontFamily:F,fontSize:"10px",fontWeight:750,letterSpacing:"0.8px",color:"rgba(255,255,255,0.62)",textTransform:"uppercase"}}>A Ngoma Media Ltd product</small>
+            </span>
+          </div>
+          <div style={{display:"flex",gap:isMobile?"8px":"10px",alignItems:"center",justifyContent:"center",flexWrap:"wrap",maxWidth:isMobile?"100%":"520px"}}>
+            {navItems.map((item) => (
+              <a
+                key={item}
+                href={PUBLIC_PAGE_ROUTES[item] || `/${item}`}
+                onClick={(e)=>{ e.preventDefault(); navTo(item); }}
+                style={{fontFamily:F,fontSize:"10.5px",fontWeight:850,letterSpacing:"1px",textTransform:"uppercase",color:"rgba(255,255,255,0.72)",textDecoration:"none",padding:"7px 10px",borderRadius:"999px",border:"1px solid rgba(255,255,255,0.10)",background:"rgba(255,255,255,0.035)"}}
+              >
+                {navLabel(item)}
+              </a>
+            ))}
           </div>
           <div style={{display:"flex",gap:isMobile?"10px":"14px",alignItems:"center",justifyContent:"center"}}>
             {[
@@ -4205,20 +4219,23 @@ const top = data[0];
         <div
           style={{
             ...pageFrame(),
-            marginTop: "8px",
+            marginTop: isMobile ? "18px" : "22px",
+            paddingTop: "14px",
+            borderTop: "1px solid rgba(255,255,255,0.08)",
             display: "flex",
             flexDirection: isMobile ? "column" : "row",
-            gap: isMobile ? "4px" : "10px",
+            gap: isMobile ? "5px" : "12px",
             alignItems: "center",
-            justifyContent: isMobile ? "center" : "flex-start",
+            justifyContent: isMobile ? "center" : "space-between",
             textAlign: isMobile ? "center" : "left",
-            fontSize: "8px",
-            color: "rgba(255,255,255,0.38)",
-            letterSpacing: "1px",
+            fontSize: "10px",
+            color: "rgba(255,255,255,0.48)",
+            letterSpacing: "0.8px",
             textTransform: "uppercase",
           }}
         >
-          <span>{FOOTER_SETTING.text || `© ${new Date().getFullYear()} ${SITE_NAME}`}</span>
+          <span>{`© ${new Date().getFullYear()} Ngoma Media Ltd. All rights reserved.`}</span>
+          <span>Ngoma Charts is a product of Ngoma Media Ltd.</span>
         </div>
       </footer>
     </div>

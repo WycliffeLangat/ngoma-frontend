@@ -15,6 +15,7 @@ const FINAL_STATUSES = new Set(["approved", "published", "complete", "completed"
 const OPEN_REPORT_STATUSES = new Set(["open", "new", "todo", "pending", "in_progress", "needs_attention"]);
 const RELEASE_TYPES = ["singles", "albums"];
 const CERT_LEVELS = ["gold", "platinum", "diamond"];
+const TECHNICAL_ALERT_PATTERN = /\b(isrc|upc|url|urls|link|links|source links?|source_links|gallery urls?|catalogue codes?|catalog codes?|spotify|apple music|youtube|boomplay|audiomack|tiktok|shazam|instagram|facebook|website)\b/i;
 
 const RESOURCE_REQUESTS = [
   { key: "artists", label: "Artists", path: "/artists/" },
@@ -129,16 +130,55 @@ export async function buildDashboardAudit(api, options = {}) {
 
 export function mergeDashboardAudit(data, audit) {
   if (!audit) return data;
-  const scopedBaseAlerts = filterAlertsForPublicReleaseScope(data?.alerts || [], audit.publicReleaseScope);
+  const cleanData = sanitizeDashboardAttention(data || {});
+  const scopedBaseAlerts = filterAlertsForPublicReleaseScope(cleanData.alerts || [], audit.publicReleaseScope);
   const baseAlerts = filterBackendAlertsResolvedByAudit(scopedBaseAlerts, audit);
+  const mergedCards = { ...(cleanData.cards || {}), ...(audit.cards || {}) };
+  delete mergedCards.invalid_urls_detected;
   return {
-    ...data,
-    cards: { ...(data?.cards || {}), ...(audit.cards || {}) },
-    alerts: mergeAlerts(baseAlerts, audit.alerts || []),
+    ...cleanData,
+    cards: mergedCards,
+    alerts: mergeAlerts(baseAlerts, sanitizeAlerts(audit.alerts || [])),
     auditCoverage: audit.coverage,
     auditSummary: audit.summary,
     auditLoadWarnings: audit.loadWarnings || [],
   };
+}
+
+export function sanitizeDashboardAttention(data = {}) {
+  const cards = { ...(data.cards || {}) };
+  delete cards.invalid_urls_detected;
+  return {
+    ...data,
+    cards,
+    alerts: sanitizeAlerts(data.alerts || []),
+  };
+}
+
+function sanitizeAlerts(alerts = []) {
+  return (alerts || []).map(sanitizeAlert).filter(Boolean);
+}
+
+function sanitizeAlert(alert = {}) {
+  const text = `${alert.id || ""} ${alert.title || ""} ${alert.category || ""} ${alert.message || ""}`;
+  if (isTechnicalAlertText(text)) return null;
+  const hasDetails = Array.isArray(alert.details);
+  if (!hasDetails) return alert;
+  const details = alert.details.filter((detail) =>
+    !isTechnicalAlertText(`${detail.problem || ""} ${detail.field || ""}`)
+  );
+  if (!details.length && alert.details.length) return null;
+  if (details.length === alert.details.length) return alert;
+  return {
+    ...alert,
+    details,
+    total: details.length,
+    message: `${details.length} visible alert detail${details.length === 1 ? "" : "s"} need attention.`,
+  };
+}
+
+function isTechnicalAlertText(text = "") {
+  return TECHNICAL_ALERT_PATTERN.test(String(text || ""));
 }
 
 function filterBackendAlertsResolvedByAudit(alerts, audit) {
@@ -459,10 +499,6 @@ function buildDeepDuplicateGroups(rows, kind, { chartType = "" } = {}) {
     mergeRuleKeysForRow(row, { kind: "release", chartType }).forEach((key) =>
       addBucketKey(exactBuckets, key, row, "same normalized title and artist credit")
     );
-    const isrc = normalizedIdentifier(row.isrc);
-    if (isrc) addBucketKey(exactBuckets, `release-isrc:${isrc}`, row, "same ISRC");
-    const upc = normalizedIdentifier(row.upc);
-    if (upc) addBucketKey(exactBuckets, `release-upc:${upc}`, row, "same UPC");
   });
 
   const fuzzyBuckets = new Map();
@@ -742,16 +778,6 @@ function auditArtists(artists, ctx) {
       }, { id: artist.id, label, problem: "Artist has catalogue activity but is not verified" }, ["incompleteMetadata"]);
     }
 
-    auditUrlFields(ctx, artist, SOCIAL_URL_FIELDS, {
-      alertId: "audit-artist-invalid-url",
-      title: "Artist profile URLs need cleanup",
-      module: "artists",
-      page: "artists",
-      category: "URLs",
-      noun: "artist URL",
-      label,
-    });
-
     const aliasesProblem = jsonProblem(artist.aliases, "aliases");
     if (aliasesProblem) {
       pushIssue(ctx, "audit-artist-json-invalid", {
@@ -811,9 +837,9 @@ function auditReleases(releases, chartType, ctx) {
     if (!releaseHasPrimaryArtist(release)) required.push(["primary_artist_ids", "main artists"]);
     if (!release.release_date && !release.release_year) required.push(["release_date", "release date or year"]);
     if (chartType === "singles") {
-      required.push(["isrc", "ISRC"], ["songwriters", "songwriters"], ["producers", "producers"]);
+      required.push(["songwriters", "songwriters"], ["producers", "producers"]);
     } else {
-      required.push(["upc", "UPC"], ["number_of_tracks", "number of tracks"]);
+      required.push(["number_of_tracks", "number of tracks"]);
     }
     const missing = missingFields(release, required);
     if (missing.length) {
@@ -857,18 +883,6 @@ function auditReleases(releases, chartType, ctx) {
       }, { id: release.id, label, problem: yearProblem }, ["incompleteMetadata"]);
     }
 
-    const codeProblem = releaseCodeProblem(release, chartType);
-    if (codeProblem) {
-      pushIssue(ctx, `audit-${releaseName}-codes-questionable`, {
-        title: `${capitalize(releaseName)} catalogue codes need cleanup`,
-        module: "releases",
-        page,
-        category: "Details",
-        noun: releaseName,
-        messageTail: "have missing or invalid ISRC/UPC metadata.",
-      }, { id: release.id, label, problem: codeProblem }, ["incompleteMetadata"]);
-    }
-
     if (hasValue(release.featured_artists) && !releaseHasFeaturedArtistLinks(release)) {
       pushIssue(ctx, `audit-${releaseName}-featured-unlinked`, {
         title: `${capitalize(releaseName)} featuring artists are unlinked`,
@@ -893,15 +907,6 @@ function auditReleases(releases, chartType, ctx) {
       }, { id: release.id, label, problem: compoundProblem }, ["incompleteMetadata"]);
     }
 
-    auditUrlFields(ctx, release, SOCIAL_URL_FIELDS, {
-      alertId: `audit-${releaseName}-invalid-url`,
-      title: `${capitalize(releaseName)} URLs need cleanup`,
-      module: "releases",
-      page,
-      category: "URLs",
-      noun: `${releaseName} URL`,
-      label,
-    });
   });
 }
 
@@ -1417,24 +1422,6 @@ function auditNews(news, ctx) {
         messageTail: "are scheduled in the past but are not published.",
       }, { id: article.id, label, problem: `Scheduled for ${scheduled.toLocaleString()}` }, ["incompleteMetadata"]);
     }
-    auditJsonUrls(ctx, article, "source_links", {
-      alertId: "audit-news-invalid-url",
-      title: "News source URLs need cleanup",
-      module: "news",
-      page: "news",
-      category: "URLs",
-      noun: "news source URL",
-      label,
-    });
-    auditJsonUrls(ctx, article, "gallery", {
-      alertId: "audit-news-gallery-invalid-url",
-      title: "News gallery URLs need cleanup",
-      module: "news",
-      page: "news",
-      category: "URLs",
-      noun: "news gallery URL",
-      label,
-    });
   });
 }
 
@@ -1505,19 +1492,6 @@ function auditMedia(media, ctx) {
         noun: "media asset",
         messageTail: "have incomplete file, alt text, folder, or usage metadata.",
       }, { id: item.id, label, problem: `Missing: ${missing.join(", ")}` }, ["incompleteMetadata", ...(missing.includes("file") ? ["missingMedia"] : [])]);
-    }
-    if (hasValue(item.file)) {
-      const problem = mediaUrlProblem(item.file);
-      if (problem) {
-        pushIssue(ctx, "audit-media-url-invalid", {
-          title: "Media file URLs need cleanup",
-          module: "media",
-          page: "media",
-          category: "URLs",
-          noun: "media asset",
-          messageTail: "have invalid file URLs.",
-        }, { id: item.id, label, problem }, ["invalidUrls"]);
-      }
     }
   });
 }

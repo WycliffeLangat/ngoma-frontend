@@ -3,7 +3,7 @@ import EntryThumb from "../components/EntryThumb.jsx";
 import { getPublicArtists } from "../utils/artistImages.js";
 import { getNewsMedia, getPrimaryNewsMedia } from "../utils/newsMedia.js";
 
-// Accent color per raw category slug — used as a card's left border and the
+// Accent color per raw category slug - used as a card's left border and the
 // tint behind its category pill. Falls back to GOLD for anything unmapped.
 const CATEGORY_COLORS = {
   chart_news: "#B8860B",
@@ -69,7 +69,7 @@ export default function NewsPage({ ctx }) {
     return (
       <div style={{padding:PAD,minHeight:"60vh",maxWidth:"1040px",margin:"0 auto",boxSizing:"border-box"}}>
         <h2 style={{fontFamily:F,fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px",color:isDark?"#F6F3EA":"#050505"}}>Chart News</h2>
-        <p style={{fontFamily:F,fontSize:TXT.lead,color:isDark?"#D7DBD7":"#69716b",lineHeight:1.6}}>No stories published yet — check back soon.</p>
+        <p style={{fontFamily:F,fontSize:TXT.lead,color:isDark?"#D7DBD7":"#69716b",lineHeight:1.6}}>No stories published yet - check back soon.</p>
       </div>
     );
   }
@@ -114,7 +114,7 @@ export default function NewsPage({ ctx }) {
       <div style={{display:"flex",gap:"8px",alignItems:"center",marginBottom:size==="lg"?"10px":"8px",flexWrap:"wrap"}}>
         <CategoryPillTag n={n} size={size} />
         <span style={{fontFamily:F,fontSize:"12px",fontWeight:600,color:isDark?"#9a9a9a":"#9a9a9a"}}>{n.date}</span>
-        <span style={{fontFamily:F,fontSize:"12px",color:isDark?"#666":"#B7BCB6"}}>·</span>
+        <span style={{fontFamily:F,fontSize:"12px",color:isDark?"#666":"#B7BCB6"}}>/</span>
         <span style={{fontFamily:F,fontSize:"12px",fontWeight:600,color:isDark?"#9a9a9a":"#9a9a9a"}}>{readingTime(n.body)} min read</span>
         {n.breaking && (
           <span style={{fontFamily:F,fontSize:"10.5px",fontWeight:900,letterSpacing:"0.8px",color:"#fff",background:"#C2364A",padding:"2px 7px",borderRadius:"5px"}}>BREAKING</span>
@@ -155,7 +155,7 @@ export default function NewsPage({ ctx }) {
               <img src={art.url} alt={n.title} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} loading="lazy"/>
             ) : (
               <div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                <span style={{fontSize:isMobile?"56px":"78px"}}>{n.emoji || "🎵"}</span>
+                <span style={n.emoji ? {fontSize:isMobile?"56px":"78px"} : {fontFamily:F,fontSize:isMobile?"24px":"30px",fontWeight:900,letterSpacing:"0.08em",color:color}}>{n.emoji || "NEWS"}</span>
               </div>
             )}
           </div>
@@ -176,7 +176,7 @@ export default function NewsPage({ ctx }) {
               style={{alignSelf:"center"}}
             />
           )}
-          <span aria-hidden="true" style={{fontFamily:F,fontSize:isMobile?"20px":"18px",color:isDark?"#555":"#C0C7C1",flexShrink:0,padding:isMobile?"6px 0 6px 4px":"4px 0 4px 10px",marginTop:"2px"}}>›</span>
+          <span aria-hidden="true" style={{fontFamily:F,fontSize:isMobile?"20px":"18px",color:isDark?"#555":"#C0C7C1",flexShrink:0,padding:isMobile?"6px 0 6px 4px":"4px 0 4px 10px",marginTop:"2px"}}>{">"}</span>
         </div>
       </div>
     );

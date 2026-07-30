@@ -1,8 +1,9 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { cmsApi, notifyPublicAppChangedNow } from "./api";
 import LoginPage from "./pages/LoginPage";          // tiny — needed immediately for auth
 import NotificationBell from "./components/NotificationBell";
 import GlobalSearch from "./components/GlobalSearch";
+import { buildDashboardAudit, mergeDashboardAudit, sanitizeDashboardAttention } from "./dataQualityAudit";
 import "./styles/admin.css";
 
 // All CMS pages are lazy-loaded so they only download when first visited.
@@ -100,6 +101,27 @@ function getUserInitials(user) {
   return name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
 }
 
+function countOpenAlerts(alerts = []) {
+  return (alerts || []).reduce((total, alert) => {
+    const count = Number(alert.total || alert.details?.length || 1);
+    return total + (Number.isFinite(count) && count > 0 ? count : 1);
+  }, 0);
+}
+
+async function fetchDashboardAlertCount() {
+  const [summary, insights] = await Promise.all([
+    cmsApi.get("/dashboard/", { skipCache: true }),
+    cmsApi.get("/dashboard/insights/", { skipCache: true }),
+  ]);
+  const baseData = sanitizeDashboardAttention({ ...summary, ...insights, cards: { ...summary.cards, ...insights.cards } });
+  try {
+    const audit = await buildDashboardAudit(cmsApi);
+    return countOpenAlerts(mergeDashboardAudit(baseData, audit).alerts || []);
+  } catch {
+    return countOpenAlerts(baseData.alerts || []);
+  }
+}
+
 function PageLoader() {
   return <div className="cms-empty" style={{ paddingTop: 60 }}>Loading…</div>;
 }
@@ -137,6 +159,7 @@ export default function AdminApp() {
   const [sidebar,  setSidebar]  = useState(false);
   const [searchJump, setSearchJump] = useState(null);
   const [syncState, setSyncState] = useState(null); // null | "syncing" | "done"
+  const [alertCount, setAlertCount] = useState(0);
   const syncTimerRef = useRef(null);
 
   useEffect(() => {
@@ -162,7 +185,34 @@ export default function AdminApp() {
     setSearchJump({ page: targetPage, term, id, ...context, ts: Date.now() });
   }
 
-  const unread = useMemo(() => 0, []);
+  const refreshAlertCount = useCallback(async (isActive = () => true) => {
+    try {
+      const count = await fetchDashboardAlertCount();
+      if (isActive()) setAlertCount(count);
+    } catch {
+      if (isActive()) setAlertCount(0);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!user) {
+      setAlertCount(0);
+      return undefined;
+    }
+    let active = true;
+    const isActive = () => active;
+    const refresh = () => refreshAlertCount(isActive);
+    refresh();
+    window.addEventListener("ngoma-cms-change", refresh);
+    window.addEventListener("focus", refresh);
+    return () => {
+      active = false;
+      window.removeEventListener("ngoma-cms-change", refresh);
+      window.removeEventListener("focus", refresh);
+    };
+  }, [refreshAlertCount, user]);
+
+  const unread = alertCount;
   const navigation = useMemo(() => visibleNavGroups(user), [user]);
   const pageLabel = getPageLabel(page);
 
@@ -232,7 +282,7 @@ export default function AdminApp() {
             <strong>{pageLabel}</strong>
           </div>
           <div className="cms-global"><GlobalSearch onNavigate={handleGlobalNavigate} /></div>
-          <NotificationBell count={unread} />
+          <NotificationBell count={unread} onClick={() => handleGlobalNavigate("dashboard", "", null)} />
           {!user.permissions?.read_only && (
             <button
               className={`cms-btn small${syncState === "done" ? " cms-sync-done" : ""}`}

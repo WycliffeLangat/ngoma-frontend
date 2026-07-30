@@ -24,6 +24,68 @@ function readingTime(body) {
   return Math.max(1, Math.round(words / 200));
 }
 
+function normalizeSourceLinks(value) {
+  const raw = (() => {
+    if (Array.isArray(value)) return value;
+    if (!value) return [];
+    if (typeof value === "string") {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  })();
+
+  return raw
+    .map((item) => {
+      if (typeof item === "string") return { label: item, href: item };
+      if (!item || typeof item !== "object") return null;
+      const href = item.href || item.url || item.link || "";
+      const label = item.label || item.title || item.name || href;
+      return label || href ? { label, href, kind: item.kind || "" } : null;
+    })
+    .filter(Boolean);
+}
+
+function artistNameForArticle(article = {}, publicArtists = []) {
+  const related = article.related_artist;
+  if (related && typeof related === "object") {
+    return related.public_name || related.display_name || related.name || related.artist_name || "";
+  }
+  const relatedId = Number(related ?? article.related_artist_id);
+  if (Number.isFinite(relatedId) && relatedId > 0) {
+    const artist = publicArtists.find((item) => Number(item.id) === relatedId);
+    if (artist) return artist.public_name || artist.display_name || artist.name || "";
+  }
+  return article.related_artist_name || article.artist_name || article.primary_artist || "";
+}
+
+function releaseForArticle(article = {}, heroArtUrl = "") {
+  const related = article.related_release;
+  if (related && typeof related === "object") {
+    return {
+      ...related,
+      release_id: related.id || related.release_id,
+      title: related.title || article.related_release_title || article.title,
+      artist: related.artist || related.artist_credit || article.related_release_artist || article.related_artist_name,
+      primary_artist: related.primary_artist || article.related_artist_name,
+      cover_image: related.cover_image || related.image || heroArtUrl,
+      type: article.related_release_type || related.type || related.chart_type,
+    };
+  }
+  return {
+    release_id: related || article.related_release_id || null,
+    title: article.related_release_title || "",
+    artist: article.related_release_artist || article.related_artist_name || "",
+    primary_artist: article.related_artist_name || "",
+    cover_image: article.related_release_cover || heroArtUrl,
+    type: article.related_release_type || (article.category === "albums" ? "album" : "single"),
+  };
+}
+
 export default function NewsDetailPage({ ctx }) {
   const {
     F,
@@ -33,7 +95,9 @@ export default function NewsDetailPage({ ctx }) {
     isDark,
     isMobile,
     selNews,
-    setSelNews
+    setSelNews,
+    openArtistDetails,
+    openReleaseDetails
   } = ctx;
 
   const color = CATEGORY_COLORS[selNews.category] || GOLD;
@@ -47,10 +111,15 @@ export default function NewsDetailPage({ ctx }) {
   const heroArtUrl = primaryMedia.url;
   const bodyParagraphs = String(selNews.body || "").split("\n\n").filter(Boolean);
   const inlineMedia = articleMedia.slice(1);
+  const sourceLinks = normalizeSourceLinks(selNews.source_links);
+  const relatedArtistName = artistNameForArticle(selNews, publicArtists);
+  const relatedRelease = releaseForArticle(selNews, heroArtUrl);
+  const canOpenRelease = Boolean(openReleaseDetails && relatedRelease.title && relatedRelease.artist);
+  const canOpenArtist = Boolean(openArtistDetails && relatedArtistName);
 
   return (
 <div style={{padding:PAD,background:isDark?"#0F120F":"#FFF",border:isDark?"1px solid #2F352F":"1px solid transparent",borderRadius:isDark?"16px":"0",minHeight:"60vh",maxWidth:"680px",margin:"0 auto",boxSizing:"border-box",overflow:"hidden"}}>
-          <span onClick={()=>setSelNews(null)} style={{fontFamily:F,fontSize:isMobile?"14px":"13px",color:GOLD,cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>← All News</span>
+          <span onClick={()=>setSelNews(null)} style={{fontFamily:F,fontSize:isMobile?"14px":"13px",color:GOLD,cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>{"<- All News"}</span>
           <div style={{marginTop:"20px"}}>
             <div style={{width:"100%",height:isMobile?"220px":"380px",borderRadius:"14px",overflow:"hidden",marginBottom:"24px",background:heroArtUrl?(isDark?"#1A1E1A":"#F0EDE7"):`linear-gradient(135deg, ${color}26, ${color}08)`}}>
               {heroArtUrl && articleMedia.length > 1 && !isMobile ? (
@@ -66,14 +135,14 @@ export default function NewsDetailPage({ ctx }) {
                 <img src={heroArtUrl} alt={selNews.title} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} loading="lazy"/>
               ) : (
                 <div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                  <span style={{fontSize:isMobile?"64px":"88px"}}>{selNews.emoji || "🎵"}</span>
+                  <span style={selNews.emoji ? {fontSize:isMobile?"64px":"88px"} : {fontFamily:F,fontSize:isMobile?"26px":"34px",fontWeight:900,letterSpacing:"0.08em",color:color}}>{selNews.emoji || "NEWS"}</span>
                 </div>
               )}
             </div>
             <div style={{display:"flex",gap:"10px",alignItems:"center",marginBottom:"12px",flexWrap:"wrap"}}>
               <span style={{fontFamily:F,fontSize:"11px",fontWeight:700,letterSpacing:"1.5px",textTransform:"uppercase",color:color,background:isDark?color+"22":color+"14",border:`1px solid ${color}3D`,padding:"2px 8px",borderRadius:"10px"}}>{selNews.cat}</span>
               <span style={{fontFamily:F,fontSize:"12px",fontWeight:650,color:isDark?"#C9CEC9":"#59645D"}}>{selNews.date}</span>
-              <span style={{fontFamily:F,fontSize:"12px",color:isDark?"#666":"#B7BCB6"}}>·</span>
+              <span style={{fontFamily:F,fontSize:"12px",color:isDark?"#666":"#B7BCB6"}}>/</span>
               <span style={{fontFamily:F,fontSize:"12px",fontWeight:650,color:isDark?"#C9CEC9":"#59645D"}}>{readingTime(selNews.body)} min read</span>
               {selNews.breaking && (
                 <span style={{fontFamily:F,fontSize:"10.5px",fontWeight:900,letterSpacing:"0.8px",color:"#fff",background:"#C2364A",padding:"2px 7px",borderRadius:"5px"}}>BREAKING</span>
@@ -82,6 +151,45 @@ export default function NewsDetailPage({ ctx }) {
             <h1 style={{fontSize:isMobile?"26px":"30px",fontWeight:850,margin:"0 0 10px",lineHeight:1.18,color:isDark?"#F6F3EA":"#050505"}}>{selNews.title}</h1>
             {selNews.author && (
               <p style={{fontFamily:F,fontSize:"13px",fontWeight:650,color:isDark?"#9a9a9a":"#8A8F87",margin:"0 0 20px"}}>By {selNews.author}</p>
+            )}
+            {(canOpenRelease || canOpenArtist || sourceLinks.length > 0) && (
+              <div style={{display:"flex",gap:"8px",flexWrap:"wrap",margin:"0 0 22px"}}>
+                {canOpenRelease && (
+                  <button
+                    type="button"
+                    onClick={() => openReleaseDetails(relatedRelease, relatedRelease.type)}
+                    style={{fontFamily:F,fontSize:"12px",fontWeight:800,color:isDark?"#F6F3EA":"#1f251f",background:isDark?"#171B16":"#F5F0E3",border:isDark?"1px solid #30382F":"1px solid #E0D4B3",borderRadius:"999px",padding:"8px 12px",cursor:"pointer"}}
+                  >
+                    Release: {relatedRelease.title}
+                  </button>
+                )}
+                {canOpenArtist && (
+                  <button
+                    type="button"
+                    onClick={() => openArtistDetails(relatedArtistName)}
+                    style={{fontFamily:F,fontSize:"12px",fontWeight:800,color:isDark?"#F6F3EA":"#1f251f",background:isDark?"#171B16":"#F5F0E3",border:isDark?"1px solid #30382F":"1px solid #E0D4B3",borderRadius:"999px",padding:"8px 12px",cursor:"pointer"}}
+                  >
+                    Artist: {relatedArtistName}
+                  </button>
+                )}
+                {sourceLinks.slice(0, 3).map((link, index) => (
+                  link.href ? (
+                    <a
+                      key={`${link.href}-${index}`}
+                      href={link.href}
+                      target={link.href.startsWith("/") ? undefined : "_blank"}
+                      rel={link.href.startsWith("/") ? undefined : "noopener noreferrer"}
+                      style={{fontFamily:F,fontSize:"12px",fontWeight:800,color:GOLD,background:isDark?"#171B16":"#FFF9EA",border:isDark?"1px solid #30382F":"1px solid #E0D4B3",borderRadius:"999px",padding:"8px 12px",textDecoration:"none"}}
+                    >
+                      Source: {link.label}
+                    </a>
+                  ) : (
+                    <span key={`${link.label}-${index}`} style={{fontFamily:F,fontSize:"12px",fontWeight:800,color:isDark?"#C9CEC9":"#59645D",background:isDark?"#171B16":"#F5F0E3",border:isDark?"1px solid #30382F":"1px solid #E0D4B3",borderRadius:"999px",padding:"8px 12px"}}>
+                      Source: {link.label}
+                    </span>
+                  )
+                ))}
+              </div>
             )}
             {bodyParagraphs.map((p,i)=>(
               <div key={i}>

@@ -13,6 +13,8 @@ const chartTypeForBucket = (bucket) => (bucket === "albums" ? "albums" : "single
 const numberValue = (value) => Number(String(value ?? "").replace(/,/g, "")) || 0;
 const truthyValue = (value) => value === true || value === 1 || (typeof value === "string" && /^(true|1|yes)$/i.test(value.trim()));
 const totalPointsFrom = (entry = {}) => numberValue(entry.totalPts ?? entry.total_points ?? entry.points ?? 0);
+const rankValue = (entry = {}) => numberValue(entry.rank ?? entry.r);
+const pointsValue = (entry = {}) => numberValue(entry.pts ?? entry.p ?? entry.total_points ?? entry.points);
 const levelPoints = (level = {}) => numberValue(level.pts ?? level.threshold ?? 0);
 const sortedLevels = (levels = []) => [...levels]
   .filter((level) => level?.level && levelPoints(level) > 0)
@@ -42,9 +44,26 @@ function dateLabel(value) {
 }
 
 function isoDate(value) {
-  const date = value ? new Date(value) : new Date();
-  if (Number.isNaN(date.getTime())) return new Date().toISOString();
+  return validIsoDate(value) || new Date().toISOString();
+}
+
+function validIsoDate(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
   return date.toISOString();
+}
+
+function monthPeriodDate(monthLabel = "") {
+  const match = String(monthLabel || "").match(/^([A-Za-z]+)\s+(\d{4})$/);
+  if (!match) return "";
+  const parsed = new Date(`${match[1]} 1, ${match[2]} 00:00:00 UTC`);
+  if (Number.isNaN(parsed.getTime())) return "";
+  return new Date(Date.UTC(Number(match[2]), parsed.getUTCMonth(), 1, 9, 0, 0)).toISOString();
+}
+
+function publishedDateFor(monthLabel, generatedAt) {
+  return validIsoDate(generatedAt) || validIsoDate(monthPeriodDate(monthLabel)) || new Date().toISOString();
 }
 
 function uniqueTagList(values = []) {
@@ -151,15 +170,111 @@ export function mergeCertifications(automaticRows = [], liveRows = [], levels = 
 }
 
 function makeArticle(raw) {
+  const media = Array.isArray(raw.media) ? raw.media.filter(Boolean) : [];
+  if (raw.cover_image && !media.some((item) => item?.url === raw.cover_image)) {
+    media.unshift({ url: raw.cover_image, kind: "article_cover", title: raw.title });
+  }
   return {
     ...raw,
     cat: CATEGORY_LABELS[raw.category] || String(raw.category || "").toUpperCase().replace(/_/g, " "),
     date: dateLabel(raw.published_at),
-    media: raw.cover_image ? [{ url: raw.cover_image, kind: "article_cover", title: raw.title }] : [],
+    media,
     is_published: true,
     status: "published",
     is_automatic: true,
   };
+}
+
+function primaryArtistProfile(entry = {}) {
+  return Array.isArray(entry.primary_artists) ? entry.primary_artists[0] : null;
+}
+
+function profileName(profile = {}) {
+  return profile?.public_name || profile?.display_name || profile?.name || "";
+}
+
+function articleMediaForEntry(entry = {}, title = "") {
+  const media = [];
+  const cover = entry.cover_image || entry.image || "";
+  if (cover) media.push({ url: cover, kind: "release_cover", title });
+  const artist = primaryArtistProfile(entry);
+  const artistImage = artist?.image || artist?.image_url || artist?.photo || artist?.cover_image || "";
+  if (artistImage) {
+    media.push({
+      url: artistImage,
+      kind: "artist_image",
+      title: profileName(artist),
+      entity_type: "artist",
+      entity_id: artist.id ?? null,
+    });
+  }
+  return media;
+}
+
+function rowCredit(entry = {}) {
+  const title = titleText(entry);
+  const artist = artistText(entry);
+  const rank = rankValue(entry);
+  return `${title}${artist ? ` by ${artist}` : ""}${rank ? ` at #${rank}` : ""}`;
+}
+
+function movementSentence(entry = {}, title = "The leader") {
+  const rank = rankValue(entry);
+  const previous = numberValue(entry.prev ?? entry.previous_rank ?? entry.last_month);
+  if (entry.is_new || entry.movement === "new") {
+    return `${title} arrives as a new Top 50 entry, which gives the story a clean debut rather than a recycled lead.`;
+  }
+  if (entry.reentry || entry.movement === "reentry") {
+    return `${title} returns to the Top 50 this month, turning the #${rank || 1} placement into a re-entry story as much as a rank story.`;
+  }
+  if (previous && rank) {
+    const delta = previous - rank;
+    if (delta > 0) return `${title} climbs ${delta} place${delta === 1 ? "" : "s"} from #${previous} to #${rank}, a sharper move than a static headline would show.`;
+    if (delta < 0) return `${title} slips ${Math.abs(delta)} place${Math.abs(delta) === 1 ? "" : "s"} from #${previous} but still holds the chart conversation at #${rank}.`;
+    return `${title} holds steady at #${rank}, suggesting sustained demand rather than a one-week spike.`;
+  }
+  return "";
+}
+
+function coverageSentence(entry = {}, kind = "singles") {
+  const coverage = entry.plat || (entry.platform_count && entry.platform_max ? `${entry.platform_count}/${entry.platform_max}` : "");
+  const peak = numberValue(entry.peak_rank);
+  const months = numberValue(entry.months_on_chart ?? entry.times_on_chart);
+  const parts = [];
+  if (coverage) parts.push(`platform coverage is ${coverage}`);
+  if (peak) parts.push(`its best Combined rank is #${peak}`);
+  if (months) parts.push(`it has appeared for ${months} chart month${months === 1 ? "" : "s"}`);
+  if (!parts.length) return "";
+  return `Under the headline, ${parts.join(", ")} across the ${kind} dataset.`;
+}
+
+function rankGapSentence(top = {}, runner = {}) {
+  if (!runner) return "";
+  const topPoints = pointsValue(top);
+  const runnerPoints = pointsValue(runner);
+  const gap = topPoints && runnerPoints ? topPoints - runnerPoints : null;
+  const gapText = Number.isFinite(gap) && gap > 0
+    ? `, with a ${gap.toLocaleString()} point gap separating #1 from #2`
+    : "";
+  return `${rowCredit(runner)} is the immediate pressure point${gapText}.`;
+}
+
+function standoutRows(rows = [], top = {}) {
+  const topKey = `${titleText(top)}|${artistText(top)}`;
+  const movers = (rows || [])
+    .filter((row) => `${titleText(row)}|${artistText(row)}` !== topKey)
+    .map((row) => {
+      const previous = numberValue(row.prev ?? row.previous_rank ?? row.last_month);
+      const rank = rankValue(row);
+      return { row, gain: previous && rank ? previous - rank : 0 };
+    })
+    .filter((item) => item.gain > 0)
+    .sort((a, b) => b.gain - a.gain)
+    .slice(0, 2);
+  const arrivals = (rows || [])
+    .filter((row) => row.is_new || row.movement === "new" || row.reentry || row.movement === "reentry")
+    .slice(0, 3);
+  return { movers, arrivals };
 }
 
 function chartArticle({ chartType, monthLabel, rows, generatedAt, siteName }) {
@@ -171,37 +286,55 @@ function chartArticle({ chartType, monthLabel, rows, generatedAt, siteName }) {
   const category = chartType === "albums" ? "albums" : "chart_news";
   const artist = artistText(top);
   const title = titleText(top);
-  const runnerText = runner ? `${titleText(runner)} by ${artistText(runner)} at #${runner.rank || runner.r || 2}` : "a fast-moving chase pack";
-  const thirdText = third ? `${titleText(third)} by ${artistText(third)} at #${third.rank || third.r || 3}` : "fresh catalogue movement";
-  const points = Number(top.pts ?? top.p ?? top.total_points ?? 0) || 0;
+  const runnerText = runner ? rowCredit(runner) : "a fast-moving chase pack";
+  const thirdText = third ? rowCredit(third) : "fresh catalogue movement";
+  const points = pointsValue(top);
   const cover = top.cover_image || top.image || "";
-  const published_at = isoDate(generatedAt);
+  const published_at = publishedDateFor(monthLabel, generatedAt);
+  const leadArtist = primaryArtistProfile(top);
+  const leadArtistName = profileName(leadArtist) || top.primary_artist || artist;
+  const { movers, arrivals } = standoutRows(rows, top);
+  const moverSentence = movers.length
+    ? `${movers.map(({ row, gain }) => `${titleText(row)} gains ${gain} place${gain === 1 ? "" : "s"} to #${rankValue(row)}`).join("; ")}.`
+    : "";
+  const arrivalsSentence = arrivals.length
+    ? `New and returning pressure also matters: ${arrivals.map(rowCredit).join("; ")}.`
+    : "";
+  const sourceLabel = `${monthLabel} Combined Top 50 ${kind}`;
 
   return makeArticle({
     id: `auto-news-${chartType}-${String(monthLabel || "latest").toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
     slug: `auto-${chartType}-${String(monthLabel || "latest").toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
     title: chartType === "albums"
-      ? `${title} frames the ${monthLabel} album race`
-      : `${title} turns ${monthLabel} into a statement month`,
+      ? `${title} leads a layered ${monthLabel} album race`
+      : `${title} turns ${monthLabel} into a data-backed statement month`,
     category,
     emoji: chartType === "albums" ? "" : "",
-    excerpt: `${artist} leads the ${monthLabel} ${kind} chart while ${runnerText} keeps the story moving.`,
-    subheadline: `${siteName || "Ngoma Charts"} generated this story from the latest published Combined Top 50 data.`,
+    excerpt: `${artist} leads the ${monthLabel} ${kind} chart with ${points.toLocaleString()} points while ${runnerText} keeps the race alive.`,
+    subheadline: `${siteName || "Ngoma Charts"} generated this story from the latest published ${sourceLabel} data.`,
     body: [
-      `${title} by ${artist} opens the ${monthLabel} ${kind} conversation at #1, converting the latest Combined chart data into ${points.toLocaleString()} public Top 50 points.`,
-      `The month has more texture behind the leader: ${runnerText}, with ${thirdText}. Together they show how momentum, catalogue depth and audience discovery are reshaping the chart in real time.`,
-      `This public article is generated automatically from the published chart data and refreshes whenever a new month, correction or ranking update is introduced.`,
-    ].join("\n\n"),
+      `${title} by ${artist} opens the ${monthLabel} ${kind} conversation at #1, turning the latest Combined Top 50 into ${points.toLocaleString()} public chart points.`,
+      `${rankGapSentence(top, runner) || "The nearest challengers are still forming behind the leader."} ${third ? `${thirdText} gives the podium a second angle, keeping the top three from reading like a single-release race.` : "The rest of the Top 50 supplies the movement around that lead."}`,
+      movementSentence(top, title),
+      [coverageSentence(top, kind), moverSentence, arrivalsSentence].filter(Boolean).join(" "),
+      `Because this story is built from the published chart rows, it updates organically when a new month is added, a rank correction lands, or a release receives better linked metadata in the CMS.`,
+    ].filter(Boolean).join("\n\n"),
     tags: uniqueTagList(["auto-generated", chartType, "combined-chart", monthLabel]),
     author: "Ngoma Charts Data Desk",
-    source_links: [{ label: "Generated from published chart data", kind: "automatic_chart_story" }],
+    source_links: [{ label: sourceLabel, kind: "automatic_chart_story", href: "/charts" }],
     featured: true,
     pinned: false,
     breaking: false,
     published_at,
     updated_at: published_at,
     cover_image: cover,
+    media: articleMediaForEntry(top, title),
     related_release: top.release_id || null,
+    related_release_title: title,
+    related_release_artist: artist,
+    related_release_type: chartType === "albums" ? "album" : "single",
+    related_artist: leadArtist?.id || null,
+    related_artist_name: leadArtistName,
   });
 }
 
@@ -211,7 +344,11 @@ function certificationArticle(cert, levels, generatedAt, siteName) {
   const threshold = levelThreshold(cert.level, levels);
   const total = Number(cert.totalPts ?? cert.total_points ?? 0) || 0;
   const releaseKind = cert.chart_type === "albums" ? "album" : "single";
-  const published_at = isoDate(cert.certified_at || cert.certification_date || generatedAt);
+  const published_at = validIsoDate(cert.certified_at || cert.certification_date) || validIsoDate(generatedAt) || new Date().toISOString();
+  const overThreshold = threshold ? total - threshold : 0;
+  const bestRank = numberValue(cert.best ?? cert.peak ?? cert.peak_rank);
+  const leadArtist = primaryArtistProfile(cert);
+  const artistName = profileName(leadArtist) || cert.a;
 
   return makeArticle({
     id: `auto-news-cert-${cert.chart_type || "singles"}-${certificationKey(cert.t, cert.a)}`,
@@ -223,19 +360,30 @@ function certificationArticle(cert, levels, generatedAt, siteName) {
     subheadline: `${siteName || "Ngoma Charts"} certification milestones are now generated directly from point totals.`,
     body: [
       `${cert.t} by ${cert.a} is now ${label} certified after reaching ${total.toLocaleString()} cumulative Combined chart points.`,
-      `The award is triggered by the same monthly public Top 50 point system that powers the charts, so the certification moves as soon as the data moves.`,
-      `This story is generated automatically from the certification engine and will update when new chart data changes the release's point total or milestone level.`,
+      threshold
+        ? `The current ${label} line is ${threshold.toLocaleString()} points, so the ${releaseKind} is ${Math.max(0, overThreshold).toLocaleString()} point${Math.max(0, overThreshold) === 1 ? "" : "s"} beyond the benchmark.`
+        : `The milestone is calculated against the active certification rules in the CMS.`,
+      bestRank
+        ? `Its certification case is not just about volume: the release has also climbed as high as #${bestRank} in the public chart record.`
+        : `Its certification case comes from accumulated monthly Top 50 performance rather than a manually written award note.`,
+      `When the certification engine receives new chart data, this story can move with the release: a higher point total, a new level, or a hidden below-threshold record will change the public narrative automatically.`,
     ].join("\n\n"),
     tags: uniqueTagList(["auto-generated", "certification", cert.level, cert.chart_type]),
     author: "Ngoma Charts Data Desk",
-    source_links: [{ label: "Generated from certification point totals", kind: "automatic_certification_story" }],
+    source_links: [{ label: "Certification point totals", kind: "automatic_certification_story", href: "/certifications" }],
     featured: false,
     pinned: false,
     breaking: false,
     published_at,
     updated_at: published_at,
     cover_image: cert.cover_image || cert.image || "",
+    media: articleMediaForEntry(cert, cert.t),
     related_release: cert.release_id || null,
+    related_release_title: cert.t,
+    related_release_artist: cert.a,
+    related_release_type: cert.chart_type === "albums" ? "album" : "single",
+    related_artist: leadArtist?.id || null,
+    related_artist_name: artistName,
   });
 }
 
