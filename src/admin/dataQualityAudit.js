@@ -72,6 +72,7 @@ const SOCIAL_URL_FIELDS = [
 ];
 
 const QUESTIONABLE_COUNTRY = /\b(unknown|unsure|tbd|tba|n\/a|none|null|various|global|international)\b|\?/i;
+const GENERIC_ARTIST_COUNTRY_EXEMPTIONS = new Set(["various artists"]);
 
 function appendQuery(path, params = {}) {
   const [base, rawQuery = ""] = String(path).split("?");
@@ -906,7 +907,7 @@ function auditArtists(artists, ctx) {
       }, { id: artist.id, label, problem: `Missing: ${missing.join(", ")}` }, ["incompleteMetadata"]);
     }
 
-    const countryProblem = countryProblemFor(artist, ctx.countryContext);
+    const countryProblem = genericArtistCountryExempt(artist) ? "" : countryProblemFor(artist, ctx.countryContext);
     if (countryProblem) {
       pushIssue(ctx, "audit-artist-country-questionable", {
         title: "Artist countries need verification",
@@ -1765,6 +1766,15 @@ function buildArtistNameIndex(artists) {
 
 function compoundArtistCreditProblem(release, ctx) {
   if (!ctx.artistByName.size) return "";
+  const linkedIds = new Set([
+    ...releaseArtistIds(release),
+    ...(Array.isArray(release.featured_artist_ids)
+      ? release.featured_artist_ids.map((id) => Number(id)).filter(Boolean)
+      : []),
+    ...(Array.isArray(release.featured_artist_profiles)
+      ? release.featured_artist_profiles.map((artist) => Number(artist?.id)).filter(Boolean)
+      : []),
+  ]);
   const candidates = [
     release.artist_display, release.artist_credit, release.a, release.artist,
     release.artist_name, release.primary_artist, release.pa,
@@ -1774,7 +1784,9 @@ function compoundArtistCreditProblem(release, ctx) {
   new Set(candidates.filter(hasValue).map(stringValue)).forEach((text) => {
     if (!SPLITTABLE_CREDIT.test(text)) return;
     const artist = ctx.artistByName.get(normalizeName(text));
-    if (artist) matches.push(`"${text}" matches artist record "${artistLabel(artist)}" (id ${artist.id})`);
+    if (artist && !linkedIds.has(Number(artist.id))) {
+      matches.push(`"${text}" matches artist record "${artistLabel(artist)}" (id ${artist.id})`);
+    }
   });
   return matches.join("; ");
 }
@@ -1810,6 +1822,12 @@ function buildCertificationRules(rules) {
     }
   });
   return result;
+}
+
+function genericArtistCountryExempt(artist) {
+  return [artist?.name, artist?.display_name, artist?.public_name, artistLabel(artist)]
+    .filter(hasValue)
+    .some((value) => GENERIC_ARTIST_COUNTRY_EXEMPTIONS.has(normalizeName(value)));
 }
 
 function countryProblemFor(row, countryContext) {
