@@ -1,6 +1,5 @@
 import { getResults } from "./api.js";
 import {
-  foldReleaseTitle,
   foldText,
   foldTokenOrder,
   mergeRuleKeysForRow,
@@ -15,6 +14,25 @@ const FINAL_STATUSES = new Set(["approved", "published", "complete", "completed"
 const OPEN_REPORT_STATUSES = new Set(["open", "new", "todo", "pending", "in_progress", "needs_attention"]);
 const RELEASE_TYPES = ["singles", "albums"];
 const CERT_LEVELS = ["gold", "platinum", "diamond"];
+const ATTENTION_CARD_KEYS = [
+  "missing_artist_countries",
+  "duplicate_artists_detected",
+  "errors_warnings",
+  "data_audit_findings",
+  "critical_data_issues",
+  "incomplete_metadata",
+  "missing_media_assets",
+  "invalid_urls_detected",
+  "questionable_countries",
+  "chart_uploads_needed",
+];
+const BACKEND_ALERTS_SUPERSEDED_BY_AUDIT = new Map([
+  ["possible-duplicate-artists", ["Artists"]],
+  ["artist-profile-completeness", ["Artists"]],
+  ["release-metadata-completeness", ["Songs", "Albums"]],
+  ["country-settings-incomplete", ["Countries"]],
+]);
+const INTENTIONAL_COUNTRY_PLACEHOLDERS = new Set(["unknown"]);
 const TECHNICAL_ALERT_PATTERN = /\b(isrc|upc|url|urls|link|links|source links?|source_links|gallery urls?|catalogue codes?|catalog codes?|spotify|apple music|youtube|boomplay|audiomack|tiktok|shazam|instagram|facebook|website)\b/i;
 // Modules with no "made the Top 50 chart" concept — Alerts & Needs Attention
 // only surfaces issues tied to charted releases/artists/certifications, so
@@ -141,12 +159,12 @@ export function mergeDashboardAudit(data, audit) {
     certScopeIds: audit.certScopeIds,
   });
   const baseAlerts = filterBackendAlertsResolvedByAudit(scopedBaseAlerts, audit);
-  const mergedCards = { ...(cleanData.cards || {}), ...(audit.cards || {}) };
-  delete mergedCards.invalid_urls_detected;
+  const alerts = mergeAlerts(baseAlerts, sanitizeAlerts(audit.alerts || []));
+  const mergedCards = buildVisibleAttentionCards(cleanData.cards || {}, audit.cards || {}, alerts);
   return {
     ...cleanData,
     cards: mergedCards,
-    alerts: mergeAlerts(baseAlerts, sanitizeAlerts(audit.alerts || [])),
+    alerts,
     auditCoverage: audit.coverage,
     auditSummary: audit.summary,
     auditLoadWarnings: audit.loadWarnings || [],
@@ -194,8 +212,10 @@ function filterBackendAlertsResolvedByAudit(alerts, audit) {
   const certificationAuditReliable = !(audit?.loadWarnings || []).some((warning) =>
     /^Certifications:|^Certification rules:/i.test(String(warning || ""))
   );
-  if (!certificationAuditReliable) return alerts;
-  return alerts.filter((alert) => !isBackendCertificationThresholdAlert(alert));
+  return alerts.filter((alert) => {
+    if (certificationAuditReliable && isBackendCertificationThresholdAlert(alert)) return false;
+    return !isBackendAlertSupersededByAudit(alert, audit);
+  });
 }
 
 function isBackendCertificationThresholdAlert(alert = {}) {
@@ -203,6 +223,72 @@ function isBackendCertificationThresholdAlert(alert = {}) {
   const title = String(alert.title || "").toLowerCase();
   return id === "certifications-below-threshold" ||
     (title.includes("certification") && title.includes("threshold") && (title.includes("below") || title.includes("fall")));
+}
+
+function isBackendAlertSupersededByAudit(alert = {}, audit = {}) {
+  const labels = BACKEND_ALERTS_SUPERSEDED_BY_AUDIT.get(String(alert.id || "").toLowerCase());
+  return Boolean(labels && auditResourcesReliable(audit, labels));
+}
+
+function auditResourcesReliable(audit = {}, labels = []) {
+  const warnings = audit.loadWarnings || [];
+  return labels.every((label) =>
+    !warnings.some((warning) => String(warning || "").startsWith(`${label}:`))
+  );
+}
+
+function buildVisibleAttentionCards(baseCards = {}, auditCards = {}, alerts = []) {
+  const cards = { ...baseCards, ...auditCards };
+  ATTENTION_CARD_KEYS.forEach((key) => delete cards[key]);
+  const counts = {
+    missing_artist_countries: 0,
+    duplicate_artists_detected: 0,
+    errors_warnings: 0,
+    data_audit_findings: 0,
+    critical_data_issues: 0,
+    incomplete_metadata: 0,
+    missing_media_assets: 0,
+    invalid_urls_detected: 0,
+    questionable_countries: 0,
+    chart_uploads_needed: 0,
+  };
+
+  alerts.forEach((alert) => {
+    const count = alertDetailCount(alert);
+    if (!count) return;
+    counts.data_audit_findings += count;
+    if (alert.level === "error") counts.critical_data_issues += count;
+    attentionBucketsForAlert(alert).forEach((key) => {
+      counts[key] += count;
+    });
+  });
+
+  Object.entries(counts).forEach(([key, value]) => {
+    if (value > 0) cards[key] = value;
+  });
+  const hasError = alerts.some((alert) => alert.level === "error");
+  const hasWarning = alerts.some((alert) => alert.level === "warning");
+  cards.system_health = hasError ? "ACTION_REQUIRED" : (hasWarning ? "NEEDS_ATTENTION" : "OK");
+  delete cards.invalid_urls_detected;
+  return cards;
+}
+
+function attentionBucketsForAlert(alert = {}) {
+  const id = String(alert.id || "").toLowerCase();
+  const text = `${id} ${alert.title || ""} ${alert.category || ""}`.toLowerCase();
+  const keys = [];
+  if (id.includes("duplicate")) keys.push("duplicate_artists_detected");
+  if (id.includes("open-quality-reports")) keys.push("errors_warnings");
+  if (/upload|chart-period|chart-type-pair/.test(id)) keys.push("chart_uploads_needed");
+  if (/cover-missing|image-missing|media/.test(id)) keys.push("missing_media_assets");
+  if (/country/.test(text)) keys.push("questionable_countries");
+  if (/artist.*country|artists-missing-country/.test(id)) keys.push("missing_artist_countries");
+  if (/details|incomplete|featured|compound|date|json|certification|verification/.test(id)) keys.push("incomplete_metadata");
+  return keys;
+}
+
+function alertDetailCount(alert = {}) {
+  return Number(alert.total || alert.details?.length || 0) || 0;
 }
 
 function mergeAlerts(baseAlerts, auditAlerts) {
@@ -467,6 +553,11 @@ const SERIES_MARKER_WORDS = new Set([
   "i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x",
   "xi", "xii", "xiii", "xiv", "xv", "xvi", "xvii", "xviii", "xix", "xx",
 ]);
+const GENERIC_RELEASE_TITLE_WORDS = new Set([
+  "acoustic", "bonus", "clean", "deluxe", "edit", "ep", "explicit", "extended",
+  "instrumental", "live", "mix", "radio", "remaster", "remastered", "remix",
+  "single", "sped", "slowed", "version", "versions", "vol", "volume",
+]);
 
 function seriesMarkerSignature(value) {
   const words = String(value || "").toLowerCase().match(/[a-z0-9]+/g) || [];
@@ -475,6 +566,36 @@ function seriesMarkerSignature(value) {
 
 function normalizedIdentifier(value) {
   return String(value || "").replace(/[^a-z0-9]/gi, "").toUpperCase();
+}
+
+function unique(values = []) {
+  return [...new Set(values.filter(Boolean))];
+}
+
+function strictReleaseTitleKey(row = {}) {
+  return foldText(releaseTitleValue(row));
+}
+
+function hasMeaningfulReleaseTitle(row = {}) {
+  const words = String(releaseTitleValue(row) || "").toLowerCase().match(/[a-z0-9]+/g) || [];
+  const meaningful = words.filter((word) => !GENERIC_RELEASE_TITLE_WORDS.has(word)).join("");
+  return meaningful.length >= 3;
+}
+
+function duplicateKeysForAudit(row, kind, chartType = "") {
+  if (kind === "artist") return mergeRuleKeysForRow(row, { kind: "artist" });
+  const title = strictReleaseTitleKey(row);
+  const artists = releaseArtistComparisonKeys(row);
+  if (!title || !artists.length || !hasMeaningfulReleaseTitle(row)) return [];
+  return unique(artists.map((artist) => `release:${chartType}:${title}:${artist}`));
+}
+
+function effectiveReleaseCountry(release, leadArtist) {
+  return {
+    ...release,
+    country: release?.country || leadArtist?.country || "",
+    country_code: release?.country_code || leadArtist?.country_code || "",
+  };
 }
 
 function duplicateRows(group) {
@@ -519,7 +640,7 @@ function buildDeepDuplicateGroups(rows, kind, { chartType = "" } = {}) {
   const exactBuckets = new Map();
   records.forEach((row) => {
     if (kind === "artist") {
-      mergeRuleKeysForRow(row, { kind: "artist" }).forEach((key) =>
+      duplicateKeysForAudit(row, "artist").forEach((key) =>
         addBucketKey(exactBuckets, key, row, "same normalized artist name, display name, public name, or alias")
       );
       const slug = foldText(row.slug);
@@ -527,24 +648,25 @@ function buildDeepDuplicateGroups(rows, kind, { chartType = "" } = {}) {
       return;
     }
 
-    mergeRuleKeysForRow(row, { kind: "release", chartType }).forEach((key) =>
+    duplicateKeysForAudit(row, "release", chartType).forEach((key) =>
       addBucketKey(exactBuckets, key, row, "same normalized title and artist credit")
     );
   });
 
   const fuzzyBuckets = new Map();
+  if (kind === "artist") {
+    return groupedDuplicateResults(records, parent, edges, byId);
+  }
   records.forEach((row) => {
-    const canonical = kind === "artist"
-      ? foldText(row.display_name || row.name || row.public_name)
-      : foldReleaseTitle(row.title || row.canonical_title);
-    if (!canonical) return;
-    const artistKey = kind === "release" ? releaseArtistComparisonKey(row) : "";
-    const bucketKey = kind === "artist"
-      ? canonical[0]
-      : `${artistKey}|${canonical[0]}`;
-    if (kind === "release" && !artistKey) return;
-    if (!fuzzyBuckets.has(bucketKey)) fuzzyBuckets.set(bucketKey, []);
-    fuzzyBuckets.get(bucketKey).push({ row, canonical });
+    const canonical = strictReleaseTitleKey(row);
+    if (!canonical || !hasMeaningfulReleaseTitle(row)) return;
+    const artistKeys = releaseArtistComparisonKeys(row);
+    if (!artistKeys.length) return;
+    artistKeys.forEach((artistKey) => {
+      const bucketKey = `${artistKey}|${canonical[0]}`;
+      if (!fuzzyBuckets.has(bucketKey)) fuzzyBuckets.set(bucketKey, []);
+      fuzzyBuckets.get(bucketKey).push({ row, canonical });
+    });
   });
   fuzzyBuckets.forEach((bucket) => {
     for (let left = 0; left < bucket.length; left += 1) {
@@ -569,6 +691,20 @@ function buildDeepDuplicateGroups(rows, kind, { chartType = "" } = {}) {
     }
   });
 
+  return groupedDuplicateResults(records, parent, edges, byId);
+}
+
+function groupedDuplicateResults(records, parent, edges, byId) {
+  const find = (id) => {
+    let root = id;
+    while (parent.get(root) !== root) root = parent.get(root);
+    while (parent.get(id) !== id) {
+      const next = parent.get(id);
+      parent.set(id, root);
+      id = next;
+    }
+    return root;
+  };
   const groups = new Map();
   records.forEach((row) => {
     const root = find(Number(row.id));
@@ -601,18 +737,20 @@ function buildDeepDuplicateGroups(rows, kind, { chartType = "" } = {}) {
     );
 }
 
-function releaseArtistComparisonKey(row = {}) {
+function releaseArtistComparisonKeys(row = {}) {
   const fromIds = releaseArtistIds(row).map(String).sort().join("+");
-  if (fromIds) return `ids:${fromIds}`;
-  return foldTokenOrder(
+  const profileName = profileLabel(Array.isArray(row.primary_artists) ? row.primary_artists[0] : null);
+  const textKey = foldTokenOrder(
     row.artist_display ||
     row.artist_credit ||
     row.artist_name ||
     row.primary_artist ||
     row.a ||
     row.pa ||
+    profileName ||
     ""
   );
+  return unique([fromIds ? `ids:${fromIds}` : "", textKey ? `credit:${textKey}` : ""]);
 }
 
 function emptyTypeSets() {
@@ -752,27 +890,9 @@ function auditArtists(artists, ctx) {
     const inactive = ["archived", "inactive"].includes(status);
     if (inactive) return;
 
-    if (!hasMedia(artist.image || artist.image_url || artist.profile_image || artist.photo)) {
-      pushIssue(ctx, "audit-artist-image-missing", {
-        title: "Artist images missing",
-        module: "artists",
-        page: "artists",
-        category: "Media",
-        noun: "artist profile",
-        messageTail: "are missing profile images.",
-      }, { id: artist.id, label, problem: "Missing artist image" }, ["missingMedia"]);
-    }
-
     const missing = missingFields(artist, [
       ["name", "artist name"],
-      ["display_name", "display name"],
       ["slug", "slug"],
-      ["country", "country"],
-      ["country_code", "country code"],
-      ["city_region", "city/region"],
-      ["genre", "genre"],
-      ["artist_type", "artist type"],
-      ["biography", "biography"],
       ["status", "status"],
     ]);
     if (missing.length) {
@@ -796,17 +916,6 @@ function auditArtists(artists, ctx) {
         noun: "artist profile",
         messageTail: "have missing, partial, invalid, or questionable country data.",
       }, { id: artist.id, label, problem: countryProblem }, ["questionableCountries"]);
-    }
-
-    if (hasNumber(artist.total_releases) && Number(artist.total_releases) > 0 && !artist.verified) {
-      pushIssue(ctx, "audit-artist-verification-missing", {
-        title: "Credited artists are unverified",
-        module: "artists",
-        page: "artists",
-        category: "Artists",
-        noun: "artist profile",
-        messageTail: "have releases but are not marked verified.",
-      }, { id: artist.id, label, problem: "Artist has catalogue activity but is not verified" }, ["incompleteMetadata"]);
     }
 
     const aliasesProblem = jsonProblem(artist.aliases, "aliases");
@@ -843,6 +952,8 @@ function auditReleases(releases, chartType, ctx) {
     const status = normalizedStatus(release);
     if (["archived", "inactive"].includes(status)) return;
     const label = releaseLabel(release);
+    const leadArtist = firstLeadArtist(release, ctx.artistById);
+    const releaseForCompleteness = effectiveReleaseCountry(release, leadArtist);
 
     if (!hasMedia(release.cover_image || release.cover_image_url || release.image || release.artwork)) {
       pushIssue(ctx, `audit-${releaseName}-cover-missing`, {
@@ -857,22 +968,12 @@ function auditReleases(releases, chartType, ctx) {
 
     const required = [
       ["title", "title"],
-      ["canonical_title", "canonical title"],
       ["status", "status"],
-      ["country", "country"],
-      ["country_code", "country code"],
-      ["genre", "genre"],
-      ["label", "label"],
-      ["distributor", "distributor"],
     ];
+    if (!hasValue(releaseForCompleteness.country)) required.push(["country", "country"]);
+    if (!hasValue(releaseForCompleteness.country_code)) required.push(["country_code", "country code"]);
     if (!releaseHasPrimaryArtist(release)) required.push(["primary_artist_ids", "main artists"]);
-    if (!release.release_date && !release.release_year) required.push(["release_date", "release date or year"]);
-    if (chartType === "singles") {
-      required.push(["songwriters", "songwriters"], ["producers", "producers"]);
-    } else {
-      required.push(["number_of_tracks", "number of tracks"]);
-    }
-    const missing = missingFields(release, required);
+    const missing = missingFields(releaseForCompleteness, required);
     if (missing.length) {
       pushIssue(ctx, `audit-${releaseName}-details-incomplete`, {
         title: `${capitalize(releaseName)} detail sections incomplete`,
@@ -884,8 +985,7 @@ function auditReleases(releases, chartType, ctx) {
       }, { id: release.id, label, problem: `Missing: ${missing.join(", ")}` }, ["incompleteMetadata"]);
     }
 
-    const countryProblem = countryProblemFor(release, ctx.countryContext);
-    const leadArtist = firstLeadArtist(release, ctx.artistById);
+    const countryProblem = countryProblemFor(releaseForCompleteness, ctx.countryContext);
     const leadCode = normalizeCode(leadArtist?.country_code);
     const releaseCode = normalizeCode(release.country_code);
     const artistMismatch = leadCode && releaseCode && leadCode !== releaseCode
@@ -943,19 +1043,18 @@ function auditReleases(releases, chartType, ctx) {
 
 function auditCountries(countries, records, ctx) {
   const codeGroups = new Map();
-  const orderGroups = new Map();
   countries.forEach((country) => {
     const label = country.name || country.code || `Country #${country.id}`;
+    const normalizedLabel = normalizeCountryName(label);
+    if (INTENTIONAL_COUNTRY_PLACEHOLDERS.has(normalizedLabel)) return;
     const code = normalizeCode(country.code);
     if (code) addGroup(codeGroups, code, country);
-    if (hasValue(country.display_order)) addGroup(orderGroups, String(country.display_order), country);
     const missing = missingFields(country, [
       ["name", "country name"],
       ["code", "country code"],
       ["region", "region"],
-      ["flag", "flag/initial"],
-      ["display_order", "display order"],
     ]);
+    if (!code && !hasValue(country.flag)) missing.push("flag/initial");
     if (missing.length) {
       pushIssue(ctx, "audit-country-details-incomplete", {
         title: "Country settings incomplete",
@@ -986,16 +1085,6 @@ function auditCountries(countries, records, ctx) {
     category: "Countries",
     noun: "country code",
     messageTail: "are assigned to multiple countries.",
-    labelFor: (group) => group.map((country) => country.name || country.code).join(" / "),
-  });
-  pushDuplicateIssues(ctx, orderGroups, {
-    id: "audit-country-order-duplicate",
-    title: "Country display order duplicates",
-    module: "countries",
-    page: "countries",
-    category: "Countries",
-    noun: "display order",
-    messageTail: "are used by multiple countries.",
     labelFor: (group) => group.map((country) => country.name || country.code).join(" / "),
   });
 

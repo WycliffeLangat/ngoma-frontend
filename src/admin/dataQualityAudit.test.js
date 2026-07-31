@@ -75,12 +75,11 @@ test("deep CMS audit catches media and country issues without URL alerts", () =>
   }, { now: "2026-07-13T00:00:00Z" });
 
   const alerts = alertMap(result);
-  assert.ok(alerts.has("audit-artist-image-missing"));
   assert.ok(alerts.has("audit-song-cover-missing"));
   assert.ok(!alerts.has("audit-artist-invalid-url"));
   assert.match(alerts.get("audit-song-country-questionable").details[0].problem, /does not match lead artist/);
   assert.equal(result.cards.invalid_urls_detected, undefined);
-  assert.equal(result.cards.missing_media_assets, 2);
+  assert.equal(result.cards.missing_media_assets, 1);
 });
 
 test("deep CMS audit keeps catalogue codes and links out of dashboard alerts", () => {
@@ -223,9 +222,8 @@ test("deep CMS audit scopes release and credited artist alerts to public Top 50 
   const alerts = alertMap(result);
   assert.equal(alerts.get("audit-song-cover-missing").total, 1);
   assert.equal(alerts.get("audit-song-cover-missing").details[0].id, 20);
-  assert.equal(alerts.get("audit-artist-image-missing").total, 1);
-  assert.equal(alerts.get("audit-artist-image-missing").details[0].id, 10);
-  assert.ok(!alerts.get("audit-song-details-incomplete").details.some((detail) => detail.id === 21));
+  assert.ok(!alerts.has("audit-artist-image-missing"));
+  assert.ok(!alerts.has("audit-song-details-incomplete"));
   assert.equal(result.coverage.releaseAuditScope, "public-top-50");
   assert.equal(result.coverage.publicTop50Releases, 1);
 });
@@ -278,6 +276,193 @@ test("duplicate audit catches full-catalog artist aliases beyond public charted 
   assert.equal(duplicateAlert.page, "duplicate-review");
   assert.equal(duplicateAlert.total, 1);
   assert.match(duplicateAlert.details[0].problem, /alias|artist name/i);
+});
+
+test("duplicate audit does not collapse release versions or feature credits", () => {
+  const result = auditCmsRecords({
+    countries: [],
+    artists: [],
+    songs: [
+      { id: 20, title: "Love", chart_type: "singles", artist_display: "Zuchu", status: "active" },
+      { id: 21, title: "Love (feat. Adekunle Gold)", chart_type: "singles", artist_display: "Zuchu", status: "active" },
+    ],
+    albums: [
+      { id: 30, title: "VOICE OF THE CROWN", chart_type: "albums", artist_display: "Toxic Lyrikali", status: "active" },
+      { id: 31, title: "VOICE OF THE CROWN (Deluxe)", chart_type: "albums", artist_display: "Toxic Lyrikali", status: "active" },
+    ],
+    charts: [], chartUploads: [], weeklyUploads: [], certifications: [], certificationRules: [],
+    news: [], pageContent: [], media: [], reports: [],
+    backups: [{ id: 1, status: "success", file: "backup.zip", created_at: "2026-07-12T00:00:00Z" }],
+  }, { now: "2026-07-13T00:00:00Z" });
+
+  const alerts = alertMap(result);
+  assert.ok(!alerts.has("audit-song-duplicate-title"));
+  assert.ok(!alerts.has("audit-album-duplicate-title"));
+});
+
+test("duplicate audit still matches releases when only one row has linked artist ids", () => {
+  const result = auditCmsRecords({
+    countries: [],
+    artists: [{ id: 10, name: "Lead Artist", status: "active" }],
+    songs: [
+      { id: 20, title: "Same Song", chart_type: "singles", primary_artist_ids: [10], artist_display: "Lead Artist", status: "active" },
+      { id: 21, title: "Same Song", chart_type: "singles", artist_display: "Lead Artist", status: "active" },
+    ],
+    albums: [],
+    charts: [], chartUploads: [], weeklyUploads: [], certifications: [], certificationRules: [],
+    news: [], pageContent: [], media: [], reports: [],
+    backups: [{ id: 1, status: "success", file: "backup.zip", created_at: "2026-07-12T00:00:00Z" }],
+  }, { now: "2026-07-13T00:00:00Z" });
+
+  const duplicateAlert = alertMap(result).get("audit-song-duplicate-title");
+  assert.equal(duplicateAlert.total, 1);
+  assert.match(duplicateAlert.details[0].problem, /same normalized title and artist credit/i);
+});
+
+test("duplicate audit does not flag one-edit artist name neighbors", () => {
+  const result = auditCmsRecords({
+    countries: [],
+    artists: [
+      { id: 10, name: "Khalid", status: "active" },
+      { id: 11, name: "Khaid", status: "active" },
+      { id: 12, name: "Juliana", status: "active" },
+      { id: 13, name: "Juliani", status: "active" },
+    ],
+    songs: [],
+    albums: [],
+    charts: [], chartUploads: [], weeklyUploads: [], certifications: [], certificationRules: [],
+    news: [], pageContent: [], media: [], reports: [],
+    backups: [{ id: 1, status: "success", file: "backup.zip", created_at: "2026-07-12T00:00:00Z" }],
+  }, { now: "2026-07-13T00:00:00Z" });
+
+  assert.ok(!alertMap(result).has("audit-artist-duplicate-name"));
+});
+
+test("artist display name is optional in completeness audit", () => {
+  const result = auditCmsRecords({
+    countries: [{ id: 1, name: "Kenya", code: "KE", region: "East Africa", flag: "", display_order: 1, active: true }],
+    artists: [{
+      id: 10,
+      name: "Lead Artist",
+      slug: "lead-artist",
+      country: "Kenya",
+      country_code: "KE",
+      city_region: "Nairobi",
+      genre: "Afropop",
+      artist_type: "solo",
+      biography: "Known for clean test fixtures.",
+      status: "active",
+      verified: true,
+    }],
+    songs: [],
+    albums: [],
+    charts: [], chartUploads: [], weeklyUploads: [], certifications: [], certificationRules: [],
+    news: [], pageContent: [], media: [], reports: [],
+    backups: [{ id: 1, status: "success", file: "backup.zip", created_at: "2026-07-12T00:00:00Z" }],
+  }, { now: "2026-07-13T00:00:00Z" });
+
+  assert.ok(!alertMap(result).has("audit-artist-details-incomplete"));
+});
+
+test("release country completeness can inherit the linked lead artist country", () => {
+  const result = auditCmsRecords({
+    countries: [{ id: 1, name: "Kenya", code: "KE", region: "East Africa", flag: "", display_order: 1, active: true }],
+    artists: [{
+      id: 10,
+      name: "Lead Artist",
+      slug: "lead-artist",
+      country: "Kenya",
+      country_code: "KE",
+      city_region: "Nairobi",
+      genre: "Afropop",
+      artist_type: "solo",
+      biography: "Known for clean test fixtures.",
+      status: "active",
+      verified: true,
+    }],
+    songs: [{
+      id: 20,
+      title: "Inherited Country",
+      canonical_title: "Inherited Country",
+      chart_type: "singles",
+      primary_artist_ids: [10],
+      artist_display: "Lead Artist",
+      country: "",
+      country_code: "",
+      genre: "Afropop",
+      label: "Label",
+      distributor: "Distributor",
+      release_year: 2026,
+      release_date: "2026-05-01",
+      songwriters: "Writer",
+      producers: "Producer",
+      status: "active",
+    }],
+    albums: [],
+    charts: [], chartUploads: [], weeklyUploads: [], certifications: [], certificationRules: [],
+    news: [], pageContent: [], media: [], reports: [],
+    backups: [{ id: 1, status: "success", file: "backup.zip", created_at: "2026-07-12T00:00:00Z" }],
+  }, { now: "2026-07-13T00:00:00Z" });
+
+  const alerts = alertMap(result);
+  assert.ok(!alerts.has("audit-song-details-incomplete"));
+  assert.ok(!alerts.has("audit-song-country-questionable"));
+});
+
+test("release detail audit treats label, credits, genre, and dates as enrichment", () => {
+  const result = auditCmsRecords({
+    countries: [{ id: 1, name: "Kenya", code: "KE", region: "East Africa", flag: "", display_order: 1, active: true }],
+    artists: [{
+      id: 10,
+      name: "Lead Artist",
+      slug: "lead-artist",
+      country: "Kenya",
+      country_code: "KE",
+      status: "active",
+    }],
+    songs: [{
+      id: 20,
+      title: "Lean Metadata",
+      chart_type: "singles",
+      primary_artist_ids: [10],
+      artist_display: "Lead Artist",
+      status: "active",
+    }],
+    albums: [{
+      id: 30,
+      title: "Lean Album",
+      chart_type: "albums",
+      primary_artist_ids: [10],
+      artist_display: "Lead Artist",
+      status: "active",
+    }],
+    charts: [], chartUploads: [], weeklyUploads: [], certifications: [], certificationRules: [],
+    news: [], pageContent: [], media: [], reports: [],
+    backups: [{ id: 1, status: "success", file: "backup.zip", created_at: "2026-07-12T00:00:00Z" }],
+  }, { now: "2026-07-13T00:00:00Z" });
+
+  const alerts = alertMap(result);
+  assert.ok(!alerts.has("audit-song-details-incomplete"));
+  assert.ok(!alerts.has("audit-album-details-incomplete"));
+});
+
+test("country settings derive flag from code and ignore fallback display orders", () => {
+  const result = auditCmsRecords({
+    countries: [
+      { id: 1, name: "Kenya", code: "KE", region: "East Africa", flag: "", display_order: 1, active: true },
+      { id: 2, name: "Uganda", code: "UG", region: "East Africa", flag: "", display_order: 2, active: true },
+      { id: 3, name: "Rwanda", code: "RW", region: "East Africa", flag: "", display_order: 0, active: true },
+      { id: 4, name: "Tanzania", code: "TZ", region: "East Africa", flag: "", display_order: 0, active: true },
+    ],
+    artists: [], songs: [], albums: [],
+    charts: [], chartUploads: [], weeklyUploads: [], certifications: [], certificationRules: [],
+    news: [], pageContent: [], media: [], reports: [],
+    backups: [{ id: 1, status: "success", file: "backup.zip", created_at: "2026-07-12T00:00:00Z" }],
+  }, { now: "2026-07-13T00:00:00Z" });
+
+  const alerts = alertMap(result);
+  assert.ok(!alerts.has("audit-country-order-duplicate"));
+  assert.ok(!alerts.has("audit-country-details-incomplete"));
 });
 
 test("deep CMS audit can match public Top 50 releases by title and artist when release id is absent", () => {
@@ -380,6 +565,66 @@ test("dashboard merge filters backend artist alerts to Top 50 charted artists", 
   const artistAlert = merged.alerts.find((alert) => alert.id === "artists-missing-country");
   assert.equal(artistAlert.total, 1);
   assert.equal(artistAlert.details[0].id, 10);
+});
+
+test("dashboard merge clears stale backend attention cards when audit supersedes alerts", () => {
+  const audit = {
+    alerts: [],
+    cards: {},
+    loadWarnings: [],
+    publicReleaseScope: { enabled: true, hasEntries: true, idsByType: { singles: new Set(), albums: new Set() }, keysByType: { singles: new Set(), albums: new Set() } },
+    chartedArtistScope: { ids: new Set(), names: new Set() },
+    certScopeIds: new Set(),
+  };
+  const merged = mergeDashboardAudit({
+    cards: {
+      missing_artist_countries: 100,
+      duplicate_artists_detected: 50,
+      data_audit_findings: 150,
+      system_health: "NEEDS_ATTENTION",
+    },
+    alerts: [
+      { id: "possible-duplicate-artists", module: "artists", level: "warning", details: [{ id: 1, label: "Old duplicate" }] },
+      { id: "country-settings-incomplete", module: "countries", level: "warning", details: [{ id: 2, label: "Unknown" }] },
+    ],
+  }, audit);
+
+  assert.equal(merged.alerts.length, 0);
+  assert.equal(merged.cards.system_health, "OK");
+  assert.equal(merged.cards.missing_artist_countries, undefined);
+  assert.equal(merged.cards.duplicate_artists_detected, undefined);
+  assert.equal(merged.cards.data_audit_findings, undefined);
+});
+
+test("dashboard attention cards are counted from visible merged alerts", () => {
+  const audit = {
+    alerts: [{
+      id: "audit-song-cover-missing",
+      module: "releases",
+      page: "songs",
+      level: "warning",
+      title: "Song cover images missing",
+      total: 2,
+      details: [
+        { id: 20, label: "Song A", problem: "Missing cover image" },
+        { id: 21, label: "Song B", problem: "Missing cover image" },
+      ],
+    }],
+    cards: { missing_media_assets: 999, data_audit_findings: 999 },
+    loadWarnings: [],
+    publicReleaseScope: { enabled: false },
+    chartedArtistScope: { ids: new Set(), names: new Set() },
+    certScopeIds: new Set(),
+  };
+  const merged = mergeDashboardAudit({
+    cards: { missing_artist_countries: 100, system_health: "OK" },
+    alerts: [],
+  }, audit);
+
+  assert.equal(merged.cards.missing_media_assets, 2);
+  assert.equal(merged.cards.data_audit_findings, 2);
+  assert.equal(merged.cards.missing_artist_countries, undefined);
+  assert.equal(merged.cards.system_health, "NEEDS_ATTENTION");
 });
 
 test("dashboard merge filters backend certification alerts to Top 50 charted certifications", () => {

@@ -6,7 +6,6 @@ import {
 } from "../chartRankMaintenance";
 import {
   findStoredMergeRulePlan,
-  foldReleaseTitle,
   foldText,
   foldTokenOrder,
   loadMergeRules,
@@ -72,6 +71,11 @@ const SERIES_MARKER_WORDS = new Set([
   "i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x",
   "xi", "xii", "xiii", "xiv", "xv", "xvi", "xvii", "xviii", "xix", "xx",
 ]);
+const GENERIC_RELEASE_TITLE_WORDS = new Set([
+  "acoustic", "bonus", "clean", "deluxe", "edit", "ep", "explicit", "extended",
+  "instrumental", "live", "mix", "radio", "remaster", "remastered", "remix",
+  "single", "sped", "slowed", "version", "versions", "vol", "volume",
+]);
 
 // A release title differing only by a sequel/series number ("Vol. 1" vs
 // "Vol. 2", "Culture II" vs "Culture III", "...2025" vs "...2026") is a
@@ -79,6 +83,49 @@ const SERIES_MARKER_WORDS = new Set([
 function seriesMarkerSignature(value) {
   const words = String(value || "").toLowerCase().match(/[a-z0-9]+/g) || [];
   return words.filter((word) => /^\d+$/.test(word) || SERIES_MARKER_WORDS.has(word)).join(",");
+}
+
+function unique(values = []) {
+  return [...new Set(values.filter(Boolean))];
+}
+
+function releaseTitleValue(row = {}) {
+  return row.title || row.t || row.canonical_title || row.release_title || row.name || "";
+}
+
+function strictReleaseTitleKey(row = {}) {
+  return foldText(releaseTitleValue(row));
+}
+
+function hasMeaningfulReleaseTitle(row = {}) {
+  const words = String(releaseTitleValue(row) || "").toLowerCase().match(/[a-z0-9]+/g) || [];
+  const meaningful = words.filter((word) => !GENERIC_RELEASE_TITLE_WORDS.has(word)).join("");
+  return meaningful.length >= 3;
+}
+
+function releaseArtistIds(row = {}) {
+  const fromList = (value) => Array.isArray(value)
+    ? value.map((item) => Number(item?.id ?? item?.value ?? item)).filter(Boolean)
+    : [];
+  return [
+    ...fromList(row.primary_artist_ids),
+    ...fromList(row.primary_artists),
+    Number(row.artist_id ?? row.artist) || null,
+  ].filter(Boolean);
+}
+
+function releaseArtistKeys(row = {}) {
+  const fromIds = releaseArtistIds(row).map(String).sort().join("+");
+  const textKey = foldTokenOrder(
+    row.artist_display ||
+    row.artist_credit ||
+    row.artist_name ||
+    row.primary_artist ||
+    row.a ||
+    row.pa ||
+    ""
+  );
+  return unique([fromIds ? `ids:${fromIds}` : "", textKey ? `credit:${textKey}` : ""]);
 }
 
 async function fetchAll(endpoint, params = {}) {
@@ -99,7 +146,7 @@ async function fetchAll(endpoint, params = {}) {
   return rows;
 }
 
-function expandedCandidateGroups(rows, kind) {
+function expandedCandidateGroups(rows, kind, chartType = "") {
   const records = rows.filter((row) => row?.id && row.status !== "archived");
   const parent = new Map(records.map((row) => [row.id, row.id]));
   const find = (id) => {
@@ -118,29 +165,47 @@ function expandedCandidateGroups(rows, kind) {
     if (a !== b) parent.set(b, a);
   };
 
-  const canonicalFor = (row) => kind === "artist" ? foldText(row.name) : foldReleaseTitle(row.title);
   const exactBuckets = new Map();
   records.forEach((row) => {
     const variants = kind === "artist"
       ? [row.name, row.display_name, ...(Array.isArray(row.aliases) ? row.aliases : [])]
           .flatMap((value) => [foldText(value), foldTokenOrder(value)])
-      : [foldReleaseTitle(row.title)];
-    [...new Set(variants.filter(Boolean))].forEach((key) => {
-      const existing = exactBuckets.get(key);
-      if (existing) union(row.id, existing);
-      else exactBuckets.set(key, row.id);
+      : [strictReleaseTitleKey(row)];
+    unique(variants).forEach((key) => {
+      const artistKeys = kind === "release" ? releaseArtistKeys(row) : [""];
+      if (kind === "release" && (!artistKeys.length || !hasMeaningfulReleaseTitle(row))) return;
+      artistKeys.forEach((artistKey) => {
+        const bucketKey = kind === "artist" ? `artist:${key}` : `release:${chartType}:${key}:${artistKey}`;
+        const existingBucket = exactBuckets.get(bucketKey);
+        if (existingBucket) union(row.id, existingBucket);
+        else exactBuckets.set(bucketKey, row.id);
+      });
     });
   });
 
+  if (kind === "artist") {
+    const groups = new Map();
+    records.forEach((row) => {
+      const root = find(row.id);
+      if (!groups.has(root)) groups.set(root, []);
+      groups.get(root).push(row);
+    });
+    return [...groups.values()].filter((group) => group.length > 1);
+  }
+
   // Conservative fuzzy pass catches small spelling/transcription differences.
-  // Bucketing by first character keeps the scan responsive for thousands of rows.
+  // Bucketing by artist credit and first character keeps the scan responsive for
+  // thousands of rows without mixing unrelated releases that share a short title.
   const fuzzyBuckets = new Map();
   records.forEach((row) => {
-    const canonical = canonicalFor(row);
-    if (!canonical) return;
-    const bucketKey = canonical[0];
-    if (!fuzzyBuckets.has(bucketKey)) fuzzyBuckets.set(bucketKey, []);
-    fuzzyBuckets.get(bucketKey).push({ row, canonical });
+    const canonical = strictReleaseTitleKey(row);
+    const artistKeys = releaseArtistKeys(row);
+    if (!canonical || !artistKeys.length || !hasMeaningfulReleaseTitle(row)) return;
+    artistKeys.forEach((artistKey) => {
+      const bucketKey = `${artistKey}|${canonical[0]}`;
+      if (!fuzzyBuckets.has(bucketKey)) fuzzyBuckets.set(bucketKey, []);
+      fuzzyBuckets.get(bucketKey).push({ row, canonical });
+    });
   });
   fuzzyBuckets.forEach((bucket) => {
     for (let left = 0; left < bucket.length; left += 1) {
@@ -326,8 +391,8 @@ export default function DuplicateReviewPage() {
         ...(artists.groups || []).map(g => g.map(r => normaliseArtist(r))),
       ];
       const expandedGroups = [
-        ...expandedCandidateGroups(allSingles, "release").map(g => g.map(r => normaliseRelease(r, "singles"))),
-        ...expandedCandidateGroups(allAlbums, "release").map(g => g.map(r => normaliseRelease(r, "albums"))),
+        ...expandedCandidateGroups(allSingles, "release", "singles").map(g => g.map(r => normaliseRelease(r, "singles"))),
+        ...expandedCandidateGroups(allAlbums, "release", "albums").map(g => g.map(r => normaliseRelease(r, "albums"))),
         ...expandedCandidateGroups(allArtists, "artist").map(g => g.map(r => normaliseArtist(r))),
       ];
       const candidateGroups = consolidateGroups([...serverGroups, ...expandedGroups]);
