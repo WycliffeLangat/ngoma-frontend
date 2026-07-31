@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback, useTransition } from "react";
 import { API_BASE, resolveMediaUrl } from "./api/config.js";
 import { artistNameVariants, findArtistProfileInPublicData, getArtistImageUrl, withResolvedArtistImage } from "./utils/artistImages.js";
 import {
@@ -1731,7 +1731,10 @@ export default function NgomaCharts(){
       return "light";
     }
   });
-  const [ct,setCt]=useState(["singles","albums"].includes(DEFAULT_CHART_SETTING.chart_type) ? DEFAULT_CHART_SETTING.chart_type : "singles");
+  const initialChartType = ["singles","albums"].includes(DEFAULT_CHART_SETTING.chart_type) ? DEFAULT_CHART_SETTING.chart_type : "singles";
+  const [ct,setCt]=useState(initialChartType);
+  const [chartTypePreview,setChartTypePreview]=useState(initialChartType);
+  const [isChartTypePending,startChartTypeTransition]=useTransition();
   const [month,setMonth]=useState(CURRENT_MONTH);
   const [selectedCountryScope,setSelectedCountryScope]=useState(readStoredCountryScope);
   const [plat,setPlat]=useState("Combined");
@@ -1773,6 +1776,11 @@ export default function NgomaCharts(){
   const publicHeaderRef = useRef(null);
   const publicDataSyncRef = useRef(null);
   const [publicHeaderHeight, setPublicHeaderHeight] = useState(0);
+
+  useEffect(() => {
+    setChartTypePreview(ct);
+  }, [ct]);
+
   const isDark = theme === "dark";
   const themeColors = isDark
     ? {
@@ -2667,11 +2675,12 @@ const top = data[0];
   // treating the default Kenya scope as regional here would silently shrink the dataset to
   // just Kenya-tagged entries and starve things like Top 5 Countries of any diversity.
   const analyticsDefaultPlatform = isNonKenyaCountryScope(selectedCountryScope) ? selectedCountryScope : "Combined";
-  const analyticsRowsFor = (targetMonth, targetPlatform = analyticsDefaultPlatform) => isArtists
+  const analyticsRowsForType = (chartType, targetMonth, targetPlatform = analyticsDefaultPlatform) => chartType === "artists"
     ? buildArtistChart(targetMonth, targetPlatform)
     : (isRegionalChartScope(targetPlatform)
-        ? getRegionalCombined(releaseCt, targetPlatform, targetMonth)
-        : (targetPlatform === "Combined" ? getCombined(releaseCt, targetMonth) : getPlatform(releaseCt, targetPlatform, targetMonth)));
+        ? getRegionalCombined(chartType, targetPlatform, targetMonth)
+        : (targetPlatform === "Combined" ? getCombined(chartType, targetMonth) : getPlatform(chartType, targetPlatform, targetMonth)));
+  const analyticsRowsFor = (targetMonth, targetPlatform = analyticsDefaultPlatform) => analyticsRowsForType(ct, targetMonth, targetPlatform);
   const analyticsActive = page === "analytics";
   const analysisMonths = analyticsActive ? MONTHS.slice(0, Math.max(0, monthIndex(anMonth)) + 1) : MONTHS;
   // Records & Milestones now renders as a section inside the Analytics page
@@ -2679,7 +2688,7 @@ const top = data[0];
   const recordsActive = page === "analytics";
   const recordsCoverageTargetFor = (chartType = releaseCt) => chartType === "artists" ? ARTIST_PLATS.length : platformKeysFor(chartType).length;
   const currentRecordsCoverageTarget = recordsCoverageTargetFor(ct);
-  const recordsTop50RowsFor = (chartType, targetMonth) => (
+  const recordsTop50RowsForSource = (chartType, targetMonth) => (
     chartType === "artists"
       ? buildArtistChart(targetMonth, analyticsDefaultPlatform)
       : (isRegionalChartScope(analyticsDefaultPlatform)
@@ -2689,17 +2698,89 @@ const top = data[0];
     .filter((entry) => Number(entry.rank ?? entry.r) >= 1 && Number(entry.rank ?? entry.r) <= 50)
     .slice(0, 50);
 
+  const recordsTop50RowsCache = useMemo(() => {
+    if (!recordsActive) return { chartType: ct, rowsByMonth: new Map() };
+    return {
+      chartType: ct,
+      rowsByMonth: new Map(MONTHS.map((monthLabel) => [
+        monthLabel,
+        recordsTop50RowsForSource(ct, monthLabel),
+      ])),
+    };
+  }, [recordsActive, ct, analyticsDefaultPlatform, dataRevision]);
+
+  const recordsTop50RowsFor = (chartType, targetMonth) => (
+    recordsTop50RowsCache.chartType === chartType
+      ? recordsTop50RowsCache.rowsByMonth.get(targetMonth) || []
+      : recordsTop50RowsForSource(chartType, targetMonth)
+  );
+
+  const recordsPlatformLookup = useMemo(() => {
+    if (!recordsActive) return null;
+    const byPlatformMonth = new Map();
+
+    if (ct === "artists") {
+      platformKeysFor("artists").forEach((platform) => {
+        MONTHS.forEach((monthLabel) => {
+          const names = new Set(
+            buildArtistChart(monthLabel, platform)
+              .slice(0, 50)
+              .map((entry) => normArtistKey(entry.title || entry.primary_artist || entry.artist))
+              .filter(Boolean)
+          );
+          byPlatformMonth.set(`${platform}|${monthLabel}`, { names });
+        });
+      });
+      return { chartType: ct, byPlatformMonth };
+    }
+
+    platformKeysFor(ct).forEach((platform) => {
+      MONTHS.forEach((monthLabel) => {
+        const keys = new Set();
+        const ids = new Set();
+        rawPlatform(ct, platform, monthLabel)
+          .filter((entry) => Number(entry.r ?? entry.rank) >= 1 && Number(entry.r ?? entry.rank) <= 50)
+          .slice(0, 50)
+          .forEach((entry) => {
+            const key = entryKey(entry);
+            const id = extractReleaseId(entry);
+            if (key) keys.add(key);
+            if (id) ids.add(String(id).trim());
+          });
+        byPlatformMonth.set(`${platform}|${monthLabel}`, { keys, ids });
+      });
+    });
+
+    return { chartType: ct, byPlatformMonth };
+  }, [recordsActive, ct, dataRevision]);
+
   const recordsPlatformHitsFor = (chartType, targetMonth, title, artist, releaseId) => {
+    const lookupMatchesCurrentType = recordsPlatformLookup?.chartType === chartType;
+
     if (chartType === "artists") {
       const artistName = title || artist;
+      if (lookupMatchesCurrentType) {
+        const wantedName = normArtistKey(artistName);
+        return platformKeysFor("artists").filter((platform) =>
+          recordsPlatformLookup.byPlatformMonth.get(`${platform}|${targetMonth}`)?.names?.has(wantedName)
+        );
+      }
       return ARTIST_PLATS.filter((platform) =>
         buildArtistChart(targetMonth, platform)
-          .filter((entry) => Number(entry.rank) <= 50)
-          .slice(0, 50)
           .some((entry) => normArtistKey(entry.title) === normArtistKey(artistName))
       );
     }
     const wantedKey = entryKey({ title, artist });
+    const wantedId = releaseId ? String(releaseId).trim() : "";
+    if (lookupMatchesCurrentType) {
+      return platformKeysFor(chartType).filter((platform) => {
+        const lookup = recordsPlatformLookup.byPlatformMonth.get(`${platform}|${targetMonth}`);
+        return Boolean(
+          lookup &&
+          ((wantedId && lookup.ids?.has(wantedId)) || lookup.keys?.has(wantedKey))
+        );
+      });
+    }
     return platformKeysFor(chartType).filter((platform) =>
       rawPlatform(chartType, platform, targetMonth)
         .filter((entry) => Number(entry.r) >= 1 && Number(entry.r) <= 50)
@@ -3206,6 +3287,36 @@ const top = data[0];
     );
   };
 
+  const comparisonKeyForEntry = (entry = {}) => (
+    entry?.title ? `${entry.title} — ${entry.artist || ""}` : ""
+  );
+  const switchChartType = (nextType) => {
+    const normalizedType = ["singles", "albums", "artists"].includes(nextType) ? nextType : "singles";
+    setChartTypePreview(normalizedType);
+    if (normalizedType === ct) return;
+
+    const applyChartType = () => {
+      setCt(normalizedType);
+      setPlat((current) => isRegionalChartScope(current) ? current : "Combined");
+      if (page === "analytics") {
+        setOpenRecord(null);
+        const visibleDefaults = analyticsRowsForType(normalizedType, anMonth)
+          .slice(0, 2)
+          .map(comparisonKeyForEntry)
+          .filter(Boolean);
+        const cumulativeDefaults = normalizedType !== "artists" && analyticsDefaultPlatform === "Combined"
+          ? comparisonDefaultKeys(normalizedType, anMonth).slice(0, 2)
+          : [];
+        const defaults = cumulativeDefaults.length ? cumulativeDefaults : visibleDefaults;
+        if (defaults[0]) setCmpS1(defaults[0]);
+        if (defaults[1] || defaults[0]) setCmpS2(defaults[1] || defaults[0]);
+      }
+    };
+
+    if (page === "analytics") startChartTypeTransition(applyChartType);
+    else applyChartType();
+  };
+
   const Tog=({sm})=>(
     <div
       style={{
@@ -3222,13 +3333,14 @@ const top = data[0];
     >
       {["singles","albums","artists"].map(t=><button
         key={t}
-        onClick={()=>{setCt(t);setPlat((current)=>isRegionalChartScope(current)?current:"Combined");}}
+        type="button"
+        onClick={()=>switchChartType(t)}
         style={{
           padding:sm?"7px 14px":"8px 18px",
-          background:ct===t?GOLD:(isDark?"transparent":"#FFF"),
-          border:"1px solid "+(ct===t?GOLD:(isDark?"transparent":"rgba(0,0,0,0.14)")),
+          background:chartTypePreview===t?GOLD:(isDark?"transparent":"#FFF"),
+          border:"1px solid "+(chartTypePreview===t?GOLD:(isDark?"transparent":"rgba(0,0,0,0.14)")),
           borderRadius:"999px",
-          color:ct===t?"#111":(isDark?"#B8BDB8":"#111"),
+          color:chartTypePreview===t?"#111":(isDark?"#B8BDB8":"#111"),
           cursor:"pointer",
           fontSize:sm?"10px":"11px",
           fontWeight:900,
@@ -3236,8 +3348,9 @@ const top = data[0];
           textTransform:"uppercase",
           fontFamily:F,
           lineHeight:1,
-          boxShadow:ct===t?"0 2px 8px rgba(184,134,11,0.20)":"none",
-          transition:"all .16s ease",
+          opacity:isChartTypePending && chartTypePreview===t ? 0.9 : 1,
+          boxShadow:chartTypePreview===t?"0 2px 8px rgba(184,134,11,0.20)":"none",
+          transition:"background-color .16s ease, border-color .16s ease, color .16s ease, box-shadow .16s ease, opacity .16s ease",
         }}
       >{t}</button>)}
     </div>
