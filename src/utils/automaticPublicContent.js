@@ -218,18 +218,22 @@ function rowCredit(entry = {}) {
   return `${title}${artist ? ` by ${artist}` : ""}${rank ? ` at #${rank}` : ""}`;
 }
 
+function artistVerb(artist = "", singular = "", plural = "") {
+  return /\s(&|and|x)\s|,|\bft\.?\b|\bfeat\.?\b/i.test(String(artist || "")) ? plural : singular;
+}
+
 function movementSentence(entry = {}, title = "The leader") {
   const rank = rankValue(entry);
   const previous = numberValue(entry.prev ?? entry.previous_rank ?? entry.last_month);
   if (entry.is_new || entry.movement === "new") {
-    return `${title} arrives as a new Top 50 entry, which gives the story a clean debut rather than a recycled lead.`;
+    return `${title} arrives as a new Top 50 entry, giving the month a fresh #${rank || 1} story.`;
   }
   if (entry.reentry || entry.movement === "reentry") {
-    return `${title} returns to the Top 50 this month, turning the #${rank || 1} placement into a re-entry story as much as a rank story.`;
+    return `${title} returns to the Top 50 this month, making the #${rank || 1} placement a comeback as well as a chart lead.`;
   }
   if (previous && rank) {
     const delta = previous - rank;
-    if (delta > 0) return `${title} climbs ${delta} place${delta === 1 ? "" : "s"} from #${previous} to #${rank}, a sharper move than a static headline would show.`;
+    if (delta > 0) return `${title} climbs ${delta} place${delta === 1 ? "" : "s"} from #${previous} to #${rank}, adding momentum to its lead.`;
     if (delta < 0) return `${title} slips ${Math.abs(delta)} place${Math.abs(delta) === 1 ? "" : "s"} from #${previous} but still holds the chart conversation at #${rank}.`;
     return `${title} holds steady at #${rank}, suggesting sustained demand rather than a one-week spike.`;
   }
@@ -245,7 +249,7 @@ function coverageSentence(entry = {}, kind = "singles") {
   if (peak) parts.push(`its best Combined rank is #${peak}`);
   if (months) parts.push(`it has appeared for ${months} chart month${months === 1 ? "" : "s"}`);
   if (!parts.length) return "";
-  return `Under the headline, ${parts.join(", ")} across the ${kind} dataset.`;
+  return `The chart context is stronger with the details in view: ${parts.join(", ")} across the ${kind} dataset.`;
 }
 
 function rankGapSentence(top = {}, runner = {}) {
@@ -287,7 +291,7 @@ function chartArticle({ chartType, monthLabel, rows, generatedAt, siteName }) {
   const artist = artistText(top);
   const title = titleText(top);
   const runnerText = runner ? rowCredit(runner) : "a fast-moving chase pack";
-  const thirdText = third ? rowCredit(third) : "fresh catalogue movement";
+  const thirdText = third ? rowCredit(third) : "the rest of the front pack";
   const points = pointsValue(top);
   const cover = top.cover_image || top.image || "";
   const published_at = publishedDateFor(monthLabel, generatedAt);
@@ -306,20 +310,20 @@ function chartArticle({ chartType, monthLabel, rows, generatedAt, siteName }) {
     id: `auto-news-${chartType}-${String(monthLabel || "latest").toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
     slug: `auto-${chartType}-${String(monthLabel || "latest").toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
     title: chartType === "albums"
-      ? `${title} leads a layered ${monthLabel} album race`
-      : `${title} turns ${monthLabel} into a data-backed statement month`,
+      ? `${artist}'s ${title} sets the pace for ${monthLabel} albums`
+      : `${artist}'s ${title} leads ${monthLabel} singles at #1`,
     category,
     emoji: chartType === "albums" ? "" : "",
-    excerpt: `${artist} leads the ${monthLabel} ${kind} chart with ${points.toLocaleString()} points while ${runnerText} keeps the race alive.`,
-    subheadline: `${siteName || "Ngoma Charts"} generated this story from the latest published ${sourceLabel} data.`,
+    excerpt: `${artist} ${artistVerb(artist, "tops", "top")} the ${monthLabel} ${kind} chart with ${points.toLocaleString()} points, with ${runnerText} setting the nearest challenge.`,
+    subheadline: `${siteName || "Ngoma Charts"} looks at the leader, challengers and movement shaping ${sourceLabel}.`,
     body: [
-      `${title} by ${artist} opens the ${monthLabel} ${kind} conversation at #1, turning the latest Combined Top 50 into ${points.toLocaleString()} public chart points.`,
-      `${rankGapSentence(top, runner) || "The nearest challengers are still forming behind the leader."} ${third ? `${thirdText} gives the podium a second angle, keeping the top three from reading like a single-release race.` : "The rest of the Top 50 supplies the movement around that lead."}`,
+      `${title} by ${artist} opens the ${monthLabel} ${kind} chart at #1 with ${points.toLocaleString()} public Top 50 points.`,
+      `${rankGapSentence(top, runner) || "The nearest challengers are still forming behind the leader."} ${third ? `${thirdText} gives the podium another angle, so the month reads as a race rather than a runaway.` : "The rest of the Top 50 supplies the movement around that lead."}`,
       movementSentence(top, title),
       [coverageSentence(top, kind), moverSentence, arrivalsSentence].filter(Boolean).join(" "),
-      `Because this story is built from the published chart rows, it updates organically when a new month is added, a rank correction lands, or a release receives better linked metadata in the CMS.`,
+      `${leadArtistName || artist} ${artistVerb(leadArtistName || artist, "leaves", "leave")} ${monthLabel} with the strongest front-page signal in the ${kind} table, while the rest of the Top 50 shows where pressure is building next.`,
     ].filter(Boolean).join("\n\n"),
-    tags: uniqueTagList(["auto-generated", chartType, "combined-chart", monthLabel]),
+    tags: uniqueTagList([chartType, "combined-chart", monthLabel]),
     author: "Ngoma Charts Data Desk",
     source_links: [{ label: sourceLabel, kind: "automatic_chart_story", href: "/charts" }],
     featured: true,
@@ -346,6 +350,7 @@ function certificationArticle(cert, levels, generatedAt, siteName) {
   const releaseKind = cert.chart_type === "albums" ? "album" : "single";
   const published_at = validIsoDate(cert.certified_at || cert.certification_date) || validIsoDate(generatedAt) || new Date().toISOString();
   const overThreshold = threshold ? total - threshold : 0;
+  const thresholdText = threshold ? `${threshold.toLocaleString()}+` : label;
   const bestRank = numberValue(cert.best ?? cert.peak ?? cert.peak_rank);
   const leadArtist = primaryArtistProfile(cert);
   const artistName = profileName(leadArtist) || cert.a;
@@ -353,11 +358,11 @@ function certificationArticle(cert, levels, generatedAt, siteName) {
   return makeArticle({
     id: `auto-news-cert-${cert.chart_type || "singles"}-${certificationKey(cert.t, cert.a)}`,
     slug: `auto-cert-${String(cert.chart_type || "singles").replace(/[^a-z0-9]+/gi, "-")}-${String(cert.t).toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${String(cert.a).toLowerCase().replace(/[^a-z0-9]+/g, "-")}`.slice(0, 110),
-    title: `${cert.t} crosses into ${label} territory`,
+    title: `${cert.t} earns ${label} status on Ngoma Charts`,
     category: "certifications",
     emoji: "",
-    excerpt: `${cert.a}'s ${releaseKind} has ${total.toLocaleString()} cumulative Combined chart points, clearing the ${threshold.toLocaleString()}+ ${label} benchmark.`,
-    subheadline: `${siteName || "Ngoma Charts"} certification milestones are now generated directly from point totals.`,
+    excerpt: `${cert.a}'s ${releaseKind} reaches ${total.toLocaleString()} cumulative Combined chart points, clearing the ${thresholdText} ${label} benchmark.`,
+    subheadline: `${siteName || "Ngoma Charts"} looks at the chart run behind the ${label} milestone.`,
     body: [
       `${cert.t} by ${cert.a} is now ${label} certified after reaching ${total.toLocaleString()} cumulative Combined chart points.`,
       threshold
@@ -366,9 +371,9 @@ function certificationArticle(cert, levels, generatedAt, siteName) {
       bestRank
         ? `Its certification case is not just about volume: the release has also climbed as high as #${bestRank} in the public chart record.`
         : `Its certification case comes from accumulated monthly Top 50 performance rather than a manually written award note.`,
-      `When the certification engine receives new chart data, this story can move with the release: a higher point total, a new level, or a hidden below-threshold record will change the public narrative automatically.`,
+      `The next chart periods will show whether the release simply holds this level or keeps adding enough points to push toward the next benchmark.`,
     ].join("\n\n"),
-    tags: uniqueTagList(["auto-generated", "certification", cert.level, cert.chart_type]),
+    tags: uniqueTagList(["certification", cert.level, cert.chart_type]),
     author: "Ngoma Charts Data Desk",
     source_links: [{ label: "Certification point totals", kind: "automatic_certification_story", href: "/certifications" }],
     featured: false,

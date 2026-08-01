@@ -84,7 +84,9 @@ test("automatic news includes chart recaps and certification stories", () => {
 
   assert.equal(news.length, 3);
   assert.equal(news[0].status, "published");
-  assert.match(news[0].body, /updates organically/i);
+  assert.match(news[0].title, /Artist A's Hit One leads July 2026 singles at #1/);
+  assert.match(news[0].body, /opens the July 2026 singles chart at #1/i);
+  assert.doesNotMatch(news[0].body, /generated automatically|updates organically/i);
   assert.ok(news[0].body.split("\n\n").length >= 5);
   assert.equal(news[0].related_release, 20);
   assert.equal(news[0].published_at, "2026-07-16T00:00:00.000Z");
