@@ -2635,7 +2635,7 @@ const top = data[0];
   };
   const openReleaseDetails = (entry = {}, type = isSingles ? "single" : "album") => {
     if (entry?.is_artist_entry || String(type || entry.type || "").toLowerCase().includes("artist")) {
-      openArtistDetails(entry.title || entry.primary_artist || entry.artist || entry.n);
+      openArtistDetails(releaseTitle(entry) || entry.primary_artist || entry.artist || entry.n);
       return;
     }
     const normalizedType = String(type || entry.type || "single").toLowerCase().includes("album") ? "album" : "single";
