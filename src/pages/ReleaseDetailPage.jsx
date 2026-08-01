@@ -124,7 +124,17 @@ export default function ReleaseDetailPage({ ctx }) {
           peakRank: Number.isFinite(row.peakRank) ? row.peakRank : "—",
           months: row.months.size,
         }));
-        const releaseMetadata = combinedHistory.find((item) => item.combined?.release_year || item.combined?.confidence || item.combined?.genre || item.combined?.label)?.combined || {};
+        const releaseMetadata = combinedHistory.find((item) => (
+          item.combined?.release_year ||
+          item.combined?.release_date ||
+          item.combined?.songwriters ||
+          item.combined?.producers ||
+          item.combined?.genre ||
+          item.combined?.label ||
+          item.combined?.distributor ||
+          item.combined?.isrc ||
+          item.combined?.upc
+        ))?.combined || {};
         const releaseDetails = {...releaseMetadata, ...selR};
         const isAlbum = selR.type === "album" || !isSingles;
 
@@ -142,7 +152,9 @@ export default function ReleaseDetailPage({ ctx }) {
           ["Producers", releaseDetails.producers],
           ["Release year", releaseDetails.release_year || releaseMetadata.release_year],
           ["Release date", formatDate(releaseDetails.release_date)],
-          ...(isAlbum ? [["Number of tracks", releaseDetails.number_of_tracks]] : []),
+          ["Number of tracks", releaseDetails.number_of_tracks],
+          ["ISRC", releaseDetails.isrc],
+          ["UPC", releaseDetails.upc],
           ["Country", displayCountry],
           ["Country code", displayCountryCode],
           ["Genre", releaseDetails.genre],
