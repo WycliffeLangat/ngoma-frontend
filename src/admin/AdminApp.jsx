@@ -15,6 +15,7 @@ const UploadsPage         = lazy(() => import("./pages/UploadsPage"));
 const ChartEntriesPage    = lazy(() => import("./pages/ChartEntriesPage"));
 const YearEndPage         = lazy(() => import("./pages/YearEndPage"));
 const PosterGeneratorPage = lazy(() => import("./pages/PosterGeneratorPage"));
+const SpotlightGeneratorPage = lazy(() => import("./pages/SpotlightGeneratorPage"));
 const HelpCenterPage      = lazy(() => import("./pages/HelpCenterPage"));
 const NAV_GROUPS = [
   {
@@ -30,6 +31,7 @@ const NAV_GROUPS = [
       ["uploads", "Imports & uploads"],
       ["year-end", "Year-end charts"],
       ["poster", "Social poster generator"],
+      ["spotlight", "Spotlight card generator"],
     ],
   },
   {
@@ -133,6 +135,7 @@ function renderPage(page, user, searchJump, onNavigate) {
   if (page === "chart-entries")   return <ChartEntriesPage user={user} searchJump={searchJump} />;
   if (page === "year-end")        return <YearEndPage onNavigate={onNavigate} />;
   if (page === "poster")          return <PosterGeneratorPage />;
+  if (page === "spotlight")       return <SpotlightGeneratorPage />;
   if (page === "uploads")         return <UploadsPage user={user} searchJump={searchJump} />;
   if (page === "duplicate-review")return <DuplicateReviewPage user={user} />;
   if (page === "help")            return <HelpCenterPage />;

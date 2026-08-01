@@ -1,13 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { toPng } from "html-to-image";
 import { fetchAppData } from "../../api/public";
 import { resolveMediaUrl } from "../../api/config.js";
 import { publicChartRows, buildArtistMonthMirror, buildYearEndMirror } from "../../utils/publicChartMirror.js";
-
-const POSTER_W = 1080;
-const POSTER_H = 1350;
-const PREVIEW_W = 360;
-const PREVIEW_SCALE = PREVIEW_W / POSTER_W;
+import { POSTER_W, POSTER_H, PREVIEW_W, PREVIEW_SCALE, readableInk, exportNodeAsPng } from "../utils/exportPoster.js";
 
 const CHART_TYPES = [
   ["singles", "Songs"],
@@ -21,9 +16,6 @@ const PERIODS = [
 ];
 
 const COUNT_OPTIONS = [5, 10, 15, 20];
-
-const TRANSPARENT_PIXEL =
-  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
 
 // Small, self-contained brand palette — mirrors the public app's platform
 // colors without pulling in NgomaCharts.jsx's module state. Keyed uppercase
@@ -52,20 +44,6 @@ const PLATFORM_LABELS = {
 const platformKey = (name) => String(name || "").trim().toUpperCase();
 const platformColor = (name) => PLATFORM_COLORS[platformKey(name)] || "#B8860B";
 const platformLabel = (name) => PLATFORM_LABELS[platformKey(name)] || name;
-
-function readableInk(color) {
-  const hex = String(color || "").trim().match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
-  if (!hex) return "#050505";
-  let value = hex[1];
-  if (value.length === 3) value = value.split("").map((c) => c + c).join("");
-  const int = Number.parseInt(value, 16);
-  const srgb = [(int >> 16) & 255, (int >> 8) & 255, int & 255].map((channel) => {
-    const normalized = channel / 255;
-    return normalized <= 0.03928 ? normalized / 12.92 : Math.pow((normalized + 0.055) / 1.055, 2.4);
-  });
-  const luminance = 0.2126 * srgb[0] + 0.7152 * srgb[1] + 0.0722 * srgb[2];
-  return luminance > 0.42 ? "#050505" : "#FFFFFF";
-}
 
 function normalizeRows(chartType, rawRows) {
   if (chartType === "artists") {
@@ -361,24 +339,9 @@ export default function PosterGeneratorPage() {
     setExporting(true);
     setExportError("");
     try {
-      const dataUrl = await toPng(posterRef.current, {
-        pixelRatio: 2,
-        cacheBust: true,
-        backgroundColor: "#050505",
-        width: POSTER_W,
-        height: POSTER_H,
-        skipFonts: true,
-        // Cover art can come from hosts that don't send CORS headers. Without a
-        // placeholder, html-to-image rejects the WHOLE export on a single failed
-        // image fetch instead of just leaving that one tile blank.
-        imagePlaceholder: TRANSPARENT_PIXEL,
-      });
       const safePeriod = period === "all-time" ? "all-time" : String(month).replace(/\s+/g, "-").toLowerCase();
       const safePlatform = String(effectivePlatform).replace(/\s+/g, "-").toLowerCase();
-      const link = document.createElement("a");
-      link.download = `ngoma-top-${rows.length}-${chartType}-${safePlatform}-${safePeriod}.png`;
-      link.href = dataUrl;
-      link.click();
+      await exportNodeAsPng(posterRef.current, `ngoma-top-${rows.length}-${chartType}-${safePlatform}-${safePeriod}.png`);
     } catch {
       setExportError("Couldn't generate the image — try again.");
     } finally {
