@@ -9,6 +9,7 @@ import {
   POSTER_THEMES,
   PosterBrandRow,
   PosterFooter,
+  ArtPlaceholder,
   readableInk,
   exportNodeAsPng,
 } from "../utils/exportPoster.jsx";
@@ -90,22 +91,7 @@ function NewsCardContent({ item, theme = "dark" }) {
             style={{ width: "100%", height: heroH, borderRadius: 22, objectFit: "cover", display: "block" }}
           />
         ) : (
-          <div
-            style={{
-              width: "100%",
-              height: heroH,
-              borderRadius: 22,
-              background: `linear-gradient(135deg, ${GOLD}AA, ${t.rowBg})`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 100,
-              fontWeight: 900,
-              color: t.titleColor,
-            }}
-          >
-            {(item.title || "NG").slice(0, 2).toUpperCase()}
-          </div>
+          <ArtPlaceholder width="100%" height={heroH} radius={22} theme={theme} accentColor={GOLD} markSize={130} />
         )}
       </div>
 
@@ -123,12 +109,14 @@ function NewsCardContent({ item, theme = "dark" }) {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
+          alignItems: "center",
           padding: `22px ${padX}px`,
           zIndex: 1,
+          textAlign: "center",
         }}
       >
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
             {item.category && (
               <span
                 style={{
@@ -136,7 +124,7 @@ function NewsCardContent({ item, theme = "dark" }) {
                   borderRadius: 999,
                   background: GOLD,
                   color: readableInk(GOLD),
-                  fontSize: 14,
+                  fontSize: 16,
                   fontWeight: 900,
                   letterSpacing: "1px",
                   textTransform: "uppercase",
@@ -145,17 +133,18 @@ function NewsCardContent({ item, theme = "dark" }) {
                 {item.category}
               </span>
             )}
-            {item.dateLabel && <span style={{ fontSize: 16, fontWeight: 700, color: t.metaColor }}>{item.dateLabel}</span>}
+            {item.dateLabel && <span style={{ fontSize: 18, fontWeight: 700, color: t.metaColor }}>{item.dateLabel}</span>}
           </div>
 
           <div
             style={{
               marginTop: 18,
-              fontSize: item.title.length > 60 ? 36 : item.title.length > 36 ? 42 : 48,
+              fontSize: item.title.length > 60 ? 44 : item.title.length > 36 ? 52 : 60,
               fontWeight: 900,
               lineHeight: 1.14,
               letterSpacing: "-0.5px",
               color: t.titleColor,
+              textTransform: "uppercase",
               display: "-webkit-box",
               WebkitLineClamp: 3,
               WebkitBoxOrient: "vertical",
@@ -169,7 +158,7 @@ function NewsCardContent({ item, theme = "dark" }) {
             <div
               style={{
                 marginTop: 14,
-                fontSize: 21,
+                fontSize: 24,
                 fontWeight: 600,
                 lineHeight: 1.5,
                 color: t.metaColor,
@@ -185,7 +174,7 @@ function NewsCardContent({ item, theme = "dark" }) {
         </div>
 
         {item.author && (
-          <div style={{ fontSize: 16, fontWeight: 700, color: t.metaColor }}>
+          <div style={{ fontSize: 18, fontWeight: 700, color: t.metaColor }}>
             By {item.author}
           </div>
         )}

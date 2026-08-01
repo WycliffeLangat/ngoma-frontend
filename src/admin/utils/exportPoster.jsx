@@ -97,8 +97,38 @@ export function BrandMark({ size = 22, barColor }) {
   );
 }
 
-// The "NGOMA CHARTS" wordmark row, identical across every card type.
-export function PosterBrandRow({ theme, size = 20, fontSize = 14, gap = 9 }) {
+// Fallback artwork tile used whenever a record has no cover/hero image — a
+// card should never show a blank gap where art belongs, so this renders the
+// same brand mark used in the header instead of a plain color block.
+export function ArtPlaceholder({ width, height, radius = 0, theme, accentColor = "#B8860B", markSize }) {
+  const t = POSTER_THEMES[theme] || POSTER_THEMES.dark;
+  const size = markSize || Math.round(Math.min(
+    typeof width === "number" ? width : 200,
+    typeof height === "number" ? height : 200
+  ) * 0.32);
+  return (
+    <div
+      style={{
+        width,
+        height,
+        borderRadius: radius,
+        flexShrink: 0,
+        background: `linear-gradient(135deg, ${accentColor}CC, ${t.rowBg})`,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <BrandMark size={size} barColor={t.titleColor} />
+    </div>
+  );
+}
+
+// The "NGOMA CHARTS" wordmark row, identical across every card type. Always
+// rendered as its own standalone line at the top of a card — never squeezed
+// inline next to other header content — so the brand reads clearly at a
+// glance even in a fast social-media scroll.
+export function PosterBrandRow({ theme, size = 50, fontSize = 32, gap = 16 }) {
   const t = POSTER_THEMES[theme] || POSTER_THEMES.dark;
   return (
     <div style={{ display: "flex", alignItems: "center", gap }}>
@@ -129,8 +159,8 @@ export function PosterFooter({ theme, height = 74, padX = 56 }) {
         borderTop: `1px solid ${t.footerBorder}`,
       }}
     >
-      <span style={{ fontSize: 14, fontWeight: 700, color: t.footerPrimary }}>ngomacharts.com</span>
-      <span style={{ fontSize: 12, fontWeight: 600, color: t.footerSecondary }}>Kenya's official multi-platform music charts</span>
+      <span style={{ fontSize: 14, fontWeight: 700, color: t.footerPrimary }}>© 2026 Ngoma Media Ltd.</span>
+      <span style={{ fontSize: 12, fontWeight: 600, color: t.footerSecondary }}>Music ranking intelligence</span>
     </div>
   );
 }

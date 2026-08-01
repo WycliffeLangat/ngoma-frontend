@@ -18,6 +18,7 @@ const PosterGeneratorPage = lazy(() => import("./pages/PosterGeneratorPage"));
 const SpotlightGeneratorPage = lazy(() => import("./pages/SpotlightGeneratorPage"));
 const NewsCardPage        = lazy(() => import("./pages/NewsCardPage"));
 const AnalyticsRecordPage = lazy(() => import("./pages/AnalyticsRecordPage"));
+const CertificationCardPage = lazy(() => import("./pages/CertificationCardPage"));
 const HelpCenterPage      = lazy(() => import("./pages/HelpCenterPage"));
 const NAV_GROUPS = [
   {
@@ -35,6 +36,7 @@ const NAV_GROUPS = [
       ["poster", "Social poster generator"],
       ["spotlight", "Spotlight card generator"],
       ["analytics-record", "Analytics record cards"],
+      ["certification-card", "Certification card generator"],
     ],
   },
   {
@@ -142,6 +144,7 @@ function renderPage(page, user, searchJump, onNavigate) {
   if (page === "spotlight")       return <SpotlightGeneratorPage />;
   if (page === "news-card")       return <NewsCardPage />;
   if (page === "analytics-record")return <AnalyticsRecordPage />;
+  if (page === "certification-card") return <CertificationCardPage />;
   if (page === "uploads")         return <UploadsPage user={user} searchJump={searchJump} />;
   if (page === "duplicate-review")return <DuplicateReviewPage user={user} />;
   if (page === "help")            return <HelpCenterPage />;

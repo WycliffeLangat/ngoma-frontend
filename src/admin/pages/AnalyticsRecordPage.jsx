@@ -17,7 +17,7 @@ import {
   POSTER_THEMES,
   PosterBrandRow,
   PosterFooter,
-  readableInk,
+  ArtPlaceholder,
   exportNodeAsPng,
 } from "../utils/exportPoster.jsx";
 
@@ -138,7 +138,7 @@ function RecordCardContent({ item, chartType, recordType, recordLabel, accentCol
   const [statLabel, statValue] = recordStat(recordType, item);
   const artSize = 560;
   const isArtist = chartType === "artists";
-  const headerH = 122;
+  const headerH = 141;
   const footerH = 74;
 
   return (
@@ -189,21 +189,19 @@ function RecordCardContent({ item, chartType, recordType, recordLabel, accentCol
           zIndex: 1,
         }}
       >
-        <span
+        <div
           style={{
-            display: "inline-block",
-            padding: "8px 18px",
-            borderRadius: 999,
-            background: accentColor,
-            color: readableInk(accentColor),
-            fontSize: 16,
+            fontSize: `${recordLabel} · ${countryLabel}`.length > 22 ? 44 : `${recordLabel} · ${countryLabel}`.length > 14 ? 52 : 60,
             fontWeight: 900,
-            letterSpacing: "1.4px",
+            lineHeight: 1.12,
+            letterSpacing: "-0.5px",
+            color: accentColor,
+            textAlign: "center",
             textTransform: "uppercase",
           }}
         >
           {recordLabel} · {countryLabel}
-        </span>
+        </div>
 
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
           {item.image ? (
@@ -213,35 +211,29 @@ function RecordCardContent({ item, chartType, recordType, recordLabel, accentCol
               style={{ width: artSize, height: artSize, borderRadius: isArtist ? artSize / 2 : 26, objectFit: "cover", boxShadow: "0 24px 60px rgba(0,0,0,0.4)" }}
             />
           ) : (
-            <div
-              style={{
-                width: artSize,
-                height: artSize,
-                borderRadius: isArtist ? artSize / 2 : 26,
-                background: `linear-gradient(135deg, ${accentColor}AA, ${t.rowBg})`,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 108,
-                fontWeight: 900,
-                color: t.titleColor,
-                boxShadow: "0 24px 60px rgba(0,0,0,0.4)",
-              }}
-            >
-              {(item.title || "NG").slice(0, 2).toUpperCase()}
+            <div style={{ boxShadow: "0 24px 60px rgba(0,0,0,0.4)", borderRadius: isArtist ? artSize / 2 : 26 }}>
+              <ArtPlaceholder
+                width={artSize}
+                height={artSize}
+                radius={isArtist ? artSize / 2 : 26}
+                theme={theme}
+                accentColor={accentColor}
+                markSize={140}
+              />
             </div>
           )}
 
           <div
             style={{
               marginTop: 30,
-              fontSize: item.title.length > 22 ? 40 : item.title.length > 14 ? 46 : 52,
+              fontSize: item.title.length > 22 ? 44 : item.title.length > 14 ? 52 : 60,
               fontWeight: 900,
               lineHeight: 1.12,
               letterSpacing: "-0.5px",
               color: t.titleColor,
               textAlign: "center",
-              maxWidth: 920,
+              textTransform: "uppercase",
+              maxWidth: 960,
               display: "-webkit-box",
               WebkitLineClamp: 2,
               WebkitBoxOrient: "vertical",
@@ -251,7 +243,7 @@ function RecordCardContent({ item, chartType, recordType, recordLabel, accentCol
             {item.title}
           </div>
           {item.subtitle && (
-            <div style={{ marginTop: 10, fontSize: 26, fontWeight: 700, color: t.metaColor, textAlign: "center" }}>
+            <div style={{ marginTop: 12, fontSize: 30, fontWeight: 700, color: t.metaColor, textAlign: "center" }}>
               {item.subtitle}
             </div>
           )}
@@ -260,8 +252,8 @@ function RecordCardContent({ item, chartType, recordType, recordLabel, accentCol
         <div style={{ width: "100%" }}>
           <div style={{ borderTop: `2px solid ${t.dividerColor}`, marginBottom: 26 }} />
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 76, fontWeight: 900, color: accentColor, letterSpacing: "-1px" }}>{statValue}</div>
-            <div style={{ fontSize: 16, fontWeight: 800, letterSpacing: "1px", textTransform: "uppercase", color: t.metaColor, marginTop: 4 }}>
+            <div style={{ fontSize: 92, fontWeight: 900, color: accentColor, letterSpacing: "-1px" }}>{statValue}</div>
+            <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: "1px", textTransform: "uppercase", color: t.metaColor, marginTop: 4 }}>
               {statLabel}
             </div>
           </div>
@@ -377,9 +369,17 @@ export default function AnalyticsRecordPage() {
               {recordPeriod === "monthly" && (
                 <label style={{ display: "grid", gap: 6, fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--cms-muted)" }}>
                   Month
-                  <select className="cms-select" value={month} onChange={(e) => setMonth(e.target.value)}>
-                    {months.map((m) => <option key={m} value={m}>{m}</option>)}
-                  </select>
+                  <input
+                    className="cms-select"
+                    type="text"
+                    list="record-months-list"
+                    value={month}
+                    onChange={(e) => setMonth(e.target.value)}
+                    placeholder="Search months…"
+                  />
+                  <datalist id="record-months-list">
+                    {months.map((m) => <option key={m} value={m} />)}
+                  </datalist>
                 </label>
               )}
 

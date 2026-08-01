@@ -14,50 +14,45 @@ import {
   exportNodeAsPng,
 } from "../utils/exportPoster.jsx";
 
-const TYPES = [
-  ["songs", "Song"],
-  ["albums", "Album"],
-  ["artists", "Artist"],
-];
+// Matches the public site's certification convention (NgomaCharts.jsx
+// CERTIFICATION_LEVELS) rather than reinventing a palette for this card.
+const CERT_META = {
+  diamond: { emoji: "\u{1F48E}", color: "#7B1FA2", label: "Diamond" },
+  platinum: { emoji: "\u{1F3B5}", color: "#868C97", label: "Platinum" },
+  gold: { emoji: "\u{1F4C0}", color: "#B8860B", label: "Gold" },
+};
 
-const CERT_COLORS = { gold: "#B8860B", platinum: "#8C97A8", diamond: "#4FC3F7" };
 const CERT_ORDER = ["diamond", "platinum", "gold"];
 
-// The releases/artists list endpoints already return peak_rank/total_points/
-// months_on_chart/cover_image etc. directly on each row (same fields the
-// CMS's own resource detail panel reads) — no extra per-record fetch needed.
-function normalizeCandidate(type, row) {
-  if (type === "artists") {
-    return {
-      id: row.id,
-      title: row.display_name || row.name || "",
-      subtitle: [row.country, row.genre].filter(Boolean).join(" · "),
-      image: row.image || "",
-      peakRank: row.peak_rank,
-      points: Number(row.total_points) || 0,
-      monthsOnChart: row.months_on_chart ?? 0,
-      secondaryStatLabel: "Releases",
-      secondaryStatValue: row.total_releases ?? 0,
-      certifications: [],
-      isArtist: true,
-    };
-  }
+function formatCertDate(value) {
+  if (!value) return "";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "";
+  return parsed.toLocaleDateString(undefined, { year: "numeric", month: "long" });
+}
+
+// Reads off /releases/ (song and album search merged) rather than the bare
+// /certifications/ resource — the certifications endpoint doesn't carry
+// cover art, only the release search does, and every certified release
+// already echoes its own certifications array back on that endpoint (same
+// field the Spotlight card already relies on).
+function normalizeCertCandidate(row) {
+  const certs = (row.certifications || []).map((c) => (typeof c === "string" ? { level: c } : c));
+  const topCert = [...certs].sort(
+    (a, b) => CERT_ORDER.indexOf(a.level) - CERT_ORDER.indexOf(b.level)
+  )[0] || null;
   return {
     id: row.id,
     title: row.title || "",
-    subtitle: row.artist_credit || row.artist_display || "",
+    subtitle: row.artist_credit || row.artist_display || row.artist || "",
     image: row.cover_image || "",
-    peakRank: row.peak_rank,
-    points: Number(row.total_points) || 0,
-    monthsOnChart: row.months_on_chart ?? 0,
-    secondaryStatLabel: "Entries",
-    secondaryStatValue: row.entry_count ?? "—",
-    certifications: (row.certifications || []).map((c) => (typeof c === "string" ? c : c.level)),
-    isArtist: false,
+    level: topCert?.level || null,
+    points: Number(topCert?.total_points ?? row.total_points) || 0,
+    certifiedDate: formatCertDate(topCert?.certification_date),
   };
 }
 
-function SpotlightContent({ item, type, theme = "dark" }) {
+function CertificationCardContent({ item, theme = "dark" }) {
   const t = POSTER_THEMES[theme] || POSTER_THEMES.dark;
   const padX = 64;
 
@@ -79,16 +74,17 @@ function SpotlightContent({ item, type, theme = "dark" }) {
           padding: 64,
         }}
       >
-        Search and select {type === "artists" ? "an artist" : "a release"} to preview
+        Search and select a certified song or album to preview
       </div>
     );
   }
 
-  const topCert = CERT_ORDER.find((level) => item.certifications.includes(level)) || null;
-  const certColor = topCert ? CERT_COLORS[topCert] : "#B8860B";
-  const artSize = 560;
+  const meta = CERT_META[item.level] || CERT_META.gold;
+  const artSize = 460;
   const tileBg = theme === "light" ? "rgba(0,0,0,0.045)" : "rgba(255,255,255,0.055)";
   const tileBorder = theme === "light" ? "rgba(0,0,0,0.14)" : "rgba(255,255,255,0.16)";
+  const headerH = 141;
+  const footerH = 74;
 
   return (
     <div
@@ -111,7 +107,7 @@ function SpotlightContent({ item, type, theme = "dark" }) {
           width: 480,
           height: 480,
           borderRadius: "50%",
-          background: `radial-gradient(circle, ${certColor}2E 0%, transparent 70%)`,
+          background: `radial-gradient(circle, ${meta.color}2E 0%, transparent 70%)`,
         }}
       />
 
@@ -119,15 +115,13 @@ function SpotlightContent({ item, type, theme = "dark" }) {
         <PosterBrandRow theme={theme} />
       </div>
 
-      {/* The identity block (art/title/subtitle) is vertically centered in
-          its own zone above the logo-to-stats midsection, independent of
-          the stat tiles pinned near the bottom — so the artwork always
-          sits in the visual middle of the card instead of drifting up
-          against the logo when content is short. */}
+      {/* Artwork + title/subtitle are vertically centered in their own
+          zone, independent of the stat tiles pinned near the bottom — same
+          pattern as the Spotlight card, so artwork never crowds the logo. */}
       <div
         style={{
           position: "absolute",
-          top: 141,
+          top: headerH,
           bottom: 360,
           left: 0,
           right: 0,
@@ -144,61 +138,26 @@ function SpotlightContent({ item, type, theme = "dark" }) {
             <img
               src={item.image}
               alt=""
-              style={{
-                width: artSize,
-                height: artSize,
-                borderRadius: item.isArtist ? artSize / 2 : 26,
-                objectFit: "cover",
-                boxShadow: "0 30px 80px rgba(0,0,0,0.45)",
-              }}
+              style={{ width: artSize, height: artSize, borderRadius: 26, objectFit: "cover", boxShadow: "0 24px 60px rgba(0,0,0,0.4)" }}
             />
           ) : (
-            <div style={{ boxShadow: "0 30px 80px rgba(0,0,0,0.45)", borderRadius: item.isArtist ? artSize / 2 : 26 }}>
-              <ArtPlaceholder
-                width={artSize}
-                height={artSize}
-                radius={item.isArtist ? artSize / 2 : 26}
-                theme={theme}
-                accentColor={certColor}
-                markSize={140}
-              />
-            </div>
-          )}
-          {topCert && (
-            <div
-              style={{
-                position: "absolute",
-                bottom: -16,
-                left: "50%",
-                transform: "translateX(-50%)",
-                padding: "9px 24px",
-                borderRadius: 999,
-                background: certColor,
-                color: readableInk(certColor),
-                fontSize: 20,
-                fontWeight: 900,
-                letterSpacing: "2px",
-                textTransform: "uppercase",
-                boxShadow: `0 10px 30px ${certColor}55`,
-                whiteSpace: "nowrap",
-              }}
-            >
-              {topCert} Certified
+            <div style={{ boxShadow: "0 24px 60px rgba(0,0,0,0.4)", borderRadius: 26 }}>
+              <ArtPlaceholder width={artSize} height={artSize} radius={26} theme={theme} accentColor={meta.color} markSize={116} />
             </div>
           )}
         </div>
 
         <div
           style={{
-            marginTop: topCert ? 48 : 32,
+            marginTop: 48,
             fontSize: item.title.length > 22 ? 44 : item.title.length > 14 ? 52 : 60,
             fontWeight: 900,
             lineHeight: 1.12,
-            letterSpacing: "-1px",
+            letterSpacing: "-0.5px",
             color: t.titleColor,
             textAlign: "center",
             textTransform: "uppercase",
-            maxWidth: 960,
+            maxWidth: 920,
             display: "-webkit-box",
             WebkitLineClamp: 2,
             WebkitBoxOrient: "vertical",
@@ -208,31 +167,33 @@ function SpotlightContent({ item, type, theme = "dark" }) {
           {item.title}
         </div>
         {item.subtitle && (
-          <div style={{ marginTop: 14, fontSize: 30, fontWeight: 700, color: t.metaColor, textAlign: "center" }}>
+          <div style={{ marginTop: 10, fontSize: 26, fontWeight: 700, color: t.metaColor, textAlign: "center" }}>
             {item.subtitle}
           </div>
         )}
       </div>
 
-      {/* Stat tiles are anchored a fixed distance above the footer — at
-          least ~2cm (76px) of clear air below them — instead of trailing
-          the identity block, so they read as a distinct "details" strip. */}
+      {/* Stat tiles anchored a fixed distance above the footer. The left
+          tile pairs the symbol with the "Level Certified" wording — the
+          badge itself fills the slot a raw points count would otherwise
+          take, since the badge is the thing worth celebrating. */}
       <div style={{ position: "absolute", bottom: 150, left: 0, right: 0, padding: `0 ${padX}px`, zIndex: 1 }}>
         <div style={{ borderTop: `2px solid ${t.dividerColor}`, marginBottom: 30 }} />
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
-          {[
-            ["Peak Rank", item.peakRank ? `#${item.peakRank}` : "—"],
-            ["Total Points", item.points ? item.points.toLocaleString() : "0"],
-            ["Months Charted", item.monthsOnChart],
-            [item.secondaryStatLabel, item.secondaryStatValue],
-          ].map(([label, value]) => (
-            <div key={label} style={{ background: tileBg, border: `1px solid ${tileBorder}`, borderRadius: 16, padding: "24px 8px", textAlign: "center" }}>
-              <div style={{ fontSize: 50, fontWeight: 900, color: "#B8860B" }}>{value}</div>
-              <div style={{ fontSize: 17, fontWeight: 800, letterSpacing: "0.5px", textTransform: "uppercase", color: t.metaColor, marginTop: 8 }}>
-                {label}
+        <div style={{ display: "grid", gridTemplateColumns: item.certifiedDate ? "repeat(2, 1fr)" : "1fr", gap: 14 }}>
+          <div style={{ background: tileBg, border: `1px solid ${tileBorder}`, borderRadius: 16, padding: "22px 8px", textAlign: "center" }}>
+            <span style={{ fontSize: 92, lineHeight: 1, display: "block" }}>{meta.emoji}</span>
+            <div style={{ fontSize: 30, fontWeight: 900, letterSpacing: "0.5px", textTransform: "uppercase", color: meta.color, marginTop: 14 }}>
+              {meta.label} Certified
+            </div>
+          </div>
+          {item.certifiedDate && (
+            <div style={{ background: tileBg, border: `1px solid ${tileBorder}`, borderRadius: 16, padding: "24px 8px", textAlign: "center", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+              <div style={{ fontSize: 44, fontWeight: 900, color: meta.color }}>{item.certifiedDate}</div>
+              <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "0.5px", textTransform: "uppercase", color: t.metaColor, marginTop: 10 }}>
+                Certified
               </div>
             </div>
-          ))}
+          )}
         </div>
       </div>
 
@@ -241,8 +202,7 @@ function SpotlightContent({ item, type, theme = "dark" }) {
   );
 }
 
-export default function SpotlightGeneratorPage() {
-  const [type, setType] = useState("songs");
+export default function CertificationCardPage() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
@@ -253,30 +213,33 @@ export default function SpotlightGeneratorPage() {
   const [theme, setTheme] = useState("dark");
   const posterRef = useRef(null);
 
-  useEffect(() => {
-    setSelected(null);
-    setResults([]);
-    setQuery("");
-    setError("");
-  }, [type]);
-
+  // Searches songs and albums in parallel and merges — so "any entry
+  // eligible" means any certified song OR album, not just whichever type
+  // a Type toggle happened to have selected. With no search text, browse
+  // the most recent releases of each type instead of showing an empty list.
   useEffect(() => {
     const trimmed = query.trim();
-    if (!trimmed) { setResults([]); return; }
     let active = true;
     setSearching(true);
     const timer = setTimeout(() => {
-      const endpoint = type === "artists" ? "/artists/" : "/releases/";
-      const params = type === "artists"
-        ? { search: trimmed, page_size: 8 }
-        : { chart_type: type === "albums" ? "albums" : "singles", search: trimmed, page_size: 8 };
-      cmsApi.get(`${endpoint}${qs(params)}`)
-        .then((data) => { if (active) setResults(getResults(data).map((row) => normalizeCandidate(type, row))); })
+      const params = trimmed ? { search: trimmed, page_size: 24 } : { page_size: 24 };
+      Promise.all([
+        cmsApi.get(`/releases/${qs({ ...params, chart_type: "singles" })}`).catch(() => []),
+        cmsApi.get(`/releases/${qs({ ...params, chart_type: "albums" })}`).catch(() => []),
+      ])
+        .then(([songs, albums]) => {
+          if (!active) return;
+          const eligible = [...getResults(songs), ...getResults(albums)]
+            .map(normalizeCertCandidate)
+            .filter((c) => c.level)
+            .sort((a, b) => a.title.localeCompare(b.title));
+          setResults(eligible);
+        })
         .catch((err) => { if (active) setError(err.message || "Search failed"); })
         .finally(() => { if (active) setSearching(false); });
     }, 280);
     return () => { active = false; clearTimeout(timer); };
-  }, [type, query]);
+  }, [query]);
 
   async function handleDownload() {
     if (!posterRef.current || !selected || exporting) return;
@@ -284,7 +247,7 @@ export default function SpotlightGeneratorPage() {
     setExportError("");
     try {
       const safeTitle = String(selected.title).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-      await exportNodeAsPng(posterRef.current, `ngoma-spotlight-${type}-${safeTitle || selected.id}-${theme}.png`);
+      await exportNodeAsPng(posterRef.current, `ngoma-certification-${selected.level}-${safeTitle || selected.id}-${theme}.png`);
     } catch {
       setExportError("Couldn't generate the image — try again.");
     } finally {
@@ -296,8 +259,8 @@ export default function SpotlightGeneratorPage() {
     <section>
       <div className="cms-page-head">
         <div>
-          <h1>Spotlight Card Generator</h1>
-          <p>Search for one song, album, or artist and turn it into a 4:5 share card with its chart stats.</p>
+          <h1>Certification Card Generator</h1>
+          <p>Search a certified song or album and turn it into a 4:5 share card celebrating the Gold, Platinum, or Diamond award.</p>
         </div>
       </div>
 
@@ -306,25 +269,9 @@ export default function SpotlightGeneratorPage() {
 
       <div style={{ display: "flex", gap: 28, flexWrap: "wrap", alignItems: "flex-start" }}>
         <div className="cms-card" style={{ flex: "1 1 320px", minWidth: 280 }}>
-          <div className="cms-card-heading"><h2>Find a record</h2></div>
+          <div className="cms-card-heading"><h2>Find a certification</h2></div>
 
           <div style={{ display: "grid", gap: 14 }}>
-            <label style={{ display: "grid", gap: 6, fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--cms-muted)" }}>
-              Type
-              <div className="cms-pill-bar" style={{ marginBottom: 0 }}>
-                {TYPES.map(([value, label]) => (
-                  <button
-                    key={value}
-                    type="button"
-                    className={`cms-btn small ${type === value ? "" : "light"}`}
-                    onClick={() => setType(value)}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </label>
-
             <label style={{ display: "grid", gap: 6, fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--cms-muted)" }}>
               Search
               <input
@@ -332,11 +279,14 @@ export default function SpotlightGeneratorPage() {
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder={type === "artists" ? "Search artists…" : "Search titles…"}
+                placeholder="Search certified titles, or leave blank to browse all…"
               />
             </label>
 
-            {searching && <div className="cms-help">Searching…</div>}
+            {searching && <div className="cms-help">Loading…</div>}
+            {!searching && results.length === 0 && (
+              <div className="cms-help">{query.trim() ? "No certified titles match that search." : "No active certifications yet."}</div>
+            )}
 
             {results.length > 0 && (
               <div style={{ display: "grid", gap: 6, maxHeight: 320, overflowY: "auto" }}>
@@ -360,10 +310,10 @@ export default function SpotlightGeneratorPage() {
                   >
                     {candidate.image
                       ? <img src={candidate.image} alt="" className="cms-chart-image" />
-                      : <span className="cms-chart-image cms-chart-image-empty">{type === "artists" ? "A" : "♪"}</span>}
+                      : <span className="cms-chart-image cms-chart-image-empty">♪</span>}
                     <span style={{ minWidth: 0 }}>
                       <strong style={{ display: "block", fontSize: 13 }}>{candidate.title}</strong>
-                      {candidate.subtitle && <small className="cms-row-subtitle">{candidate.subtitle}</small>}
+                      {candidate.subtitle && <small className="cms-row-subtitle">{candidate.subtitle} · {(CERT_META[candidate.level] || CERT_META.gold).label}</small>}
                     </span>
                   </button>
                 ))}
@@ -394,7 +344,7 @@ export default function SpotlightGeneratorPage() {
             onClick={handleDownload}
             disabled={exporting || !selected}
           >
-            {exporting ? "Generating…" : "Download spotlight card (PNG)"}
+            {exporting ? "Generating…" : "Download certification card (PNG)"}
           </button>
           <p className="cms-help" style={{ marginTop: 10 }}>
             Exports at {POSTER_W}×{POSTER_H}px (4:5), 2× resolution — ready for Instagram/Facebook portrait posts.
@@ -413,7 +363,7 @@ export default function SpotlightGeneratorPage() {
             }}
           >
             <div style={{ width: POSTER_W, height: POSTER_H, transform: `scale(${PREVIEW_SCALE})`, transformOrigin: "top left" }}>
-              <SpotlightContent item={selected} type={type} theme={theme} />
+              <CertificationCardContent item={selected} theme={theme} />
             </div>
           </div>
         </div>
@@ -422,7 +372,7 @@ export default function SpotlightGeneratorPage() {
             this is rendered separately from the scaled-down visible preview. */}
         <div style={{ position: "fixed", top: 0, left: -99999, pointerEvents: "none" }} aria-hidden="true">
           <div ref={posterRef}>
-            <SpotlightContent item={selected} type={type} theme={theme} />
+            <CertificationCardContent item={selected} theme={theme} />
           </div>
         </div>
       </div>

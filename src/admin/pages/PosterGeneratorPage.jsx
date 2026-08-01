@@ -18,7 +18,7 @@ import {
   BrandMark,
   PosterBrandRow,
   PosterFooter,
-  readableInk,
+  ArtPlaceholder,
   exportNodeAsPng,
 } from "../utils/exportPoster.jsx";
 
@@ -77,7 +77,7 @@ function normalizeMonthlyRows(chartType, rawRows, historyMap) {
     const monthsCount = stats.monthsCount || 1;
     let movement = "same";
     if (monthsCount <= 1) movement = "new";
-    else if (previousRank === null) movement = "new";
+    else if (previousRank === null) movement = "re";
     else if (previousRank > rank) movement = "up";
     else if (previousRank < rank) movement = "down";
     return {
@@ -107,12 +107,19 @@ function normalizeYearEndRows(chartType, rawRows) {
 }
 
 function MovementChip({ movement, sameColor, scale }) {
-  const pad = `${Math.round(5 * scale)}px ${Math.round(11 * scale)}px`;
-  const fontSize = Math.round(15 * scale);
+  const pad = `${Math.round(10 * scale)}px ${Math.round(20 * scale)}px`;
+  const fontSize = Math.round(28 * scale);
   if (movement === "new") {
     return (
       <span style={{ padding: pad, borderRadius: 999, background: "#B8860B22", color: "#B8860B", fontSize, fontWeight: 900, letterSpacing: "0.4px" }}>
         NEW
+      </span>
+    );
+  }
+  if (movement === "re") {
+    return (
+      <span style={{ padding: pad, borderRadius: 999, background: "#0088FF22", color: "#0088FF", fontSize, fontWeight: 900, letterSpacing: "0.4px" }}>
+        RE
       </span>
     );
   }
@@ -146,9 +153,10 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
   // Rows scale up when there are fewer entries (more room per row) and down
   // when there are more, clamped so text never goes illegibly small or
   // comically large. 96px is roughly a Top-10 row's natural height.
-  const scale = Math.min(1.9, Math.max(0.7, rowH / 96));
+  const scale = Math.min(1.55, Math.max(0.7, rowH / 96));
   const isArtists = chartType === "artists";
-  const typeLabel = (CHART_TYPES.find(([key]) => key === chartType)?.[1] || "Chart").toUpperCase();
+  const typeLabel = CHART_TYPES.find(([key]) => key === chartType)?.[1] || "Chart";
+  const headerTitle = `Top ${rows.length || 0} ${typeLabel} in ${countryLabel}`;
   const artSize = Math.round(Math.min(88, Math.max(40, rowH - 18)));
 
   return (
@@ -176,46 +184,32 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
         }}
       />
 
-      <div style={{ padding: `72px ${padX}px 0`, position: "relative", zIndex: 1, display: "flex", alignItems: "flex-start", gap: 22 }}>
+      <div style={{ padding: `56px ${padX}px 0`, position: "relative", zIndex: 1 }}>
+        <PosterBrandRow theme={theme} />
+      </div>
+
+      <div style={{ padding: `39px ${padX}px 0`, position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
         <div
           style={{
-            flexShrink: 0,
-            padding: "10px 20px",
-            borderRadius: 18,
-            background: accentColor,
-            color: readableInk(accentColor),
-            textAlign: "center",
-            lineHeight: 1,
+            fontSize: headerTitle.length > 26 ? 44 : headerTitle.length > 18 ? 52 : 60,
+            fontWeight: 900,
+            lineHeight: 1.08,
+            letterSpacing: "-0.5px",
+            color: t.titleColor,
+            textTransform: "uppercase",
+            maxWidth: 900,
           }}
         >
-          <div style={{ fontSize: 50, fontWeight: 900, letterSpacing: "-1px" }}>{rows.length || 0}</div>
-          <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: "1px", textTransform: "uppercase", marginTop: 2 }}>Top</div>
+          {headerTitle}
         </div>
-        <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ marginBottom: 10 }}>
-            <PosterBrandRow theme={theme} />
-          </div>
-          <div
-            style={{
-              fontSize: typeLabel.length > 6 ? 38 : 46,
-              fontWeight: 900,
-              lineHeight: 1.05,
-              letterSpacing: "-0.5px",
-              color: t.titleColor,
-              textTransform: "uppercase",
-            }}
-          >
-            {typeLabel} in {countryLabel}
-          </div>
-          <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 19, fontWeight: 700, color: t.metaColor }}>
-              {period === "all-time" ? "All Time" : month}
-            </span>
-            <span style={{ width: 4, height: 4, borderRadius: "50%", background: t.metaColor, opacity: 0.6 }} />
-            <span style={{ fontSize: 14, fontWeight: 900, letterSpacing: "0.6px", textTransform: "uppercase", color: accentColor }}>
-              {period === "all-time" ? "All Time" : platformLabel(platform)}
-            </span>
-          </div>
+        <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 23, fontWeight: 700, color: t.metaColor }}>
+            {period === "all-time" ? "All Time" : month}
+          </span>
+          <span style={{ width: 5, height: 5, borderRadius: "50%", background: t.metaColor, opacity: 0.6 }} />
+          <span style={{ fontSize: 17, fontWeight: 900, letterSpacing: "0.6px", textTransform: "uppercase", color: accentColor }}>
+            {period === "all-time" ? "All Time" : platformLabel(platform)}
+          </span>
         </div>
       </div>
 
@@ -228,7 +222,12 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
           </div>
         ) : (
           rows.map((row, i) => {
-            const peakText = row.peakStreak > 1 ? `#${row.peakRank} · ${row.peakStreak}mo` : `#${row.peakRank ?? "—"}`;
+            // At high entry counts each row is too short to stack a title
+            // line and a subtitle line without the bigger fonts colliding
+            // with the row below, so title+subtitle collapse onto one line
+            // instead of shrinking the type past a legible size.
+            const oneLine = rows.length > 10;
+            const statScale = Math.min(scale, 1.5);
             return (
               <div
                 key={`${row.rank}-${row.title}-${i}`}
@@ -244,9 +243,9 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
               >
                 <span
                   style={{
-                    width: Math.round(46 * scale),
+                    width: Math.round(48 * scale),
                     flexShrink: 0,
-                    fontSize: Math.round(30 * scale),
+                    fontSize: Math.round(36 * scale),
                     fontWeight: 900,
                     color: row.rank <= 3 ? "#B8860B" : t.metaColor,
                     fontStyle: "italic",
@@ -268,70 +267,66 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
                     }}
                   />
                 ) : (
-                  <div
-                    style={{
-                      width: artSize,
-                      height: artSize,
-                      borderRadius: isArtists ? artSize / 2 : 10,
-                      flexShrink: 0,
-                      background: `linear-gradient(135deg, ${accentColor}AA, ${t.rowBg})`,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: artSize * 0.36,
-                      fontWeight: 900,
-                      color: t.titleColor,
-                    }}
-                  >
-                    {(row.title || "NG").slice(0, 2).toUpperCase()}
-                  </div>
+                  <ArtPlaceholder
+                    width={artSize}
+                    height={artSize}
+                    radius={isArtists ? artSize / 2 : 10}
+                    theme={theme}
+                    accentColor={accentColor}
+                  />
                 )}
                 <div style={{ minWidth: 0, flex: 1 }}>
-                  <div
-                    style={{
-                      fontSize: Math.round(23 * scale),
-                      fontWeight: 800,
-                      color: t.titleColor,
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {row.title}
-                  </div>
-                  {row.subtitle && (
+                  {oneLine ? (
                     <div
                       style={{
-                        fontSize: Math.round(17 * scale),
-                        fontWeight: 600,
-                        color: t.metaColor,
-                        marginTop: 3,
+                        fontSize: Math.round(30 * scale),
+                        fontWeight: 800,
+                        color: t.titleColor,
                         whiteSpace: "nowrap",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                       }}
                     >
-                      {row.subtitle}
+                      {row.title}
+                      {row.subtitle && (
+                        <span style={{ fontWeight: 600, color: t.metaColor }}> — {row.subtitle}</span>
+                      )}
                     </div>
+                  ) : (
+                    <>
+                      <div
+                        style={{
+                          fontSize: Math.round(32 * scale),
+                          fontWeight: 800,
+                          color: t.titleColor,
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {row.title}
+                      </div>
+                      {row.subtitle && (
+                        <div
+                          style={{
+                            fontSize: Math.round(21 * scale),
+                            fontWeight: 600,
+                            color: t.metaColor,
+                            marginTop: 4,
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {row.subtitle}
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
-                <div
-                  style={{
-                    flexShrink: 0,
-                    width: Math.round(130 * Math.min(scale, 1.6)),
-                    textAlign: "right",
-                  }}
-                >
-                  <div style={{ fontSize: Math.round(19 * Math.min(scale, 1.3)), fontWeight: 800, color: t.titleColor, whiteSpace: "nowrap" }}>
-                    Peak {peakText}
-                  </div>
-                  <div style={{ fontSize: Math.round(14 * Math.min(scale, 1.3)), fontWeight: 700, color: t.metaColor, marginTop: 2, whiteSpace: "nowrap" }}>
-                    {row.monthsOnChart} mo charted
-                  </div>
-                </div>
                 {row.movement !== null && (
-                  <span style={{ flexShrink: 0 }}>
-                    <MovementChip movement={row.movement} sameColor={t.sameColor} scale={Math.min(scale, 1.3)} />
+                  <span style={{ flexShrink: 0, marginRight: 38 }}>
+                    <MovementChip movement={row.movement} sameColor={t.sameColor} scale={statScale} />
                   </span>
                 )}
               </div>
