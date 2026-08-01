@@ -2624,7 +2624,7 @@ const top = data[0];
         prepareDetailNavigation();
       }
     } else if(item._kind==="news"){
-      navTo("news"); setSelNews(item);
+      openNewsDetails(item);
     } else if(item._kind==="cert"){
       // Open the song's release detail if it's in chart history; otherwise go to certifications page
       const entry=songSearchIndex.find(e=>String(e.title||"").toLowerCase()===String(item.t||"").toLowerCase()&&String(e.artist||"").toLowerCase()===String(item.a||"").toLowerCase())
@@ -3514,10 +3514,8 @@ const top = data[0];
     return result;
   }, [dedupedLiveCerts]);
 
-  // A certification tag is shown ONLY when the release has met the cumulative
-  // Combined Top-50 threshold (51 − rank, summed across all months). The
-  // certificationLookup is the single source of truth for this — entries
-  // not present there have not reached a certification level.
+  // A certification tag is shown only when the release is present in the
+  // published certification lookup for the active chart type.
   const getCertificationForEntry = (entry = {}, fallbackType) => {
     const type = String(fallbackType || entry.type || (isSingles ? "single" : "album")).toLowerCase();
     const bucket = type.includes("album") ? "albums" : "singles";
@@ -3544,6 +3542,39 @@ const top = data[0];
     });
     return mergeNews(liveNews || [], automaticNews);
   }, [allCertifiedReleases, liveNews, dataRevision]);
+
+  const newsSelectionKey = (article = {}) => String(article.id || article.slug || article.title || "").trim().toLowerCase();
+  const selectedNews = useMemo(() => {
+    if (!selNews) return null;
+    const key = newsSelectionKey(selNews);
+    const titleKey = String(selNews.title || "").trim().toLowerCase();
+    const resolved = (publicNews || []).find((article) => {
+      if (key && newsSelectionKey(article) === key) return true;
+      return titleKey && String(article.title || "").trim().toLowerCase() === titleKey;
+    });
+    return resolved || (selNews.title ? selNews : null);
+  }, [selNews, publicNews]);
+
+  const openNewsDetails = (article = {}) => {
+    if (!article?.title) return;
+    const nextPath = PUBLIC_PAGE_ROUTES.news;
+    if (window.location.pathname !== nextPath) {
+      window.history.pushState({ page: "news" }, "", nextPath);
+    }
+    const key = newsSelectionKey(article);
+    const titleKey = String(article.title || "").trim().toLowerCase();
+    const resolved = (publicNews || []).find((candidate) => {
+      if (key && newsSelectionKey(candidate) === key) return true;
+      return titleKey && String(candidate.title || "").trim().toLowerCase() === titleKey;
+    });
+    setPage("news");
+    setSelA(null);
+    setSelR(null);
+    setSelNews(resolved || article);
+    setMNav(false);
+    setMoreOpen(false);
+    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
+  };
 
   const getCertificationsForNews = (news = {}, limit = 3) => {
     const text = `${news.title || ""} ${news.excerpt || ""} ${news.body || ""}`.toLowerCase();
@@ -3734,6 +3765,7 @@ const top = data[0];
     navTo,
     openArtistDetails,
     openMomentumRelease,
+    openNewsDetails,
     openRecord,
     openReleaseDetails,
     platformLabelForScope,
@@ -3747,7 +3779,7 @@ const top = data[0];
     releaseLabelLower,
     secLbl,
     selA,
-    selNews,
+    selNews: selectedNews,
     selR,
     selectedArtistEntries,
     selectedArtistEntryGroups,
@@ -4268,8 +4300,8 @@ const top = data[0];
       {page === "certifications" && !selA && !selR && <CertificationsPage ctx={pageContext} />}
 
       {/* NEWS PAGE */}
-      {page === "news" && !selNews && !selA && !selR && <NewsPage ctx={pageContext} />}
-      {page === "news" && selNews && !selA && !selR && <NewsDetailPage ctx={pageContext} />}
+      {page === "news" && !selectedNews && !selA && !selR && <NewsPage ctx={pageContext} />}
+      {page === "news" && selectedNews && !selA && !selR && <NewsDetailPage ctx={pageContext} />}
 
       {/* ABOUT PAGE */}
       {page === "about" && !selA && !selR && <AboutPage ctx={pageContext} />}

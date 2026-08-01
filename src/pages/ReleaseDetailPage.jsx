@@ -126,7 +126,6 @@ export default function ReleaseDetailPage({ ctx }) {
         }));
         const releaseMetadata = combinedHistory.find((item) => item.combined?.release_year || item.combined?.confidence || item.combined?.genre || item.combined?.label)?.combined || {};
         const releaseDetails = {...releaseMetadata, ...selR};
-        const releaseConfidence = selR.confidence || releaseMetadata.confidence;
         const isAlbum = selR.type === "album" || !isSingles;
 
         // Resolve country via live CMS artist record (same priority as CountryBadge),
@@ -174,7 +173,6 @@ export default function ReleaseDetailPage({ ctx }) {
               <img src={releaseDetails.cover_image} alt={`${selR.title} cover`} style={{width:isMobile?"120px":"156px",height:isMobile?"120px":"156px",aspectRatio:"1",objectFit:"cover",borderRadius:"20px",boxShadow:isDark?"0 12px 30px rgba(0,0,0,0.4)":"0 12px 30px rgba(0,0,0,0.14)",flexShrink:0}} />
             )}
             <div style={{flex:1,minWidth:0}}>
-              <div style={{fontFamily:F,fontSize:"10px",letterSpacing:"2px",textTransform:"uppercase",color:GOLD,marginBottom:"6px",fontWeight:800}}>{selR.type||"single"}</div>
               <h1 style={{display:"flex",alignItems:"center",flexWrap:"wrap",gap:"8px",fontSize:isMobile?"24px":"32px",fontWeight:850,margin:"0 0 10px",lineHeight:1.1,fontFamily:SF,letterSpacing:"-0.5px",color:isDark?"#F6F3EA":"#1A1A1A"}}>
                 {selR.title}{selectedCertification&&<span aria-label={`${selectedCertification.label} certified`} title={`${selectedCertification.label} certified · ${Number(selectedCertification.totalPts||0).toLocaleString()} points`} style={{fontSize:isMobile?"14px":"20px",opacity:0.9,lineHeight:1}}><span style={selectedCertification.iconFilter?{filter:selectedCertification.iconFilter}:undefined}>{selectedCertification.icon}</span></span>}
               </h1>
@@ -210,7 +208,6 @@ export default function ReleaseDetailPage({ ctx }) {
                 </div>
               ))}
             </div>
-            {releaseConfidence&&<div style={{fontFamily:F,fontSize:"11px",color:isDark?"#8F968F":"#68716B",margin:"-6px 0 18px"}}>Metadata confidence: <strong>{releaseConfidence}</strong></div>}
             <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1.4fr 0.8fr",gap:"14px",marginBottom:"20px"}}>
               <div style={darkCard()}>
                 <div style={secLbl()}><SecMark/>Combined Rank Journey</div>

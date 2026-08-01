@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { artistAliasValues, findArtistProfileInPublicData, getArtistImageUrl } from "../utils/artistImages.js";
+import { fallbackBiographyForArtist, fallbackCountryForArtist } from "../utils/artistMetadataFallbacks.js";
 
 export default function ArtistDetailPage({ ctx }) {
   const {
@@ -61,12 +62,15 @@ export default function ArtistDetailPage({ ctx }) {
 
   const entryCountryCode = selectedArtistEntries[0]?.artist_country_code || selectedArtistEntries[0]?.country_code || "";
   const entryCountry = selectedArtistEntries[0]?.artist_country || selectedArtistEntries[0]?.country || "";
+  const fallbackCountry = fallbackCountryForArtist(selA?.n) || {};
+  const resolvedCountryCode = profile.country_code || entryCountryCode || fallbackCountry.code || "";
+  const resolvedCountry = profile.country || entryCountry || fallbackCountry.country || "";
 
   const countryItem = {
-    artist_country_code: profile.country_code || entryCountryCode || "",
-    artist_country: profile.country || entryCountry || "",
-    country_code: profile.country_code || entryCountryCode || "",
-    country: profile.country || entryCountry || "",
+    artist_country_code: resolvedCountryCode,
+    artist_country: resolvedCountry,
+    country_code: resolvedCountryCode,
+    country: resolvedCountry,
     artist: selA.n,
   };
 
@@ -77,8 +81,8 @@ export default function ArtistDetailPage({ ctx }) {
     ["Artist name", selA.n],
     ["Display name", profile.display_name],
     ["Aliases", aliasesDisplay !== "[]" ? aliasesDisplay : null],
-    ["Country", profile.country || entryCountry],
-    ["Country code", profile.country_code || entryCountryCode],
+    ["Country", resolvedCountry],
+    ["Country code", resolvedCountryCode],
     ["City / Region", profile.city_region],
     ["Genre", profile.genre],
     ["Artist type", profile.artist_type],
@@ -119,6 +123,15 @@ export default function ArtistDetailPage({ ctx }) {
   const numberOnePlacements = selectedArtistEntries.filter((entry) => Number(entry.rank) === 1).length;
   const releaseRanks = selectedArtistEntries.map((entry) => Number(entry.rank)).filter(Number.isFinite);
   const bestReleaseRank = releaseRanks.length ? Math.min(...releaseRanks) : null;
+  const profileBiography = profile.biography || fallbackBiographyForArtist({
+    name: selA?.n,
+    country: resolvedCountry,
+    genre: profile.genre,
+    placementCount,
+    releaseCount: selectedArtistReleases.length,
+    monthCount: chartedMonthCount,
+    peakRank: selA?.pk,
+  });
   // Shared chart theming — mirrors ReleaseDetailPage/AnalyticsPage so every
   // Recharts panel reacts to dark mode instead of hardcoded light colors.
   const gridStroke = isDark ? "#242923" : "#EDEAE2";
@@ -151,7 +164,7 @@ export default function ArtistDetailPage({ ctx }) {
                 <CountryBadge item={countryItem} showName />
               </div>
               <div style={{fontFamily:F,fontSize:"14px",color:isDark?"#AEB6AE":"#69716B",marginTop:"6px",lineHeight:1.5}}>Recorded {placementCount} Top-50 platform placements across {chartedMonthCount} months</div>
-              {profile.biography&&<p className="bio-text" style={{fontFamily:F,fontSize:"15px",lineHeight:1.72,color:isDark?"#C7CCC6":"#4a534c",margin:"12px 0 0",maxWidth:"680px"}}>{profile.biography}</p>}
+              {profileBiography&&<p className="bio-text" style={{fontFamily:F,fontSize:"15px",lineHeight:1.72,color:isDark?"#C7CCC6":"#4a534c",margin:"12px 0 0",maxWidth:"680px"}}>{profileBiography}</p>}
 
               {/* Social icon links */}
               {socialLinks.length > 0 && (

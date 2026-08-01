@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getArtistImageUrl } from "../utils/artistImages.js";
+import { fallbackBiographyForArtist, fallbackCountryForArtist } from "../utils/artistMetadataFallbacks.js";
 import { API_BASE, resolveMediaUrl } from "../api/config.js";
 import {
   COUNTRY_ACCENTS,
@@ -168,6 +169,20 @@ export function getArtistCountry(item) {
       code: directCode,
       listedCountry: String(item.artist_country || item.country || "").trim(),
       listedCode: directCode,
+    };
+  }
+
+  const fallbackCountry = fallbackCountryForArtist(
+    requestedArtist || item.title || item.n || item.primary_artist || item.artist_name
+  );
+  if (fallbackCountry?.code) {
+    const managedCountry = publicCountry(fallbackCountry.code);
+    return {
+      flag: managedCountry?.flag || countryCodeToFlag(fallbackCountry.code),
+      country: managedCountry?.name || fallbackCountry.country || "",
+      code: fallbackCountry.code,
+      listedCountry: fallbackCountry.country || "",
+      listedCode: fallbackCountry.code,
     };
   }
 
@@ -897,6 +912,15 @@ export default function PremiumChartsPage({
       const hasArtistLinks = Object.values(artistLinks).some(Boolean);
       const compactMove = compact ? movement(item) : null;
       const compactMoveStyle = compact ? movementStyle(item) : null;
+      const artistBiography = artistProfile.biography || item.biography || fallbackBiographyForArtist({
+        name: item.title || item.n || item.artist,
+        country: artistCountry.country || artistCountry.listedCountry,
+        genre: artistProfile.genre || item.genre,
+        placementCount: item.entries_count || item.t,
+        releaseCount: item.entries_count || item.t,
+        monthCount: getMonthsOnChart(item),
+        peakRank: profile.peak || item.pk,
+      });
       return (
         <div style={gridStyle}>
           {compact && <DetailCard label="Move" value={compactMove.label || "—"} accent={compactMoveStyle.color} />}
@@ -913,7 +937,7 @@ export default function PremiumChartsPage({
           {(artistProfile.artist_type || item.artist_type) && <DetailCard label="Artist type" value={artistProfile.artist_type || item.artist_type} />}
           {(artistProfile.verified || item.verified) && <DetailCard label="Verification" value="Verified artist" accent={badge.accent} />}
           {aliases && <DetailCard label="Aliases" value={aliases} wide />}
-          {(artistProfile.biography || item.biography) && <DetailCard label="Biography" value={artistProfile.biography || item.biography} wide />}
+          {artistBiography && <DetailCard label="Biography" value={artistBiography} wide />}
           {hasArtistLinks && <DetailCard label="Artist links" value={<DetailLinks links={artistLinks} />} wide />}
         </div>
       );

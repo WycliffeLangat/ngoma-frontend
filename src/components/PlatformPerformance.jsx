@@ -92,7 +92,7 @@ export default function PlatformPerformance({
             Points by Platform
           </div>
           <p style={{ margin: "-4px 0 0", fontFamily: F, fontSize: "12px", lineHeight: 1.5, color: isDark ? "#AEB6AE" : "#69716B" }}>
-            Comparable Top-50 points are calculated as 51 − rank for every monthly platform placement.
+            Monthly platform placements are aggregated here for quick cross-platform comparison.
           </p>
         </div>
         <div style={{ display: "inline-flex", padding: "3px", borderRadius: "999px", background: isDark ? "#181C18" : "#F0EEE8", border: "1px solid " + (isDark ? "#2F352F" : "#E3E0D8") }}>

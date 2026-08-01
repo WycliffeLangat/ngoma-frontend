@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { getPublicArtists, getArtistImageUrl } from "../utils/artistImages.js";
 
 export default function AboutPage({ ctx }) {
@@ -20,16 +21,19 @@ export default function AboutPage({ ctx }) {
     secLbl,
   } = ctx;
 
-  const featuredPortraits = (() => {
+  const featuredPortraits = useMemo(() => {
     const seen = new Set();
     const urls = [];
     for (const artist of getPublicArtists()) {
       const url = getArtistImageUrl(artist, { name: artist.name, artists: [artist] });
       if (url && !seen.has(url)) { seen.add(url); urls.push(url); }
-      if (urls.length >= (isMobile ? 6 : 10)) break;
     }
-    return urls;
-  })();
+    return urls
+      .map((url) => ({ url, order: Math.random() }))
+      .sort((a, b) => a.order - b.order)
+      .slice(0, isMobile ? 6 : 10)
+      .map((item) => item.url);
+  }, [isMobile]);
   const aboutSectionTitle = (label) => (
     <div style={secLbl()}><SecMark/>{label}</div>
   );

@@ -97,8 +97,19 @@ export default function NewsDetailPage({ ctx }) {
     selNews,
     setSelNews,
     openArtistDetails,
+    openNewsDetails,
     openReleaseDetails
   } = ctx;
+
+  if (!selNews?.title) {
+    return (
+      <div style={{padding:PAD,background:isDark?"#0F120F":"#FFF",border:isDark?"1px solid #2F352F":"1px solid transparent",borderRadius:isDark?"16px":"0",minHeight:"60vh",maxWidth:"680px",margin:"0 auto",boxSizing:"border-box"}}>
+        <span onClick={()=>setSelNews(null)} style={{fontFamily:F,fontSize:isMobile?"14px":"13px",color:GOLD,cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>{"<- All News"}</span>
+        <h1 style={{fontFamily:F,fontSize:isMobile?"24px":"28px",fontWeight:850,margin:"22px 0 8px",lineHeight:1.18,color:isDark?"#F6F3EA":"#050505"}}>Story unavailable</h1>
+        <p style={{fontFamily:F,fontSize:"14px",lineHeight:1.65,color:isDark?"#C9CEC9":"#59645D",margin:0}}>This story could not be opened from the current data snapshot.</p>
+      </div>
+    );
+  }
 
   const color = CATEGORY_COLORS[selNews.category] || GOLD;
   const related = (NEWS || [])
@@ -224,7 +235,7 @@ export default function NewsDetailPage({ ctx }) {
                   {related.map((n) => {
                     const relatedMedia = getPrimaryNewsMedia(n, publicArtists);
                     return (
-                    <div key={n.id} onClick={()=>setSelNews(n)} style={{display:"flex",alignItems:"center",gap:"12px",cursor:"pointer",padding:"12px 14px",borderRadius:"10px",background:isDark?"#14170F":"#FAF8F3",border:isDark?"1px solid #2A2E28":"1px solid #EEE9DD"}}>
+                    <div key={n.id} onClick={()=>openNewsDetails ? openNewsDetails(n) : setSelNews(n)} style={{display:"flex",alignItems:"center",gap:"12px",cursor:"pointer",padding:"12px 14px",borderRadius:"10px",background:isDark?"#14170F":"#FAF8F3",border:isDark?"1px solid #2A2E28":"1px solid #EEE9DD"}}>
                       <EntryThumb item={{...n, cover_image: relatedMedia.url}} name={relatedMedia.artistName || n.title} size={56} radius="9px" accent={CATEGORY_COLORS[n.category] || GOLD} />
                       <div style={{minWidth:0}}>
                         <div style={{fontFamily:F,fontSize:"12px",fontWeight:600,color:isDark?"#9a9a9a":"#9a9a9a",marginBottom:"4px"}}>{n.date}</div>

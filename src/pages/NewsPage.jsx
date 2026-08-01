@@ -37,6 +37,7 @@ export default function NewsPage({ ctx }) {
     card,
     isDark,
     isMobile,
+    openNewsDetails,
     setSelNews
   } = ctx;
 
@@ -64,6 +65,10 @@ export default function NewsPage({ ctx }) {
   const filtered = filter === "all" ? NEWS : NEWS.filter((n) => (n.category || "other") === filter);
 
   const breaking = NEWS.find((n) => n.breaking);
+  const openArticle = (article) => {
+    if (openNewsDetails) openNewsDetails(article);
+    else setSelNews(article);
+  };
 
   if (!NEWS.length) {
     return (
@@ -131,7 +136,7 @@ export default function NewsPage({ ctx }) {
     const thumbItem = { ...n, cover_image: art.url };
     return (
       <div
-        onClick={() => setSelNews(n)}
+        onClick={() => openArticle(n)}
         className={hero ? "news-card-featured" : "news-card"}
         style={{...card({cursor:"pointer",padding:0,overflow:"hidden",transition:"transform 200ms ease, box-shadow 200ms ease",
           gridColumn:hero?"1 / -1":"auto",background:isDark?"#0F120F":"#FFF",
@@ -189,7 +194,7 @@ export default function NewsPage({ ctx }) {
 
       {breaking && (
         <div
-          onClick={() => setSelNews(breaking)}
+          onClick={() => openArticle(breaking)}
           style={{display:"flex",alignItems:"center",gap:"10px",cursor:"pointer",marginBottom:isMobile?"16px":"20px",
             padding:"10px 14px",borderRadius:"10px",background:isDark?"rgba(194,54,74,0.14)":"rgba(194,54,74,0.08)",
             border:"1px solid rgba(194,54,74,0.35)"}}

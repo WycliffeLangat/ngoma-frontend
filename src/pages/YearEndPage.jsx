@@ -165,7 +165,6 @@ export default function YearEndPage({ ctx }) {
                 const t3 = idx < 3;
                 const isLast = idx === Math.min(yearEnd.length,50)-1;
                 const medalColor = t3 ? MEDALS[idx] : (isDark?"#F6F3EA":"#050505");
-                const itemTypeLabel = isArtists ? "Artist" : (isSingles ? "Single" : "Album");
                 const certification = isArtists ? null : getCertificationForEntry(item, isSingles ? "single" : "album");
                 const statItems = isArtists ? [
                   { label:"Total Pts", value:item.totalPts.toLocaleString() },
@@ -173,12 +172,10 @@ export default function YearEndPage({ ctx }) {
                   { label:"Entries", value:item.entries || "—" },
                   { label:"Peak", value:item.best ? `#${item.best}` : "—" },
                   { label:"Year-End Rank", value:`#${idx+1}` },
-                  { label:"Type", value:itemTypeLabel },
                 ] : [
                   { label:"Total Pts", value:item.totalPts.toLocaleString() },
                   { label:"Months", value:item.months },
                   { label:"Year-End Rank", value:`#${idx+1}` },
-                  { label:"Type", value:itemTypeLabel },
                   ...(certification ? [{ label:"Certification", value:certification.label }] : []),
                 ];
 
@@ -320,7 +317,7 @@ export default function YearEndPage({ ctx }) {
                           onClick={()=>isArtists ? openArtistDetails(item.t) : openReleaseDetails(item,isSingles?"single":"album")}
                           style={detailActionStyle}
                         >
-                          View {itemTypeLabel} Details
+                          View Details
                         </button>
                       </div>
                     )}
