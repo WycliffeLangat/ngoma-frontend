@@ -63,7 +63,7 @@ function monthPeriodDate(monthLabel = "") {
 }
 
 function publishedDateFor(monthLabel, generatedAt) {
-  return validIsoDate(generatedAt) || validIsoDate(monthPeriodDate(monthLabel)) || new Date().toISOString();
+  return validIsoDate(monthPeriodDate(monthLabel)) || validIsoDate(generatedAt) || new Date().toISOString();
 }
 
 function uniqueTagList(values = []) {
