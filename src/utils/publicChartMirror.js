@@ -359,3 +359,71 @@ export function buildYearEndMirror(payload, type) {
     .slice(0, 50)
     .map((item, index) => ({ ...item, rank: index + 1 }));
 }
+
+function historyIdentity(type, row) {
+  if (type === "artists") return `name:${normalized(row.name || row.title)}`;
+  if (row.release_id) return `id:${row.release_id}`;
+  return `key:${normalized(row.t || row.title)}|${normalized(row.artist_credit || row.a || row.artist)}`;
+}
+
+function historyRank(type, row) {
+  return Number(type === "artists" ? row.rank : (row.r ?? row.rank));
+}
+
+// Scans every published month up to and including `month` to work out, per
+// entry currently charting that month: the peak rank it has ever held, how
+// many of those scanned months it spent AT that peak rank, how many distinct
+// months it has charted in total, and its rank the month before (for a
+// movement indicator). Used by the poster generator's "Top N" table columns
+// (MONTHS / PEAK / +-) — buildYearEndMirror() already covers the same peak/
+// months stats for the All-Time period, so this is only needed for a single
+// target month.
+export function chartHistoryForMonth(payload, type, month, platform = "Combined") {
+  const months = Array.isArray(payload?.months) ? payload.months : [];
+  const targetIndex = months.indexOf(month);
+  const history = new Map();
+  if (targetIndex < 0) return history;
+
+  const rowsForMonth = (monthLabel) => type === "artists"
+    ? buildArtistMonthMirror(payload, monthLabel, platform)
+    : publicChartRows(payload, type, monthLabel, platform);
+
+  let previousMonthRows = [];
+  months.slice(0, targetIndex + 1).forEach((monthLabel, index) => {
+    const rows = rowsForMonth(monthLabel);
+    const seenThisMonth = new Set();
+    rows.forEach((row) => {
+      const rank = historyRank(type, row);
+      if (!Number.isFinite(rank)) return;
+      const identity = historyIdentity(type, row);
+      const stats = history.get(identity) || { peakRank: Number.POSITIVE_INFINITY, peakStreak: 0, monthsCount: 0 };
+      if (rank < stats.peakRank) {
+        stats.peakRank = rank;
+        stats.peakStreak = 1;
+      } else if (rank === stats.peakRank) {
+        stats.peakStreak += 1;
+      }
+      if (!seenThisMonth.has(identity)) {
+        stats.monthsCount += 1;
+        seenThisMonth.add(identity);
+      }
+      history.set(identity, stats);
+    });
+    if (index === targetIndex - 1) previousMonthRows = rows;
+  });
+
+  const previousRankByIdentity = new Map();
+  previousMonthRows.forEach((row) => {
+    const rank = historyRank(type, row);
+    if (Number.isFinite(rank)) previousRankByIdentity.set(historyIdentity(type, row), rank);
+  });
+  history.forEach((stats, identity) => {
+    stats.previousRank = previousRankByIdentity.has(identity) ? previousRankByIdentity.get(identity) : null;
+  });
+
+  return history;
+}
+
+export function historyKeyForRow(type, row) {
+  return historyIdentity(type, row);
+}
