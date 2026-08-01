@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toPng } from "html-to-image";
 import { fetchAppData } from "../../api/public";
 import { resolveMediaUrl } from "../../api/config.js";
-import { publicChartRows, buildArtistMonthMirror } from "../../utils/publicChartMirror.js";
+import { publicChartRows, buildArtistMonthMirror, buildYearEndMirror } from "../../utils/publicChartMirror.js";
 
 const POSTER_W = 1080;
 const POSTER_H = 1350;
@@ -13,6 +13,11 @@ const CHART_TYPES = [
   ["singles", "Songs"],
   ["albums", "Albums"],
   ["artists", "Artists"],
+];
+
+const PERIODS = [
+  ["monthly", "Monthly"],
+  ["all-time", "All Time"],
 ];
 
 const COUNT_OPTIONS = [5, 10, 15, 20];
@@ -81,7 +86,29 @@ function normalizeRows(chartType, rawRows) {
   }));
 }
 
-function PosterContent({ chartType, platform, month, rows, accentColor }) {
+// buildYearEndMirror() rows use a different field naming convention than the
+// monthly mirrors (row.title/row.artist/row.name rather than row.t/row.a),
+// so this gets its own normalizer instead of overloading normalizeRows().
+function normalizeYearEndRows(chartType, rawRows) {
+  if (chartType === "artists") {
+    return rawRows.map((row) => ({
+      rank: row.rank,
+      title: row.name || "",
+      subtitle: "",
+      image: resolveMediaUrl(row.image || ""),
+      points: Number(row.points) || 0,
+    }));
+  }
+  return rawRows.map((row) => ({
+    rank: row.rank,
+    title: row.title || "",
+    subtitle: row.artist || "",
+    image: resolveMediaUrl(row.image || ""),
+    points: Number(row.points) || 0,
+  }));
+}
+
+function PosterContent({ chartType, period, platform, month, rows, accentColor }) {
   const headerH = 224;
   const footerH = 74;
   const padX = 64;
@@ -131,7 +158,9 @@ function PosterContent({ chartType, platform, month, rows, accentColor }) {
         <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <span style={{ fontSize: 22, fontWeight: 800, color: "#F6F3EA" }}>{chartLabel}</span>
           <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#5A625A" }} />
-          <span style={{ fontSize: 22, fontWeight: 700, color: "#AEB6AE" }}>{month}</span>
+          <span style={{ fontSize: 22, fontWeight: 700, color: "#AEB6AE" }}>
+            {period === "all-time" ? "All Time" : month}
+          </span>
           <span
             style={{
               marginLeft: "auto",
@@ -145,7 +174,7 @@ function PosterContent({ chartType, platform, month, rows, accentColor }) {
               textTransform: "uppercase",
             }}
           >
-            {platformLabel(platform)}
+            {period === "all-time" ? "All Time" : platformLabel(platform)}
           </span>
         </div>
       </div>
@@ -281,6 +310,7 @@ export default function PosterGeneratorPage() {
   const [error, setError] = useState("");
   const [exportError, setExportError] = useState("");
   const [chartType, setChartType] = useState("singles");
+  const [period, setPeriod] = useState("monthly");
   const [platform, setPlatform] = useState("Combined");
   const [month, setMonth] = useState("");
   const [count, setCount] = useState(10);
@@ -308,15 +338,23 @@ export default function PosterGeneratorPage() {
     return ["Combined", "Kenyan", ...names];
   }, [payload]);
 
+  // All-Time mirrors (buildYearEndMirror) are always calculated against the
+  // Combined chart — there's no per-platform all-time breakdown.
+  const effectivePlatform = period === "all-time" ? "Combined" : platform;
+
   const rows = useMemo(() => {
-    if (!payload || !month) return [];
+    if (!payload) return [];
+    if (period === "all-time") {
+      return normalizeYearEndRows(chartType, buildYearEndMirror(payload, chartType).slice(0, count));
+    }
+    if (!month) return [];
     if (chartType === "artists") {
       return normalizeRows("artists", buildArtistMonthMirror(payload, month, platform).slice(0, count));
     }
     return normalizeRows(chartType, publicChartRows(payload, chartType, month, platform).slice(0, count));
-  }, [payload, chartType, platform, month, count]);
+  }, [payload, chartType, period, platform, month, count]);
 
-  const accentColor = platformColor(platform);
+  const accentColor = platformColor(effectivePlatform);
 
   async function handleDownload() {
     if (!posterRef.current || exporting) return;
@@ -335,10 +373,10 @@ export default function PosterGeneratorPage() {
         // image fetch instead of just leaving that one tile blank.
         imagePlaceholder: TRANSPARENT_PIXEL,
       });
-      const safeMonth = String(month).replace(/\s+/g, "-").toLowerCase();
-      const safePlatform = String(platform).replace(/\s+/g, "-").toLowerCase();
+      const safePeriod = period === "all-time" ? "all-time" : String(month).replace(/\s+/g, "-").toLowerCase();
+      const safePlatform = String(effectivePlatform).replace(/\s+/g, "-").toLowerCase();
       const link = document.createElement("a");
-      link.download = `ngoma-top-${rows.length}-${chartType}-${safePlatform}-${safeMonth}.png`;
+      link.download = `ngoma-top-${rows.length}-${chartType}-${safePlatform}-${safePeriod}.png`;
       link.href = dataUrl;
       link.click();
     } catch {
@@ -385,20 +423,41 @@ export default function PosterGeneratorPage() {
               </label>
 
               <label style={{ display: "grid", gap: 6, fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--cms-muted)" }}>
+                Period
+                <div className="cms-pill-bar" style={{ marginBottom: 0 }}>
+                  {PERIODS.map(([value, label]) => (
+                    <button
+                      key={value}
+                      type="button"
+                      className={`cms-btn small ${period === value ? "" : "light"}`}
+                      onClick={() => setPeriod(value)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </label>
+
+              <label style={{ display: "grid", gap: 6, fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--cms-muted)" }}>
                 Platform
-                <select className="cms-select" value={platform} onChange={(e) => setPlatform(e.target.value)}>
+                <select className="cms-select" value={platform} disabled={period === "all-time"} onChange={(e) => setPlatform(e.target.value)}>
                   {platformOptions.map((name) => (
                     <option key={name} value={name}>{name === "Kenyan" ? "Kenya (national chart)" : platformLabel(name)}</option>
                   ))}
                 </select>
+                {period === "all-time" && (
+                  <span className="cms-help">All-Time posters are always calculated from the Combined chart.</span>
+                )}
               </label>
 
-              <label style={{ display: "grid", gap: 6, fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--cms-muted)" }}>
-                Month
-                <select className="cms-select" value={month} onChange={(e) => setMonth(e.target.value)}>
-                  {months.map((m) => <option key={m} value={m}>{m}</option>)}
-                </select>
-              </label>
+              {period === "monthly" && (
+                <label style={{ display: "grid", gap: 6, fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--cms-muted)" }}>
+                  Month
+                  <select className="cms-select" value={month} onChange={(e) => setMonth(e.target.value)}>
+                    {months.map((m) => <option key={m} value={m}>{m}</option>)}
+                  </select>
+                </label>
+              )}
 
               <label style={{ display: "grid", gap: 6, fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--cms-muted)" }}>
                 Entries
@@ -443,7 +502,7 @@ export default function PosterGeneratorPage() {
               }}
             >
               <div style={{ width: POSTER_W, height: POSTER_H, transform: `scale(${PREVIEW_SCALE})`, transformOrigin: "top left" }}>
-                <PosterContent chartType={chartType} platform={platform} month={month} rows={rows} accentColor={accentColor} />
+                <PosterContent chartType={chartType} period={period} platform={effectivePlatform} month={month} rows={rows} accentColor={accentColor} />
               </div>
             </div>
           </div>
