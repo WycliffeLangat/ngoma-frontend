@@ -76,7 +76,7 @@ export default function GlobalSearch({ onNavigate }) {
           onChange={e => setQuery(e.target.value)}
           onFocus={() => results.length > 0 && setOpen(true)}
           onKeyDown={onKeyDown}
-          placeholder="Search songs, artists, ISRC, labels…"
+          placeholder="Search songs, artists, labels…"
           style={{ width: "100%", boxSizing: "border-box", paddingRight: query ? 28 : undefined }}
         />
         {query && (

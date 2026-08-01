@@ -226,7 +226,7 @@ const configs = {
   backups: { title: "Backups", endpoint: "/backups/", columns: [{key:"status",label:"Status"},{key:"file",label:"File"},{key:"created_at",label:"Created",render:(r)=>new Date(r.created_at).toLocaleString()}], form: [{name:"status",label:"Status"},{name:"notes",label:"Notes",type:"textarea"}] },
 };
 
-function releaseForm(chartType, artistOptions){ return [{name:"cover_image",label:"Cover image",type:"file",help:"Square image, min 1000×1000 px. JPEG or PNG, max 2 MB."},{name:"title",label:"Title"},{name:"artist_credits",label:"Artists",type:"artist-role-list",options:artistOptions,help:"Add each credited artist once, then choose Primary or Featuring. Link a registered duo/group as one artist."},{name:"chart_type",label:"Chart type",type:"select",options:[{value:chartType,label:chartType}]},{name:"canonical_title",label:"Canonical title"},{name:"credited_artists",label:"Other credited artists / notes"},{name:"songwriters",label:"Songwriters",type:"tags"},{name:"producers",label:"Producers",type:"tags"},{name:"release_year",label:"Release year",type:"number",readOnly:true,help:"Auto-filled from Release date."},{name:"release_date",label:"Release date",type:"date"},{name:"isrc",label:"ISRC"},{name:"upc",label:"UPC"},{name:"number_of_tracks",label:"Number of tracks",type:"number"},{name:"country",label:"Country",readOnly:true,help:"Always the main artist's country — edit the artist record to change it."},{name:"country_code",label:"Country code",readOnly:true,help:"Always the main artist's country code — edit the artist record to change it."},{name:"genre",label:"Genre"},{name:"label",label:"Label"},{name:"distributor",label:"Distributor"},{name:"spotify_url",label:"Spotify URL"},{name:"apple_music_url",label:"Apple Music URL"},{name:"boomplay_url",label:"Boomplay URL"},{name:"audiomack_url",label:"Audiomack URL"},{name:"youtube_url",label:"YouTube URL"},{name:"tiktok_url",label:"TikTok URL"},{name:"shazam_url",label:"Shazam URL"},{name:"radio_info",label:"Radio info",type:"textarea"},{name:"status",label:"Status"}]; }
+function releaseForm(chartType, artistOptions){ return [{name:"cover_image",label:"Cover image",type:"file",help:"Square image, min 1000×1000 px. JPEG or PNG, max 2 MB."},{name:"title",label:"Title"},{name:"artist_credits",label:"Artists",type:"artist-role-list",options:artistOptions,help:"Add each credited artist once, then choose Primary or Featuring. Link a registered duo/group as one artist."},{name:"chart_type",label:"Chart type",type:"select",options:[{value:chartType,label:chartType}]},{name:"canonical_title",label:"Canonical title"},{name:"credited_artists",label:"Other credited artists / notes"},{name:"songwriters",label:"Songwriters",type:"tags"},{name:"producers",label:"Producers",type:"tags"},{name:"release_year",label:"Release year",type:"number",readOnly:true,help:"Auto-filled from Release date."},{name:"release_date",label:"Release date",type:"date"},{name:"number_of_tracks",label:"Number of tracks",type:"number"},{name:"country",label:"Country",readOnly:true,help:"Always the main artist's country — edit the artist record to change it."},{name:"country_code",label:"Country code",readOnly:true,help:"Always the main artist's country code — edit the artist record to change it."},{name:"genre",label:"Genre"},{name:"label",label:"Label"},{name:"distributor",label:"Distributor"},{name:"spotify_url",label:"Spotify URL"},{name:"apple_music_url",label:"Apple Music URL"},{name:"boomplay_url",label:"Boomplay URL"},{name:"audiomack_url",label:"Audiomack URL"},{name:"youtube_url",label:"YouTube URL"},{name:"tiktok_url",label:"TikTok URL"},{name:"shazam_url",label:"Shazam URL"},{name:"radio_info",label:"Radio info",type:"textarea"},{name:"status",label:"Status"}]; }
 
 // Resources that support status filtering and ordering in the CMS toolbar
 const STATUS_TYPES    = new Set(["songs", "albums", "artists"]);
@@ -1771,8 +1771,6 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
 
                     {/* Metadata */}
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 20px", marginBottom: 14 }}>
-                      {metaRow("ISRC", r.isrc)}
-                      {metaRow("UPC", r.upc)}
                       {metaRow("Label", r.label)}
                       {metaRow("Distributor", r.distributor)}
                       {metaRow("Year", r.release_year)}
@@ -2104,7 +2102,7 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
         const isArtistType = type === "artists";
         const rLabel = r => isArtistType ? (r.name || "") : (r.title || "");
         const rSub   = r => isArtistType ? [r.country, r.country_code].filter(Boolean).join(" · ") : (r.artist_display || "");
-        const rMeta  = r => isArtistType ? `${r.total_releases ?? 0} release(s)` : [r.release_year, r.isrc].filter(Boolean).join(" · ");
+        const rMeta  = r => isArtistType ? `${r.total_releases ?? 0} release(s)` : [r.release_year, r.label].filter(Boolean).join(" · ");
         const typeLabel = isArtistType ? "artist" : type === "albums" ? "album" : "song";
         const { dup, keeper } = mergeTarget;
         return (

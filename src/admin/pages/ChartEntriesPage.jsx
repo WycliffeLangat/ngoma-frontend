@@ -162,8 +162,6 @@ function releaseFields(artistOptions = [], chartType = "singles") {
   { name: "canonical_title",  label: "Canonical title" },
   { name: "release_year",     label: "Release year",      type: "number", readOnly: true, help: "Auto-filled from Release date." },
   { name: "release_date",     label: "Release date",      type: "date" },
-  { name: "isrc",             label: "ISRC" },
-  { name: "upc",              label: "UPC" },
   { name: "number_of_tracks", label: "Number of tracks",  type: "number" },
   { name: "country",          label: "Country" },
   { name: "country_code",     label: "Country code" },

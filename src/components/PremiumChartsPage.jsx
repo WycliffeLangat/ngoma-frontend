@@ -953,8 +953,6 @@ export default function PremiumChartsPage({
     const genre = firstDetailValue(item, ["genre", "genres"], "");
     const label = firstDetailValue(item, ["label", "record_label"], "");
     const distributor = firstDetailValue(item, ["distributor", "distribution"], "");
-    const isrc = firstDetailValue(item, ["isrc", "isrc_code"], "");
-    const upc = firstDetailValue(item, ["upc", "upc_code", "barcode"], "");
     const trackCount = firstDetailValue(item, ["number_of_tracks", "track_count", "tracks"], "");
     const radioInfo = firstDetailValue(item, ["radio_info", "radio_notes"], "");
     const compactMove = compact ? movement(item) : null;
@@ -976,8 +974,6 @@ export default function PremiumChartsPage({
         {genre && <DetailCard label="Genre" value={genre} />}
         {label && <DetailCard label="Label" value={label} />}
         {distributor && <DetailCard label="Distributor" value={distributor} />}
-        {isrc && <DetailCard label="ISRC" value={isrc} />}
-        {upc && <DetailCard label="UPC" value={upc} />}
         {trackCount && <DetailCard label="Tracks" value={trackCount} />}
         {radioInfo && <DetailCard label="Radio information" value={radioInfo} wide />}
         {hasReleaseLinks(item) && <DetailCard label="Listen" value={<DetailLinks links={item} />} wide />}

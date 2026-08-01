@@ -2408,17 +2408,17 @@ const top = data[0];
         const ex=map.get(k); const rank=Number(e.rank);
         if(!ex){
           const merged={...rel,...e,_type:"single",_months:1,_bestRank:rank,_bestMonth:m};
-          merged._searchText=[merged.title,merged.artist,rel.featured_artists,rel.isrc,rel.upc,rel.label,rel.canonical_title,rel.songwriters,rel.producers,rel.distributor].filter(Boolean).join(" ").toLowerCase();
+          merged._searchText=[merged.title,merged.artist,rel.featured_artists,rel.label,rel.canonical_title,rel.songwriters,rel.producers,rel.distributor].filter(Boolean).join(" ").toLowerCase();
           map.set(k,merged);
         } else { ex._months++; if(rank<ex._bestRank){ex._bestRank=rank;ex._bestMonth=m;} }
       });
     });
-    // Also add releases from PUBLIC_DATA not yet in chart (ISRC/UPC lookup utility)
+    // Also add releases from PUBLIC_DATA not yet in chart.
     (PUBLIC_DATA.releases||[]).filter(r=>r.chart_type==="singles").forEach(r=>{
       const k=`${String(r.title||"").trim().toLowerCase()}|||${String(r.primary_artist||r.artist||"").trim().toLowerCase()}`;
       if(!map.has(k)){
         const merged={...r,title:r.title,artist:r.primary_artist||r.artist||"",_type:"single",_months:0,_bestRank:999,_bestMonth:latestPublishedMonthLabel()};
-        merged._searchText=[r.title,r.primary_artist,r.artist,r.featured_artists,r.isrc,r.upc,r.label,r.canonical_title,r.songwriters,r.producers].filter(Boolean).join(" ").toLowerCase();
+        merged._searchText=[r.title,r.primary_artist,r.artist,r.featured_artists,r.label,r.canonical_title,r.songwriters,r.producers].filter(Boolean).join(" ").toLowerCase();
         map.set(k,merged);
       }
     });
@@ -2433,7 +2433,7 @@ const top = data[0];
         const ex=map.get(k); const rank=Number(e.rank);
         if(!ex){
           const merged={...rel,...e,_type:"album",_months:1,_bestRank:rank,_bestMonth:m};
-          merged._searchText=[merged.title,merged.artist,rel.featured_artists,rel.isrc,rel.upc,rel.label,rel.canonical_title,rel.songwriters,rel.producers,rel.distributor].filter(Boolean).join(" ").toLowerCase();
+          merged._searchText=[merged.title,merged.artist,rel.featured_artists,rel.label,rel.canonical_title,rel.songwriters,rel.producers,rel.distributor].filter(Boolean).join(" ").toLowerCase();
           map.set(k,merged);
         } else { ex._months++; if(rank<ex._bestRank){ex._bestRank=rank;ex._bestMonth=m;} }
       });
@@ -2442,7 +2442,7 @@ const top = data[0];
       const k=`${String(r.title||"").trim().toLowerCase()}|||${String(r.primary_artist||r.artist||"").trim().toLowerCase()}`;
       if(!map.has(k)){
         const merged={...r,title:r.title,artist:r.primary_artist||r.artist||"",_type:"album",_months:0,_bestRank:999,_bestMonth:latestPublishedMonthLabel()};
-        merged._searchText=[r.title,r.primary_artist,r.artist,r.featured_artists,r.isrc,r.upc,r.label,r.canonical_title].filter(Boolean).join(" ").toLowerCase();
+        merged._searchText=[r.title,r.primary_artist,r.artist,r.featured_artists,r.label,r.canonical_title].filter(Boolean).join(" ").toLowerCase();
         map.set(k,merged);
       }
     });

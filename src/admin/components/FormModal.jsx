@@ -318,7 +318,7 @@ export default function FormModal({ open, title, entityId, fields = [], initial 
     if (field.section) return field.section;
     if (["status", "is_published", "scheduled_for", "published_at", "is_visible", "active", "verified", "featured", "pinned", "breaking", "is_official", "is_hidden"].includes(field.name)) return "Visibility & status";
     if (field.name.endsWith("_url") || ["source_links", "gallery", "tags", "seo_title", "seo_description"].includes(field.name)) return "Links, media & discovery";
-    if (["country", "country_code", "city_region", "genre", "label", "distributor", "release_year", "release_date", "isrc", "upc", "number_of_tracks", "artist_type", "biography", "songwriters", "producers", "radio_info", "aliases", "credited_artists"].includes(field.name)) return "Details";
+    if (["country", "country_code", "city_region", "genre", "label", "distributor", "release_year", "release_date", "number_of_tracks", "artist_type", "biography", "songwriters", "producers", "radio_info", "aliases", "credited_artists"].includes(field.name)) return "Details";
     return "Essentials";
   };
   const sectionOrder = ["Essentials", "Details", "Links, media & discovery", "Visibility & status"];

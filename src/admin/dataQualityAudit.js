@@ -1932,23 +1932,6 @@ function releaseDateProblem(release, now) {
   return problems.join("; ");
 }
 
-function releaseCodeProblem(release, chartType) {
-  const problems = [];
-  if (hasValue(release.isrc) && !/^[A-Z]{2}[A-Z0-9]{3}\d{7}$/i.test(String(release.isrc).replace(/[-\s]/g, ""))) {
-    problems.push(`Invalid ISRC: ${release.isrc}`);
-  }
-  if (chartType === "singles" && !hasValue(release.isrc)) problems.push("Missing ISRC");
-  if (hasValue(release.upc) && !/^\d{12,14}$/.test(String(release.upc).replace(/[-\s]/g, ""))) {
-    problems.push(`Invalid UPC: ${release.upc}`);
-  }
-  if (chartType === "albums") {
-    if (!hasValue(release.upc)) problems.push("Missing UPC");
-    const tracks = Number(release.number_of_tracks);
-    if (!Number.isFinite(tracks) || tracks < 1) problems.push("Invalid number of tracks");
-  }
-  return problems.join("; ");
-}
-
 function expectedChartPeriod(now) {
   const date = new Date(now);
   const lag = date.getDate() <= 7 ? 2 : 1;

@@ -701,7 +701,7 @@ const ERROR_GUIDES = [
     id: "dashboard-alerts-overview",
     title: "Dashboard data quality alerts",
     summary: "An overview of the alert categories the dashboard's deep audit can raise.",
-    meaning: "The dashboard combines backend alerts with a deeper client-side audit across every module. Alerts are grouped by area: artists (missing images, incomplete details, unverified credited artists, possible duplicates), songs/albums (missing covers, incomplete details, questionable countries, missing release dates, catalogue codes, unlinked featuring artists), chart periods and uploads (invalid setup, not publish-ready, missing entries, new month may need upload, validation errors/warnings, zero-row uploads, failed weekly processing), certifications (incomplete records, below threshold, invalid or missing active rules, non-increasing thresholds), news (incomplete published articles, conflicting publish flags, unpublished highlights, overdue scheduled posts), page content (incomplete visible sections, invalid JSON, duplicate sections), media (incomplete metadata, URLs needing cleanup), open reports, and backups (missing, failed, or stale).",
+    meaning: "The dashboard combines backend alerts with a deeper client-side audit across every module. Alerts are grouped by area: artists (missing images, incomplete details, unverified credited artists, possible duplicates), songs/albums (missing covers, incomplete details, questionable countries, missing release dates, unlinked featuring artists), chart periods and uploads (invalid setup, not publish-ready, missing entries, new month may need upload, validation errors/warnings, zero-row uploads, failed weekly processing), certifications (incomplete records, below threshold, invalid or missing active rules, non-increasing thresholds), news (incomplete published articles, conflicting publish flags, unpublished highlights, overdue scheduled posts), page content (incomplete visible sections, invalid JSON, duplicate sections), media (incomplete metadata, URLs needing cleanup), open reports, and backups (missing, failed, or stale).",
     commonCauses: [
       "Normal day-to-day data entry gaps that haven't been reviewed yet.",
       "A chart month rolling over without its upload being completed.",
@@ -800,22 +800,6 @@ const GLOSSARY_TERMS = [
     meaning: "Use this as a fallback, not the ideal final state. Create or link artist profiles later so charts, artist pages, and duplicate checks stay accurate.",
     related: ["featuring artists", "artist profile"],
     keywords: ["unlinked", "featuring", "fallback"],
-  },
-  {
-    id: "isrc",
-    title: "ISRC",
-    summary: "International Standard Recording Code for a specific recording.",
-    meaning: "Use ISRC to identify a song recording across platforms and reduce duplicate release records.",
-    related: ["song", "metadata", "duplicate review"],
-    keywords: ["isrc", "recording", "identifier"],
-  },
-  {
-    id: "upc",
-    title: "UPC",
-    summary: "Universal Product Code for an album or product release.",
-    meaning: "UPC helps identify albums or packaged releases across distributors and platforms.",
-    related: ["album", "metadata"],
-    keywords: ["upc", "album", "identifier"],
   },
   {
     id: "chart-period",
@@ -1003,7 +987,7 @@ const WORKFLOWS = [
       "Add the title and choose ordered Main artists.",
       "Add ordered Featuring artists or temporary unlinked featuring names.",
       "Confirm chart type is singles or albums.",
-      "Fill release year, release date, ISRC or UPC, label, distributor, and genre.",
+      "Fill release year, release date, label, distributor, and genre.",
       "Upload a square cover image.",
       "Save and verify country inherited from the first main artist.",
     ],
@@ -1238,14 +1222,14 @@ const METHODOLOGY_NOTES = [
   {
     id: "duplicate-methodology",
     title: "Duplicate detection methodology",
-    summary: "Duplicate review compares normalized names, aliases, identifiers, and release metadata.",
+    summary: "Duplicate review compares normalized names, aliases, credits, and release metadata.",
     meaning: "The CMS tries to group likely duplicates, but editors still decide the keeper. A merge should preserve the best public identity and move related chart data safely.",
     principles: [
       "Prefer the record with the best metadata as keeper.",
-      "Use ISRC, UPC, artist credits, and covers to confirm release duplicates.",
+      "Use artist credits, release dates, labels, and covers to confirm release duplicates.",
       "Do not merge records that only look similar but represent different works or people.",
     ],
-    keywords: ["duplicate", "merge", "keeper", "isrc", "upc"],
+    keywords: ["duplicate", "merge", "keeper"],
   },
   {
     id: "status-methodology",

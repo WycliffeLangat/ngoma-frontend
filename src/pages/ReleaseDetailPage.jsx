@@ -142,8 +142,6 @@ export default function ReleaseDetailPage({ ctx }) {
           ["Producers", releaseDetails.producers],
           ["Release year", releaseDetails.release_year || releaseMetadata.release_year],
           ["Release date", formatDate(releaseDetails.release_date)],
-          [isAlbum ? "ISRCs" : "ISRC", releaseDetails.isrc],
-          ["UPC", releaseDetails.upc],
           ...(isAlbum ? [["Number of tracks", releaseDetails.number_of_tracks]] : []),
           ["Country", displayCountry],
           ["Country code", displayCountryCode],

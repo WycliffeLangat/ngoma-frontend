@@ -177,8 +177,6 @@ const FIELD_BY_LABEL = {
   "cover image": "cover_image",
   label: "label",
   distributor: "distributor",
-  isrc: "isrc",
-  upc: "upc",
   songwriters: "songwriters",
   producers: "producers",
   "number of tracks": "number_of_tracks",
@@ -651,15 +649,6 @@ function buildGuidedFallbackSolution({ alert, detail, page, recordError }) {
       label: "Correct release date metadata",
       description: `Set a real release date, or at minimum a valid release year, and make sure the year agrees with the date. ${suffix}`,
       fields: ["release_date", "release_year"],
-    });
-  }
-
-  if (/codes/.test(id)) {
-    return guidanceSolution({
-      id: "guided-code-fix",
-      label: "Correct catalogue codes",
-      description: `Enter the valid ISRC for a song or UPC for an album, or confirm the release metadata before saving. ${suffix}`,
-      fields: ["isrc", "upc"],
     });
   }
 
