@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getArtistImageUrl } from "../utils/artistImages.js";
 import { fallbackBiographyForArtist, fallbackCountryForArtist } from "../utils/artistMetadataFallbacks.js";
+import { splitArtistTokens } from "../utils/artistCredit.js";
+import ArtistCredit from "./ArtistCredit.jsx";
 import { API_BASE, resolveMediaUrl } from "../api/config.js";
 import {
   COUNTRY_ACCENTS,
@@ -585,27 +587,8 @@ export default function PremiumChartsPage({
     });
   }
 
-  function splitArtistTokens(artistText) {
-    const source = normalizeDetailValue(artistText, "");
-    if (!source) return [];
-
-    const separatorPattern = /(\s*(?:,|&|\+|\bfeat\.?(?!\w)|\bft\.?(?!\w)|\bfeaturing\b|\band\b|\bwith\b|\bx\b)\s*)/gi;
-    const pieces = source.split(separatorPattern).filter((piece) => piece !== "");
-
-    return pieces
-      .map((piece) => {
-        separatorPattern.lastIndex = 0;
-        const isSeparator = separatorPattern.test(piece);
-        separatorPattern.lastIndex = 0;
-        return isSeparator
-          ? { type: "separator", value: piece.replace(/\bft\.?(?!\w)/gi, "ft.").replace(/\bfeat\.?(?!\w)/gi, "ft.") }
-          : { type: "artist", value: piece.trim() };
-      })
-      .filter((piece) => piece.value);
-  }
-
   function ArtistLinks({ item }) {
-    const tokens = splitArtistTokens(item?.artist_credit || item?.artist || item?.primary_artist || item?.artist_name);
+    const tokens = splitArtistTokens(normalizeDetailValue(item?.artist_credit || item?.artist || item?.primary_artist || item?.artist_name, ""));
     if (!tokens.length) return null;
 
     return (
@@ -964,11 +947,11 @@ export default function PremiumChartsPage({
         {compact && <DetailCard label="Last Month" value={profile.lastMonth} />}
         {compact && <DetailCard label="Peak" value={profile.peak} />}
         {!compact && <DetailCard label="Months" value={getMonthsOnChart(item)} />}
-        {primaryCredit && <DetailCard label="Main artist(s)" value={primaryCredit} wide />}
-        {featuredCredit && <DetailCard label="Featuring" value={featuredCredit} wide />}
-        {creditedArtists && <DetailCard label="Additional credits" value={creditedArtists} wide />}
-        {songwriterDetails !== "—" && <DetailCard label="Songwriter(s)" value={songwriterDetails} wide />}
-        {producerDetails !== "—" && <DetailCard label="Producer(s)" value={producerDetails} wide />}
+        {primaryCredit && <DetailCard label="Main artist(s)" value={<ArtistCredit credit={primaryCredit} onOpenArtist={openArtist} isDark={darkMode} fontFamily={F} fontSize="13px" fontWeight={500} color="#050505" darkColor="#fffdf7" separatorColor="#777777" darkSeparatorColor="#c8d0c8" />} wide />}
+        {featuredCredit && <DetailCard label="Featuring" value={<ArtistCredit credit={featuredCredit} onOpenArtist={openArtist} isDark={darkMode} fontFamily={F} fontSize="13px" fontWeight={500} color="#050505" darkColor="#fffdf7" separatorColor="#777777" darkSeparatorColor="#c8d0c8" />} wide />}
+        {creditedArtists && <DetailCard label="Additional credits" value={<ArtistCredit credit={creditedArtists} onOpenArtist={openArtist} isDark={darkMode} fontFamily={F} fontSize="13px" fontWeight={500} color="#050505" darkColor="#fffdf7" separatorColor="#777777" darkSeparatorColor="#c8d0c8" />} wide />}
+        {songwriterDetails !== "—" && <DetailCard label="Songwriter(s)" value={<ArtistCredit credit={songwriterDetails} onOpenArtist={openArtist} isDark={darkMode} fontFamily={F} fontSize="13px" fontWeight={500} color="#050505" darkColor="#fffdf7" separatorColor="#777777" darkSeparatorColor="#c8d0c8" />} wide />}
+        {producerDetails !== "—" && <DetailCard label="Producer(s)" value={<ArtistCredit credit={producerDetails} onOpenArtist={openArtist} isDark={darkMode} fontFamily={F} fontSize="13px" fontWeight={500} color="#050505" darkColor="#fffdf7" separatorColor="#777777" darkSeparatorColor="#c8d0c8" />} wide />}
         {releaseDate && <DetailCard label="Release date" value={releaseDate} />}
         {releaseYear !== "—" && <DetailCard label="Release year" value={releaseYear} />}
         {genre && <DetailCard label="Genre" value={genre} />}
@@ -1683,9 +1666,9 @@ export default function PremiumChartsPage({
 
                         {isArtistsChart ? (
                           item.artist ? (
-                            <div style={{...styles.artistLinksWrap, fontFamily: F, ...(darkMode ? styles.artistButtonDark : null), cursor:"default"}}>
-                              {item.artist}
-                            </div>
+                            <span style={{...styles.artistLinksWrap, fontFamily: F}}>
+                              <ArtistCredit credit={item.artist} onOpenArtist={openArtist} isDark={darkMode} fontFamily={F} fontSize="13px" fontWeight={400} color="#59645D" darkColor="#8a9288" separatorColor="#777777" darkSeparatorColor="#c8d0c8" />
+                            </span>
                           ) : null
                         ) : <ArtistLinks item={item} />}
                         {certification && <CertificationTag cert={certification} compact style={{ marginTop: "6px" }} />}
@@ -1776,9 +1759,9 @@ export default function PremiumChartsPage({
 
                       {isArtistsChart ? (
                         item.artist ? (
-                          <div style={{...styles.artistLinksWrap, fontFamily: F, ...(darkMode ? styles.artistButtonDark : null), cursor:"default"}}>
-                            {item.artist}
-                          </div>
+                          <span style={{...styles.artistLinksWrap, fontFamily: F}}>
+                            <ArtistCredit credit={item.artist} onOpenArtist={openArtist} isDark={darkMode} fontFamily={F} fontSize="13px" fontWeight={400} color="#59645D" darkColor="#8a9288" separatorColor="#777777" darkSeparatorColor="#c8d0c8" />
+                          </span>
                         ) : null
                       ) : <ArtistLinks item={item} />}
                     </div>

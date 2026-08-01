@@ -1,3 +1,5 @@
+import ArtistCredit from "../components/ArtistCredit.jsx";
+
 export default function TrendingPage({ ctx }) {
   const {
     CertificationTag,
@@ -19,6 +21,7 @@ export default function TrendingPage({ ctx }) {
     latestMonth,
     latestMonthName,
     latestMonthShort,
+    openArtistDetails,
     openMomentumRelease,
     secLbl,
     toggleTrendingRow,
@@ -56,7 +59,7 @@ export default function TrendingPage({ ctx }) {
                         <div style={{fontFamily:SF,fontSize:isMobile?"23px":"28px",fontWeight:850,cursor:"pointer",lineHeight:1.08,color:isDark?"#F6F3EA":"#1A1A1A"}} onClick={()=>openMomentumRelease(hot)}>{hot.t}</div>
                         {getCertificationForEntry(hot, isSingles ? "single" : "album")&&<CertificationTag cert={getCertificationForEntry(hot, isSingles ? "single" : "album")} compact={false} />}
                       </div>
-                      <div style={{fontFamily:F,fontSize:isMobile?"15px":"15px",color:isDark?"#D7DBD7":"#69716B",marginTop:"6px",fontWeight:700}}>{hot.a}</div>
+                      <div style={{marginTop:"6px"}}><ArtistCredit credit={hot.a} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="15px" fontWeight={700} color="#69716B" darkColor="#D7DBD7" separatorColor="#69716B" darkSeparatorColor="#D7DBD7" /></div>
                       <div style={{display:"flex",gap:isMobile?"14px":"20px",marginTop:"12px",flexWrap:"wrap"}}>
                         <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"20px",fontWeight:900,color:"#2DB04A"}}>+{hot.places}</div><div style={{fontFamily:F,fontSize:"10px",letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#AEB6AE":"#7B857D",fontWeight:800}}>Places</div></div>
                         <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"20px",fontWeight:900,color:isDark?"#F6F3EA":"#1A1A1A"}}>#{hot.fromRank}</div><div style={{fontFamily:F,fontSize:"10px",letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#AEB6AE":"#7B857D",fontWeight:800}}>Previous Rank</div></div>
@@ -87,7 +90,7 @@ export default function TrendingPage({ ctx }) {
                       <button type="button" onClick={(event)=>{event.stopPropagation();toggleTrendingRow(rowKey);}} aria-label={expanded?"Hide rank movement details":"Show rank movement details"} aria-expanded={expanded} style={{width:"38px",height:"34px",border:"1px solid rgba(0,0,0,0.08)",borderRadius:"14px",background:"#FBFAF7",color:"#555",fontSize:"18px",fontWeight:900,lineHeight:1,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",padding:"0 0 2px"}}>{expanded?"-":"+"}</button>
                     </div>
                     {expanded&&<div style={{marginTop:"13px",padding:"13px",borderRadius:"13px",background:"#F7FBF7",border:"1px solid #2DB04A18"}}>
-                      <div style={{fontFamily:F,fontSize:"12px",fontWeight:750,color:"#59645D",lineHeight:1.5}}>{p.a}</div>
+                      <div style={{lineHeight:1.5}}><ArtistCredit credit={p.a} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="12px" fontWeight={750} color="#59645D" darkColor="#59645D" separatorColor="#59645D" darkSeparatorColor="#59645D" /></div>
                       <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:"8px",marginTop:"10px"}}>
                         {[{l:"Previous Rank",v:`#${p.fromRank}`},{l:`${latestMonthShort} Rank`,v:`#${p.decRank}`},{l:"Places Gained",v:`+${p.places}`},{l:"Rank Path",v:(p.trend||[]).map(v=>v?`#${v}`:"—").join(" → ")}].map(s=><div key={s.l} style={{padding:"9px 6px",background:isDark?"#151815":"#FFF",borderRadius:"10px",textAlign:"center",minWidth:0}}><span style={{display:"block",fontFamily:F,fontSize:"8.5px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#8F968F":"#7B857D"}}>{s.l}</span><strong style={{display:"block",marginTop:"4px",fontFamily:F,fontSize:"12px",overflowWrap:"anywhere",color:s.l==="Places Gained"?"#2DB04A":(isDark?"#F6F3EA":"#1A1A1A")}}>{s.v}</strong></div>)}
                       </div>
@@ -104,7 +107,7 @@ export default function TrendingPage({ ctx }) {
                         <button type="button" onClick={()=>openMomentumRelease(p)} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:isMobile?"15px":"15px",fontWeight:800,lineHeight:1.15,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",cursor:"pointer",textAlign:"left"}}>{p.t}</button>
                         {getCertificationForEntry(p, isSingles ? "single" : "album")&&<CertificationTag cert={getCertificationForEntry(p, isSingles ? "single" : "album")} compact />}
                       </div>
-                      <div style={{fontSize:isMobile?"12px":"12px",color:"#69716B",fontFamily:F,marginTop:"4px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.a} · #{p.fromRank} → #{p.decRank}{p.consecutive?" · climbing 2+ months":""}</div>
+                      <div style={{fontSize:isMobile?"12px":"12px",color:"#69716B",fontFamily:F,marginTop:"4px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}><ArtistCredit credit={p.a} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="12px" fontWeight={400} color="#69716B" darkColor="#69716B" separatorColor="#69716B" darkSeparatorColor="#69716B" /> · #{p.fromRank} → #{p.decRank}{p.consecutive?" · climbing 2+ months":""}</div>
                     </div>
                     <TrendBars trend={p.trend} compact height={30}/>
                     <div style={{textAlign:"right",fontFamily:F}}><span style={{fontSize:"15px",fontWeight:900,color:"#2DB04A"}}>+{p.places}</span><div style={{fontSize:"10px",color:"#7B857D",letterSpacing:"1px",textTransform:"uppercase",fontWeight:800}}>places</div></div>
@@ -128,7 +131,7 @@ export default function TrendingPage({ ctx }) {
                       <div style={{minWidth:0}}><strong style={{fontSize:"15px",lineHeight:1.2,overflowWrap:"anywhere"}}>{p.t}</strong><div style={{fontFamily:F,fontSize:"11.5px",fontWeight:850,color:"#1565C0",marginTop:"5px"}}>New at #{p.decRank}</div></div>
                       <button type="button" onClick={(event)=>{event.stopPropagation();toggleTrendingRow(rowKey);}} aria-label={expanded?"Hide debut details":"Show debut details"} aria-expanded={expanded} style={{width:"38px",height:"34px",border:"1px solid rgba(0,0,0,0.08)",borderRadius:"14px",background:"#FFF",color:"#555",fontSize:"18px",fontWeight:900,lineHeight:1,cursor:"pointer"}}>{expanded?"-":"+"}</button>
                     </div>
-                    {expanded&&<div style={{marginTop:"12px",padding:"12px",background:isDark?"#111411":"#FFF",borderRadius:"12px",fontFamily:F}}><div style={{fontSize:"12px",fontWeight:750,color:isDark?"#8F968F":"#59645D"}}>{p.a}</div><div style={{display:"flex",justifyContent:"space-between",gap:"12px",marginTop:"8px",fontSize:"12px",color:isDark?"#F6F3EA":"undefined"}}><span>First Combined appearance</span><strong style={{color:"#1565C0"}}>#{p.decRank}</strong></div><button type="button" onClick={()=>openMomentumRelease(p)} style={{marginTop:"10px",width:"100%",padding:"9px 10px",borderRadius:"11px",border:`1px solid ${isDark?"#1565C055":"#1565C033"}`,background:isDark?"#0A1218":"#F8FAFD",color:"#1565C0",fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",cursor:"pointer"}}>View Details</button></div>}
+                    {expanded&&<div style={{marginTop:"12px",padding:"12px",background:isDark?"#111411":"#FFF",borderRadius:"12px",fontFamily:F}}><div style={{fontSize:"12px",fontWeight:750}}><ArtistCredit credit={p.a} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="12px" fontWeight={750} color="#59645D" darkColor="#8F968F" separatorColor="#59645D" darkSeparatorColor="#8F968F" /></div><div style={{display:"flex",justifyContent:"space-between",gap:"12px",marginTop:"8px",fontSize:"12px",color:isDark?"#F6F3EA":"undefined"}}><span>First Combined appearance</span><strong style={{color:"#1565C0"}}>#{p.decRank}</strong></div><button type="button" onClick={()=>openMomentumRelease(p)} style={{marginTop:"10px",width:"100%",padding:"9px 10px",borderRadius:"11px",border:`1px solid ${isDark?"#1565C055":"#1565C033"}`,background:isDark?"#0A1218":"#F8FAFD",color:"#1565C0",fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",cursor:"pointer"}}>View Details</button></div>}
                   </div>;
                   return(
                   <div key={`${p.t}-${p.a}-${p.decRank}`} style={{padding:"14px",background:"#F5F8FC",borderRadius:"10px",border:"1px solid #1565C022",display:"grid",gridTemplateColumns:"1fr auto",gap:"8px",alignItems:"center"}}
@@ -138,7 +141,7 @@ export default function TrendingPage({ ctx }) {
                         <button type="button" onClick={()=>openMomentumRelease(p)} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:isMobile?"15px":"15px",fontWeight:800,lineHeight:1.15,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",cursor:"pointer",textAlign:"left"}}>{p.t}</button>
                         {getCertificationForEntry(p, isSingles ? "single" : "album")&&<CertificationTag cert={getCertificationForEntry(p, isSingles ? "single" : "album")} compact />}
                       </div>
-                      <div style={{fontSize:isMobile?"12px":"12px",color:"#69716B",fontFamily:F,marginTop:"4px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.a} · First Combined appearance</div>
+                      <div style={{fontSize:isMobile?"12px":"12px",color:"#69716B",fontFamily:F,marginTop:"4px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}><ArtistCredit credit={p.a} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="12px" fontWeight={400} color="#69716B" darkColor="#69716B" separatorColor="#69716B" darkSeparatorColor="#69716B" /> · First Combined appearance</div>
                     </div>
                     <span style={{fontFamily:F,fontSize:isMobile?"16px":"16px",fontWeight:900,color:"#1565C0"}}>#{p.decRank}</span>
                   </div>);

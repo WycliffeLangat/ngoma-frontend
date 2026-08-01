@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import PlatformPerformance from "../components/PlatformPerformance.jsx";
+import ArtistCredit from "../components/ArtistCredit.jsx";
 
 export default function ReleaseDetailPage({ ctx }) {
   const {
@@ -172,6 +173,7 @@ export default function ReleaseDetailPage({ ctx }) {
         ].filter(([, value]) => value !== null && value !== undefined && value !== "");
 
         const urlLabels = new Set(["Spotify URL", "Apple Music URL", "Boomplay URL", "Audiomack URL", "YouTube URL", "TikTok URL", "Shazam URL"]);
+        const artistCreditLabels = new Set(["Main artists", "Featuring", "Songwriters", "Producers"]);
 
         return (
         <div style={{padding:PAD,background:isDark?"#050505":accentRgb?`linear-gradient(160deg,rgba(${accentRgb},0.13) 0%,#ffffff 100%)`:"#ffffff",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden",transition:"background 0.6s ease"}}>
@@ -212,6 +214,8 @@ export default function ReleaseDetailPage({ ctx }) {
                   <span style={{fontFamily:F,fontSize:"11px",fontWeight:750,letterSpacing:"0.4px",color:isDark?"#8F968F":"#7B857D",textTransform:"uppercase"}}>{label}</span>
                   {urlLabels.has(label) ? (
                     <a href={value} target="_blank" rel="noopener noreferrer" onClick={(e)=>e.stopPropagation()} style={{fontFamily:F,fontSize:"14px",fontWeight:700,color:GOLD,textDecoration:"none",wordBreak:"break-all"}}>{value} ↗</a>
+                  ) : artistCreditLabels.has(label) ? (
+                    <ArtistCredit credit={value} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="14px" fontWeight={650} color="#1A1A1A" darkColor="#F6F3EA" separatorColor="#7B857D" darkSeparatorColor="#8F968F" />
                   ) : (
                     <span style={{fontFamily:F,fontSize:"14px",fontWeight:650,color:isDark?"#F6F3EA":"#1A1A1A",wordBreak:"break-word"}}>{value}</span>
                   )}

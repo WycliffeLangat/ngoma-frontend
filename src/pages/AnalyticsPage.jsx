@@ -1,5 +1,6 @@
 import { useState } from "react";
 import EntryThumb from "../components/EntryThumb.jsx";
+import ArtistCredit from "../components/ArtistCredit.jsx";
 import { useRotatingArt } from "../hooks/useRotatingArt.js";
 
 // A single Records & Milestones row — styled to match the Hall of Fame
@@ -78,7 +79,7 @@ function RecordRow({ r, expanded, onToggle, pool, ctx, theme }) {
                     <button type="button" onClick={(event) => { event.stopPropagation(); isArtists ? openArtistDetails(song.title) : openReleaseDetails(song, isSingles ? "single" : "album"); }} style={{ border: 0, background: "transparent", padding: 0, fontFamily: SF, fontSize: "12px", fontWeight: 850, color: textPrimary, cursor: "pointer", textAlign: "left" }}>{song.title}</button>
                     {certification && <CertificationTag cert={certification} compact />}
                   </span>
-                  <span style={{ display: "block", fontSize: "11px", color: textMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{song.artist} · {song.month}</span>
+                  <span style={{ display: "block", fontSize: "11px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}><ArtistCredit credit={song.artist} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="11px" fontWeight={400} color={textMuted} darkColor={textMuted} separatorColor={textMuted} darkSeparatorColor={textMuted} /> · {song.month}</span>
                 </span>
               </div>
             );
@@ -267,7 +268,7 @@ export default function AnalyticsPage({ ctx }) {
                         <button type="button" onClick={()=>openReleaseDetails(s,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15,cursor:"pointer",textAlign:"left"}}>{s.t}</button>
                         {certification&&<CertificationTag cert={certification} compact />}
                       </div>
-                      {!isArtists && <div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginTop:"3px"}}>{s.a}</div>}
+                      {!isArtists && <div style={{fontSize:TXT.cardMeta,marginTop:"3px"}}><ArtistCredit credit={s.a} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize={TXT.cardMeta} fontWeight={400} color="#69716B" darkColor="#69716B" separatorColor="#69716B" darkSeparatorColor="#69716B" /></div>}
                     </div>
                   </div>
                   <div style={{textAlign:"right",fontFamily:F,whiteSpace:"nowrap",flexShrink:0}}>
@@ -292,7 +293,7 @@ export default function AnalyticsPage({ ctx }) {
                         <button type="button" onClick={()=>openReleaseDetails(s,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15,cursor:"pointer",textAlign:"left"}}>{s.t}</button>
                         {certification&&<CertificationTag cert={certification} compact />}
                       </div>
-                      {!isArtists && <div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginTop:"3px"}}>{s.a}</div>}
+                      {!isArtists && <div style={{fontSize:TXT.cardMeta,marginTop:"3px"}}><ArtistCredit credit={s.a} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize={TXT.cardMeta} fontWeight={400} color="#69716B" darkColor="#69716B" separatorColor="#69716B" darkSeparatorColor="#69716B" /></div>}
                     </div>
                   </div>
                   <div style={{textAlign:"right",fontFamily:F,whiteSpace:"nowrap",flexShrink:0}}>
@@ -317,7 +318,7 @@ export default function AnalyticsPage({ ctx }) {
                         <button type="button" onClick={()=>openReleaseDetails(s,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15,cursor:"pointer",textAlign:"left"}}>{s.title}</button>
                         {certification&&<CertificationTag cert={certification} compact />}
                       </div>
-                      {!isArtists && <div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginTop:"3px"}}>{s.artist}</div>}
+                      {!isArtists && <div style={{fontSize:TXT.cardMeta,marginTop:"3px"}}><ArtistCredit credit={s.artist} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize={TXT.cardMeta} fontWeight={400} color="#69716B" darkColor="#69716B" separatorColor="#69716B" darkSeparatorColor="#69716B" /></div>}
                     </div>
                   </div>
                   <div style={{textAlign:"right",fontFamily:F,whiteSpace:"nowrap",flexShrink:0}}>
@@ -342,7 +343,7 @@ export default function AnalyticsPage({ ctx }) {
                         <button type="button" onClick={()=>openReleaseDetails(s,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15,cursor:"pointer",textAlign:"left"}}>{s.title}</button>
                         {certification&&<CertificationTag cert={certification} compact />}
                       </div>
-                      {!isArtists && <div style={{fontSize:TXT.cardMeta,color:"#69716B",fontFamily:F,marginTop:"3px"}}>{s.artist}</div>}
+                      {!isArtists && <div style={{fontSize:TXT.cardMeta,marginTop:"3px"}}><ArtistCredit credit={s.artist} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize={TXT.cardMeta} fontWeight={400} color="#69716B" darkColor="#69716B" separatorColor="#69716B" darkSeparatorColor="#69716B" /></div>}
                     </div>
                   </div>
                   <div style={{textAlign:"right",fontFamily:F,whiteSpace:"nowrap",flexShrink:0}}>
@@ -374,7 +375,7 @@ export default function AnalyticsPage({ ctx }) {
                       <button type="button" onClick={()=>openReleaseDetails(s,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,cursor:"pointer",textAlign:"left"}}>{s.t}</button>
                       {certification&&<CertificationTag cert={certification} compact />}
                     </div>
-                    {!isArtists && <div style={{fontSize:TXT.cardMeta,color:"#59645D",fontFamily:F,marginTop:"2px"}}>{s.a}</div>}
+                    {!isArtists && <div style={{fontSize:TXT.cardMeta,marginTop:"2px"}}><ArtistCredit credit={s.a} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize={TXT.cardMeta} fontWeight={400} color="#59645D" darkColor="#59645D" separatorColor="#59645D" darkSeparatorColor="#59645D" /></div>}
                   </div>
                 </div>
                 <div style={{display:"flex",gap:"3px",alignItems:"center",flexShrink:0}}>
@@ -399,7 +400,7 @@ export default function AnalyticsPage({ ctx }) {
                       <button type="button" onClick={()=>openReleaseDetails(s,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,cursor:"pointer",textAlign:"left"}}>{s.t}</button>
                       {certification&&<CertificationTag cert={certification} compact />}
                     </div>
-                    {!isArtists && <div style={{fontSize:TXT.cardMeta,color:"#59645D",fontFamily:F,marginTop:"2px"}}>{s.a}</div>}
+                    {!isArtists && <div style={{fontSize:TXT.cardMeta,marginTop:"2px"}}><ArtistCredit credit={s.a} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize={TXT.cardMeta} fontWeight={400} color="#59645D" darkColor="#59645D" separatorColor="#59645D" darkSeparatorColor="#59645D" /></div>}
                   </div>
                 </div>
                 <div style={{display:"inline-flex",alignItems:"center",gap:"4px",background:"rgba(0,137,123,0.10)",borderRadius:"6px",padding:"3px 8px",color:"#00897B",fontSize:"12px",fontWeight:900,flexShrink:0}}>{s.count}/{currentPlatformKeys.length}</div>
@@ -490,7 +491,7 @@ export default function AnalyticsPage({ ctx }) {
                         <EntryThumb item={entry} name={isArtists?entry.title:entry.artist} isArtist={isArtists} size={40} accent={platform.color} />
                         <div style={{minWidth:0}}>
                           <button type="button" onClick={()=>openReleaseDetails(entry,isArtists?"artist":(isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,textAlign:"left",fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:850,color:isDark?"#F6F3EA":"#050505",cursor:"pointer"}}>{entry.title}</button>
-                          <div style={{fontFamily:F,fontSize:TXT.cardMeta,color:isDark?"#AEB6AE":"#69716B"}}>{isArtists ? `#${entry.rank}` : `#${entry.rank} · ${entry.artist}`}</div>
+                          <div style={{fontFamily:F,fontSize:TXT.cardMeta,color:isDark?"#AEB6AE":"#69716B"}}>{isArtists ? `#${entry.rank}` : <>#{entry.rank} · <ArtistCredit credit={entry.artist} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize={TXT.cardMeta} fontWeight={400} color="#69716B" darkColor="#AEB6AE" separatorColor="#69716B" darkSeparatorColor="#AEB6AE" /></>}</div>
                         </div>
                       </div>
                     ))}
@@ -558,7 +559,7 @@ export default function AnalyticsPage({ ctx }) {
                         <div style={{minWidth:0}}>
                           <div style={{fontFamily:F,fontSize:"11px",letterSpacing:"1.5px",textTransform:"uppercase",color:GOLD,marginBottom:"4px"}}>{e.hofMonths.length > 1 ? `${e.hofMonths.length} months at #1` : e.month}</div>
                           <button type="button" onClick={()=>openReleaseDetails(e,e.type)} style={{display:"block",border:0,background:"transparent",padding:0,fontFamily:SF,fontWeight:800,fontSize:"15px",marginBottom:"2px",lineHeight:1.2,cursor:"pointer",textAlign:"left",color:isDark?"#F6F3EA":"inherit",maxWidth:"100%",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{e.title}</button>
-                          <div style={{fontFamily:F,fontSize:"13px",color:isDark?"#AEB6AE":"#69716B",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{isArtists?"Artist #1":e.artist}</div>
+                          <div style={{fontFamily:F,fontSize:"13px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{isArtists?"Artist #1":<ArtistCredit credit={e.artist} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="13px" fontWeight={400} color="#69716B" darkColor="#AEB6AE" separatorColor="#69716B" darkSeparatorColor="#AEB6AE" />}</div>
                           {e.hofMonths.length > 1 && (
                             <div title={e.hofMonths.join(", ")} style={{fontFamily:F,fontSize:"11px",color:isDark?"#8F968F":"#7B857D",marginTop:"3px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
                               {e.hofMonths.join(", ")}
@@ -587,7 +588,7 @@ export default function AnalyticsPage({ ctx }) {
                 <select value={cmpS1} onChange={e=>setCmpS1(e.target.value)} title={sp1?(isArtists?sp1.title:`${sp1.title} — ${sp1.artist}`):""} style={{width:"100%",minWidth:0,padding:isMobile?"11px 12px":"8px 10px",border:"1.5px solid "+GOLD+"55",borderRadius:"8px",background:"#FFF",fontSize:isMobile?"12px":"11px",fontFamily:F,fontWeight:700,cursor:"pointer",outline:"none",color:"#1F241F"}}>
                   {allTitles.map(t=><option key={t.key} value={t.key}>{t.title} — {t.artist}</option>)}
                 </select>
-                {isMobile&&sp1&&<div style={{marginTop:"7px",padding:"8px 10px",borderRadius:"9px",background:GOLD+"0B",fontFamily:F,lineHeight:1.35,color:"#1F241F",overflowWrap:"anywhere"}}><strong style={{display:"block",fontSize:"12px"}}>{sp1.title}</strong>{!isArtists && <span style={{display:"block",fontSize:"11px",color:"#59645D",marginTop:"2px"}}>{sp1.artist}</span>}</div>}
+                {isMobile&&sp1&&<div style={{marginTop:"7px",padding:"8px 10px",borderRadius:"9px",background:GOLD+"0B",fontFamily:F,lineHeight:1.35,color:"#1F241F",overflowWrap:"anywhere"}}><strong style={{display:"block",fontSize:"12px"}}>{sp1.title}</strong>{!isArtists && <span style={{display:"block",marginTop:"2px"}}><ArtistCredit credit={sp1.artist} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="11px" fontWeight={400} color="#59645D" darkColor="#59645D" separatorColor="#59645D" darkSeparatorColor="#59645D" /></span>}</div>}
               </div>
               <span style={{fontFamily:F,fontSize:"11px",color:isDark?"#5A625A":"#8A928B",fontWeight:900,textAlign:"center",letterSpacing:"1px",textTransform:"uppercase",background:isDark?"#1A1E1A":"#F0EDE6",padding:"5px 12px",borderRadius:"999px",whiteSpace:"nowrap",alignSelf:"center"}}>vs</span>
               <div style={{minWidth:0}}>
@@ -595,7 +596,7 @@ export default function AnalyticsPage({ ctx }) {
                 <select value={cmpS2} onChange={e=>setCmpS2(e.target.value)} title={sp2?(isArtists?sp2.title:`${sp2.title} — ${sp2.artist}`):""} style={{width:"100%",minWidth:0,padding:isMobile?"11px 12px":"8px 10px",border:"1.5px solid #1565C055",borderRadius:"8px",background:"#FFF",fontSize:isMobile?"12px":"11px",fontFamily:F,fontWeight:700,cursor:"pointer",outline:"none",color:"#1F241F"}}>
                   {allTitles.map(t=><option key={t.key} value={t.key}>{t.title} — {t.artist}</option>)}
                 </select>
-                {isMobile&&sp2&&<div style={{marginTop:"7px",padding:"8px 10px",borderRadius:"9px",background:"#1565C00B",fontFamily:F,lineHeight:1.35,color:"#1F241F",overflowWrap:"anywhere"}}><strong style={{display:"block",fontSize:"12px"}}>{sp2.title}</strong>{!isArtists && <span style={{display:"block",fontSize:"11px",color:"#59645D",marginTop:"2px"}}>{sp2.artist}</span>}</div>}
+                {isMobile&&sp2&&<div style={{marginTop:"7px",padding:"8px 10px",borderRadius:"9px",background:"#1565C00B",fontFamily:F,lineHeight:1.35,color:"#1F241F",overflowWrap:"anywhere"}}><strong style={{display:"block",fontSize:"12px"}}>{sp2.title}</strong>{!isArtists && <span style={{display:"block",marginTop:"2px"}}><ArtistCredit credit={sp2.artist} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="11px" fontWeight={400} color="#59645D" darkColor="#59645D" separatorColor="#59645D" darkSeparatorColor="#59645D" /></span>}</div>}
               </div>
             </div>
             {sp1&&sp2&&(<>
