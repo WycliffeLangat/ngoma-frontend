@@ -107,8 +107,8 @@ function normalizeYearEndRows(chartType, rawRows) {
 }
 
 function MovementChip({ movement, sameColor, scale }) {
-  const pad = `${Math.round(4 * scale)}px ${Math.round(10 * scale)}px`;
-  const fontSize = Math.round(13 * scale);
+  const pad = `${Math.round(5 * scale)}px ${Math.round(11 * scale)}px`;
+  const fontSize = Math.round(15 * scale);
   if (movement === "new") {
     return (
       <span style={{ padding: pad, borderRadius: 999, background: "#B8860B22", color: "#B8860B", fontSize, fontWeight: 900, letterSpacing: "0.4px" }}>
@@ -188,8 +188,8 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
             lineHeight: 1,
           }}
         >
-          <div style={{ fontSize: 44, fontWeight: 900, letterSpacing: "-1px" }}>{rows.length || 0}</div>
-          <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: "1px", textTransform: "uppercase", marginTop: 2 }}>Top</div>
+          <div style={{ fontSize: 50, fontWeight: 900, letterSpacing: "-1px" }}>{rows.length || 0}</div>
+          <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: "1px", textTransform: "uppercase", marginTop: 2 }}>Top</div>
         </div>
         <div style={{ minWidth: 0, flex: 1 }}>
           <div style={{ marginBottom: 10 }}>
@@ -197,7 +197,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
           </div>
           <div
             style={{
-              fontSize: typeLabel.length > 6 ? 34 : 40,
+              fontSize: typeLabel.length > 6 ? 38 : 46,
               fontWeight: 900,
               lineHeight: 1.05,
               letterSpacing: "-0.5px",
@@ -208,11 +208,11 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
             {typeLabel} in {countryLabel}
           </div>
           <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 17, fontWeight: 700, color: t.metaColor }}>
+            <span style={{ fontSize: 19, fontWeight: 700, color: t.metaColor }}>
               {period === "all-time" ? "All Time" : month}
             </span>
             <span style={{ width: 4, height: 4, borderRadius: "50%", background: t.metaColor, opacity: 0.6 }} />
-            <span style={{ fontSize: 13, fontWeight: 900, letterSpacing: "0.6px", textTransform: "uppercase", color: accentColor }}>
+            <span style={{ fontSize: 14, fontWeight: 900, letterSpacing: "0.6px", textTransform: "uppercase", color: accentColor }}>
               {period === "all-time" ? "All Time" : platformLabel(platform)}
             </span>
           </div>
@@ -233,20 +233,20 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
               <div
                 key={`${row.rank}-${row.title}-${i}`}
                 style={{
-                  minHeight: rowH,
+                  height: rowH,
+                  boxSizing: "border-box",
                   display: "flex",
                   alignItems: "center",
                   gap: Math.round(18 * Math.min(scale, 1.2)),
                   marginBottom: i === rows.length - 1 ? 0 : gap,
-                  paddingBottom: i === rows.length - 1 ? 0 : gap,
                   borderBottom: i === rows.length - 1 ? "none" : `1px solid ${t.dividerColor}`,
                 }}
               >
                 <span
                   style={{
-                    width: Math.round(40 * scale),
+                    width: Math.round(46 * scale),
                     flexShrink: 0,
-                    fontSize: Math.round(26 * scale),
+                    fontSize: Math.round(30 * scale),
                     fontWeight: 900,
                     color: row.rank <= 3 ? "#B8860B" : t.metaColor,
                     fontStyle: "italic",
@@ -289,7 +289,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div
                     style={{
-                      fontSize: Math.round(20 * scale),
+                      fontSize: Math.round(23 * scale),
                       fontWeight: 800,
                       color: t.titleColor,
                       whiteSpace: "nowrap",
@@ -302,7 +302,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
                   {row.subtitle && (
                     <div
                       style={{
-                        fontSize: Math.round(15 * scale),
+                        fontSize: Math.round(17 * scale),
                         fontWeight: 600,
                         color: t.metaColor,
                         marginTop: 3,
@@ -318,14 +318,14 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
                 <div
                   style={{
                     flexShrink: 0,
-                    width: Math.round(108 * Math.min(scale, 1.3)),
+                    width: Math.round(130 * Math.min(scale, 1.6)),
                     textAlign: "right",
                   }}
                 >
-                  <div style={{ fontSize: Math.round(17 * scale), fontWeight: 800, color: t.titleColor, whiteSpace: "nowrap" }}>
+                  <div style={{ fontSize: Math.round(19 * Math.min(scale, 1.3)), fontWeight: 800, color: t.titleColor, whiteSpace: "nowrap" }}>
                     Peak {peakText}
                   </div>
-                  <div style={{ fontSize: Math.round(12 * scale), fontWeight: 700, color: t.metaColor, marginTop: 2, whiteSpace: "nowrap" }}>
+                  <div style={{ fontSize: Math.round(14 * Math.min(scale, 1.3)), fontWeight: 700, color: t.metaColor, marginTop: 2, whiteSpace: "nowrap" }}>
                     {row.monthsOnChart} mo charted
                   </div>
                 </div>

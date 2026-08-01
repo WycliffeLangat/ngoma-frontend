@@ -118,7 +118,26 @@ function SpotlightContent({ item, type, theme = "dark" }) {
         <PosterBrandRow theme={theme} />
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: 34, position: "relative", zIndex: 1, padding: `0 ${padX}px` }}>
+      {/* Identity block and stat grid are two children of one space-between
+          flex column spanning the card's middle, so short content (no
+          subtitle, no certification) doesn't leave a big dead gap — the
+          leftover room distributes between the two instead. */}
+      <div
+        style={{
+          position: "absolute",
+          top: 122,
+          bottom: 74,
+          left: 0,
+          right: 0,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: `8px ${padX}px`,
+          zIndex: 1,
+        }}
+      >
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
         <div style={{ position: "relative", flexShrink: 0 }}>
           {item.image ? (
             <img
@@ -162,7 +181,7 @@ function SpotlightContent({ item, type, theme = "dark" }) {
                 borderRadius: 999,
                 background: certColor,
                 color: readableInk(certColor),
-                fontSize: 15,
+                fontSize: 17,
                 fontWeight: 900,
                 letterSpacing: "2px",
                 textTransform: "uppercase",
@@ -178,7 +197,7 @@ function SpotlightContent({ item, type, theme = "dark" }) {
         <div
           style={{
             marginTop: topCert ? 48 : 32,
-            fontSize: item.title.length > 22 ? 36 : item.title.length > 14 ? 44 : 50,
+            fontSize: item.title.length > 22 ? 40 : item.title.length > 14 ? 48 : 56,
             fontWeight: 900,
             lineHeight: 1.12,
             letterSpacing: "-1px",
@@ -194,28 +213,30 @@ function SpotlightContent({ item, type, theme = "dark" }) {
           {item.title}
         </div>
         {item.subtitle && (
-          <div style={{ marginTop: 12, fontSize: 24, fontWeight: 700, color: t.metaColor, textAlign: "center" }}>
+          <div style={{ marginTop: 12, fontSize: 26, fontWeight: 700, color: t.metaColor, textAlign: "center" }}>
             {item.subtitle}
           </div>
         )}
-      </div>
+        </div>
 
-      <div style={{ position: "absolute", top: 1050, left: padX, right: padX, borderTop: `2px solid ${t.dividerColor}`, zIndex: 1 }} />
-
-      <div style={{ position: "absolute", top: 1088, left: padX, right: padX, display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, zIndex: 1 }}>
-        {[
-          ["Peak Rank", item.peakRank ? `#${item.peakRank}` : "—"],
-          ["Total Points", item.points ? item.points.toLocaleString() : "0"],
-          ["Months Charted", item.monthsOnChart],
-          [item.secondaryStatLabel, item.secondaryStatValue],
-        ].map(([label, value]) => (
-          <div key={label} style={{ background: tileBg, border: `1px solid ${tileBorder}`, borderRadius: 14, padding: "18px 8px", textAlign: "center" }}>
-            <div style={{ fontSize: 27, fontWeight: 900, color: "#B8860B" }}>{value}</div>
-            <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.5px", textTransform: "uppercase", color: t.metaColor, marginTop: 5 }}>
-              {label}
-            </div>
+        <div style={{ width: "100%" }}>
+          <div style={{ borderTop: `2px solid ${t.dividerColor}`, marginBottom: 26 }} />
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+            {[
+              ["Peak Rank", item.peakRank ? `#${item.peakRank}` : "—"],
+              ["Total Points", item.points ? item.points.toLocaleString() : "0"],
+              ["Months Charted", item.monthsOnChart],
+              [item.secondaryStatLabel, item.secondaryStatValue],
+            ].map(([label, value]) => (
+              <div key={label} style={{ background: tileBg, border: `1px solid ${tileBorder}`, borderRadius: 14, padding: "18px 8px", textAlign: "center" }}>
+                <div style={{ fontSize: 30, fontWeight: 900, color: "#B8860B" }}>{value}</div>
+                <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: "0.5px", textTransform: "uppercase", color: t.metaColor, marginTop: 5 }}>
+                  {label}
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
 
       <PosterFooter theme={theme} padX={padX} />

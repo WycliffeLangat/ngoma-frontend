@@ -16,6 +16,8 @@ const ChartEntriesPage    = lazy(() => import("./pages/ChartEntriesPage"));
 const YearEndPage         = lazy(() => import("./pages/YearEndPage"));
 const PosterGeneratorPage = lazy(() => import("./pages/PosterGeneratorPage"));
 const SpotlightGeneratorPage = lazy(() => import("./pages/SpotlightGeneratorPage"));
+const NewsCardPage        = lazy(() => import("./pages/NewsCardPage"));
+const AnalyticsRecordPage = lazy(() => import("./pages/AnalyticsRecordPage"));
 const HelpCenterPage      = lazy(() => import("./pages/HelpCenterPage"));
 const NAV_GROUPS = [
   {
@@ -32,6 +34,7 @@ const NAV_GROUPS = [
       ["year-end", "Year-end charts"],
       ["poster", "Social poster generator"],
       ["spotlight", "Spotlight card generator"],
+      ["analytics-record", "Analytics record cards"],
     ],
   },
   {
@@ -51,6 +54,7 @@ const NAV_GROUPS = [
     permission: "can_manage_news",
     items: [
       ["news", "News"],
+      ["news-card", "News card generator"],
       ["page-content", "Page content"],
       ["media", "Media library"],
     ],
@@ -136,6 +140,8 @@ function renderPage(page, user, searchJump, onNavigate) {
   if (page === "year-end")        return <YearEndPage onNavigate={onNavigate} />;
   if (page === "poster")          return <PosterGeneratorPage />;
   if (page === "spotlight")       return <SpotlightGeneratorPage />;
+  if (page === "news-card")       return <NewsCardPage />;
+  if (page === "analytics-record")return <AnalyticsRecordPage />;
   if (page === "uploads")         return <UploadsPage user={user} searchJump={searchJump} />;
   if (page === "duplicate-review")return <DuplicateReviewPage user={user} />;
   if (page === "help")            return <HelpCenterPage />;
