@@ -13,11 +13,11 @@ function mediaCaption(item) {
 }
 
 function artistName(artist = {}) {
-  return artist.public_name || artist.display_name || artist.name || artist.artist_name || "";
+  return artist?.public_name || artist?.display_name || artist?.name || artist?.artist_name || "";
 }
 
 function imageFromArtist(artist = {}) {
-  return artist.image || artist.image_url || artist.photo || artist.cover_image || "";
+  return artist?.image || artist?.image_url || artist?.photo || artist?.cover_image || "";
 }
 
 function findRelatedArtist(article = {}, publicArtists = []) {
