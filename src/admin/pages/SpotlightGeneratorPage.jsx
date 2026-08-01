@@ -1,6 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { cmsApi, getResults, qs } from "../api.js";
-import { POSTER_W, POSTER_H, PREVIEW_W, PREVIEW_SCALE, readableInk, exportNodeAsPng } from "../utils/exportPoster.js";
+import {
+  POSTER_W,
+  POSTER_H,
+  PREVIEW_W,
+  PREVIEW_SCALE,
+  POSTER_FONT_FAMILY,
+  POSTER_THEMES,
+  PosterBrandRow,
+  PosterFooter,
+  readableInk,
+  exportNodeAsPng,
+} from "../utils/exportPoster.jsx";
 
 const TYPES = [
   ["songs", "Song"],
@@ -45,19 +56,22 @@ function normalizeCandidate(type, row) {
   };
 }
 
-function SpotlightContent({ item, type }) {
+function SpotlightContent({ item, type, theme = "dark" }) {
+  const t = POSTER_THEMES[theme] || POSTER_THEMES.dark;
+  const padX = 64;
+
   if (!item) {
     return (
       <div
         style={{
           width: POSTER_W,
           height: POSTER_H,
-          background: "#050505",
+          background: t.pageBg,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "#5A625A",
-          fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+          color: t.emptyColor,
+          fontFamily: POSTER_FONT_FAMILY,
           fontSize: 22,
           fontWeight: 700,
           textAlign: "center",
@@ -71,7 +85,9 @@ function SpotlightContent({ item, type }) {
 
   const topCert = CERT_ORDER.find((level) => item.certifications.includes(level)) || null;
   const certColor = topCert ? CERT_COLORS[topCert] : "#B8860B";
-  const artSize = 620;
+  const artSize = 560;
+  const tileBg = theme === "light" ? "rgba(0,0,0,0.045)" : "rgba(255,255,255,0.055)";
+  const tileBorder = theme === "light" ? "rgba(0,0,0,0.14)" : "rgba(255,255,255,0.16)";
 
   return (
     <div
@@ -79,9 +95,9 @@ function SpotlightContent({ item, type }) {
         width: POSTER_W,
         height: POSTER_H,
         boxSizing: "border-box",
-        background: "linear-gradient(160deg, #0b0b0b 0%, #050505 55%, #10130f 100%)",
-        fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-        color: "#F6F3EA",
+        background: t.pageBg,
+        fontFamily: POSTER_FONT_FAMILY,
+        color: t.titleColor,
         position: "relative",
         overflow: "hidden",
       }}
@@ -98,14 +114,11 @@ function SpotlightContent({ item, type }) {
         }}
       />
 
-      <div style={{ padding: "48px 64px 0", position: "relative", zIndex: 1, display: "flex", alignItems: "center", gap: 10 }}>
-        <div style={{ width: 28, height: 3, background: "#B8860B", borderRadius: 2 }} />
-        <span style={{ fontSize: 15, fontWeight: 800, letterSpacing: "3px", textTransform: "uppercase", color: "#B8860B" }}>
-          Ngoma Charts
-        </span>
+      <div style={{ padding: `72px ${padX}px 0`, position: "relative", zIndex: 1 }}>
+        <PosterBrandRow theme={theme} />
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: 36, position: "relative", zIndex: 1, padding: "0 64px" }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: 34, position: "relative", zIndex: 1, padding: `0 ${padX}px` }}>
         <div style={{ position: "relative", flexShrink: 0 }}>
           {item.image ? (
             <img
@@ -114,9 +127,9 @@ function SpotlightContent({ item, type }) {
               style={{
                 width: artSize,
                 height: artSize,
-                borderRadius: item.isArtist ? artSize / 2 : 28,
+                borderRadius: item.isArtist ? artSize / 2 : 26,
                 objectFit: "cover",
-                boxShadow: "0 30px 80px rgba(0,0,0,0.55)",
+                boxShadow: "0 30px 80px rgba(0,0,0,0.45)",
               }}
             />
           ) : (
@@ -124,15 +137,15 @@ function SpotlightContent({ item, type }) {
               style={{
                 width: artSize,
                 height: artSize,
-                borderRadius: item.isArtist ? artSize / 2 : 28,
-                background: `linear-gradient(135deg, ${certColor}CC, #151815)`,
+                borderRadius: item.isArtist ? artSize / 2 : 26,
+                background: `linear-gradient(135deg, ${certColor}CC, ${t.rowBg})`,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: 120,
+                fontSize: 108,
                 fontWeight: 900,
-                color: "#fff",
-                boxShadow: "0 30px 80px rgba(0,0,0,0.55)",
+                color: t.titleColor,
+                boxShadow: "0 30px 80px rgba(0,0,0,0.45)",
               }}
             >
               {(item.title || "NG").slice(0, 2).toUpperCase()}
@@ -142,7 +155,7 @@ function SpotlightContent({ item, type }) {
             <div
               style={{
                 position: "absolute",
-                bottom: -14,
+                bottom: -16,
                 left: "50%",
                 transform: "translateX(-50%)",
                 padding: "9px 24px",
@@ -164,12 +177,12 @@ function SpotlightContent({ item, type }) {
 
         <div
           style={{
-            marginTop: topCert ? 46 : 30,
-            fontSize: item.title.length > 22 ? 38 : item.title.length > 14 ? 46 : 52,
+            marginTop: topCert ? 48 : 32,
+            fontSize: item.title.length > 22 ? 36 : item.title.length > 14 ? 44 : 50,
             fontWeight: 900,
-            lineHeight: 1.1,
+            lineHeight: 1.12,
             letterSpacing: "-1px",
-            color: "#FFFFFF",
+            color: t.titleColor,
             textAlign: "center",
             maxWidth: 920,
             display: "-webkit-box",
@@ -181,45 +194,31 @@ function SpotlightContent({ item, type }) {
           {item.title}
         </div>
         {item.subtitle && (
-          <div style={{ marginTop: 10, fontSize: 26, fontWeight: 700, color: "#AEB6AE", textAlign: "center" }}>
+          <div style={{ marginTop: 12, fontSize: 24, fontWeight: 700, color: t.metaColor, textAlign: "center" }}>
             {item.subtitle}
           </div>
         )}
       </div>
 
-      <div style={{ position: "absolute", bottom: 130, left: 64, right: 64, display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, zIndex: 1 }}>
+      <div style={{ position: "absolute", top: 1050, left: padX, right: padX, borderTop: `2px solid ${t.dividerColor}`, zIndex: 1 }} />
+
+      <div style={{ position: "absolute", top: 1088, left: padX, right: padX, display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, zIndex: 1 }}>
         {[
           ["Peak Rank", item.peakRank ? `#${item.peakRank}` : "—"],
           ["Total Points", item.points ? item.points.toLocaleString() : "0"],
           ["Months Charted", item.monthsOnChart],
           [item.secondaryStatLabel, item.secondaryStatValue],
         ].map(([label, value]) => (
-          <div key={label} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "16px 8px", textAlign: "center" }}>
-            <div style={{ fontSize: 26, fontWeight: 900, color: "#B8860B" }}>{value}</div>
-            <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.6px", textTransform: "uppercase", color: "#8F968F", marginTop: 4 }}>
+          <div key={label} style={{ background: tileBg, border: `1px solid ${tileBorder}`, borderRadius: 14, padding: "18px 8px", textAlign: "center" }}>
+            <div style={{ fontSize: 27, fontWeight: 900, color: "#B8860B" }}>{value}</div>
+            <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.5px", textTransform: "uppercase", color: t.metaColor, marginTop: 5 }}>
               {label}
             </div>
           </div>
         ))}
       </div>
 
-      <div
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: 74,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "0 64px",
-          borderTop: "1px solid rgba(255,255,255,0.08)",
-        }}
-      >
-        <span style={{ fontSize: 14, fontWeight: 700, color: "#8F968F" }}>ngomacharts.com</span>
-        <span style={{ fontSize: 12, fontWeight: 600, color: "#5A625A" }}>Kenya's official multi-platform music charts</span>
-      </div>
+      <PosterFooter theme={theme} padX={padX} />
     </div>
   );
 }
@@ -233,6 +232,7 @@ export default function SpotlightGeneratorPage() {
   const [error, setError] = useState("");
   const [exportError, setExportError] = useState("");
   const [exporting, setExporting] = useState(false);
+  const [theme, setTheme] = useState("dark");
   const posterRef = useRef(null);
 
   useEffect(() => {
@@ -266,7 +266,7 @@ export default function SpotlightGeneratorPage() {
     setExportError("");
     try {
       const safeTitle = String(selected.title).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-      await exportNodeAsPng(posterRef.current, `ngoma-spotlight-${type}-${safeTitle || selected.id}.png`);
+      await exportNodeAsPng(posterRef.current, `ngoma-spotlight-${type}-${safeTitle || selected.id}-${theme}.png`);
     } catch {
       setExportError("Couldn't generate the image — try again.");
     } finally {
@@ -351,6 +351,22 @@ export default function SpotlightGeneratorPage() {
                 ))}
               </div>
             )}
+
+            <label style={{ display: "grid", gap: 6, fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--cms-muted)" }}>
+              Card theme
+              <div className="cms-pill-bar" style={{ marginBottom: 0 }}>
+                {[["dark", "Dark"], ["light", "Light"]].map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className={`cms-btn small ${theme === value ? "" : "light"}`}
+                    onClick={() => setTheme(value)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </label>
           </div>
 
           <button
@@ -379,7 +395,7 @@ export default function SpotlightGeneratorPage() {
             }}
           >
             <div style={{ width: POSTER_W, height: POSTER_H, transform: `scale(${PREVIEW_SCALE})`, transformOrigin: "top left" }}>
-              <SpotlightContent item={selected} type={type} />
+              <SpotlightContent item={selected} type={type} theme={theme} />
             </div>
           </div>
         </div>
@@ -388,7 +404,7 @@ export default function SpotlightGeneratorPage() {
             this is rendered separately from the scaled-down visible preview. */}
         <div style={{ position: "fixed", top: 0, left: -99999, pointerEvents: "none" }} aria-hidden="true">
           <div ref={posterRef}>
-            <SpotlightContent item={selected} type={type} />
+            <SpotlightContent item={selected} type={type} theme={theme} />
           </div>
         </div>
       </div>

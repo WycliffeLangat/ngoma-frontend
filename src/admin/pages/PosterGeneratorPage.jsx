@@ -8,7 +8,19 @@ import {
   historyKeyForRow,
 } from "../../utils/publicChartMirror.js";
 import { resolveMediaUrl } from "../../api/config.js";
-import { POSTER_W, POSTER_H, PREVIEW_W, PREVIEW_SCALE, readableInk, exportNodeAsPng } from "../utils/exportPoster.js";
+import {
+  POSTER_W,
+  POSTER_H,
+  PREVIEW_W,
+  PREVIEW_SCALE,
+  POSTER_FONT_FAMILY,
+  POSTER_THEMES,
+  BrandMark,
+  PosterBrandRow,
+  PosterFooter,
+  readableInk,
+  exportNodeAsPng,
+} from "../utils/exportPoster.jsx";
 
 const CHART_TYPES = [
   ["singles", "Songs"],
@@ -94,52 +106,6 @@ function normalizeYearEndRows(chartType, rawRows) {
   }));
 }
 
-// Dark mirrors the public app's own dark theme; light mirrors its light
-// theme. rowBg is only used as a neutral fill for artwork placeholder tiles
-// (rows themselves sit directly on the page background, no card fill).
-const POSTER_THEMES = {
-  dark: {
-    pageBg: "linear-gradient(160deg, #0b0b0b 0%, #050505 55%, #10130f 100%)",
-    wordmarkBarColor: "#F6F3EA",
-    titleColor: "#FFFFFF",
-    metaColor: "#AEB6AE",
-    dividerColor: "rgba(255,255,255,0.14)",
-    rowBg: "#151815",
-    sameColor: "#5A625A",
-    footerBorder: "rgba(255,255,255,0.08)",
-    footerPrimary: "#8F968F",
-    footerSecondary: "#5A625A",
-    emptyColor: "#5A625A",
-  },
-  light: {
-    pageBg: "linear-gradient(160deg, #ffffff 0%, #faf8f3 55%, #f2eee3 100%)",
-    wordmarkBarColor: "#1A1A1A",
-    titleColor: "#0C0C0C",
-    metaColor: "#69716B",
-    dividerColor: "rgba(0,0,0,0.12)",
-    rowBg: "#EFECE3",
-    sameColor: "#8A928B",
-    footerBorder: "rgba(0,0,0,0.08)",
-    footerPrimary: "#4E5851",
-    footerSecondary: "#8A928B",
-    emptyColor: "#8A928B",
-  },
-};
-
-// Small ascending-bars mark — the exact icon used in the public site's own
-// header (src/NgomaCharts.jsx), reused here since there's no logo image file
-// to embed.
-function BrandMark({ size = 22, barColor }) {
-  return (
-    <svg width={size} height={size * (24 / 22)} viewBox="0 0 22 24" style={{ flexShrink: 0 }}>
-      <rect x="0" y="15" width="3.5" height="9" fill={barColor} rx="0.5" />
-      <rect x="5.5" y="10" width="3.5" height="14" fill={barColor} rx="0.5" />
-      <rect x="11" y="5" width="3.5" height="19" fill="#B8860B" rx="0.5" />
-      <rect x="16.5" y="0" width="3.5" height="24" fill={barColor} rx="0.5" />
-    </svg>
-  );
-}
-
 function MovementChip({ movement, sameColor, scale }) {
   const pad = `${Math.round(4 * scale)}px ${Math.round(10 * scale)}px`;
   const fontSize = Math.round(13 * scale);
@@ -169,17 +135,18 @@ function MovementChip({ movement, sameColor, scale }) {
 // design rather than a recreation of any particular reference layout.
 function PosterContent({ chartType, period, platform, month, rows, accentColor, countryLabel, theme = "dark" }) {
   const t = POSTER_THEMES[theme] || POSTER_THEMES.dark;
-  const headerH = 268;
+  const headerH = 328;
+  const dividerY = 284;
   const footerH = 74;
   const padX = 56;
   const listH = POSTER_H - headerH - footerH;
-  const gap = 10;
+  const gap = 18;
   const n = Math.max(rows.length, 1);
   const rowH = (listH - gap * (n - 1)) / n;
   // Rows scale up when there are fewer entries (more room per row) and down
   // when there are more, clamped so text never goes illegibly small or
   // comically large. 96px is roughly a Top-10 row's natural height.
-  const scale = Math.min(1.9, Math.max(0.6, rowH / 96));
+  const scale = Math.min(1.9, Math.max(0.7, rowH / 96));
   const isArtists = chartType === "artists";
   const typeLabel = (CHART_TYPES.find(([key]) => key === chartType)?.[1] || "Chart").toUpperCase();
   const artSize = Math.round(Math.min(88, Math.max(40, rowH - 18)));
@@ -191,7 +158,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
         height: POSTER_H,
         boxSizing: "border-box",
         background: t.pageBg,
-        fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+        fontFamily: POSTER_FONT_FAMILY,
         color: t.titleColor,
         position: "relative",
         overflow: "hidden",
@@ -209,7 +176,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
         }}
       />
 
-      <div style={{ padding: `44px ${padX}px 0`, position: "relative", zIndex: 1, display: "flex", alignItems: "flex-start", gap: 22 }}>
+      <div style={{ padding: `72px ${padX}px 0`, position: "relative", zIndex: 1, display: "flex", alignItems: "flex-start", gap: 22 }}>
         <div
           style={{
             flexShrink: 0,
@@ -225,11 +192,8 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
           <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: "1px", textTransform: "uppercase", marginTop: 2 }}>Top</div>
         </div>
         <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 10 }}>
-            <BrandMark size={20} barColor={t.wordmarkBarColor} />
-            <span style={{ fontSize: 14, fontWeight: 900, letterSpacing: "2.6px", textTransform: "uppercase", color: "#B8860B" }}>
-              Ngoma Charts
-            </span>
+          <div style={{ marginBottom: 10 }}>
+            <PosterBrandRow theme={theme} />
           </div>
           <div
             style={{
@@ -255,6 +219,8 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
         </div>
       </div>
 
+      <div style={{ position: "absolute", top: dividerY, left: padX, right: padX, borderTop: `2px solid ${t.dividerColor}`, zIndex: 1 }} />
+
       <div style={{ position: "absolute", top: headerH, left: padX, right: padX, zIndex: 1 }}>
         {rows.length === 0 ? (
           <div style={{ padding: "40px 0", textAlign: "center", color: t.emptyColor, fontSize: 18, fontWeight: 700 }}>
@@ -270,7 +236,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
                   minHeight: rowH,
                   display: "flex",
                   alignItems: "center",
-                  gap: Math.round(14 * Math.min(scale, 1.2)),
+                  gap: Math.round(18 * Math.min(scale, 1.2)),
                   marginBottom: i === rows.length - 1 ? 0 : gap,
                   paddingBottom: i === rows.length - 1 ? 0 : gap,
                   borderBottom: i === rows.length - 1 ? "none" : `1px solid ${t.dividerColor}`,
@@ -339,7 +305,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
                         fontSize: Math.round(15 * scale),
                         fontWeight: 600,
                         color: t.metaColor,
-                        marginTop: 1,
+                        marginTop: 3,
                         whiteSpace: "nowrap",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
@@ -348,18 +314,19 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
                       {row.subtitle}
                     </div>
                   )}
-                  <div
-                    style={{
-                      fontSize: Math.round(12 * scale),
-                      fontWeight: 800,
-                      color: t.metaColor,
-                      marginTop: Math.round(6 * scale),
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {row.monthsOnChart} mo · Peak {peakText}
+                </div>
+                <div
+                  style={{
+                    flexShrink: 0,
+                    width: Math.round(108 * Math.min(scale, 1.3)),
+                    textAlign: "right",
+                  }}
+                >
+                  <div style={{ fontSize: Math.round(17 * scale), fontWeight: 800, color: t.titleColor, whiteSpace: "nowrap" }}>
+                    Peak {peakText}
+                  </div>
+                  <div style={{ fontSize: Math.round(12 * scale), fontWeight: 700, color: t.metaColor, marginTop: 2, whiteSpace: "nowrap" }}>
+                    {row.monthsOnChart} mo charted
                   </div>
                 </div>
                 {row.movement !== null && (
@@ -373,23 +340,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
         )}
       </div>
 
-      <div
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: footerH,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: `0 ${padX}px`,
-          borderTop: `1px solid ${t.footerBorder}`,
-        }}
-      >
-        <span style={{ fontSize: 14, fontWeight: 700, color: t.footerPrimary }}>ngomacharts.com</span>
-        <span style={{ fontSize: 12, fontWeight: 600, color: t.footerSecondary }}>Kenya's official multi-platform music charts</span>
-      </div>
+      <PosterFooter theme={theme} height={footerH} padX={padX} />
     </div>
   );
 }
