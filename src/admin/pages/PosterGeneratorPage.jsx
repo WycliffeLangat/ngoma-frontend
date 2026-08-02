@@ -15,6 +15,7 @@ import {
   PREVIEW_SCALE,
   POSTER_FONT_FAMILY,
   POSTER_THEMES,
+  TITLE_GAP_FROM_LOGO,
   BrandMark,
   PosterBrandRow,
   PosterFooter,
@@ -142,8 +143,11 @@ function MovementChip({ movement, sameColor, scale }) {
 // design rather than a recreation of any particular reference layout.
 function PosterContent({ chartType, period, platform, month, rows, accentColor, countryLabel, theme = "dark" }) {
   const t = POSTER_THEMES[theme] || POSTER_THEMES.dark;
-  const headerH = 328;
-  const dividerY = 284;
+  // +37px vs. the original 39px title padding, to keep the same breathing
+  // room below the (now taller) title zone after widening its top gap to
+  // TITLE_GAP_FROM_LOGO.
+  const headerH = 365;
+  const dividerY = 321;
   const footerH = 74;
   const padX = 56;
   const listH = POSTER_H - headerH - footerH;
@@ -188,7 +192,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
         <PosterBrandRow theme={theme} />
       </div>
 
-      <div style={{ padding: `39px ${padX}px 0`, position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+      <div style={{ padding: `${TITLE_GAP_FROM_LOGO}px ${padX}px 0`, position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
         <div
           style={{
             fontSize: headerTitle.length > 26 ? 44 : headerTitle.length > 18 ? 52 : 60,

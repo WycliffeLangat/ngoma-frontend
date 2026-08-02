@@ -6,6 +6,7 @@ import {
   protectedArtistCreditNames,
 } from "./chartHelpers.js";
 import {
+  COUNTRY_ACCENTS,
   KENYA_COUNTRY_CODE,
   africaCountryCodesForRegion,
   africaCountryForCode,
@@ -426,4 +427,292 @@ export function chartHistoryForMonth(payload, type, month, platform = "Combined"
 
 export function historyKeyForRow(type, row) {
   return historyIdentity(type, row);
+}
+
+// ── Platform labels/colors — shared across every Analytics-section poster ──
+
+export const PLATFORM_COLORS = {
+  COMBINED: "#B8860B",
+  KENYAN: "#006600",
+  SPOTIFY: "#1DB954",
+  "APPLE MUSIC": "#FC3C44",
+  AUDIOMACK: "#F68B1F",
+  BOOMPLAY: "#00B4B4",
+  YOUTUBE: "#FF0000",
+  SHAZAM: "#0088FF",
+};
+export const PLATFORM_LABELS = {
+  COMBINED: "Combined",
+  KENYAN: "Kenyan",
+  SPOTIFY: "Spotify",
+  "APPLE MUSIC": "Apple Music",
+  AUDIOMACK: "Audiomack",
+  BOOMPLAY: "Boomplay",
+  YOUTUBE: "YouTube",
+  SHAZAM: "Shazam",
+};
+export function platformLabel(name) {
+  return PLATFORM_LABELS[String(name || "").trim().toUpperCase()] || name;
+}
+export function platformColorFor(name) {
+  return PLATFORM_COLORS[String(name || "").trim().toUpperCase()] || "#888888";
+}
+
+// Real per-platform breakdown only exists for singles/albums — the backend's
+// `full.artists.platforms` is always empty, so platform-scoped Analytics
+// sections (Cross-Platform Reach/Hits, Platform Totals, Platform Exclusives)
+// simply don't apply to the Artists chart type and return empty results.
+export function platformKeysForChart(payload, chartType) {
+  if (chartType === "artists") return [];
+  return Object.keys(payload?.full?.[chartType]?.platforms || {});
+}
+
+// ── Cross-Platform Reach / Hits ─────────────────────────────────────────────
+
+// The backend already stamps each Combined row with `pl: "X/Y"` (platforms
+// charted / platforms tracked that month) — reuse that authoritative count
+// instead of re-deriving it by cross-referencing every platform's Top 50.
+// "Cross-Platform Hits" is just this same list filtered to `count === total`
+// at the call site (see AnalyticsPage.jsx's `xHitsRows`).
+export function buildCrossPlatformRows(payload, chartType, month, platform = "Combined") {
+  if (chartType === "artists") return [];
+  return publicChartRows(payload, chartType, month, platform)
+    .map((row) => {
+      const [countStr, totalStr] = String(row.pl || "").split("/");
+      const count = Number(countStr) || 0;
+      const total = Number(totalStr) || platformKeysForChart(payload, chartType).length;
+      return { ...row, count, platformTotal: total };
+    })
+    .filter((row) => row.count > 0)
+    .sort((a, b) => b.count - a.count || (Number(b.p ?? b.pts) || 0) - (Number(a.p ?? a.pts) || 0));
+}
+
+// ── Platform Totals ──────────────────────────────────────────────────────
+
+export function buildPlatformTotals(payload, chartType, month) {
+  if (chartType === "artists") return [];
+  const combinedRows = publicChartRows(payload, chartType, month, "Combined");
+  return platformKeysForChart(payload, chartType)
+    .map((name) => {
+      const platIndex = new Set(
+        platformRows(payload?.full, chartType, name, month).map((row) => historyIdentity(chartType, row))
+      );
+      const entries = combinedRows.filter((row) => platIndex.has(historyIdentity(chartType, row))).length;
+      return { platform: platformLabel(name), entries, color: platformColorFor(name) };
+    })
+    .filter((entry) => entry.entries > 0);
+}
+
+// ── Platform Exclusives (platform-unique entries) ───────────────────────────
+
+export function buildUniquePlatformEntries(payload, chartType, month) {
+  if (chartType === "artists") return [];
+  const names = platformKeysForChart(payload, chartType);
+  const rowsByPlatform = new Map(names.map((name) => [name, platformRows(payload?.full, chartType, name, month)]));
+  const indexByPlatform = new Map(
+    names.map((name) => [name, new Set((rowsByPlatform.get(name) || []).map((row) => historyIdentity(chartType, row)))])
+  );
+  return names.map((name) => {
+    const otherIndexes = names.filter((other) => other !== name).map((other) => indexByPlatform.get(other));
+    const uniqueEntries = (rowsByPlatform.get(name) || []).filter(
+      (row) => !otherIndexes.some((index) => index.has(historyIdentity(chartType, row)))
+    );
+    return {
+      platform: name,
+      label: platformLabel(name),
+      color: platformColorFor(name),
+      count: uniqueEntries.length,
+      entries: uniqueEntries.slice(0, 6),
+    };
+  });
+}
+
+// ── Top Countries ────────────────────────────────────────────────────────
+
+export function buildTopCountryStats(payload, chartType, month, platform = "Combined", limit = 5) {
+  const rows = chartType === "artists"
+    ? buildArtistMonthMirror(payload, month, platform)
+    : publicChartRows(payload, chartType, month, platform);
+  const countryMap = new Map();
+  rows.forEach((row) => {
+    let code = "";
+    let name = "";
+    if (chartType === "artists") {
+      code = String(row.profile?.country_code || "").trim().toUpperCase();
+      name = row.profile?.country || "";
+    } else {
+      const primary = row.primary_artists?.[0];
+      code = String(primary?.country_code || row.cc || "").trim().toUpperCase();
+      name = primary?.country || row.co || "";
+    }
+    // Skip entries with no resolvable artist country — Top Countries should
+    // only ever show real countries actually present in the data, never a
+    // catch-all "unknown" bucket standing in for missing CMS metadata.
+    if (!code) return;
+    const current = countryMap.get(code) || {
+      code, country: name || code, entries: 0, points: 0,
+      color: COUNTRY_ACCENTS[code] || "#B8860B",
+    };
+    current.entries += 1;
+    current.points += Number(row.p ?? row.pts ?? row.points) || 0;
+    countryMap.set(code, current);
+  });
+  return [...countryMap.values()]
+    .sort((a, b) => b.entries - a.entries || b.points - a.points || a.code.localeCompare(b.code))
+    .slice(0, limit);
+}
+
+// ── Climbers / Drops / New Entries / Re-Entries ─────────────────────────────
+
+// Singles/albums rows already carry the backend's own `movement`/`prev_rank`
+// fields ("=", "new", "re-entry", "+N", "-N") — trust those directly rather
+// than re-deriving movement from scratch. Artists have no such fields
+// (buildArtistMonthMirror is a CMS-side aggregate, not a backend chart), so
+// artists fall back to chartHistoryForMonth's cross-month diffing.
+export function buildMovementLists(payload, chartType, month, platform = "Combined") {
+  const risers = [];
+  const fallers = [];
+  const newEntries = [];
+  const reEntries = [];
+
+  if (chartType === "artists") {
+    const rows = buildArtistMonthMirror(payload, month, platform);
+    const history = chartHistoryForMonth(payload, "artists", month, platform);
+    rows.forEach((row) => {
+      const stats = history.get(historyKeyForRow("artists", row)) || {};
+      const previousRank = stats.previousRank ?? null;
+      const monthsCount = stats.monthsCount || 1;
+      if (previousRank === null) {
+        (monthsCount <= 1 ? newEntries : reEntries).push(row);
+      } else if (previousRank > row.rank) {
+        risers.push({ ...row, from: previousRank, to: row.rank, delta: previousRank - row.rank });
+      } else if (previousRank < row.rank) {
+        fallers.push({ ...row, from: previousRank, to: row.rank, delta: row.rank - previousRank });
+      }
+    });
+  } else {
+    publicChartRows(payload, chartType, month, platform).forEach((row) => {
+      const movement = String(row.movement ?? "");
+      if (movement === "new") { newEntries.push(row); return; }
+      if (movement === "re-entry") { reEntries.push(row); return; }
+      const delta = Number(movement);
+      if (!Number.isFinite(delta) || delta === 0) return;
+      const rank = row.r ?? row.rank;
+      if (delta > 0) risers.push({ ...row, from: row.prev_rank, to: rank, delta });
+      else fallers.push({ ...row, from: row.prev_rank, to: rank, delta: Math.abs(delta) });
+    });
+  }
+
+  risers.sort((a, b) => b.delta - a.delta);
+  fallers.sort((a, b) => b.delta - a.delta);
+  return {
+    risers: risers.slice(0, 5),
+    fallers: fallers.slice(0, 5),
+    newEntries: newEntries.slice(0, 5),
+    reEntries: reEntries.slice(0, 5),
+  };
+}
+
+// ── Hall of Fame (monthly #1s) ──────────────────────────────────────────────
+
+// Shared by the public Analytics page and the CMS poster generator, so both
+// always agree on who's actually been #1 — this used to be a copy of this
+// exact dedup logic living inline in AnalyticsPage.jsx.
+export function buildHallOfFameItems(payload, chartType) {
+  const months = Array.isArray(payload?.months) ? payload.months : [];
+  const byIdentity = new Map();
+  months.forEach((month) => {
+    const rows = chartType === "artists"
+      ? buildArtistMonthMirror(payload, month, "Combined")
+      : publicChartRows(payload, chartType, month, "Combined");
+    const top = rows.find((row) => (chartType === "artists" ? row.rank : (row.r ?? row.rank)) === 1);
+    if (!top) return;
+    const identity = historyIdentity(chartType, top);
+    const current = byIdentity.get(identity) || { hofMonths: [] };
+    Object.assign(current, top, { hofMonths: [...current.hofMonths, month] });
+    byIdentity.set(identity, current);
+  });
+  return [...byIdentity.values()].sort((a, b) => {
+    const aLast = months.indexOf(a.hofMonths[a.hofMonths.length - 1]);
+    const bLast = months.indexOf(b.hofMonths[b.hofMonths.length - 1]);
+    return bLast - aLast;
+  });
+}
+
+// ── Head-to-Head ──────────────────────────────────────────────────────────
+
+export function buildHeadToHeadCandidates(payload, chartType) {
+  const months = Array.isArray(payload?.months) ? payload.months : [];
+  const seen = new Map();
+  months.forEach((month) => {
+    const rows = chartType === "artists"
+      ? buildArtistMonthMirror(payload, month, "Combined")
+      : publicChartRows(payload, chartType, month, "Combined");
+    rows.forEach((row) => {
+      const identity = historyIdentity(chartType, row);
+      if (seen.has(identity)) return;
+      seen.set(identity, {
+        key: identity,
+        title: chartType === "artists" ? (row.name || "") : (row.t || row.title || ""),
+        artist: chartType === "artists" ? "" : (row.artist_credit || row.a || ""),
+        image: chartType === "artists" ? (row.image || "") : (row.cover_image || ""),
+      });
+    });
+  });
+  return [...seen.values()].sort((a, b) => a.title.localeCompare(b.title));
+}
+
+export function buildHeadToHeadProfile(payload, chartType, candidateKey, platform = "Combined") {
+  const months = Array.isArray(payload?.months) ? payload.months : [];
+  const platformNames = platformKeysForChart(payload, chartType);
+  let title = "";
+  let artist = "";
+  let image = "";
+  let totalPts = 0;
+  let appearances = 0;
+  let numberOnes = 0;
+  let peak = Number.POSITIVE_INFINITY;
+  const monthly = {};
+  const platformBest = {};
+
+  months.forEach((month) => {
+    const rows = chartType === "artists"
+      ? buildArtistMonthMirror(payload, month, platform)
+      : publicChartRows(payload, chartType, month, platform);
+    const row = rows.find((candidate) => historyIdentity(chartType, candidate) === candidateKey);
+    if (row) {
+      const rank = chartType === "artists" ? row.rank : (row.r ?? row.rank);
+      const points = Number(row.p ?? row.pts ?? row.points) || 0;
+      title = chartType === "artists" ? (row.name || "") : (row.t || row.title || "");
+      artist = chartType === "artists" ? "" : (row.artist_credit || row.a || "");
+      image = chartType === "artists" ? (row.image || "") : (row.cover_image || "");
+      totalPts += points;
+      appearances += 1;
+      if (rank === 1) numberOnes += 1;
+      if (rank < peak) peak = rank;
+      monthly[month] = { rank, points };
+    }
+    if (chartType !== "artists") {
+      platformNames.forEach((name) => {
+        const platformRow = publicChartRows(payload, chartType, month, name)
+          .find((candidate) => historyIdentity(chartType, candidate) === candidateKey);
+        if (!platformRow) return;
+        const rank = platformRow.r ?? platformRow.rank;
+        if (!platformBest[name] || rank < platformBest[name]) platformBest[name] = rank;
+      });
+    }
+  });
+
+  const avgRank = appearances
+    ? Math.round((Object.values(monthly).reduce((sum, entry) => sum + entry.rank, 0) / appearances) * 10) / 10
+    : null;
+
+  return {
+    key: candidateKey, title, artist, image,
+    totalPts, peak: Number.isFinite(peak) ? peak : null,
+    months: appearances, avgRank, numberOnes, appearances,
+    platformCount: Object.keys(platformBest).length,
+    platforms: platformBest,
+    monthly,
+  };
 }

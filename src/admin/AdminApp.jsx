@@ -19,6 +19,11 @@ const SpotlightGeneratorPage = lazy(() => import("./pages/SpotlightGeneratorPage
 const NewsCardPage        = lazy(() => import("./pages/NewsCardPage"));
 const AnalyticsRecordPage = lazy(() => import("./pages/AnalyticsRecordPage"));
 const CertificationCardPage = lazy(() => import("./pages/CertificationCardPage"));
+const PlatformBreakdownPosterPage = lazy(() => import("./pages/PlatformBreakdownPosterPage"));
+const CrossPlatformPosterPage = lazy(() => import("./pages/CrossPlatformPosterPage"));
+const MoversPosterPage = lazy(() => import("./pages/MoversPosterPage"));
+const HallOfFamePosterPage = lazy(() => import("./pages/HallOfFamePosterPage"));
+const HeadToHeadPosterPage = lazy(() => import("./pages/HeadToHeadPosterPage"));
 const HelpCenterPage      = lazy(() => import("./pages/HelpCenterPage"));
 const NAV_GROUPS = [
   {
@@ -37,6 +42,11 @@ const NAV_GROUPS = [
       ["spotlight", "Spotlight card generator"],
       ["analytics-record", "Analytics record cards"],
       ["certification-card", "Certification card generator"],
+      ["platform-breakdown-poster", "Platform & country breakdown poster"],
+      ["cross-platform-poster", "Cross-platform poster"],
+      ["movers-poster", "Movers & shakers poster"],
+      ["hall-of-fame-poster", "Hall of Fame poster"],
+      ["head-to-head-poster", "Head-to-head poster"],
     ],
   },
   {
@@ -145,6 +155,11 @@ function renderPage(page, user, searchJump, onNavigate) {
   if (page === "news-card")       return <NewsCardPage />;
   if (page === "analytics-record")return <AnalyticsRecordPage />;
   if (page === "certification-card") return <CertificationCardPage />;
+  if (page === "platform-breakdown-poster") return <PlatformBreakdownPosterPage />;
+  if (page === "cross-platform-poster") return <CrossPlatformPosterPage />;
+  if (page === "movers-poster") return <MoversPosterPage />;
+  if (page === "hall-of-fame-poster") return <HallOfFamePosterPage />;
+  if (page === "head-to-head-poster") return <HeadToHeadPosterPage />;
   if (page === "uploads")         return <UploadsPage user={user} searchJump={searchJump} />;
   if (page === "duplicate-review")return <DuplicateReviewPage user={user} />;
   if (page === "help")            return <HelpCenterPage />;

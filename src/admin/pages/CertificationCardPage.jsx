@@ -7,6 +7,7 @@ import {
   PREVIEW_SCALE,
   POSTER_FONT_FAMILY,
   POSTER_THEMES,
+  HEADER_ZONE_H,
   PosterBrandRow,
   PosterFooter,
   ArtPlaceholder,
@@ -83,7 +84,7 @@ function CertificationCardContent({ item, theme = "dark" }) {
   const artSize = 460;
   const tileBg = theme === "light" ? "rgba(0,0,0,0.045)" : "rgba(255,255,255,0.055)";
   const tileBorder = theme === "light" ? "rgba(0,0,0,0.14)" : "rgba(255,255,255,0.16)";
-  const headerH = 141;
+  const headerH = HEADER_ZONE_H;
   const footerH = 74;
 
   return (

@@ -7,6 +7,8 @@ import {
   buildYearEndMirror,
   chartHistoryForMonth,
   historyKeyForRow,
+  buildHallOfFameItems,
+  buildMovementLists,
 } from "../../utils/publicChartMirror.js";
 import {
   POSTER_W,
@@ -15,6 +17,7 @@ import {
   PREVIEW_SCALE,
   POSTER_FONT_FAMILY,
   POSTER_THEMES,
+  HEADER_ZONE_H,
   PosterBrandRow,
   PosterFooter,
   ArtPlaceholder,
@@ -38,6 +41,9 @@ const RECORD_TYPES = [
   ["most-points", "Most Points (All-Time)", "all-time", "#B8860B"],
   ["most-consistent", "Most Consistent (All-Time)", "all-time", "#0088FF"],
   ["peak-performer", "Peak Performer (All-Time)", "all-time", "#B8860B"],
+  ["most-number-ones", "Most #1s (All-Time)", "all-time", "#B8860B"],
+  ["chart-longevity", "Chart Longevity (All-Time)", "all-time", "#0088FF"],
+  ["biggest-monthly-climb", "Biggest Monthly Climb (All-Time)", "all-time", "#2DB04A"],
 ];
 
 function monthlyRecordCandidates(payload, chartType, month) {
@@ -67,6 +73,50 @@ function monthlyRecordCandidates(payload, chartType, month) {
 }
 
 function computeRecord(payload, chartType, month, recordType) {
+  if (recordType === "most-number-ones") {
+    const items = buildHallOfFameItems(payload, chartType);
+    if (!items.length) return null;
+    const winner = [...items].sort((a, b) => (b.hofMonths?.length || 0) - (a.hofMonths?.length || 0))[0];
+    const isArtist = chartType === "artists";
+    return {
+      title: isArtist ? (winner.name || "") : (winner.t || winner.title || ""),
+      subtitle: isArtist ? "" : (winner.artist_credit || winner.a || winner.artist || ""),
+      image: resolveMediaUrl(isArtist ? (winner.image || "") : (winner.cover_image || "")),
+      numberOnes: winner.hofMonths?.length || 0,
+    };
+  }
+
+  if (recordType === "chart-longevity") {
+    const rows = buildYearEndMirror(payload, chartType);
+    if (!rows.length) return null;
+    const winner = [...rows].sort((a, b) => b.months - a.months || b.points - a.points)[0];
+    const isArtist = chartType === "artists";
+    return {
+      title: isArtist ? (winner.name || "") : (winner.title || ""),
+      subtitle: isArtist ? "" : (winner.artist || ""),
+      image: resolveMediaUrl(winner.image || ""),
+      monthsOnChart: winner.months ?? 0,
+    };
+  }
+
+  if (recordType === "biggest-monthly-climb") {
+    const months = payload?.months || [];
+    const isArtist = chartType === "artists";
+    let best = null;
+    months.forEach((m) => {
+      const { risers } = buildMovementLists(payload, chartType, m);
+      const top = risers[0];
+      if (top && (!best || top.delta > best.delta)) best = top;
+    });
+    if (!best) return null;
+    return {
+      title: isArtist ? (best.name || "") : (best.t || best.title || ""),
+      subtitle: isArtist ? "" : (best.artist_credit || best.a || best.artist || ""),
+      image: resolveMediaUrl(isArtist ? (best.image || "") : (best.cover_image || "")),
+      delta: best.delta,
+    };
+  }
+
   if (recordType === "most-points" || recordType === "most-consistent" || recordType === "peak-performer") {
     const rows = buildYearEndMirror(payload, chartType);
     if (!rows.length) return null;
@@ -105,6 +155,9 @@ function recordStat(recordType, item) {
   if (recordType === "most-points") return ["Total Points", item.points.toLocaleString()];
   if (recordType === "most-consistent") return ["Months Charted", item.monthsOnChart];
   if (recordType === "peak-performer") return ["Peak Rank", item.peakRank ? `#${item.peakRank}` : "—"];
+  if (recordType === "most-number-ones") return ["Months at #1", item.numberOnes];
+  if (recordType === "chart-longevity") return ["Months Charted", item.monthsOnChart];
+  if (recordType === "biggest-monthly-climb") return ["Places Climbed", `+${item.delta}`];
   return ["", ""];
 }
 
@@ -138,7 +191,7 @@ function RecordCardContent({ item, chartType, recordType, recordLabel, accentCol
   const [statLabel, statValue] = recordStat(recordType, item);
   const artSize = 560;
   const isArtist = chartType === "artists";
-  const headerH = 141;
+  const headerH = HEADER_ZONE_H;
   const footerH = 74;
 
   return (

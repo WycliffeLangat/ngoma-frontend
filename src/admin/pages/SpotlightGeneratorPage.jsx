@@ -7,6 +7,7 @@ import {
   PREVIEW_SCALE,
   POSTER_FONT_FAMILY,
   POSTER_THEMES,
+  HEADER_ZONE_H,
   PosterBrandRow,
   PosterFooter,
   ArtPlaceholder,
@@ -127,7 +128,7 @@ function SpotlightContent({ item, type, theme = "dark" }) {
       <div
         style={{
           position: "absolute",
-          top: 141,
+          top: HEADER_ZONE_H,
           bottom: 360,
           left: 0,
           right: 0,

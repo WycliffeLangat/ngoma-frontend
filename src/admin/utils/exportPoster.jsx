@@ -8,6 +8,19 @@ export const POSTER_H = 1350;
 export const PREVIEW_W = 360;
 export const PREVIEW_SCALE = PREVIEW_W / POSTER_W;
 
+// Fixed gap between the bottom of <PosterBrandRow /> and the top of a card's
+// title text — 2cm at 96 DPI (the standard CSS reference pixel), applied the
+// same way on every card type so the logo-to-title spacing always reads as
+// one consistent layout instead of each poster having hand-tuned padding.
+export const TITLE_GAP_FROM_LOGO = 76;
+
+// For card types that position their post-logo content with an absolute
+// `top: <px>` offset (rather than flowing it after the brand row in normal
+// document flow) — the standard brand row sits at 72px top padding and its
+// SVG mark is ~55px tall, so this reproduces the same TITLE_GAP_FROM_LOGO gap
+// via a single reusable offset instead of each card guessing its own number.
+export const HEADER_ZONE_H = 72 + 55 + TITLE_GAP_FROM_LOGO;
+
 const TRANSPARENT_PIXEL =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
 
