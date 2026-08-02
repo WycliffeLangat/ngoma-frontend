@@ -438,7 +438,7 @@ export default function PremiumChartsPage({
   const mastheadMeta = liveChartMeta || {};
   const mastheadPeriodLabel = formatChartPeriod(mastheadMeta);
   const mastheadTitle = "NGOMA TOP 50";
-  const mastheadSubtitle = `${countryDisplayName}'s most popular ${mastheadSubjectLower} across Ngoma Charts.`;
+  const mastheadSubtitle = `${countryDisplayName}'s most popular ${mastheadSubjectLower} across Music Charts.`;
   const mastheadSurface = darkMode ? "#0b0e0b" : "#ffffff";
   const mastheadText = darkMode ? "#f6f3ea" : "#050505";
   const mastheadMuted = darkMode ? "rgba(246,243,234,0.64)" : "#59645d";

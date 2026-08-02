@@ -51,7 +51,7 @@ const PLATFORM_COLORS = {
 };
 const PLATFORM_LABELS = {
   COMBINED: "Combined",
-  KENYAN: "Kenya",
+  KENYAN: "Kenyan",
   SPOTIFY: "Spotify",
   "APPLE MUSIC": "Apple Music",
   AUDIOMACK: "Audiomack",
