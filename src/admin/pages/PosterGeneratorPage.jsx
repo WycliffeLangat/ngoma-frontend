@@ -325,7 +325,15 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
                   )}
                 </div>
                 {row.movement !== null && (
-                  <span style={{ flexShrink: 0, marginRight: 38 }}>
+                  <span
+                    style={{
+                      flexShrink: 0,
+                      marginRight: 38,
+                      width: Math.round(100 * statScale),
+                      display: "flex",
+                      justifyContent: "center",
+                    }}
+                  >
                     <MovementChip movement={row.movement} sameColor={t.sameColor} scale={statScale} />
                   </span>
                 )}
