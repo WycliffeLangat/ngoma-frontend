@@ -1073,6 +1073,8 @@ export default function PremiumChartsPage({
       <div style={{...styles.toggleWrap, background: darkMode ? "#181C18" : "#f2f2f2", border: `1px solid ${darkMode ? "#2F352F" : "rgba(0,0,0,0.08)"}`}}>
         {["singles", "albums", "artists"].map((item) => {
           const active = ct === item;
+          const activeBg = darkMode ? "#FFFFFF" : "#1A1A1A";
+          const activeText = darkMode ? "#000000" : "#FFFFFF";
 
           return (
             <button
@@ -1082,10 +1084,10 @@ export default function PremiumChartsPage({
               }}
               style={{
                 ...styles.toggleButton,
-                background: active ? chartAccent : (darkMode ? "transparent" : "#ffffff"),
-                color: active ? chartAccentInk : (darkMode ? "#B8BDB8" : "#111111"),
-                borderColor: active ? chartAccent : (darkMode ? "transparent" : "rgba(0,0,0,0.14)"),
-                boxShadow: active ? `0 2px 10px ${chartAccentShadow}` : "none",
+                background: active ? activeBg : (darkMode ? "transparent" : "#ffffff"),
+                color: active ? activeText : (darkMode ? "#B8BDB8" : "#111111"),
+                borderColor: active ? activeBg : (darkMode ? "transparent" : "rgba(0,0,0,0.14)"),
+                boxShadow: "none",
                 flex: mobile ? 1 : "initial",
                 minHeight: mobile ? "38px" : (tablet ? "36px" : undefined),
               }}
@@ -1517,7 +1519,7 @@ export default function PremiumChartsPage({
                   style={{
                     ...styles.platformButton,
                     "--platform-pill-bg": darkMode ? "#151815" : "#ffffff",
-                    "--platform-pill-text": darkMode ? "#B8BDB8" : "#6b7280",
+                    "--platform-pill-text": darkMode ? "#B8BDB8" : "#1A1A1A",
                     "--platform-pill-border": darkMode ? "#2F352F" : "rgba(0,0,0,0.12)",
                     "--platform-pill-shadow": "none",
                     "--platform-pill-active-bg": color,
@@ -1527,7 +1529,7 @@ export default function PremiumChartsPage({
                     padding: mobile ? "8px 13px" : (tablet ? "7px 10px" : "8px 12px"),
                     borderColor: active ? color : (darkMode ? "#2F352F" : "rgba(0,0,0,0.12)"),
                     background: active ? color : (darkMode ? "#151815" : "#ffffff"),
-                    color: active ? ink : (darkMode ? "#B8BDB8" : "#6b7280"),
+                    color: active ? ink : (darkMode ? "#B8BDB8" : "#1A1A1A"),
                     boxShadow: active ? `0 2px 10px ${color}33` : "none",
                     flexShrink: 0,
                   }}

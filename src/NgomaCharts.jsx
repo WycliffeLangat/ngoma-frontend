@@ -3334,17 +3334,17 @@ const top = data[0];
     >
       {["singles","albums","artists"].map(t=>{
         const tActive=chartTypePreview===t;
-        const tInk=isDark?"#F6F3EA":"#1A1A1A";
+        const tBg=isDark?"#FFFFFF":"#1A1A1A";
         return <button
         key={t}
         type="button"
         onClick={()=>switchChartType(t)}
         style={{
           padding:sm?"7px 14px":"8px 18px",
-          background:tActive?tInk:(isDark?"transparent":"#FFF"),
-          border:"1px solid "+(tActive?tInk:(isDark?"transparent":"rgba(0,0,0,0.14)")),
+          background:tActive?tBg:(isDark?"transparent":"#FFF"),
+          border:"1px solid "+(tActive?tBg:(isDark?"transparent":"rgba(0,0,0,0.14)")),
           borderRadius:"999px",
-          color:tActive?(isDark?"#111":"#FFF"):(isDark?"#B8BDB8":"#111"),
+          color:tActive?(isDark?"#000000":"#FFF"):(isDark?"#B8BDB8":"#111"),
           cursor:"pointer",
           fontSize:sm?"10px":"11px",
           fontWeight:900,

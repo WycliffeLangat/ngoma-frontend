@@ -584,7 +584,10 @@ export default function AnalyticsPage({ ctx }) {
             <p style={{fontFamily:F,fontSize:"13px",color:isDark?"#F6F3EA":"#69716B",margin:"-8px 0 14px",lineHeight:1.45}}>Compare two {isArtists ? "artists" : (isSingles?"songs":"albums")} across points, rank, platforms, and chart history.</p>
             <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"minmax(0,1fr) auto minmax(0,1fr)",gap:isMobile?"10px":"12px",alignItems:"center",marginBottom:isMobile?"14px":"14px"}}>
               <div style={{minWidth:0}}>
-                {isMobile&&<div style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#AEB6AE":"#59645D",marginBottom:"6px"}}>{isArtists ? "Artist" : (isSingles?"Song":"Album")} One</div>}
+                <div style={{display:"flex",alignItems:"center",gap:"5px",fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#AEB6AE":"#59645D",marginBottom:"6px"}}>
+                  <span style={{width:"6px",height:"6px",borderRadius:"50%",background:GOLD,flexShrink:0}}/>
+                  {isArtists ? "Artist" : (isSingles?"Song":"Album")} One
+                </div>
                 <select value={cmpS1} onChange={e=>setCmpS1(e.target.value)} title={sp1?(isArtists?sp1.title:`${sp1.title} — ${sp1.artist}`):""} style={{width:"100%",minWidth:0,padding:isMobile?"11px 12px":"8px 10px",border:"1.5px solid "+(isDark?"#3A3F3A":"#DEDAD2"),borderRadius:"8px",background:"#FFF",fontSize:isMobile?"12px":"11px",fontFamily:F,fontWeight:700,cursor:"pointer",outline:"none",color:"#1F241F"}}>
                   {allTitles.map(t=><option key={t.key} value={t.key}>{t.title} — {t.artist}</option>)}
                 </select>
@@ -592,7 +595,10 @@ export default function AnalyticsPage({ ctx }) {
               </div>
               <span style={{fontFamily:F,fontSize:"11px",color:isDark?"#5A625A":"#8A928B",fontWeight:900,textAlign:"center",letterSpacing:"1px",textTransform:"uppercase",background:isDark?"#1A1E1A":"#F0EDE6",padding:"5px 12px",borderRadius:"999px",whiteSpace:"nowrap",alignSelf:"center"}}>vs</span>
               <div style={{minWidth:0}}>
-                {isMobile&&<div style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#AEB6AE":"#59645D",marginBottom:"6px"}}>{isArtists ? "Artist" : (isSingles?"Song":"Album")} Two</div>}
+                <div style={{display:"flex",alignItems:"center",gap:"5px",fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#AEB6AE":"#59645D",marginBottom:"6px"}}>
+                  <span style={{width:"6px",height:"6px",borderRadius:"50%",background:"#1565C0",flexShrink:0}}/>
+                  {isArtists ? "Artist" : (isSingles?"Song":"Album")} Two
+                </div>
                 <select value={cmpS2} onChange={e=>setCmpS2(e.target.value)} title={sp2?(isArtists?sp2.title:`${sp2.title} — ${sp2.artist}`):""} style={{width:"100%",minWidth:0,padding:isMobile?"11px 12px":"8px 10px",border:"1.5px solid "+(isDark?"#3A3F3A":"#DEDAD2"),borderRadius:"8px",background:"#FFF",fontSize:isMobile?"12px":"11px",fontFamily:F,fontWeight:700,cursor:"pointer",outline:"none",color:"#1F241F"}}>
                   {allTitles.map(t=><option key={t.key} value={t.key}>{t.title} — {t.artist}</option>)}
                 </select>
