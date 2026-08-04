@@ -146,7 +146,6 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
   // room below the (now taller) title zone after widening its top gap to
   // TITLE_GAP_FROM_LOGO.
   const headerH = 365;
-  const dividerY = 321;
   const footerH = 74;
   const padX = 56;
   const listH = POSTER_H - headerH - footerH;
@@ -204,8 +203,6 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
         </div>
       </div>
 
-      <div style={{ position: "absolute", top: dividerY, left: padX, right: padX, borderTop: `2px solid ${t.dividerColor}`, zIndex: 1 }} />
-
       <div style={{ position: "absolute", top: headerH, left: padX, right: padX, zIndex: 1 }}>
         {rows.length === 0 ? (
           <div style={{ padding: "40px 0", textAlign: "center", color: t.emptyColor, fontSize: 18, fontWeight: 700 }}>
@@ -239,7 +236,6 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
                     fontSize: Math.round(36 * scale),
                     fontWeight: 900,
                     color: row.rank <= 3 ? "#B8860B" : t.metaColor,
-                    fontStyle: "italic",
                   }}
                 >
                   {row.rank}
