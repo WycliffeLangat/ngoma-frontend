@@ -405,11 +405,7 @@ export default function PremiumChartsPage({
     (isKenyanChart || headerIsAfricaScope) ? regionalChartLabel :
     (plat === "Combined" ? "Combined" : PLAT_LABEL[plat] || plat)
   );
-  const chartAccent = isExplicitPlatformChart
-    ? (PC[plat] || GOLD)
-    : (plat === "Combined" || isKenyanChart || headerIsAfricaScope || isAfricaCountryChart(headerScopeSource))
-      ? countryAccent
-      : (PC[plat] || GOLD);
+  const chartAccent = darkMode ? "#F6F3EA" : "#1A1A1A";
   const chartAccentSoft = `${chartAccent}18`;
   const chartAccentBorder = `${chartAccent}33`;
   const chartAccentShadow = `${chartAccent}33`;
@@ -1509,7 +1505,7 @@ export default function PremiumChartsPage({
               const active = item === "Kenyan"
                 ? plat === selectedCountryScope
                 : plat === item;
-              const color = item === "Kenyan" ? countryAccent : (item === "Combined" ? GOLD : PC[item] || GOLD);
+              const color = darkMode ? "#F6F3EA" : "#1A1A1A";
               const ink = readableInk(color);
               const label = item === "Kenyan" ? (mobile ? regionalScopeShortLabel : regionalTop50Label) : (item === "Combined" ? item : PLAT_LABEL[item] || item);
 

@@ -85,7 +85,7 @@ export default function NewsPage({ ctx }) {
   const rest = heroCandidate ? filtered.filter((n) => n.id !== heroCandidate.id) : filtered;
 
   function Pill({ cat, label }) {
-    const color = CATEGORY_COLORS[cat] || GOLD;
+    const color = isDark ? "#F6F3EA" : "#1A1A1A";
     const active = filter === cat;
     return (
       <button

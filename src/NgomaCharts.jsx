@@ -3332,16 +3332,19 @@ const top = data[0];
         maxWidth:"100%",
       }}
     >
-      {["singles","albums","artists"].map(t=><button
+      {["singles","albums","artists"].map(t=>{
+        const tActive=chartTypePreview===t;
+        const tInk=isDark?"#F6F3EA":"#1A1A1A";
+        return <button
         key={t}
         type="button"
         onClick={()=>switchChartType(t)}
         style={{
           padding:sm?"7px 14px":"8px 18px",
-          background:chartTypePreview===t?GOLD:(isDark?"transparent":"#FFF"),
-          border:"1px solid "+(chartTypePreview===t?GOLD:(isDark?"transparent":"rgba(0,0,0,0.14)")),
+          background:tActive?tInk:(isDark?"transparent":"#FFF"),
+          border:"1px solid "+(tActive?tInk:(isDark?"transparent":"rgba(0,0,0,0.14)")),
           borderRadius:"999px",
-          color:chartTypePreview===t?"#111":(isDark?"#B8BDB8":"#111"),
+          color:tActive?(isDark?"#111":"#FFF"):(isDark?"#B8BDB8":"#111"),
           cursor:"pointer",
           fontSize:sm?"10px":"11px",
           fontWeight:900,
@@ -3349,11 +3352,11 @@ const top = data[0];
           textTransform:"uppercase",
           fontFamily:F,
           lineHeight:1,
-          opacity:isChartTypePending && chartTypePreview===t ? 0.9 : 1,
-          boxShadow:chartTypePreview===t?"0 2px 8px rgba(184,134,11,0.20)":"none",
+          opacity:isChartTypePending && tActive ? 0.9 : 1,
+          boxShadow:"none",
           transition:"background-color .16s ease, border-color .16s ease, color .16s ease, box-shadow .16s ease, opacity .16s ease",
         }}
-      >{t}</button>)}
+      >{t}</button>;})}
     </div>
   );
 
