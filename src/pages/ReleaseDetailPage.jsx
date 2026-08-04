@@ -200,7 +200,7 @@ export default function ReleaseDetailPage({ ctx }) {
             </div>
             <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1.4fr 0.8fr",gap:"14px",marginBottom:"20px"}}>
               <div style={darkCard()}>
-                <div style={secLbl()}><SecMark/>Combined Rank Journey</div>
+                <div style={secLbl(isDark?"#F6F3EA":"#1A1A1A")}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Combined Rank Journey</div>
                 <div style={{fontFamily:F,fontSize:"9.5px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#8F968F":"#7B857D",margin:"-6px 0 6px"}}>Lower = better</div>
                 <ResponsiveContainer width="100%" height={220}>
                   <LineChart data={releaseRankData} margin={{top:8,right:18,left:0,bottom:0}}>
@@ -213,7 +213,7 @@ export default function ReleaseDetailPage({ ctx }) {
                 </ResponsiveContainer>
               </div>
               <div style={darkCard()}>
-                <div style={secLbl()}><SecMark/>Platform Peak Ranks</div>
+                <div style={secLbl(isDark?"#F6F3EA":"#1A1A1A")}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Platform Peak Ranks</div>
                 {platformPeaks.map((item)=><div key={item.platform} style={{display:"flex",justifyContent:"space-between",gap:"12px",padding:"8px 0",borderBottom:`1px solid ${dividerColor}`,fontFamily:F,fontSize:"12px"}}><span style={{color:PC[item.platform]||(isDark?"#93A093":"#59645D"),fontWeight:800}}>{item.platform}</span><strong style={{color:isDark?"#F6F3EA":"#1A1A1A"}}>#{item.rank}</strong></div>)}
               </div>
             </div>
@@ -230,7 +230,7 @@ export default function ReleaseDetailPage({ ctx }) {
                 .map((platform) => PLAT_LABEL[platform] || platform)}
             />
             <div style={darkCard({marginBottom:0})}>
-              <div style={secLbl()}><SecMark/>Cross-Platform Journey</div>
+              <div style={secLbl(isDark?"#F6F3EA":"#1A1A1A")}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Cross-Platform Journey</div>
               <div style={{border:`1px solid ${isDark?"#2B302B":"#E4E1D8"}`,borderRadius:"12px",overflow:"hidden"}}>
                 <div style={{display:"grid",gridTemplateColumns:isMobile?"58px 84px 46px minmax(0,1fr)":"74px 140px 60px minmax(0,1fr)",gap:"8px",padding:isMobile?"9px":"11px 14px",background:"#1F241F",fontFamily:F,fontSize:"10.5px",fontWeight:850,letterSpacing:"0.8px",textTransform:"uppercase",color:"#C9CEC9"}}>
                   <div>Month</div><div>Combined</div><div>Cover</div><div>Platforms</div>

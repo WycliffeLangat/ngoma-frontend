@@ -75,7 +75,7 @@ export default function TrendingPage({ ctx }) {
             </div>
 
             <div style={card({padding:isMobile?"18px":"22px"})}>
-              <div style={secLbl()}><SecMark/>Rising Fast — Most Places Gained ({isSingles?"Singles":"Albums"})</div>
+              <div style={secLbl(isDark?"#F6F3EA":"#1A1A1A")}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Rising Fast — Most Places Gained ({isSingles?"Singles":"Albums"})</div>
               {uniqueByMomentumIdentity(currentTrending.rising).map((p,i)=>{
                 const rowKey=`rising-${p.t}-${p.a}-${p.decRank}`;
                 const expanded=Boolean(expandedTrendingRows[rowKey]);
@@ -120,7 +120,7 @@ export default function TrendingPage({ ctx }) {
 
             {/* Strong Debuts */}
             <div style={{...card({padding:isMobile?"18px":"22px"}),marginTop:isMobile?"16px":"20px"}}>
-              <div style={secLbl()}><SecMark/>Strongest {latestMonthName} Debuts</div>
+              <div style={secLbl(isDark?"#F6F3EA":"#1A1A1A")}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Strongest {latestMonthName} Debuts</div>
               <p style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:"#69716B",margin:"-8px 0 14px",lineHeight:1.45}}>New entries that arrived high in {latestMonth}.</p>
               <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:isMobile?"8px":"10px"}}>
                 {uniqueByMomentumIdentity(currentTrending.debuts).map((p)=>{

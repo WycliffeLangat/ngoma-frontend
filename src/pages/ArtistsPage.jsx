@@ -109,7 +109,7 @@ export default function ArtistsPage({ ctx }) {
           </div>
           {/* Comparison */}
           <div style={{...card(),padding:isMobile?"18px":"22px",marginBottom:"22px",background:isDark?"#111411":"#FAFAF8"}}>
-            <div style={{...secLbl(),marginBottom:isMobile?"14px":"16px"}}><SecMark/>Artist Comparison</div>
+            <div style={{...secLbl(isDark?"#F6F3EA":"#1A1A1A"),marginBottom:isMobile?"14px":"16px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Artist Comparison</div>
             <div style={{display:"flex",gap:isMobile?"9px":"12px",alignItems:"center",flexDirection:isMobile?"column":"row",marginBottom:"16px",flexWrap:"wrap"}}>
               <select value={cmpA1} onChange={e=>setCmpA1(e.target.value)} style={{flex:isMobile?"none":1,width:isMobile?"100%":"auto",minWidth:0,padding:isMobile?"11px 12px":"9px 12px",border:"1.5px solid "+(isDark?"#3A3F3A":"#D6D1C7"),borderRadius:"8px",background:isDark?"#1A1E1A":"#FFF",fontSize:isMobile?"12px":"11.5px",fontFamily:F,fontWeight:700,cursor:"pointer",outline:"none",color:isDark?"#F6F3EA":"#1F241F"}}>
                 {allArtistNames.map(n=><option key={n} value={n}>{n}</option>)}

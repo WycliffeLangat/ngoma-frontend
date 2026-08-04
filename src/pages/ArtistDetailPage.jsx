@@ -207,7 +207,7 @@ export default function ArtistDetailPage({ ctx }) {
 
           <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:"14px",marginBottom:"20px"}}>
             <div style={darkCard()}>
-              <div style={secLbl()}><SecMark/>Monthly Credited Points</div>
+              <div style={secLbl(isDark?"#F6F3EA":"#1A1A1A")}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Monthly Credited Points</div>
               <ResponsiveContainer width="100%" height={190}>
                 <BarChart data={selectedArtistRankData}>
                   <CartesianGrid stroke={gridStroke} vertical={false}/>
@@ -219,7 +219,7 @@ export default function ArtistDetailPage({ ctx }) {
               </ResponsiveContainer>
             </div>
             <div style={darkCard()}>
-                <div style={secLbl()}><SecMark/>Monthly Artist Rank</div>
+                <div style={secLbl(isDark?"#F6F3EA":"#1A1A1A")}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Monthly Artist Rank</div>
               <ResponsiveContainer width="100%" height={190}>
                 <LineChart data={selectedArtistRankData} margin={{top:8,right:12,left:0,bottom:0}}>
                   <CartesianGrid stroke={gridStroke} vertical={false}/>
@@ -239,7 +239,7 @@ export default function ArtistDetailPage({ ctx }) {
               {label:"Best Release Rank",value:bestReleaseRank?`#${bestReleaseRank}`:"—"},
             ].map((stat)=><div key={stat.label} style={{padding:"14px 15px",border:"1px solid "+(isDark?"#2B302B":"#ECE9E1"),borderRadius:"10px",background:isDark?"#151815":"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#8F968F":"#7B857D"}}>{stat.label}</div><div style={{fontFamily:F,fontSize:"22px",fontWeight:900,color:isDark?"#F6F3EA":"#1A1A1A",marginTop:"5px"}}>{stat.value}</div></div>)}
           </div>
-          <div style={secLbl()}><SecMark/>Charted Entries Across Months</div>
+          <div style={secLbl(isDark?"#F6F3EA":"#1A1A1A")}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Charted Entries Across Months</div>
           {selectedArtistEntryGroups.map((group)=>{
             const releaseType = group.chart_type === "albums" || group.chart_type === "album" ? "album" : "single";
             const certification = getCertificationForEntry(group, releaseType);

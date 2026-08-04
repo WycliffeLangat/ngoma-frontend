@@ -36,7 +36,7 @@ export default function AboutPage({ ctx }) {
       .map((item) => item.url);
   }, [isMobile]);
   const aboutSectionTitle = (label) => (
-    <div style={secLbl()}><SecMark/>{label}</div>
+    <div style={secLbl(isDark?"#F6F3EA":"#1A1A1A")}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>{label}</div>
   );
 
   return (
