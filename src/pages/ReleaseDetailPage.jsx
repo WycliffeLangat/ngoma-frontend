@@ -153,7 +153,7 @@ export default function ReleaseDetailPage({ ctx }) {
 
         return (
         <div style={{padding:PAD,background:isDark?"#050505":"#ffffff",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
-          <span onClick={closeDetails} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:GOLD,cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>← Back</span>
+          <span onClick={closeDetails} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#F6F3EA":"#1A1A1A",cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>← Back</span>
 
           {/* Hero — cover art beside identity, matching the artist detail page's layout */}
           <div style={{marginTop:"20px",display:"flex",gap:isMobile?"16px":"24px",alignItems:"flex-start",flexDirection:isMobile?"column":"row",minWidth:0}}>
@@ -189,7 +189,7 @@ export default function ReleaseDetailPage({ ctx }) {
                 <div key={label} style={{display:"grid",gridTemplateColumns:isMobile?"110px 1fr":"170px 1fr",gap:"14px",padding:"12px 16px",background:isDark?(idx%2===0?"#121612":"#0F1110"):(idx%2===0?"#FAFAF8":"#FFFFFF"),borderTop:idx===0?"none":`1px solid ${isDark?"#2B302B":"#F0EDE6"}`,alignItems:"center"}}>
                   <span style={{fontFamily:F,fontSize:"11px",fontWeight:750,letterSpacing:"0.4px",color:isDark?"#8F968F":"#7B857D",textTransform:"uppercase"}}>{label}</span>
                   {urlLabels.has(label) ? (
-                    <a href={value} target="_blank" rel="noopener noreferrer" onClick={(e)=>e.stopPropagation()} style={{fontFamily:F,fontSize:"14px",fontWeight:700,color:GOLD,textDecoration:"none",wordBreak:"break-all"}}>{value} ↗</a>
+                    <a href={value} target="_blank" rel="noopener noreferrer" onClick={(e)=>e.stopPropagation()} style={{fontFamily:F,fontSize:"14px",fontWeight:700,color:isDark?"#F6F3EA":"#1A1A1A",textDecoration:"none",wordBreak:"break-all"}}>{value} ↗</a>
                   ) : artistCreditLabels.has(label) ? (
                     <ArtistCredit credit={value} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="14px" fontWeight={650} color="#1A1A1A" darkColor="#F6F3EA" separatorColor="#7B857D" darkSeparatorColor="#8F968F" />
                   ) : (
@@ -238,10 +238,10 @@ export default function ReleaseDetailPage({ ctx }) {
                 {chartedJourney.map(({month:m,combined,platforms},idx)=>{
                   const isPeak = combined && Number(combined.rank) === 1;
                   return (
-                  <div key={m} style={{display:"grid",gridTemplateColumns:isMobile?"58px 84px 46px minmax(0,1fr)":"74px 140px 60px minmax(0,1fr)",gap:"8px",alignItems:"center",padding:isMobile?"9px":"10px 14px",background:isDark?(idx%2?"#121612":"#0F120F"):(idx%2?"#FBFAF7":"#FFFFFF"),borderTop:idx===0?"none":`1px solid ${dividerColor}`,borderLeft:isPeak?`3px solid ${GOLD}`:"3px solid transparent"}}>
+                  <div key={m} style={{display:"grid",gridTemplateColumns:isMobile?"58px 84px 46px minmax(0,1fr)":"74px 140px 60px minmax(0,1fr)",gap:"8px",alignItems:"center",padding:isMobile?"9px":"10px 14px",background:isDark?(idx%2?"#121612":"#0F120F"):(idx%2?"#FBFAF7":"#FFFFFF"),borderTop:idx===0?"none":`1px solid ${dividerColor}`,borderLeft:isPeak?`3px solid ${isDark?"#F6F3EA":"#1A1A1A"}`:"3px solid transparent"}}>
                     <span style={{fontFamily:SF,fontSize:"12px",fontWeight:800,color:isDark?"#F6F3EA":"#1A1A1A"}}>{m}</span>
                     {combined
-                      ? <span style={{fontFamily:F,fontSize:"11.5px",fontWeight:800,color:GOLD}}>#{combined.rank} · {combined.pts.toLocaleString()} pts</span>
+                      ? <span style={{fontFamily:F,fontSize:"11.5px",fontWeight:800,color:isDark?"#F6F3EA":"#1A1A1A"}}>#{combined.rank} · {combined.pts.toLocaleString()} pts</span>
                       : <span style={{fontFamily:F,fontSize:"11px",color:isDark?"#8F968F":"#7B857D"}}>—</span>}
                     <span style={{fontFamily:F,fontSize:"11px",fontWeight:800,color:isDark?"#AEB6AE":"#69716B"}}>{platforms.length}/{tp}</span>
                     <div style={{display:"flex",gap:"5px",flexWrap:"wrap"}}>

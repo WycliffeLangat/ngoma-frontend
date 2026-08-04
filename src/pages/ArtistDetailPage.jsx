@@ -151,11 +151,11 @@ export default function ArtistDetailPage({ ctx }) {
 
   return (
 <div style={{padding:PAD,background:isDark?"#050505":"#f8f7f3",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
-          <span onClick={closeDetails} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:GOLD,cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:700}}>← Back</span>
+          <span onClick={closeDetails} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#F6F3EA":"#1A1A1A",cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:700}}>← Back</span>
 
           {/* Profile header */}
           <div style={{marginTop:"22px",display:"flex",gap:isMobile?"16px":"24px",alignItems:"flex-start",flexDirection:isMobile?"column":"row",minWidth:0}}>
-            <div style={{width:isMobile?"112px":"156px",height:isMobile?"112px":"156px",borderRadius:"20px",background: isDark ? "linear-gradient(135deg, rgba(184,134,11,0.24), rgba(21,101,192,0.16))" : "linear-gradient(135deg, #FAF5EA, #EDE0C0)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:isMobile?"40px":"56px",fontWeight:900,color:GOLD,flexShrink:0,border:"2px solid "+(isDark?"rgba(255,255,255,0.12)":"rgba(0,0,0,0.06)"),boxShadow:isDark?"0 12px 30px rgba(0,0,0,0.28)":"0 10px 28px rgba(184,134,11,0.14)",overflow:"hidden"}}>
+            <div style={{width:isMobile?"112px":"156px",height:isMobile?"112px":"156px",borderRadius:"20px",background: isDark ? "#1A1E1A" : "#F0EDE7",display:"flex",alignItems:"center",justifyContent:"center",fontSize:isMobile?"40px":"56px",fontWeight:900,color:isDark?"#F6F3EA":"#1A1A1A",flexShrink:0,border:"2px solid "+(isDark?"rgba(255,255,255,0.12)":"rgba(0,0,0,0.06)"),boxShadow:isDark?"0 12px 30px rgba(0,0,0,0.28)":"0 10px 28px rgba(0,0,0,0.10)",overflow:"hidden"}}>
               {artistImage ? <img src={artistImage} alt={selA.n} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} /> : <span>{selA.n[0]}</span>}
             </div>
             <div style={{flex:1,minWidth:0}}>
@@ -183,7 +183,7 @@ export default function ArtistDetailPage({ ctx }) {
 
               {/* Stats strip */}
               <div className="artist-stat-strip">
-                {[{v:formatRank(selA.rank),l:"Current Rank",c:GOLD},{v:formatRank(selA.pk),l:"Best Rank"},{v:totalArtistPoints.toLocaleString(),l:"Total Points"},{v:placementCount,l:"Entries"},{v:chartedMonthCount,l:"Months"}].map((s,i)=>(
+                {[{v:formatRank(selA.rank),l:"Current Rank"},{v:formatRank(selA.pk),l:"Best Rank"},{v:totalArtistPoints.toLocaleString(),l:"Total Points"},{v:placementCount,l:"Entries"},{v:chartedMonthCount,l:"Months"}].map((s,i)=>(
                   <div key={i} className="artist-stat-item">
                     <div className="stat-value" style={{color:s.c||(isDark?"#F6F3EA":"#1A1A1A")}}>{s.v}</div>
                     <div className="stat-label">{s.l}</div>
@@ -256,14 +256,14 @@ export default function ArtistDetailPage({ ctx }) {
                     </div>
                     <span style={{display:"block",marginTop:"3px",color:isDark?"#AEB6AE":"#7B857D",fontSize:TXT.micro,fontFamily:F}}>{releaseType === "album" ? "Album" : "Single"} · {chartedMonthCount} {chartedMonthCount===1?"month":"months"} charted · peak #{group.peak}</span>
                   </div>
-                  <div style={{fontFamily:F,fontSize:TXT.cardMeta,fontWeight:900,color:GOLD,whiteSpace:"nowrap",textAlign:isMobile?"left":"right"}}>{group.totalPoints.toLocaleString()} pts</div>
+                  <div style={{fontFamily:F,fontSize:TXT.cardMeta,fontWeight:900,color:isDark?"#F6F3EA":"#1A1A1A",whiteSpace:"nowrap",textAlign:isMobile?"left":"right"}}>{group.totalPoints.toLocaleString()} pts</div>
                   <div style={{fontFamily:F,fontSize:"10px",fontWeight:850,color:isDark?"#AEB6AE":"#69716B",textAlign:isMobile?"left":"right",textTransform:"uppercase",letterSpacing:"1px"}}>Months</div>
                 </summary>
                 <div style={{padding:"0 0 10px 0",display:"grid",gap:"6px"}}>
                   {[...group.rows].sort((a,b)=>monthIndex(a.month)-monthIndex(b.month)).map((row,rowIndex)=>(
                     <div key={`${row.month}-${row.sourcePlatform || "combined"}-${rowIndex}`} style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) 56px 70px",gap:"8px",alignItems:"center",padding:"7px 10px",borderRadius:"9px",background:isDark?"#121612":"#FAFAF8"}}>
                       <span style={{fontFamily:F,fontSize:"11px",fontWeight:800,color:isDark?"#D7DBD7":"#59645D"}}>{row.month}{row.sourcePlatform ? ` · ${row.sourcePlatform}` : ""}</span>
-                      <span style={{fontFamily:F,fontSize:"11px",fontWeight:900,color:GOLD,textAlign:"right"}}>#{row.rank}</span>
+                      <span style={{fontFamily:F,fontSize:"11px",fontWeight:900,color:isDark?"#F6F3EA":"#1A1A1A",textAlign:"right"}}>#{row.rank}</span>
                       <span style={{fontFamily:F,fontSize:"11px",fontWeight:850,color:isDark?"#F6F3EA":"#1A1A1A",textAlign:"right"}}>{Number(row.pts||0).toLocaleString()} pts</span>
                     </div>
                   ))}

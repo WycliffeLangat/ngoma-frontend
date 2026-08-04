@@ -87,8 +87,8 @@ export default function PlatformPerformance({
     }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "14px", flexWrap: "wrap", marginBottom: "18px" }}>
         <div>
-          <div style={{ margin: 0, fontFamily: F, fontSize: "20px", fontWeight: 800, letterSpacing: isMobile ? "2px" : "2.4px", textTransform: "uppercase", color: GOLD, display: "flex", alignItems: "center", gap: "7px", lineHeight: 1.35 }}>
-            <span style={{ display: "inline-block", width: "14px", height: "2px", background: GOLD, borderRadius: "1px", flexShrink: 0 }} />
+          <div style={{ margin: 0, fontFamily: F, fontSize: "20px", fontWeight: 800, letterSpacing: isMobile ? "2px" : "2.4px", textTransform: "uppercase", color: isDark?"#F6F3EA":"#1A1A1A", display: "flex", alignItems: "center", gap: "7px", lineHeight: 1.35 }}>
+            <span style={{ display: "inline-block", width: "14px", height: "2px", background: isDark?"#F6F3EA":"#1A1A1A", borderRadius: "1px", flexShrink: 0 }} />
             Points by Platform
           </div>
           <p style={{ margin: "-4px 0 0", fontFamily: F, fontSize: "12px", lineHeight: 1.5, color: isDark ? "#AEB6AE" : "#69716B" }}>
@@ -148,7 +148,7 @@ export default function PlatformPerformance({
           <tbody>
             {ranked.map((row, index) => (
               <tr key={row.platform} style={{ borderTop: `1px solid ${isDark ? "#2B302B" : "#F0EDE6"}` }}>
-                <td style={{ padding: "10px 12px", fontWeight: 900, color: GOLD }}>{index + 1}</td>
+                <td style={{ padding: "10px 12px", fontWeight: 900, color: isDark ? "#F6F3EA" : "#1A1A1A" }}>{index + 1}</td>
                 <td style={{ padding: "10px 12px", fontWeight: 850, color: platformColor(row.platform) }}>{row.platform}</td>
                 <td style={{ padding: "10px 12px", fontWeight: 900, color: isDark ? "#F6F3EA" : "#1A1A1A" }}>{Number(row.points).toLocaleString()}</td>
                 <td style={{ padding: "10px 12px", color: isDark ? "#F6F3EA" : "#1A1A1A" }}>{row.placements}</td>
