@@ -11,7 +11,6 @@ export default function CertificationsPage({ ctx }) {
     TXT,
     Tog,
     card,
-    certColors,
     certIcons,
     certs,
     isDark,
@@ -82,9 +81,9 @@ export default function CertificationsPage({ ctx }) {
           </div>
           <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"12px",marginBottom:"28px"}}>
             {CERTIFICATION_LEVELS.map((c,i)=>(
-              <div key={i} className="ngoma-cert-tile" style={{...tileCard({textAlign:"center",borderRadius:"16px"}),borderTop:"3px solid "+c.color}}>
+              <div key={i} className="ngoma-cert-tile" style={{...tileCard({textAlign:"center",borderRadius:"16px"}),borderTop:"3px solid "+textPrimary}}>
                 <div style={{fontSize:"28px"}}><span style={c.iconFilter?{filter:c.iconFilter}:undefined}>{c.icon}</span></div>
-                <div style={{fontWeight:800,fontSize:TXT.metric,margin:"6px 0 2px",color:c.color}}>{c.label}</div>
+                <div style={{fontWeight:800,fontSize:TXT.metric,margin:"6px 0 2px",color:textPrimary}}>{c.label}</div>
                 <div style={{fontFamily:F,fontSize:TXT.cardMeta,color:textMuted}}>{c.pts.toLocaleString()}+ points</div>
               </div>
             ))}
@@ -94,12 +93,12 @@ export default function CertificationsPage({ ctx }) {
               const filtered=deduplicatedCerts.filter(c=>c.level===level).sort((a,b)=>(b.totalPts||0)-(a.totalPts||0));
               if(!filtered.length)return null;
               return(<div key={level} style={{marginBottom:"32px"}}>
-                <div style={{...secLbl(certColors[level]),marginBottom:"16px"}}><SecMark c={certColors[level]}/><span style={certIconFilters[level]?{filter:certIconFilters[level]}:undefined}>{certIcons[level]}</span> {level.charAt(0).toUpperCase()+level.slice(1)} Certified ({filtered.length})</div>
+                <div style={{...secLbl(textPrimary),marginBottom:"16px"}}><SecMark c={textPrimary}/><span style={certIconFilters[level]?{filter:certIconFilters[level]}:undefined}>{certIcons[level]}</span> {level.charAt(0).toUpperCase()+level.slice(1)} Certified ({filtered.length})</div>
                 <div className="cert-wall">
                   {filtered.map((c,i)=>(
-                    <div key={i} className={`cert-wall-card ${level}`} style={{background:certColors[level]+"08"}}>
+                    <div key={i} className={`cert-wall-card ${level}`} style={{background:isDark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.02)"}}>
                       <span className="cert-icon"><span style={certIconFilters[level]?{filter:certIconFilters[level]}:undefined}>{certIcons[level]}</span></span>
-                      <EntryThumb item={c} name={c.a} size={64} accent={certColors[level]} />
+                      <EntryThumb item={c} name={c.a} size={64} accent={textPrimary} />
                       <div style={{flex:1,minWidth:0}}>
                         <button type="button" onClick={()=>openReleaseDetails(c,isSingles?"single":"album")} style={{display:"block",border:0,background:"transparent",padding:0,fontFamily:SF,fontWeight:800,fontSize:"15px",lineHeight:1.25,cursor:"pointer",textAlign:"left",color:textPrimary,whiteSpace:"normal",wordBreak:"break-word"}}>{c.t}</button>
                         <div style={{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap",marginTop:"2px"}}>
@@ -108,7 +107,7 @@ export default function CertificationsPage({ ctx }) {
                         </div>
                       </div>
                       <div style={{textAlign:"right",fontFamily:F,flexShrink:0}}>
-                        <div style={{fontSize:"18px",fontWeight:900,color:certColors[level],lineHeight:1}}>{c.totalPts.toLocaleString()}</div>
+                        <div style={{fontSize:"18px",fontWeight:900,color:textPrimary,lineHeight:1}}>{c.totalPts.toLocaleString()}</div>
                         <div style={{fontSize:"11px",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.8px",color:textMuted,marginTop:"2px"}}>pts</div>
                       </div>
                     </div>

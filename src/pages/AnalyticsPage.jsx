@@ -331,7 +331,7 @@ export default function AnalyticsPage({ ctx }) {
               {!mvData.newEntries.length&&<div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:"#CCC",padding:"20px 0",textAlign:"center"}}>No new entries (debut month)</div>}
             </div>
             <div style={card()}>
-              <div style={{...secLbl(), fontSize:"20px"}}><SecMark/>Re-Entries — {anMonth}</div>
+              <div style={{...secLbl(isDark?"#F6F3EA":"#1A1A1A"), fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Re-Entries — {anMonth}</div>
               {mvData.reEntries.slice(0,5).map((s,i)=>{
                 const certification = isArtists ? null : getCertificationForEntry(s, isSingles ? "single" : "album");
                 return (
@@ -362,7 +362,7 @@ export default function AnalyticsPage({ ctx }) {
           <AnalyticsDeepSection label="Cross-Platform Reach" isMobile={isMobile}>
           <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px",...sectionGap}}>
           <div style={card()}>
-            <div style={{...secLbl(), fontSize:"20px"}}><SecMark/>Cross-Platform Reach — {anMonth}</div>
+            <div style={{...secLbl(isDark?"#F6F3EA":"#1A1A1A"), fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Cross-Platform Reach — {anMonth}</div>
             <p style={{fontFamily:F,fontSize:"12px",color:"#59645D",margin:"-4px 0 12px",lineHeight:1.45}}>{releaseLabel} charting on most platforms simultaneously.</p>
             {crossPlatformRows.slice(0,8).map((s,i)=>{
               const certification = isArtists ? null : getCertificationForEntry(s, isSingles ? "single" : "album");
@@ -416,7 +416,7 @@ export default function AnalyticsPage({ ctx }) {
           {platTotalsData.length>0&&(
             <AnalyticsDeepSection label="Platform Totals" isMobile={isMobile}>
             <div style={{...card(),...sectionGap}}>
-              <div style={{...secLbl(), fontSize:"20px"}}><SecMark/>Combined Top 50 Entries Contributed Per Platform — {anMonth}</div>
+              <div style={{...secLbl(isDark?"#F6F3EA":"#1A1A1A"), fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Combined Top 50 Entries Contributed Per Platform — {anMonth}</div>
               <div style={{display:"flex",justifyContent:"flex-end",margin:"-4px 0 12px"}}><ViewToggle id="platformTotals" /></div>
               {viewMode("platformTotals")==="table" ? (
                 <div style={{display:"grid",gap:"8px"}}>
@@ -447,7 +447,7 @@ export default function AnalyticsPage({ ctx }) {
           <AnalyticsDeepSection label="Country Stats" isMobile={isMobile}>
           <div style={{...card(),...sectionGap}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",marginBottom:"14px",flexWrap:"wrap"}}>
-              <div style={{...secLbl(),marginBottom:0,fontSize:"20px"}}><SecMark/>Top 5 Countries — {anMonth}</div>
+              <div style={{...secLbl(isDark?"#F6F3EA":"#1A1A1A"),marginBottom:0,fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Top 5 Countries — {anMonth}</div>
               <ViewToggle id="topCountries" />
             </div>
             {viewMode("topCountries")==="table" ? (
@@ -478,7 +478,7 @@ export default function AnalyticsPage({ ctx }) {
           <AnalyticsDeepSection label="Platform Exclusives" isMobile={isMobile}>
           <div style={{...card(),...sectionGap}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",marginBottom:"14px",flexWrap:"wrap"}}>
-              <div style={{...secLbl(),marginBottom:0,fontSize:"20px"}}><SecMark/>Platform-Unique Entries — {anMonth}</div>
+              <div style={{...secLbl(isDark?"#F6F3EA":"#1A1A1A"),marginBottom:0,fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Platform-Unique Entries — {anMonth}</div>
               <ViewToggle id="uniquePlatforms" />
             </div>
             {viewMode("uniquePlatforms")==="table" ? (
@@ -521,7 +521,7 @@ export default function AnalyticsPage({ ctx }) {
             .ngoma-coverage-row:hover { background: ${isDark ? "rgba(184,134,11,0.08)" : "rgba(184,134,11,0.05)"}; }
           `}</style>
           <div style={{...card(),...sectionGap}}>
-            <div style={{...secLbl(), fontSize:"20px"}}><SecMark/>{isMobile?"Records & Milestones":"Records & Milestones — All Time"}</div>
+            <div style={{...secLbl(isDark?"#F6F3EA":"#1A1A1A"), fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>{isMobile?"Records & Milestones":"Records & Milestones — All Time"}</div>
             <p style={{fontFamily:F,fontSize:"13px",color:isDark?"#8F968F":"#69716B",margin:"-4px 0 18px",lineHeight:1.5}}>{chartTypeLabel} achievements calculated solely from published public Top 50 charts across all tracked months.</p>
             <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(3,1fr)",gap:"10px"}}>
               {currentRecords.map((r,i)=>{
@@ -546,7 +546,7 @@ export default function AnalyticsPage({ ctx }) {
           {hofItems.length > 0 && (
           <AnalyticsDeepSection label="Hall of Fame" isMobile={isMobile}>
           <div style={card({marginBottom:isMobile?"20px":"26px"})}>
-            <div style={{...secLbl(), fontSize:"20px"}}><SecMark/>{isMobile?"Monthly #1s":"Hall of Fame — Monthly #1s"}</div>
+            <div style={{...secLbl(isDark?"#F6F3EA":"#1A1A1A"), fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>{isMobile?"Monthly #1s":"Hall of Fame — Monthly #1s"}</div>
             <p style={{fontFamily:F,fontSize:"13px",color:isDark?"#8F968F":"#69716B",margin:"-4px 0 18px",lineHeight:1.5}}>Monthly leaders from the published public Top 50 charts across the full tracked dataset.</p>
             {(()=>{
               const HofSection = ({items, label}) => items.length === 0 ? null : (
@@ -580,7 +580,7 @@ export default function AnalyticsPage({ ctx }) {
           {/* Head-to-head deep dive — an interactive tool, so it closes out the page */}
           <AnalyticsDeepSection label="Head-to-Head" isMobile={isMobile}>
           <div style={{...card(),padding:isMobile?"16px":"18px",...sectionGap,background:isDark?"#0F120F":"linear-gradient(135deg,#FAFAF8,#FFFFFF)",borderColor:isDark?"#2F352F":"#EFEDE7"}}>
-            <div style={{...secLbl(), fontSize:"20px"}}><SecMark/>{isArtists ? "Artist" : (isSingles?"Song":"Album")} Head-to-Head</div>
+            <div style={{...secLbl(isDark?"#F6F3EA":"#1A1A1A"), fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>{isArtists ? "Artist" : (isSingles?"Song":"Album")} Head-to-Head</div>
             <p style={{fontFamily:F,fontSize:"13px",color:isDark?"#F6F3EA":"#69716B",margin:"-8px 0 14px",lineHeight:1.45}}>Compare two {isArtists ? "artists" : (isSingles?"songs":"albums")} across points, rank, platforms, and chart history.</p>
             <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"minmax(0,1fr) auto minmax(0,1fr)",gap:isMobile?"10px":"12px",alignItems:"center",marginBottom:isMobile?"14px":"14px"}}>
               <div style={{minWidth:0}}>
