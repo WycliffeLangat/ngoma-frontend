@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { cmsApi } from "../api";
+import NgomaMark from "../../components/NgomaMark.jsx";
 
 export default function LoginPage({ onLogin }) {
   const [username, setUsername] = useState("");
@@ -22,7 +23,7 @@ export default function LoginPage({ onLogin }) {
         <section className="cms-login-intro">
           <a href="/" className="cms-login-home">← Back to Ngoma Charts</a>
           <div>
-            <div className="cms-login-wordmark"><span>N</span> NGOMA CHARTS</div>
+            <div className="cms-login-wordmark"><NgomaMark size={34} inkColor="#FFF" /><span>NGOMA CHARTS</span></div>
             <h1>Kenya's music charts,<br />managed with clarity.</h1>
             <p>One workspace for chart publishing, catalogue quality, editorial content, and team activity.</p>
           </div>

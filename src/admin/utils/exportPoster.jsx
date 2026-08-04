@@ -1,4 +1,5 @@
 import { toPng } from "html-to-image";
+import NgomaMark from "../../components/NgomaMark.jsx";
 
 // Shared 4:5 portrait dimensions for every social share image the CMS
 // generates (chart posters, spotlight cards, etc.) — matches Instagram/
@@ -16,10 +17,11 @@ export const TITLE_GAP_FROM_LOGO = 76;
 
 // For card types that position their post-logo content with an absolute
 // `top: <px>` offset (rather than flowing it after the brand row in normal
-// document flow) — the standard brand row sits at 72px top padding and its
-// SVG mark is ~55px tall, so this reproduces the same TITLE_GAP_FROM_LOGO gap
-// via a single reusable offset instead of each card guessing its own number.
-export const HEADER_ZONE_H = 72 + 55 + TITLE_GAP_FROM_LOGO;
+// document flow) — the standard brand row sits at 72px top padding and is
+// ~108px tall (icon + gap + stacked wordmark), so this reproduces the same
+// TITLE_GAP_FROM_LOGO gap via a single reusable offset instead of each card
+// guessing its own number.
+export const HEADER_ZONE_H = 72 + 108 + TITLE_GAP_FROM_LOGO;
 
 const TRANSPARENT_PIXEL =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
@@ -69,7 +71,7 @@ export const POSTER_FONT_FAMILY = "Inter, -apple-system, BlinkMacSystemFont, 'Se
 // everywhere instead of each card type drifting its own colors.
 export const POSTER_THEMES = {
   dark: {
-    pageBg: "linear-gradient(160deg, #0b0b0b 0%, #050505 55%, #10130f 100%)",
+    pageBg: "#050505",
     wordmarkBarColor: "#F6F3EA",
     titleColor: "#FFFFFF",
     metaColor: "#AEB6AE",
@@ -82,7 +84,7 @@ export const POSTER_THEMES = {
     emptyColor: "#5A625A",
   },
   light: {
-    pageBg: "linear-gradient(160deg, #ffffff 0%, #faf8f3 55%, #f2eee3 100%)",
+    pageBg: "#FFFFFF",
     wordmarkBarColor: "#1A1A1A",
     titleColor: "#0C0C0C",
     metaColor: "#69716B",
@@ -95,20 +97,6 @@ export const POSTER_THEMES = {
     emptyColor: "#8A928B",
   },
 };
-
-// Small ascending-bars mark — the exact icon used in the public site's own
-// header (src/NgomaCharts.jsx). There's no logo image file to embed, so
-// every card type shares this exact same mark instead of inventing its own.
-export function BrandMark({ size = 22, barColor }) {
-  return (
-    <svg width={size} height={size * (24 / 22)} viewBox="0 0 22 24" style={{ flexShrink: 0 }}>
-      <rect x="0" y="15" width="3.5" height="9" fill={barColor} rx="0.5" />
-      <rect x="5.5" y="10" width="3.5" height="14" fill={barColor} rx="0.5" />
-      <rect x="11" y="5" width="3.5" height="19" fill="#B8860B" rx="0.5" />
-      <rect x="16.5" y="0" width="3.5" height="24" fill={barColor} rx="0.5" />
-    </svg>
-  );
-}
 
 // Fallback artwork tile used whenever a record has no cover/hero image — a
 // card should never show a blank gap where art belongs, so this renders the
@@ -132,7 +120,7 @@ export function ArtPlaceholder({ width, height, radius = 0, theme, accentColor =
         justifyContent: "center",
       }}
     >
-      <BrandMark size={size} barColor={t.titleColor} />
+      <NgomaMark size={size} inkColor={t.titleColor} />
     </div>
   );
 }
@@ -141,12 +129,12 @@ export function ArtPlaceholder({ width, height, radius = 0, theme, accentColor =
 // rendered as its own standalone line at the top of a card — never squeezed
 // inline next to other header content — so the brand reads clearly at a
 // glance even in a fast social-media scroll.
-export function PosterBrandRow({ theme, size = 50, fontSize = 32, gap = 16 }) {
+export function PosterBrandRow({ theme, size = 56, fontSize = 26, gap = 14 }) {
   const t = POSTER_THEMES[theme] || POSTER_THEMES.dark;
   return (
-    <div style={{ display: "flex", alignItems: "center", gap }}>
-      <BrandMark size={size} barColor={t.wordmarkBarColor} />
-      <span style={{ fontSize, fontWeight: 900, letterSpacing: "2.6px", textTransform: "uppercase", color: "#B8860B" }}>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap }}>
+      <NgomaMark size={size} inkColor={t.wordmarkBarColor} />
+      <span style={{ fontSize, fontWeight: 950, letterSpacing: "-0.8px", textTransform: "uppercase", color: t.wordmarkBarColor, lineHeight: 1 }}>
         Ngoma Charts
       </span>
     </div>

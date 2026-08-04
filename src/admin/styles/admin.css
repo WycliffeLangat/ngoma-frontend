@@ -94,10 +94,6 @@
 .cms-sidebar{width:264px;padding:18px 12px 14px;display:flex;flex-direction:column;background:linear-gradient(180deg,#171814 0%,#10110f 100%);box-shadow:10px 0 40px rgba(14,15,12,.08)}
 .cms-main{margin-left:264px}
 .cms-brand{min-height:68px;padding:8px 8px 18px;gap:12px}
-.cms-brand b{width:40px;height:40px;display:grid;place-items:center;padding:0;border-radius:13px;background:linear-gradient(145deg,#e1b64f,#ad7c12);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:20px}
-.cms-brand>span{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
-.cms-brand>span strong{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;letter-spacing:-.01em;color:#fff}
-.cms-brand>span small{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:#908f86}
 .cms-sidebar-close{display:none!important;width:34px!important;height:34px!important;padding:0!important;text-align:center!important;font-size:22px!important}
 .cms-sidebar nav{gap:4px;flex:1}
 .cms-nav-group{gap:2px;padding:5px 0 9px}
@@ -194,8 +190,7 @@
 .cms-login-intro>*{position:relative;z-index:1}
 .cms-login-home{color:#b9b8b0;text-decoration:none;font-size:12px;font-weight:750}
 .cms-login-home:hover{color:#fff}
-.cms-login-wordmark{display:flex;align-items:center;gap:12px;margin-bottom:31px;font-size:11px;font-weight:900;letter-spacing:.14em}
-.cms-login-wordmark span{width:41px;height:41px;display:grid;place-items:center;border-radius:13px;background:var(--cms-gold);color:#181914;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:19px}
+.cms-login-wordmark{display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:31px;font-size:15px;font-weight:950;letter-spacing:-.02em;width:fit-content}
 .cms-login-intro h1{margin:0;max-width:500px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:43px;line-height:1.08;font-weight:500;letter-spacing:-.04em}
 .cms-login-intro p{max-width:440px;margin:19px 0 0;color:#b9b8b0;font-size:15px;line-height:1.7}
 .cms-login-intro>small{color:#7f8079;font-size:9px;text-transform:uppercase;letter-spacing:.13em}

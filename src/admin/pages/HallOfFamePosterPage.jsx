@@ -68,8 +68,6 @@ function PosterContent({ items, chartType, theme = "dark" }) {
         position: "relative", overflow: "hidden",
       }}
     >
-      <div style={{ position: "absolute", top: -180, left: -120, width: 460, height: 460, borderRadius: "50%", background: `radial-gradient(circle, ${GOLD}2E 0%, transparent 70%)` }} />
-
       <div style={{ padding: `56px ${padX}px 0`, position: "relative", zIndex: 1 }}>
         <PosterBrandRow theme={theme} />
       </div>

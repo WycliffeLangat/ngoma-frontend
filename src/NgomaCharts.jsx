@@ -50,6 +50,7 @@ import {
 import PremiumChartsPage, { getArtistCountry } from "./components/PremiumChartsPage";
 import ArtistAmbientField from "./components/ArtistAmbientField.jsx";
 import EntryThumb from "./components/EntryThumb.jsx";
+import NgomaMark from "./components/NgomaMark.jsx";
 
 // Persists cover images fetched from the live API so the Kenyan chart
 // (which never calls the API directly) can still show artwork.
@@ -3913,50 +3914,34 @@ const top = data[0];
 
       {/* HEADER */}
       <header ref={publicHeaderRef} style={{background:themeColors.surface,borderBottom:`3px solid ${themeColors.text}`,position:"fixed",top:0,left:0,right:0,width:"100%",zIndex:90,boxShadow:isDark?"0 8px 24px rgba(0,0,0,0.34)":"0 8px 24px rgba(31,36,31,0.10)"}}>
-        <div style={{background:"#1A1A1A",color:"#FFF"}}>
+        <div style={{background:isDark?"#1A1A1A":"#F5F3EA",color:isDark?"#FFF":"#1A1A1A"}}>
           <div style={{...pageFrame({display:"flex",justifyContent:"flex-end",alignItems:"center",gap:"18px",padding:isMobile?"6px 16px":"5px 28px"}),fontFamily:F,fontSize:isMobile?"8px":"9.5px",letterSpacing:isMobile?"1px":"2px",textTransform:"uppercase"}}>
-            <span style={{color:"rgba(255,255,255,0.68)",fontSize:isMobile?"8px":"9.5px",letterSpacing:isMobile?"0.5px":"1px",fontFamily:"inherit",whiteSpace:"nowrap"}}>
+            <span style={{color:isDark?"rgba(255,255,255,0.68)":"rgba(26,26,26,0.68)",fontSize:isMobile?"8px":"9.5px",letterSpacing:isMobile?"0.5px":"1px",fontFamily:"inherit",whiteSpace:"nowrap"}}>
               {new Date().toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short",year:"numeric"})}
             </span>
             {liveIndicator}
           </div>
         </div>
-          <div style={{...pageFrame({display:"flex",justifyContent:"space-between",alignItems:"center",padding:isMobile?"14px 16px":(isTablet?"16px 22px 18px":"18px 28px 22px")}),columnGap:isMobile?"16px":(isTablet?"24px":"60px"),rowGap:isTablet?"12px":"16px",flexWrap:"wrap"}}>
-          <div onClick={()=>navTo("charts")} style={{display:"flex",alignItems:"center",gap:"14px",cursor:"pointer"}}>
-            <svg width={isMobile?"24":"32"} height={isMobile?"26":"34"} viewBox="0 0 22 24" style={{flexShrink:0}}>
-              <rect x="0" y="15" width="3.5" height="9" fill={themeColors.text} rx="0.5"/>
-              <rect x="5.5" y="10" width="3.5" height="14" fill={themeColors.text} rx="0.5"/>
-              <rect x="11" y="5" width="3.5" height="19" fill={GOLD} rx="0.5"/>
-              <rect x="16.5" y="0" width="3.5" height="24" fill={themeColors.text} rx="0.5"/>
-            </svg>
-            <div style={{display:"flex",flexDirection:"column",lineHeight:1,cursor:"pointer"}}>
-              <span
-                style={{
-                  fontFamily:F,
-                  fontSize:isMobile?"20px":(isTablet?"24px":"28px"),
-                  fontWeight:950,
-                  letterSpacing:isMobile?"2px":(isTablet?"2.8px":"4px"),
-                  color:themeColors.text,
-                  textTransform:"uppercase",
-                }}
-              >
-                <span style={{color:GOLD,fontWeight:950}}>{SITE_NAME}</span>
-              </span>
-              <span
-                style={{
-                  marginTop:"4px",
-                  fontFamily:F,
-                  fontSize:isMobile?"9.5px":(isTablet?"11px":"13px"),
-                  fontWeight:900,
-                  letterSpacing:isMobile?"1.4px":(isTablet?"1.6px":"2.2px"),
-                  color:themeColors.muted,
-                  textTransform:"uppercase",
-                  whiteSpace:"nowrap",
-                }}
-              >
-                Music ranking intelligence
-              </span>
-            </div>
+          <div style={{...pageFrame({display:"flex",justifyContent:"flex-start",alignItems:"center",padding:isMobile?"14px 16px":(isTablet?"16px 22px 18px":"18px 28px 22px")}),columnGap:isMobile?"16px":(isTablet?"24px":"40px"),rowGap:isTablet?"12px":"16px",flexWrap:"wrap"}}>
+          <div
+            onClick={()=>navTo("charts")}
+            style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:isMobile?"4px":"5px",cursor:"pointer",flexShrink:0}}
+          >
+            <NgomaMark size={isMobile?34:(isTablet?42:48)} inkColor={themeColors.text} />
+            <span
+              style={{
+                fontFamily:F,
+                fontSize:isMobile?"13px":(isTablet?"15px":"17px"),
+                fontWeight:950,
+                letterSpacing:"-0.4px",
+                color:themeColors.text,
+                textTransform:"uppercase",
+                whiteSpace:"nowrap",
+                lineHeight:1,
+              }}
+            >
+              {SITE_NAME}
+            </span>
           </div>
           {isMobile ? (
             <>
@@ -4309,18 +4294,13 @@ const top = data[0];
       </main>
 
       {/* FOOTER */}
-      <footer style={{padding:isMobile?"34px 18px 38px":"30px 28px",borderTop:`1px solid ${GOLD}66`,background:"linear-gradient(180deg,#181A15 0%,#0B0C09 100%)",fontFamily:F,boxSizing:"border-box",overflow:"hidden",boxShadow:"inset 0 1px 0 rgba(255,255,255,0.04)"}}>
+      <footer style={{padding:isMobile?"34px 18px 38px":"30px 28px",borderTop:`3px solid ${themeColors.text}`,background:isDark?"linear-gradient(180deg,#181A15 0%,#0B0C09 100%)":"linear-gradient(180deg,#FFFFFF 0%,#F5F3EA 100%)",fontFamily:F,boxSizing:"border-box",overflow:"hidden",boxShadow:isDark?"inset 0 1px 0 rgba(255,255,255,0.04)":"inset 0 1px 0 rgba(0,0,0,0.03)"}}>
         <div style={{...pageFrame(),display:"flex",justifyContent:"space-between",alignItems:isMobile?"center":"flex-start",flexWrap:"wrap",gap:isMobile?"20px":"24px",flexDirection:isMobile?"column":"row",textAlign:isMobile?"center":"left"}}>
-          <div onClick={()=>navTo("charts")} style={{display:"flex",alignItems:"center",gap:"12px",cursor:"pointer",minWidth:isMobile?"auto":"250px"}}>
-            <svg width="16" height="18" viewBox="0 0 22 24" style={{flexShrink:0}}>
-              <rect x="0" y="15" width="3.5" height="9" fill="#FFF" rx="0.5"/>
-              <rect x="5.5" y="10" width="3.5" height="14" fill="#FFF" rx="0.5"/>
-              <rect x="11" y="5" width="3.5" height="19" fill={GOLD} rx="0.5"/>
-              <rect x="16.5" y="0" width="3.5" height="24" fill="#FFF" rx="0.5"/>
-            </svg>
-            <span style={{display:"grid",gap:"3px"}}>
-              <span style={{fontFamily:F,fontSize:isMobile?"13px":"12px",fontWeight:900,letterSpacing:"2.4px",color:GOLD,textTransform:"uppercase"}}>{SITE_NAME}</span>
-              <small style={{fontFamily:F,fontSize:"10px",fontWeight:750,letterSpacing:"0.8px",color:"rgba(255,255,255,0.62)",textTransform:"uppercase"}}>A Ngoma Media Ltd product</small>
+          <div onClick={()=>navTo("charts")} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"8px",cursor:"pointer",minWidth:isMobile?"auto":"250px"}}>
+            <NgomaMark size={30} inkColor={isDark?"#FFF":"#1A1A1A"} />
+            <span style={{display:"grid",gap:"3px",justifyItems:"center",textAlign:"center"}}>
+              <span style={{fontFamily:F,fontSize:isMobile?"16px":"15px",fontWeight:950,letterSpacing:"-0.4px",color:isDark?"#FFF":"#1A1A1A",textTransform:"uppercase"}}>{SITE_NAME}</span>
+              <small style={{fontFamily:F,fontSize:"10px",fontWeight:750,letterSpacing:"0.8px",color:isDark?"rgba(255,255,255,0.62)":"rgba(26,26,26,0.55)",textTransform:"uppercase"}}>Music ranking intelligence</small>
             </span>
           </div>
           <div style={{display:"flex",gap:isMobile?"8px":"10px",alignItems:"center",justifyContent:"center",flexWrap:"wrap",maxWidth:isMobile?"100%":"520px"}}>
@@ -4329,7 +4309,7 @@ const top = data[0];
                 key={item}
                 href={PUBLIC_PAGE_ROUTES[item] || `/${item}`}
                 onClick={(e)=>{ e.preventDefault(); navTo(item); }}
-                style={{fontFamily:F,fontSize:"10.5px",fontWeight:850,letterSpacing:"1px",textTransform:"uppercase",color:"rgba(255,255,255,0.72)",textDecoration:"none",padding:"7px 10px",borderRadius:"999px",border:"1px solid rgba(255,255,255,0.10)",background:"rgba(255,255,255,0.035)"}}
+                style={{fontFamily:F,fontSize:"10.5px",fontWeight:850,letterSpacing:"1px",textTransform:"uppercase",color:isDark?"rgba(255,255,255,0.72)":"rgba(26,26,26,0.72)",textDecoration:"none",padding:"7px 10px",borderRadius:"999px",border:isDark?"1px solid rgba(255,255,255,0.10)":"1px solid rgba(26,26,26,0.12)",background:isDark?"rgba(255,255,255,0.035)":"rgba(26,26,26,0.035)"}}
               >
                 {navLabel(item)}
               </a>
@@ -4337,26 +4317,25 @@ const top = data[0];
           </div>
           <div style={{display:"flex",gap:isMobile?"10px":"14px",alignItems:"center",justifyContent:"center"}}>
             {[
-              {label:"Facebook", href:SOCIAL_LINKS.facebook || "https://www.facebook.com/ngomacharts", bg:"#1877F2", color:"#FFF",
-               path:"M14 8.5h2V5.8h-2.4C11.5 5.8 10.5 7 10.5 9v1.5H8.7V13h1.8v6h2.6v-6h2l.3-2.5h-2.3V9.1c0-.4.2-.6.7-.6Z"},
-              {label:"X", href:SOCIAL_LINKS.x || "https://x.com/Ngoma_Charts", bg:"#000", color:"#FFF", border:"1px solid rgba(255,255,255,0.18)",
-               path:"M16.8 5h2.2l-4.8 5.5L20 19h-4.4l-3.5-4.6L8 19H5.8l5.1-5.9L5 5h4.5l3.1 4.2L16.8 5Zm-.8 12.6h1.2L9.1 6.3H7.8L16 17.6Z"},
-              {label:"Instagram", href:SOCIAL_LINKS.instagram || "https://www.instagram.com/ngoma_charts/", bg:"linear-gradient(135deg,#F58529 0%,#DD2A7B 45%,#8134AF 72%,#515BD4 100%)", color:"#FFF",
-               path:"M12 7.3A4.7 4.7 0 1012 16.7 4.7 4.7 0 0012 7.3Zm0 7.7a3 3 0 110-6 3 3 0 010 6Zm4.9-7.9a1.1 1.1 0 11-2.2 0 1.1 1.1 0 012.2 0ZM16.5 5h-9A2.5 2.5 0 005 7.5v9A2.5 2.5 0 007.5 19h9a2.5 2.5 0 002.5-2.5v-9A2.5 2.5 0 0016.5 5Z"},
+              {
+                label:"Facebook", href:SOCIAL_LINKS.facebook || "https://www.facebook.com/ngomacharts", bg:"#1877F2",
+                path:"M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z",
+              },
+              {
+                label:"X", href:SOCIAL_LINKS.x || "https://x.com/Ngoma_Charts", bg:"#000",
+                path:"M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z",
+                fillRule:"evenodd",
+              },
+              {
+                label:"Instagram", href:SOCIAL_LINKS.instagram || "https://www.instagram.com/ngoma_charts/", bg:"linear-gradient(135deg,#F58529 0%,#DD2A7B 45%,#8134AF 72%,#515BD4 100%)",
+                path:"M12 0C8.74 0 8.333.014 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.014 8.333 0 8.74 0 12s.014 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.986 8.74 24 12 24s3.667-.014 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.058-1.28.072-1.687.072-4.947s-.014-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.014 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.899 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.899-.421-.419-.69-.824-.9-1.38-.165-.42-.359-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844 0-3.196.016-3.586.061-4.861.061-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06l.045.03zm0 3.678c-3.405 0-6.162 2.76-6.162 6.162 0 3.405 2.76 6.162 6.162 6.162 3.405 0 6.162-2.76 6.162-6.162 0-3.405-2.76-6.162-6.162-6.162zM12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm7.846-10.405c0 .795-.646 1.44-1.44 1.44-.795 0-1.44-.646-1.44-1.44 0-.794.646-1.439 1.44-1.439.793-.001 1.44.645 1.44 1.439z",
+              },
             ].map(s=>(
               <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label}
-                 style={{display:"flex",alignItems:"center",justifyContent:"center",width:isMobile?"44px":"38px",height:isMobile?"44px":"38px",borderRadius:"50%",color:s.color,transition:"transform .2s, box-shadow .2s, background .2s",background:s.bg,border:s.border||"1px solid transparent",boxShadow:"0 8px 18px rgba(0,0,0,0.16)"}}
+                 style={{display:"flex",alignItems:"center",justifyContent:"center",width:isMobile?"42px":"36px",height:isMobile?"42px":"36px",borderRadius:"50%",color:"#FFF",transition:"transform .2s, box-shadow .2s",background:s.bg,boxShadow:"0 8px 18px rgba(0,0,0,0.16)"}}
                  onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px) scale(1.04)";e.currentTarget.style.boxShadow="0 12px 26px rgba(0,0,0,0.24)";}}
                  onMouseLeave={e=>{e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow="0 8px 18px rgba(0,0,0,0.16)";}}>
-                {s.label==="Instagram"?(
-                  <svg width={isMobile?"22":"20"} height={isMobile?"22":"20"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="5" y="5" width="14" height="14" rx="4.2" />
-                    <circle cx="12" cy="12" r="3.2" />
-                    <circle cx="16.4" cy="7.6" r="1" fill="currentColor" stroke="none" />
-                  </svg>
-                ):(
-                  <svg width={isMobile?"22":"20"} height={isMobile?"22":"20"} viewBox="0 0 24 24" fill="currentColor"><path d={s.path}/></svg>
-                )}
+                <svg width={isMobile?"19":"17"} height={isMobile?"19":"17"} viewBox="0 0 24 24" fill="currentColor" fillRule={s.fillRule}><path d={s.path}/></svg>
               </a>
             ))}
           </div>
@@ -4366,7 +4345,7 @@ const top = data[0];
             ...pageFrame(),
             marginTop: isMobile ? "18px" : "22px",
             paddingTop: "14px",
-            borderTop: "1px solid rgba(255,255,255,0.08)",
+            borderTop: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(26,26,26,0.10)",
             display: "flex",
             flexDirection: isMobile ? "column" : "row",
             gap: isMobile ? "5px" : "12px",
@@ -4374,7 +4353,7 @@ const top = data[0];
             justifyContent: isMobile ? "center" : "space-between",
             textAlign: isMobile ? "center" : "left",
             fontSize: "10px",
-            color: "rgba(255,255,255,0.48)",
+            color: isDark ? "rgba(255,255,255,0.48)" : "rgba(26,26,26,0.48)",
             letterSpacing: "0.8px",
             textTransform: "uppercase",
           }}

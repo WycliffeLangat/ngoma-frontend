@@ -1567,7 +1567,6 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell [data-page] {
   color: #f6f3ea !important;
 }
 
-html[data-ngoma-theme="dark"] .ngoma-app-shell header,
 html[data-ngoma-theme="dark"] .ngoma-app-shell section,
 html[data-ngoma-theme="dark"] .ngoma-app-shell article,
 html[data-ngoma-theme="dark"] .ngoma-app-shell aside,
@@ -2271,7 +2270,6 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell .ngoma-charts-page {
   color: #f6f3ea !important;
 }
 
-html[data-ngoma-theme="dark"] .ngoma-app-shell header,
 html[data-ngoma-theme="dark"] .ngoma-app-shell section,
 html[data-ngoma-theme="dark"] .ngoma-app-shell article,
 html[data-ngoma-theme="dark"] .ngoma-app-shell aside,

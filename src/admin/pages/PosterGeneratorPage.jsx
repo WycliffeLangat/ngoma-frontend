@@ -16,7 +16,6 @@ import {
   POSTER_FONT_FAMILY,
   POSTER_THEMES,
   TITLE_GAP_FROM_LOGO,
-  BrandMark,
   PosterBrandRow,
   PosterFooter,
   ArtPlaceholder,
@@ -176,18 +175,6 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
         overflow: "hidden",
       }}
     >
-      <div
-        style={{
-          position: "absolute",
-          top: -180,
-          left: -120,
-          width: 460,
-          height: 460,
-          borderRadius: "50%",
-          background: `radial-gradient(circle, ${accentColor}2E 0%, transparent 70%)`,
-        }}
-      />
-
       <div style={{ padding: `56px ${padX}px 0`, position: "relative", zIndex: 1 }}>
         <PosterBrandRow theme={theme} />
       </div>

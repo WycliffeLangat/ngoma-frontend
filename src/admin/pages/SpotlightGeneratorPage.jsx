@@ -104,18 +104,6 @@ function SpotlightContent({ item, type, theme = "dark" }) {
         overflow: "hidden",
       }}
     >
-      <div
-        style={{
-          position: "absolute",
-          top: -160,
-          left: -160,
-          width: 480,
-          height: 480,
-          borderRadius: "50%",
-          background: `radial-gradient(circle, ${certColor}2E 0%, transparent 70%)`,
-        }}
-      />
-
       <div style={{ padding: `72px ${padX}px 0`, position: "relative", zIndex: 1 }}>
         <PosterBrandRow theme={theme} />
       </div>

@@ -11,6 +11,10 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
+    // Folder is capitalized "Public" on disk — set explicitly so the build
+    // finds it on case-sensitive filesystems (Netlify's Linux builders),
+    // where Vite's "public" default wouldn't match.
+    publicDir: "Public",
     build: {
       outDir: "dist",
       sourcemap: false,

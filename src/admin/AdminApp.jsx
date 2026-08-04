@@ -3,6 +3,7 @@ import { cmsApi, notifyPublicAppChangedNow } from "./api";
 import LoginPage from "./pages/LoginPage";          // tiny — needed immediately for auth
 import NotificationBell from "./components/NotificationBell";
 import GlobalSearch from "./components/GlobalSearch";
+import NgomaMark from "../components/NgomaMark.jsx";
 import { buildDashboardAudit, mergeDashboardAudit, sanitizeDashboardAttention } from "./dataQualityAudit";
 import "./styles/admin.css";
 
@@ -267,8 +268,13 @@ export default function AdminApp() {
       {sidebar && <div className="cms-sidebar-overlay" onClick={() => setSidebar(false)} />}
       <aside className={`cms-sidebar ${sidebar ? "open" : ""}`}>
         <div className="cms-brand">
-          <b aria-hidden="true">N</b>
-          <span><strong>Ngoma Charts</strong><small>Admin workspace</small></span>
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"6px",flex:1,minWidth:0}}>
+            <NgomaMark size={30} inkColor="#FFF" />
+            <span style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"2px",minWidth:0}}>
+              <strong style={{fontFamily:"'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",fontSize:"14px",fontWeight:950,letterSpacing:"-.02em",color:"#fff"}}>Ngoma Charts</strong>
+              <small style={{fontSize:"10px",letterSpacing:".09em",textTransform:"uppercase",color:"#908f86"}}>Admin workspace</small>
+            </span>
+          </div>
           <button
             type="button"
             className="cms-sidebar-close"

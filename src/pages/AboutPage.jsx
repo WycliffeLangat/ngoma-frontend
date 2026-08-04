@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { getPublicArtists, getArtistImageUrl } from "../utils/artistImages.js";
+import NgomaMark from "../components/NgomaMark.jsx";
 
 export default function AboutPage({ ctx }) {
   const {
@@ -95,12 +96,7 @@ export default function AboutPage({ ctx }) {
           {/* Brand */}
           <div style={{marginTop:"18px",padding:"20px",background:isDark?"#111208":"#FAF5EA",border:"1px solid "+(isDark?"#2F2B1A":"#E8DDBF"),borderRadius:"14px",color:isDark?"#F6F3EA":"#1A1A1A"}}>
             <div style={{display:"flex",alignItems:"center",gap:"10px"}}>
-              <svg width="20" height="22" viewBox="0 0 22 24" style={{flexShrink:0}}>
-                <rect x="0" y="15" width="3.5" height="9" fill={isDark?"#C5C5C0":"#1A1A1A"} rx="0.5"/>
-                <rect x="5.5" y="10" width="3.5" height="14" fill={isDark?"#C5C5C0":"#1A1A1A"} rx="0.5"/>
-                <rect x="11" y="5" width="3.5" height="19" fill="#B8860B" rx="0.5"/>
-                <rect x="16.5" y="0" width="3.5" height="24" fill={isDark?"#C5C5C0":"#1A1A1A"} rx="0.5"/>
-              </svg>
+              <NgomaMark size={26} inkColor={isDark?"#C5C5C0":"#1A1A1A"} />
               <span style={{fontFamily:F,fontSize:"15px",fontWeight:800,letterSpacing:"2.5px",color:isDark?"#F6F3EA":"#1A1A1A",textTransform:"uppercase"}}>Ngoma <span style={{color:"#B8860B"}}>Charts</span></span>
             </div>
             <p style={{fontFamily:F,fontSize:"14px",color:isDark?"#AEB6AE":"#59645D",margin:"10px 0 0",lineHeight:1.65}}>"Ngoma" means music or drum in Swahili: the heartbeat of Kenyan culture. Transparent, data-driven rankings celebrate the artists making an impact in Kenya.</p>
