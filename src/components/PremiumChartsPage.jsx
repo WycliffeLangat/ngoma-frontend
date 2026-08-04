@@ -5,7 +5,6 @@ import { splitArtistTokens } from "../utils/artistCredit.js";
 import ArtistCredit from "./ArtistCredit.jsx";
 import { API_BASE, resolveMediaUrl } from "../api/config.js";
 import {
-  COUNTRY_ACCENTS,
   KENYA_COUNTRY_CODE,
   africaChartLabel,
   countryCodeFromAfricaChart,
@@ -17,9 +16,8 @@ import {
 // Persists across re-renders and chart switches so each artist is only fetched once.
 const _artistImgCache = new Map();
 
-function regionBadge(code) {
-  const key = String(code || "").trim().toUpperCase();
-  return { accent: COUNTRY_ACCENTS[key] || "#69716B" };
+function regionBadge() {
+  return { accent: "#69716B" };
 }
 
 function readableInk(color) {
@@ -398,7 +396,7 @@ export default function PremiumChartsPage({
   const countryDisplayName = headerIsAfricaScope
     ? (headerCountryCode === KENYA_COUNTRY_CODE ? "Kenya" : africaScopeLabel)
     : "Kenya";
-  const countryAccent = COUNTRY_ACCENTS[headerCountryCode || selectedScopeCountryCode || KENYA_COUNTRY_CODE] || "#1A8A5A";
+  const countryAccent = darkMode ? "#F6F3EA" : "#1A1A1A";
   const isExplicitPlatformChart = Boolean(PC[plat]) && plat !== "Combined" && plat !== "Kenyan" && !isAfricaChart(plat);
   const platformLabel = liveChartMeta?.platform || (
     isExplicitPlatformChart ? (PLAT_LABEL[plat] || plat) :

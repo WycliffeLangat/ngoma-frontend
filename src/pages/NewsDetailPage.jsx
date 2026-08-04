@@ -2,22 +2,6 @@ import EntryThumb from "../components/EntryThumb.jsx";
 import { getPublicArtists } from "../utils/artistImages.js";
 import { getNewsMedia, getPrimaryNewsMedia } from "../utils/newsMedia.js";
 
-const CATEGORY_COLORS = {
-  chart_news: "#B8860B",
-  albums: "#3B7DD8",
-  milestones: "#D97706",
-  records: "#C2364A",
-  artist_spotlight: "#7C4DBD",
-  certifications: "#B8860B",
-  analytics: "#0E8A7D",
-  announcement: "#5B6470",
-  editorials: "#5B6470",
-  new_releases: "#2E9E5B",
-  industry_news: "#5B6470",
-  artist_news: "#7C4DBD",
-  awards: "#D97706",
-  interviews: "#3B7DD8",
-};
 
 function readingTime(body) {
   const words = String(body || "").trim().split(/\s+/).filter(Boolean).length;
@@ -111,7 +95,7 @@ export default function NewsDetailPage({ ctx }) {
     );
   }
 
-  const color = CATEGORY_COLORS[selNews.category] || GOLD;
+  const color = isDark ? "#F6F3EA" : "#1A1A1A";
   const related = (NEWS || [])
     .filter((n) => n.id !== selNews.id && (n.category || "other") === (selNews.category || "other"))
     .slice(0, 3);
@@ -236,7 +220,7 @@ export default function NewsDetailPage({ ctx }) {
                     const relatedMedia = getPrimaryNewsMedia(n, publicArtists);
                     return (
                     <div key={n.id} onClick={()=>openNewsDetails ? openNewsDetails(n) : setSelNews(n)} style={{display:"flex",alignItems:"center",gap:"12px",cursor:"pointer",padding:"12px 14px",borderRadius:"10px",background:isDark?"#14170F":"#FAF8F3",border:isDark?"1px solid #2A2E28":"1px solid #EEE9DD"}}>
-                      <EntryThumb item={{...n, cover_image: relatedMedia.url}} name={relatedMedia.artistName || n.title} size={56} radius="9px" accent={CATEGORY_COLORS[n.category] || GOLD} />
+                      <EntryThumb item={{...n, cover_image: relatedMedia.url}} name={relatedMedia.artistName || n.title} size={56} radius="9px" accent={color} />
                       <div style={{minWidth:0}}>
                         <div style={{fontFamily:F,fontSize:"12px",fontWeight:600,color:isDark?"#9a9a9a":"#9a9a9a",marginBottom:"4px"}}>{n.date}</div>
                         <div style={{fontFamily:F,fontSize:"14.5px",fontWeight:750,color:isDark?"#F6F3EA":"#050505",lineHeight:1.35}}>{n.title}</div>

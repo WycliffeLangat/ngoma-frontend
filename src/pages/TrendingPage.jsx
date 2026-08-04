@@ -34,7 +34,7 @@ export default function TrendingPage({ ctx }) {
           <div style={{maxWidth:"1240px",margin:"0 auto"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"flex-start":"flex-end",marginBottom:isMobile?"16px":"20px",flexWrap:"wrap",gap:isMobile?"10px":"12px"}}>
               <div style={{minWidth:0,flex:isMobile?"1 1 100%":"1"}}>
-                <div style={{fontFamily:F,fontSize:isMobile?"9px":"10.5px",letterSpacing:isMobile?"2.2px":"2.6px",textTransform:"uppercase",color:"#2DB04A",marginBottom:"6px"}}>RANK MOMENTUM</div>
+                <div style={{fontFamily:F,fontSize:isMobile?"9px":"10.5px",letterSpacing:isMobile?"2.2px":"2.6px",textTransform:"uppercase",color:isDark?"#AEB6AE":"#59645D",marginBottom:"6px"}}>RANK MOMENTUM</div>
                 <h2 style={{fontSize:isMobile?"24px":"24px",fontWeight:800,margin:0}}>Trending Up</h2>
                 <p style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:"#626A64",margin:"6px 0 0",lineHeight:1.55}}>Tracks rising fastest on the Combined chart, measured by positions gained.</p>
               </div>
@@ -43,11 +43,11 @@ export default function TrendingPage({ ctx }) {
               </div>
             </div>
 
-            <div style={{...card({background:isDark?"#0F120F":"linear-gradient(135deg,#F4FBF5,#FFFFFF)",borderColor:isDark?"#2DB04A55":"#2DB04A22",padding:isMobile?"18px":"24px"}),marginBottom:isMobile?"16px":"20px"}}>
+            <div style={{...card({background:isDark?"#0F120F":"#FAFAF8",borderColor:isDark?"#2B302B":"#E8E5DC",padding:isMobile?"18px":"24px"}),marginBottom:isMobile?"16px":"20px"}}>
               <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"6px"}}>
                 <span style={{fontSize:"22px"}}>🔥</span>
                 <div>
-                  <div style={{fontFamily:F,fontSize:isMobile?"10.5px":"11px",fontWeight:800,letterSpacing:"1px",textTransform:"uppercase",color:"#2DB04A"}}>Biggest Climb</div>
+                  <div style={{fontFamily:F,fontSize:isMobile?"10.5px":"11px",fontWeight:800,letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#AEB6AE":"#59645D"}}>Biggest Climb</div>
                   <div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#D7DBD7":"#68746C"}}>Most Combined chart places gained in {latestMonth}</div>
                 </div>
               </div>
@@ -75,12 +75,12 @@ export default function TrendingPage({ ctx }) {
             </div>
 
             <div style={card({padding:isMobile?"18px":"22px"})}>
-              <div style={secLbl("#2DB04A")}><SecMark c="#2DB04A"/>Rising Fast — Most Places Gained ({isSingles?"Singles":"Albums"})</div>
+              <div style={secLbl()}><SecMark/>Rising Fast — Most Places Gained ({isSingles?"Singles":"Albums"})</div>
               {uniqueByMomentumIdentity(currentTrending.rising).map((p,i)=>{
                 const rowKey=`rising-${p.t}-${p.a}-${p.decRank}`;
                 const expanded=Boolean(expandedTrendingRows[rowKey]);
                 if(isMobile)return(
-                  <div key={rowKey} style={{padding:"14px 15px",marginBottom:"9px",border:"1px solid #E8EDE8",borderRadius:"14px",background:"#FFF",boxShadow:expanded?"inset 4px 0 0 #2DB04A, 0 7px 20px rgba(0,0,0,0.04)":"0 2px 8px rgba(0,0,0,0.025)"}}>
+                  <div key={rowKey} style={{padding:"14px 15px",marginBottom:"9px",border:"1px solid "+(isDark?"#2B302B":"#E8EDE8"),borderRadius:"14px",background:isDark?"#0F120F":"#FFF",boxShadow:expanded?`inset 4px 0 0 ${isDark?"#F6F3EA":"#1A1A1A"}, 0 7px 20px rgba(0,0,0,0.04)`:"0 2px 8px rgba(0,0,0,0.025)"}}>
                     <div onClick={()=>toggleTrendingRow(rowKey)} role="button" aria-expanded={expanded} style={{display:"grid",gridTemplateColumns:"28px minmax(0,1fr) 38px",gap:"10px",alignItems:"center",cursor:"pointer"}}>
                       <div style={{fontFamily:F,fontSize:"18px",fontWeight:900,color:"#8E948D",textAlign:"center"}}>{i+1}</div>
                       <div style={{minWidth:0}}>
@@ -89,12 +89,12 @@ export default function TrendingPage({ ctx }) {
                       </div>
                       <button type="button" onClick={(event)=>{event.stopPropagation();toggleTrendingRow(rowKey);}} aria-label={expanded?"Hide rank movement details":"Show rank movement details"} aria-expanded={expanded} style={{width:"38px",height:"34px",border:"1px solid rgba(0,0,0,0.08)",borderRadius:"14px",background:"#FBFAF7",color:"#555",fontSize:"18px",fontWeight:900,lineHeight:1,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",padding:"0 0 2px"}}>{expanded?"-":"+"}</button>
                     </div>
-                    {expanded&&<div style={{marginTop:"13px",padding:"13px",borderRadius:"13px",background:"#F7FBF7",border:"1px solid #2DB04A18"}}>
+                    {expanded&&<div style={{marginTop:"13px",padding:"13px",borderRadius:"13px",background:isDark?"#151815":"#F7F7F5",border:"1px solid "+(isDark?"#2B302B":"#E8E5DC")}}>
                       <div style={{lineHeight:1.5}}><ArtistCredit credit={p.a} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="12px" fontWeight={750} color="#59645D" darkColor="#59645D" separatorColor="#59645D" darkSeparatorColor="#59645D" /></div>
                       <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:"8px",marginTop:"10px"}}>
                         {[{l:"Previous Rank",v:`#${p.fromRank}`},{l:`${latestMonthShort} Rank`,v:`#${p.decRank}`},{l:"Places Gained",v:`+${p.places}`},{l:"Rank Path",v:(p.trend||[]).map(v=>v?`#${v}`:"—").join(" → ")}].map(s=><div key={s.l} style={{padding:"9px 6px",background:isDark?"#151815":"#FFF",borderRadius:"10px",textAlign:"center",minWidth:0}}><span style={{display:"block",fontFamily:F,fontSize:"8.5px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#8F968F":"#7B857D"}}>{s.l}</span><strong style={{display:"block",marginTop:"4px",fontFamily:F,fontSize:"12px",overflowWrap:"anywhere",color:s.l==="Places Gained"?"#2DB04A":(isDark?"#F6F3EA":"#1A1A1A")}}>{s.v}</strong></div>)}
                       </div>
-                      <button type="button" onClick={()=>openMomentumRelease(p)} style={{marginTop:"10px",width:"100%",padding:"9px 10px",borderRadius:"11px",border:`1px solid ${isDark?"#2DB04A55":"#2DB04A33"}`,background:isDark?"#0A1A0A":"#FFF",color:"#258A3D",fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",cursor:"pointer"}}>View Details</button>
+                      <button type="button" onClick={()=>openMomentumRelease(p)} style={{marginTop:"10px",width:"100%",padding:"9px 10px",borderRadius:"11px",border:"1px solid "+(isDark?"#2B302B":"#E8E5DC"),background:isDark?"#151815":"#FFF",color:isDark?"#F6F3EA":"#1A1A1A",fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",cursor:"pointer"}}>View Details</button>
                     </div>}
                   </div>
                 );
@@ -120,22 +120,22 @@ export default function TrendingPage({ ctx }) {
 
             {/* Strong Debuts */}
             <div style={{...card({padding:isMobile?"18px":"22px"}),marginTop:isMobile?"16px":"20px"}}>
-              <div style={secLbl("#1565C0")}><SecMark c="#1565C0"/>Strongest {latestMonthName} Debuts</div>
+              <div style={secLbl()}><SecMark/>Strongest {latestMonthName} Debuts</div>
               <p style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:"#69716B",margin:"-8px 0 14px",lineHeight:1.45}}>New entries that arrived high in {latestMonth}.</p>
               <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:isMobile?"8px":"10px"}}>
                 {uniqueByMomentumIdentity(currentTrending.debuts).map((p)=>{
                   const rowKey=`debut-${p.t}-${p.a}-${p.decRank}`;
                   const expanded=Boolean(expandedTrendingRows[rowKey]);
-                  if(isMobile)return <div key={rowKey} style={{padding:"14px 15px",background:"#F8FAFD",borderRadius:"14px",border:"1px solid #1565C022",boxShadow:expanded?"inset 4px 0 0 #1565C0":"none"}}>
+                  if(isMobile)return <div key={rowKey} style={{padding:"14px 15px",background:isDark?"#0F120F":"#FAFAF8",borderRadius:"14px",border:"1px solid "+(isDark?"#2B302B":"#E8E5DC"),boxShadow:expanded?`inset 4px 0 0 ${isDark?"#F6F3EA":"#1A1A1A"}`:"none"}}>
                     <div onClick={()=>toggleTrendingRow(rowKey)} role="button" aria-expanded={expanded} style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) 38px",gap:"10px",alignItems:"center",cursor:"pointer"}}>
-                      <div style={{minWidth:0}}><strong style={{fontSize:"15px",lineHeight:1.2,overflowWrap:"anywhere"}}>{p.t}</strong><div style={{fontFamily:F,fontSize:"11.5px",fontWeight:850,color:"#1565C0",marginTop:"5px"}}>New at #{p.decRank}</div></div>
-                      <button type="button" onClick={(event)=>{event.stopPropagation();toggleTrendingRow(rowKey);}} aria-label={expanded?"Hide debut details":"Show debut details"} aria-expanded={expanded} style={{width:"38px",height:"34px",border:"1px solid rgba(0,0,0,0.08)",borderRadius:"14px",background:"#FFF",color:"#555",fontSize:"18px",fontWeight:900,lineHeight:1,cursor:"pointer"}}>{expanded?"-":"+"}</button>
+                      <div style={{minWidth:0}}><strong style={{fontSize:"15px",lineHeight:1.2,overflowWrap:"anywhere"}}>{p.t}</strong><div style={{fontFamily:F,fontSize:"11.5px",fontWeight:850,color:isDark?"#F6F3EA":"#1A1A1A",marginTop:"5px"}}>New at #{p.decRank}</div></div>
+                      <button type="button" onClick={(event)=>{event.stopPropagation();toggleTrendingRow(rowKey);}} aria-label={expanded?"Hide debut details":"Show debut details"} aria-expanded={expanded} style={{width:"38px",height:"34px",border:"1px solid rgba(0,0,0,0.08)",borderRadius:"14px",background:isDark?"#151815":"#FFF",color:isDark?"#B8BDB8":"#555",fontSize:"18px",fontWeight:900,lineHeight:1,cursor:"pointer"}}>{expanded?"-":"+"}</button>
                     </div>
-                    {expanded&&<div style={{marginTop:"12px",padding:"12px",background:isDark?"#111411":"#FFF",borderRadius:"12px",fontFamily:F}}><div style={{fontSize:"12px",fontWeight:750}}><ArtistCredit credit={p.a} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="12px" fontWeight={750} color="#59645D" darkColor="#8F968F" separatorColor="#59645D" darkSeparatorColor="#8F968F" /></div><div style={{display:"flex",justifyContent:"space-between",gap:"12px",marginTop:"8px",fontSize:"12px",color:isDark?"#F6F3EA":"undefined"}}><span>First Combined appearance</span><strong style={{color:"#1565C0"}}>#{p.decRank}</strong></div><button type="button" onClick={()=>openMomentumRelease(p)} style={{marginTop:"10px",width:"100%",padding:"9px 10px",borderRadius:"11px",border:`1px solid ${isDark?"#1565C055":"#1565C033"}`,background:isDark?"#0A1218":"#F8FAFD",color:"#1565C0",fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",cursor:"pointer"}}>View Details</button></div>}
+                    {expanded&&<div style={{marginTop:"12px",padding:"12px",background:isDark?"#111411":"#FFF",borderRadius:"12px",fontFamily:F}}><div style={{fontSize:"12px",fontWeight:750}}><ArtistCredit credit={p.a} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="12px" fontWeight={750} color="#59645D" darkColor="#8F968F" separatorColor="#59645D" darkSeparatorColor="#8F968F" /></div><div style={{display:"flex",justifyContent:"space-between",gap:"12px",marginTop:"8px",fontSize:"12px",color:isDark?"#F6F3EA":"#1A1A1A"}}><span>First Combined appearance</span><strong style={{color:isDark?"#F6F3EA":"#1A1A1A"}}>#{p.decRank}</strong></div><button type="button" onClick={()=>openMomentumRelease(p)} style={{marginTop:"10px",width:"100%",padding:"9px 10px",borderRadius:"11px",border:"1px solid "+(isDark?"#2B302B":"#E8E5DC"),background:isDark?"#151815":"#FAFAF8",color:isDark?"#F6F3EA":"#1A1A1A",fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",cursor:"pointer"}}>View Details</button></div>}
                   </div>;
                   return(
-                  <div key={`${p.t}-${p.a}-${p.decRank}`} style={{padding:"14px",background:"#F5F8FC",borderRadius:"10px",border:"1px solid #1565C022",display:"grid",gridTemplateColumns:"1fr auto",gap:"8px",alignItems:"center"}}
-                    onMouseEnter={e=>e.currentTarget.style.background="#EEF5FF"} onMouseLeave={e=>e.currentTarget.style.background="#F5F8FC"}>
+                  <div key={`${p.t}-${p.a}-${p.decRank}`} style={{padding:"14px",background:isDark?"#0F120F":"#FAFAF8",borderRadius:"10px",border:"1px solid "+(isDark?"#2B302B":"#E8E5DC"),display:"grid",gridTemplateColumns:"1fr auto",gap:"8px",alignItems:"center"}}
+                    onMouseEnter={e=>e.currentTarget.style.background=isDark?"#151815":"#F0EEE8"} onMouseLeave={e=>e.currentTarget.style.background=isDark?"#0F120F":"#FAFAF8"}>
                     <div style={{minWidth:0}}>
                       <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap",minWidth:0}}>
                         <button type="button" onClick={()=>openMomentumRelease(p)} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:isMobile?"15px":"15px",fontWeight:800,lineHeight:1.15,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",cursor:"pointer",textAlign:"left"}}>{p.t}</button>
@@ -143,7 +143,7 @@ export default function TrendingPage({ ctx }) {
                       </div>
                       <div style={{fontSize:isMobile?"12px":"12px",color:"#69716B",fontFamily:F,marginTop:"4px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}><ArtistCredit credit={p.a} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="12px" fontWeight={400} color="#69716B" darkColor="#69716B" separatorColor="#69716B" darkSeparatorColor="#69716B" /> · First Combined appearance</div>
                     </div>
-                    <span style={{fontFamily:F,fontSize:isMobile?"16px":"16px",fontWeight:900,color:"#1565C0"}}>#{p.decRank}</span>
+                    <span style={{fontFamily:F,fontSize:isMobile?"16px":"16px",fontWeight:900,color:isDark?"#F6F3EA":"#1A1A1A"}}>#{p.decRank}</span>
                   </div>);
                 })}
               </div>

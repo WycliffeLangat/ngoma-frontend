@@ -384,7 +384,7 @@ const getCertificationLevel = (totalPts = 0) => {
 const certificationMetaForLevel = (level) => CERTIFICATION_LEVELS.find((item) => item.level === level) || null;
 const CountryBadge = ({ artist, item, compact = false, style = {} }) => {
   const country = getArtistCountry(item || { artist });
-  const accent = COUNTRY_ACCENTS[country.code] || "#69716B";
+  const accent = "#69716B";
   return (
     <span
       title={`${country.country}${country.code ? ` (${country.code})` : ""}`}
@@ -1572,7 +1572,7 @@ function AnalyticsDeepSection({ label, isMobile, children }) {
 const MvBadge=({e})=>{
   const m=mv(e);
   if(m.t==="new")return <span style={{background:"#1A1A1A",color:"#FFF",padding:"1.5px 4px",borderRadius:"2px",fontSize:"7px",letterSpacing:"1px",fontWeight:800}}>NEW</span>;
-  if(m.t==="reentry")return <span style={{background:"#1565C0",color:"#FFF",padding:"1.5px 4px",borderRadius:"2px",fontSize:"7px",letterSpacing:"1px",fontWeight:800}}>RE</span>;
+  if(m.t==="reentry")return <span style={{background:"#1A1A1A",color:"#FFF",padding:"1.5px 4px",borderRadius:"2px",fontSize:"7px",letterSpacing:"1px",fontWeight:800}}>RE</span>;
   if(m.t==="up")return <span style={{color:"#2DB04A",fontSize:"9px",fontWeight:700}}>{"▲"+m.v}</span>;
   if(m.t==="down")return <span style={{color:"#E53935",fontSize:"9px",fontWeight:700}}>{"▼"+m.v}</span>;
   return <span style={{color:"#DEDEDE",fontSize:"9px"}}>{"—"}</span>;
@@ -2655,7 +2655,7 @@ const top = data[0];
     prepareDetailNavigation();
   };
   const artistTrendFor=(artist={})=>{
-    if(!artist.prevRank) return {symbol:"NEW",color:"#1565C0",label:"New",shortLabel:"New"};
+    if(!artist.prevRank) return {symbol:"NEW",color:isDark?"#F6F3EA":"#1A1A1A",label:"New",shortLabel:"New"};
     const delta=Number(artist.prevRank)-Number(artist.rank);
     if(delta>0) return {symbol:"↑",color:"#2DB04A",label:`Up ${delta}`,shortLabel:"Up"};
     if(delta<0) return {symbol:"↓",color:"#C0392B",label:`Down ${Math.abs(delta)}`,shortLabel:"Down"};
@@ -4083,7 +4083,7 @@ const top = data[0];
               {/* Songs */}
               {sResults&&sResults.songs.length>0&&(
                 <>
-                  <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#5a7abf":"#2d7dd2",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>Songs</div>
+                  <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#AEB6AE":"#59645D",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>Songs</div>
                   {sResults.songs.map((e,i)=>{
                     const flatIdx=i;
                     const cert=dedupedLiveCerts?dedupedLiveCerts.find(c=>String(c.t||"").toLowerCase()===String(e.title||"").toLowerCase()&&String(c.a||"").toLowerCase()===String(e.artist||"").toLowerCase()):null;
@@ -4113,7 +4113,7 @@ const top = data[0];
               {/* Albums */}
               {sResults&&sResults.albums.length>0&&(
                 <>
-                  <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#3a9a6a":"#1a8a5a",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>Albums</div>
+                  <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#AEB6AE":"#59645D",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>Albums</div>
                   {sResults.albums.map((e,i)=>{
                     const flatIdx=sResults.songs.length+i;
                     return(
@@ -4138,10 +4138,10 @@ const top = data[0];
               {/* Artists */}
               {sResults&&sResults.artists.length>0&&(
                 <>
-                  <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:"#7c5cbf",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>Artists</div>
+                  <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#AEB6AE":"#59645D",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>Artists</div>
                   {sResults.artists.map((a,i)=>{
                     const flatIdx=sResults.songs.length+sResults.albums.length+i;
-                    const accent=COUNTRY_ACCENTS[a.country_code]||"#69716B";
+                    const accent="#69716B";
                     return(
                       <button key={`ar-${i}`} type="button"
                         onMouseEnter={()=>setSActiveIdx(flatIdx)}
@@ -4161,7 +4161,7 @@ const top = data[0];
               {/* News */}
               {sResults&&sResults.news.length>0&&(
                 <>
-                  <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:"#c05c00",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>News</div>
+                  <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#AEB6AE":"#59645D",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>News</div>
                   {sResults.news.map((n,i)=>{
                     const flatIdx=sResults.songs.length+sResults.albums.length+sResults.artists.length+i;
                     return(
@@ -4182,7 +4182,7 @@ const top = data[0];
               {/* Certifications */}
               {sResults&&sResults.certs.length>0&&(
                 <>
-                  <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:"#b7980f",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>Certifications</div>
+                  <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#AEB6AE":"#59645D",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>Certifications</div>
                   {sResults.certs.map((c,i)=>{
                     const flatIdx=sResults.songs.length+sResults.albums.length+sResults.artists.length+sResults.news.length+i;
                     const certMeta=certificationMetaForLevel(c.level);

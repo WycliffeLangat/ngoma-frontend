@@ -131,7 +131,7 @@ export default function ArtistChartSection({ ctx, title = "Top Artists", descrip
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? "10px" : "12px", marginBottom: "14px" }}>
-          {[{ d: cmp1, c: GOLD }, { d: cmp2, c: "#1565C0" }].map(({ d, c }) => (
+          {[{ d: cmp1, c: GOLD }, { d: cmp2, c: text }].map(({ d, c }) => (
             <button key={d.n || c} type="button" onClick={() => openArtistDetails(d.n)} style={{ padding: isMobile ? "13px" : "15px", background: isDark ? `${c}20` : `${c}0D`, borderRadius: "10px", border: isDark ? `1px solid ${c}55` : "none", borderLeft: `3px solid ${c}`, cursor: "pointer", minWidth: 0, textAlign: "left" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0 }}>
                 <ArtistArtwork artist={d} size={34} compact />
@@ -145,7 +145,7 @@ export default function ArtistChartSection({ ctx, title = "Top Artists", descrip
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)" : "minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)", gap: "8px", alignItems: "center", padding: isMobile ? "10px 9px" : "12px 16px", background: "#1F241F", color: "#FFF" }}>
             <div style={{ fontFamily: F, fontSize: isMobile ? "10px" : "11px", fontWeight: 850, textAlign: "center", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#E4BE55" }}>{cmp1.n}</div>
             <div style={{ fontFamily: F, fontSize: "9px", fontWeight: 900, letterSpacing: "1.4px", textAlign: "center", textTransform: "uppercase", color: "#C9CEC9" }}>Metric</div>
-            <div style={{ fontFamily: F, fontSize: isMobile ? "10px" : "11px", fontWeight: 850, textAlign: "center", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#72A7E8" }}>{cmp2.n}</div>
+            <div style={{ fontFamily: F, fontSize: isMobile ? "10px" : "11px", fontWeight: 850, textAlign: "center", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#FFF" }}>{cmp2.n}</div>
           </div>
           {metricRows.map((row, index) => {
             const aWins = row.hi === "max" ? row.a > row.b : row.a < row.b;
@@ -154,7 +154,7 @@ export default function ArtistChartSection({ ctx, title = "Top Artists", descrip
               <div key={row.label} style={{ display: "grid", gridTemplateColumns: isMobile ? "minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)" : "minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)", alignItems: "stretch", background: isDark ? (index % 2 ? "#121612" : "#0F120F") : (index % 2 ? "#FBFAF7" : "#FFF"), borderBottom: index === metricRows.length - 1 ? "none" : `1px solid ${cardBorder}` }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: isMobile ? "9px 6px" : "11px 12px", fontFamily: F, fontSize: isMobile ? "13px" : "14px", fontWeight: aWins ? 900 : 800, color: GOLD }}>{row.fmt(row.a)}</div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", padding: isMobile ? "9px 5px" : "11px 10px", borderLeft: `1px solid ${cardBorder}`, borderRight: `1px solid ${cardBorder}`, fontFamily: F, fontSize: isMobile ? "8.6px" : "9.5px", letterSpacing: "0.8px", textTransform: "uppercase", color: muted, fontWeight: 850, lineHeight: 1.25 }}>{row.label}</div>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: isMobile ? "9px 6px" : "11px 12px", fontFamily: F, fontSize: isMobile ? "13px" : "14px", fontWeight: bWins ? 900 : 800, color: "#1565C0" }}>{row.fmt(row.b)}</div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: isMobile ? "9px 6px" : "11px 12px", fontFamily: F, fontSize: isMobile ? "13px" : "14px", fontWeight: bWins ? 900 : 800, color: text }}>{row.fmt(row.b)}</div>
               </div>
             );
           })}

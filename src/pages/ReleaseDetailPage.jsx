@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import PlatformPerformance from "../components/PlatformPerformance.jsx";
 import ArtistCredit from "../components/ArtistCredit.jsx";
 
@@ -43,29 +42,6 @@ export default function ReleaseDetailPage({ ctx }) {
     return dateStr;
   }
 
-  const [accentRgb, setAccentRgb] = useState(null);
-  useEffect(() => {
-    const url = selR?.cover_image;
-    if (!url) { setAccentRgb(null); return; }
-    setAccentRgb(null);
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => {
-      try {
-        const canvas = document.createElement("canvas");
-        canvas.width = 6; canvas.height = 6;
-        const c = canvas.getContext("2d");
-        c.drawImage(img, 0, 0, 6, 6);
-        const d = c.getImageData(0, 0, 6, 6).data;
-        let r = 0, g = 0, b = 0;
-        const n = d.length / 4;
-        for (let i = 0; i < d.length; i += 4) { r += d[i]; g += d[i+1]; b += d[i+2]; }
-        setAccentRgb(`${Math.round(r/n)},${Math.round(g/n)},${Math.round(b/n)}`);
-      } catch (_) { setAccentRgb(null); }
-    };
-    img.onerror = () => setAccentRgb(null);
-    img.src = url;
-  }, [selR?.cover_image]);
 
   // Shared chart theming — keeps every Recharts panel dark-mode-aware
   // and consistent with the rest of the app instead of hardcoded light colors.
@@ -176,7 +152,7 @@ export default function ReleaseDetailPage({ ctx }) {
         const artistCreditLabels = new Set(["Main artists", "Featuring", "Songwriters", "Producers"]);
 
         return (
-        <div style={{padding:PAD,background:isDark?"#050505":accentRgb?`linear-gradient(160deg,rgba(${accentRgb},0.13) 0%,#ffffff 100%)`:"#ffffff",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden",transition:"background 0.6s ease"}}>
+        <div style={{padding:PAD,background:isDark?"#050505":"#ffffff",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <span onClick={closeDetails} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:GOLD,cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>← Back</span>
 
           {/* Hero — cover art beside identity, matching the artist detail page's layout */}

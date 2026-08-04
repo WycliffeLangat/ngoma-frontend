@@ -3,25 +3,6 @@ import EntryThumb from "../components/EntryThumb.jsx";
 import { getPublicArtists } from "../utils/artistImages.js";
 import { getNewsMedia, getPrimaryNewsMedia } from "../utils/newsMedia.js";
 
-// Accent color per raw category slug - used as a card's left border and the
-// tint behind its category pill. Falls back to GOLD for anything unmapped.
-const CATEGORY_COLORS = {
-  chart_news: "#B8860B",
-  albums: "#3B7DD8",
-  milestones: "#D97706",
-  records: "#C2364A",
-  artist_spotlight: "#7C4DBD",
-  certifications: "#B8860B",
-  analytics: "#0E8A7D",
-  announcement: "#5B6470",
-  editorials: "#5B6470",
-  new_releases: "#2E9E5B",
-  industry_news: "#5B6470",
-  artist_news: "#7C4DBD",
-  awards: "#D97706",
-  interviews: "#3B7DD8",
-};
-
 function readingTime(body) {
   const words = String(body || "").trim().split(/\s+/).filter(Boolean).length;
   return Math.max(1, Math.round(words / 200));
@@ -103,7 +84,7 @@ export default function NewsPage({ ctx }) {
   }
 
   function CategoryPillTag({ n, size = "sm" }) {
-    const color = CATEGORY_COLORS[n.category] || GOLD;
+    const color = isDark ? "#F6F3EA" : "#1A1A1A";
     return (
       <span style={{
         display:"inline-flex",alignItems:"center",height:size==="lg"?"22px":"20px",fontFamily:F,
@@ -129,7 +110,7 @@ export default function NewsPage({ ctx }) {
   }
 
   function Card({ n, hero }) {
-    const color = CATEGORY_COLORS[n.category] || GOLD;
+    const color = isDark ? "#F6F3EA" : "#1A1A1A";
     const art = resolveNewsArt(n);
     const hasArt = !!art.url;
     const media = art.media || [];
