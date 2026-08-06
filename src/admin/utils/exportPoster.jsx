@@ -64,7 +64,7 @@ export async function exportNodeAsPng(node, filename) {
   link.click();
 }
 
-export const POSTER_FONT_FAMILY = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+export const POSTER_FONT_FAMILY = "'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
 
 // One shared dark/light palette for every card type — chart poster, spotlight
 // card, and anything added later — so switching themes looks identical

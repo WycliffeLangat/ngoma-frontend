@@ -351,7 +351,7 @@ const GOLD=THEME_SETTING.primary || "#B8860B"; const SILVER="#8C8C8C"; const BRO
 // certification badge can read as a brighter silver-white on its own.
 const PLATINUM_SILVER="#868C97";
 const MEDALS=[GOLD,SILVER,BRONZE];
-const SYSTEM_SANS = "'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+const SYSTEM_SANS = "'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
 const F = SYSTEM_SANS;
 const SF = SYSTEM_SANS;
 const CC = [GOLD,"#E53935","#2DB04A","#1565C0","#7B1FA2","#E65100","#00897B","#37474F","#AD1457","#558B2F"];
@@ -3897,7 +3897,7 @@ const top = data[0];
           .ngoma-analytics-chart-inner{min-width:520px;}
           .ngoma-analytics-wide-chart{min-width:620px;}
           .ngoma-mobile-collapsible{background:#fff;border:1px solid #ECEAE3;border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,0.05);overflow:hidden;margin-bottom:12px !important;}
-          .ngoma-mobile-collapsible > summary{display:flex;align-items:center;justify-content:space-between;gap:10px;list-style:none;padding:17px 18px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13.5px;font-weight:800;letter-spacing:-0.1px;color:#1A1A1A;cursor:pointer;user-select:none;-webkit-user-select:none;}
+          .ngoma-mobile-collapsible > summary{display:flex;align-items:center;justify-content:space-between;gap:10px;list-style:none;padding:17px 18px;font-family:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13.5px;font-weight:800;letter-spacing:-0.1px;color:#1A1A1A;cursor:pointer;user-select:none;-webkit-user-select:none;}
           .ngoma-mobile-collapsible > summary::-webkit-details-marker{display:none;}
           .ngoma-mobile-collapsible > summary .anl-chev{font-size:20px;font-weight:300;color:#B8860B;transition:transform 0.22s ease;flex-shrink:0;line-height:1;display:inline-block;}
           .ngoma-mobile-collapsible[open] > summary{border-bottom:1px solid #F0EDE6;background:#FAFAF8;}
