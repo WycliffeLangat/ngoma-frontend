@@ -62,6 +62,7 @@ import NewsPage from "./pages/NewsPage";
 import CertificationsPage from "./pages/CertificationsPage";
 import YearEndPage from "./pages/YearEndPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
+import HeadToHeadPage from "./pages/HeadToHeadPage";
 import ArtistDetailPage from "./pages/ArtistDetailPage";
 import ReleaseDetailPage from "./pages/ReleaseDetailPage";
 
@@ -1703,6 +1704,7 @@ const CertificationTag = ({ cert, compact = true, style = {} }) => {
 const PUBLIC_PAGE_ROUTES = {
   charts: "/charts",
   analytics: "/analytics",
+  "head-to-head": "/head-to-head",
   "year-end": "/year-end",
   certifications: "/certifications",
   news: "/news",
@@ -1711,6 +1713,7 @@ const PUBLIC_PAGE_ROUTES = {
 const PUBLIC_PAGE_TITLES = {
   charts: "Charts",
   analytics: "Analytics",
+  "head-to-head": "Head to Head",
   "year-end": "All Time Charts",
   certifications: "Certifications",
   news: "News",
@@ -2682,7 +2685,7 @@ const top = data[0];
         ? getRegionalCombined(chartType, targetPlatform, targetMonth)
         : (targetPlatform === "Combined" ? getCombined(chartType, targetMonth) : getPlatform(chartType, targetPlatform, targetMonth)));
   const analyticsRowsFor = (targetMonth, targetPlatform = analyticsDefaultPlatform) => analyticsRowsForType(ct, targetMonth, targetPlatform);
-  const analyticsActive = page === "analytics";
+  const analyticsActive = page === "analytics" || page === "head-to-head";
   const analysisMonths = analyticsActive ? MONTHS.slice(0, Math.max(0, monthIndex(anMonth)) + 1) : MONTHS;
   // Records & Milestones now renders as a section inside the Analytics page
   // rather than its own route, so it shares the Analytics page's active flag.
@@ -3165,10 +3168,10 @@ const top = data[0];
     }
     setPage(nextPage);setSelA(null);setSelR(null);setSelNews(null);setMNav(false);setMoreOpen(false);
   };
-  const navItems=["charts","analytics","year-end","certifications","news","about"];
-  const primaryNavItems=["charts","analytics","year-end","certifications"];
+  const navItems=["charts","analytics","head-to-head","year-end","certifications","news","about"];
+  const primaryNavItems=["charts","analytics","head-to-head","year-end","certifications"];
   const moreNavItems=navItems.filter((item)=>!primaryNavItems.includes(item));
-  const navLabel=t=>t==="year-end"?"All Time":t;
+  const navLabel=t=>t==="year-end"?"All Time":t==="head-to-head"?"Head to Head":t;
   const applyCountryScope=(scope)=>{
     const nextScope=normalizeCountryScope(scope);
     setSelectedCountryScope(nextScope);
@@ -4280,6 +4283,9 @@ const top = data[0];
 
       {/* ANALYTICS PAGE (includes Records & Milestones section) */}
       {page === "analytics" && !selA && !selR && <AnalyticsPage ctx={pageContext} />}
+
+      {/* HEAD-TO-HEAD PAGE */}
+      {page === "head-to-head" && !selA && !selR && <HeadToHeadPage ctx={pageContext} />}
 
       {/* YEAR-END PAGE */}
       {page === "year-end" && !selA && !selR && <YearEndPage ctx={pageContext} />}
