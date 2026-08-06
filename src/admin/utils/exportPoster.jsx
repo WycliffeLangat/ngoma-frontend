@@ -64,7 +64,11 @@ export async function exportNodeAsPng(node, filename) {
   link.click();
 }
 
-export const POSTER_FONT_FAMILY = "'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+// Deliberately Inter, not the app-wide IBM Plex Sans: every poster leans on
+// fontWeight 800/900 for its headline numbers and titles, and Google Fonts
+// doesn't ship IBM Plex Sans past 700 — swapping it in here flattens every
+// exported card. Inter is loaded separately in index.html for this reason.
+export const POSTER_FONT_FAMILY = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
 
 // One shared dark/light palette for every card type — chart poster, spotlight
 // card, and anything added later — so switching themes looks identical
