@@ -1,0 +1,87 @@
+[2m16:05:43[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/news/?page_size=100&_=1786367143652[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m16:05:43[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/certifications/?page_size=200&_=1786367143654[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m16:05:43[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/export/chart-image-data/?type=singles&month=7&year=2026&platform=combined&_=1786367143655[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m16:05:43[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/export/chart-image-data/?type=singles&month=7&year=2026&platform=combined&_=1786367143659[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m16:05:50[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/app-data/revision/?_=1786367150527[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m16:06:01[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/app-data/revision/?_=1786367161594[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m16:06:02[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/cms/auth/me/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m16:06:02[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/cms/csrf/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m16:06:02[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/cms/auth/me/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m16:06:02[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/cms/csrf/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m16:06:04[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/cms/auth/login/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m16:06:06[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/cms/auth/login/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m16:06:14[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/cms/auth/login/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m16:06:18[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/cms/auth/me/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m16:06:18[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/cms/csrf/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m16:06:18[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/cms/auth/me/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m16:06:18[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/cms/csrf/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m16:07:40[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/cms/auth/login/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m16:07:42[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/cms/auth/me/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m16:07:42[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/cms/csrf/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m16:07:42[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/cms/auth/me/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m16:07:42[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/cms/csrf/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m16:07:44[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/cms/auth/login/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m16:07:50[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/cms/auth/me/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m16:07:50[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/cms/csrf/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m16:07:50[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/cms/auth/me/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m16:07:50[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/cms/csrf/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m16:07:52[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/cms/auth/login/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
+[2m16:07:54[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/v1/cms/auth/login/[39m
+Error: connect ECONNREFUSED 127.0.0.1:8000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1705:16)
