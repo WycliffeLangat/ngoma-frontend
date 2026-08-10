@@ -226,6 +226,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
                   alignItems: "center",
                   gap: Math.round(18 * Math.min(scale, 1.2)),
                   marginBottom: i === rows.length - 1 ? 0 : gap,
+                  borderTop: i === 0 ? `1px solid ${t.dividerColor}` : "none",
                   borderBottom: i === rows.length - 1 ? "none" : `1px solid ${t.dividerColor}`,
                 }}
               >
