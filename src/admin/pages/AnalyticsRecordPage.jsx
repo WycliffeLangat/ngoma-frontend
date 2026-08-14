@@ -16,7 +16,6 @@ import {
   PREVIEW_W,
   PREVIEW_SCALE,
   POSTER_FONT_FAMILY,
-  POSTER_THEMES,
   HEADER_ZONE_H,
   PosterBrandRow,
   PosterFooter,
@@ -24,6 +23,7 @@ import {
   PosterCanvas,
   PosterSettingsPanel,
   defaultPosterSettings,
+  usePosterTheme,
   exportNodeAsPng,
 } from "../utils/exportPoster.jsx";
 
@@ -165,7 +165,7 @@ function recordStat(recordType, item) {
 }
 
 function RecordCardContent({ item, chartType, recordType, recordLabel, accentColor, countryLabel, theme = "dark" }) {
-  const t = POSTER_THEMES[theme] || POSTER_THEMES.dark;
+  const t = usePosterTheme(theme);
   const padX = 64;
 
   if (!item) {
@@ -445,6 +445,7 @@ export default function AnalyticsRecordPage() {
               </label>
 
               <PosterSettingsPanel
+                theme={theme}
                 settings={posterSettings}
                 onChange={setPosterSettings}
                 onReset={() => setPosterSettings(defaultPosterSettings())}

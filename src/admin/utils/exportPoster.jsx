@@ -182,6 +182,10 @@ export const POSTER_SETTINGS_DEFAULTS = {
   frame: "none",
   tone: "neutral",
   designIntensity: 100,
+  textColor: "",
+  secondaryTextColor: "",
+  brandTextColor: "",
+  footerTextColor: "",
   brandScale: 100,
   footerScale: 100,
   showBrand: true,
@@ -218,6 +222,11 @@ function validOption(value, options, fallback) {
   return options.some(([option]) => option === value) ? value : fallback;
 }
 
+function normalizeColor(value) {
+  const color = String(value || "").trim();
+  return /^#[0-9a-f]{6}$/i.test(color) ? color : "";
+}
+
 export function normalizePosterSettings(settings = {}) {
   return {
     contentScale: boundedNumber(settings.contentScale, POSTER_SETTINGS_DEFAULTS.contentScale, 85, 115),
@@ -226,6 +235,10 @@ export function normalizePosterSettings(settings = {}) {
     frame: validOption(settings.frame, POSTER_FRAME_OPTIONS, POSTER_SETTINGS_DEFAULTS.frame),
     tone: validOption(settings.tone, POSTER_TONE_OPTIONS, POSTER_SETTINGS_DEFAULTS.tone),
     designIntensity: boundedNumber(settings.designIntensity, POSTER_SETTINGS_DEFAULTS.designIntensity, 0, 100),
+    textColor: normalizeColor(settings.textColor),
+    secondaryTextColor: normalizeColor(settings.secondaryTextColor),
+    brandTextColor: normalizeColor(settings.brandTextColor),
+    footerTextColor: normalizeColor(settings.footerTextColor),
     brandScale: boundedNumber(settings.brandScale, POSTER_SETTINGS_DEFAULTS.brandScale, 70, 140),
     footerScale: boundedNumber(settings.footerScale, POSTER_SETTINGS_DEFAULTS.footerScale, 70, 140),
     showBrand: settings.showBrand !== false,
@@ -239,6 +252,24 @@ export function defaultPosterSettings(overrides = {}) {
 
 export function usePosterSettings() {
   return useContext(PosterSettingsContext);
+}
+
+export function resolvePosterTheme(theme = "dark", settings = {}) {
+  const base = POSTER_THEMES[theme] || POSTER_THEMES.dark;
+  const normalized = normalizePosterSettings(settings);
+  return {
+    ...base,
+    wordmarkBarColor: normalized.brandTextColor || base.wordmarkBarColor,
+    titleColor: normalized.textColor || base.titleColor,
+    metaColor: normalized.secondaryTextColor || base.metaColor,
+    footerPrimary: normalized.footerTextColor || base.footerPrimary,
+    footerSecondary: normalized.footerTextColor || base.footerSecondary,
+    emptyColor: normalized.secondaryTextColor || base.emptyColor,
+  };
+}
+
+export function usePosterTheme(theme = "dark") {
+  return resolvePosterTheme(theme, usePosterSettings());
 }
 
 export function PosterSettingsProvider({ settings, children }) {
@@ -354,6 +385,25 @@ function PosterChoice({ label, value, options, onChange }) {
   );
 }
 
+function PosterColor({ label, value, fallback, onChange }) {
+  return (
+    <div style={{ display: "grid", gap: 6, fontSize: 12, fontWeight: 800, textTransform: "uppercase", color: "var(--cms-muted)" }}>
+      <span>{label}</span>
+      <div style={{ display: "grid", gridTemplateColumns: "44px 1fr auto", alignItems: "center", gap: 8 }}>
+        <input
+          type="color"
+          aria-label={label}
+          value={value || fallback}
+          onChange={(event) => onChange(event.target.value)}
+          style={{ width: 44, height: 34, padding: 3 }}
+        />
+        <span style={{ color: "var(--cms-ink)", fontWeight: 900 }}>{value || "Theme default"}</span>
+        <button type="button" className="cms-btn small light" onClick={() => onChange("")}>Default</button>
+      </div>
+    </div>
+  );
+}
+
 function PosterRange({ label, value, min, max, step = 1, suffix = "%", onChange }) {
   return (
     <label style={{ display: "grid", gap: 6, fontSize: 12, fontWeight: 800, textTransform: "uppercase", color: "var(--cms-muted)" }}>
@@ -373,8 +423,9 @@ function PosterRange({ label, value, min, max, step = 1, suffix = "%", onChange 
   );
 }
 
-export function PosterSettingsPanel({ settings, onChange, onReset }) {
+export function PosterSettingsPanel({ settings, onChange, onReset, theme = "dark" }) {
   const normalized = normalizePosterSettings(settings);
+  const baseTheme = POSTER_THEMES[theme] || POSTER_THEMES.dark;
   const update = (patch) => onChange?.({ ...normalized, ...patch });
 
   return (
@@ -425,6 +476,30 @@ export function PosterSettingsPanel({ settings, onChange, onReset }) {
         value={normalized.designIntensity}
         onChange={(designIntensity) => update({ designIntensity })}
       />
+      <PosterColor
+        label="Main text color"
+        value={normalized.textColor}
+        fallback={baseTheme.titleColor}
+        onChange={(textColor) => update({ textColor })}
+      />
+      <PosterColor
+        label="Secondary text color"
+        value={normalized.secondaryTextColor}
+        fallback={baseTheme.metaColor}
+        onChange={(secondaryTextColor) => update({ secondaryTextColor })}
+      />
+      <PosterColor
+        label="Brand text color"
+        value={normalized.brandTextColor}
+        fallback={baseTheme.wordmarkBarColor}
+        onChange={(brandTextColor) => update({ brandTextColor })}
+      />
+      <PosterColor
+        label="Footer text color"
+        value={normalized.footerTextColor}
+        fallback={baseTheme.footerPrimary}
+        onChange={(footerTextColor) => update({ footerTextColor })}
+      />
 
       <div className="cms-pill-bar" style={{ marginBottom: 0 }}>
         <button
@@ -469,7 +544,7 @@ export function PosterSettingsPanel({ settings, onChange, onReset }) {
 // card should never show a blank gap where art belongs, so this renders the
 // same brand mark used in the header instead of a plain color block.
 export function ArtPlaceholder({ width, height, radius = 0, theme, accentColor = "#B8860B", markSize }) {
-  const t = POSTER_THEMES[theme] || POSTER_THEMES.dark;
+  const t = usePosterTheme(theme);
   const size = markSize || Math.round(Math.min(
     typeof width === "number" ? width : 200,
     typeof height === "number" ? height : 200
@@ -496,15 +571,16 @@ export function ArtPlaceholder({ width, height, radius = 0, theme, accentColor =
 // rendered as its own standalone line at the top of a card — never squeezed
 // inline next to other header content — so the brand reads clearly at a
 // glance even in a fast social-media scroll.
-export function PosterBrandRow({ theme, size = 56, fontSize = 26, gap = 14 }) {
+export function PosterBrandRow({ theme, size = 56, fontSize = 26, gap = 14, color }) {
   const settings = usePosterSettings();
   if (!settings.showBrand) return null;
-  const t = POSTER_THEMES[theme] || POSTER_THEMES.dark;
+  const t = usePosterTheme(theme);
   const scale = settings.brandScale / 100;
+  const brandColor = color || t.wordmarkBarColor;
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: gap * scale }}>
-      <NgomaMark size={size * scale} inkColor={t.wordmarkBarColor} />
-      <span style={{ fontSize: fontSize * scale, fontWeight: 950, letterSpacing: "-0.8px", textTransform: "uppercase", color: t.wordmarkBarColor, lineHeight: 1 }}>
+      <NgomaMark size={size * scale} inkColor={brandColor} />
+      <span style={{ fontSize: fontSize * scale, fontWeight: 950, letterSpacing: "-0.8px", textTransform: "uppercase", color: brandColor, lineHeight: 1 }}>
         Ngoma Charts
       </span>
     </div>
@@ -513,11 +589,13 @@ export function PosterBrandRow({ theme, size = 56, fontSize = 26, gap = 14 }) {
 
 // The footer strip ("ngomacharts.com" + tagline), identical across every
 // card type.
-export function PosterFooter({ theme, height = 74, padX = 56 }) {
+export function PosterFooter({ theme, height = 74, padX = 56, primaryColor, secondaryColor }) {
   const settings = usePosterSettings();
   if (!settings.showFooter) return null;
-  const t = POSTER_THEMES[theme] || POSTER_THEMES.dark;
+  const t = usePosterTheme(theme);
   const scale = settings.footerScale / 100;
+  const primary = primaryColor || t.footerPrimary;
+  const secondary = secondaryColor || primaryColor || t.footerSecondary;
   return (
     <div
       style={{
@@ -533,8 +611,8 @@ export function PosterFooter({ theme, height = 74, padX = 56 }) {
         borderTop: `1px solid ${t.footerBorder}`,
       }}
     >
-      <span style={{ fontSize: 14 * scale, fontWeight: 700, color: t.footerPrimary }}>© 2026 Ngoma Media Ltd.</span>
-      <span style={{ fontSize: 12 * scale, fontWeight: 600, color: t.footerSecondary }}>Music ranking intelligence</span>
+      <span style={{ fontSize: 14 * scale, fontWeight: 700, color: primary }}>© 2026 Ngoma Media Ltd.</span>
+      <span style={{ fontSize: 12 * scale, fontWeight: 600, color: secondary }}>Music ranking intelligence</span>
     </div>
   );
 }

@@ -75,6 +75,10 @@ const DEFAULT_NEWS_DESIGN = {
   frame: "none",
   tone: "neutral",
   designIntensity: 100,
+  textColor: "",
+  secondaryTextColor: "",
+  brandTextColor: "",
+  footerTextColor: "",
   headlineScale: 100,
   subheadlineScale: 100,
   categoryScale: 100,
@@ -107,6 +111,10 @@ const DEFAULT_VIDEO_DESIGN = {
   frame: "none",
   tone: "neutral",
   designIntensity: 100,
+  textColor: "",
+  secondaryTextColor: "",
+  brandTextColor: "",
+  footerTextColor: "",
   titleScale: 100,
   artistScale: 100,
   labelScale: 100,
@@ -243,6 +251,38 @@ function textShadowStyle(theme, strength = 100) {
   const alpha = Math.min(0.82, (theme === "light" ? 0.72 : 0.62) * level);
   const color = theme === "light" ? `rgba(255,255,255,${alpha})` : `rgba(0,0,0,${alpha})`;
   return `0 ${Math.round(3 * level)}px ${blur}px ${color}`;
+}
+
+function defaultTextColor(theme) {
+  return theme === "light" ? "#0C0C0C" : "#FFFFFF";
+}
+
+function defaultSecondaryTextColor(theme) {
+  return theme === "light" ? "#30352F" : "#E1E4DC";
+}
+
+function defaultBrandTextColor(theme) {
+  return (POSTER_THEMES[theme] || POSTER_THEMES.dark).wordmarkBarColor;
+}
+
+function defaultFooterTextColor(theme) {
+  return (POSTER_THEMES[theme] || POSTER_THEMES.dark).footerPrimary;
+}
+
+function designTextColor(design) {
+  return design.textColor || defaultTextColor(design.theme);
+}
+
+function designSecondaryTextColor(design) {
+  return design.secondaryTextColor || defaultSecondaryTextColor(design.theme);
+}
+
+function designBrandTextColor(design) {
+  return design.brandTextColor || defaultBrandTextColor(design.theme);
+}
+
+function designFooterTextColor(design) {
+  return design.footerTextColor || defaultFooterTextColor(design.theme);
 }
 
 function frameCanvasSize(video) {
@@ -461,12 +501,13 @@ function drawNgomaMarkCanvas(ctx, centerX, topY, size, color) {
 
 function drawBrandCanvas(ctx, design, scale) {
   const t = POSTER_THEMES[design.theme] || POSTER_THEMES.dark;
+  const brandColor = design.brandTextColor || t.wordmarkBarColor;
   const brandScale = (Number(design.brandScale) || 100) / 100;
   const markTop = 58 * scale;
   const markSize = 54 * scale * brandScale;
-  drawNgomaMarkCanvas(ctx, VIDEO_EXPORT_W / 2, markTop, markSize, t.wordmarkBarColor);
+  drawNgomaMarkCanvas(ctx, VIDEO_EXPORT_W / 2, markTop, markSize, brandColor);
   ctx.save();
-  ctx.fillStyle = t.wordmarkBarColor;
+  ctx.fillStyle = brandColor;
   ctx.font = canvasFont(900, 25 * scale * brandScale);
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
@@ -543,8 +584,8 @@ function drawVideoTextBlockCanvas(ctx, design, scale) {
   const padX = 62 * scale;
   const maxWidth = blockWidth(VIDEO_EXPORT_W - padX * 2, design.textWidth);
   const align = design.textAlign || "left";
-  const textColor = design.theme === "light" ? "#0C0C0C" : "#FFFFFF";
-  const metaColor = design.theme === "light" ? "#30352F" : "#E1E4DC";
+  const textColor = designTextColor(design);
+  const metaColor = designSecondaryTextColor(design);
   const titleFontSize = scaleValue(titleSize(design.title), design.titleScale) * scale;
   const titleLineH = titleFontSize * 1.02;
   const artistFontSize = scaleValue(34, design.artistScale) * scale;
@@ -608,8 +649,9 @@ function drawVideoTextBlockCanvas(ctx, design, scale) {
   ctx.restore();
 }
 
-function drawFooterCanvas(ctx, theme, scale) {
-  const t = POSTER_THEMES[theme] || POSTER_THEMES.dark;
+function drawFooterCanvas(ctx, design, scale) {
+  const t = POSTER_THEMES[design.theme] || POSTER_THEMES.dark;
+  const footerColor = design.footerTextColor || t.footerPrimary;
   const height = 74 * scale;
   const padX = 62 * scale;
   const y = VIDEO_EXPORT_H - height;
@@ -622,11 +664,11 @@ function drawFooterCanvas(ctx, theme, scale) {
   ctx.stroke();
   ctx.textBaseline = "middle";
   ctx.textAlign = "left";
-  ctx.fillStyle = t.footerPrimary;
+  ctx.fillStyle = footerColor;
   ctx.font = canvasFont(700, 14 * scale);
   ctx.fillText("© 2026 Ngoma Media Ltd.", padX, y + height / 2);
   ctx.textAlign = "right";
-  ctx.fillStyle = t.footerSecondary;
+  ctx.fillStyle = footerColor;
   ctx.font = canvasFont(600, 12 * scale);
   ctx.fillText("Music ranking intelligence", VIDEO_EXPORT_W - padX, y + height / 2);
   ctx.restore();
@@ -641,7 +683,7 @@ function drawVideoPostFrame(ctx, video, design) {
   if (design.showPlayBadge !== false) drawPlayBadgeCanvas(ctx, design.accent, scale, design.playScale);
   if (design.showBrand !== false) drawBrandCanvas(ctx, design, scale);
   drawVideoTextBlockCanvas(ctx, design, scale);
-  if (design.showFooter !== false) drawFooterCanvas(ctx, design.theme, scale);
+  if (design.showFooter !== false) drawFooterCanvas(ctx, design, scale);
   drawPosterFrameCanvas(ctx, design);
 }
 
@@ -858,6 +900,25 @@ function ToggleControl({ label, checked, onChange }) {
   );
 }
 
+function ColorControl({ label, value, fallback, onChange }) {
+  return (
+    <div style={{ display: "grid", gap: 5, fontSize: 11, fontWeight: 800, color: "var(--cms-muted)" }}>
+      <span>{label}</span>
+      <div style={{ display: "grid", gridTemplateColumns: "42px 1fr auto", alignItems: "center", gap: 7 }}>
+        <input
+          type="color"
+          aria-label={label}
+          value={value || fallback}
+          onChange={(event) => onChange(event.target.value)}
+          style={{ width: 42, height: 32, padding: 3 }}
+        />
+        <b style={{ color: "var(--cms-ink)", fontSize: 11 }}>{value || "Default"}</b>
+        <button type="button" className="cms-btn small light" onClick={() => onChange("")}>Reset</button>
+      </div>
+    </div>
+  );
+}
+
 function MediaPlaceholder({ label, theme, accent }) {
   return (
     <div style={{ position: "absolute", inset: 0 }}>
@@ -884,8 +945,10 @@ function MediaPlaceholder({ label, theme, accent }) {
 function NewsPostContent({ design }) {
   const t = POSTER_THEMES[design.theme] || POSTER_THEMES.dark;
   const padX = 62;
-  const textColor = design.theme === "light" ? "#0C0C0C" : "#FFFFFF";
-  const metaColor = design.theme === "light" ? "#30352F" : "#E1E4DC";
+  const textColor = designTextColor(design);
+  const metaColor = designSecondaryTextColor(design);
+  const brandTextColor = designBrandTextColor(design);
+  const footerTextColor = designFooterTextColor(design);
   const textShadow = textShadowStyle(design.theme, design.shadow);
   const brandScale = (Number(design.brandScale) || 100) / 100;
   const textMaxWidth = blockWidth(POSTER_W - padX * 2, design.textWidth);
@@ -933,7 +996,7 @@ function NewsPostContent({ design }) {
 
       {design.showBrand !== false && (
         <div style={{ position: "relative", zIndex: 1, padding: `58px ${padX}px 0` }}>
-          <PosterBrandRow theme={design.theme} size={54 * brandScale} fontSize={25 * brandScale} gap={14 * brandScale} />
+          <PosterBrandRow theme={design.theme} size={54 * brandScale} fontSize={25 * brandScale} gap={14 * brandScale} color={brandTextColor} />
         </div>
       )}
 
@@ -1009,7 +1072,7 @@ function NewsPostContent({ design }) {
         </div>
       </div>
 
-      {design.showFooter !== false && <PosterFooter theme={design.theme} padX={padX} />}
+      {design.showFooter !== false && <PosterFooter theme={design.theme} padX={padX} primaryColor={footerTextColor} secondaryColor={footerTextColor} />}
       {frameOverlay && <div style={{ position: "absolute", zIndex: 5, pointerEvents: "none", ...frameOverlay }} />}
     </div>
   );
@@ -1051,8 +1114,10 @@ function PlayBadge({ accent, scale = 1 }) {
 function VideoPostContent({ design, exportMode = false, videoRef = null }) {
   const t = POSTER_THEMES[design.theme] || POSTER_THEMES.dark;
   const padX = 62;
-  const textColor = design.theme === "light" ? "#0C0C0C" : "#FFFFFF";
-  const metaColor = design.theme === "light" ? "#30352F" : "#E1E4DC";
+  const textColor = designTextColor(design);
+  const metaColor = designSecondaryTextColor(design);
+  const brandTextColor = designBrandTextColor(design);
+  const footerTextColor = designFooterTextColor(design);
   const brandScale = (Number(design.brandScale) || 100) / 100;
   const playScale = (Number(design.playScale) || 100) / 100;
   const textMaxWidth = blockWidth(POSTER_W - padX * 2, design.textWidth);
@@ -1109,7 +1174,7 @@ function VideoPostContent({ design, exportMode = false, videoRef = null }) {
 
       {design.showBrand !== false && (
         <div style={{ position: "relative", zIndex: 2, padding: `58px ${padX}px 0` }}>
-          <PosterBrandRow theme={design.theme} size={54 * brandScale} fontSize={25 * brandScale} gap={14 * brandScale} />
+          <PosterBrandRow theme={design.theme} size={54 * brandScale} fontSize={25 * brandScale} gap={14 * brandScale} color={brandTextColor} />
         </div>
       )}
 
@@ -1182,7 +1247,7 @@ function VideoPostContent({ design, exportMode = false, videoRef = null }) {
         </div>
       </div>
 
-      {design.showFooter !== false && <PosterFooter theme={design.theme} padX={padX} />}
+      {design.showFooter !== false && <PosterFooter theme={design.theme} padX={padX} primaryColor={footerTextColor} secondaryColor={footerTextColor} />}
       {frameOverlay && <div style={{ position: "absolute", zIndex: 5, pointerEvents: "none", ...frameOverlay }} />}
     </div>
   );
@@ -1541,6 +1606,13 @@ export default function NewsCardPage() {
                 <SegmentedControl label="Tone" value={newsDesign.tone} options={POSTER_TONE_OPTIONS} onChange={(value) => updateNews({ tone: value })} />
 
                 <div style={CONTROL_GRID}>
+                  <ColorControl label="Headline color" value={newsDesign.textColor} fallback={defaultTextColor(newsDesign.theme)} onChange={(value) => updateNews({ textColor: value })} />
+                  <ColorControl label="Secondary color" value={newsDesign.secondaryTextColor} fallback={defaultSecondaryTextColor(newsDesign.theme)} onChange={(value) => updateNews({ secondaryTextColor: value })} />
+                  <ColorControl label="Brand color" value={newsDesign.brandTextColor} fallback={defaultBrandTextColor(newsDesign.theme)} onChange={(value) => updateNews({ brandTextColor: value })} />
+                  <ColorControl label="Footer color" value={newsDesign.footerTextColor} fallback={defaultFooterTextColor(newsDesign.theme)} onChange={(value) => updateNews({ footerTextColor: value })} />
+                </div>
+
+                <div style={CONTROL_GRID}>
                   <ToggleControl label="Brand" checked={newsDesign.showBrand !== false} onChange={(value) => updateNews({ showBrand: value })} />
                   <ToggleControl label="Footer" checked={newsDesign.showFooter !== false} onChange={(value) => updateNews({ showFooter: value })} />
                   <ToggleControl label="Category" checked={newsDesign.showCategory !== false} onChange={(value) => updateNews({ showCategory: value })} />
@@ -1655,6 +1727,13 @@ export default function NewsCardPage() {
                 <SegmentedControl label="Finish" value={videoDesign.finish} options={POSTER_FINISH_OPTIONS} onChange={(value) => updateVideo({ finish: value })} />
                 <SegmentedControl label="Frame" value={videoDesign.frame} options={POSTER_FRAME_OPTIONS} onChange={(value) => updateVideo({ frame: value })} />
                 <SegmentedControl label="Tone" value={videoDesign.tone} options={POSTER_TONE_OPTIONS} onChange={(value) => updateVideo({ tone: value })} />
+
+                <div style={CONTROL_GRID}>
+                  <ColorControl label="Title color" value={videoDesign.textColor} fallback={defaultTextColor(videoDesign.theme)} onChange={(value) => updateVideo({ textColor: value })} />
+                  <ColorControl label="Artist color" value={videoDesign.secondaryTextColor} fallback={defaultSecondaryTextColor(videoDesign.theme)} onChange={(value) => updateVideo({ secondaryTextColor: value })} />
+                  <ColorControl label="Brand color" value={videoDesign.brandTextColor} fallback={defaultBrandTextColor(videoDesign.theme)} onChange={(value) => updateVideo({ brandTextColor: value })} />
+                  <ColorControl label="Footer color" value={videoDesign.footerTextColor} fallback={defaultFooterTextColor(videoDesign.theme)} onChange={(value) => updateVideo({ footerTextColor: value })} />
+                </div>
 
                 <div style={CONTROL_GRID}>
                   <ToggleControl label="Brand" checked={videoDesign.showBrand !== false} onChange={(value) => updateVideo({ showBrand: value })} />

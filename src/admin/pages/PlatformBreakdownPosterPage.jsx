@@ -12,13 +12,13 @@ import {
   PREVIEW_W,
   PREVIEW_SCALE,
   POSTER_FONT_FAMILY,
-  POSTER_THEMES,
   TITLE_GAP_FROM_LOGO,
   PosterBrandRow,
   PosterFooter,
   PosterCanvas,
   PosterSettingsPanel,
   defaultPosterSettings,
+  usePosterTheme,
   exportNodeAsPng,
 } from "../utils/exportPoster.jsx";
 
@@ -53,7 +53,7 @@ function rowsForMetric(payload, chartType, metric, month) {
 const METRIC_UNIT = { totals: "entries", exclusives: "unique entries", country: "entries" };
 
 function PosterContent({ rows, chartType, metric, month, viewMode, theme = "dark" }) {
-  const t = POSTER_THEMES[theme] || POSTER_THEMES.dark;
+  const t = usePosterTheme(theme);
   const padX = 64;
   const metricLabel = METRICS.find(([value]) => value === metric)?.[1] || "";
   const typeLabel = CHART_TYPES.find(([value]) => value === chartType)?.[1] || "Chart";
@@ -285,6 +285,7 @@ export default function PlatformBreakdownPosterPage() {
               </label>
 
               <PosterSettingsPanel
+                theme={theme}
                 settings={posterSettings}
                 onChange={setPosterSettings}
                 onReset={() => setPosterSettings(defaultPosterSettings())}

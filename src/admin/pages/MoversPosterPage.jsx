@@ -8,7 +8,6 @@ import {
   PREVIEW_W,
   PREVIEW_SCALE,
   POSTER_FONT_FAMILY,
-  POSTER_THEMES,
   TITLE_GAP_FROM_LOGO,
   PosterBrandRow,
   PosterFooter,
@@ -16,6 +15,7 @@ import {
   PosterCanvas,
   PosterSettingsPanel,
   defaultPosterSettings,
+  usePosterTheme,
   exportNodeAsPng,
 } from "../utils/exportPoster.jsx";
 
@@ -52,7 +52,7 @@ function rowRank(chartType, row) {
 }
 
 function PosterContent({ rows, chartType, move, month, theme = "dark" }) {
-  const t = POSTER_THEMES[theme] || POSTER_THEMES.dark;
+  const t = usePosterTheme(theme);
   const padX = 56;
   const [, moveLabel, accentColor] = MOVES.find(([value]) => value === move) || MOVES[0];
   const typeLabel = CHART_TYPES.find(([value]) => value === chartType)?.[1] || "Chart";
@@ -257,6 +257,7 @@ export default function MoversPosterPage() {
               </label>
 
               <PosterSettingsPanel
+                theme={theme}
                 settings={posterSettings}
                 onChange={setPosterSettings}
                 onReset={() => setPosterSettings(defaultPosterSettings())}

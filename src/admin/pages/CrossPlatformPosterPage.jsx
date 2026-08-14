@@ -8,7 +8,6 @@ import {
   PREVIEW_W,
   PREVIEW_SCALE,
   POSTER_FONT_FAMILY,
-  POSTER_THEMES,
   TITLE_GAP_FROM_LOGO,
   PosterBrandRow,
   PosterFooter,
@@ -16,6 +15,7 @@ import {
   PosterCanvas,
   PosterSettingsPanel,
   defaultPosterSettings,
+  usePosterTheme,
   exportNodeAsPng,
 } from "../utils/exportPoster.jsx";
 
@@ -30,7 +30,7 @@ const MODES = [
 ];
 
 function PosterContent({ rows, chartType, mode, month, theme = "dark" }) {
-  const t = POSTER_THEMES[theme] || POSTER_THEMES.dark;
+  const t = usePosterTheme(theme);
   const padX = 56;
   const typeLabel = CHART_TYPES.find(([value]) => value === chartType)?.[1] || "Chart";
   const modeLabel = MODES.find(([value]) => value === mode)?.[1] || "";
@@ -226,6 +226,7 @@ export default function CrossPlatformPosterPage() {
               </label>
 
               <PosterSettingsPanel
+                theme={theme}
                 settings={posterSettings}
                 onChange={setPosterSettings}
                 onReset={() => setPosterSettings(defaultPosterSettings())}

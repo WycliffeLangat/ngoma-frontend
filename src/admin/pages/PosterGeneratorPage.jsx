@@ -14,7 +14,6 @@ import {
   PREVIEW_W,
   PREVIEW_SCALE,
   POSTER_FONT_FAMILY,
-  POSTER_THEMES,
   TITLE_GAP_FROM_LOGO,
   PosterBrandRow,
   PosterFooter,
@@ -22,6 +21,7 @@ import {
   PosterCanvas,
   PosterSettingsPanel,
   defaultPosterSettings,
+  usePosterTheme,
   exportNodeAsPng,
 } from "../utils/exportPoster.jsx";
 
@@ -144,7 +144,7 @@ function MovementChip({ movement, sameColor, scale }) {
 // artwork and inline stat chips per row instead, so this reads as its own
 // design rather than a recreation of any particular reference layout.
 function PosterContent({ chartType, period, platform, month, rows, accentColor, countryLabel, theme = "dark" }) {
-  const t = POSTER_THEMES[theme] || POSTER_THEMES.dark;
+  const t = usePosterTheme(theme);
   // +37px vs. the original 39px title padding, to keep the same breathing
   // room below the (now taller) title zone after widening its top gap to
   // TITLE_GAP_FROM_LOGO.
@@ -516,6 +516,7 @@ export default function PosterGeneratorPage() {
               </label>
 
               <PosterSettingsPanel
+                theme={theme}
                 settings={posterSettings}
                 onChange={setPosterSettings}
                 onReset={() => setPosterSettings(defaultPosterSettings())}
