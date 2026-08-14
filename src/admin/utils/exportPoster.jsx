@@ -178,11 +178,33 @@ export const POSTER_THEMES = {
 export const POSTER_SETTINGS_DEFAULTS = {
   contentScale: 100,
   contentOffsetY: 0,
+  finish: "clean",
+  frame: "none",
+  tone: "neutral",
+  designIntensity: 100,
   brandScale: 100,
   footerScale: 100,
   showBrand: true,
   showFooter: true,
 };
+
+export const POSTER_FINISH_OPTIONS = [
+  ["clean", "Clean"],
+  ["depth", "Depth"],
+  ["editorial", "Editorial"],
+];
+
+export const POSTER_FRAME_OPTIONS = [
+  ["none", "None"],
+  ["fine", "Fine"],
+  ["bold", "Bold"],
+];
+
+export const POSTER_TONE_OPTIONS = [
+  ["neutral", "Neutral"],
+  ["rich", "Rich"],
+  ["crisp", "Crisp"],
+];
 
 const PosterSettingsContext = createContext(POSTER_SETTINGS_DEFAULTS);
 
@@ -192,10 +214,18 @@ function boundedNumber(value, fallback, min, max) {
   return Math.max(min, Math.min(max, parsed));
 }
 
+function validOption(value, options, fallback) {
+  return options.some(([option]) => option === value) ? value : fallback;
+}
+
 export function normalizePosterSettings(settings = {}) {
   return {
     contentScale: boundedNumber(settings.contentScale, POSTER_SETTINGS_DEFAULTS.contentScale, 85, 115),
     contentOffsetY: boundedNumber(settings.contentOffsetY, POSTER_SETTINGS_DEFAULTS.contentOffsetY, -120, 120),
+    finish: validOption(settings.finish, POSTER_FINISH_OPTIONS, POSTER_SETTINGS_DEFAULTS.finish),
+    frame: validOption(settings.frame, POSTER_FRAME_OPTIONS, POSTER_SETTINGS_DEFAULTS.frame),
+    tone: validOption(settings.tone, POSTER_TONE_OPTIONS, POSTER_SETTINGS_DEFAULTS.tone),
+    designIntensity: boundedNumber(settings.designIntensity, POSTER_SETTINGS_DEFAULTS.designIntensity, 0, 100),
     brandScale: boundedNumber(settings.brandScale, POSTER_SETTINGS_DEFAULTS.brandScale, 70, 140),
     footerScale: boundedNumber(settings.footerScale, POSTER_SETTINGS_DEFAULTS.footerScale, 70, 140),
     showBrand: settings.showBrand !== false,
@@ -223,6 +253,9 @@ export function PosterCanvas({ settings, theme = "dark", children }) {
   const normalized = normalizePosterSettings(settings);
   const t = POSTER_THEMES[theme] || POSTER_THEMES.dark;
   const scale = normalized.contentScale / 100;
+  const mediaFilter = posterMediaFilter(normalized);
+  const finishStyle = posterFinishOverlayStyle(normalized, theme);
+  const frameStyle = posterFrameOverlayStyle(normalized, theme);
 
   return (
     <PosterSettingsProvider settings={normalized}>
@@ -244,12 +277,80 @@ export function PosterCanvas({ settings, theme = "dark", children }) {
             height: POSTER_H,
             transform: `translateY(${normalized.contentOffsetY}px) scale(${scale})`,
             transformOrigin: "center center",
+            filter: mediaFilter === "none" ? undefined : mediaFilter,
           }}
         >
           {children}
         </div>
+        {finishStyle && <div aria-hidden="true" style={{ position: "absolute", inset: 0, pointerEvents: "none", ...finishStyle }} />}
+        {frameStyle && <div aria-hidden="true" style={{ position: "absolute", pointerEvents: "none", ...frameStyle }} />}
       </div>
     </PosterSettingsProvider>
+  );
+}
+
+export function posterMediaFilter(settings = {}) {
+  const normalized = normalizePosterSettings(settings);
+  const level = normalized.designIntensity / 100;
+  if (normalized.tone === "rich") {
+    return `saturate(${1 + 0.18 * level}) contrast(${1 + 0.08 * level}) brightness(${1 + 0.02 * level})`;
+  }
+  if (normalized.tone === "crisp") {
+    return `contrast(${1 + 0.14 * level}) brightness(${1 + 0.05 * level}) saturate(${1 - 0.06 * level})`;
+  }
+  return "none";
+}
+
+export function posterFinishOverlayStyle(settings = {}, theme = "dark") {
+  const normalized = normalizePosterSettings(settings);
+  if (normalized.finish === "clean" || normalized.designIntensity <= 0) return null;
+  const level = normalized.designIntensity / 100;
+  const edgeInk = theme === "light" ? "0,0,0" : "255,255,255";
+  const shadowInk = "0,0,0";
+  if (normalized.finish === "depth") {
+    return {
+      background: `linear-gradient(180deg, rgba(${edgeInk},${0.07 * level}) 0%, rgba(${shadowInk},0) 38%, rgba(${shadowInk},${0.24 * level}) 100%)`,
+    };
+  }
+  return {
+    background: [
+      `linear-gradient(90deg, rgba(${edgeInk},${0.12 * level}) 0%, rgba(${edgeInk},0) 18%, rgba(${edgeInk},0) 82%, rgba(${edgeInk},${0.12 * level}) 100%)`,
+      `linear-gradient(180deg, rgba(${edgeInk},${0.05 * level}) 0%, rgba(${shadowInk},0) 45%, rgba(${shadowInk},${0.18 * level}) 100%)`,
+    ].join(", "),
+  };
+}
+
+export function posterFrameOverlayStyle(settings = {}, theme = "dark") {
+  const normalized = normalizePosterSettings(settings);
+  if (normalized.frame === "none" || normalized.designIntensity <= 0) return null;
+  const level = normalized.designIntensity / 100;
+  const color = theme === "light" ? `rgba(0,0,0,${0.24 * level})` : `rgba(255,255,255,${0.3 * level})`;
+  const inset = normalized.frame === "bold" ? 34 : 28;
+  const width = normalized.frame === "bold" ? 6 : 2;
+  return {
+    inset,
+    border: `${width}px solid ${color}`,
+    boxSizing: "border-box",
+  };
+}
+
+function PosterChoice({ label, value, options, onChange }) {
+  return (
+    <label style={{ display: "grid", gap: 6, fontSize: 12, fontWeight: 800, textTransform: "uppercase", color: "var(--cms-muted)" }}>
+      {label}
+      <div className="cms-pill-bar" style={{ marginBottom: 0 }}>
+        {options.map(([option, optionLabel]) => (
+          <button
+            key={option}
+            type="button"
+            className={`cms-btn small ${value === option ? "" : "light"}`}
+            onClick={() => onChange(option)}
+          >
+            {optionLabel}
+          </button>
+        ))}
+      </div>
+    </label>
   );
 }
 
@@ -297,6 +398,32 @@ export function PosterSettingsPanel({ settings, onChange, onReset }) {
         suffix="px"
         value={normalized.contentOffsetY}
         onChange={(contentOffsetY) => update({ contentOffsetY })}
+      />
+
+      <PosterChoice
+        label="Finish"
+        value={normalized.finish}
+        options={POSTER_FINISH_OPTIONS}
+        onChange={(finish) => update({ finish })}
+      />
+      <PosterChoice
+        label="Frame"
+        value={normalized.frame}
+        options={POSTER_FRAME_OPTIONS}
+        onChange={(frame) => update({ frame })}
+      />
+      <PosterChoice
+        label="Tone"
+        value={normalized.tone}
+        options={POSTER_TONE_OPTIONS}
+        onChange={(tone) => update({ tone })}
+      />
+      <PosterRange
+        label="Design intensity"
+        min={0}
+        max={100}
+        value={normalized.designIntensity}
+        onChange={(designIntensity) => update({ designIntensity })}
       />
 
       <div className="cms-pill-bar" style={{ marginBottom: 0 }}>

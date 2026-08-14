@@ -10,6 +10,9 @@ import {
   PREVIEW_SCALE,
   POSTER_FONT_FAMILY,
   POSTER_THEMES,
+  POSTER_FINISH_OPTIONS,
+  POSTER_FRAME_OPTIONS,
+  POSTER_TONE_OPTIONS,
   PosterBrandRow,
   PosterFooter,
   ArtPlaceholder,
@@ -17,6 +20,9 @@ import {
   downloadBlob,
   ensurePosterFontsReady,
   exportNodeAsPng,
+  posterFinishOverlayStyle,
+  posterFrameOverlayStyle,
+  posterMediaFilter,
   preferredVideoMimeType,
   superHdHelpText,
   videoExportFrameRate,
@@ -65,6 +71,10 @@ const DEFAULT_NEWS_DESIGN = {
   imageZoom: 108,
   imageX: 50,
   imageY: 50,
+  finish: "clean",
+  frame: "none",
+  tone: "neutral",
+  designIntensity: 100,
   headlineScale: 100,
   subheadlineScale: 100,
   categoryScale: 100,
@@ -93,6 +103,10 @@ const DEFAULT_VIDEO_DESIGN = {
   mediaZoom: 104,
   mediaX: 50,
   mediaY: 50,
+  finish: "clean",
+  frame: "none",
+  tone: "neutral",
+  designIntensity: 100,
   titleScale: 100,
   artistScale: 100,
   labelScale: 100,
@@ -344,7 +358,10 @@ function drawCoverMedia(ctx, media, design) {
   const overflowY = Math.max(0, drawH - VIDEO_EXPORT_H);
   const dx = -overflowX * ((Number(design.mediaX) || 50) / 100);
   const dy = -overflowY * ((Number(design.mediaY) || 50) / 100);
+  ctx.save();
+  ctx.filter = posterMediaFilter(design);
   ctx.drawImage(media, dx, dy, drawW, drawH);
+  ctx.restore();
 }
 
 function drawCanvasOverlay(ctx, design) {
@@ -366,6 +383,50 @@ function drawCanvasOverlay(ctx, design) {
   }
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, VIDEO_EXPORT_W, VIDEO_EXPORT_H);
+}
+
+function drawPosterFinishCanvas(ctx, design) {
+  if (design.finish === "clean" || !Number(design.designIntensity)) return;
+  const level = Math.max(0, Math.min(100, Number(design.designIntensity) || 0)) / 100;
+  const edgeInk = design.theme === "light" ? "0,0,0" : "255,255,255";
+  const shadowInk = "0,0,0";
+  ctx.save();
+  if (design.finish === "depth") {
+    const gradient = ctx.createLinearGradient(0, 0, 0, VIDEO_EXPORT_H);
+    gradient.addColorStop(0, `rgba(${edgeInk},${0.07 * level})`);
+    gradient.addColorStop(0.38, `rgba(${shadowInk},0)`);
+    gradient.addColorStop(1, `rgba(${shadowInk},${0.24 * level})`);
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, VIDEO_EXPORT_W, VIDEO_EXPORT_H);
+  } else if (design.finish === "editorial") {
+    const horizontal = ctx.createLinearGradient(0, 0, VIDEO_EXPORT_W, 0);
+    horizontal.addColorStop(0, `rgba(${edgeInk},${0.12 * level})`);
+    horizontal.addColorStop(0.18, `rgba(${edgeInk},0)`);
+    horizontal.addColorStop(0.82, `rgba(${edgeInk},0)`);
+    horizontal.addColorStop(1, `rgba(${edgeInk},${0.12 * level})`);
+    ctx.fillStyle = horizontal;
+    ctx.fillRect(0, 0, VIDEO_EXPORT_W, VIDEO_EXPORT_H);
+
+    const vertical = ctx.createLinearGradient(0, 0, 0, VIDEO_EXPORT_H);
+    vertical.addColorStop(0, `rgba(${edgeInk},${0.05 * level})`);
+    vertical.addColorStop(0.45, `rgba(${shadowInk},0)`);
+    vertical.addColorStop(1, `rgba(${shadowInk},${0.18 * level})`);
+    ctx.fillStyle = vertical;
+    ctx.fillRect(0, 0, VIDEO_EXPORT_W, VIDEO_EXPORT_H);
+  }
+  ctx.restore();
+}
+
+function drawPosterFrameCanvas(ctx, design) {
+  if (design.frame === "none" || !Number(design.designIntensity)) return;
+  const level = Math.max(0, Math.min(100, Number(design.designIntensity) || 0)) / 100;
+  const inset = (design.frame === "bold" ? 34 : 28) * (VIDEO_EXPORT_W / POSTER_W);
+  const width = (design.frame === "bold" ? 6 : 2) * (VIDEO_EXPORT_W / POSTER_W);
+  ctx.save();
+  ctx.strokeStyle = design.theme === "light" ? `rgba(0,0,0,${0.24 * level})` : `rgba(255,255,255,${0.3 * level})`;
+  ctx.lineWidth = width;
+  ctx.strokeRect(inset, inset, VIDEO_EXPORT_W - inset * 2, VIDEO_EXPORT_H - inset * 2);
+  ctx.restore();
 }
 
 function drawNgomaMarkCanvas(ctx, centerX, topY, size, color) {
@@ -576,10 +637,12 @@ function drawVideoPostFrame(ctx, video, design) {
   ctx.clearRect(0, 0, VIDEO_EXPORT_W, VIDEO_EXPORT_H);
   drawCoverMedia(ctx, video, design);
   drawCanvasOverlay(ctx, design);
+  drawPosterFinishCanvas(ctx, design);
   if (design.showPlayBadge !== false) drawPlayBadgeCanvas(ctx, design.accent, scale, design.playScale);
   if (design.showBrand !== false) drawBrandCanvas(ctx, design, scale);
   drawVideoTextBlockCanvas(ctx, design, scale);
   if (design.showFooter !== false) drawFooterCanvas(ctx, design.theme, scale);
+  drawPosterFrameCanvas(ctx, design);
 }
 
 function loadExportVideo(source) {
@@ -828,6 +891,9 @@ function NewsPostContent({ design }) {
   const textMaxWidth = blockWidth(POSTER_W - padX * 2, design.textWidth);
   const showCategory = design.showCategory !== false && design.category;
   const showSubheadline = design.showSubheadline !== false && design.subheadline;
+  const mediaFilter = posterMediaFilter(design);
+  const finishOverlay = posterFinishOverlayStyle(design, design.theme);
+  const frameOverlay = posterFrameOverlayStyle(design, design.theme);
 
   return (
     <div
@@ -855,6 +921,7 @@ function NewsPostContent({ design }) {
             objectPosition: `${design.imageX}% ${design.imageY}%`,
             transform: mediaTransform(design.imageZoom),
             transformOrigin: "center",
+            filter: mediaFilter === "none" ? undefined : mediaFilter,
           }}
         />
       ) : (
@@ -862,6 +929,7 @@ function NewsPostContent({ design }) {
       )}
 
       <div style={{ position: "absolute", inset: 0, ...overlayStyle(design.theme, design.overlay, design.textPosition) }} />
+      {finishOverlay && <div style={{ position: "absolute", inset: 0, pointerEvents: "none", ...finishOverlay }} />}
 
       {design.showBrand !== false && (
         <div style={{ position: "relative", zIndex: 1, padding: `58px ${padX}px 0` }}>
@@ -942,6 +1010,7 @@ function NewsPostContent({ design }) {
       </div>
 
       {design.showFooter !== false && <PosterFooter theme={design.theme} padX={padX} />}
+      {frameOverlay && <div style={{ position: "absolute", zIndex: 5, pointerEvents: "none", ...frameOverlay }} />}
     </div>
   );
 }
@@ -989,6 +1058,9 @@ function VideoPostContent({ design, exportMode = false, videoRef = null }) {
   const textMaxWidth = blockWidth(POSTER_W - padX * 2, design.textWidth);
   const showBadge = design.showBadge !== false;
   const titleShadow = textShadowStyle(design.theme, design.shadow);
+  const mediaFilter = posterMediaFilter(design);
+  const finishOverlay = posterFinishOverlayStyle(design, design.theme);
+  const frameOverlay = posterFrameOverlayStyle(design, design.theme);
   const mediaStyle = {
     position: "absolute",
     inset: 0,
@@ -998,6 +1070,7 @@ function VideoPostContent({ design, exportMode = false, videoRef = null }) {
     objectPosition: `${design.mediaX}% ${design.mediaY}%`,
     transform: mediaTransform(design.mediaZoom),
     transformOrigin: "center",
+    filter: mediaFilter === "none" ? undefined : mediaFilter,
   };
 
   return (
@@ -1031,6 +1104,7 @@ function VideoPostContent({ design, exportMode = false, videoRef = null }) {
       )}
 
       <div style={{ position: "absolute", inset: 0, ...overlayStyle(design.theme, design.overlay, design.textPosition) }} />
+      {finishOverlay && <div style={{ position: "absolute", inset: 0, pointerEvents: "none", ...finishOverlay }} />}
       {design.videoUrl && design.showPlayBadge !== false && <PlayBadge accent={design.accent} scale={playScale} />}
 
       {design.showBrand !== false && (
@@ -1109,6 +1183,7 @@ function VideoPostContent({ design, exportMode = false, videoRef = null }) {
       </div>
 
       {design.showFooter !== false && <PosterFooter theme={design.theme} padX={padX} />}
+      {frameOverlay && <div style={{ position: "absolute", zIndex: 5, pointerEvents: "none", ...frameOverlay }} />}
     </div>
   );
 }
@@ -1461,6 +1536,9 @@ export default function NewsCardPage() {
                 <SegmentedControl label="Headline position" value={newsDesign.textPosition} options={TEXT_POSITIONS} onChange={(value) => updateNews({ textPosition: value })} />
                 <SegmentedControl label="Text align" value={newsDesign.textAlign} options={TEXT_ALIGNMENTS} onChange={(value) => updateNews({ textAlign: value })} />
                 <SegmentedControl label="Text case" value={newsDesign.textCase} options={TEXT_CASE_OPTIONS} onChange={(value) => updateNews({ textCase: value })} />
+                <SegmentedControl label="Finish" value={newsDesign.finish} options={POSTER_FINISH_OPTIONS} onChange={(value) => updateNews({ finish: value })} />
+                <SegmentedControl label="Frame" value={newsDesign.frame} options={POSTER_FRAME_OPTIONS} onChange={(value) => updateNews({ frame: value })} />
+                <SegmentedControl label="Tone" value={newsDesign.tone} options={POSTER_TONE_OPTIONS} onChange={(value) => updateNews({ tone: value })} />
 
                 <div style={CONTROL_GRID}>
                   <ToggleControl label="Brand" checked={newsDesign.showBrand !== false} onChange={(value) => updateNews({ showBrand: value })} />
@@ -1481,6 +1559,7 @@ export default function NewsCardPage() {
                   <RangeControl label="Text width" min={45} max={100} value={newsDesign.textWidth} suffix="%" onChange={(value) => updateNews({ textWidth: value })} />
                   <RangeControl label="Text vertical" min={-220} max={220} value={newsDesign.textOffsetY} suffix="px" onChange={(value) => updateNews({ textOffsetY: value })} />
                   <RangeControl label="Text shadow" min={0} max={160} value={newsDesign.shadow} suffix="%" onChange={(value) => updateNews({ shadow: value })} />
+                  <RangeControl label="Design intensity" min={0} max={100} value={newsDesign.designIntensity} suffix="%" onChange={(value) => updateNews({ designIntensity: value })} />
                 </div>
               </div>
             </div>
@@ -1573,6 +1652,9 @@ export default function NewsCardPage() {
                 <SegmentedControl label="Title position" value={videoDesign.textPosition} options={TEXT_POSITIONS} onChange={(value) => updateVideo({ textPosition: value })} />
                 <SegmentedControl label="Text align" value={videoDesign.textAlign} options={TEXT_ALIGNMENTS} onChange={(value) => updateVideo({ textAlign: value })} />
                 <SegmentedControl label="Text case" value={videoDesign.textCase} options={TEXT_CASE_OPTIONS} onChange={(value) => updateVideo({ textCase: value })} />
+                <SegmentedControl label="Finish" value={videoDesign.finish} options={POSTER_FINISH_OPTIONS} onChange={(value) => updateVideo({ finish: value })} />
+                <SegmentedControl label="Frame" value={videoDesign.frame} options={POSTER_FRAME_OPTIONS} onChange={(value) => updateVideo({ frame: value })} />
+                <SegmentedControl label="Tone" value={videoDesign.tone} options={POSTER_TONE_OPTIONS} onChange={(value) => updateVideo({ tone: value })} />
 
                 <div style={CONTROL_GRID}>
                   <ToggleControl label="Brand" checked={videoDesign.showBrand !== false} onChange={(value) => updateVideo({ showBrand: value })} />
@@ -1594,6 +1676,7 @@ export default function NewsCardPage() {
                   <RangeControl label="Text width" min={45} max={100} value={videoDesign.textWidth} suffix="%" onChange={(value) => updateVideo({ textWidth: value })} />
                   <RangeControl label="Text vertical" min={-220} max={220} value={videoDesign.textOffsetY} suffix="px" onChange={(value) => updateVideo({ textOffsetY: value })} />
                   <RangeControl label="Text shadow" min={0} max={160} value={videoDesign.shadow} suffix="%" onChange={(value) => updateVideo({ shadow: value })} />
+                  <RangeControl label="Design intensity" min={0} max={100} value={videoDesign.designIntensity} suffix="%" onChange={(value) => updateVideo({ designIntensity: value })} />
                 </div>
               </div>
             </div>
