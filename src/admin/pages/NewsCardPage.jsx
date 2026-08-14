@@ -125,7 +125,6 @@ const DEFAULT_VIDEO_DESIGN = {
   artistScale: 100,
   labelScale: 100,
   brandScale: 100,
-  playScale: 100,
   textWidth: 100,
   textOffsetY: 0,
   shadow: 100,
@@ -133,7 +132,6 @@ const DEFAULT_VIDEO_DESIGN = {
   showBrand: true,
   showFooter: true,
   showBadge: true,
-  showPlayBadge: true,
 };
 
 const FIELD_LABEL = {
@@ -547,30 +545,6 @@ function drawBrandCanvas(ctx, design, scale) {
   ctx.restore();
 }
 
-function drawPlayBadgeCanvas(ctx, accent, scale, sizePercent = 100) {
-  const cx = VIDEO_EXPORT_W / 2;
-  const cy = VIDEO_EXPORT_H / 2;
-  const badgeScale = scale * ((Number(sizePercent) || 100) / 100);
-  const radius = 66 * badgeScale;
-  ctx.save();
-  ctx.shadowColor = `${accent}66`;
-  ctx.shadowBlur = 28 * badgeScale;
-  ctx.shadowOffsetY = 14 * badgeScale;
-  ctx.fillStyle = `${accent}E6`;
-  ctx.beginPath();
-  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.shadowColor = "transparent";
-  ctx.fillStyle = readableInk(accent);
-  ctx.beginPath();
-  ctx.moveTo(cx - 12 * badgeScale, cy - 28 * badgeScale);
-  ctx.lineTo(cx - 12 * badgeScale, cy + 28 * badgeScale);
-  ctx.lineTo(cx + 34 * badgeScale, cy);
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
-}
-
 function wrapTextLines(ctx, text, maxWidth, maxLines) {
   const words = String(text || "").trim().split(/\s+/).filter(Boolean);
   const lines = [];
@@ -712,7 +686,6 @@ function drawVideoPostFrame(ctx, video, design) {
   drawCoverMedia(ctx, video, design);
   drawCanvasOverlay(ctx, design);
   drawPosterFinishCanvas(ctx, design);
-  if (design.showPlayBadge !== false) drawPlayBadgeCanvas(ctx, design.accent, scale, design.playScale);
   if (design.showBrand !== false) drawBrandCanvas(ctx, design, scale);
   drawVideoTextBlockCanvas(ctx, design, scale);
   if (design.showFooter !== false) drawFooterCanvas(ctx, design, scale);
@@ -1158,40 +1131,6 @@ function NewsPostContent({ design }) {
   );
 }
 
-function PlayBadge({ accent, scale = 1 }) {
-  return (
-    <div
-      style={{
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        width: 132 * scale,
-        height: 132 * scale,
-        borderRadius: "50%",
-        background: `${accent}E6`,
-        boxShadow: `0 18px 55px ${accent}55`,
-        display: "grid",
-        placeItems: "center",
-        pointerEvents: "none",
-        zIndex: 1,
-      }}
-    >
-      <span
-        style={{
-          display: "block",
-          width: 0,
-          height: 0,
-          marginLeft: 10 * scale,
-          borderTop: `${28 * scale}px solid transparent`,
-          borderBottom: `${28 * scale}px solid transparent`,
-          borderLeft: `${42 * scale}px solid ${readableInk(accent)}`,
-        }}
-      />
-    </div>
-  );
-}
-
 function VideoPostContent({ design, exportMode = false, videoRef = null, onVideoMetadata = null }) {
   const t = POSTER_THEMES[design.theme] || POSTER_THEMES.dark;
   const padX = 62;
@@ -1200,7 +1139,6 @@ function VideoPostContent({ design, exportMode = false, videoRef = null, onVideo
   const brandTextColor = designBrandTextColor(design);
   const footerTextColor = designFooterTextColor(design);
   const brandScale = (Number(design.brandScale) || 100) / 100;
-  const playScale = (Number(design.playScale) || 100) / 100;
   const textMaxWidth = blockWidth(POSTER_W - padX * 2, design.textWidth);
   const showBadge = design.showBadge !== false;
   const titleShadow = textShadowStyle(design.theme, design.shadow);
@@ -1252,7 +1190,6 @@ function VideoPostContent({ design, exportMode = false, videoRef = null, onVideo
 
       <div style={{ position: "absolute", inset: 0, pointerEvents: "none", ...overlayStyle(design.theme, design.overlay, design.textPosition) }} />
       {finishOverlay && <div style={{ position: "absolute", inset: 0, pointerEvents: "none", ...finishOverlay }} />}
-      {design.videoUrl && design.showPlayBadge !== false && <PlayBadge accent={design.accent} scale={playScale} />}
 
       {design.showBrand !== false && (
         <div style={{ position: "relative", zIndex: 2, padding: `58px ${padX}px 0`, pointerEvents: "none" }}>
@@ -1971,7 +1908,6 @@ export default function NewsCardPage() {
                   <ToggleControl label="Brand" checked={videoDesign.showBrand !== false} onChange={(value) => updateVideo({ showBrand: value })} />
                   <ToggleControl label="Footer" checked={videoDesign.showFooter !== false} onChange={(value) => updateVideo({ showFooter: value })} />
                   <ToggleControl label="Video label" checked={videoDesign.showBadge !== false} onChange={(value) => updateVideo({ showBadge: value })} />
-                  <ToggleControl label="Play badge" checked={videoDesign.showPlayBadge !== false} onChange={(value) => updateVideo({ showPlayBadge: value })} />
                 </div>
 
                 <div style={CONTROL_GRID}>
@@ -1983,7 +1919,6 @@ export default function NewsCardPage() {
                   <RangeControl label="Artist size" min={70} max={135} value={videoDesign.artistScale} suffix="%" onChange={(value) => updateVideo({ artistScale: value })} />
                   <RangeControl label="Label size" min={70} max={140} value={videoDesign.labelScale} suffix="%" onChange={(value) => updateVideo({ labelScale: value })} />
                   <RangeControl label="Brand size" min={70} max={135} value={videoDesign.brandScale} suffix="%" onChange={(value) => updateVideo({ brandScale: value })} />
-                  <RangeControl label="Play size" min={60} max={145} value={videoDesign.playScale} suffix="%" onChange={(value) => updateVideo({ playScale: value })} />
                   <RangeControl label="Text width" min={45} max={100} value={videoDesign.textWidth} suffix="%" onChange={(value) => updateVideo({ textWidth: value })} />
                   <RangeControl label="Text vertical" min={-220} max={220} value={videoDesign.textOffsetY} suffix="px" onChange={(value) => updateVideo({ textOffsetY: value })} />
                   <RangeControl label="Text shadow" min={0} max={160} value={videoDesign.shadow} suffix="%" onChange={(value) => updateVideo({ shadow: value })} />
