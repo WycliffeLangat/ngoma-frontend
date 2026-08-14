@@ -61,6 +61,7 @@ const TEXT_CASE_OPTIONS = [
 const VIDEO_EXPORT_MIN_SECONDS = 3;
 const VIDEO_EXPORT_MAX_SECONDS = 30;
 const VIDEO_EXPORT_DEFAULT_SECONDS = 15;
+const VIDEO_TRIM_UNKNOWN_MAX_SECONDS = 300;
 
 const DEFAULT_NEWS_DESIGN = {
   image: "",
@@ -119,6 +120,7 @@ const DEFAULT_VIDEO_DESIGN = {
   secondaryTextColor: "",
   brandTextColor: "",
   footerTextColor: "",
+  trimStart: 0,
   exportDuration: VIDEO_EXPORT_DEFAULT_SECONDS,
   titleScale: 100,
   artistScale: 100,
@@ -207,6 +209,19 @@ function alignedBlockStyle(align) {
 function displayText(value, textCase) {
   const raw = String(value || "");
   return textCase === "uppercase" ? raw.toUpperCase() : raw;
+}
+
+function formatSeconds(value) {
+  const total = Math.max(0, Math.round(Number(value) || 0));
+  const minutes = Math.floor(total / 60);
+  const seconds = total % 60;
+  return minutes ? `${minutes}:${String(seconds).padStart(2, "0")}` : `${seconds}s`;
+}
+
+function clampTrimValue(value, min, max) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return min;
+  return Math.max(min, Math.min(max, parsed));
 }
 
 function mediaTransform(zoom = 100) {
@@ -743,14 +758,21 @@ async function createAudioCapture(video) {
   return { tracks: [], cleanup };
 }
 
-function videoExportDuration(design, video) {
+function videoTrimStart(design, video) {
+  const requested = Math.max(0, Number(design.trimStart) || 0);
+  const sourceDuration = Number(video.duration);
+  if (!Number.isFinite(sourceDuration) || sourceDuration <= 0) return requested;
+  return Math.max(0, Math.min(requested, Math.max(0, sourceDuration - 0.5)));
+}
+
+function videoExportDuration(design, video, startTime = 0) {
   const requested = Math.max(
     VIDEO_EXPORT_MIN_SECONDS,
     Math.min(VIDEO_EXPORT_MAX_SECONDS, Number(design.exportDuration) || VIDEO_EXPORT_DEFAULT_SECONDS)
   );
   const sourceDuration = Number(video.duration);
   if (!Number.isFinite(sourceDuration) || sourceDuration <= 0) return requested;
-  return Math.max(0.5, Math.min(requested, sourceDuration));
+  return Math.max(0.5, Math.min(requested, Math.max(0.5, sourceDuration - startTime)));
 }
 
 function waitForVideoSeek(video, targetTime) {
@@ -760,13 +782,18 @@ function waitForVideoSeek(video, targetTime) {
       resolve();
       return;
     }
-    const done = () => resolve();
+    let timer = 0;
+    const done = () => {
+      if (timer) window.clearTimeout(timer);
+      video.removeEventListener("seeked", done);
+      resolve();
+    };
     video.addEventListener("seeked", done, { once: true });
     try {
       video.currentTime = target;
+      timer = window.setTimeout(done, 1200);
     } catch {
-      video.removeEventListener("seeked", done);
-      resolve();
+      done();
     }
   });
 }
@@ -785,9 +812,10 @@ async function exportVideoPostFile(design, filenameBase) {
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
   const video = await loadExportVideo(design.videoUrl);
-  await waitForVideoSeek(video, 0);
+  const startTime = videoTrimStart(design, video);
+  await waitForVideoSeek(video, startTime);
   drawVideoPostFrame(ctx, video, design);
-  const clipSeconds = videoExportDuration(design, video);
+  const clipSeconds = videoExportDuration(design, video, startTime);
 
   const canvasStream = canvas.captureStream(videoExportFrameRate());
   const audioCapture = await createAudioCapture(video);
@@ -1317,6 +1345,18 @@ export default function NewsCardPage() {
   const [exporting, setExporting] = useState(false);
   const posterRef = useRef(null);
   const previewVideoRef = useRef(null);
+  const trimPreviewTimerRef = useRef(null);
+
+  function clearTrimPreviewTimer() {
+    if (trimPreviewTimerRef.current) {
+      window.clearTimeout(trimPreviewTimerRef.current);
+      trimPreviewTimerRef.current = null;
+    }
+  }
+
+  useEffect(() => () => {
+    clearTrimPreviewTimer();
+  }, []);
 
   useEffect(() => () => {
     if (newsImageObjectUrl) URL.revokeObjectURL(newsImageObjectUrl);
@@ -1391,6 +1431,7 @@ export default function NewsCardPage() {
   }
 
   function resetVideoAll() {
+    clearTrimPreviewTimer();
     setVideoObjectUrl("");
     setFrameError("");
     setVideoDuration(0);
@@ -1419,6 +1460,7 @@ export default function NewsCardPage() {
 
   async function handleVideoFile(file) {
     if (!file) return;
+    clearTrimPreviewTimer();
     const nextUrl = URL.createObjectURL(file);
     setVideoObjectUrl(nextUrl);
     setFrameError("");
@@ -1440,6 +1482,7 @@ export default function NewsCardPage() {
   }
 
   function handleVideoUrl(value) {
+    clearTrimPreviewTimer();
     setVideoObjectUrl("");
     setFrameError("");
     setVideoDuration(0);
@@ -1452,7 +1495,59 @@ export default function NewsCardPage() {
 
   function handlePreviewVideoMetadata(event) {
     const duration = Number(event.currentTarget.duration);
-    setVideoDuration(Number.isFinite(duration) && duration > 0 ? duration : 0);
+    const nextDuration = Number.isFinite(duration) && duration > 0 ? duration : 0;
+    setVideoDuration(nextDuration);
+    if (nextDuration > 0) {
+      setVideoDesign((current) => {
+        const maxStart = Math.max(0, Math.floor(nextDuration - 0.5));
+        const trimStart = clampTrimValue(current.trimStart, 0, maxStart);
+        const maxLength = Math.max(VIDEO_EXPORT_MIN_SECONDS, Math.min(VIDEO_EXPORT_MAX_SECONDS, Math.ceil(nextDuration - trimStart)));
+        const exportDuration = clampTrimValue(current.exportDuration, VIDEO_EXPORT_MIN_SECONDS, maxLength);
+        return trimStart === current.trimStart && exportDuration === current.exportDuration
+          ? current
+          : { ...current, trimStart, exportDuration };
+      });
+    }
+  }
+
+  function setTrimStartFromPreview() {
+    const video = previewVideoRef.current;
+    if (!video) return;
+    const currentTime = Math.floor(Number(video.currentTime) || 0);
+    const maxStart = videoDuration > 0 ? Math.max(0, Math.floor(videoDuration - 0.5)) : VIDEO_TRIM_UNKNOWN_MAX_SECONDS;
+    const trimStart = clampTrimValue(currentTime, 0, maxStart);
+    const maxLength = videoDuration > 0
+      ? Math.max(VIDEO_EXPORT_MIN_SECONDS, Math.min(VIDEO_EXPORT_MAX_SECONDS, Math.ceil(videoDuration - trimStart)))
+      : VIDEO_EXPORT_MAX_SECONDS;
+    updateVideo({
+      trimStart,
+      exportDuration: clampTrimValue(videoDesign.exportDuration, VIDEO_EXPORT_MIN_SECONDS, maxLength),
+    });
+  }
+
+  function setTrimEndFromPreview() {
+    const video = previewVideoRef.current;
+    if (!video) return;
+    const currentTime = Math.ceil(Number(video.currentTime) || 0);
+    const trimStart = Number(videoDesign.trimStart) || 0;
+    const exportDuration = clampTrimValue(currentTime - trimStart, VIDEO_EXPORT_MIN_SECONDS, VIDEO_EXPORT_MAX_SECONDS);
+    updateVideo({ exportDuration });
+  }
+
+  function playTrimPreview() {
+    const video = previewVideoRef.current;
+    if (!video) return;
+    clearTrimPreviewTimer();
+    const start = Number(videoDesign.trimStart) || 0;
+    const duration = Math.max(0.5, Number(videoDesign.exportDuration) || VIDEO_EXPORT_DEFAULT_SECONDS);
+    try {
+      video.currentTime = start;
+    } catch {}
+    video.play().catch(() => {});
+    trimPreviewTimerRef.current = window.setTimeout(() => {
+      video.pause();
+      trimPreviewTimerRef.current = null;
+    }, Math.ceil(duration * 1000));
   }
 
   function captureCurrentVideoFrame() {
@@ -1491,6 +1586,17 @@ export default function NewsCardPage() {
 
   const activeTheme = mode === "news" ? newsDesign.theme : videoDesign.theme;
   const videoExportType = preferredVideoMimeType();
+  const trimStartMax = videoDuration > 0
+    ? Math.max(0, Math.floor(videoDuration - 0.5))
+    : VIDEO_TRIM_UNKNOWN_MAX_SECONDS;
+  const effectiveTrimStart = clampTrimValue(videoDesign.trimStart, 0, trimStartMax);
+  const exportLengthMax = videoDuration > 0
+    ? Math.max(VIDEO_EXPORT_MIN_SECONDS, Math.min(VIDEO_EXPORT_MAX_SECONDS, Math.ceil(videoDuration - effectiveTrimStart)))
+    : VIDEO_EXPORT_MAX_SECONDS;
+  const effectiveExportDuration = clampTrimValue(videoDesign.exportDuration, VIDEO_EXPORT_MIN_SECONDS, exportLengthMax);
+  const trimEnd = videoDuration > 0
+    ? Math.min(videoDuration, effectiveTrimStart + effectiveExportDuration)
+    : effectiveTrimStart + effectiveExportDuration;
   const canDownload = mode === "news"
     ? Boolean(newsDesign.headline.trim())
     : Boolean(videoDesign.videoUrl && videoDesign.title.trim() && videoDesign.artist.trim() && videoExportType);
@@ -1710,6 +1816,7 @@ export default function NewsCardPage() {
                         type="button"
                         className="cms-btn light small"
                         onClick={() => {
+                          clearTrimPreviewTimer();
                           setVideoObjectUrl("");
                           setVideoDuration(0);
                           updateVideo({ videoUrl: "", videoFrame: "", sourceName: "" });
@@ -1722,6 +1829,19 @@ export default function NewsCardPage() {
                       <button type="button" className="cms-btn light small" onClick={captureCurrentVideoFrame}>
                         Capture frame
                       </button>
+                    )}
+                    {videoDesign.videoUrl && (
+                      <>
+                        <button type="button" className="cms-btn light small" onClick={setTrimStartFromPreview}>
+                          Set trim start
+                        </button>
+                        <button type="button" className="cms-btn light small" onClick={setTrimEndFromPreview}>
+                          Set trim end
+                        </button>
+                        <button type="button" className="cms-btn light small" onClick={playTrimPreview}>
+                          Play trimmed clip
+                        </button>
+                      </>
                     )}
                   </div>
                   {(videoDesign.sourceName || capturingFrame) && (
@@ -1831,13 +1951,13 @@ export default function NewsCardPage() {
                   <RangeControl label="Text vertical" min={-220} max={220} value={videoDesign.textOffsetY} suffix="px" onChange={(value) => updateVideo({ textOffsetY: value })} />
                   <RangeControl label="Text shadow" min={0} max={160} value={videoDesign.shadow} suffix="%" onChange={(value) => updateVideo({ shadow: value })} />
                   <RangeControl label="Design intensity" min={0} max={100} value={videoDesign.designIntensity} suffix="%" onChange={(value) => updateVideo({ designIntensity: value })} />
-                  <RangeControl label="Export length" min={VIDEO_EXPORT_MIN_SECONDS} max={VIDEO_EXPORT_MAX_SECONDS} value={videoDesign.exportDuration} suffix="s" onChange={(value) => updateVideo({ exportDuration: value })} />
+                  <RangeControl label="Trim start" min={0} max={trimStartMax} value={effectiveTrimStart} suffix="s" onChange={(value) => updateVideo({ trimStart: value })} />
+                  <RangeControl label="Export length" min={VIDEO_EXPORT_MIN_SECONDS} max={exportLengthMax} value={effectiveExportDuration} suffix="s" onChange={(value) => updateVideo({ exportDuration: value })} />
                 </div>
-                {videoDuration > 0 && (
-                  <span className="cms-help" style={{ textTransform: "none", letterSpacing: 0, fontWeight: 650 }}>
-                    Export records up to {Math.min(videoDesign.exportDuration, Math.ceil(videoDuration))}s from this {Math.ceil(videoDuration)}s video.
-                  </span>
-                )}
+                <span className="cms-help" style={{ textTransform: "none", letterSpacing: 0, fontWeight: 650 }}>
+                  Trim exports {formatSeconds(effectiveTrimStart)} to {formatSeconds(trimEnd)}
+                  {videoDuration > 0 ? ` from this ${formatSeconds(videoDuration)} video.` : "."}
+                </span>
               </div>
             </div>
           )}
