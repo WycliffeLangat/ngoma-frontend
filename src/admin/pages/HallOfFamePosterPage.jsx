@@ -13,6 +13,9 @@ import {
   PosterBrandRow,
   PosterFooter,
   ArtPlaceholder,
+  PosterCanvas,
+  PosterSettingsPanel,
+  defaultPosterSettings,
   exportNodeAsPng,
 } from "../utils/exportPoster.jsx";
 
@@ -137,6 +140,7 @@ export default function HallOfFamePosterPage() {
   const [exportError, setExportError] = useState("");
   const [chartType, setChartType] = useState("singles");
   const [theme, setTheme] = useState("dark");
+  const [posterSettings, setPosterSettings] = useState(() => defaultPosterSettings());
   const [exporting, setExporting] = useState(false);
   const posterRef = useRef(null);
 
@@ -208,27 +212,37 @@ export default function HallOfFamePosterPage() {
                   ))}
                 </div>
               </label>
+
+              <PosterSettingsPanel
+                settings={posterSettings}
+                onChange={setPosterSettings}
+                onReset={() => setPosterSettings(defaultPosterSettings())}
+              />
             </div>
 
             <button type="button" className="cms-btn full" style={{ marginTop: 20 }} onClick={handleDownload} disabled={exporting || !items.length}>
               {exporting ? "Generating…" : "Download card (PNG)"}
             </button>
             <p className="cms-help" style={{ marginTop: 10 }}>
-              Exports at {POSTER_W}×{POSTER_H}px (4:5), 2× resolution — ready for Instagram/Facebook portrait posts. Shows up to 8 of the most recent Hall of Fame entries.
+              Exports as a Super HD 4:5 PNG using the app font — ready for Instagram/Facebook portrait posts. Shows up to 8 of the most recent Hall of Fame entries.
             </p>
           </div>
 
           <div style={{ flex: "0 0 auto" }}>
             <div style={{ width: PREVIEW_W, height: PREVIEW_W * (POSTER_H / POSTER_W), overflow: "hidden", borderRadius: 18, border: "1px solid var(--cms-line)", boxShadow: "0 20px 50px rgba(20,16,4,.18)" }}>
               <div style={{ width: POSTER_W, height: POSTER_H, transform: `scale(${PREVIEW_SCALE})`, transformOrigin: "top left" }}>
-                <PosterContent items={items} chartType={chartType} theme={theme} />
+                <PosterCanvas settings={posterSettings} theme={theme}>
+                  <PosterContent items={items} chartType={chartType} theme={theme} />
+                </PosterCanvas>
               </div>
             </div>
           </div>
 
           <div style={{ position: "fixed", top: 0, left: -99999, pointerEvents: "none" }} aria-hidden="true">
             <div ref={posterRef}>
-              <PosterContent items={items} chartType={chartType} theme={theme} />
+              <PosterCanvas settings={posterSettings} theme={theme}>
+                <PosterContent items={items} chartType={chartType} theme={theme} />
+              </PosterCanvas>
             </div>
           </div>
         </div>

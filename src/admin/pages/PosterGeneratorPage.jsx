@@ -19,6 +19,9 @@ import {
   PosterBrandRow,
   PosterFooter,
   ArtPlaceholder,
+  PosterCanvas,
+  PosterSettingsPanel,
+  defaultPosterSettings,
   exportNodeAsPng,
 } from "../utils/exportPoster.jsx";
 
@@ -347,6 +350,7 @@ export default function PosterGeneratorPage() {
   const [month, setMonth] = useState("");
   const [count, setCount] = useState(10);
   const [theme, setTheme] = useState("dark");
+  const [posterSettings, setPosterSettings] = useState(() => defaultPosterSettings());
   const [exporting, setExporting] = useState(false);
   const posterRef = useRef(null);
 
@@ -510,6 +514,12 @@ export default function PosterGeneratorPage() {
                   ))}
                 </div>
               </label>
+
+              <PosterSettingsPanel
+                settings={posterSettings}
+                onChange={setPosterSettings}
+                onReset={() => setPosterSettings(defaultPosterSettings())}
+              />
             </div>
 
             <button
@@ -522,7 +532,7 @@ export default function PosterGeneratorPage() {
               {exporting ? "Generating…" : "Download poster (PNG)"}
             </button>
             <p className="cms-help" style={{ marginTop: 10 }}>
-              Exports at {POSTER_W}×{POSTER_H}px (4:5), 2× resolution — ready for Instagram/Facebook portrait posts.
+              Exports as a Super HD 4:5 PNG using the app font — ready for Instagram/Facebook portrait posts.
             </p>
           </div>
 
@@ -538,7 +548,9 @@ export default function PosterGeneratorPage() {
               }}
             >
               <div style={{ width: POSTER_W, height: POSTER_H, transform: `scale(${PREVIEW_SCALE})`, transformOrigin: "top left" }}>
-                <PosterContent chartType={chartType} period={period} platform={effectivePlatform} month={month} rows={rows} accentColor={accentColor} countryLabel={countryLabel} theme={theme} />
+                <PosterCanvas settings={posterSettings} theme={theme}>
+                  <PosterContent chartType={chartType} period={period} platform={effectivePlatform} month={month} rows={rows} accentColor={accentColor} countryLabel={countryLabel} theme={theme} />
+                </PosterCanvas>
               </div>
             </div>
           </div>
@@ -548,7 +560,9 @@ export default function PosterGeneratorPage() {
               real layout without the capture picking up the CSS scale transform. */}
           <div style={{ position: "fixed", top: 0, left: -99999, pointerEvents: "none" }} aria-hidden="true">
             <div ref={posterRef}>
-              <PosterContent chartType={chartType} period={period} platform={effectivePlatform} month={month} rows={rows} accentColor={accentColor} countryLabel={countryLabel} theme={theme} />
+              <PosterCanvas settings={posterSettings} theme={theme}>
+                <PosterContent chartType={chartType} period={period} platform={effectivePlatform} month={month} rows={rows} accentColor={accentColor} countryLabel={countryLabel} theme={theme} />
+              </PosterCanvas>
             </div>
           </div>
         </div>

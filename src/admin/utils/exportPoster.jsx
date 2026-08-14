@@ -1,3 +1,4 @@
+import { createContext, useContext } from "react";
 import { toPng } from "html-to-image";
 import NgomaMark from "../../components/NgomaMark.jsx";
 
@@ -8,6 +9,12 @@ export const POSTER_W = 1080;
 export const POSTER_H = 1350;
 export const PREVIEW_W = 360;
 export const PREVIEW_SCALE = PREVIEW_W / POSTER_W;
+export const POSTER_EXPORT_SCALE = 3;
+export const POSTER_EXPORT_W = POSTER_W * POSTER_EXPORT_SCALE;
+export const POSTER_EXPORT_H = POSTER_H * POSTER_EXPORT_SCALE;
+export const VIDEO_EXPORT_SCALE = 2;
+export const VIDEO_EXPORT_W = POSTER_W * VIDEO_EXPORT_SCALE;
+export const VIDEO_EXPORT_H = POSTER_H * VIDEO_EXPORT_SCALE;
 
 // Fixed gap between the bottom of <PosterBrandRow /> and the top of a card's
 // title text — 2cm at 96 DPI (the standard CSS reference pixel), applied the
@@ -40,35 +47,100 @@ export function readableInk(color) {
   return luminance > 0.42 ? "#050505" : "#FFFFFF";
 }
 
-// Rasterizes `node` (expected to be POSTER_W×POSTER_H) to a PNG and triggers
-// a browser download. Two non-obvious options are load-bearing:
-//   - skipFonts: html-to-image otherwise walks every stylesheet on the page
-//     to embed @font-face rules, including the cross-origin Google Fonts
-//     <link> in index.html, and throws a SecurityError reading its cssRules.
-//   - imagePlaceholder: without it, a single cover-art image failing to
-//     fetch (e.g. the media host doesn't send CORS headers) aborts the
-//     WHOLE export instead of just leaving that one tile blank.
-export async function exportNodeAsPng(node, filename) {
-  const dataUrl = await toPng(node, {
-    pixelRatio: 2,
+// `imagePlaceholder` keeps one failed remote cover-art request from aborting
+// the whole poster export. Font embedding is attempted first, then retried
+// without stylesheet inspection when a browser blocks cross-origin font rules.
+async function waitForPosterFonts() {
+  if (typeof document === "undefined" || !document.fonts) return;
+  try {
+    await Promise.all([
+      document.fonts.load(`700 24px ${POSTER_FONT_FAMILY}`),
+      document.fonts.load(`900 72px ${POSTER_FONT_FAMILY}`),
+    ]);
+    await document.fonts.ready;
+  } catch {}
+}
+
+async function nodeToPng(node, skipFonts) {
+  return toPng(node, {
+    pixelRatio: POSTER_EXPORT_SCALE,
     cacheBust: true,
     backgroundColor: "#050505",
     width: POSTER_W,
     height: POSTER_H,
-    skipFonts: true,
+    skipFonts,
     imagePlaceholder: TRANSPARENT_PIXEL,
   });
+}
+
+export function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.download = filename;
+  link.href = url;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 30_000);
+}
+
+export function downloadDataUrl(dataUrl, filename) {
   const link = document.createElement("a");
   link.download = filename;
   link.href = dataUrl;
   link.click();
 }
 
-// Deliberately Inter, not the app-wide IBM Plex Sans: every poster leans on
-// fontWeight 800/900 for its headline numbers and titles, and Google Fonts
-// doesn't ship IBM Plex Sans past 700 — swapping it in here flattens every
-// exported card. Inter is loaded separately in index.html for this reason.
-export const POSTER_FONT_FAMILY = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+export async function ensurePosterFontsReady() {
+  await waitForPosterFonts();
+}
+
+export function posterExportSizeLabel() {
+  return `${POSTER_EXPORT_W}x${POSTER_EXPORT_H}px`;
+}
+
+export function videoExportSizeLabel() {
+  return `${VIDEO_EXPORT_W}x${VIDEO_EXPORT_H}px`;
+}
+
+export function superHdHelpText(kind = "poster") {
+  const size = kind === "video" ? videoExportSizeLabel() : posterExportSizeLabel();
+  return `Exports at ${size} (4:5), Super HD, using the app font.`;
+}
+
+export function preferredVideoMimeType() {
+  if (typeof MediaRecorder === "undefined" || !MediaRecorder.isTypeSupported) return null;
+  return [
+    ["video/mp4;codecs=avc1.42E01E,mp4a.40.2", "mp4"],
+    ["video/mp4;codecs=h264,aac", "mp4"],
+    ["video/webm;codecs=vp9,opus", "webm"],
+    ["video/webm;codecs=vp8,opus", "webm"],
+    ["video/webm", "webm"],
+  ].find(([mimeType]) => MediaRecorder.isTypeSupported(mimeType)) || null;
+}
+
+export function videoExportOptions() {
+  return {
+    videoBitsPerSecond: 42_000_000,
+    audioBitsPerSecond: 320_000,
+  };
+}
+
+export function videoExportFrameRate() {
+  return 30;
+}
+
+export async function exportNodeAsPng(node, filename) {
+  await waitForPosterFonts();
+  let dataUrl;
+  try {
+    dataUrl = await nodeToPng(node, false);
+  } catch {
+    dataUrl = await nodeToPng(node, true);
+  }
+  downloadDataUrl(dataUrl, filename);
+}
+
+// Keep exported posters on the same font family as the public app and CMS.
+export const POSTER_FONT_FAMILY = "'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
 
 // One shared dark/light palette for every card type — chart poster, spotlight
 // card, and anything added later — so switching themes looks identical
@@ -102,6 +174,170 @@ export const POSTER_THEMES = {
   },
 };
 
+// Shared per-poster controls used by the CMS poster generators.
+export const POSTER_SETTINGS_DEFAULTS = {
+  contentScale: 100,
+  contentOffsetY: 0,
+  brandScale: 100,
+  footerScale: 100,
+  showBrand: true,
+  showFooter: true,
+};
+
+const PosterSettingsContext = createContext(POSTER_SETTINGS_DEFAULTS);
+
+function boundedNumber(value, fallback, min, max) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.max(min, Math.min(max, parsed));
+}
+
+export function normalizePosterSettings(settings = {}) {
+  return {
+    contentScale: boundedNumber(settings.contentScale, POSTER_SETTINGS_DEFAULTS.contentScale, 85, 115),
+    contentOffsetY: boundedNumber(settings.contentOffsetY, POSTER_SETTINGS_DEFAULTS.contentOffsetY, -120, 120),
+    brandScale: boundedNumber(settings.brandScale, POSTER_SETTINGS_DEFAULTS.brandScale, 70, 140),
+    footerScale: boundedNumber(settings.footerScale, POSTER_SETTINGS_DEFAULTS.footerScale, 70, 140),
+    showBrand: settings.showBrand !== false,
+    showFooter: settings.showFooter !== false,
+  };
+}
+
+export function defaultPosterSettings(overrides = {}) {
+  return normalizePosterSettings({ ...POSTER_SETTINGS_DEFAULTS, ...overrides });
+}
+
+export function usePosterSettings() {
+  return useContext(PosterSettingsContext);
+}
+
+export function PosterSettingsProvider({ settings, children }) {
+  return (
+    <PosterSettingsContext.Provider value={normalizePosterSettings(settings)}>
+      {children}
+    </PosterSettingsContext.Provider>
+  );
+}
+
+export function PosterCanvas({ settings, theme = "dark", children }) {
+  const normalized = normalizePosterSettings(settings);
+  const t = POSTER_THEMES[theme] || POSTER_THEMES.dark;
+  const scale = normalized.contentScale / 100;
+
+  return (
+    <PosterSettingsProvider settings={normalized}>
+      <div
+        style={{
+          width: POSTER_W,
+          height: POSTER_H,
+          position: "relative",
+          overflow: "hidden",
+          background: t.pageBg,
+          fontFamily: POSTER_FONT_FAMILY,
+        }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: POSTER_W,
+            height: POSTER_H,
+            transform: `translateY(${normalized.contentOffsetY}px) scale(${scale})`,
+            transformOrigin: "center center",
+          }}
+        >
+          {children}
+        </div>
+      </div>
+    </PosterSettingsProvider>
+  );
+}
+
+function PosterRange({ label, value, min, max, step = 1, suffix = "%", onChange }) {
+  return (
+    <label style={{ display: "grid", gap: 6, fontSize: 12, fontWeight: 800, textTransform: "uppercase", color: "var(--cms-muted)" }}>
+      <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+        <span>{label}</span>
+        <span style={{ color: "var(--cms-ink)", fontWeight: 900 }}>{value}{suffix}</span>
+      </span>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(event) => onChange(Number(event.target.value))}
+      />
+    </label>
+  );
+}
+
+export function PosterSettingsPanel({ settings, onChange, onReset }) {
+  const normalized = normalizePosterSettings(settings);
+  const update = (patch) => onChange?.({ ...normalized, ...patch });
+
+  return (
+    <div style={{ display: "grid", gap: 12, paddingTop: 4 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+        <strong style={{ fontSize: 13, textTransform: "uppercase", color: "var(--cms-ink)" }}>Poster design</strong>
+        <button type="button" className="cms-btn small light" onClick={onReset}>Reset settings</button>
+      </div>
+
+      <PosterRange
+        label="Text/content size"
+        min={85}
+        max={115}
+        value={normalized.contentScale}
+        onChange={(contentScale) => update({ contentScale })}
+      />
+      <PosterRange
+        label="Vertical position"
+        min={-120}
+        max={120}
+        suffix="px"
+        value={normalized.contentOffsetY}
+        onChange={(contentOffsetY) => update({ contentOffsetY })}
+      />
+
+      <div className="cms-pill-bar" style={{ marginBottom: 0 }}>
+        <button
+          type="button"
+          className={`cms-btn small ${normalized.showBrand ? "" : "light"}`}
+          onClick={() => update({ showBrand: !normalized.showBrand })}
+        >
+          Brand {normalized.showBrand ? "On" : "Off"}
+        </button>
+        <button
+          type="button"
+          className={`cms-btn small ${normalized.showFooter ? "" : "light"}`}
+          onClick={() => update({ showFooter: !normalized.showFooter })}
+        >
+          Footer {normalized.showFooter ? "On" : "Off"}
+        </button>
+      </div>
+
+      {normalized.showBrand && (
+        <PosterRange
+          label="Brand size"
+          min={70}
+          max={140}
+          value={normalized.brandScale}
+          onChange={(brandScale) => update({ brandScale })}
+        />
+      )}
+      {normalized.showFooter && (
+        <PosterRange
+          label="Footer size"
+          min={70}
+          max={140}
+          value={normalized.footerScale}
+          onChange={(footerScale) => update({ footerScale })}
+        />
+      )}
+    </div>
+  );
+}
+
 // Fallback artwork tile used whenever a record has no cover/hero image — a
 // card should never show a blank gap where art belongs, so this renders the
 // same brand mark used in the header instead of a plain color block.
@@ -134,11 +370,14 @@ export function ArtPlaceholder({ width, height, radius = 0, theme, accentColor =
 // inline next to other header content — so the brand reads clearly at a
 // glance even in a fast social-media scroll.
 export function PosterBrandRow({ theme, size = 56, fontSize = 26, gap = 14 }) {
+  const settings = usePosterSettings();
+  if (!settings.showBrand) return null;
   const t = POSTER_THEMES[theme] || POSTER_THEMES.dark;
+  const scale = settings.brandScale / 100;
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap }}>
-      <NgomaMark size={size} inkColor={t.wordmarkBarColor} />
-      <span style={{ fontSize, fontWeight: 950, letterSpacing: "-0.8px", textTransform: "uppercase", color: t.wordmarkBarColor, lineHeight: 1 }}>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: gap * scale }}>
+      <NgomaMark size={size * scale} inkColor={t.wordmarkBarColor} />
+      <span style={{ fontSize: fontSize * scale, fontWeight: 950, letterSpacing: "-0.8px", textTransform: "uppercase", color: t.wordmarkBarColor, lineHeight: 1 }}>
         Ngoma Charts
       </span>
     </div>
@@ -148,7 +387,10 @@ export function PosterBrandRow({ theme, size = 56, fontSize = 26, gap = 14 }) {
 // The footer strip ("ngomacharts.com" + tagline), identical across every
 // card type.
 export function PosterFooter({ theme, height = 74, padX = 56 }) {
+  const settings = usePosterSettings();
+  if (!settings.showFooter) return null;
   const t = POSTER_THEMES[theme] || POSTER_THEMES.dark;
+  const scale = settings.footerScale / 100;
   return (
     <div
       style={{
@@ -156,7 +398,7 @@ export function PosterFooter({ theme, height = 74, padX = 56 }) {
         bottom: 0,
         left: 0,
         right: 0,
-        height,
+        height: height * scale,
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
@@ -164,8 +406,8 @@ export function PosterFooter({ theme, height = 74, padX = 56 }) {
         borderTop: `1px solid ${t.footerBorder}`,
       }}
     >
-      <span style={{ fontSize: 14, fontWeight: 700, color: t.footerPrimary }}>© 2026 Ngoma Media Ltd.</span>
-      <span style={{ fontSize: 12, fontWeight: 600, color: t.footerSecondary }}>Music ranking intelligence</span>
+      <span style={{ fontSize: 14 * scale, fontWeight: 700, color: t.footerPrimary }}>© 2026 Ngoma Media Ltd.</span>
+      <span style={{ fontSize: 12 * scale, fontWeight: 600, color: t.footerSecondary }}>Music ranking intelligence</span>
     </div>
   );
 }

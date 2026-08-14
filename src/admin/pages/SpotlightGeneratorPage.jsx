@@ -12,6 +12,9 @@ import {
   PosterFooter,
   ArtPlaceholder,
   readableInk,
+  PosterCanvas,
+  PosterSettingsPanel,
+  defaultPosterSettings,
   exportNodeAsPng,
 } from "../utils/exportPoster.jsx";
 
@@ -240,6 +243,7 @@ export default function SpotlightGeneratorPage() {
   const [exportError, setExportError] = useState("");
   const [exporting, setExporting] = useState(false);
   const [theme, setTheme] = useState("dark");
+  const [posterSettings, setPosterSettings] = useState(() => defaultPosterSettings());
   const posterRef = useRef(null);
 
   useEffect(() => {
@@ -374,6 +378,12 @@ export default function SpotlightGeneratorPage() {
                 ))}
               </div>
             </label>
+
+            <PosterSettingsPanel
+              settings={posterSettings}
+              onChange={setPosterSettings}
+              onReset={() => setPosterSettings(defaultPosterSettings())}
+            />
           </div>
 
           <button
@@ -386,7 +396,7 @@ export default function SpotlightGeneratorPage() {
             {exporting ? "Generating…" : "Download spotlight card (PNG)"}
           </button>
           <p className="cms-help" style={{ marginTop: 10 }}>
-            Exports at {POSTER_W}×{POSTER_H}px (4:5), 2× resolution — ready for Instagram/Facebook portrait posts.
+            Exports as a Super HD 4:5 PNG using the app font — ready for Instagram/Facebook portrait posts.
           </p>
         </div>
 
@@ -402,7 +412,9 @@ export default function SpotlightGeneratorPage() {
             }}
           >
             <div style={{ width: POSTER_W, height: POSTER_H, transform: `scale(${PREVIEW_SCALE})`, transformOrigin: "top left" }}>
-              <SpotlightContent item={selected} type={type} theme={theme} />
+              <PosterCanvas settings={posterSettings} theme={theme}>
+                <SpotlightContent item={selected} type={type} theme={theme} />
+              </PosterCanvas>
             </div>
           </div>
         </div>
@@ -411,7 +423,9 @@ export default function SpotlightGeneratorPage() {
             this is rendered separately from the scaled-down visible preview. */}
         <div style={{ position: "fixed", top: 0, left: -99999, pointerEvents: "none" }} aria-hidden="true">
           <div ref={posterRef}>
-            <SpotlightContent item={selected} type={type} theme={theme} />
+            <PosterCanvas settings={posterSettings} theme={theme}>
+              <SpotlightContent item={selected} type={type} theme={theme} />
+            </PosterCanvas>
           </div>
         </div>
       </div>

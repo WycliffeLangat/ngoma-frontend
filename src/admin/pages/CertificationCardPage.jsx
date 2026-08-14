@@ -12,6 +12,9 @@ import {
   PosterFooter,
   ArtPlaceholder,
   readableInk,
+  PosterCanvas,
+  PosterSettingsPanel,
+  defaultPosterSettings,
   exportNodeAsPng,
 } from "../utils/exportPoster.jsx";
 
@@ -200,6 +203,7 @@ export default function CertificationCardPage() {
   const [exportError, setExportError] = useState("");
   const [exporting, setExporting] = useState(false);
   const [theme, setTheme] = useState("dark");
+  const [posterSettings, setPosterSettings] = useState(() => defaultPosterSettings());
   const posterRef = useRef(null);
 
   // Searches songs and albums in parallel and merges — so "any entry
@@ -324,6 +328,12 @@ export default function CertificationCardPage() {
                 ))}
               </div>
             </label>
+
+            <PosterSettingsPanel
+              settings={posterSettings}
+              onChange={setPosterSettings}
+              onReset={() => setPosterSettings(defaultPosterSettings())}
+            />
           </div>
 
           <button
@@ -336,7 +346,7 @@ export default function CertificationCardPage() {
             {exporting ? "Generating…" : "Download certification card (PNG)"}
           </button>
           <p className="cms-help" style={{ marginTop: 10 }}>
-            Exports at {POSTER_W}×{POSTER_H}px (4:5), 2× resolution — ready for Instagram/Facebook portrait posts.
+            Exports as a Super HD 4:5 PNG using the app font — ready for Instagram/Facebook portrait posts.
           </p>
         </div>
 
@@ -352,7 +362,9 @@ export default function CertificationCardPage() {
             }}
           >
             <div style={{ width: POSTER_W, height: POSTER_H, transform: `scale(${PREVIEW_SCALE})`, transformOrigin: "top left" }}>
-              <CertificationCardContent item={selected} theme={theme} />
+              <PosterCanvas settings={posterSettings} theme={theme}>
+                <CertificationCardContent item={selected} theme={theme} />
+              </PosterCanvas>
             </div>
           </div>
         </div>
@@ -361,7 +373,9 @@ export default function CertificationCardPage() {
             this is rendered separately from the scaled-down visible preview. */}
         <div style={{ position: "fixed", top: 0, left: -99999, pointerEvents: "none" }} aria-hidden="true">
           <div ref={posterRef}>
-            <CertificationCardContent item={selected} theme={theme} />
+            <PosterCanvas settings={posterSettings} theme={theme}>
+              <CertificationCardContent item={selected} theme={theme} />
+            </PosterCanvas>
           </div>
         </div>
       </div>

@@ -16,6 +16,9 @@ import {
   TITLE_GAP_FROM_LOGO,
   PosterBrandRow,
   PosterFooter,
+  PosterCanvas,
+  PosterSettingsPanel,
+  defaultPosterSettings,
   exportNodeAsPng,
 } from "../utils/exportPoster.jsx";
 
@@ -166,6 +169,7 @@ export default function PlatformBreakdownPosterPage() {
   const [month, setMonth] = useState("");
   const [viewMode, setViewMode] = useState("graph");
   const [theme, setTheme] = useState("dark");
+  const [posterSettings, setPosterSettings] = useState(() => defaultPosterSettings());
   const [exporting, setExporting] = useState(false);
   const posterRef = useRef(null);
 
@@ -279,27 +283,37 @@ export default function PlatformBreakdownPosterPage() {
                   ))}
                 </div>
               </label>
+
+              <PosterSettingsPanel
+                settings={posterSettings}
+                onChange={setPosterSettings}
+                onReset={() => setPosterSettings(defaultPosterSettings())}
+              />
             </div>
 
             <button type="button" className="cms-btn full" style={{ marginTop: 20 }} onClick={handleDownload} disabled={exporting || !rows.length}>
               {exporting ? "Generating…" : "Download card (PNG)"}
             </button>
             <p className="cms-help" style={{ marginTop: 10 }}>
-              Exports at {POSTER_W}×{POSTER_H}px (4:5), 2× resolution — ready for Instagram/Facebook portrait posts.
+              Exports as a Super HD 4:5 PNG using the app font — ready for Instagram/Facebook portrait posts.
             </p>
           </div>
 
           <div style={{ flex: "0 0 auto" }}>
             <div style={{ width: PREVIEW_W, height: PREVIEW_W * (POSTER_H / POSTER_W), overflow: "hidden", borderRadius: 18, border: "1px solid var(--cms-line)", boxShadow: "0 20px 50px rgba(20,16,4,.18)" }}>
               <div style={{ width: POSTER_W, height: POSTER_H, transform: `scale(${PREVIEW_SCALE})`, transformOrigin: "top left" }}>
-                <PosterContent rows={rows} chartType={chartType} metric={metric} month={month} viewMode={viewMode} theme={theme} />
+                <PosterCanvas settings={posterSettings} theme={theme}>
+                  <PosterContent rows={rows} chartType={chartType} metric={metric} month={month} viewMode={viewMode} theme={theme} />
+                </PosterCanvas>
               </div>
             </div>
           </div>
 
           <div style={{ position: "fixed", top: 0, left: -99999, pointerEvents: "none" }} aria-hidden="true">
             <div ref={posterRef}>
-              <PosterContent rows={rows} chartType={chartType} metric={metric} month={month} viewMode={viewMode} theme={theme} />
+              <PosterCanvas settings={posterSettings} theme={theme}>
+                <PosterContent rows={rows} chartType={chartType} metric={metric} month={month} viewMode={viewMode} theme={theme} />
+              </PosterCanvas>
             </div>
           </div>
         </div>
