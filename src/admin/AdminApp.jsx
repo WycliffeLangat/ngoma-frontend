@@ -67,7 +67,7 @@ const NAV_GROUPS = [
     permission: "can_manage_news",
     items: [
       ["news", "News"],
-      ["news-card", "News card generator"],
+      ["news-card", "Post designer"],
       ["page-content", "Page content"],
       ["media", "Media library"],
     ],
