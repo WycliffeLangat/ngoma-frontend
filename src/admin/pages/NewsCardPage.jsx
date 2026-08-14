@@ -673,10 +673,6 @@ function drawFooterCanvas(ctx, design, scale) {
   ctx.fillStyle = footerColor;
   ctx.font = canvasFont(700, 14 * scale);
   ctx.fillText("© 2026 Ngoma Media Ltd.", padX, y + height / 2);
-  ctx.textAlign = "right";
-  ctx.fillStyle = footerColor;
-  ctx.font = canvasFont(600, 12 * scale);
-  ctx.fillText("Music ranking intelligence", VIDEO_EXPORT_W - padX, y + height / 2);
   ctx.restore();
 }
 
@@ -1125,7 +1121,7 @@ function NewsPostContent({ design }) {
         </div>
       </div>
 
-      {design.showFooter !== false && <PosterFooter theme={design.theme} padX={padX} primaryColor={footerTextColor} secondaryColor={footerTextColor} />}
+      {design.showFooter !== false && <PosterFooter theme={design.theme} padX={padX} primaryColor={footerTextColor} />}
       {frameOverlay && <div style={{ position: "absolute", zIndex: 5, pointerEvents: "none", ...frameOverlay }} />}
     </div>
   );
@@ -1267,7 +1263,7 @@ function VideoPostContent({ design, exportMode = false, videoRef = null, onVideo
         </div>
       </div>
 
-      {design.showFooter !== false && <PosterFooter theme={design.theme} padX={padX} primaryColor={footerTextColor} secondaryColor={footerTextColor} pointerEvents={exportMode ? undefined : "none"} />}
+      {design.showFooter !== false && <PosterFooter theme={design.theme} padX={padX} primaryColor={footerTextColor} pointerEvents={exportMode ? undefined : "none"} />}
       {frameOverlay && <div style={{ position: "absolute", zIndex: 5, pointerEvents: "none", ...frameOverlay }} />}
     </div>
   );

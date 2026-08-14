@@ -5,7 +5,7 @@ import UploadPreviewTable from "../components/UploadPreviewTable";
 import StatusBadge from "../components/StatusBadge";
 import ConfirmDialog from "../components/ConfirmDialog";
 import ErrorHelpLink from "../components/ErrorHelpLink";
-import { AFRICA_REGION_GROUPS, KENYA_COUNTRY_CODE, africaCountryForCode } from "../../utils/africaRegions";
+import { KENYA_COUNTRY_CODE, KENYA_ONLY_COUNTRY_GROUPS, africaCountryForCode } from "../../utils/africaRegions";
 
 const RAW_WEEKLY = "weekly";
 const FINAL_CHART = "final";
@@ -493,7 +493,7 @@ export default function UploadsPage({ user, searchJump }) {
                 <label>
                   <span>Country</span>
                   <select value={form.region} onChange={(event) => set("region", event.target.value)}>
-                    {AFRICA_REGION_GROUPS.map((region) => (
+                    {KENYA_ONLY_COUNTRY_GROUPS.map((region) => (
                       <optgroup key={region.key} label={region.label}>
                         {region.countries.map((country) => (
                           <option value={country.code} key={country.code}>{country.name}</option>

@@ -24,6 +24,7 @@ import {
 import { applyReleaseDateDefaults } from "../releaseDateDefaults";
 import { artistCreditMembers, protectedArtistCreditNames } from "../../utils/chartHelpers.js";
 import { buildCountryCodeIndex } from "../../utils/countryCodes.js";
+import { KENYA_ONLY_COUNTRIES } from "../../utils/africaRegions.js";
 
 function normalizeArtistName(value) {
   return String(value || "").trim().toLowerCase();
@@ -2017,7 +2018,7 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
                 <span>Country</span>
                 <input
                   className="cms-search"
-                  placeholder="e.g. Uganda"
+                  placeholder="Kenya"
                   value={bulkEditTarget.country}
                   disabled={actionBusy}
                   list="cms-bulk-country-list"
@@ -2036,7 +2037,7 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
                 <span>Country code</span>
                 <input
                   className="cms-search"
-                  placeholder="e.g. UG"
+                  placeholder="KE"
                   value={bulkEditTarget.country_code}
                   disabled={actionBusy}
                   onChange={(e) => setBulkEditTarget((current) => ({ ...current, country_code: e.target.value.toUpperCase() }))}
@@ -2044,7 +2045,7 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
               </label>
             </div>
             <datalist id="cms-bulk-country-list">
-              {countryIndex.countries.map((country) => (
+              {KENYA_ONLY_COUNTRIES.map((country) => (
                 <option key={country.code} value={country.name}>{country.code}</option>
               ))}
             </datalist>

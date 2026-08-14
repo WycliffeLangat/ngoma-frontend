@@ -22,9 +22,9 @@ import {
   mergeNews,
 } from "./utils/automaticPublicContent.js";
 import {
-  AFRICA_REGION_GROUPS,
   COUNTRY_ACCENTS,
   KENYA_COUNTRY_CODE,
+  KENYA_ONLY_COUNTRY_GROUPS,
   africaChartLabel,
   africaCountryChartKey,
   africaCountryCodesForRegion,
@@ -3200,7 +3200,7 @@ const top = data[0];
   });
   const CountryScopeSelect=({compact=false, fullWidth=false}={})=>(
     <select
-      aria-label="Country or region"
+      aria-label="Country"
       // The legacy "Kenyan" scope value has no matching <option> below (Kenya's own
       // option is keyed by its country-chart value) — map it so the dropdown actually
       // shows Kenya selected by default instead of silently falling back to whichever
@@ -3209,7 +3209,7 @@ const top = data[0];
       onChange={(event)=>applyCountryScope(event.target.value)}
       style={countryScopeSelectStyle(compact, fullWidth)}
     >
-      {AFRICA_REGION_GROUPS.map((region)=>(
+      {KENYA_ONLY_COUNTRY_GROUPS.map((region)=>(
         <optgroup key={region.key} label={region.label}>
           {region.countries.map((country)=>(
             <option key={country.code} value={africaCountryChartKey(country.code)}>{country.name}</option>
@@ -4309,7 +4309,6 @@ const top = data[0];
             <NgomaMark size={30} inkColor={isDark?"#FFF":"#1A1A1A"} />
             <span style={{display:"grid",gap:"3px",justifyItems:"center",textAlign:"center"}}>
               <span style={{fontFamily:F,fontSize:isMobile?"16px":"15px",fontWeight:950,letterSpacing:"-0.4px",color:isDark?"#FFF":"#1A1A1A",textTransform:"uppercase"}}>{SITE_NAME}</span>
-              <small style={{fontFamily:F,fontSize:"10px",fontWeight:750,letterSpacing:"0.8px",color:isDark?"rgba(255,255,255,0.62)":"rgba(26,26,26,0.55)",textTransform:"uppercase"}}>Music ranking intelligence</small>
             </span>
           </div>
           <div style={{display:"flex",gap:isMobile?"8px":"10px",alignItems:"center",justifyContent:"center",flexWrap:"wrap",maxWidth:isMobile?"100%":"520px"}}>

@@ -162,7 +162,6 @@ export const POSTER_THEMES = {
     sameColor: "#5A625A",
     footerBorder: "rgba(255,255,255,0.18)",
     footerPrimary: "#8F968F",
-    footerSecondary: "#5A625A",
     emptyColor: "#5A625A",
   },
   light: {
@@ -175,7 +174,6 @@ export const POSTER_THEMES = {
     sameColor: "#8A928B",
     footerBorder: "rgba(0,0,0,0.16)",
     footerPrimary: "#4E5851",
-    footerSecondary: "#8A928B",
     emptyColor: "#8A928B",
   },
 };
@@ -269,7 +267,6 @@ export function resolvePosterTheme(theme = "dark", settings = {}) {
     titleColor: normalized.textColor || base.titleColor,
     metaColor: normalized.secondaryTextColor || base.metaColor,
     footerPrimary: normalized.footerTextColor || base.footerPrimary,
-    footerSecondary: normalized.footerTextColor || base.footerSecondary,
     emptyColor: normalized.secondaryTextColor || base.emptyColor,
   };
 }
@@ -593,15 +590,13 @@ export function PosterBrandRow({ theme, size = 56, fontSize = 26, gap = 14, colo
   );
 }
 
-// The footer strip ("ngomacharts.com" + tagline), identical across every
-// card type.
-export function PosterFooter({ theme, height = 74, padX = 56, primaryColor, secondaryColor, pointerEvents }) {
+// The footer strip, identical across every card type.
+export function PosterFooter({ theme, height = 74, padX = 56, primaryColor, pointerEvents }) {
   const settings = usePosterSettings();
   if (!settings.showFooter) return null;
   const t = usePosterTheme(theme);
   const scale = settings.footerScale / 100;
   const primary = primaryColor || t.footerPrimary;
-  const secondary = secondaryColor || primaryColor || t.footerSecondary;
   return (
     <div
       style={{
@@ -619,7 +614,6 @@ export function PosterFooter({ theme, height = 74, padX = 56, primaryColor, seco
       }}
     >
       <span style={{ fontSize: 14 * scale, fontWeight: 700, color: primary }}>© 2026 Ngoma Media Ltd.</span>
-      <span style={{ fontSize: 12 * scale, fontWeight: 600, color: secondary }}>Music ranking intelligence</span>
     </div>
   );
 }

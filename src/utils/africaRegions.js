@@ -1,4 +1,15 @@
 export const KENYA_COUNTRY_CODE = "KE";
+export const KENYA_COUNTRY = { code: KENYA_COUNTRY_CODE, name: "Kenya" };
+export const KENYA_ONLY_COUNTRY_GROUPS = [
+  {
+    key: "kenya",
+    label: "Country",
+    countries: [KENYA_COUNTRY],
+  },
+];
+export const KENYA_ONLY_COUNTRIES = KENYA_ONLY_COUNTRY_GROUPS.flatMap((region) =>
+  region.countries.map((country) => ({ ...country, region: region.key, regionLabel: region.label }))
+);
 export const AFRICA_COUNTRY_CHART_PREFIX = "africa-country:";
 export const AFRICA_REGION_CHART_PREFIX = "africa-region:";
 

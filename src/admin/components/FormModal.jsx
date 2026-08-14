@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import ErrorHelpLink from "./ErrorHelpLink";
 import { buildCountryCodeIndex } from "../../utils/countryCodes.js";
+import { KENYA_ONLY_COUNTRIES } from "../../utils/africaRegions.js";
 import { applyReleaseDateDefaults, releaseYearFromDate } from "../releaseDateDefaults.js";
 
 function OrderedMultiSelect({ name = "", value = [], options = [], onChange }) {
@@ -465,7 +466,7 @@ export default function FormModal({ open, title, entityId, fields = [], initial 
         </div>
         {countryPairs.length > 0 && (
           <datalist id={countryListIdRef.current}>
-            {countryIndex.countries.map((country) => (
+            {KENYA_ONLY_COUNTRIES.map((country) => (
               <option key={country.code} value={country.name}>{country.code}</option>
             ))}
           </datalist>

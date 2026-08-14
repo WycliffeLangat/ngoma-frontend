@@ -11,9 +11,9 @@ import { releaseFeaturedArtistsText, syncChartEntryCredits } from "../chartEntry
 import { applyReleaseDateDefaults } from "../releaseDateDefaults";
 import { computeArtistImpact, applyArtistImpactCorrections } from "../artistImpact";
 import {
-  AFRICA_REGION_GROUPS,
   COUNTRY_ACCENTS,
   KENYA_COUNTRY_CODE,
+  KENYA_ONLY_COUNTRY_GROUPS,
   africaChartLabel,
   africaCountryChartKey,
   countryCodeFromAfricaChart,
@@ -250,9 +250,9 @@ function splitArtistNames(value) {
 const COMBINED = "combined";
 const PUBLIC_PAYLOAD_CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
-// A regional/country entry scope is either the legacy "kenyan" pill or one of the
-// africa-country:XX values from the country <select> below — mirrors the public
-// app's isRegionalChartScope so the CMS can browse any country's chart, not just Kenya.
+// A regional/country entry scope is either the legacy "kenyan" pill or an
+// africa-country:XX value. The selector only exposes Kenya for now, while the
+// broader scope handling stays in place for future country chart rollout.
 const isCountryChartScope = (id) => id === "kenyan" || isAfricaChart(id);
 const countryCodeForChartScope = (id) => (id === "kenyan" ? KENYA_COUNTRY_CODE : countryCodeFromAfricaChart(id));
 
@@ -1133,28 +1133,28 @@ export default function ChartEntriesPage({ user, searchJump }) {
           {visiblePlatforms.map(p =>
             pillBtn(p.id, p.short_name || p.name, p.color || "#555")
           )}
-          {/* Any other African country's regional chart — only shows entries once the
-              backend has data for that country (see REGIONAL_CHART_CODES server-side). */}
+          {/* Country chart selector, currently limited to Kenya until additional
+              country charts are ready to expose. */}
           <select
             className="cms-select"
-            aria-label="Other country"
-            value={isAfricaChart(platformId) ? platformId : ""}
+            aria-label="Country"
+            value={platformId === "kenyan" ? "kenyan" : (isAfricaChart(platformId) ? platformId : "")}
             onChange={(e) => { if (e.target.value) setPlatformId(e.target.value); }}
             style={{
               borderRadius: 999,
-              border: isAfricaChart(platformId) ? `2px solid ${COUNTRY_ACCENTS[countryCodeForChartScope(platformId)] || "#555"}` : "2px solid #E8E1D2",
+              border: isCountryChartScope(platformId) ? `2px solid ${COUNTRY_ACCENTS[countryCodeForChartScope(platformId)] || "#555"}` : "2px solid #E8E1D2",
               padding: "4px 10px",
               fontSize: 12,
               fontWeight: 750,
-              color: isAfricaChart(platformId) ? (COUNTRY_ACCENTS[countryCodeForChartScope(platformId)] || "#555") : "#555",
+              color: isCountryChartScope(platformId) ? (COUNTRY_ACCENTS[countryCodeForChartScope(platformId)] || "#555") : "#555",
               background: "#fff",
             }}
           >
-            <option value="">Other country…</option>
-            {AFRICA_REGION_GROUPS.map((region) => (
+            <option value="">Country...</option>
+            {KENYA_ONLY_COUNTRY_GROUPS.map((region) => (
               <optgroup key={region.key} label={region.label}>
-                {region.countries.filter((country) => country.code !== KENYA_COUNTRY_CODE).map((country) => (
-                  <option key={country.code} value={africaCountryChartKey(country.code)}>{country.name}</option>
+                {region.countries.map((country) => (
+                  <option key={country.code} value={country.code === KENYA_COUNTRY_CODE ? "kenyan" : africaCountryChartKey(country.code)}>{country.name}</option>
                 ))}
               </optgroup>
             ))}
