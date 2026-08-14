@@ -9,10 +9,10 @@ export const POSTER_W = 1080;
 export const POSTER_H = 1350;
 export const PREVIEW_W = 360;
 export const PREVIEW_SCALE = PREVIEW_W / POSTER_W;
-export const POSTER_EXPORT_SCALE = 3;
+export const POSTER_EXPORT_SCALE = 1;
 export const POSTER_EXPORT_W = POSTER_W * POSTER_EXPORT_SCALE;
 export const POSTER_EXPORT_H = POSTER_H * POSTER_EXPORT_SCALE;
-export const VIDEO_EXPORT_SCALE = 2;
+export const VIDEO_EXPORT_SCALE = 1;
 export const VIDEO_EXPORT_W = POSTER_W * VIDEO_EXPORT_SCALE;
 export const VIDEO_EXPORT_H = POSTER_H * VIDEO_EXPORT_SCALE;
 
@@ -78,7 +78,10 @@ export function downloadBlob(blob, filename) {
   const link = document.createElement("a");
   link.download = filename;
   link.href = url;
+  link.style.display = "none";
+  document.body.appendChild(link);
   link.click();
+  link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 30_000);
 }
 
@@ -86,7 +89,10 @@ export function downloadDataUrl(dataUrl, filename) {
   const link = document.createElement("a");
   link.download = filename;
   link.href = dataUrl;
+  link.style.display = "none";
+  document.body.appendChild(link);
   link.click();
+  link.remove();
 }
 
 export async function ensurePosterFontsReady() {
@@ -103,7 +109,7 @@ export function videoExportSizeLabel() {
 
 export function superHdHelpText(kind = "poster") {
   const size = kind === "video" ? videoExportSizeLabel() : posterExportSizeLabel();
-  return `Exports at ${size} (4:5), Super HD, using the app font.`;
+  return `Exports at ${size} (4:5), HD 1080, using the app font.`;
 }
 
 export function preferredVideoMimeType() {
@@ -119,7 +125,7 @@ export function preferredVideoMimeType() {
 
 export function videoExportOptions() {
   return {
-    videoBitsPerSecond: 22_000_000,
+    videoBitsPerSecond: 12_000_000,
     audioBitsPerSecond: 256_000,
   };
 }

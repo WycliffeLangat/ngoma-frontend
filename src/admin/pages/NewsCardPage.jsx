@@ -58,10 +58,9 @@ const TEXT_CASE_OPTIONS = [
   ["asTyped", "As typed"],
 ];
 
-const VIDEO_EXPORT_MIN_SECONDS = 3;
-const VIDEO_EXPORT_MAX_SECONDS = 30;
+const VIDEO_EXPORT_MIN_SECONDS = 1;
 const VIDEO_EXPORT_DEFAULT_SECONDS = 15;
-const VIDEO_TRIM_UNKNOWN_MAX_SECONDS = 300;
+const VIDEO_TRIM_UNKNOWN_MAX_SECONDS = 4 * 60 * 60;
 
 const DEFAULT_NEWS_DESIGN = {
   image: "",
@@ -222,6 +221,19 @@ function clampTrimValue(value, min, max) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return min;
   return Math.max(min, Math.min(max, parsed));
+}
+
+function maxVideoTrimStart(duration) {
+  const sourceDuration = Number(duration);
+  if (!Number.isFinite(sourceDuration) || sourceDuration <= 0) return VIDEO_TRIM_UNKNOWN_MAX_SECONDS;
+  const requiredRemainder = Math.min(VIDEO_EXPORT_MIN_SECONDS, sourceDuration);
+  return Math.max(0, Math.floor(sourceDuration - requiredRemainder));
+}
+
+function maxVideoExportLength(duration, trimStart = 0) {
+  const sourceDuration = Number(duration);
+  if (!Number.isFinite(sourceDuration) || sourceDuration <= 0) return VIDEO_TRIM_UNKNOWN_MAX_SECONDS;
+  return Math.max(VIDEO_EXPORT_MIN_SECONDS, Math.ceil(sourceDuration - (Number(trimStart) || 0)));
 }
 
 function mediaTransform(zoom = 100) {
@@ -762,14 +774,11 @@ function videoTrimStart(design, video) {
   const requested = Math.max(0, Number(design.trimStart) || 0);
   const sourceDuration = Number(video.duration);
   if (!Number.isFinite(sourceDuration) || sourceDuration <= 0) return requested;
-  return Math.max(0, Math.min(requested, Math.max(0, sourceDuration - 0.5)));
+  return Math.max(0, Math.min(requested, maxVideoTrimStart(sourceDuration)));
 }
 
 function videoExportDuration(design, video, startTime = 0) {
-  const requested = Math.max(
-    VIDEO_EXPORT_MIN_SECONDS,
-    Math.min(VIDEO_EXPORT_MAX_SECONDS, Number(design.exportDuration) || VIDEO_EXPORT_DEFAULT_SECONDS)
-  );
+  const requested = Math.max(VIDEO_EXPORT_MIN_SECONDS, Number(design.exportDuration) || VIDEO_EXPORT_DEFAULT_SECONDS);
   const sourceDuration = Number(video.duration);
   if (!Number.isFinite(sourceDuration) || sourceDuration <= 0) return requested;
   return Math.max(0.5, Math.min(requested, Math.max(0.5, sourceDuration - startTime)));
@@ -808,7 +817,7 @@ async function exportVideoPostFile(design, filenameBase) {
   canvas.width = VIDEO_EXPORT_W;
   canvas.height = VIDEO_EXPORT_H;
   const ctx = canvas.getContext("2d", { alpha: false });
-  if (!ctx || !canvas.captureStream) throw new Error("This browser cannot render Super HD video exports.");
+  if (!ctx || !canvas.captureStream) throw new Error("This browser cannot render HD video exports.");
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
   const video = await loadExportVideo(design.videoUrl);
@@ -1438,6 +1447,21 @@ export default function NewsCardPage() {
     setVideoDesign(cloneDesign(DEFAULT_VIDEO_DESIGN));
   }
 
+  function clearVideoMedia() {
+    clearTrimPreviewTimer();
+    setVideoObjectUrl("");
+    setFrameError("");
+    setVideoDuration(0);
+    setCapturingFrame(false);
+    updateVideo({
+      videoUrl: "",
+      videoFrame: "",
+      sourceName: "",
+      trimStart: 0,
+      exportDuration: VIDEO_EXPORT_DEFAULT_SECONDS,
+    });
+  }
+
   function applyArticle(article) {
     setMode("news");
     setSelectedArticleId(article.id);
@@ -1466,7 +1490,13 @@ export default function NewsCardPage() {
     setFrameError("");
     setVideoDuration(0);
     setCapturingFrame(true);
-    updateVideo({ videoUrl: nextUrl, videoFrame: "", sourceName: file.name || "Uploaded video" });
+    updateVideo({
+      videoUrl: nextUrl,
+      videoFrame: "",
+      sourceName: file.name || "Uploaded video",
+      trimStart: 0,
+      exportDuration: VIDEO_EXPORT_DEFAULT_SECONDS,
+    });
     try {
       const frame = await extractVideoFrame(nextUrl);
       setVideoDesign((current) => (
@@ -1490,6 +1520,8 @@ export default function NewsCardPage() {
       videoUrl: value,
       videoFrame: "",
       sourceName: value ? "Video URL" : "",
+      trimStart: 0,
+      exportDuration: VIDEO_EXPORT_DEFAULT_SECONDS,
     });
   }
 
@@ -1499,9 +1531,9 @@ export default function NewsCardPage() {
     setVideoDuration(nextDuration);
     if (nextDuration > 0) {
       setVideoDesign((current) => {
-        const maxStart = Math.max(0, Math.floor(nextDuration - 0.5));
+        const maxStart = maxVideoTrimStart(nextDuration);
         const trimStart = clampTrimValue(current.trimStart, 0, maxStart);
-        const maxLength = Math.max(VIDEO_EXPORT_MIN_SECONDS, Math.min(VIDEO_EXPORT_MAX_SECONDS, Math.ceil(nextDuration - trimStart)));
+        const maxLength = maxVideoExportLength(nextDuration, trimStart);
         const exportDuration = clampTrimValue(current.exportDuration, VIDEO_EXPORT_MIN_SECONDS, maxLength);
         return trimStart === current.trimStart && exportDuration === current.exportDuration
           ? current
@@ -1514,11 +1546,9 @@ export default function NewsCardPage() {
     const video = previewVideoRef.current;
     if (!video) return;
     const currentTime = Math.floor(Number(video.currentTime) || 0);
-    const maxStart = videoDuration > 0 ? Math.max(0, Math.floor(videoDuration - 0.5)) : VIDEO_TRIM_UNKNOWN_MAX_SECONDS;
+    const maxStart = maxVideoTrimStart(videoDuration);
     const trimStart = clampTrimValue(currentTime, 0, maxStart);
-    const maxLength = videoDuration > 0
-      ? Math.max(VIDEO_EXPORT_MIN_SECONDS, Math.min(VIDEO_EXPORT_MAX_SECONDS, Math.ceil(videoDuration - trimStart)))
-      : VIDEO_EXPORT_MAX_SECONDS;
+    const maxLength = maxVideoExportLength(videoDuration, trimStart);
     updateVideo({
       trimStart,
       exportDuration: clampTrimValue(videoDesign.exportDuration, VIDEO_EXPORT_MIN_SECONDS, maxLength),
@@ -1530,8 +1560,20 @@ export default function NewsCardPage() {
     if (!video) return;
     const currentTime = Math.ceil(Number(video.currentTime) || 0);
     const trimStart = Number(videoDesign.trimStart) || 0;
-    const exportDuration = clampTrimValue(currentTime - trimStart, VIDEO_EXPORT_MIN_SECONDS, VIDEO_EXPORT_MAX_SECONDS);
+    const exportDuration = clampTrimValue(
+      currentTime - trimStart,
+      VIDEO_EXPORT_MIN_SECONDS,
+      maxVideoExportLength(videoDuration, trimStart)
+    );
     updateVideo({ exportDuration });
+  }
+
+  function useFullVideoTrim() {
+    if (videoDuration <= 0) return;
+    updateVideo({
+      trimStart: 0,
+      exportDuration: maxVideoExportLength(videoDuration, 0),
+    });
   }
 
   function playTrimPreview() {
@@ -1574,6 +1616,7 @@ export default function NewsCardPage() {
         : safeFilename(`${videoDesign.artist}-${videoDesign.title}`, "video-post");
       if (mode === "video") {
         await exportVideoPostFile(videoDesign, `ngoma-video-post-${fileBase}`);
+        clearVideoMedia();
       } else if (posterRef.current) {
         await exportNodeAsPng(posterRef.current, `ngoma-news-post-${fileBase}.png`);
       }
@@ -1586,13 +1629,9 @@ export default function NewsCardPage() {
 
   const activeTheme = mode === "news" ? newsDesign.theme : videoDesign.theme;
   const videoExportType = preferredVideoMimeType();
-  const trimStartMax = videoDuration > 0
-    ? Math.max(0, Math.floor(videoDuration - 0.5))
-    : VIDEO_TRIM_UNKNOWN_MAX_SECONDS;
+  const trimStartMax = maxVideoTrimStart(videoDuration);
   const effectiveTrimStart = clampTrimValue(videoDesign.trimStart, 0, trimStartMax);
-  const exportLengthMax = videoDuration > 0
-    ? Math.max(VIDEO_EXPORT_MIN_SECONDS, Math.min(VIDEO_EXPORT_MAX_SECONDS, Math.ceil(videoDuration - effectiveTrimStart)))
-    : VIDEO_EXPORT_MAX_SECONDS;
+  const exportLengthMax = maxVideoExportLength(videoDuration, effectiveTrimStart);
   const effectiveExportDuration = clampTrimValue(videoDesign.exportDuration, VIDEO_EXPORT_MIN_SECONDS, exportLengthMax);
   const trimEnd = videoDuration > 0
     ? Math.min(videoDuration, effectiveTrimStart + effectiveExportDuration)
@@ -1815,12 +1854,7 @@ export default function NewsCardPage() {
                       <button
                         type="button"
                         className="cms-btn light small"
-                        onClick={() => {
-                          clearTrimPreviewTimer();
-                          setVideoObjectUrl("");
-                          setVideoDuration(0);
-                          updateVideo({ videoUrl: "", videoFrame: "", sourceName: "" });
-                        }}
+                        onClick={clearVideoMedia}
                       >
                         Clear
                       </button>
@@ -1840,6 +1874,9 @@ export default function NewsCardPage() {
                         </button>
                         <button type="button" className="cms-btn light small" onClick={playTrimPreview}>
                           Play trimmed clip
+                        </button>
+                        <button type="button" className="cms-btn light small" onClick={useFullVideoTrim} disabled={videoDuration <= 0}>
+                          Use full video
                         </button>
                       </>
                     )}

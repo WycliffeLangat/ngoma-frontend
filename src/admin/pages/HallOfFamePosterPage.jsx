@@ -225,7 +225,7 @@ export default function HallOfFamePosterPage() {
               {exporting ? "Generating…" : "Download card (PNG)"}
             </button>
             <p className="cms-help" style={{ marginTop: 10 }}>
-              Exports as a Super HD 4:5 PNG using the app font — ready for Instagram/Facebook portrait posts. Shows up to 8 of the most recent Hall of Fame entries.
+              Exports as an HD 1080 4:5 PNG using the app font - ready for Instagram/Facebook portrait posts. Shows up to 8 of the most recent Hall of Fame entries.
             </p>
           </div>
 

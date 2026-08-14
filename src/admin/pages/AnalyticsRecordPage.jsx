@@ -462,7 +462,7 @@ export default function AnalyticsRecordPage() {
               {exporting ? "Generating…" : "Download record card (PNG)"}
             </button>
             <p className="cms-help" style={{ marginTop: 10 }}>
-              Exports as a Super HD 4:5 PNG using the app font — ready for Instagram/Facebook portrait posts.
+              Exports as an HD 1080 4:5 PNG using the app font - ready for Instagram/Facebook portrait posts.
             </p>
           </div>
 
