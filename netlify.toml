@@ -6,19 +6,6 @@
   NODE_VERSION = "18"
   VITE_API_BASE = "/api/v1"
 
-# Canonical domain: send apex traffic to www.
-[[redirects]]
-  from = "https://ngomacharts.com/*"
-  to = "https://www.ngomacharts.com/:splat"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "http://ngomacharts.com/*"
-  to = "https://www.ngomacharts.com/:splat"
-  status = 301
-  force = true
-
 # Keep CMS authentication same-origin and let Netlify relay API traffic.
 [[redirects]]
   from = "/api/v1/*"

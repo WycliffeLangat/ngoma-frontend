@@ -15,7 +15,7 @@ import {
   usePosterTheme,
 } from "../utils/exportPoster.jsx";
 
-const DEFAULT_DESTINATION = "https://www.ngomacharts.com/";
+const DEFAULT_DESTINATION = "https://ngomacharts.com/";
 const DEFAULT_TITLE = "Scan for Ngoma Charts";
 const DEFAULT_SUBTITLE = "Open Kenya's official music charts, records, analytics and artist rankings.";
 const DEFAULT_CTA = "Open Ngoma Charts";
@@ -40,7 +40,7 @@ function normalizeDestination(value) {
   const trimmed = String(value || "").trim();
   if (!trimmed) return "";
   if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) return trimmed;
-  if (trimmed.startsWith("/")) return `https://www.ngomacharts.com${trimmed}`;
+  if (trimmed.startsWith("/")) return `https://ngomacharts.com${trimmed}`;
   if (/^[\w.-]+\.[a-z]{2,}(?:[/:?#].*)?$/i.test(trimmed)) return `https://${trimmed}`;
   return trimmed;
 }
