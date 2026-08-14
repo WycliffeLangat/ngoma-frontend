@@ -58,6 +58,10 @@ const TEXT_CASE_OPTIONS = [
   ["asTyped", "As typed"],
 ];
 
+const VIDEO_EXPORT_MIN_SECONDS = 3;
+const VIDEO_EXPORT_MAX_SECONDS = 30;
+const VIDEO_EXPORT_DEFAULT_SECONDS = 15;
+
 const DEFAULT_NEWS_DESIGN = {
   image: "",
   headline: "New chart story headline",
@@ -115,6 +119,7 @@ const DEFAULT_VIDEO_DESIGN = {
   secondaryTextColor: "",
   brandTextColor: "",
   footerTextColor: "",
+  exportDuration: VIDEO_EXPORT_DEFAULT_SECONDS,
   titleScale: 100,
   artistScale: 100,
   labelScale: 100,
@@ -738,6 +743,34 @@ async function createAudioCapture(video) {
   return { tracks: [], cleanup };
 }
 
+function videoExportDuration(design, video) {
+  const requested = Math.max(
+    VIDEO_EXPORT_MIN_SECONDS,
+    Math.min(VIDEO_EXPORT_MAX_SECONDS, Number(design.exportDuration) || VIDEO_EXPORT_DEFAULT_SECONDS)
+  );
+  const sourceDuration = Number(video.duration);
+  if (!Number.isFinite(sourceDuration) || sourceDuration <= 0) return requested;
+  return Math.max(0.5, Math.min(requested, sourceDuration));
+}
+
+function waitForVideoSeek(video, targetTime) {
+  return new Promise((resolve) => {
+    const target = Math.max(0, Number(targetTime) || 0);
+    if (Math.abs((Number(video.currentTime) || 0) - target) < 0.05) {
+      resolve();
+      return;
+    }
+    const done = () => resolve();
+    video.addEventListener("seeked", done, { once: true });
+    try {
+      video.currentTime = target;
+    } catch {
+      video.removeEventListener("seeked", done);
+      resolve();
+    }
+  });
+}
+
 async function exportVideoPostFile(design, filenameBase) {
   const videoType = preferredVideoMimeType();
   if (!videoType) throw new Error("This browser cannot export video posts.");
@@ -752,8 +785,9 @@ async function exportVideoPostFile(design, filenameBase) {
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
   const video = await loadExportVideo(design.videoUrl);
-  video.currentTime = 0;
+  await waitForVideoSeek(video, 0);
   drawVideoPostFrame(ctx, video, design);
+  const clipSeconds = videoExportDuration(design, video);
 
   const canvasStream = canvas.captureStream(videoExportFrameRate());
   const audioCapture = await createAudioCapture(video);
@@ -769,9 +803,11 @@ async function exportVideoPostFile(design, filenameBase) {
 
   return new Promise((resolve, reject) => {
     let settled = false;
-    let rafId = 0;
+    let frameTimer = 0;
+    let stopTimer = 0;
     const cleanup = () => {
-      if (rafId) cancelAnimationFrame(rafId);
+      if (frameTimer) window.clearInterval(frameTimer);
+      if (stopTimer) window.clearTimeout(stopTimer);
       canvasStream.getTracks().forEach((track) => track.stop());
       outputStream.getTracks().forEach((track) => track.stop());
       audioCapture.cleanup.forEach((fn) => fn());
@@ -789,17 +825,22 @@ async function exportVideoPostFile(design, filenameBase) {
       if (settled) return;
       settled = true;
       cleanup();
+      if (!chunks.length) {
+        reject(new Error("The browser did not produce a video file. Try a shorter export length or another video file."));
+        return;
+      }
       downloadBlob(new Blob(chunks, { type: mimeType }), `${filenameBase}.${extension}`);
       resolve({ audioPreserved: audioCapture.tracks.length > 0 });
     };
-    const render = () => {
+    const renderFrame = () => {
       try {
         drawVideoPostFrame(ctx, video, design);
       } catch {
         fail(new Error("The browser could not render that video. Upload the original video file and try again."));
-        return;
       }
-      if (!video.ended) rafId = requestAnimationFrame(render);
+    };
+    const stopRecording = () => {
+      if (recorder.state !== "inactive") recorder.stop();
     };
 
     recorder.addEventListener("dataavailable", (event) => {
@@ -813,9 +854,11 @@ async function exportVideoPostFile(design, filenameBase) {
     video.addEventListener("error", () => fail(new Error("Video playback failed during export.")), { once: true });
 
     try {
-      recorder.start(1000);
+      recorder.start(500);
       video.play().then(() => {
-        render();
+        renderFrame();
+        frameTimer = window.setInterval(renderFrame, Math.max(33, Math.round(1000 / videoExportFrameRate())));
+        stopTimer = window.setTimeout(stopRecording, Math.ceil(clipSeconds * 1000));
       }).catch(() => fail(new Error("The browser blocked video playback for export. Try again from the download button.")));
     } catch (error) {
       fail(error);
@@ -1093,6 +1136,7 @@ function PlayBadge({ accent, scale = 1 }) {
         boxShadow: `0 18px 55px ${accent}55`,
         display: "grid",
         placeItems: "center",
+        pointerEvents: "none",
         zIndex: 1,
       }}
     >
@@ -1111,7 +1155,7 @@ function PlayBadge({ accent, scale = 1 }) {
   );
 }
 
-function VideoPostContent({ design, exportMode = false, videoRef = null }) {
+function VideoPostContent({ design, exportMode = false, videoRef = null, onVideoMetadata = null }) {
   const t = POSTER_THEMES[design.theme] || POSTER_THEMES.dark;
   const padX = 62;
   const textColor = designTextColor(design);
@@ -1136,6 +1180,7 @@ function VideoPostContent({ design, exportMode = false, videoRef = null }) {
     transform: mediaTransform(design.mediaZoom),
     transformOrigin: "center",
     filter: mediaFilter === "none" ? undefined : mediaFilter,
+    pointerEvents: exportMode ? "none" : "auto",
   };
 
   return (
@@ -1156,10 +1201,10 @@ function VideoPostContent({ design, exportMode = false, videoRef = null }) {
           ref={videoRef}
           src={design.videoUrl}
           poster={design.videoFrame || undefined}
-          muted
-          loop
+          controls={!exportMode}
+          preload="metadata"
           playsInline
-          autoPlay
+          onLoadedMetadata={onVideoMetadata || undefined}
           style={mediaStyle}
         />
       ) : design.videoFrame ? (
@@ -1168,12 +1213,12 @@ function VideoPostContent({ design, exportMode = false, videoRef = null }) {
         <MediaPlaceholder label="Insert video" theme={design.theme} accent={design.accent} />
       )}
 
-      <div style={{ position: "absolute", inset: 0, ...overlayStyle(design.theme, design.overlay, design.textPosition) }} />
+      <div style={{ position: "absolute", inset: 0, pointerEvents: "none", ...overlayStyle(design.theme, design.overlay, design.textPosition) }} />
       {finishOverlay && <div style={{ position: "absolute", inset: 0, pointerEvents: "none", ...finishOverlay }} />}
       {design.videoUrl && design.showPlayBadge !== false && <PlayBadge accent={design.accent} scale={playScale} />}
 
       {design.showBrand !== false && (
-        <div style={{ position: "relative", zIndex: 2, padding: `58px ${padX}px 0` }}>
+        <div style={{ position: "relative", zIndex: 2, padding: `58px ${padX}px 0`, pointerEvents: "none" }}>
           <PosterBrandRow theme={design.theme} size={54 * brandScale} fontSize={25 * brandScale} gap={14 * brandScale} color={brandTextColor} />
         </div>
       )}
@@ -1185,6 +1230,7 @@ function VideoPostContent({ design, exportMode = false, videoRef = null }) {
           right: padX,
           zIndex: 2,
           textAlign: design.textAlign,
+          pointerEvents: "none",
           ...textBoxPosition(design.textPosition, design.textOffsetY),
         }}
       >
@@ -1247,7 +1293,7 @@ function VideoPostContent({ design, exportMode = false, videoRef = null }) {
         </div>
       </div>
 
-      {design.showFooter !== false && <PosterFooter theme={design.theme} padX={padX} primaryColor={footerTextColor} secondaryColor={footerTextColor} />}
+      {design.showFooter !== false && <PosterFooter theme={design.theme} padX={padX} primaryColor={footerTextColor} secondaryColor={footerTextColor} pointerEvents={exportMode ? undefined : "none"} />}
       {frameOverlay && <div style={{ position: "absolute", zIndex: 5, pointerEvents: "none", ...frameOverlay }} />}
     </div>
   );
@@ -1267,6 +1313,7 @@ export default function NewsCardPage() {
   const [exportError, setExportError] = useState("");
   const [frameError, setFrameError] = useState("");
   const [capturingFrame, setCapturingFrame] = useState(false);
+  const [videoDuration, setVideoDuration] = useState(0);
   const [exporting, setExporting] = useState(false);
   const posterRef = useRef(null);
   const previewVideoRef = useRef(null);
@@ -1346,6 +1393,7 @@ export default function NewsCardPage() {
   function resetVideoAll() {
     setVideoObjectUrl("");
     setFrameError("");
+    setVideoDuration(0);
     setVideoDesign(cloneDesign(DEFAULT_VIDEO_DESIGN));
   }
 
@@ -1374,6 +1422,7 @@ export default function NewsCardPage() {
     const nextUrl = URL.createObjectURL(file);
     setVideoObjectUrl(nextUrl);
     setFrameError("");
+    setVideoDuration(0);
     setCapturingFrame(true);
     updateVideo({ videoUrl: nextUrl, videoFrame: "", sourceName: file.name || "Uploaded video" });
     try {
@@ -1393,11 +1442,17 @@ export default function NewsCardPage() {
   function handleVideoUrl(value) {
     setVideoObjectUrl("");
     setFrameError("");
+    setVideoDuration(0);
     updateVideo({
       videoUrl: value,
       videoFrame: "",
       sourceName: value ? "Video URL" : "",
     });
+  }
+
+  function handlePreviewVideoMetadata(event) {
+    const duration = Number(event.currentTarget.duration);
+    setVideoDuration(Number.isFinite(duration) && duration > 0 ? duration : 0);
   }
 
   function captureCurrentVideoFrame() {
@@ -1656,6 +1711,7 @@ export default function NewsCardPage() {
                         className="cms-btn light small"
                         onClick={() => {
                           setVideoObjectUrl("");
+                          setVideoDuration(0);
                           updateVideo({ videoUrl: "", videoFrame: "", sourceName: "" });
                         }}
                       >
@@ -1689,6 +1745,25 @@ export default function NewsCardPage() {
                     placeholder="https://..."
                   />
                 </ControlField>
+
+                {videoDesign.videoUrl && (
+                  <video
+                    ref={previewVideoRef}
+                    src={videoDesign.videoUrl}
+                    poster={videoDesign.videoFrame || undefined}
+                    controls
+                    playsInline
+                    preload="metadata"
+                    onLoadedMetadata={handlePreviewVideoMetadata}
+                    style={{
+                      width: "100%",
+                      maxHeight: 220,
+                      borderRadius: 12,
+                      background: "#050505",
+                      border: "1px solid var(--cms-line)",
+                    }}
+                  />
+                )}
 
                 <ControlField label="Title">
                   <textarea
@@ -1756,7 +1831,13 @@ export default function NewsCardPage() {
                   <RangeControl label="Text vertical" min={-220} max={220} value={videoDesign.textOffsetY} suffix="px" onChange={(value) => updateVideo({ textOffsetY: value })} />
                   <RangeControl label="Text shadow" min={0} max={160} value={videoDesign.shadow} suffix="%" onChange={(value) => updateVideo({ shadow: value })} />
                   <RangeControl label="Design intensity" min={0} max={100} value={videoDesign.designIntensity} suffix="%" onChange={(value) => updateVideo({ designIntensity: value })} />
+                  <RangeControl label="Export length" min={VIDEO_EXPORT_MIN_SECONDS} max={VIDEO_EXPORT_MAX_SECONDS} value={videoDesign.exportDuration} suffix="s" onChange={(value) => updateVideo({ exportDuration: value })} />
                 </div>
+                {videoDuration > 0 && (
+                  <span className="cms-help" style={{ textTransform: "none", letterSpacing: 0, fontWeight: 650 }}>
+                    Export records up to {Math.min(videoDesign.exportDuration, Math.ceil(videoDuration))}s from this {Math.ceil(videoDuration)}s video.
+                  </span>
+                )}
               </div>
             </div>
           )}
@@ -1798,7 +1879,7 @@ export default function NewsCardPage() {
             <div style={{ width: POSTER_W, height: POSTER_H, transform: `scale(${PREVIEW_SCALE})`, transformOrigin: "top left" }}>
               {mode === "news"
                 ? <NewsPostContent design={newsDesign} />
-                : <VideoPostContent design={videoDesign} videoRef={previewVideoRef} />}
+                : <VideoPostContent design={videoDesign} />}
             </div>
           </div>
         </div>

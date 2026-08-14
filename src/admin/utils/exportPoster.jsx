@@ -119,8 +119,8 @@ export function preferredVideoMimeType() {
 
 export function videoExportOptions() {
   return {
-    videoBitsPerSecond: 42_000_000,
-    audioBitsPerSecond: 320_000,
+    videoBitsPerSecond: 22_000_000,
+    audioBitsPerSecond: 256_000,
   };
 }
 
@@ -589,7 +589,7 @@ export function PosterBrandRow({ theme, size = 56, fontSize = 26, gap = 14, colo
 
 // The footer strip ("ngomacharts.com" + tagline), identical across every
 // card type.
-export function PosterFooter({ theme, height = 74, padX = 56, primaryColor, secondaryColor }) {
+export function PosterFooter({ theme, height = 74, padX = 56, primaryColor, secondaryColor, pointerEvents }) {
   const settings = usePosterSettings();
   if (!settings.showFooter) return null;
   const t = usePosterTheme(theme);
@@ -609,6 +609,7 @@ export function PosterFooter({ theme, height = 74, padX = 56, primaryColor, seco
         justifyContent: "space-between",
         padding: `0 ${padX}px`,
         borderTop: `1px solid ${t.footerBorder}`,
+        pointerEvents,
       }}
     >
       <span style={{ fontSize: 14 * scale, fontWeight: 700, color: primary }}>© 2026 Ngoma Media Ltd.</span>
