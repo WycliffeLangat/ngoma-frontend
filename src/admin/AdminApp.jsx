@@ -25,6 +25,7 @@ const CrossPlatformPosterPage = lazy(() => import("./pages/CrossPlatformPosterPa
 const MoversPosterPage = lazy(() => import("./pages/MoversPosterPage"));
 const HallOfFamePosterPage = lazy(() => import("./pages/HallOfFamePosterPage"));
 const HeadToHeadPosterPage = lazy(() => import("./pages/HeadToHeadPosterPage"));
+const QRCodePosterPage = lazy(() => import("./pages/QRCodePosterPage"));
 const HelpCenterPage      = lazy(() => import("./pages/HelpCenterPage"));
 const NAV_GROUPS = [
   {
@@ -48,6 +49,7 @@ const NAV_GROUPS = [
       ["movers-poster", "Movers & shakers poster"],
       ["hall-of-fame-poster", "Hall of Fame poster"],
       ["head-to-head-poster", "Head-to-head poster"],
+      ["qr-code-poster", "QR code poster"],
     ],
   },
   {
@@ -161,6 +163,7 @@ function renderPage(page, user, searchJump, onNavigate) {
   if (page === "movers-poster") return <MoversPosterPage />;
   if (page === "hall-of-fame-poster") return <HallOfFamePosterPage />;
   if (page === "head-to-head-poster") return <HeadToHeadPosterPage />;
+  if (page === "qr-code-poster") return <QRCodePosterPage />;
   if (page === "uploads")         return <UploadsPage user={user} searchJump={searchJump} />;
   if (page === "duplicate-review")return <DuplicateReviewPage user={user} />;
   if (page === "help")            return <HelpCenterPage />;
