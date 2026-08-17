@@ -103,11 +103,11 @@ async function waitForPosterImages(node) {
   }
 }
 
-async function nodeToPng(node, { skipFonts, pixelRatio }) {
+async function nodeToPng(node, { skipFonts, pixelRatio, backgroundColor }) {
   return toPng(node, {
     pixelRatio: exportPixelRatio(pixelRatio),
     cacheBust: true,
-    backgroundColor: "#050505",
+    backgroundColor,
     width: POSTER_W,
     height: POSTER_H,
     skipFonts,
@@ -180,11 +180,12 @@ export function videoExportFrameRate() {
 export async function exportNodeAsPng(node, filename, options = {}) {
   await waitForPosterFonts();
   await waitForPosterImages(node);
+  const backgroundColor = options.backgroundColor || "#050505";
   let dataUrl;
   try {
-    dataUrl = await nodeToPng(node, { skipFonts: false, pixelRatio: options.pixelRatio });
+    dataUrl = await nodeToPng(node, { skipFonts: false, pixelRatio: options.pixelRatio, backgroundColor });
   } catch {
-    dataUrl = await nodeToPng(node, { skipFonts: true, pixelRatio: options.pixelRatio });
+    dataUrl = await nodeToPng(node, { skipFonts: true, pixelRatio: options.pixelRatio, backgroundColor });
   }
   downloadDataUrl(dataUrl, filename);
 }

@@ -984,7 +984,11 @@ function ColorControl({ label, value, fallback, onChange }) {
   );
 }
 
-function MediaPlaceholder({ label, theme, accent }) {
+function MediaPlaceholder({ label, theme, accent, blank = false }) {
+  if (blank) {
+    return <div aria-label={label} style={{ position: "absolute", inset: 0 }} />;
+  }
+
   return (
     <div style={{ position: "absolute", inset: 0 }}>
       <ArtPlaceholder width="100%" height="100%" radius={0} theme={theme} accentColor={accent} markSize={170} />
@@ -1008,7 +1012,6 @@ function MediaPlaceholder({ label, theme, accent }) {
 }
 
 function NewsPostContent({ design }) {
-  const t = POSTER_THEMES[design.theme] || POSTER_THEMES.dark;
   const padX = 62;
   const textColor = designTextColor(design);
   const metaColor = designSecondaryTextColor(design);
@@ -1029,7 +1032,7 @@ function NewsPostContent({ design }) {
         width: POSTER_W,
         height: POSTER_H,
         boxSizing: "border-box",
-        background: t.pageBg,
+        background: "transparent",
         fontFamily: POSTER_FONT_FAMILY,
         color: textColor,
         position: "relative",
@@ -1053,11 +1056,11 @@ function NewsPostContent({ design }) {
           }}
         />
       ) : (
-        <MediaPlaceholder label="Insert image" theme={design.theme} accent={design.accent} />
+        <MediaPlaceholder label="Insert image" theme={design.theme} accent={design.accent} blank />
       )}
 
-      <div style={{ position: "absolute", inset: 0, ...overlayStyle(design.theme, design.overlay, design.textPosition) }} />
-      {finishOverlay && <div style={{ position: "absolute", inset: 0, pointerEvents: "none", ...finishOverlay }} />}
+      {design.image && <div style={{ position: "absolute", inset: 0, ...overlayStyle(design.theme, design.overlay, design.textPosition) }} />}
+      {design.image && finishOverlay && <div style={{ position: "absolute", inset: 0, pointerEvents: "none", ...finishOverlay }} />}
 
       {design.showBrand !== false && (
         <div style={{ position: "relative", zIndex: 1, padding: `58px ${padX}px 0` }}>
@@ -1566,6 +1569,7 @@ export default function NewsCardPage() {
       } else if (posterRef.current) {
         await exportNodeAsPng(posterRef.current, `ngoma-news-post-${fileBase}.png`, {
           pixelRatio: NEWS_POST_EXPORT_SCALE,
+          backgroundColor: "transparent",
         });
       }
     } catch (err) {
@@ -1986,7 +1990,7 @@ export default function NewsCardPage() {
               borderRadius: 18,
               border: "1px solid var(--cms-line)",
               boxShadow: "0 20px 50px rgba(20,16,4,.18)",
-              background: POSTER_THEMES[activeTheme]?.pageBg || "#050505",
+              background: mode === "news" ? "transparent" : (POSTER_THEMES[activeTheme]?.pageBg || "#050505"),
             }}
           >
             <div style={{ width: POSTER_W, height: POSTER_H, transform: `scale(${PREVIEW_SCALE})`, transformOrigin: "top left" }}>
