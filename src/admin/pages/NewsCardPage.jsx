@@ -61,6 +61,7 @@ const TEXT_CASE_OPTIONS = [
 const VIDEO_EXPORT_MIN_SECONDS = 1;
 const VIDEO_EXPORT_DEFAULT_SECONDS = 15;
 const VIDEO_TRIM_UNKNOWN_MAX_SECONDS = 4 * 60 * 60;
+const NEWS_POST_EXPORT_SCALE = 2;
 
 const DEFAULT_NEWS_DESIGN = {
   image: "",
@@ -182,6 +183,21 @@ function safeFilename(value, fallback) {
 
 function cloneDesign(defaults) {
   return { ...defaults };
+}
+
+function readImageFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+        return;
+      }
+      reject(new Error("Could not read that image."));
+    }, { once: true });
+    reader.addEventListener("error", () => reject(new Error("Could not read that image.")), { once: true });
+    reader.readAsDataURL(file);
+  });
 }
 
 function scaleValue(value, percent = 100) {
@@ -1277,7 +1293,6 @@ export default function NewsCardPage() {
   const [selectedArticleId, setSelectedArticleId] = useState(null);
   const [newsDesign, setNewsDesign] = useState(() => cloneDesign(DEFAULT_NEWS_DESIGN));
   const [videoDesign, setVideoDesign] = useState(() => cloneDesign(DEFAULT_VIDEO_DESIGN));
-  const [newsImageObjectUrl, setNewsImageObjectUrl] = useState("");
   const [videoObjectUrl, setVideoObjectUrl] = useState("");
   const [error, setError] = useState("");
   const [exportError, setExportError] = useState("");
@@ -1299,10 +1314,6 @@ export default function NewsCardPage() {
   useEffect(() => () => {
     clearTrimPreviewTimer();
   }, []);
-
-  useEffect(() => () => {
-    if (newsImageObjectUrl) URL.revokeObjectURL(newsImageObjectUrl);
-  }, [newsImageObjectUrl]);
 
   useEffect(() => () => {
     if (videoObjectUrl) URL.revokeObjectURL(videoObjectUrl);
@@ -1355,7 +1366,6 @@ export default function NewsCardPage() {
 
   function resetNewsAll() {
     setSelectedArticleId(null);
-    setNewsImageObjectUrl("");
     setQuery("");
     setResults([]);
     setNewsDesign(cloneDesign(DEFAULT_NEWS_DESIGN));
@@ -1398,7 +1408,6 @@ export default function NewsCardPage() {
   function applyArticle(article) {
     setMode("news");
     setSelectedArticleId(article.id);
-    setNewsImageObjectUrl("");
     updateNews({
       image: article.image,
       headline: article.title || DEFAULT_NEWS_DESIGN.headline,
@@ -1407,12 +1416,16 @@ export default function NewsCardPage() {
     });
   }
 
-  function handleNewsImageFile(file) {
+  async function handleNewsImageFile(file) {
     if (!file) return;
-    const nextUrl = URL.createObjectURL(file);
-    setNewsImageObjectUrl(nextUrl);
-    setSelectedArticleId(null);
-    updateNews({ image: nextUrl });
+    try {
+      const nextUrl = await readImageFileAsDataUrl(file);
+      setError("");
+      setSelectedArticleId(null);
+      updateNews({ image: nextUrl });
+    } catch (err) {
+      setError(err.message || "Could not read that image.");
+    }
   }
 
   async function handleVideoFile(file) {
@@ -1551,7 +1564,9 @@ export default function NewsCardPage() {
         await exportVideoPostFile(videoDesign, `ngoma-video-post-${fileBase}`);
         clearVideoMedia();
       } else if (posterRef.current) {
-        await exportNodeAsPng(posterRef.current, `ngoma-news-post-${fileBase}.png`);
+        await exportNodeAsPng(posterRef.current, `ngoma-news-post-${fileBase}.png`, {
+          pixelRatio: NEWS_POST_EXPORT_SCALE,
+        });
       }
     } catch (err) {
       setExportError(err.message || "Couldn't generate the file. Try again after the media finishes loading.");
@@ -1666,11 +1681,22 @@ export default function NewsCardPage() {
                         type="file"
                         accept="image/*"
                         style={{ display: "none" }}
-                        onChange={(event) => handleNewsImageFile(event.target.files?.[0])}
+                        onChange={(event) => {
+                          const input = event.currentTarget;
+                          void handleNewsImageFile(input.files?.[0]);
+                          input.value = "";
+                        }}
                       />
                     </label>
                     {newsDesign.image && (
-                      <button type="button" className="cms-btn light small" onClick={() => updateNews({ image: "" })}>
+                      <button
+                        type="button"
+                        className="cms-btn light small"
+                        onClick={() => {
+                          setSelectedArticleId(null);
+                          updateNews({ image: "" });
+                        }}
+                      >
                         Clear
                       </button>
                     )}
@@ -1681,9 +1707,8 @@ export default function NewsCardPage() {
                   <input
                     className="cms-select"
                     type="url"
-                    value={newsDesign.image.startsWith("blob:") ? "" : newsDesign.image}
+                    value={newsDesign.image.startsWith("blob:") || newsDesign.image.startsWith("data:") ? "" : newsDesign.image}
                     onChange={(event) => {
-                      setNewsImageObjectUrl("");
                       setSelectedArticleId(null);
                       updateNews({ image: event.target.value });
                     }}
@@ -1944,7 +1969,7 @@ export default function NewsCardPage() {
                 : `Download video post (${(videoExportType?.[1] || "video").toUpperCase()})`}
           </button>
           <p className="cms-help" style={{ marginTop: 10 }}>
-            {mode === "video" ? superHdHelpText("video") : superHdHelpText("poster")}
+            {mode === "video" ? superHdHelpText("video") : superHdHelpText("poster", NEWS_POST_EXPORT_SCALE)}
             {mode === "video" ? " Audio is preserved from the original browser-readable video." : ""}
           </p>
           {mode === "video" && !videoExportType && (

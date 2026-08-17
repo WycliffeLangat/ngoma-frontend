@@ -61,9 +61,51 @@ async function waitForPosterFonts() {
   } catch {}
 }
 
-async function nodeToPng(node, skipFonts) {
+function exportPixelRatio(value) {
+  const ratio = Number(value);
+  return Number.isFinite(ratio) && ratio > 0 ? ratio : POSTER_EXPORT_SCALE;
+}
+
+function waitForImageEvent(image) {
+  return new Promise((resolve) => {
+    if (!image || image.complete) {
+      resolve();
+      return;
+    }
+    let timer = 0;
+    const done = () => {
+      image.removeEventListener("load", done);
+      image.removeEventListener("error", done);
+      if (timer) window.clearTimeout(timer);
+      resolve();
+    };
+    timer = window.setTimeout(done, 3000);
+    image.addEventListener("load", done, { once: true });
+    image.addEventListener("error", done, { once: true });
+  });
+}
+
+async function waitForPosterImages(node) {
+  if (!node?.querySelectorAll) return;
+  const images = Array.from(node.querySelectorAll("img"));
+  await Promise.all(images.map(async (image) => {
+    if (image.complete && image.naturalWidth > 0) return;
+    if (image.decode) {
+      try {
+        await image.decode();
+        return;
+      } catch {}
+    }
+    await waitForImageEvent(image);
+  }));
+  if (typeof requestAnimationFrame === "function") {
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  }
+}
+
+async function nodeToPng(node, { skipFonts, pixelRatio }) {
   return toPng(node, {
-    pixelRatio: POSTER_EXPORT_SCALE,
+    pixelRatio: exportPixelRatio(pixelRatio),
     cacheBust: true,
     backgroundColor: "#050505",
     width: POSTER_W,
@@ -99,17 +141,18 @@ export async function ensurePosterFontsReady() {
   await waitForPosterFonts();
 }
 
-export function posterExportSizeLabel() {
-  return `${POSTER_EXPORT_W}x${POSTER_EXPORT_H}px`;
+export function posterExportSizeLabel(scale = POSTER_EXPORT_SCALE) {
+  const ratio = exportPixelRatio(scale);
+  return `${POSTER_W * ratio}x${POSTER_H * ratio}px`;
 }
 
 export function videoExportSizeLabel() {
   return `${VIDEO_EXPORT_W}x${VIDEO_EXPORT_H}px`;
 }
 
-export function superHdHelpText(kind = "poster") {
-  const size = kind === "video" ? videoExportSizeLabel() : posterExportSizeLabel();
-  return `Exports at ${size} (4:5), HD 1080, using the app font.`;
+export function superHdHelpText(kind = "poster", scale = POSTER_EXPORT_SCALE) {
+  const size = kind === "video" ? videoExportSizeLabel() : posterExportSizeLabel(scale);
+  return `Exports at ${size} (4:5), high-resolution output using the app font.`;
 }
 
 export function preferredVideoMimeType() {
@@ -134,13 +177,14 @@ export function videoExportFrameRate() {
   return 30;
 }
 
-export async function exportNodeAsPng(node, filename) {
+export async function exportNodeAsPng(node, filename, options = {}) {
   await waitForPosterFonts();
+  await waitForPosterImages(node);
   let dataUrl;
   try {
-    dataUrl = await nodeToPng(node, false);
+    dataUrl = await nodeToPng(node, { skipFonts: false, pixelRatio: options.pixelRatio });
   } catch {
-    dataUrl = await nodeToPng(node, true);
+    dataUrl = await nodeToPng(node, { skipFonts: true, pixelRatio: options.pixelRatio });
   }
   downloadDataUrl(dataUrl, filename);
 }
