@@ -1488,63 +1488,106 @@ export default function PremiumChartsPage({
           padding: mobile ? "14px 16px" : (tablet ? "14px 22px" : "16px 28px"),
         }}
       >
-        <ChartToggle />
-
-        <div style={mobile ? { position: "relative", width: "100%", minWidth: 0 } : { display: "contents" }}>
-          <div
-            style={{
-              ...styles.platforms,
-              gap: mobile ? "8px" : (tablet ? "7px" : "6px"),
-              flexWrap: mobile ? "nowrap" : "wrap",
-              overflowX: mobile ? "auto" : "visible",
-              paddingBottom: mobile ? "6px" : 0,
-              paddingRight: mobile ? "30px" : 0,
-            }}
-          >
-            {platList.map((item) => {
-              // The "Kenyan" pill is a shortcut to whichever country is currently
-              // selected (it defaults to Kenya) — always target selectedCountryScope
-              // directly rather than the active tab's `plat`, since `plat` is "Combined"
-              // by default after switching country.
-              const active = item === "Kenyan"
-                ? plat === selectedCountryScope
-                : plat === item;
-              const color = darkMode ? "#F6F3EA" : "#1A1A1A";
-              const ink = readableInk(color);
-              const label = item === "Kenyan" ? (mobile ? regionalScopeShortLabel : regionalTop50Label) : (item === "Combined" ? item : PLAT_LABEL[item] || item);
-
-              return (
-                <button
-                  key={item}
-                  ref={active ? activePlatformPillRef : null}
-                  className="ngoma-source-selector-option"
-                  aria-current={active ? "true" : undefined}
-                  onClick={() => setPlat(item === "Kenyan" ? selectedCountryScope : item)}
-                  style={{
-                    ...styles.platformButton,
-                    "--platform-pill-bg": darkMode ? "#151815" : "#ffffff",
-                    "--platform-pill-text": darkMode ? "#FFFFFF" : "#000000",
-                    "--platform-pill-border": darkMode ? "#2F352F" : "rgba(0,0,0,0.12)",
-                    "--platform-pill-shadow": "none",
-                    "--platform-pill-active-bg": color,
-                    "--platform-pill-active-text": ink,
-                    "--platform-pill-active-border": color,
-                    "--platform-pill-active-shadow": `0 2px 10px ${color}33`,
-                    padding: mobile ? "8px 13px" : (tablet ? "7px 10px" : "8px 12px"),
-                    borderColor: active ? color : (darkMode ? "#2F352F" : "rgba(0,0,0,0.12)"),
-                    background: active ? color : (darkMode ? "#151815" : "#ffffff"),
-                    color: active ? ink : (darkMode ? "#FFFFFF" : "#000000"),
-                    boxShadow: active ? `0 2px 10px ${color}33` : "none",
-                    flexShrink: 0,
-                  }}
-                >
-                  {label}
-                </button>
-              );
-            })}
+        {mobile ? (
+          <div style={{ display: "flex", gap: "8px", width: "100%" }}>
+            <select
+              aria-label="Chart type"
+              value={ct}
+              onChange={(event) => setCt(event.target.value)}
+              style={{
+                ...styles.select,
+                flex: 1,
+                minWidth: 0,
+                background: darkMode ? "#151815" : "#ffffff",
+                color: darkMode ? "#FFFFFF" : "#000000",
+                border: `1px solid ${darkMode ? "#2F352F" : "rgba(0,0,0,0.14)"}`,
+              }}
+            >
+              {["singles", "albums", "artists"].map((item) => (
+                <option key={item} value={item}>{item.charAt(0).toUpperCase() + item.slice(1)}</option>
+              ))}
+            </select>
+            <select
+              aria-label="Platform"
+              value={plat === selectedCountryScope ? "Kenyan" : plat}
+              onChange={(event) => {
+                const item = event.target.value;
+                setPlat(item === "Kenyan" ? selectedCountryScope : item);
+              }}
+              style={{
+                ...styles.select,
+                flex: 1,
+                minWidth: 0,
+                background: darkMode ? "#151815" : "#ffffff",
+                color: darkMode ? "#FFFFFF" : "#000000",
+                border: `1px solid ${darkMode ? "#2F352F" : "rgba(0,0,0,0.14)"}`,
+              }}
+            >
+              {platList.map((item) => (
+                <option key={item} value={item}>
+                  {item === "Kenyan" ? regionalScopeShortLabel : (item === "Combined" ? item : PLAT_LABEL[item] || item)}
+                </option>
+              ))}
+            </select>
           </div>
-          {mobile && <div style={styles.pillFade} />}
-        </div>
+        ) : (
+          <>
+            <ChartToggle />
+
+            <div style={{ display: "contents" }}>
+              <div
+                style={{
+                  ...styles.platforms,
+                  gap: tablet ? "7px" : "6px",
+                  flexWrap: "wrap",
+                  overflowX: "visible",
+                }}
+              >
+                {platList.map((item) => {
+                  // The "Kenyan" pill is a shortcut to whichever country is currently
+                  // selected (it defaults to Kenya) — always target selectedCountryScope
+                  // directly rather than the active tab's `plat`, since `plat` is "Combined"
+                  // by default after switching country.
+                  const active = item === "Kenyan"
+                    ? plat === selectedCountryScope
+                    : plat === item;
+                  const color = darkMode ? "#F6F3EA" : "#1A1A1A";
+                  const ink = readableInk(color);
+                  const label = item === "Kenyan" ? regionalTop50Label : (item === "Combined" ? item : PLAT_LABEL[item] || item);
+
+                  return (
+                    <button
+                      key={item}
+                      ref={active ? activePlatformPillRef : null}
+                      className="ngoma-source-selector-option"
+                      aria-current={active ? "true" : undefined}
+                      onClick={() => setPlat(item === "Kenyan" ? selectedCountryScope : item)}
+                      style={{
+                        ...styles.platformButton,
+                        "--platform-pill-bg": darkMode ? "#151815" : "#ffffff",
+                        "--platform-pill-text": darkMode ? "#FFFFFF" : "#000000",
+                        "--platform-pill-border": darkMode ? "#2F352F" : "rgba(0,0,0,0.12)",
+                        "--platform-pill-shadow": "none",
+                        "--platform-pill-active-bg": color,
+                        "--platform-pill-active-text": ink,
+                        "--platform-pill-active-border": color,
+                        "--platform-pill-active-shadow": `0 2px 10px ${color}33`,
+                        padding: tablet ? "7px 10px" : "8px 12px",
+                        borderColor: active ? color : (darkMode ? "#2F352F" : "rgba(0,0,0,0.12)"),
+                        background: active ? color : (darkMode ? "#151815" : "#ffffff"),
+                        color: active ? ink : (darkMode ? "#FFFFFF" : "#000000"),
+                        boxShadow: active ? `0 2px 10px ${color}33` : "none",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        )}
 
       </section>
 
