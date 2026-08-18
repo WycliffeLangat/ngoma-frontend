@@ -1,0 +1,18 @@
+{
+  "generated_at": "2026-08-18T10:12:12.678453+00:00",
+  "checked": {
+    "songs": 100,
+    "albums": 100
+  },
+  "matched": {
+    "songs": 52,
+    "albums": 51
+  },
+  "errors": {
+    "songs": [],
+    "albums": []
+  },
+  "sources": {
+    "deezer_api": "https://api.deezer.com"
+  }
+}

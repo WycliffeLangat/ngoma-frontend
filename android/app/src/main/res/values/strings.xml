@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Ngoma Charts</string>
+    <string name="title_activity_main">Ngoma Charts</string>
+    <string name="package_name">com.ngomacharts.app</string>
+    <string name="custom_url_scheme">com.ngomacharts.app</string>
+</resources>

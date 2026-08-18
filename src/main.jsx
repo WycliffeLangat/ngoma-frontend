@@ -13,6 +13,11 @@ function isPublicAppPath() {
     !path.startsWith("/admin");
 }
 
+function isStaticPublicPath() {
+  const path = window.location.pathname.toLowerCase();
+  return path === "/privacy" || path === "/privacy-policy";
+}
+
 function notifyPublicDataReady() {
   if (typeof window !== "undefined") {
     window.dispatchEvent(new Event("ngoma-public-data-ready"));
@@ -138,7 +143,7 @@ async function start() {
   const root = ReactDOM.createRoot(document.getElementById("root"));
   // NgomaCharts builds CMS lookup maps when its module loads. Hydrate first so
   // a refreshed page starts with current CMS data instead of stale snapshots.
-  if (isPublicAppPath()) {
+  if (isPublicAppPath() && !isStaticPublicPath()) {
     root.render(
       <div style={{display:"grid",placeItems:"center",height:"100vh",fontFamily:"system-ui, sans-serif",color:"#777",fontSize:14}}>
         Loading Ngoma Charts…
@@ -147,7 +152,9 @@ async function start() {
   }
   // The public application module is loaded only after the backend payload is
   // ready because its chart indexes are built at module initialization.
-  const publicDataState = await loadPublicAppData({ timeoutMs: 30_000 });
+  const publicDataState = isStaticPublicPath()
+    ? { ok: true }
+    : await loadPublicAppData({ timeoutMs: 30_000 });
   if (!publicDataState.ok && isPublicAppPath()) {
     root.render(<PublicStartupError state={publicDataState} />);
     return;

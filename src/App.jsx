@@ -1,5 +1,6 @@
 import "./styles/ngomaTheme.css";
 import { lazy, Suspense } from "react";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage.jsx";
 
 // Lazy-load both apps so the browser only downloads the code it actually needs.
 // Public visitors never download any CMS JS; CMS users never download the full
@@ -24,6 +25,11 @@ function Spinner({ label }) {
 }
 
 export default function App() {
+  const path = window.location.pathname.toLowerCase();
+  if (path === "/privacy" || path === "/privacy-policy") {
+    return <PrivacyPolicyPage />;
+  }
+
   const cms = isCmsPath();
   return (
     <Suspense fallback={<Spinner label={cms ? "Loading CMS…" : "Loading…"} />}>

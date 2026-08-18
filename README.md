@@ -20,6 +20,29 @@ npm run preview      # preview the production build locally
 
 The `dist/` folder is a fully static site — host it anywhere (Netlify, Vercel, Cloudflare Pages, GitHub Pages, S3, Nginx).
 
+## Android app build
+
+The Android app is generated with Capacitor using package ID
+`com.ngomacharts.app` and app name `Ngoma Charts`.
+
+```bash
+npm run build:android    # builds dist/ with the live Railway API URL
+npm run android:sync     # rebuilds and syncs dist/ into android/
+npm run android:open     # opens android/ in Android Studio
+npm run android:bundle   # builds the Play Store release .aab
+```
+
+The local machine needs Android Studio or the Android SDK command line tools
+plus JDK 21-24 before Gradle can produce the final app bundle. The app build
+uses `.env.android`, which points `VITE_API_BASE` at the live Django API:
+`https://web-production-0f6b5.up.railway.app/api/v1`.
+
+Release signing is configured through local-only files that are ignored by git:
+`android/keystores/ngoma-upload-key.p12` and
+`android/release-signing.properties`. Keep those available for future Play
+Store updates. The signed bundle is written to
+`android/app/build/outputs/bundle/release/app-release.aab`.
+
 ## Project structure
 
 ```

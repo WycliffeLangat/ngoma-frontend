@@ -4367,7 +4367,10 @@ const top = data[0];
           }}
         >
           <span>{`© ${new Date().getFullYear()} Ngoma Media Ltd. All rights reserved.`}</span>
-          <span>Ngoma Charts is a product of Ngoma Media Ltd.</span>
+          <span style={{display:"inline-flex",alignItems:"center",gap:"10px",flexWrap:"wrap",justifyContent:"center"}}>
+            <span>Ngoma Charts is a product of Ngoma Media Ltd.</span>
+            <a href="/privacy-policy" style={{color:"inherit",textDecoration:"underline",textUnderlineOffset:"3px"}}>Privacy Policy</a>
+          </span>
         </div>
       </footer>
     </div>
