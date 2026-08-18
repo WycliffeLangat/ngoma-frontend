@@ -98,6 +98,23 @@ body {
   .ngoma-app-shell {
     zoom: 1.05;
   }
+
+  /* zoom scales a position:fixed element's own box past the true
+     viewport (the fixed header, search overlay, and AI widget panel
+     would render ~5% wider/taller than the screen). Reset those
+     "frame" elements back to zoom:1 so their box stays pinned to its
+     original size, then re-apply the scale to their contents so the
+     logo/nav/text inside still reads at the bigger size. */
+  .ngoma-app-shell > header,
+  .ngoma-app-shell [style*="position: fixed" i],
+  .ngoma-app-shell [style*="position:fixed" i] {
+    zoom: 1;
+  }
+  .ngoma-app-shell > header > *,
+  .ngoma-app-shell [style*="position: fixed" i] > *,
+  .ngoma-app-shell [style*="position:fixed" i] > * {
+    zoom: 1.05;
+  }
 }
 
 * {
