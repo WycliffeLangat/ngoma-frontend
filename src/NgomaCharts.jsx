@@ -3919,7 +3919,7 @@ const top = data[0];
       {MAINTENANCE_SETTING.enabled&&<div role="status" style={{padding:"11px 18px",background:MAINTENANCE_SETTING.background || "#FFF3CD",color:MAINTENANCE_SETTING.color || "#5F4700",fontFamily:F,fontSize:"12px",fontWeight:800,textAlign:"center",borderBottom:`1px solid ${GOLD}55`}}>{MAINTENANCE_SETTING.message || `${SITE_NAME} is currently undergoing maintenance.`}</div>}
 
       {/* HEADER */}
-      <header ref={publicHeaderRef} style={{background:themeColors.surface,borderBottom:`3px solid ${themeColors.text}`,position:"fixed",top:0,left:0,right:0,width:"100%",zIndex:90,boxShadow:isDark?"0 8px 24px rgba(0,0,0,0.34)":"0 8px 24px rgba(31,36,31,0.10)"}}>
+      <header ref={publicHeaderRef} style={{background:themeColors.surface,borderBottom:`3px solid ${themeColors.text}`,position:"fixed",top:0,left:isMobile?0:"1cm",right:isMobile?0:"1cm",width:isMobile?"100%":"auto",zIndex:90,boxShadow:isDark?"0 8px 24px rgba(0,0,0,0.34)":"0 8px 24px rgba(31,36,31,0.10)"}}>
         <div style={{background:isDark?"#1A1A1A":"#F5F3EA",color:isDark?"#FFF":"#1A1A1A"}}>
           <div style={{...pageFrame({display:"flex",justifyContent:"flex-end",alignItems:"center",gap:"18px",padding:isMobile?"6px 16px":"5px 28px"}),fontFamily:F,fontSize:isMobile?"8px":"9.5px",letterSpacing:isMobile?"1px":"2px",textTransform:"uppercase"}}>
             <span style={{color:isDark?"rgba(255,255,255,0.68)":"rgba(26,26,26,0.68)",fontSize:isMobile?"8px":"9.5px",letterSpacing:isMobile?"0.5px":"1px",fontFamily:"inherit",whiteSpace:"nowrap"}}>
