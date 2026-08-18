@@ -1610,7 +1610,6 @@ export default function PremiumChartsPage({
             const medalColor = item.rank <= 3 ? MEDALS[item.rank - 1] : (darkMode ? "#f6f3ea" : "#050505");
             const artistCountry = getArtistCountry(item);
             const badge = regionBadge(artistCountry.code);
-            const certification = isArtistsChart ? null : certificationForEntry(item, isSingles ? "single" : "album");
             const rowKey = getRowKey(item, index);
             const expanded = expandedRowKey === rowKey;
 
@@ -1667,7 +1666,6 @@ export default function PremiumChartsPage({
                             </span>
                           ) : null
                         ) : <ArtistLinks item={item} />}
-                        {certification && <CertificationTag cert={certification} compact style={{ marginTop: "6px" }} />}
                       </div>
                     </div>
 
@@ -1750,7 +1748,6 @@ export default function PremiumChartsPage({
                         >
                           {item.title}
                         </button>
-                        {certification && <CertificationTag cert={certification} compact />}
                       </div>
 
                       {isArtistsChart ? (

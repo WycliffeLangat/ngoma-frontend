@@ -270,7 +270,6 @@ export default function YearEndPage({ ctx }) {
                               {item.a}
                             </button>
                           )}
-                          {certification&&<CertificationTag cert={certification} compact style={{marginTop:"6px"}} />}
                         </div>
                       </div>
 
@@ -351,7 +350,6 @@ export default function YearEndPage({ ctx }) {
 
                 {yearEnd.slice(0,50).map((item,idx)=>{
                   const t3=idx<3;
-                  const certification = isArtists ? null : getCertificationForEntry(item, isSingles ? "single" : "album");
                   return(
                     <div
                       key={item.t+(item.a || "")}
@@ -392,7 +390,6 @@ export default function YearEndPage({ ctx }) {
                             color:isDark?"#F6F3EA":"#050505",
                           }}>
                             <button type="button" onClick={()=>isArtists ? openArtistDetails(item.t) : openReleaseDetails(item,isSingles?"single":"album")} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:"inherit",fontWeight:"inherit",lineHeight:"inherit",cursor:"pointer",textAlign:"left",color:"inherit"}}>{item.t}</button>
-                            {certification&&<CertificationTag cert={certification} compact />}
                           </div>
                           {isArtists ? (
                             <div style={{fontSize:"13px",color:isDark?"#8a9288":"#59645D",fontFamily:F,marginTop:"2px"}}>

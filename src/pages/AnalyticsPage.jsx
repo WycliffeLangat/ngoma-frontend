@@ -16,7 +16,6 @@ function RecordRow({ r, expanded, onToggle, pool, ctx, theme }) {
   } = ctx;
   const { isDark, textPrimary, textMuted, dividerColor, rowBorder } = theme;
 
-  const recordCertification = !isArtists && r.certificationEntry ? getCertificationForEntry(r.certificationEntry, isSingles ? "single" : "album") : null;
   const rotating = useRotatingArt(pool);
   const thumbItem = r.certificationEntry || rotating?.entry || null;
   const thumbName = r.certificationEntry ? (r.certificationEntry.artist || r.value) : (rotating?.name || r.value);
@@ -51,7 +50,6 @@ function RecordRow({ r, expanded, onToggle, pool, ctx, theme }) {
           ) : (
             <div style={{ fontFamily: SF, fontWeight: 800, fontSize: "15px", marginBottom: "2px", lineHeight: 1.2, color: isDark ? "#F6F3EA" : "inherit", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.value}</div>
           )}
-          {recordCertification && <CertificationTag cert={recordCertification} compact style={{ marginBottom: "2px" }} />}
           <div style={{ fontFamily: F, fontSize: "13px", color: isDark ? "#AEB6AE" : "#69716B", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "flex", alignItems: "center", gap: "6px" }}>
             <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{r.displaySub}</span>
             {r.climbDelta && <span style={{ display: "inline-flex", flexShrink: 0, alignItems: "center", padding: "1px 6px", borderRadius: "999px", background: isDark ? "rgba(45,176,74,0.16)" : "#EAF8EF", color: isDark ? "#4FCB6F" : "#1E8E3E", fontSize: "10px", fontWeight: 900 }}>+{r.climbDelta}</span>}
@@ -68,7 +66,6 @@ function RecordRow({ r, expanded, onToggle, pool, ctx, theme }) {
       {expanded && r.isCoverage && (
         <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: `1px solid ${dividerColor}`, display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(2,minmax(0,1fr))", columnGap: "22px" }}>
           {fullCoverageClub.length ? fullCoverageClub.map((song, idx) => {
-            const certification = getCertificationForEntry(song, isSingles ? "single" : "album");
             return (
               <div key={`${song.title}-${song.artist}`} className="ngoma-coverage-row" style={{ display: "grid", gridTemplateColumns: "22px 42px minmax(0,1fr)", gap: "8px", alignItems: "center", padding: "8px 6px", fontFamily: F, borderBottom: `1px solid ${rowBorder}` }}>
                 <span style={{ fontSize: "10px", fontWeight: 900, color: isDark?"#F6F3EA":"#1A1A1A" }}>#{idx + 1}</span>
@@ -76,7 +73,6 @@ function RecordRow({ r, expanded, onToggle, pool, ctx, theme }) {
                 <span style={{ minWidth: 0 }}>
                   <span style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
                     <button type="button" onClick={(event) => { event.stopPropagation(); isArtists ? openArtistDetails(song.title) : openReleaseDetails(song, isSingles ? "single" : "album"); }} style={{ border: 0, background: "transparent", padding: 0, fontFamily: SF, fontSize: "12px", fontWeight: 850, color: textPrimary, cursor: "pointer", textAlign: "left" }}>{song.title}</button>
-                    {certification && <CertificationTag cert={certification} compact />}
                   </span>
                   <span style={{ display: "block", fontSize: "11px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}><ArtistCredit credit={song.artist} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="11px" fontWeight={400} color={textMuted} darkColor={textMuted} separatorColor={textMuted} darkSeparatorColor={textMuted} /> · {song.month}</span>
                 </span>
@@ -237,7 +233,6 @@ export default function AnalyticsPage({ ctx }) {
             <div style={card()}>
               <div style={{...secLbl(isDark?"#F6F3EA":"#1A1A1A"), fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Top {releaseLabel} Climbers — {anMonth}</div>
               {mvData.risers.map((s,i)=>{
-                const certification = isArtists ? null : getCertificationForEntry(s, isSingles ? "single" : "album");
                 return (
                 <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:isMobile?"8px 0":"6px 0",borderBottom:"1px solid #F0F0EC"}}>
                   <div style={{display:"flex",alignItems:"center",gap:"10px",minWidth:0}}>
@@ -245,7 +240,6 @@ export default function AnalyticsPage({ ctx }) {
                     <div style={{minWidth:0}}>
                       <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
                         <button type="button" onClick={()=>openReleaseDetails(s,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15,cursor:"pointer",textAlign:"left"}}>{s.t}</button>
-                        {certification&&<CertificationTag cert={certification} compact />}
                       </div>
                       {!isArtists && <div style={{fontSize:TXT.cardMeta,marginTop:"3px"}}><ArtistCredit credit={s.a} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize={TXT.cardMeta} fontWeight={400} color="#69716B" darkColor="#69716B" separatorColor="#69716B" darkSeparatorColor="#69716B" /></div>}
                     </div>
@@ -262,7 +256,6 @@ export default function AnalyticsPage({ ctx }) {
             <div style={card()}>
               <div style={{...secLbl(isDark?"#F6F3EA":"#1A1A1A"), fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Biggest {releaseLabel} Drops — {anMonth}</div>
               {mvData.fallers.map((s,i)=>{
-                const certification = isArtists ? null : getCertificationForEntry(s, isSingles ? "single" : "album");
                 return (
                 <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:isMobile?"8px 0":"6px 0",borderBottom:"1px solid #F0F0EC"}}>
                   <div style={{display:"flex",alignItems:"center",gap:"10px",minWidth:0}}>
@@ -270,7 +263,6 @@ export default function AnalyticsPage({ ctx }) {
                     <div style={{minWidth:0}}>
                       <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
                         <button type="button" onClick={()=>openReleaseDetails(s,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15,cursor:"pointer",textAlign:"left"}}>{s.t}</button>
-                        {certification&&<CertificationTag cert={certification} compact />}
                       </div>
                       {!isArtists && <div style={{fontSize:TXT.cardMeta,marginTop:"3px"}}><ArtistCredit credit={s.a} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize={TXT.cardMeta} fontWeight={400} color="#69716B" darkColor="#69716B" separatorColor="#69716B" darkSeparatorColor="#69716B" /></div>}
                     </div>
@@ -287,7 +279,6 @@ export default function AnalyticsPage({ ctx }) {
             <div style={card()}>
               <div style={{...secLbl(isDark?"#F6F3EA":"#1A1A1A"), fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>New Entries — {anMonth}</div>
               {mvData.newEntries.slice(0,5).map((s,i)=>{
-                const certification = isArtists ? null : getCertificationForEntry(s, isSingles ? "single" : "album");
                 return (
                 <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:isMobile?"8px 0":"6px 0",borderBottom:"1px solid #F0F0EC"}}>
                   <div style={{display:"flex",alignItems:"center",gap:"10px",minWidth:0}}>
@@ -295,7 +286,6 @@ export default function AnalyticsPage({ ctx }) {
                     <div style={{minWidth:0}}>
                       <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
                         <button type="button" onClick={()=>openReleaseDetails(s,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15,cursor:"pointer",textAlign:"left"}}>{s.title}</button>
-                        {certification&&<CertificationTag cert={certification} compact />}
                       </div>
                       {!isArtists && <div style={{fontSize:TXT.cardMeta,marginTop:"3px"}}><ArtistCredit credit={s.artist} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize={TXT.cardMeta} fontWeight={400} color="#69716B" darkColor="#69716B" separatorColor="#69716B" darkSeparatorColor="#69716B" /></div>}
                     </div>
@@ -312,7 +302,6 @@ export default function AnalyticsPage({ ctx }) {
             <div style={card()}>
               <div style={{...secLbl(isDark?"#F6F3EA":"#1A1A1A"), fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Re-Entries — {anMonth}</div>
               {mvData.reEntries.slice(0,5).map((s,i)=>{
-                const certification = isArtists ? null : getCertificationForEntry(s, isSingles ? "single" : "album");
                 return (
                 <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:isMobile?"8px 0":"6px 0",borderBottom:"1px solid #F0F0EC"}}>
                   <div style={{display:"flex",alignItems:"center",gap:"10px",minWidth:0}}>
@@ -320,7 +309,6 @@ export default function AnalyticsPage({ ctx }) {
                     <div style={{minWidth:0}}>
                       <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
                         <button type="button" onClick={()=>openReleaseDetails(s,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15,cursor:"pointer",textAlign:"left"}}>{s.title}</button>
-                        {certification&&<CertificationTag cert={certification} compact />}
                       </div>
                       {!isArtists && <div style={{fontSize:TXT.cardMeta,marginTop:"3px"}}><ArtistCredit credit={s.artist} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize={TXT.cardMeta} fontWeight={400} color="#69716B" darkColor="#69716B" separatorColor="#69716B" darkSeparatorColor="#69716B" /></div>}
                     </div>
@@ -344,7 +332,6 @@ export default function AnalyticsPage({ ctx }) {
             <div style={{...secLbl(isDark?"#F6F3EA":"#1A1A1A"), fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Cross-Platform Reach — {anMonth}</div>
             <p style={{fontFamily:F,fontSize:"12px",color:"#59645D",margin:"-4px 0 12px",lineHeight:1.45}}>{releaseLabel} charting on most platforms simultaneously.</p>
             {crossPlatformRows.slice(0,8).map((s,i)=>{
-              const certification = isArtists ? null : getCertificationForEntry(s, isSingles ? "single" : "album");
               return (
               <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:"7px 0",borderBottom:"1px solid #F0F0EC"}}>
                 <div style={{display:"flex",alignItems:"center",gap:"10px",flex:1,minWidth:0}}>
@@ -352,7 +339,6 @@ export default function AnalyticsPage({ ctx }) {
                   <div style={{minWidth:0}}>
                     <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
                       <button type="button" onClick={()=>openReleaseDetails(s,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,cursor:"pointer",textAlign:"left"}}>{s.t}</button>
-                      {certification&&<CertificationTag cert={certification} compact />}
                     </div>
                     {!isArtists && <div style={{fontSize:TXT.cardMeta,marginTop:"2px"}}><ArtistCredit credit={s.a} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize={TXT.cardMeta} fontWeight={400} color="#59645D" darkColor="#59645D" separatorColor="#59645D" darkSeparatorColor="#59645D" /></div>}
                   </div>
@@ -369,7 +355,6 @@ export default function AnalyticsPage({ ctx }) {
             <div style={{...secLbl(isDark?"#F6F3EA":"#1A1A1A"), fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Cross-Platform Hits — {anMonth}</div>
             <p style={{fontFamily:F,fontSize:"12px",color:"#59645D",margin:"-4px 0 12px",lineHeight:1.45}}>{releaseLabel} charting on all {tp} tracked platforms at once.</p>
             {xHitsRows.slice(0,8).map((s,i)=>{
-              const certification = isArtists ? null : getCertificationForEntry(s, isSingles ? "single" : "album");
               return (
               <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:"7px 0",borderBottom:"1px solid #F0F0EC"}}>
                 <div style={{display:"flex",alignItems:"center",gap:"10px",flex:1,minWidth:0}}>
@@ -377,7 +362,6 @@ export default function AnalyticsPage({ ctx }) {
                   <div style={{minWidth:0}}>
                     <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
                       <button type="button" onClick={()=>openReleaseDetails(s,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,cursor:"pointer",textAlign:"left"}}>{s.t}</button>
-                      {certification&&<CertificationTag cert={certification} compact />}
                     </div>
                     {!isArtists && <div style={{fontSize:TXT.cardMeta,marginTop:"2px"}}><ArtistCredit credit={s.a} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize={TXT.cardMeta} fontWeight={400} color="#59645D" darkColor="#59645D" separatorColor="#59645D" darkSeparatorColor="#59645D" /></div>}
                   </div>
