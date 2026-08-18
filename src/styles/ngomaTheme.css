@@ -89,6 +89,17 @@ body {
   min-height: 100vh;
 }
 
+/* Scales the whole public site (text, images, logos, icons, spacing) up
+   one small step together, without the overflow/blank-space problems a
+   transform: scale() causes. Scoped to the public shell so the CMS/admin
+   app (which never renders .ngoma-app-shell) is unaffected, and to
+   desktop widths only — mobile stays exactly as-is. */
+@media (min-width: 769px) {
+  .ngoma-app-shell {
+    zoom: 1.05;
+  }
+}
+
 * {
   box-sizing: border-box;
 }
