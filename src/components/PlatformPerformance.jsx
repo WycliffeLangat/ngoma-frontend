@@ -136,7 +136,31 @@ export default function PlatformPerformance({
         </ResponsiveContainer>
       )}
 
-      {view === "table" && <div style={{ overflowX: "auto", border: `1px solid ${isDark ? "#2B302B" : "#ECE9E1"}`, borderRadius: "10px" }}>
+      {view === "table" && isMobile && (
+        <div style={{ display: "grid", gap: "8px" }}>
+          {ranked.map((row, index) => (
+            <div key={row.platform} style={{ border: `1px solid ${isDark ? "#2B302B" : "#ECE9E1"}`, borderRadius: "10px", padding: "12px", background: isDark ? "#151815" : "#FAFAF8" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px", marginBottom: "8px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0 }}>
+                  <span style={{ fontFamily: F, fontSize: "11px", fontWeight: 900, color: isDark ? "#FFFFFF" : "#000000", flexShrink: 0 }}>{index + 1}</span>
+                  <span style={{ fontFamily: F, fontSize: "13px", fontWeight: 850, color: platformColor(row.platform), whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{row.platform}</span>
+                </div>
+                <span style={{ fontFamily: F, fontSize: "14px", fontWeight: 900, color: isDark ? "#FFFFFF" : "#000000", flexShrink: 0 }}>{Number(row.points).toLocaleString()} pts</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: showReleases ? "repeat(4, 1fr)" : "repeat(3, 1fr)", gap: "6px", fontFamily: F, fontSize: "11px" }}>
+                {[["Placements", row.placements], ["Peak", row.peakRank === "—" ? "—" : `#${row.peakRank}`], ["Months", row.months], ...(showReleases ? [["Releases", row.releases]] : [])].map(([label, value]) => (
+                  <div key={label} style={{ textAlign: "center" }}>
+                    <div style={{ color: isDark ? "#FFFFFF" : "#000000", fontWeight: 800 }}>{value}</div>
+                    <div style={{ color: isDark ? "#FFFFFF" : "#000000", fontSize: "9px", textTransform: "uppercase", letterSpacing: ".6px", marginTop: "2px" }}>{label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {view === "table" && !isMobile && <div style={{ overflowX: "auto", border: `1px solid ${isDark ? "#2B302B" : "#ECE9E1"}`, borderRadius: "10px" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", minWidth: showReleases ? "610px" : "520px", fontFamily: F, fontSize: "12px" }}>
           <thead>
             <tr style={{ background: isDark ? "#151815" : "#FAFAF8", color: isDark ? "#FFFFFF" : "#000000", textAlign: "center" }}>

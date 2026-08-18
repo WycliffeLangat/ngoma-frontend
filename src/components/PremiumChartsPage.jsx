@@ -969,18 +969,22 @@ export default function PremiumChartsPage({
     () => [...data].sort((a, b) => Number(a.rank) - Number(b.rank)),
     [data]
   );
+  // Mobile hero is text-only — no cover-art slideshow.
+  const showHeroArt = !mobile && heroItems.length > 0;
 
   useEffect(() => {
     setSlideIdx(0);
     clearInterval(slideTimerRef.current);
-    if (heroItems.length > 1) {
+    // The hero image/slideshow is hidden entirely on mobile (text-only hero),
+    // so there's nothing to animate — skip the interval there.
+    if (!mobile && heroItems.length > 1) {
       slideTimerRef.current = setInterval(
         () => setSlideIdx(i => (i + 1) % heroItems.length),
         3800
       );
     }
     return () => clearInterval(slideTimerRef.current);
-  }, [data]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [data, mobile]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function sortValue(item, key) {
     const profile = getReleaseProfile(item);
@@ -1260,8 +1264,8 @@ export default function PremiumChartsPage({
           className="ngoma-hero-main"
           style={{
             ...styles.heroMain,
-            gridTemplateColumns: (!mobile && heroItems.length > 0) ? `minmax(0, 1fr) minmax(220px, ${tablet ? "300px" : "352px"})` : "1fr",
-            gap: heroItems.length > 0 ? (mobile ? "28px" : (tablet ? "44px" : "72px")) : 0,
+            gridTemplateColumns: showHeroArt ? `minmax(0, 1fr) minmax(220px, ${tablet ? "300px" : "352px"})` : "1fr",
+            gap: showHeroArt ? (tablet ? "44px" : "72px") : 0,
             alignItems: "center",
             justifyContent: "space-between",
             zIndex: 2,
@@ -1383,8 +1387,8 @@ export default function PremiumChartsPage({
             </div>
           </div>
 
-          {/* Right: rotating cover-art tile. */}
-          {heroItems.length > 0 && (() => {
+          {/* Right: rotating cover-art tile. Hidden on mobile — text-only hero there. */}
+          {showHeroArt && (() => {
             const item        = heroItems[slideIdx] || heroItems[0];
             const isArtist    = isArtistsChart || !!item?.is_artist_entry;
             const artProfile  = isArtist ? managedArtistForItem(item) : {};

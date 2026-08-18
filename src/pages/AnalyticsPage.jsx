@@ -21,33 +21,53 @@ function RecordRow({ r, pool, ctx, theme, rowStyle }) {
   const thumbItem = r.certificationEntry || rotating?.entry || null;
   const thumbName = r.certificationEntry ? (r.certificationEntry.artist || r.value) : (rotating?.name || r.value);
 
+  const leaderNode = (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start", gap: "10px", minWidth: 0 }}>
+      {thumbItem ? (
+        <EntryThumb item={thumbItem} name={thumbName} isArtist={isArtists} size={isMobile ? 34 : 38} accent={isDark?"#F6F3EA":"#1A1A1A"} />
+      ) : (
+        <div style={{ width: isMobile ? 34 : 38, height: isMobile ? 34 : 38, borderRadius: "9px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: isDark ? "#151915" : "#F0EDE7" }}>
+          <RecordIcon label={r.displayLabel} size={isMobile ? 17 : 19} />
+        </div>
+      )}
+      {r.certificationEntry ? (
+        <button
+          type="button"
+          onClick={() => { isArtists ? openArtistDetails(r.value) : openReleaseDetails(r.certificationEntry, isSingles ? "single" : "album"); }}
+          style={{ border: 0, background: "transparent", padding: 0, fontFamily: SF, fontWeight: 800, fontSize: "14px", cursor: "pointer", textAlign: "left", color: isDark ? "#FFFFFF" : "inherit", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}
+        >{r.value}</button>
+      ) : (
+        <span style={{ fontFamily: SF, fontWeight: 800, fontSize: "14px", color: isDark ? "#FFFFFF" : "inherit", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.value}</span>
+      )}
+    </div>
+  );
+
+  const detailNode = (
+    <>
+      <span>{r.displaySub}</span>
+      {r.climbDelta && <span style={{ display: "inline-flex", marginLeft: "8px", flexShrink: 0, alignItems: "center", padding: "1px 6px", borderRadius: "999px", background: isDark ? "rgba(45,176,74,0.16)" : "#EAF8EF", color: isDark ? "#4FCB6F" : "#1E8E3E", fontSize: "10px", fontWeight: 900 }}>+{r.climbDelta}</span>}
+    </>
+  );
+
+  if (isMobile) {
+    // Stacked single-column row: label, then leader, then detail — avoids
+    // horizontal scrolling on narrow screens.
+    return (
+      <tr style={rowStyle}>
+        <td style={{ padding: "12px 14px", verticalAlign: "middle" }}>
+          <div style={{ fontFamily: F, fontSize: "10px", fontWeight: 800, letterSpacing: "0.6px", textTransform: "uppercase", color: isDark ? "#FFFFFF" : "#000000", marginBottom: "8px" }}>{r.displayLabel}</div>
+          <div style={{ marginBottom: "6px" }}>{leaderNode}</div>
+          <div style={{ fontFamily: F, fontSize: "12px", color: isDark ? "#FFFFFF" : "#000000", lineHeight: 1.4 }}>{detailNode}</div>
+        </td>
+      </tr>
+    );
+  }
+
   return (
     <tr style={rowStyle}>
       <td style={{ padding: "14px 16px", verticalAlign: "middle", textAlign: "left", fontFamily: F, fontSize: "11px", fontWeight: 800, letterSpacing: "0.6px", textTransform: "uppercase", color: isDark ? "#FFFFFF" : "#000000" }}>{r.displayLabel}</td>
-      <td style={{ padding: "14px 16px", verticalAlign: "middle", textAlign: "left" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start", gap: "10px", minWidth: 0 }}>
-          {thumbItem ? (
-            <EntryThumb item={thumbItem} name={thumbName} isArtist={isArtists} size={38} accent={isDark?"#F6F3EA":"#1A1A1A"} />
-          ) : (
-            <div style={{ width: 38, height: 38, borderRadius: "9px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: isDark ? "#151915" : "#F0EDE7" }}>
-              <RecordIcon label={r.displayLabel} size={19} />
-            </div>
-          )}
-          {r.certificationEntry ? (
-            <button
-              type="button"
-              onClick={() => { isArtists ? openArtistDetails(r.value) : openReleaseDetails(r.certificationEntry, isSingles ? "single" : "album"); }}
-              style={{ border: 0, background: "transparent", padding: 0, fontFamily: SF, fontWeight: 800, fontSize: "14px", cursor: "pointer", textAlign: "left", color: isDark ? "#FFFFFF" : "inherit", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}
-            >{r.value}</button>
-          ) : (
-            <span style={{ fontFamily: SF, fontWeight: 800, fontSize: "14px", color: isDark ? "#FFFFFF" : "inherit", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.value}</span>
-          )}
-        </div>
-      </td>
-      <td style={{ padding: "14px 16px", verticalAlign: "middle", textAlign: "left", fontFamily: F, fontSize: "13px", color: isDark ? "#FFFFFF" : "#000000", lineHeight: 1.4 }}>
-        <span>{r.displaySub}</span>
-        {r.climbDelta && <span style={{ display: "inline-flex", marginLeft: "8px", flexShrink: 0, alignItems: "center", padding: "1px 6px", borderRadius: "999px", background: isDark ? "rgba(45,176,74,0.16)" : "#EAF8EF", color: isDark ? "#4FCB6F" : "#1E8E3E", fontSize: "10px", fontWeight: 900 }}>+{r.climbDelta}</span>}
-      </td>
+      <td style={{ padding: "14px 16px", verticalAlign: "middle", textAlign: "left" }}>{leaderNode}</td>
+      <td style={{ padding: "14px 16px", verticalAlign: "middle", textAlign: "left", fontFamily: F, fontSize: "13px", color: isDark ? "#FFFFFF" : "#000000", lineHeight: 1.4 }}>{detailNode}</td>
     </tr>
   );
 }
@@ -348,13 +368,16 @@ export default function AnalyticsPage({ ctx }) {
           <div style={{...card(),...sectionGap}}>
             <div style={{...secLbl(isDark?"#FFFFFF":"#000000"), fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>{isMobile?"Records & Milestones":"Records & Milestones — All Time"}</div>
             <p style={{fontFamily:F,fontSize:"13px",color:isDark?"#FFFFFF":"#000000",margin:"-4px 0 18px",lineHeight:1.5}}>{chartTypeLabel} achievements calculated solely from published public Top 50 charts across all tracked months.</p>
-            <div style={{overflowX:"auto",border:"1px solid "+(isDark?"#242923":"#EFEDE7"),borderRadius:"12px"}}>
-              <table style={{width:"100%",borderCollapse:"collapse",tableLayout:"fixed",minWidth:"520px",fontFamily:F}}>
+            <div style={{overflowX:isMobile?"visible":"auto",border:"1px solid "+(isDark?"#242923":"#EFEDE7"),borderRadius:"12px"}}>
+              <table style={{width:"100%",borderCollapse:"collapse",tableLayout:"fixed",minWidth:isMobile?"0":"520px",fontFamily:F}}>
+                {!isMobile && (
                 <colgroup>
                   <col style={{width:"22%"}}/>
                   <col style={{width:"28%"}}/>
                   <col style={{width:"50%"}}/>
                 </colgroup>
+                )}
+                {!isMobile && (
                 <thead>
                   <tr style={{background:isDark?"#151915":"#FAFAF8"}}>
                     <th style={{padding:"12px 16px",textAlign:"left",fontSize:"10px",letterSpacing:"0.8px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000"}}>Record</th>
@@ -362,6 +385,7 @@ export default function AnalyticsPage({ ctx }) {
                     <th style={{padding:"12px 16px",textAlign:"left",fontSize:"10px",letterSpacing:"0.8px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000"}}>Detail</th>
                   </tr>
                 </thead>
+                )}
                 <tbody>
                   {currentRecords.map((r,i)=>{
                     const pool = r.isTotalCount ? currentRecordsPool : [];
@@ -388,8 +412,9 @@ export default function AnalyticsPage({ ctx }) {
             <div style={{...secLbl(isDark?"#FFFFFF":"#000000"), fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>{isMobile?"Monthly #1s":"Hall of Fame — Monthly #1s"}</div>
             <p style={{fontFamily:F,fontSize:"13px",color:isDark?"#FFFFFF":"#000000",margin:"-4px 0 18px",lineHeight:1.5}}>Monthly leaders from the published public Top 50 charts across the full tracked dataset.</p>
             <div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1.8px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",marginBottom:"12px",paddingBottom:"6px",borderBottom:"1px solid "+(isDark?"#2F352F":"#E4E1D8")}}>{hofLabel}</div>
-            <div style={{overflowX:"auto",border:"1px solid "+(isDark?"#242923":"#EFEDE7"),borderRadius:"12px"}}>
-              <table style={{width:"100%",borderCollapse:"collapse",tableLayout:"fixed",minWidth:isArtists?"460px":"620px",fontFamily:F}}>
+            <div style={{overflowX:isMobile?"visible":"auto",border:"1px solid "+(isDark?"#242923":"#EFEDE7"),borderRadius:"12px"}}>
+              <table style={{width:"100%",borderCollapse:"collapse",tableLayout:"fixed",minWidth:isMobile?"0":(isArtists?"460px":"620px"),fontFamily:F}}>
+                {!isMobile && (
                 <colgroup>
                   <col style={{width:"56px"}}/>
                   <col style={{width:isArtists?"auto":"24%"}}/>
@@ -397,6 +422,8 @@ export default function AnalyticsPage({ ctx }) {
                   <col style={{width:"100px"}}/>
                   <col style={{width:isArtists?"38%":"30%"}}/>
                 </colgroup>
+                )}
+                {!isMobile && (
                 <thead>
                   <tr style={{background:isDark?"#151915":"#FAFAF8"}}>
                     <th style={{padding:"12px 16px",textAlign:"center",fontSize:"10px",letterSpacing:"0.8px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000"}}>#</th>
@@ -406,21 +433,46 @@ export default function AnalyticsPage({ ctx }) {
                     <th style={{padding:"12px 16px",textAlign:"left",fontSize:"10px",letterSpacing:"0.8px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000"}}>Months</th>
                   </tr>
                 </thead>
+                )}
                 <tbody>
-                  {hofItems.map((e,i)=>(
-                    <tr key={`${e.type}-${e.month}-${i}`} style={{borderTop:"1px solid "+(isDark?"#242923":"#EFEDE7"),background:isDark?(i%2?"#121612":"#0F120F"):(i%2?"#FBFAF7":"#FFF")}}>
-                      <td style={{padding:"14px 16px",verticalAlign:"middle",textAlign:"center",fontFamily:F,fontSize:"13px",fontWeight:900,color:isDark?"#FFFFFF":"#000000"}}>{i+1}</td>
-                      <td style={{padding:"14px 16px",verticalAlign:"middle",textAlign:"left"}}>
-                        <div style={{display:"flex",alignItems:"center",justifyContent:"flex-start",gap:"10px",minWidth:0}}>
-                          <EntryThumb item={e} name={isArtists?e.title:e.artist} isArtist={isArtists} size={38} accent={isDark?"#F6F3EA":"#1A1A1A"} />
-                          <button type="button" onClick={()=>openReleaseDetails(e,e.type)} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontWeight:800,fontSize:"14px",cursor:"pointer",textAlign:"left",color:isDark?"#FFFFFF":"inherit",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",maxWidth:"100%"}}>{e.title}</button>
-                        </div>
-                      </td>
-                      {!isArtists && <td style={{padding:"14px 16px",verticalAlign:"middle",textAlign:"left",fontFamily:F,fontSize:"13px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}><ArtistCredit credit={e.artist} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="13px" fontWeight={400} color="#000000" darkColor="#FFFFFF" separatorColor="#000000" darkSeparatorColor="#FFFFFF" /></td>}
-                      <td style={{padding:"14px 16px",verticalAlign:"middle",textAlign:"right",fontFamily:F,fontSize:"13px",fontWeight:800,color:isDark?"#FFFFFF":"#000000",whiteSpace:"nowrap"}}>{e.hofMonths.length > 1 ? `${e.hofMonths.length} months` : "1 month"}</td>
-                      <td title={e.hofMonths.map(abbrevMonth).join(", ")} style={{padding:"14px 16px",verticalAlign:"middle",textAlign:"left",fontFamily:F,fontSize:"12px",color:isDark?"#FFFFFF":"#000000",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{e.hofMonths.map(abbrevMonth).join(", ")}</td>
-                    </tr>
-                  ))}
+                  {hofItems.map((e,i)=>{
+                    const rowStyle = {borderTop:"1px solid "+(isDark?"#242923":"#EFEDE7"),background:isDark?(i%2?"#121612":"#0F120F"):(i%2?"#FBFAF7":"#FFF")};
+                    const timeLabel = e.hofMonths.length > 1 ? `${e.hofMonths.length} months` : "1 month";
+                    const monthsLabel = e.hofMonths.map(abbrevMonth).join(", ");
+                    if (isMobile) {
+                      return (
+                        <tr key={`${e.type}-${e.month}-${i}`} style={rowStyle}>
+                          <td style={{padding:"12px 14px",verticalAlign:"middle"}}>
+                            <div style={{display:"flex",alignItems:"center",justifyContent:"flex-start",gap:"10px",minWidth:0}}>
+                              <span style={{fontFamily:F,fontSize:"12px",fontWeight:900,color:isDark?"#FFFFFF":"#000000",flexShrink:0,width:"18px"}}>{i+1}</span>
+                              <EntryThumb item={e} name={isArtists?e.title:e.artist} isArtist={isArtists} size={34} accent={isDark?"#F6F3EA":"#1A1A1A"} />
+                              <div style={{minWidth:0,flex:1}}>
+                                <button type="button" onClick={()=>openReleaseDetails(e,e.type)} style={{display:"block",border:0,background:"transparent",padding:0,fontFamily:SF,fontWeight:800,fontSize:"14px",cursor:"pointer",textAlign:"left",color:isDark?"#FFFFFF":"inherit",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",maxWidth:"100%"}}>{e.title}</button>
+                                {!isArtists && <div style={{fontFamily:F,fontSize:"12px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}><ArtistCredit credit={e.artist} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="12px" fontWeight={400} color="#000000" darkColor="#FFFFFF" separatorColor="#000000" darkSeparatorColor="#FFFFFF" /></div>}
+                              </div>
+                            </div>
+                            <div title={monthsLabel} style={{marginTop:"8px",paddingLeft:"62px",fontFamily:F,fontSize:"11px",color:isDark?"#FFFFFF":"#000000",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
+                              <strong>{timeLabel}</strong> · {monthsLabel}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    }
+                    return (
+                      <tr key={`${e.type}-${e.month}-${i}`} style={rowStyle}>
+                        <td style={{padding:"14px 16px",verticalAlign:"middle",textAlign:"center",fontFamily:F,fontSize:"13px",fontWeight:900,color:isDark?"#FFFFFF":"#000000"}}>{i+1}</td>
+                        <td style={{padding:"14px 16px",verticalAlign:"middle",textAlign:"left"}}>
+                          <div style={{display:"flex",alignItems:"center",justifyContent:"flex-start",gap:"10px",minWidth:0}}>
+                            <EntryThumb item={e} name={isArtists?e.title:e.artist} isArtist={isArtists} size={38} accent={isDark?"#F6F3EA":"#1A1A1A"} />
+                            <button type="button" onClick={()=>openReleaseDetails(e,e.type)} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontWeight:800,fontSize:"14px",cursor:"pointer",textAlign:"left",color:isDark?"#FFFFFF":"inherit",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",maxWidth:"100%"}}>{e.title}</button>
+                          </div>
+                        </td>
+                        {!isArtists && <td style={{padding:"14px 16px",verticalAlign:"middle",textAlign:"left",fontFamily:F,fontSize:"13px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}><ArtistCredit credit={e.artist} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="13px" fontWeight={400} color="#000000" darkColor="#FFFFFF" separatorColor="#000000" darkSeparatorColor="#FFFFFF" /></td>}
+                        <td style={{padding:"14px 16px",verticalAlign:"middle",textAlign:"right",fontFamily:F,fontSize:"13px",fontWeight:800,color:isDark?"#FFFFFF":"#000000",whiteSpace:"nowrap"}}>{timeLabel}</td>
+                        <td title={monthsLabel} style={{padding:"14px 16px",verticalAlign:"middle",textAlign:"left",fontFamily:F,fontSize:"12px",color:isDark?"#FFFFFF":"#000000",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{monthsLabel}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
