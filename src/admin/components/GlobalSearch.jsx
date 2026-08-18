@@ -84,7 +84,7 @@ export default function GlobalSearch({ onNavigate }) {
             type="button"
             tabIndex={-1}
             onClick={() => { setQuery(""); setResults([]); setOpen(false); inputRef.current?.focus(); }}
-            style={{ position: "absolute", right: 6, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#aaa", fontSize: 17, lineHeight: 1, padding: "0 2px" }}
+            style={{ position: "absolute", right: 6, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#000000", fontSize: 17, lineHeight: 1, padding: "0 2px" }}
           >×</button>
         )}
       </div>
@@ -97,10 +97,10 @@ export default function GlobalSearch({ onNavigate }) {
           boxShadow: "0 6px 24px rgba(0,0,0,.13)", maxHeight: 420, overflowY: "auto",
         }}>
           {loading && results.length === 0 && (
-            <div style={{ padding: "12px 14px", color: "#aaa", fontSize: 13 }}>Searching…</div>
+            <div style={{ padding: "12px 14px", color: "#000000", fontSize: 13 }}>Searching…</div>
           )}
           {!loading && results.length === 0 && (
-            <div style={{ padding: "12px 14px", color: "#888", fontSize: 13 }}>No results for "{query}"</div>
+            <div style={{ padding: "12px 14px", color: "#000000", fontSize: 13 }}>No results for "{query}"</div>
           )}
 
           {typeOrder.map(type => {
@@ -130,13 +130,13 @@ export default function GlobalSearch({ onNavigate }) {
                     <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
                       <span style={{ fontSize: 13, fontWeight: 600, color: "#1a1a1a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{r.title}</span>
                       {r.meta && (
-                        <span style={{ fontSize: 10, color: "#bbb", flexShrink: 0, fontFamily: "monospace" }}>
+                        <span style={{ fontSize: 10, color: "#000000", flexShrink: 0, fontFamily: "monospace" }}>
                           {r.meta}
                         </span>
                       )}
                     </div>
                     {r.subtitle && (
-                      <span style={{ fontSize: 11, color: "#888", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      <span style={{ fontSize: 11, color: "#000000", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {r.subtitle}
                       </span>
                     )}
@@ -146,7 +146,7 @@ export default function GlobalSearch({ onNavigate }) {
             );
           })}
 
-          <div style={{ padding: "6px 14px", fontSize: 10, color: "#bbb", borderTop: "1px solid #f0f0f0", textAlign: "right" }}>
+          <div style={{ padding: "6px 14px", fontSize: 10, color: "#000000", borderTop: "1px solid #f0f0f0", textAlign: "right" }}>
             ↑↓ navigate &nbsp;·&nbsp; Enter select &nbsp;·&nbsp; Esc close
           </div>
         </div>

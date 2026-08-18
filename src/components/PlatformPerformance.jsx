@@ -65,16 +65,16 @@ export default function PlatformPerformance({
 
   // Chart theming — reacts to dark mode instead of hardcoded light colors.
   const gridStroke = isDark ? "#242923" : "#EDEAE2";
-  const axisTick = (size, extra) => ({ fontSize: size, fontFamily: F, fill: isDark ? "#93A093" : "#59645D", fontWeight: 650, ...extra });
+  const axisTick = (size, extra) => ({ fontSize: size, fontFamily: F, fill: isDark ? "#FFFFFF" : "#000000", fontWeight: 650, ...extra });
   const tooltipStyle = {
     fontFamily: F, fontSize: 11,
     background: isDark ? "#161A16" : "#FFFFFF",
     border: "1px solid " + (isDark ? "#2F352F" : "#E4E1D8"),
     borderRadius: "8px",
     boxShadow: isDark ? "0 8px 24px rgba(0,0,0,0.35)" : "0 8px 24px rgba(31,36,31,0.08)",
-    color: isDark ? "#F6F3EA" : "#1A1A1A",
+    color: isDark ? "#FFFFFF" : "#000000",
   };
-  const tooltipLabelStyle = { color: isDark ? "#D7DBD7" : "#59645D", fontWeight: 700, marginBottom: "2px" };
+  const tooltipLabelStyle = { color: isDark ? "#FFFFFF" : "#000000", fontWeight: 700, marginBottom: "2px" };
   const barCursorFill = isDark ? "rgba(255,255,255,0.05)" : "rgba(31,36,31,0.04)";
 
   return (
@@ -87,11 +87,11 @@ export default function PlatformPerformance({
     }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "14px", flexWrap: "wrap", marginBottom: "18px" }}>
         <div>
-          <div style={{ margin: 0, fontFamily: F, fontSize: "20px", fontWeight: 800, letterSpacing: isMobile ? "2px" : "2.4px", textTransform: "uppercase", color: isDark?"#F6F3EA":"#1A1A1A", display: "flex", alignItems: "center", gap: "7px", lineHeight: 1.35 }}>
-            <span style={{ display: "inline-block", width: "14px", height: "2px", background: isDark?"#F6F3EA":"#1A1A1A", borderRadius: "1px", flexShrink: 0 }} />
+          <div style={{ margin: 0, fontFamily: F, fontSize: "20px", fontWeight: 800, letterSpacing: isMobile ? "2px" : "2.4px", textTransform: "uppercase", color: isDark?"#FFFFFF":"#000000", display: "flex", alignItems: "center", gap: "7px", lineHeight: 1.35 }}>
+            <span style={{ display: "inline-block", width: "14px", height: "2px", background: isDark?"#FFFFFF":"#000000", borderRadius: "1px", flexShrink: 0 }} />
             Points by Platform
           </div>
-          <p style={{ margin: "-4px 0 0", fontFamily: F, fontSize: "12px", lineHeight: 1.5, color: isDark ? "#AEB6AE" : "#69716B" }}>
+          <p style={{ margin: "-4px 0 0", fontFamily: F, fontSize: "12px", lineHeight: 1.5, color: isDark ? "#FFFFFF" : "#000000" }}>
             Monthly platform placements are aggregated here for quick cross-platform comparison.
           </p>
         </div>
@@ -107,7 +107,7 @@ export default function PlatformPerformance({
                 borderRadius: "999px",
                 padding: "7px 12px",
                 background: view === option ? (isDark ? "#363C33" : "#1A1A1A") : "transparent",
-                color: view === option ? "#FFFFFF" : (isDark ? "#B8BDB8" : "#59645D"),
+                color: view === option ? "#FFFFFF" : (isDark ? "#FFFFFF" : "#000000"),
                 fontFamily: F,
                 fontSize: "10px",
                 fontWeight: 900,
@@ -124,12 +124,12 @@ export default function PlatformPerformance({
 
       {view === "graph" && (
         <ResponsiveContainer width="100%" height={Math.max(160, ranked.length * 34)}>
-          <BarChart data={ranked} layout="vertical" margin={{ top: 4, right: 24, left: 4, bottom: 4 }}>
+          <BarChart data={ranked} layout="vertical" margin={{ top: 4, right: 24, left: 4, bottom: 4 }} barCategoryGap="22%">
             <CartesianGrid stroke={gridStroke} horizontal={false} />
             <XAxis type="number" allowDecimals={false} tick={axisTick(10)} axisLine={false} tickLine={false} />
             <YAxis type="category" dataKey="platform" width={isMobile ? 82 : 104} tick={axisTick(11, { fontWeight: 800 })} axisLine={false} tickLine={false} />
             <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} cursor={{ fill: barCursorFill }} formatter={(v) => [Number(v).toLocaleString() + " pts", "Points"]} />
-            <Bar dataKey="points" radius={[0, 4, 4, 0]} maxBarSize={22}>
+            <Bar dataKey="points" radius={[0, 6, 6, 0]} maxBarSize={30}>
               {ranked.map((row) => <Cell key={row.platform} fill={platformColor(row.platform)} />)}
             </Bar>
           </BarChart>
@@ -139,22 +139,22 @@ export default function PlatformPerformance({
       {view === "table" && <div style={{ overflowX: "auto", border: `1px solid ${isDark ? "#2B302B" : "#ECE9E1"}`, borderRadius: "10px" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", minWidth: showReleases ? "610px" : "520px", fontFamily: F, fontSize: "12px" }}>
           <thead>
-            <tr style={{ background: isDark ? "#151815" : "#FAFAF8", color: isDark ? "#AEB6AE" : "#69716B", textAlign: "left" }}>
+            <tr style={{ background: isDark ? "#151815" : "#FAFAF8", color: isDark ? "#FFFFFF" : "#000000", textAlign: "center" }}>
               {["#", "Platform", "Points", "Placements", "Peak", "Months", ...(showReleases ? ["Releases"] : [])].map((label) => (
-                <th key={label} style={{ padding: "10px 12px", fontSize: "10px", letterSpacing: ".8px", textTransform: "uppercase" }}>{label}</th>
+                <th key={label} style={{ padding: "10px 12px", fontSize: "10px", letterSpacing: ".8px", textTransform: "uppercase", textAlign: "center" }}>{label}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {ranked.map((row, index) => (
               <tr key={row.platform} style={{ borderTop: `1px solid ${isDark ? "#2B302B" : "#F0EDE6"}` }}>
-                <td style={{ padding: "10px 12px", fontWeight: 900, color: isDark ? "#F6F3EA" : "#1A1A1A" }}>{index + 1}</td>
-                <td style={{ padding: "10px 12px", fontWeight: 850, color: platformColor(row.platform) }}>{row.platform}</td>
-                <td style={{ padding: "10px 12px", fontWeight: 900, color: isDark ? "#F6F3EA" : "#1A1A1A" }}>{Number(row.points).toLocaleString()}</td>
-                <td style={{ padding: "10px 12px", color: isDark ? "#F6F3EA" : "#1A1A1A" }}>{row.placements}</td>
-                <td style={{ padding: "10px 12px", color: isDark ? "#F6F3EA" : "#1A1A1A" }}>{row.peakRank === "—" ? "—" : `#${row.peakRank}`}</td>
-                <td style={{ padding: "10px 12px", color: isDark ? "#F6F3EA" : "#1A1A1A" }}>{row.months}</td>
-                {showReleases && <td style={{ padding: "10px 12px", color: isDark ? "#F6F3EA" : "#1A1A1A" }}>{row.releases}</td>}
+                <td style={{ padding: "10px 12px", fontWeight: 900, color: isDark ? "#FFFFFF" : "#000000", textAlign: "center" }}>{index + 1}</td>
+                <td style={{ padding: "10px 12px", fontWeight: 850, color: platformColor(row.platform), textAlign: "center" }}>{row.platform}</td>
+                <td style={{ padding: "10px 12px", fontWeight: 900, color: isDark ? "#FFFFFF" : "#000000", textAlign: "center" }}>{Number(row.points).toLocaleString()}</td>
+                <td style={{ padding: "10px 12px", color: isDark ? "#FFFFFF" : "#000000", textAlign: "center" }}>{row.placements}</td>
+                <td style={{ padding: "10px 12px", color: isDark ? "#FFFFFF" : "#000000", textAlign: "center" }}>{row.peakRank === "—" ? "—" : `#${row.peakRank}`}</td>
+                <td style={{ padding: "10px 12px", color: isDark ? "#FFFFFF" : "#000000", textAlign: "center" }}>{row.months}</td>
+                {showReleases && <td style={{ padding: "10px 12px", color: isDark ? "#FFFFFF" : "#000000", textAlign: "center" }}>{row.releases}</td>}
               </tr>
             ))}
           </tbody>

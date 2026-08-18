@@ -30,8 +30,8 @@ export default function ArtistChartSection({ ctx, title = "Top Artists", descrip
   const surface = isDark ? "#0F120F" : "#FFFFFF";
   const elevated = isDark ? "#151915" : "#FBFAF7";
   const cardBorder = isDark ? "#2F352F" : "rgba(0,0,0,0.08)";
-  const text = isDark ? "#F6F3EA" : "#050505";
-  const muted = isDark ? "#B8BDB8" : "#59645D";
+  const text = isDark ? "#FFFFFF" : "#000000";
+  const muted = isDark ? "#FFFFFF" : "#000000";
 
   const ArtistArtwork = ({ artist, size = 54, compact = false, style = {} }) => {
     const name = typeof artist === "string" ? artist : artist?.n || artist?.title || artist?.name || "";
@@ -144,7 +144,7 @@ export default function ArtistChartSection({ ctx, title = "Top Artists", descrip
         <div style={{ width: "100%", maxWidth: isMobile ? "360px" : "none", margin: "0 auto", border: `1px solid ${cardBorder}`, borderRadius: "12px", overflow: "hidden", background: surface }}>
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)" : "minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)", gap: "8px", alignItems: "center", padding: isMobile ? "10px 9px" : "12px 16px", background: "#1F241F", color: "#FFF" }}>
             <div style={{ fontFamily: F, fontSize: isMobile ? "10px" : "11px", fontWeight: 850, textAlign: "center", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#E4BE55" }}>{cmp1.n}</div>
-            <div style={{ fontFamily: F, fontSize: "9px", fontWeight: 900, letterSpacing: "1.4px", textAlign: "center", textTransform: "uppercase", color: "#C9CEC9" }}>Metric</div>
+            <div style={{ fontFamily: F, fontSize: "9px", fontWeight: 900, letterSpacing: "1.4px", textAlign: "center", textTransform: "uppercase", color: "#FFFFFF" }}>Metric</div>
             <div style={{ fontFamily: F, fontSize: isMobile ? "10px" : "11px", fontWeight: 850, textAlign: "center", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#FFF" }}>{cmp2.n}</div>
           </div>
           {metricRows.map((row, index) => {

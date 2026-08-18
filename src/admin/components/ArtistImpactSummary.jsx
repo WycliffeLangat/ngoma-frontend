@@ -118,11 +118,11 @@ export default function ArtistImpactSummary({ artists = [], action = "delete", k
                       padding: "4px 8px", cursor: onNavigate ? "pointer" : "default", font: "inherit",
                     }}
                   >
-                    {release.title} <span style={{ color: "#999" }}>({release.chart_type === "albums" ? "album" : "song"})</span>
+                    {release.title} <span style={{ color: "#000000" }}>({release.chart_type === "albums" ? "album" : "song"})</span>
                   </button>
                 ))}
                 {state.risks.length > MAX_RISKS_SHOWN && (
-                  <div style={{ color: "#aaa", fontSize: 11 }}>+ {state.risks.length - MAX_RISKS_SHOWN} more</div>
+                  <div style={{ color: "#000000", fontSize: 11 }}>+ {state.risks.length - MAX_RISKS_SHOWN} more</div>
                 )}
               </div>
               {canFixNow && (
@@ -144,7 +144,7 @@ export default function ArtistImpactSummary({ artists = [], action = "delete", k
             </div>
           )}
           {artists.length > targets.length && (
-            <div style={{ color: "#aaa", marginTop: 4, fontSize: 11 }}>
+            <div style={{ color: "#000000", marginTop: 4, fontSize: 11 }}>
               Only checked the first {MAX_ARTISTS_CHECKED} of {artists.length} selected artists.
             </div>
           )}

@@ -26,7 +26,7 @@ const CHART_TYPES = [
   ["artists", "Artists"],
 ];
 
-const GOLD = "#B8860B";
+const GOLD = "#C97A12";
 const BLUE = "#1565C0";
 
 const METRIC_ROWS = [

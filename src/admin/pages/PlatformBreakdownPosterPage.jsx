@@ -86,7 +86,7 @@ function PosterContent({ rows, chartType, metric, month, viewMode, theme = "dark
         >
           {headerTitle}
         </div>
-        <div style={{ marginTop: 10, fontSize: 20, fontWeight: 700, color: "#B8860B", textTransform: "uppercase", letterSpacing: "0.6px" }}>
+        <div style={{ marginTop: 10, fontSize: 20, fontWeight: 700, color: "#C97A12", textTransform: "uppercase", letterSpacing: "0.6px" }}>
           {month}
         </div>
       </div>
@@ -146,7 +146,7 @@ function PosterContent({ rows, chartType, metric, month, viewMode, theme = "dark
                   <span style={{ width: Math.round(16 * tableScale), height: Math.round(16 * tableScale), borderRadius: 4, background: row.color, flexShrink: 0 }} />
                   <span style={{ fontSize: Math.round(26 * tableScale), fontWeight: 800, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{row.label}</span>
                 </div>
-                <span style={{ fontSize: Math.round(30 * tableScale), fontWeight: 900, color: "#B8860B", flexShrink: 0 }}>{row.value}</span>
+                <span style={{ fontSize: Math.round(30 * tableScale), fontWeight: 900, color: "#C97A12", flexShrink: 0 }}>{row.value}</span>
               </div>
             ))}
           </div>

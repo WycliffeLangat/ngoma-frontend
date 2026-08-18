@@ -11,6 +11,7 @@ export default function ArtistDetailPage({ ctx }) {
     CountryBadge,
     F,
     GOLD,
+    GOLD_TEXTURE_URL,
     Line,
     LineChart,
     PAD,
@@ -135,36 +136,36 @@ export default function ArtistDetailPage({ ctx }) {
   // Shared chart theming — mirrors ReleaseDetailPage/AnalyticsPage so every
   // Recharts panel reacts to dark mode instead of hardcoded light colors.
   const gridStroke = isDark ? "#242923" : "#EDEAE2";
-  const axisTick = (size, extra) => ({ fontSize: size, fontFamily: F, fill: isDark ? "#93A093" : "#59645D", fontWeight: 650, ...extra });
+  const axisTick = (size, extra) => ({ fontSize: size, fontFamily: F, fill: isDark ? "#FFFFFF" : "#000000", fontWeight: 650, ...extra });
   const tooltipStyle = {
     fontFamily: F, fontSize: 11,
     background: isDark ? "#161A16" : "#FFFFFF",
     border: "1px solid " + (isDark ? "#2F352F" : "#E4E1D8"),
     borderRadius: "8px",
     boxShadow: isDark ? "0 8px 24px rgba(0,0,0,0.35)" : "0 8px 24px rgba(31,36,31,0.08)",
-    color: isDark ? "#F6F3EA" : "#1A1A1A",
+    color: isDark ? "#FFFFFF" : "#000000",
   };
-  const tooltipLabelStyle = { color: isDark ? "#D7DBD7" : "#59645D", fontWeight: 700, marginBottom: "2px" };
+  const tooltipLabelStyle = { color: isDark ? "#FFFFFF" : "#000000", fontWeight: 700, marginBottom: "2px" };
   const barCursorFill = isDark ? "rgba(255,255,255,0.05)" : "rgba(31,36,31,0.04)";
   const dividerColor = isDark ? "#2B302B" : "#F2F2EE";
   const darkCard = (extra = {}) => ({ ...card(extra), background: isDark ? "#0F120F" : "#FFFFFF", borderColor: isDark ? "#2B302B" : "#EFEDE7" });
 
   return (
 <div style={{padding:PAD,background:isDark?"#050505":"#f8f7f3",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
-          <span onClick={closeDetails} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#F6F3EA":"#1A1A1A",cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:700}}>← Back</span>
+          <span onClick={closeDetails} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#FFFFFF":"#000000",cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:700}}>← Back</span>
 
           {/* Profile header */}
           <div style={{marginTop:"22px",display:"flex",gap:isMobile?"16px":"24px",alignItems:"flex-start",flexDirection:isMobile?"column":"row",minWidth:0}}>
-            <div style={{width:isMobile?"112px":"156px",height:isMobile?"112px":"156px",borderRadius:"20px",background: isDark ? "#1A1E1A" : "#F0EDE7",display:"flex",alignItems:"center",justifyContent:"center",fontSize:isMobile?"40px":"56px",fontWeight:900,color:isDark?"#F6F3EA":"#1A1A1A",flexShrink:0,border:"2px solid "+(isDark?"rgba(255,255,255,0.12)":"rgba(0,0,0,0.06)"),boxShadow:isDark?"0 12px 30px rgba(0,0,0,0.28)":"0 10px 28px rgba(0,0,0,0.10)",overflow:"hidden"}}>
+            <div style={{width:isMobile?"112px":"156px",height:isMobile?"112px":"156px",borderRadius:"20px",background: isDark ? "#1A1E1A" : "#F0EDE7",display:"flex",alignItems:"center",justifyContent:"center",fontSize:isMobile?"40px":"56px",fontWeight:900,color:isDark?"#FFFFFF":"#000000",flexShrink:0,border:"2px solid "+(isDark?"rgba(255,255,255,0.12)":"rgba(0,0,0,0.06)"),boxShadow:isDark?"0 12px 30px rgba(0,0,0,0.28)":"0 10px 28px rgba(0,0,0,0.10)",overflow:"hidden"}}>
               {artistImage ? <img src={artistImage} alt={selA.n} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} /> : <span>{selA.n[0]}</span>}
             </div>
             <div style={{flex:1,minWidth:0}}>
               <div style={{display:"flex",alignItems:"center",gap:"10px",flexWrap:"wrap"}}>
-                <h2 style={{margin:0,fontFamily:SF,fontSize:isMobile?"26px":"32px",fontWeight:800,lineHeight:1.08,letterSpacing:"-0.5px",color:isDark?"#F6F3EA":"#1A1A1A"}}>{selA.n}</h2>
+                <h2 style={{margin:0,fontFamily:SF,fontSize:isMobile?"26px":"32px",fontWeight:800,lineHeight:1.08,letterSpacing:"-0.5px",color:isDark?"#FFFFFF":"#000000"}}>{selA.n}</h2>
                 <CountryBadge item={countryItem} showName />
               </div>
-              <div style={{fontFamily:F,fontSize:"14px",color:isDark?"#AEB6AE":"#69716B",marginTop:"6px",lineHeight:1.5}}>Recorded {placementCount} Top-50 platform placements across {chartedMonthCount} months</div>
-              {profileBiography&&<p className="bio-text" style={{fontFamily:F,fontSize:"15px",lineHeight:1.72,color:isDark?"#C7CCC6":"#4a534c",margin:"12px 0 0",maxWidth:"680px"}}>{profileBiography}</p>}
+              <div style={{fontFamily:F,fontSize:"14px",color:isDark?"#FFFFFF":"#000000",marginTop:"6px",lineHeight:1.5}}>Recorded {placementCount} Top-50 platform placements across {chartedMonthCount} months</div>
+              {profileBiography&&<p className="bio-text" style={{fontFamily:F,fontSize:"15px",lineHeight:1.72,color:isDark?"#FFFFFF":"#000000",margin:"12px 0 0",maxWidth:"680px"}}>{profileBiography}</p>}
 
               {/* Social icon links */}
               {socialLinks.length > 0 && (
@@ -185,7 +186,7 @@ export default function ArtistDetailPage({ ctx }) {
               <div className="artist-stat-strip">
                 {[{v:formatRank(selA.rank),l:"Current Rank"},{v:formatRank(selA.pk),l:"Best Rank"},{v:totalArtistPoints.toLocaleString(),l:"Total Points"},{v:placementCount,l:"Entries"},{v:chartedMonthCount,l:"Months"}].map((s,i)=>(
                   <div key={i} className="artist-stat-item">
-                    <div className="stat-value" style={{color:s.c||(isDark?"#F6F3EA":"#1A1A1A")}}>{s.v}</div>
+                    <div className="stat-value" style={{color:s.c||(isDark?"#FFFFFF":"#000000")}}>{s.v}</div>
                     <div className="stat-label">{s.l}</div>
                   </div>
                 ))}
@@ -198,8 +199,8 @@ export default function ArtistDetailPage({ ctx }) {
           <div style={{margin:"22px 0 18px",border:`1px solid ${isDark?"#2B302B":"#E8E5DC"}`,borderRadius:"14px",overflow:"hidden",background:isDark?"#0F1110":"#fff"}}>
             {metaRows.map(([label, value], idx) => (
               <div key={label} style={{display:"grid",gridTemplateColumns:isMobile?"110px 1fr":"170px 1fr",gap:"14px",padding:"12px 16px",background:isDark?(idx%2===0?"#121612":"#0F1110"):(idx%2===0?"#FAFAF8":"#FFFFFF"),borderTop:idx===0?"none":`1px solid ${isDark?"#2B302B":"#F0EDE6"}`,alignItems:"center"}}>
-                <span style={{fontFamily:F,fontSize:"11px",fontWeight:800,letterSpacing:"0.5px",color:isDark?"#8F968F":"#7B857D",textTransform:"uppercase"}}>{label}</span>
-                <span style={{fontFamily:F,fontSize:"14px",fontWeight:650,color:isDark?"#F6F3EA":"#1A1A1A",wordBreak:"break-word"}}>{value}</span>
+                <span style={{fontFamily:F,fontSize:"11px",fontWeight:800,letterSpacing:"0.5px",color:isDark?"#FFFFFF":"#000000",textTransform:"uppercase"}}>{label}</span>
+                <span style={{fontFamily:F,fontSize:"14px",fontWeight:650,color:isDark?"#FFFFFF":"#000000",wordBreak:"break-word"}}>{value}</span>
               </div>
             ))}
           </div>
@@ -207,19 +208,24 @@ export default function ArtistDetailPage({ ctx }) {
 
           <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:"14px",marginBottom:"20px"}}>
             <div style={darkCard()}>
-              <div style={secLbl(isDark?"#F6F3EA":"#1A1A1A")}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Monthly Credited Points</div>
+              <div style={secLbl(isDark?"#FFFFFF":"#000000")}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Monthly Credited Points</div>
               <ResponsiveContainer width="100%" height={190}>
-                <BarChart data={selectedArtistRankData}>
+                <BarChart data={selectedArtistRankData} barCategoryGap="20%">
+                  <defs>
+                    <pattern id="artistGoldTexture" patternUnits="userSpaceOnUse" width={64} height={42}>
+                      <image href={GOLD_TEXTURE_URL} x={0} y={0} width={64} height={42} preserveAspectRatio="xMidYMid slice"/>
+                    </pattern>
+                  </defs>
                   <CartesianGrid stroke={gridStroke} vertical={false}/>
                   <XAxis dataKey="month" tick={axisTick(10.5)} tickLine={false} axisLine={false}/>
                   <YAxis tick={axisTick(10)} axisLine={false} tickLine={false}/>
                   <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} cursor={{fill:barCursorFill}} formatter={v=>[v.toLocaleString()+" pts","Points"]}/>
-                  <Bar dataKey="points" fill={GOLD} radius={[4,4,0,0]} maxBarSize={22}/>
+                  <Bar dataKey="points" fill="url(#artistGoldTexture)" stroke={GOLD} strokeWidth={1} radius={[5,5,0,0]} maxBarSize={48}/>
                 </BarChart>
               </ResponsiveContainer>
             </div>
             <div style={darkCard()}>
-                <div style={secLbl(isDark?"#F6F3EA":"#1A1A1A")}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Monthly Artist Rank</div>
+                <div style={secLbl(isDark?"#FFFFFF":"#000000")}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Monthly Artist Rank</div>
               <ResponsiveContainer width="100%" height={190}>
                 <LineChart data={selectedArtistRankData} margin={{top:8,right:12,left:0,bottom:0}}>
                   <CartesianGrid stroke={gridStroke} vertical={false}/>
@@ -237,9 +243,9 @@ export default function ArtistDetailPage({ ctx }) {
               {label:"Top 10 Placements",value:topTenPlacements},
               {label:"#1 Placements",value:numberOnePlacements},
               {label:"Best Release Rank",value:bestReleaseRank?`#${bestReleaseRank}`:"—"},
-            ].map((stat)=><div key={stat.label} style={{padding:"14px 15px",border:"1px solid "+(isDark?"#2B302B":"#ECE9E1"),borderRadius:"10px",background:isDark?"#151815":"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#8F968F":"#7B857D"}}>{stat.label}</div><div style={{fontFamily:F,fontSize:"22px",fontWeight:900,color:isDark?"#F6F3EA":"#1A1A1A",marginTop:"5px"}}>{stat.value}</div></div>)}
+            ].map((stat)=><div key={stat.label} style={{padding:"14px 15px",border:"1px solid "+(isDark?"#2B302B":"#ECE9E1"),borderRadius:"10px",background:isDark?"#151815":"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000"}}>{stat.label}</div><div style={{fontFamily:F,fontSize:"22px",fontWeight:900,color:isDark?"#FFFFFF":"#000000",marginTop:"5px"}}>{stat.value}</div></div>)}
           </div>
-          <div style={secLbl(isDark?"#F6F3EA":"#1A1A1A")}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Charted Entries Across Months</div>
+          <div style={secLbl(isDark?"#FFFFFF":"#000000")}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Charted Entries Across Months</div>
           {selectedArtistEntryGroups.map((group)=>{
             const releaseType = group.chart_type === "albums" || group.chart_type === "album" ? "album" : "single";
             const certification = getCertificationForEntry(group, releaseType);
@@ -250,21 +256,21 @@ export default function ArtistDetailPage({ ctx }) {
                 <summary style={{display:"grid",gridTemplateColumns:isMobile?"minmax(0,1fr)":"minmax(0,1fr) 150px 90px",gap:"12px",alignItems:"center",padding:"11px 0",cursor:"pointer",listStyle:"none"}}>
                   <div style={{minWidth:0}}>
                     <div style={{display:"flex",alignItems:"center",gap:"7px",flexWrap:"wrap"}}>
-                      <button type="button" onClick={(event)=>{event.preventDefault();openReleaseDetails(bestRow,releaseType);}} style={{display:"flex",alignItems:"center",fontWeight:800,fontSize:TXT.cardTitle,fontFamily:SF,border:0,background:"transparent",padding:0,cursor:"pointer",textAlign:"left",color:isDark?"#F6F3EA":"#050505"}}>
+                      <button type="button" onClick={(event)=>{event.preventDefault();openReleaseDetails(bestRow,releaseType);}} style={{display:"flex",alignItems:"center",fontWeight:800,fontSize:TXT.cardTitle,fontFamily:SF,border:0,background:"transparent",padding:0,cursor:"pointer",textAlign:"left",color:isDark?"#FFFFFF":"#000000"}}>
                         {group.title}{certification&&<span aria-label={`${certification.label} certified`} title={`${certification.label} certified · ${Number(certification.totalPts||0).toLocaleString()} points`} style={{marginLeft:"4px",fontSize:"12px",opacity:0.85,lineHeight:1}}><span style={certification.iconFilter?{filter:certification.iconFilter}:undefined}>{certification.icon}</span></span>}
                       </button>
                     </div>
-                    <span style={{display:"block",marginTop:"3px",color:isDark?"#AEB6AE":"#7B857D",fontSize:TXT.micro,fontFamily:F}}>{releaseType === "album" ? "Album" : "Single"} · {chartedMonthCount} {chartedMonthCount===1?"month":"months"} charted · peak #{group.peak}</span>
+                    <span style={{display:"block",marginTop:"3px",color:isDark?"#FFFFFF":"#000000",fontSize:TXT.micro,fontFamily:F}}>{releaseType === "album" ? "Album" : "Single"} · {chartedMonthCount} {chartedMonthCount===1?"month":"months"} charted · peak #{group.peak}</span>
                   </div>
-                  <div style={{fontFamily:F,fontSize:TXT.cardMeta,fontWeight:900,color:isDark?"#F6F3EA":"#1A1A1A",whiteSpace:"nowrap",textAlign:isMobile?"left":"right"}}>{group.totalPoints.toLocaleString()} pts</div>
-                  <div style={{fontFamily:F,fontSize:"10px",fontWeight:850,color:isDark?"#AEB6AE":"#69716B",textAlign:isMobile?"left":"right",textTransform:"uppercase",letterSpacing:"1px"}}>Months</div>
+                  <div style={{fontFamily:F,fontSize:TXT.cardMeta,fontWeight:900,color:isDark?"#FFFFFF":"#000000",whiteSpace:"nowrap",textAlign:isMobile?"left":"right"}}>{group.totalPoints.toLocaleString()} pts</div>
+                  <div style={{fontFamily:F,fontSize:"10px",fontWeight:850,color:isDark?"#FFFFFF":"#000000",textAlign:isMobile?"left":"right",textTransform:"uppercase",letterSpacing:"1px"}}>Months</div>
                 </summary>
                 <div style={{padding:"0 0 10px 0",display:"grid",gap:"6px"}}>
                   {[...group.rows].sort((a,b)=>monthIndex(a.month)-monthIndex(b.month)).map((row,rowIndex)=>(
                     <div key={`${row.month}-${row.sourcePlatform || "combined"}-${rowIndex}`} style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) 56px 70px",gap:"8px",alignItems:"center",padding:"7px 10px",borderRadius:"9px",background:isDark?"#121612":"#FAFAF8"}}>
-                      <span style={{fontFamily:F,fontSize:"11px",fontWeight:800,color:isDark?"#D7DBD7":"#59645D"}}>{row.month}{row.sourcePlatform ? ` · ${row.sourcePlatform}` : ""}</span>
-                      <span style={{fontFamily:F,fontSize:"11px",fontWeight:900,color:isDark?"#F6F3EA":"#1A1A1A",textAlign:"right"}}>#{row.rank}</span>
-                      <span style={{fontFamily:F,fontSize:"11px",fontWeight:850,color:isDark?"#F6F3EA":"#1A1A1A",textAlign:"right"}}>{Number(row.pts||0).toLocaleString()} pts</span>
+                      <span style={{fontFamily:F,fontSize:"11px",fontWeight:800,color:isDark?"#FFFFFF":"#000000"}}>{row.month}{row.sourcePlatform ? ` · ${row.sourcePlatform}` : ""}</span>
+                      <span style={{fontFamily:F,fontSize:"11px",fontWeight:900,color:isDark?"#FFFFFF":"#000000",textAlign:"right"}}>#{row.rank}</span>
+                      <span style={{fontFamily:F,fontSize:"11px",fontWeight:850,color:isDark?"#FFFFFF":"#000000",textAlign:"right"}}>{Number(row.pts||0).toLocaleString()} pts</span>
                     </div>
                   ))}
                 </div>

@@ -89,13 +89,13 @@ export default function NewsDetailPage({ ctx }) {
     return (
       <div style={{padding:PAD,background:isDark?"#0F120F":"#FFF",border:isDark?"1px solid #2F352F":"1px solid transparent",borderRadius:isDark?"16px":"0",minHeight:"60vh",maxWidth:"680px",margin:"0 auto",boxSizing:"border-box"}}>
         <span onClick={()=>setSelNews(null)} style={{fontFamily:F,fontSize:isMobile?"14px":"13px",color:GOLD,cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>{"<- All News"}</span>
-        <h1 style={{fontFamily:F,fontSize:isMobile?"24px":"28px",fontWeight:850,margin:"22px 0 8px",lineHeight:1.18,color:isDark?"#F6F3EA":"#050505"}}>Story unavailable</h1>
-        <p style={{fontFamily:F,fontSize:"14px",lineHeight:1.65,color:isDark?"#C9CEC9":"#59645D",margin:0}}>This story could not be opened from the current data snapshot.</p>
+        <h1 style={{fontFamily:F,fontSize:isMobile?"24px":"28px",fontWeight:850,margin:"22px 0 8px",lineHeight:1.18,color:isDark?"#FFFFFF":"#000000"}}>Story unavailable</h1>
+        <p style={{fontFamily:F,fontSize:"14px",lineHeight:1.65,color:isDark?"#FFFFFF":"#000000",margin:0}}>This story could not be opened from the current data snapshot.</p>
       </div>
     );
   }
 
-  const color = isDark ? "#F6F3EA" : "#1A1A1A";
+  const color = isDark ? "#FFFFFF" : "#000000";
   const related = (NEWS || [])
     .filter((n) => n.id !== selNews.id && (n.category || "other") === (selNews.category || "other"))
     .slice(0, 3);
@@ -136,16 +136,16 @@ export default function NewsDetailPage({ ctx }) {
             </div>
             <div style={{display:"flex",gap:"10px",alignItems:"center",marginBottom:"12px",flexWrap:"wrap"}}>
               <span style={{fontFamily:F,fontSize:"11px",fontWeight:700,letterSpacing:"1.5px",textTransform:"uppercase",color:color,background:isDark?color+"22":color+"14",border:`1px solid ${color}3D`,padding:"2px 8px",borderRadius:"10px"}}>{selNews.cat}</span>
-              <span style={{fontFamily:F,fontSize:"12px",fontWeight:650,color:isDark?"#C9CEC9":"#59645D"}}>{selNews.date}</span>
-              <span style={{fontFamily:F,fontSize:"12px",color:isDark?"#666":"#B7BCB6"}}>/</span>
-              <span style={{fontFamily:F,fontSize:"12px",fontWeight:650,color:isDark?"#C9CEC9":"#59645D"}}>{readingTime(selNews.body)} min read</span>
+              <span style={{fontFamily:F,fontSize:"12px",fontWeight:650,color:isDark?"#FFFFFF":"#000000"}}>{selNews.date}</span>
+              <span style={{fontFamily:F,fontSize:"12px",color:isDark?"#FFFFFF":"#000000"}}>/</span>
+              <span style={{fontFamily:F,fontSize:"12px",fontWeight:650,color:isDark?"#FFFFFF":"#000000"}}>{readingTime(selNews.body)} min read</span>
               {selNews.breaking && (
                 <span style={{fontFamily:F,fontSize:"10.5px",fontWeight:900,letterSpacing:"0.8px",color:"#fff",background:"#C2364A",padding:"2px 7px",borderRadius:"5px"}}>BREAKING</span>
               )}
             </div>
-            <h1 style={{fontSize:isMobile?"26px":"30px",fontWeight:850,margin:"0 0 10px",lineHeight:1.18,color:isDark?"#F6F3EA":"#050505"}}>{selNews.title}</h1>
+            <h1 style={{fontSize:isMobile?"26px":"30px",fontWeight:850,margin:"0 0 10px",lineHeight:1.18,color:isDark?"#FFFFFF":"#000000"}}>{selNews.title}</h1>
             {selNews.author && (
-              <p style={{fontFamily:F,fontSize:"13px",fontWeight:650,color:isDark?"#9a9a9a":"#8A8F87",margin:"0 0 20px"}}>By {selNews.author}</p>
+              <p style={{fontFamily:F,fontSize:"13px",fontWeight:650,color:isDark?"#FFFFFF":"#000000",margin:"0 0 20px"}}>By {selNews.author}</p>
             )}
             {(canOpenRelease || canOpenArtist || sourceLinks.length > 0) && (
               <div style={{display:"flex",gap:"8px",flexWrap:"wrap",margin:"0 0 22px"}}>
@@ -153,7 +153,7 @@ export default function NewsDetailPage({ ctx }) {
                   <button
                     type="button"
                     onClick={() => openReleaseDetails(relatedRelease, relatedRelease.type)}
-                    style={{fontFamily:F,fontSize:"12px",fontWeight:800,color:isDark?"#F6F3EA":"#1f251f",background:isDark?"#171B16":"#F5F0E3",border:isDark?"1px solid #30382F":"1px solid #E0D4B3",borderRadius:"999px",padding:"8px 12px",cursor:"pointer"}}
+                    style={{fontFamily:F,fontSize:"12px",fontWeight:800,color:isDark?"#FFFFFF":"#000000",background:isDark?"#171B16":"#F5F0E3",border:isDark?"1px solid #30382F":"1px solid #E0D4B3",borderRadius:"999px",padding:"8px 12px",cursor:"pointer"}}
                   >
                     Release: {relatedRelease.title}
                   </button>
@@ -162,7 +162,7 @@ export default function NewsDetailPage({ ctx }) {
                   <button
                     type="button"
                     onClick={() => openArtistDetails(relatedArtistName)}
-                    style={{fontFamily:F,fontSize:"12px",fontWeight:800,color:isDark?"#F6F3EA":"#1f251f",background:isDark?"#171B16":"#F5F0E3",border:isDark?"1px solid #30382F":"1px solid #E0D4B3",borderRadius:"999px",padding:"8px 12px",cursor:"pointer"}}
+                    style={{fontFamily:F,fontSize:"12px",fontWeight:800,color:isDark?"#FFFFFF":"#000000",background:isDark?"#171B16":"#F5F0E3",border:isDark?"1px solid #30382F":"1px solid #E0D4B3",borderRadius:"999px",padding:"8px 12px",cursor:"pointer"}}
                   >
                     Artist: {relatedArtistName}
                   </button>
@@ -179,7 +179,7 @@ export default function NewsDetailPage({ ctx }) {
                       Source: {link.label}
                     </a>
                   ) : (
-                    <span key={`${link.label}-${index}`} style={{fontFamily:F,fontSize:"12px",fontWeight:800,color:isDark?"#C9CEC9":"#59645D",background:isDark?"#171B16":"#F5F0E3",border:isDark?"1px solid #30382F":"1px solid #E0D4B3",borderRadius:"999px",padding:"8px 12px"}}>
+                    <span key={`${link.label}-${index}`} style={{fontFamily:F,fontSize:"12px",fontWeight:800,color:isDark?"#FFFFFF":"#000000",background:isDark?"#171B16":"#F5F0E3",border:isDark?"1px solid #30382F":"1px solid #E0D4B3",borderRadius:"999px",padding:"8px 12px"}}>
                       Source: {link.label}
                     </span>
                   )
@@ -188,14 +188,14 @@ export default function NewsDetailPage({ ctx }) {
             )}
             {bodyParagraphs.map((p,i)=>(
               <div key={i}>
-                <p style={{fontFamily:F,fontSize:isMobile?"15px":"16px",color:isDark?"#D7DBD7":"#444",lineHeight:1.8,margin:"0 0 16px"}}>{p}</p>
+                <p style={{fontFamily:F,fontSize:isMobile?"15px":"16px",color:isDark?"#FFFFFF":"#000000",lineHeight:1.8,margin:"0 0 16px"}}>{p}</p>
                 {i === 0 && inlineMedia.length > 0 && (
                   <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(2,minmax(0,1fr))",gap:"10px",margin:"8px 0 22px"}}>
                     {inlineMedia.slice(0,2).map((item, index) => (
                       <figure key={`${item.url}-${index}`} style={{margin:0,borderRadius:"12px",overflow:"hidden",background:isDark?"#14170F":"#F4F1EA",border:isDark?"1px solid #2A2E28":"1px solid #EEE9DD"}}>
                         <img src={item.url} alt={item.caption || item.title || ""} style={{width:"100%",aspectRatio:isMobile?"16 / 10":"4 / 3",objectFit:"cover",display:"block"}} loading="lazy"/>
                         {(item.caption || item.title) && (
-                          <figcaption style={{fontFamily:F,fontSize:"11.5px",fontWeight:650,color:isDark?"#9a9a9a":"#69716b",lineHeight:1.45,padding:"8px 10px"}}>{item.caption || item.title}</figcaption>
+                          <figcaption style={{fontFamily:F,fontSize:"11.5px",fontWeight:650,color:isDark?"#FFFFFF":"#000000",lineHeight:1.45,padding:"8px 10px"}}>{item.caption || item.title}</figcaption>
                         )}
                       </figure>
                     ))}
@@ -207,14 +207,14 @@ export default function NewsDetailPage({ ctx }) {
             {Array.isArray(selNews.tags) && selNews.tags.length > 0 && (
               <div style={{display:"flex",gap:"8px",flexWrap:"wrap",margin:"8px 0 32px"}}>
                 {selNews.tags.map((t) => (
-                  <span key={t} style={{fontFamily:F,fontSize:"12px",fontWeight:600,color:isDark?"#B8BEB8":"#69716b",background:isDark?"#181C18":"#F4F1EA",border:isDark?"1px solid #2F352F":"1px solid #E8E5DC",padding:"4px 10px",borderRadius:"999px"}}>#{t}</span>
+                  <span key={t} style={{fontFamily:F,fontSize:"12px",fontWeight:600,color:isDark?"#FFFFFF":"#000000",background:isDark?"#181C18":"#F4F1EA",border:isDark?"1px solid #2F352F":"1px solid #E8E5DC",padding:"4px 10px",borderRadius:"999px"}}>#{t}</span>
                 ))}
               </div>
             )}
 
             {related.length > 0 && (
               <div style={{marginTop:"20px",paddingTop:"24px",borderTop:isDark?"1px solid #2F352F":"1px solid #EEE"}}>
-                <h4 style={{fontFamily:F,fontSize:"13px",fontWeight:800,letterSpacing:"0.6px",textTransform:"uppercase",color:isDark?"#9a9a9a":"#8A8F87",margin:"0 0 14px"}}>More in {selNews.cat}</h4>
+                <h4 style={{fontFamily:F,fontSize:"13px",fontWeight:800,letterSpacing:"0.6px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",margin:"0 0 14px"}}>More in {selNews.cat}</h4>
                 <div style={{display:"flex",flexDirection:"column",gap:"12px"}}>
                   {related.map((n) => {
                     const relatedMedia = getPrimaryNewsMedia(n, publicArtists);
@@ -222,8 +222,8 @@ export default function NewsDetailPage({ ctx }) {
                     <div key={n.id} onClick={()=>openNewsDetails ? openNewsDetails(n) : setSelNews(n)} style={{display:"flex",alignItems:"center",gap:"12px",cursor:"pointer",padding:"12px 14px",borderRadius:"10px",background:isDark?"#14170F":"#FAF8F3",border:isDark?"1px solid #2A2E28":"1px solid #EEE9DD"}}>
                       <EntryThumb item={{...n, cover_image: relatedMedia.url}} name={relatedMedia.artistName || n.title} size={56} radius="9px" accent={color} />
                       <div style={{minWidth:0}}>
-                        <div style={{fontFamily:F,fontSize:"12px",fontWeight:600,color:isDark?"#9a9a9a":"#9a9a9a",marginBottom:"4px"}}>{n.date}</div>
-                        <div style={{fontFamily:F,fontSize:"14.5px",fontWeight:750,color:isDark?"#F6F3EA":"#050505",lineHeight:1.35}}>{n.title}</div>
+                        <div style={{fontFamily:F,fontSize:"12px",fontWeight:600,color:isDark?"#FFFFFF":"#000000",marginBottom:"4px"}}>{n.date}</div>
+                        <div style={{fontFamily:F,fontSize:"14.5px",fontWeight:750,color:isDark?"#FFFFFF":"#000000",lineHeight:1.35}}>{n.title}</div>
                       </div>
                     </div>
                     );

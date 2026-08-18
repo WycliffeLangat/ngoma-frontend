@@ -483,12 +483,12 @@ export default function DuplicateReviewPage() {
       <div className="cms-resource-head">
         <div>
           <h2>Duplicate Review</h2>
-          <p style={{ margin: "4px 0 0", color: "#777", fontSize: 13 }}>
+          <p style={{ margin: "4px 0 0", color: "#000000", fontSize: 13 }}>
             Reviews exact and near matches across case, spacing, punctuation, accents, aliases, and small spelling differences.
           </p>
         </div>
         <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-          <span style={{ fontSize: 13, color: "#666" }}>
+          <span style={{ fontSize: 13, color: "#000000" }}>
             {groups === null ? "Scanning…" : `${visible.length} remaining · ${mergedCount} record(s) merged · ${ignoredCount} skipped`}
           </span>
           <select
@@ -519,7 +519,7 @@ export default function DuplicateReviewPage() {
         <div style={{ textAlign: "center", padding: "60px 20px", color: "#5a9a2f" }}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>✓</div>
           <strong style={{ fontSize: 18 }}>All reviewed!</strong>
-          <p style={{ color: "#888", fontSize: 14, marginTop: 6 }}>
+          <p style={{ color: "#000000", fontSize: 14, marginTop: 6 }}>
             {mergedCount > 0 ? `${mergedCount} record(s) merged. ` : ""}
             {ignoredCount > 0 ? `${ignoredCount} skipped.` : "No duplicates found."}
           </p>
@@ -542,8 +542,8 @@ export default function DuplicateReviewPage() {
                   {isArtist ? "Artist" : best._chartType}
                 </span>
                 <strong style={{ fontSize: 14 }}>{best._label}</strong>
-                <span style={{ fontSize: 12, color: "#888", marginLeft: 8 }}>{best._sub}</span>
-                <span style={{ fontSize: 11, color: "#bbb", marginLeft: 8 }}>{group.length} records</span>
+                <span style={{ fontSize: 12, color: "#000000", marginLeft: 8 }}>{best._sub}</span>
+                <span style={{ fontSize: 11, color: "#000000", marginLeft: 8 }}>{group.length} records</span>
               </div>
               <div style={{ display: "flex", gap: 8 }}>
                 <button className="cms-btn light" style={{ fontSize: 12 }} disabled={isBusy} onClick={() => dismiss(group)}>Keep separate</button>
@@ -566,7 +566,7 @@ export default function DuplicateReviewPage() {
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", fontSize: 12, borderCollapse: "collapse" }}>
                 <thead>
-                  <tr style={{ background: "#fafafa", color: "#999", textAlign: "left" }}>
+                  <tr style={{ background: "#fafafa", color: "#000000", textAlign: "left" }}>
                     <th style={{ padding: "6px 14px", fontWeight: 500, width: 40 }}></th>
                     <th style={{ padding: "6px 14px", fontWeight: 500 }}>ID</th>
                     <th style={{ padding: "6px 14px", fontWeight: 500 }}>{isArtist ? "Name" : "Title"}</th>
@@ -580,18 +580,18 @@ export default function DuplicateReviewPage() {
                   {group.map((r, ri) => (
                     <tr key={r.id} style={{ borderTop: "1px solid #f0f0f0", background: ri === 0 ? "#f9fef4" : "#fff" }}>
                       <td style={{ padding: "7px 14px", color: "#5a9a2f", fontWeight: 600, fontSize: 11 }}>{ri === 0 ? "◀ keep" : ""}</td>
-                      <td style={{ padding: "7px 14px", color: "#aaa" }}>{r.id}</td>
+                      <td style={{ padding: "7px 14px", color: "#000000" }}>{r.id}</td>
                       <td style={{ padding: "7px 14px" }}>{isArtist ? r.name : r.title}</td>
                       {!isArtist && <td style={{ padding: "7px 14px" }}>{r.artist_display}</td>}
                       <td style={{ padding: "7px 14px" }}>{isArtist ? r.release_count : r.entry_count}</td>
                       {!isArtist && <td style={{ padding: "7px 14px" }}>{r.cover_image ? "✓" : "—"}</td>}
-                      {isArtist && <td style={{ padding: "7px 14px", color: "#888" }}>{r.country_code || "—"}</td>}
+                      {isArtist && <td style={{ padding: "7px 14px", color: "#000000" }}>{r.country_code || "—"}</td>}
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <div style={{ padding: "5px 14px 8px", fontSize: 11, color: "#aaa" }}>
+            <div style={{ padding: "5px 14px 8px", fontSize: 11, color: "#000000" }}>
               Suggested keeper: id {best.id}
               {!isArtist && ` — ${best.entry_count} chart entries${best.cover_image ? " + cover art" : ""}`}
               {isArtist && ` — ${best.release_count} release(s)`}
@@ -639,9 +639,9 @@ export default function DuplicateReviewPage() {
                   <div style={{ border: "1.5px solid #fca5a5", borderRadius: 10, padding: "12px 14px", background: "#fff5f5", display: "flex", flexDirection: "column", gap: 3 }}>
                     <div style={{ fontSize: 9, fontWeight: 800, color: "#dc2626", textTransform: "uppercase", letterSpacing: ".09em", marginBottom: 2 }}>Delete</div>
                     <div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.35 }}>{rLabel(dups[0])}</div>
-                    {rSub(dups[0]) && <div style={{ fontSize: 11, color: "#666" }}>{rSub(dups[0])}</div>}
-                    {rMeta(dups[0]) && <div style={{ fontSize: 10, color: "#aaa" }}>{rMeta(dups[0])}</div>}
-                    <div style={{ fontSize: 10, color: "#ccc" }}>id {dups[0].id}</div>
+                    {rSub(dups[0]) && <div style={{ fontSize: 11, color: "#000000" }}>{rSub(dups[0])}</div>}
+                    {rMeta(dups[0]) && <div style={{ fontSize: 10, color: "#000000" }}>{rMeta(dups[0])}</div>}
+                    <div style={{ fontSize: 10, color: "#000000" }}>id {dups[0].id}</div>
                     <button
                       type="button"
                       className="cms-btn light"
@@ -654,9 +654,9 @@ export default function DuplicateReviewPage() {
                   <div style={{ border: "1.5px solid #86efac", borderRadius: 10, padding: "12px 14px", background: "#f0fdf4", display: "flex", flexDirection: "column", gap: 3 }}>
                     <div style={{ fontSize: 9, fontWeight: 800, color: "#16a34a", textTransform: "uppercase", letterSpacing: ".09em", marginBottom: 2 }}>✓ Keep</div>
                     <div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.35 }}>{rLabel(pickedKeeper)}</div>
-                    {rSub(pickedKeeper) && <div style={{ fontSize: 11, color: "#666" }}>{rSub(pickedKeeper)}</div>}
-                    {rMeta(pickedKeeper) && <div style={{ fontSize: 10, color: "#aaa" }}>{rMeta(pickedKeeper)}</div>}
-                    <div style={{ fontSize: 10, color: "#ccc" }}>id {pickedKeeper.id}</div>
+                    {rSub(pickedKeeper) && <div style={{ fontSize: 11, color: "#000000" }}>{rSub(pickedKeeper)}</div>}
+                    {rMeta(pickedKeeper) && <div style={{ fontSize: 10, color: "#000000" }}>{rMeta(pickedKeeper)}</div>}
+                    <div style={{ fontSize: 10, color: "#000000" }}>id {pickedKeeper.id}</div>
                   </div>
                 </div>
               ) : (
@@ -665,9 +665,9 @@ export default function DuplicateReviewPage() {
                   <div style={{ border: "1.5px solid #86efac", borderRadius: 10, padding: "12px 14px", background: "#f0fdf4", marginBottom: 8 }}>
                     <div style={{ fontSize: 9, fontWeight: 800, color: "#16a34a", textTransform: "uppercase", letterSpacing: ".09em", marginBottom: 4 }}>✓ Keep</div>
                     <div style={{ fontSize: 13, fontWeight: 700 }}>{rLabel(pickedKeeper)}</div>
-                    {rSub(pickedKeeper) && <div style={{ fontSize: 11, color: "#666", marginTop: 2 }}>{rSub(pickedKeeper)}</div>}
-                    {rMeta(pickedKeeper) && <div style={{ fontSize: 10, color: "#aaa", marginTop: 1 }}>{rMeta(pickedKeeper)}</div>}
-                    <div style={{ fontSize: 10, color: "#ccc" }}>id {pickedKeeper.id}</div>
+                    {rSub(pickedKeeper) && <div style={{ fontSize: 11, color: "#000000", marginTop: 2 }}>{rSub(pickedKeeper)}</div>}
+                    {rMeta(pickedKeeper) && <div style={{ fontSize: 10, color: "#000000", marginTop: 1 }}>{rMeta(pickedKeeper)}</div>}
+                    <div style={{ fontSize: 10, color: "#000000" }}>id {pickedKeeper.id}</div>
                   </div>
                   <div style={{ border: "1.5px solid #fca5a5", borderRadius: 10, padding: "12px 14px", background: "#fff5f5" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, gap: 8, flexWrap: "wrap" }}>
@@ -707,8 +707,8 @@ export default function DuplicateReviewPage() {
                           />
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontSize: 13, fontWeight: 600 }}>{rLabel(r)}</div>
-                            {rSub(r) && <div style={{ fontSize: 11, color: "#888" }}>{rSub(r)}</div>}
-                            <div style={{ fontSize: 10, color: "#ccc" }}>id {r.id} · {rMeta(r)}</div>
+                            {rSub(r) && <div style={{ fontSize: 11, color: "#000000" }}>{rSub(r)}</div>}
+                            <div style={{ fontSize: 10, color: "#000000" }}>id {r.id} · {rMeta(r)}</div>
                           </div>
                           <button
                             type="button"
@@ -724,7 +724,7 @@ export default function DuplicateReviewPage() {
                 </div>
               )}
 
-              <p style={{ fontSize: 12, color: "#888", margin: "0 0 4px" }}>
+              <p style={{ fontSize: 12, color: "#000000", margin: "0 0 4px" }}>
                 {isArtist
                   ? "The deleted artist's releases will be reassigned to the kept artist. Aliases are preserved."
                   : "Monthly chart points are summed into the kept record. Weekly entries on the same chart in the same week are dropped. Certifications are recalculated."}

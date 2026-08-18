@@ -275,7 +275,7 @@ export default function AdminApp() {
             <NgomaMark size={30} inkColor="#FFF" />
             <span style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"2px",minWidth:0}}>
               <strong style={{fontFamily:"'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",fontSize:"14px",fontWeight:950,letterSpacing:"-.02em",color:"#fff"}}>Ngoma Charts</strong>
-              <small style={{fontSize:"10px",letterSpacing:".09em",textTransform:"uppercase",color:"#908f86"}}>Admin workspace</small>
+              <small style={{fontSize:"10px",letterSpacing:".09em",textTransform:"uppercase",color:"#ffffff"}}>Admin workspace</small>
             </span>
           </div>
           <button

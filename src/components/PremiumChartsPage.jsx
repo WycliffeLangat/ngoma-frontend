@@ -36,7 +36,7 @@ function readableInk(color) {
       : Math.pow((normalized + 0.055) / 1.055, 2.4);
   });
   const luminance = 0.2126 * srgb[0] + 0.7152 * srgb[1] + 0.0722 * srgb[2];
-  return luminance > 0.35 ? "#050505" : "#ffffff";
+  return luminance > 0.35 ? "#000000" : "#ffffff";
 }
 
 function useRealMobile(isMobileFromParent) {
@@ -396,7 +396,7 @@ export default function PremiumChartsPage({
   const countryDisplayName = headerIsAfricaScope
     ? (headerCountryCode === KENYA_COUNTRY_CODE ? "Kenya" : africaScopeLabel)
     : "Kenya";
-  const countryAccent = darkMode ? "#F6F3EA" : "#1A1A1A";
+  const countryAccent = darkMode ? "#FFFFFF" : "#000000";
   const isExplicitPlatformChart = Boolean(PC[plat]) && plat !== "Combined" && plat !== "Kenyan" && !isAfricaChart(plat);
   const platformLabel = liveChartMeta?.platform || (
     isExplicitPlatformChart ? (PLAT_LABEL[plat] || plat) :
@@ -434,8 +434,8 @@ export default function PremiumChartsPage({
   const mastheadTitle = "NGOMA TOP 50";
   const mastheadSubtitle = `${countryDisplayName}'s most popular ${mastheadSubjectLower} across Music Charts.`;
   const mastheadSurface = darkMode ? "#0b0e0b" : "#ffffff";
-  const mastheadText = darkMode ? "#f6f3ea" : "#050505";
-  const mastheadMuted = darkMode ? "rgba(246,243,234,0.64)" : "#59645d";
+  const mastheadText = darkMode ? "#FFFFFF" : "#000000";
+  const mastheadMuted = darkMode ? "#FFFFFF" : "#000000";
   const mastheadBorder = darkMode ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.10)";
   const mastheadAccentBorder = chartAccent;
 
@@ -941,11 +941,11 @@ export default function PremiumChartsPage({
         {compact && <DetailCard label="Last Month" value={profile.lastMonth} />}
         {compact && <DetailCard label="Peak" value={profile.peak} />}
         {!compact && <DetailCard label="Months" value={getMonthsOnChart(item)} />}
-        {primaryCredit && <DetailCard label="Main artist(s)" value={<ArtistCredit credit={primaryCredit} onOpenArtist={openArtist} isDark={darkMode} fontFamily={F} fontSize="13px" fontWeight={500} color="#050505" darkColor="#fffdf7" separatorColor="#777777" darkSeparatorColor="#c8d0c8" />} wide />}
-        {featuredCredit && <DetailCard label="Featuring" value={<ArtistCredit credit={featuredCredit} onOpenArtist={openArtist} isDark={darkMode} fontFamily={F} fontSize="13px" fontWeight={500} color="#050505" darkColor="#fffdf7" separatorColor="#777777" darkSeparatorColor="#c8d0c8" />} wide />}
-        {creditedArtists && <DetailCard label="Additional credits" value={<ArtistCredit credit={creditedArtists} onOpenArtist={openArtist} isDark={darkMode} fontFamily={F} fontSize="13px" fontWeight={500} color="#050505" darkColor="#fffdf7" separatorColor="#777777" darkSeparatorColor="#c8d0c8" />} wide />}
-        {songwriterDetails !== "—" && <DetailCard label="Songwriter(s)" value={<ArtistCredit credit={songwriterDetails} onOpenArtist={openArtist} isDark={darkMode} fontFamily={F} fontSize="13px" fontWeight={500} color="#050505" darkColor="#fffdf7" separatorColor="#777777" darkSeparatorColor="#c8d0c8" />} wide />}
-        {producerDetails !== "—" && <DetailCard label="Producer(s)" value={<ArtistCredit credit={producerDetails} onOpenArtist={openArtist} isDark={darkMode} fontFamily={F} fontSize="13px" fontWeight={500} color="#050505" darkColor="#fffdf7" separatorColor="#777777" darkSeparatorColor="#c8d0c8" />} wide />}
+        {primaryCredit && <DetailCard label="Main artist(s)" value={<ArtistCredit credit={primaryCredit} onOpenArtist={openArtist} isDark={darkMode} fontFamily={F} fontSize="13px" fontWeight={500} color="#000000" darkColor="#FFFFFF" separatorColor="#000000" darkSeparatorColor="#FFFFFF" />} wide />}
+        {featuredCredit && <DetailCard label="Featuring" value={<ArtistCredit credit={featuredCredit} onOpenArtist={openArtist} isDark={darkMode} fontFamily={F} fontSize="13px" fontWeight={500} color="#000000" darkColor="#FFFFFF" separatorColor="#000000" darkSeparatorColor="#FFFFFF" />} wide />}
+        {creditedArtists && <DetailCard label="Additional credits" value={<ArtistCredit credit={creditedArtists} onOpenArtist={openArtist} isDark={darkMode} fontFamily={F} fontSize="13px" fontWeight={500} color="#000000" darkColor="#FFFFFF" separatorColor="#000000" darkSeparatorColor="#FFFFFF" />} wide />}
+        {songwriterDetails !== "—" && <DetailCard label="Songwriter(s)" value={<ArtistCredit credit={songwriterDetails} onOpenArtist={openArtist} isDark={darkMode} fontFamily={F} fontSize="13px" fontWeight={500} color="#000000" darkColor="#FFFFFF" separatorColor="#000000" darkSeparatorColor="#FFFFFF" />} wide />}
+        {producerDetails !== "—" && <DetailCard label="Producer(s)" value={<ArtistCredit credit={producerDetails} onOpenArtist={openArtist} isDark={darkMode} fontFamily={F} fontSize="13px" fontWeight={500} color="#000000" darkColor="#FFFFFF" separatorColor="#000000" darkSeparatorColor="#FFFFFF" />} wide />}
         {releaseDate && <DetailCard label="Release date" value={releaseDate} />}
         {releaseYear !== "—" && <DetailCard label="Release year" value={releaseYear} />}
         {genre && <DetailCard label="Genre" value={genre} />}
@@ -1085,7 +1085,7 @@ export default function PremiumChartsPage({
               style={{
                 ...styles.toggleButton,
                 background: active ? activeBg : (darkMode ? "transparent" : "#ffffff"),
-                color: active ? activeText : (darkMode ? "#B8BDB8" : "#111111"),
+                color: active ? activeText : (darkMode ? "#FFFFFF" : "#000000"),
                 borderColor: active ? activeBg : (darkMode ? "transparent" : "rgba(0,0,0,0.14)"),
                 boxShadow: "none",
                 flex: mobile ? 1 : "initial",
@@ -1181,7 +1181,7 @@ export default function PremiumChartsPage({
         .ngoma-premium-charts-dark .ytc-masthead-select {
           background: transparent !important;
           background-color: transparent !important;
-          color: #f6f3ea !important;
+          color: #ffffff !important;
           border-color: transparent !important;
           box-shadow: none !important;
         }
@@ -1294,7 +1294,7 @@ export default function PremiumChartsPage({
               <span style={{ color: countryAccent, fontWeight: 800 }}>{countryDisplayName}</span>
               {liveChartLoading && (
                 <>
-                  <span style={{color: darkMode ? "rgba(255,255,255,0.42)" : "#a3aaa5"}}>/</span>
+                  <span style={{color: darkMode ? "#FFFFFF" : "#000000"}}>/</span>
                   <span>Loading</span>
                 </>
               )}
@@ -1519,7 +1519,7 @@ export default function PremiumChartsPage({
                   style={{
                     ...styles.platformButton,
                     "--platform-pill-bg": darkMode ? "#151815" : "#ffffff",
-                    "--platform-pill-text": darkMode ? "#B8BDB8" : "#1A1A1A",
+                    "--platform-pill-text": darkMode ? "#FFFFFF" : "#000000",
                     "--platform-pill-border": darkMode ? "#2F352F" : "rgba(0,0,0,0.12)",
                     "--platform-pill-shadow": "none",
                     "--platform-pill-active-bg": color,
@@ -1529,7 +1529,7 @@ export default function PremiumChartsPage({
                     padding: mobile ? "8px 13px" : (tablet ? "7px 10px" : "8px 12px"),
                     borderColor: active ? color : (darkMode ? "#2F352F" : "rgba(0,0,0,0.12)"),
                     background: active ? color : (darkMode ? "#151815" : "#ffffff"),
-                    color: active ? ink : (darkMode ? "#B8BDB8" : "#1A1A1A"),
+                    color: active ? ink : (darkMode ? "#FFFFFF" : "#000000"),
                     boxShadow: active ? `0 2px 10px ${color}33` : "none",
                     flexShrink: 0,
                   }}
@@ -1561,13 +1561,13 @@ export default function PremiumChartsPage({
         }}
       >
         {mobile ? (
-          <div className="ngoma-mobile-table-header" style={{...styles.mobileTableHeader, background: darkMode ? "#0f120f" : "#f0ede6", borderBottom: `2px solid ${chartAccentBorder}`, color: darkMode ? "#8a9288" : "#3d4440"}}>
+          <div className="ngoma-mobile-table-header" style={{...styles.mobileTableHeader, background: darkMode ? "#0f120f" : "#f0ede6", borderBottom: `2px solid ${chartAccentBorder}`, color: darkMode ? "#FFFFFF" : "#000000"}}>
             <span style={styles.mobileTableHeaderCell}>#</span>
             <span style={{...styles.mobileTableHeaderCell, textAlign: "left"}}>{isArtistsChart ? "Artist" : (isSingles ? "Song" : "Album")}</span>
             <span style={styles.mobileTableHeaderCell}>Info</span>
           </div>
         ) : (
-          <div className="ngoma-table-header" style={{...styles.tableHeader, ...(tablet ? { gridTemplateColumns: "48px 72px minmax(0, 1fr) 82px 74px 66px 58px", gap: "14px", padding: "11px 18px", fontSize: "9.5px" } : null), background: darkMode ? "#0f120f" : "#f0ede6", borderBottom: `2px solid ${chartAccentBorder}`, color: darkMode ? "#8a9288" : "#3d4440"}}>
+          <div className="ngoma-table-header" style={{...styles.tableHeader, ...(tablet ? { gridTemplateColumns: "48px 72px minmax(0, 1fr) 82px 74px 66px 58px", gap: "14px", padding: "11px 18px", fontSize: "9.5px" } : null), background: darkMode ? "#0f120f" : "#f0ede6", borderBottom: `2px solid ${chartAccentBorder}`, color: darkMode ? "#FFFFFF" : "#000000"}}>
             <span
               style={{ ...styles.headerCell, cursor: "pointer" }}
               onClick={() => handleSort("rank")}
@@ -1607,7 +1607,7 @@ export default function PremiumChartsPage({
             const profile = getReleaseProfile(item);
             const move = movement(item);
             const moveStyle = movementStyle(item);
-            const medalColor = item.rank <= 3 ? MEDALS[item.rank - 1] : (darkMode ? "#f6f3ea" : "#050505");
+            const medalColor = item.rank <= 3 ? MEDALS[item.rank - 1] : (darkMode ? "#FFFFFF" : "#000000");
             const artistCountry = getArtistCountry(item);
             const badge = regionBadge(artistCountry.code);
             const rowKey = getRowKey(item, index);
@@ -1653,7 +1653,7 @@ export default function PremiumChartsPage({
                             openRelease(item);
                           }}
                           className="ngoma-title-link"
-                          style={{ ...styles.titleButton, ...yearEndTitleStyle(item), fontFamily: SF, ...(darkMode ? styles.titleButtonDark : null), color: darkMode ? "#FFFFFF" : "#050505" }}
+                          style={{ ...styles.titleButton, ...yearEndTitleStyle(item), fontFamily: SF, ...(darkMode ? styles.titleButtonDark : null), color: darkMode ? "#FFFFFF" : "#000000" }}
                           title={`Open ${item.title}`}
                         >
                           {item.title}
@@ -1662,7 +1662,7 @@ export default function PremiumChartsPage({
                         {isArtistsChart ? (
                           item.artist ? (
                             <span style={{...styles.artistLinksWrap, fontFamily: F}}>
-                              <ArtistCredit credit={item.artist} onOpenArtist={openArtist} isDark={darkMode} fontFamily={F} fontSize="13px" fontWeight={400} color="#59645D" darkColor="#8a9288" separatorColor="#777777" darkSeparatorColor="#c8d0c8" />
+                              <ArtistCredit credit={item.artist} onOpenArtist={openArtist} isDark={darkMode} fontFamily={F} fontSize="13px" fontWeight={400} color="#000000" darkColor="#FFFFFF" separatorColor="#000000" darkSeparatorColor="#FFFFFF" />
                             </span>
                           ) : null
                         ) : <ArtistLinks item={item} />}
@@ -1706,7 +1706,7 @@ export default function PremiumChartsPage({
                     ...styles.row,
                     ...(tablet ? { gridTemplateColumns: "48px 72px minmax(0, 1fr) 82px 74px 66px 58px", gap: "14px", padding: "16px 18px" } : null),
                     background: darkMode ? "#0d0f0d" : "transparent",
-                    color: darkMode ? "#fffdf7" : "#050505",
+                    color: darkMode ? "#FFFFFF" : "#000000",
                     animationDelay: `${Math.min(index * 20, 400)}ms`,
                     ...(item.rank === 1 ? { borderLeft: `3px solid ${chartAccent}` } : {}),
                   }}
@@ -1743,7 +1743,7 @@ export default function PremiumChartsPage({
                         <button
                           onClick={() => openRelease(item)}
                           className="ngoma-title-link"
-                          style={{ ...styles.titleButton, ...yearEndTitleStyle(item), fontFamily: SF, ...(darkMode ? styles.titleButtonDark : null), color: darkMode ? "#FFFFFF" : "#050505" }}
+                          style={{ ...styles.titleButton, ...yearEndTitleStyle(item), fontFamily: SF, ...(darkMode ? styles.titleButtonDark : null), color: darkMode ? "#FFFFFF" : "#000000" }}
                           title={`Open ${item.title}`}
                         >
                           {item.title}
@@ -1753,7 +1753,7 @@ export default function PremiumChartsPage({
                       {isArtistsChart ? (
                         item.artist ? (
                           <span style={{...styles.artistLinksWrap, fontFamily: F}}>
-                            <ArtistCredit credit={item.artist} onOpenArtist={openArtist} isDark={darkMode} fontFamily={F} fontSize="13px" fontWeight={400} color="#59645D" darkColor="#8a9288" separatorColor="#777777" darkSeparatorColor="#c8d0c8" />
+                            <ArtistCredit credit={item.artist} onOpenArtist={openArtist} isDark={darkMode} fontFamily={F} fontSize="13px" fontWeight={400} color="#000000" darkColor="#FFFFFF" separatorColor="#000000" darkSeparatorColor="#FFFFFF" />
                           </span>
                         ) : null
                       ) : <ArtistLinks item={item} />}
@@ -1813,7 +1813,7 @@ function MiniBars({ GOLD }) {
 const styles = {
   page: {
     background: "#ffffff",
-    color: "#050505",
+    color: "#000000",
     minHeight: "60vh",
     width: "100%",
     maxWidth: "100%",
@@ -1839,7 +1839,7 @@ const styles = {
     fontWeight: 800,
     letterSpacing: "1.1px",
     textTransform: "uppercase",
-    color: "#69716b",
+    color: "#000000",
   },
 
   eyebrowDivider: {
@@ -1867,7 +1867,7 @@ const styles = {
 
   logoText: {
     fontWeight: 900,
-    color: "#050505",
+    color: "#000000",
   },
 
   logoSub: {
@@ -1875,7 +1875,7 @@ const styles = {
     fontSize: "11px",
     letterSpacing: "2px",
     textTransform: "uppercase",
-    color: "#777777",
+    color: "#000000",
   },
 
   heroTitle: {
@@ -1884,7 +1884,7 @@ const styles = {
     fontWeight: 900,
     fontFamily: "'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",
     textTransform: "uppercase",
-    color: "#050505",
+    color: "#000000",
     maxWidth: "100%",
     overflowWrap: "break-word",
   },
@@ -1892,12 +1892,12 @@ const styles = {
   heroMeta: {
     display: "flex",
     flexWrap: "wrap",
-    color: "#777777",
+    color: "#000000",
   },
 
   heroMetaSmall: {
     fontSize: "12px",
-    color: "#777777",
+    color: "#000000",
     letterSpacing: "1.5px",
     textTransform: "uppercase",
   },
@@ -1911,7 +1911,7 @@ const styles = {
     borderRadius: "999px",
     border: "1px solid rgba(255,255,255,0.28)",
     background: "transparent",
-    color: "#050505",
+    color: "#000000",
     fontSize: "17px",
     fontWeight: 800,
     lineHeight: 1,
@@ -1952,7 +1952,7 @@ const styles = {
     fontWeight: 900,
     letterSpacing: "2.5px",
     textTransform: "uppercase",
-    color: "#777777",
+    color: "#000000",
   },
 
   numberOneRank: {
@@ -1969,7 +1969,7 @@ const styles = {
     padding: 0,
     marginTop: "18px",
     textAlign: "left",
-    color: "#050505",
+    color: "#000000",
     fontWeight: 900,
     lineHeight: 1.05,
     cursor: "pointer",
@@ -1982,7 +1982,7 @@ const styles = {
     background: "transparent",
     padding: 0,
     marginTop: "8px",
-    color: "#777777",
+    color: "#000000",
     fontSize: "15px",
     fontWeight: 700,
     cursor: "pointer",
@@ -2004,7 +2004,7 @@ const styles = {
     gap: "10px",
     flexWrap: "wrap",
     background: "#ffffff",
-    color: "#111111",
+    color: "#000000",
     borderBottom: "1px solid #EAEAE6",
     width: "100%",
     maxWidth: "100%",
@@ -2038,7 +2038,7 @@ const styles = {
     borderRadius: "12px",
     border: "1px solid #d1d5db",
     background: "#ffffff",
-    color: "#050505",
+    color: "#000000",
     fontSize: "13px",
     fontWeight: 700,
     outline: "none",
@@ -2077,7 +2077,7 @@ const styles = {
   },
 
   tableShell: {
-    color: "#050505",
+    color: "#000000",
     overflow: "hidden",
     maxWidth: "100%",
   },
@@ -2087,19 +2087,19 @@ const styles = {
     justifyContent: "space-between",
     gap: "20px",
     borderBottom: "1px solid rgba(0,0,0,0.08)",
-    color: "#050505",
+    color: "#000000",
   },
 
   tableTitle: {
     fontWeight: 950,
     letterSpacing: "-0.5px",
-    color: "#050505",
+    color: "#000000",
   },
 
   tableSub: {
     marginTop: "6px",
     fontSize: "12px",
-    color: "#555555",
+    color: "#000000",
     fontWeight: 800,
     letterSpacing: "1.2px",
     textTransform: "uppercase",
@@ -2124,7 +2124,7 @@ const styles = {
     justifyItems: "center",
     padding: "12px 24px",
     background: "#f0ede6",
-    color: "#3d4440",
+    color: "#000000",
     fontSize: "10px",
     fontWeight: 900,
     letterSpacing: "0.9px",
@@ -2202,14 +2202,14 @@ const styles = {
     padding: "12px 10px 12px 8px",
     borderLeft: "3px solid transparent",
     background: "#ffffff",
-    color: "#050505",
+    color: "#000000",
     cursor: "pointer",
     boxSizing: "border-box",
   },
 
   mobileDesktopRowDark: {
     background: "#0d0f0d",
-    color: "#fffdf7",
+    color: "#FFFFFF",
   },
 
   mobileDesktopRankStack: {
@@ -2262,7 +2262,7 @@ const styles = {
     border: "1px solid rgba(0,0,0,0.08)",
     borderRadius: "10px",
     background: "#fbfaf7",
-    color: "#555555",
+    color: "#000000",
     fontSize: "20px",
     fontWeight: 900,
     lineHeight: 1,
@@ -2277,7 +2277,7 @@ const styles = {
   mobileDesktopDetailsToggleDark: {
     border: "1px solid rgba(255,255,255,0.12)",
     background: "#151815",
-    color: "#fffdf7",
+    color: "#FFFFFF",
     boxShadow: "0 2px 10px rgba(0,0,0,0.22)",
   },
 
@@ -2293,7 +2293,7 @@ const styles = {
   mobileDesktopExpandedDetailsDark: {
     borderTop: "1px solid rgba(255,255,255,0.10)",
     background: "#0b0e0b",
-    color: "#fffdf7",
+    color: "#FFFFFF",
   },
 
   row: {
@@ -2303,7 +2303,7 @@ const styles = {
     alignItems: "center",
     padding: "20px 24px",
     borderBottom: "1px solid rgba(0,0,0,0.08)",
-    color: "#050505",
+    color: "#000000",
     animation: "fadeUp 0.35s ease both",
     transition: "background 180ms ease, box-shadow 180ms ease",
   },
@@ -2342,7 +2342,7 @@ const styles = {
     border: "1px solid rgba(0,0,0,0.08)",
     borderRadius: "14px",
     background: "#fbfaf7",
-    color: "#555555",
+    color: "#000000",
     fontSize: "22px",
     fontWeight: 900,
     lineHeight: 1,
@@ -2357,7 +2357,7 @@ const styles = {
   desktopDetailsToggleDark: {
     border: "1px solid rgba(255,255,255,0.12)",
     background: "#151815",
-    color: "#fffdf7",
+    color: "#FFFFFF",
     boxShadow: "0 2px 10px rgba(0,0,0,0.22)",
   },
 
@@ -2372,7 +2372,7 @@ const styles = {
   desktopExpandedDetailsDark: {
     border: "1px solid rgba(255,255,255,0.10)",
     background: "#0f120f",
-    color: "#fffdf7",
+    color: "#FFFFFF",
     boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.02)",
   },
 
@@ -2400,13 +2400,13 @@ const styles = {
   detailCardDark: {
     background: "#151815",
     border: "1px solid rgba(255,255,255,0.10)",
-    color: "#fffdf7",
+    color: "#FFFFFF",
   },
 
   platformDetailCardDark: {
     background: "#101310",
     border: "1px solid rgba(255,255,255,0.16)",
-    color: "#fffdf7",
+    color: "#FFFFFF",
   },
 
   detailCardWide: {
@@ -2416,7 +2416,7 @@ const styles = {
   detailCardLabel: {
     display: "block",
     fontSize: "10px",
-    color: "#777777",
+    color: "#000000",
     fontWeight: 900,
     letterSpacing: "0.8px",
     textTransform: "uppercase",
@@ -2424,13 +2424,13 @@ const styles = {
   },
 
   detailCardLabelDark: {
-    color: "#c8d0c8",
+    color: "#FFFFFF",
   },
 
   detailCardValue: {
     display: "block",
     marginTop: "5px",
-    color: "#050505",
+    color: "#000000",
     fontSize: "13px",
     fontWeight: 500,
     lineHeight: 1.25,
@@ -2438,7 +2438,7 @@ const styles = {
   },
 
   detailCardValueDark: {
-    color: "#fffdf7",
+    color: "#FFFFFF",
   },
 
   detailLinks: {
@@ -2464,7 +2464,7 @@ const styles = {
     fontSize: "34px",
     fontWeight: 950,
     lineHeight: 1,
-    color: "#050505",
+    color: "#000000",
   },
 
   moveBadge: {
@@ -2524,7 +2524,7 @@ const styles = {
   },
 
   artistSeparator: {
-    color: "#777777",
+    color: "#000000",
     fontSize: "13px",
     fontWeight: 400,
     margin: "0 4px",
@@ -2532,7 +2532,7 @@ const styles = {
   },
 
   artistSeparatorDark: {
-    color: "#c8d0c8",
+    color: "#FFFFFF",
   },
 
   titleButton: {
@@ -2542,7 +2542,7 @@ const styles = {
     background: "transparent",
     WebkitAppearance: "none",
     appearance: "none",
-    color: "#050505",
+    color: "#000000",
     padding: 0,
     textAlign: "left",
     fontSize: "16px",
@@ -2564,7 +2564,7 @@ const styles = {
     maxWidth: "100%",
     border: "none",
     background: "transparent",
-    color: "#59645D",
+    color: "#000000",
     padding: 0,
     marginTop: 0,
     textAlign: "left",
@@ -2577,18 +2577,18 @@ const styles = {
   },
 
   artistButtonDark: {
-    color: "#8a9288",
+    color: "#FFFFFF",
   },
 
   metaNumber: {
-    color: "#050505",
+    color: "#000000",
     fontSize: "15px",
     fontWeight: 900,
     textAlign: "center",
   },
 
   metaNumberDark: {
-    color: "#fffdf7",
+    color: "#FFFFFF",
   },
 
   platformCell: {
@@ -2596,7 +2596,7 @@ const styles = {
     padding: "6px 9px",
     borderRadius: "999px",
     background: "#f2f2f2",
-    color: "#050505",
+    color: "#000000",
     fontSize: "12px",
     fontWeight: 900,
   },
@@ -2604,7 +2604,7 @@ const styles = {
   tableFooter: {
     padding: "16px 22px",
     textAlign: "center",
-    color: "#777777",
+    color: "#000000",
     fontSize: "12px",
     fontWeight: 700,
     background: "#ffffff",

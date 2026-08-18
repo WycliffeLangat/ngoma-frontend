@@ -43,7 +43,7 @@ const COUNT_OPTIONS = [5, 10, 15, 20];
 // since that's how platform names come back from the app-data payload
 // (payload.full.singles.platforms keys are e.g. "SPOTIFY", "APPLE MUSIC").
 const PLATFORM_COLORS = {
-  COMBINED: "#B8860B",
+  COMBINED: "#C97A12",
   KENYAN: "#006600",
   SPOTIFY: "#1DB954",
   "APPLE MUSIC": "#FC3C44",
@@ -63,7 +63,7 @@ const PLATFORM_LABELS = {
   SHAZAM: "Shazam",
 };
 const platformKey = (name) => String(name || "").trim().toUpperCase();
-const platformColor = (name) => PLATFORM_COLORS[platformKey(name)] || "#B8860B";
+const platformColor = (name) => PLATFORM_COLORS[platformKey(name)] || "#C97A12";
 const platformLabel = (name) => PLATFORM_LABELS[platformKey(name)] || name;
 
 // Monthly rows get their MONTHS/PEAK/+- columns from chartHistoryForMonth()
@@ -114,7 +114,7 @@ function MovementChip({ movement, sameColor, scale }) {
   const fontSize = Math.round(28 * scale);
   if (movement === "new") {
     return (
-      <span style={{ padding: pad, borderRadius: 999, background: "#B8860B22", color: "#B8860B", fontSize, fontWeight: 900, letterSpacing: "0.4px" }}>
+      <span style={{ padding: pad, borderRadius: 999, background: "#C97A1222", color: "#C97A12", fontSize, fontWeight: 900, letterSpacing: "0.4px" }}>
         NEW
       </span>
     );
@@ -239,7 +239,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
                     flexShrink: 0,
                     fontSize: Math.round(36 * scale),
                     fontWeight: 900,
-                    color: row.rank <= 3 ? "#B8860B" : t.metaColor,
+                    color: row.rank <= 3 ? "#C97A12" : t.metaColor,
                   }}
                 >
                   {row.rank}

@@ -67,7 +67,7 @@ export default function PrivacyPolicyPage() {
         <section style={{padding:"clamp(34px,7vw,72px) 0 28px",borderBottom:"1px solid rgba(25,27,23,0.16)"}}>
           <p style={{margin:"0 0 12px",fontSize:"12px",fontWeight:900,letterSpacing:"0.12em",textTransform:"uppercase",color:"#7A6A2E"}}>Effective August 18, 2026</p>
           <h1 style={{fontFamily:S,fontSize:"clamp(42px,8vw,82px)",lineHeight:0.95,margin:"0 0 18px",letterSpacing:0}}>Privacy Policy</h1>
-          <p style={{maxWidth:"720px",fontSize:"clamp(16px,2.2vw,20px)",lineHeight:1.65,margin:0,color:"#4D554C"}}>
+          <p style={{maxWidth:"720px",fontSize:"clamp(16px,2.2vw,20px)",lineHeight:1.65,margin:0,color:"#000000"}}>
             This Privacy Policy explains how Ngoma Media Ltd handles information for Ngoma Charts, including the website and Android app.
           </p>
         </section>
@@ -77,7 +77,7 @@ export default function PrivacyPolicyPage() {
             <article key={section.title} style={{display:"grid",gap:"10px"}}>
               <h2 style={{fontFamily:S,fontSize:"clamp(24px,4vw,34px)",lineHeight:1.1,margin:0,letterSpacing:0}}>{section.title}</h2>
               {section.body.map((paragraph) => (
-                <p key={paragraph} style={{fontSize:"15.5px",lineHeight:1.75,margin:0,color:"#4D554C"}}>{paragraph}</p>
+                <p key={paragraph} style={{fontSize:"15.5px",lineHeight:1.75,margin:0,color:"#000000"}}>{paragraph}</p>
               ))}
             </article>
           ))}
@@ -85,7 +85,7 @@ export default function PrivacyPolicyPage() {
 
         <section style={{borderTop:"1px solid rgba(25,27,23,0.16)",padding:"26px 0 0",display:"grid",gap:"8px"}}>
           <h2 style={{fontFamily:S,fontSize:"28px",lineHeight:1.1,margin:0,letterSpacing:0}}>Contact</h2>
-          <p style={{fontSize:"15.5px",lineHeight:1.75,margin:0,color:"#4D554C"}}>
+          <p style={{fontSize:"15.5px",lineHeight:1.75,margin:0,color:"#000000"}}>
             For privacy questions, contact Ngoma Media Ltd at{" "}
             <a href="mailto:ngomacharts@gmail.com" style={{color:"#191B17",fontWeight:800}}>ngomacharts@gmail.com</a>.
           </p>

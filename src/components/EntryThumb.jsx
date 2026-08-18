@@ -79,7 +79,7 @@ export default function EntryThumb({
   size = 40,
   radius,
   isArtist = false,
-  accent = "#B8860B",
+  accent = "#C97A12",
   style = {},
 }) {
   const displayName = name || getArtistDisplayName(item) || item?.a || item?.artist || "";

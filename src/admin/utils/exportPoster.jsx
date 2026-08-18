@@ -35,7 +35,7 @@ const TRANSPARENT_PIXEL =
 
 export function readableInk(color) {
   const hex = String(color || "").trim().match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
-  if (!hex) return "#050505";
+  if (!hex) return "#000000";
   let value = hex[1];
   if (value.length === 3) value = value.split("").map((c) => c + c).join("");
   const int = Number.parseInt(value, 16);
@@ -44,7 +44,7 @@ export function readableInk(color) {
     return normalized <= 0.03928 ? normalized / 12.92 : Math.pow((normalized + 0.055) / 1.055, 2.4);
   });
   const luminance = 0.2126 * srgb[0] + 0.7152 * srgb[1] + 0.0722 * srgb[2];
-  return luminance > 0.42 ? "#050505" : "#FFFFFF";
+  return luminance > 0.42 ? "#000000" : "#FFFFFF";
 }
 
 // `imagePlaceholder` keeps one failed remote cover-art request from aborting
@@ -591,7 +591,7 @@ export function PosterSettingsPanel({ settings, onChange, onReset, theme = "dark
 // Fallback artwork tile used whenever a record has no cover/hero image — a
 // card should never show a blank gap where art belongs, so this renders the
 // same brand mark used in the header instead of a plain color block.
-export function ArtPlaceholder({ width, height, radius = 0, theme, accentColor = "#B8860B", markSize }) {
+export function ArtPlaceholder({ width, height, radius = 0, theme, accentColor = "#C97A12", markSize }) {
   const t = usePosterTheme(theme);
   const size = markSize || Math.round(Math.min(
     typeof width === "number" ? width : 200,

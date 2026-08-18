@@ -26,15 +26,17 @@
   --ngoma-soft-bg: #f3f1ec;
   --ngoma-soft-gold-bg: #fff7e6;
 
-  --ngoma-text: #050505;
-  --ngoma-text-soft: #4f4f4f;
-  --ngoma-muted: #69716b;
-  --ngoma-muted-light: #b8b8b8;
+  --ngoma-text: #000000;
+  --ngoma-text-soft: #000000;
+  --ngoma-muted: #000000;
+  --ngoma-muted-light: #000000;
 
-  --ngoma-gold: #b8860b;
-  --ngoma-gold-bright: #d4a017;
-  --ngoma-gold-soft: rgba(184, 134, 11, 0.12);
-  --ngoma-gold-border: rgba(184, 134, 11, 0.38);
+  --ngoma-gold: #c97a12;
+  --ngoma-gold-bright: #f2981a;
+  --ngoma-gold-soft: rgba(201, 122, 18, 0.12);
+  --ngoma-gold-border: rgba(201, 122, 18, 0.38);
+  --ngoma-gold-texture: url("/textures/gold-texture.png");
+  --ngoma-gold-texture-size: 160px 106px;
 
   --ngoma-green: #2db04a;
   --ngoma-blue: #1565c0;
@@ -203,7 +205,7 @@ main {
 .nav a,
 .ngoma-nav a,
 .nav-link {
-  color: #767676;
+  color: var(--ngoma-text);
   transition:
     color var(--ngoma-transition),
     border-color var(--ngoma-transition),
@@ -225,7 +227,7 @@ main {
 .ngoma-nav .active {
   color: var(--ngoma-text);
   border-color: var(--ngoma-gold);
-  background: rgba(184, 134, 11, 0.12);
+  background: rgba(201, 122, 18, 0.12);
 }
 
 .nav-pill,
@@ -463,8 +465,8 @@ small,
 .summary-card:hover,
 .leader-card:hover {
   background: var(--ngoma-white);
-  border-color: rgba(184, 134, 11, 0.32);
-  box-shadow: 0 12px 32px rgba(184, 134, 11, 0.10);
+  border-color: rgba(201, 122, 18, 0.32);
+  box-shadow: 0 12px 32px rgba(201, 122, 18, 0.10);
   transform: translateY(-2px);
 }
 
@@ -577,7 +579,7 @@ small,
 .pill,
 .platform-filter,
 .month-filter {
-  color: #686868;
+  color: var(--ngoma-text);
   border: 1px solid var(--ngoma-border-medium);
   background: var(--ngoma-white);
   border-radius: 999px;
@@ -595,7 +597,7 @@ small,
 .month-filter:hover {
   color: var(--ngoma-gold);
   border-color: var(--ngoma-gold-border);
-  background: rgba(184, 134, 11, 0.08);
+  background: rgba(201, 122, 18, 0.08);
   transform: translateY(-1px);
 }
 
@@ -640,7 +642,7 @@ small,
 .ngoma-charts-page .tab,
 [data-page="charts"] .tab {
   background: var(--ngoma-white) !important;
-  color: #5f5f5f !important;
+  color: var(--ngoma-text) !important;
   border: 1px solid var(--ngoma-border-medium) !important;
 }
 
@@ -794,24 +796,26 @@ thead {
 }
 
 th {
-  color: #3d4440;
+  color: var(--ngoma-text);
   font-weight: 800;
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   padding: 11px 14px;
-  border-bottom: 2px solid rgba(184, 134, 11, 0.22);
+  border-bottom: 2px solid var(--ngoma-gold-border);
   white-space: nowrap;
+  text-align: center;
 }
 
-/* Center numerics, left-align text */
+/* All columns center-aligned, headers and data alike */
 th.num, td.num { text-align: center; font-variant-numeric: tabular-nums; }
-th.left, td.left { text-align: left; }
+th.left, td.left { text-align: center; }
 
 td {
   color: var(--ngoma-text);
   padding: 11px 14px;
   border-bottom: 1px solid var(--ngoma-border-light);
+  text-align: center;
 }
 
 /* Subtle row striping */
@@ -1201,7 +1205,10 @@ tbody tr:hover * {
 .entry,
 .country,
 .country-code {
-  background: linear-gradient(180deg, #e3c34c, #b88914);
+  background-color: var(--ngoma-gold-bright);
+  background-image: var(--ngoma-gold-texture);
+  background-size: 40px 26px;
+  background-repeat: repeat;
   color: var(--ngoma-text) !important;
   border-radius: 12px;
   font-weight: 800;
@@ -1252,7 +1259,10 @@ button,
 .export-btn,
 .export-socials,
 button.primary {
-  background: var(--ngoma-gold);
+  background-color: var(--ngoma-gold);
+  background-image: var(--ngoma-gold-texture);
+  background-size: var(--ngoma-gold-texture-size);
+  background-repeat: repeat;
   color: var(--ngoma-text);
   font-weight: 800;
 }
@@ -1262,10 +1272,13 @@ button.primary {
 .export-btn:hover,
 .export-socials:hover,
 button.primary:hover {
-  background: var(--ngoma-gold-bright);
+  background-color: var(--ngoma-gold-bright);
+  background-image: var(--ngoma-gold-texture);
+  background-size: var(--ngoma-gold-texture-size);
+  background-repeat: repeat;
   color: var(--ngoma-text);
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(184, 134, 11, 0.25);
+  box-shadow: 0 6px 20px rgba(201, 122, 18, 0.25);
 }
 
 .btn-outline,
@@ -1283,7 +1296,7 @@ button.outline:hover {
   color: var(--ngoma-text);
   border-color: var(--ngoma-gold);
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(184, 134, 11, 0.14);
+  box-shadow: 0 4px 14px rgba(201, 122, 18, 0.14);
 }
 
 .export-for-socials,
@@ -1329,7 +1342,7 @@ select:focus,
 textarea:focus,
 .search-input:focus {
   border-color: var(--ngoma-gold);
-  box-shadow: 0 0 0 3px rgba(184, 134, 11, 0.16);
+  box-shadow: 0 0 0 3px rgba(201, 122, 18, 0.16);
 }
 
 .search-icon,
@@ -1403,12 +1416,12 @@ textarea:focus,
 
 .dropdown-item,
 .menu-item {
-  color: #686868;
+  color: var(--ngoma-text);
 }
 
 .dropdown-item:hover,
 .menu-item:hover {
-  background: rgba(184, 134, 11, 0.1);
+  background: rgba(201, 122, 18, 0.1);
   color: var(--ngoma-text);
 }
 
@@ -1486,6 +1499,16 @@ textarea:focus,
 
 .bg-gold {
   background: var(--ngoma-gold) !important;
+}
+
+/* Textured gold surface — the reference image tiled over the solid gold
+   fallback. Use on any large gold fill (buttons, badges, active pills,
+   accent panels). Thin borders/text should keep the solid --ngoma-gold. */
+.bg-gold-texture {
+  background-color: var(--ngoma-gold-bright) !important;
+  background-image: var(--ngoma-gold-texture) !important;
+  background-size: var(--ngoma-gold-texture-size) !important;
+  background-repeat: repeat !important;
 }
 
 .text-black {
@@ -1589,7 +1612,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell .page-content,
 html[data-ngoma-theme="dark"] .ngoma-app-shell [data-page] {
   background: #050505 !important;
   background-image: none !important;
-  color: #f6f3ea !important;
+  color: #ffffff !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell section,
@@ -1598,7 +1621,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell aside,
 html[data-ngoma-theme="dark"] .ngoma-app-shell details,
 html[data-ngoma-theme="dark"] .ngoma-app-shell .ngoma-mobile-collapsible {
   background: #0f1110 !important;
-  color: #f6f3ea !important;
+  color: #ffffff !important;
   border-color: #2b302b !important;
 }
 
@@ -1626,7 +1649,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: rgb(251, 250
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background-color: rgb(251, 250, 247)" i] {
   background: #111411 !important;
   background-image: none !important;
-  color: #f6f3ea !important;
+  color: #ffffff !important;
   border-color: #2b302b !important;
 }
 
@@ -1644,7 +1667,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="#777777" i]:not(.ngoma-s
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="rgb(26, 26, 26)" i]:not(.ngoma-source-selector-option),
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="rgb(80, 88, 80)" i]:not(.ngoma-source-selector-option),
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="rgb(107, 107, 107)" i]:not(.ngoma-source-selector-option) {
-  color: #f6f3ea !important;
+  color: #ffffff !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell input,
@@ -1652,7 +1675,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell select,
 html[data-ngoma-theme="dark"] .ngoma-app-shell textarea,
 html[data-ngoma-theme="dark"] .ngoma-app-shell option {
   background: #111411 !important;
-  color: #f6f3ea !important;
+  color: #ffffff !important;
   border-color: #2b302b !important;
 }
 
@@ -1664,13 +1687,24 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell td,
 html[data-ngoma-theme="dark"] .ngoma-app-shell th {
   background-color: transparent !important;
   border-color: #2b302b !important;
-  color: #f6f3ea !important;
+  color: #ffffff !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell .ngoma-theme-toggle {
   background: #151815 !important;
-  color: #f6f3ea !important;
+  color: #ffffff !important;
   border-color: #343a34 !important;
+}
+
+/* Toggle knob color is set here (not inline) so the generic "catch stray
+   light inline backgrounds" rules above never repaint it — a plain inline
+   background:#FFFFFF on this dot was being swallowed by that catch-all and
+   turning invisible against the dark track. */
+.ngoma-theme-toggle-knob {
+  background: #000000 !important;
+}
+html[data-ngoma-theme="dark"] .ngoma-app-shell .ngoma-theme-toggle-knob {
+  background: #ffffff !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell ::placeholder {
@@ -1680,8 +1714,8 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell ::placeholder {
 html[data-ngoma-theme="dark"] .ngoma-app-shell .recharts-cartesian-axis-tick text,
 html[data-ngoma-theme="dark"] .ngoma-app-shell .recharts-label,
 html[data-ngoma-theme="dark"] .ngoma-app-shell .recharts-legend-item-text {
-  fill: #d7dbd7 !important;
-  color: #d7dbd7 !important;
+  fill: #ffffff !important;
+  color: #ffffff !important;
 }
 
 /* =========================================================
@@ -1893,7 +1927,7 @@ main,
 .metric-card .rank,
 [class*="leader"] .rank,
 [class*="Leader"] .rank {
-  color: #b8860b !important;
+  color: var(--ngoma-gold) !important;
 }
 
 /* Filters area */
@@ -1935,9 +1969,12 @@ button[class*="Tab"] {
 .platform-filter.active,
 .month-filter.active,
 button.active {
-  background: #b8860b !important;
+  background-color: var(--ngoma-gold-bright) !important;
+  background-image: var(--ngoma-gold-texture) !important;
+  background-size: var(--ngoma-gold-texture-size) !important;
+  background-repeat: repeat !important;
   color: #050505 !important;
-  border-color: #b8860b !important;
+  border-color: var(--ngoma-gold) !important;
 }
 
 /* Main chart/table containers should be white */
@@ -1975,7 +2012,7 @@ table {
 
 thead {
   background: #f7f7f7 !important;
-  color: #777777 !important;
+  color: #050505 !important;
 }
 
 tbody {
@@ -1990,13 +2027,15 @@ th {
 }
 
 th {
-  color: #777777 !important;
+  color: #050505 !important;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+  text-align: center !important;
 }
 
 td {
   color: #050505 !important;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+  text-align: center !important;
 }
 
 /* Rows should be white with black text */
@@ -2042,7 +2081,7 @@ tr:hover,
 [class*="Item"]:hover {
   background: #fff7e6 !important;
   color: #050505 !important;
-  box-shadow: inset 4px 0 0 #b8860b !important;
+  box-shadow: inset 4px 0 0 #c97a12 !important;
 }
 
 /* Make all text inside rows readable */
@@ -2098,7 +2137,7 @@ ranking-item *,
 [class*="Meta"],
 [class*="subtitle"],
 [class*="Subtitle"] {
-  color: #777777 !important;
+  color: #050505 !important;
 }
 
 /* Rank numbers */
@@ -2124,7 +2163,7 @@ ranking-item *,
 [class*="Points"],
 [class*="score"],
 [class*="Score"] {
-  color: #b8860b !important;
+  color: #c97a12 !important;
 }
 
 /* Platform badges */
@@ -2167,7 +2206,7 @@ ranking-item *,
 .footer .gold-text,
 .site-footer .gold-text,
 .ngoma-footer .gold-text {
-  color: #b8860b !important;
+  color: #c97a12 !important;
 }
 /* =========================================================
    MOBILE ANALYTICS CARD + CHART CENTERING FIX
@@ -2292,7 +2331,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell .chart-page,
 html[data-ngoma-theme="dark"] .ngoma-app-shell .ngoma-charts-page {
   background: #050505 !important;
   background-image: none !important;
-  color: #f6f3ea !important;
+  color: #ffffff !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell section,
@@ -2324,7 +2363,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: rgb(251, 250
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background-color: rgb(251, 250, 247)" i] {
   background: #111411 !important;
   background-image: none !important;
-  color: #f6f3ea !important;
+  color: #ffffff !important;
   border-color: #2b302b !important;
 }
 
@@ -2342,7 +2381,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="#777777" i]:not(.ngoma-s
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="rgb(26, 26, 26)" i]:not(.ngoma-source-selector-option),
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="rgb(80, 88, 80)" i]:not(.ngoma-source-selector-option),
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="rgb(107, 107, 107)" i]:not(.ngoma-source-selector-option) {
-  color: #f6f3ea !important;
+  color: #ffffff !important;
 }
 
 html[data-ngoma-theme="light"] body,
@@ -2355,10 +2394,10 @@ html[data-ngoma-theme="light"] .ngoma-app-shell main {
 
 /* Dark-mode contrast: convert legacy black/gray text into readable light text. */
 html[data-ngoma-theme="dark"] {
-  --ngoma-text: #f6f3ea;
-  --ngoma-text-soft: #d7dbd7;
-  --ngoma-muted: #aeb6ae;
-  --ngoma-muted-light: #8f968f;
+  --ngoma-text: #ffffff;
+  --ngoma-text-soft: #ffffff;
+  --ngoma-muted: #ffffff;
+  --ngoma-muted-light: #ffffff;
   --ngoma-page-bg: #050505;
   --ngoma-card-bg: #111411;
   --ngoma-soft-bg: #111411;
@@ -2370,7 +2409,7 @@ html[data-ngoma-theme="dark"] {
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell :where(h1,h2,h3,h4,h5,h6,p,label,summary,li,td,th,strong,b,em,small,caption,figcaption):not([style*="color" i]) {
-  color: #f6f3ea !important;
+  color: #ffffff !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell :where(button,a):not([style*="color" i]) {
@@ -2378,11 +2417,11 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell :where(button,a):not([style*="col
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell :where(.title,.name,.song-title,.artist-name,.entry-title,.track-title,.mobile-entry-title,.card-title,.section-title,.page-title,.rank,.position,.points,.pts,.score,.value,.metric-value,.total-points) {
-  color: #f6f3ea !important;
+  color: #ffffff !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell :where(.meta,.muted,.subtitle,.description,.caption,.note,.song-meta,.artist-meta,.chart-meta,.card-meta,.metric-label,.ngoma-analytics-muted,.ngoma-analytics-metric-label) {
-  color: #aeb6ae !important;
+  color: #ffffff !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:#050505" i],
@@ -2407,7 +2446,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: rgb(26, 26, 26)" 
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:rgb(26, 26, 26)" i],
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: rgb(31, 36, 31)" i],
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:rgb(31, 36, 31)" i] {
-  color: #f6f3ea !important;
+  color: #ffffff !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:#3a3a3a" i],
@@ -2472,13 +2511,13 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: rgb(123, 133, 125
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:rgb(123, 133, 125)" i],
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color: rgb(153, 153, 153)" i],
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="color:rgb(153, 153, 153)" i] {
-  color: #aeb6ae !important;
+  color: #ffffff !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell svg text,
 html[data-ngoma-theme="dark"] .ngoma-app-shell .recharts-text,
 html[data-ngoma-theme="dark"] .ngoma-app-shell .recharts-cartesian-axis-tick-value {
-  fill: #d7dbd7 !important;
+  fill: #ffffff !important;
 }
 
 /* Final dark interaction pass: old hover rules and inline hover styles must not turn surfaces pale. */
@@ -2490,7 +2529,7 @@ html[data-ngoma-theme="dark"] {
   --ngoma-control-bg: #151815;
   --ngoma-control-hover: #1e241e;
   --ngoma-dark-shadow: rgba(0, 0, 0, 0.38);
-  --ngoma-soft-gold-bg: rgba(184, 134, 11, 0.18);
+  --ngoma-soft-gold-bg: rgba(201, 122, 18, 0.18);
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
@@ -2510,7 +2549,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
   [class*="Card"]
 ) {
   background-color: #111411 !important;
-  color: #f6f3ea !important;
+  color: #ffffff !important;
   border-color: #2b302b !important;
 }
 
@@ -2531,7 +2570,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
   [class*="Card"]
 ):hover {
   background-color: #151915 !important;
-  color: #f6f3ea !important;
+  color: #ffffff !important;
   border-color: #343a34 !important;
   box-shadow: 0 10px 28px var(--ngoma-dark-shadow) !important;
 }
@@ -2569,7 +2608,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
   [class*="item"],
   [class*="Item"]
 ) {
-  color: #f6f3ea !important;
+  color: #ffffff !important;
   border-color: #2b302b !important;
 }
 
@@ -2608,9 +2647,9 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
 ):hover {
   background: #181c18 !important;
   background-color: #181c18 !important;
-  color: #f6f3ea !important;
+  color: #ffffff !important;
   border-color: #343a34 !important;
-  box-shadow: inset 4px 0 0 #b8860b !important;
+  box-shadow: inset 4px 0 0 #c97a12 !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
@@ -2657,7 +2696,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
   [class*="Control"]
 ):hover:not([aria-current="true"]):not([aria-pressed="true"]) {
   background-color: #1e241e !important;
-  color: #f6f3ea !important;
+  color: #ffffff !important;
   border-color: #3c443c !important;
 }
 
@@ -2670,9 +2709,9 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
   summary,
   [role="button"]
 ):focus-visible {
-  outline: 2px solid rgba(184, 134, 11, 0.78) !important;
+  outline: 2px solid rgba(201, 122, 18, 0.78) !important;
   outline-offset: 2px !important;
-  box-shadow: 0 0 0 4px rgba(184, 134, 11, 0.16) !important;
+  box-shadow: 0 0 0 4px rgba(201, 122, 18, 0.16) !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
@@ -2683,9 +2722,9 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
   [data-active="true"],
   [data-selected="true"]
 ) {
-  background-color: rgba(184, 134, 11, 0.20) !important;
-  color: #f6f3ea !important;
-  border-color: rgba(184, 134, 11, 0.42) !important;
+  background-color: rgba(201, 122, 18, 0.20) !important;
+  color: #ffffff !important;
+  border-color: rgba(201, 122, 18, 0.42) !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background:#FAFAF6" i],
@@ -2733,7 +2772,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background-color: rgb(25
   background: #181c18 !important;
   background-color: #181c18 !important;
   background-image: none !important;
-  color: #f6f3ea !important;
+  color: #ffffff !important;
   border-color: #343a34 !important;
 }
 
@@ -2743,7 +2782,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="linear-gradient" i][styl
 html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="linear-gradient" i][style*="#FAF5EA" i] {
   background: linear-gradient(135deg, #151915, #0b0d0b) !important;
   background-color: #151915 !important;
-  color: #f6f3ea !important;
+  color: #ffffff !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell .hover\:bg-white:hover,
@@ -2751,7 +2790,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell .hover-white:hover,
 html[data-ngoma-theme="dark"] .ngoma-app-shell .row-hover-white:hover {
   background: #181c18 !important;
   background-color: #181c18 !important;
-  color: #f6f3ea !important;
+  color: #ffffff !important;
 }
 
 /* Dark mode should use dark surfaces and line work, not white boxes. */
@@ -2835,7 +2874,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background: #fff7e6" i] 
   background: #0f120f !important;
   background-color: #0f120f !important;
   background-image: none !important;
-  color: #f6f3ea !important;
+  color: #ffffff !important;
   border-color: #2f352f !important;
   box-shadow: none !important;
 }
@@ -2883,7 +2922,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
   [class*="item"],
   [class*="Item"]
 ) :where(h1,h2,h3,h4,h5,h6,p,label,summary,li,td,th,strong,b,em,small,span,div,button,a):not([style*="color" i]) {
-  color: #f6f3ea !important;
+  color: #ffffff !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
@@ -2961,7 +3000,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
   [style*="color: rgb(153, 153, 153)" i],
   [style*="color:rgb(153, 153, 153)" i]
 ) {
-  color: #f6f3ea !important;
+  color: #ffffff !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
@@ -3009,9 +3048,9 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
 ):hover {
   background: #181c18 !important;
   background-color: #181c18 !important;
-  color: #f6f3ea !important;
+  color: #ffffff !important;
   border-color: #3a423a !important;
-  box-shadow: inset 4px 0 0 #b8860b !important;
+  box-shadow: inset 4px 0 0 #c97a12 !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell select option {
@@ -3022,7 +3061,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell select option {
 html[data-ngoma-theme="dark"] .ngoma-app-shell .ngoma-platform-cell {
   background: #1a1e1a !important;
   background-color: #1a1e1a !important;
-  color: #f6f3ea !important;
+  color: #ffffff !important;
   border-color: #2b302b !important;
 }
 
@@ -3066,7 +3105,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell select optgroup {
 }
 .move-chip.up    { color: #2db04a; background: rgba(45,176,74,0.13); }
 .move-chip.down  { color: #e53935; background: rgba(229,57,53,0.12); }
-.move-chip.new   { color: var(--ngoma-gold); background: rgba(184,134,11,0.13); }
+.move-chip.new   { color: var(--ngoma-gold); background: rgba(201,122,18,0.13); }
 .move-chip.re    { color: #1565c0; background: rgba(21,101,192,0.12); }
 .move-chip.same  { color: #9a9a9a; background: #f0f0f0; }
 
@@ -3095,7 +3134,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell select optgroup {
   text-transform: uppercase;
   white-space: nowrap;
 }
-.badge-gold     { color: var(--ngoma-gold); background: rgba(184,134,11,0.12); border: 1px solid rgba(184,134,11,0.24); }
+.badge-gold     { color: var(--ngoma-gold); background: rgba(201,122,18,0.12); border: 1px solid rgba(201,122,18,0.24); }
 .badge-green    { color: #1b7f3a; background: #eaf7ee; border: 1px solid #c3e8ce; }
 .badge-blue     { color: #1565c0; background: #eaf2ff; border: 1px solid #b8d6ff; }
 .badge-red      { color: #c62828; background: #fff0f0; border: 1px solid #f3b6b6; }
@@ -3244,8 +3283,8 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell select optgroup {
   height: 120px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid rgba(184,134,11,0.22);
-  box-shadow: 0 8px 28px rgba(184,134,11,0.14);
+  border: 3px solid rgba(201,122,18,0.22);
+  box-shadow: 0 8px 28px rgba(201,122,18,0.14);
   flex-shrink: 0;
 }
 .artist-social-link {
@@ -3306,7 +3345,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
 ) {
   background: #0f1110 !important;
   background-image: none !important;
-  color: #f6f3ea !important;
+  color: #ffffff !important;
   box-shadow: none !important;
 }
 
@@ -3316,7 +3355,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
 ):not([class*="card"]):not([class*="Card"]) {
   background: #0f1110 !important;
   background-image: none !important;
-  color: #f6f3ea !important;
+  color: #ffffff !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
@@ -3326,7 +3365,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
   .table-container, [class*="table-container"], [class*="TableContainer"]
 ) {
   background: #0f1110 !important;
-  color: #f6f3ea !important;
+  color: #ffffff !important;
   border-color: #2b302b !important;
 }
 
@@ -3336,7 +3375,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
   [class*="controls"], [class*="Controls"]
 ):not(button):not(input) {
   background: #111411 !important;
-  color: #f6f3ea !important;
+  color: #ffffff !important;
   border-color: #2b302b !important;
 }
 
@@ -3348,7 +3387,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
   button[class*="tab"], button[class*="Tab"]
 ):not(.active):not([data-active="true"]) {
   background: #151815 !important;
-  color: #c5c5c0 !important;
+  color: #ffffff !important;
   border-color: #2b302b !important;
 }
 
@@ -3357,7 +3396,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell :is(
   [class*="platform-count"]
 ) {
   background: #1f2420 !important;
-  color: #f6f3ea !important;
+  color: #ffffff !important;
 }
 
 html[data-ngoma-theme="dark"] .ngoma-app-shell .badge-green {
@@ -3376,12 +3415,12 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell .badge-red {
   border-color: rgba(229,57,53,0.28) !important;
 }
 html[data-ngoma-theme="dark"] .ngoma-app-shell .badge-muted {
-  color: #aeb6ae !important;
+  color: #ffffff !important;
   background: rgba(255,255,255,0.06) !important;
   border-color: rgba(255,255,255,0.1) !important;
 }
 html[data-ngoma-theme="dark"] .ngoma-app-shell .move-chip.same {
-  color: #aeb6ae !important;
+  color: #ffffff !important;
   background: rgba(255,255,255,0.08) !important;
 }
 
@@ -3403,7 +3442,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background-color: rgb(24
   background: #111411 !important;
   background-color: #111411 !important;
   background-image: none !important;
-  color: #f6f3ea !important;
+  color: #ffffff !important;
   border-color: #2b302b !important;
 }
 
@@ -3413,7 +3452,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background-color: rgb(24
   background: #1a1e1a !important;
   background-color: #1a1e1a !important;
   background-image: none !important;
-  color: #8f968f !important;
+  color: #ffffff !important;
 }
 
 /* Extra light shades: #f4f3ef → rgb(244, 243, 239), #fafaf8 → rgb(250, 250, 248) */
@@ -3424,7 +3463,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell [style*="background-color: rgb(25
   background: #111411 !important;
   background-color: #111411 !important;
   background-image: none !important;
-  color: #f6f3ea !important;
+  color: #ffffff !important;
   border-color: #2b302b !important;
 }
 

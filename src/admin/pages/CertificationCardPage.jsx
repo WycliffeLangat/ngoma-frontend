@@ -23,7 +23,7 @@ import {
 const CERT_META = {
   diamond: { emoji: "\u{1F48E}", color: "#7B1FA2", label: "Diamond" },
   platinum: { emoji: "\u{1F3B5}", color: "#868C97", label: "Platinum" },
-  gold: { emoji: "\u{1F4C0}", color: "#B8860B", label: "Gold" },
+  gold: { emoji: "\u{1F4C0}", color: "#C97A12", label: "Gold" },
 };
 
 const CERT_ORDER = ["diamond", "platinum", "gold"];

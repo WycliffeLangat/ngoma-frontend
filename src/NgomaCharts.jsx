@@ -346,7 +346,7 @@ const normalizeCountryScope = (scope = "") => isCountryScope(scope) ? scope : de
 // refresh should start back on Kenya rather than resuming whatever country
 // the visitor last browsed to.
 const readStoredCountryScope = () => defaultCountryScope;
-const GOLD=THEME_SETTING.primary || "#B8860B"; const SILVER="#8C8C8C"; const BRONZE="#CD7F32";
+const GOLD=THEME_SETTING.primary || "#C97A12"; const GOLD_BRIGHT="#F2981A"; const GOLD_TEXTURE_URL="/textures/gold-texture.png"; const SILVER="#8C8C8C"; const BRONZE="#CD7F32";
 // Distinct from SILVER (used for #2 rank medals elsewhere) so the Platinum
 // certification badge can read as a brighter silver-white on its own.
 const PLATINUM_SILVER="#868C97";
@@ -1590,7 +1590,7 @@ const RecordIcon = ({ label = "", size = 30, muted = false }) => {
     strokeWidth: "1.8",
     strokeLinecap: "round",
     strokeLinejoin: "round",
-    style: { color: muted ? "rgba(184,134,11,0.13)" : GOLD, display: "block" },
+    style: { color: muted ? "rgba(201,122,18,0.13)" : GOLD, display: "block" },
   };
 
   if (key.includes("#1") || key.includes("months at")) {
@@ -1769,7 +1769,6 @@ export default function NgomaCharts(){
   const [liveChartLoading, setLiveChartLoading] = useState(false);
   const [liveNews, setLiveNews] = useState(() => PUBLIC_DATA.news?.length ? mapPublicNews(PUBLIC_DATA.news) : null);
   const [liveCerts, setLiveCerts] = useState(() => PUBLIC_DATA.certifications?.length ? mapPublicCertifications(PUBLIC_DATA.certifications) : null);
-  const [openRecord, setOpenRecord] = useState(null);
   const [expandedYearEndRows, setExpandedYearEndRows] = useState({});
   const [yearEndMode, setYearEndMode] = useState("alltime"); // "alltime" | "bestofyear"
   const [yearEndPlat, setYearEndPlat] = useState("Combined");
@@ -1791,18 +1790,18 @@ export default function NgomaCharts(){
         page: "#050505",
         surface: "#0F1110",
         elevated: "#151815",
-        text: "#F6F3EA",
-        muted: "#B8BDB8",
+        text: "#FFFFFF",
+        muted: "#FFFFFF",
         border: "#2B302B",
-        active: "rgba(184,134,11,0.22)",
+        active: "rgba(201,122,18,0.22)",
         hover: "#1A1F1A",
       }
     : {
         page: THEME_SETTING.background || "#FFFFFF",
         surface: THEME_SETTING.cards || "#FFFFFF",
         elevated: THEME_SETTING.cards || "#FFFFFF",
-        text: "#1A1A1A",
-        muted: "#6B6B6B",
+        text: "#000000",
+        muted: "#000000",
         border: "#E5E0D4",
         active: "#F1E3BF",
         hover: "#FAF5EA",
@@ -2386,6 +2385,7 @@ const top = data[0];
     >
       <span
         aria-hidden="true"
+        className="ngoma-theme-toggle-knob"
         style={{
           position:"absolute",
           top:"1px",
@@ -2393,7 +2393,6 @@ const top = data[0];
           width:`${knob}px`,
           height:`${knob}px`,
           borderRadius:"50%",
-          background:themeColors.text,
           transform:`translateX(${isDark?trackW-trackH:0}px)`,
           transition:"transform 0.2s ease",
         }}
@@ -2658,7 +2657,7 @@ const top = data[0];
     prepareDetailNavigation();
   };
   const artistTrendFor=(artist={})=>{
-    if(!artist.prevRank) return {symbol:"NEW",color:isDark?"#F6F3EA":"#1A1A1A",label:"New",shortLabel:"New"};
+    if(!artist.prevRank) return {symbol:"NEW",color:isDark?"#FFFFFF":"#000000",label:"New",shortLabel:"New"};
     const delta=Number(artist.prevRank)-Number(artist.rank);
     if(delta>0) return {symbol:"↑",color:"#2DB04A",label:`Up ${delta}`,shortLabel:"Up"};
     if(delta<0) return {symbol:"↓",color:"#C0392B",label:`Down ${Math.abs(delta)}`,shortLabel:"Down"};
@@ -2690,8 +2689,6 @@ const top = data[0];
   // Records & Milestones now renders as a section inside the Analytics page
   // rather than its own route, so it shares the Analytics page's active flag.
   const recordsActive = page === "analytics";
-  const recordsCoverageTargetFor = (chartType = releaseCt) => chartType === "artists" ? ARTIST_PLATS.length : platformKeysFor(chartType).length;
-  const currentRecordsCoverageTarget = recordsCoverageTargetFor(ct);
   const recordsTop50RowsForSource = (chartType, targetMonth) => (
     chartType === "artists"
       ? buildArtistChart(targetMonth, analyticsDefaultPlatform)
@@ -3001,7 +2998,6 @@ const top = data[0];
             months: new Set(),
             numberOneMonths: new Set(),
             rows: [],
-            fullCoverageMonths: new Set(),
           });
         }
 
@@ -3015,7 +3011,6 @@ const top = data[0];
         group.months.add(m);
         group.rows.push({ ...entry, month: m, points, rank, platformCount });
         if (rank === 1) group.numberOneMonths.add(m);
-        if (platformCount >= recordsCoverageTargetFor(chartType)) group.fullCoverageMonths.add(m);
       });
     });
     return [...groups.values()];
@@ -3079,13 +3074,11 @@ const top = data[0];
     currentRecordsPool = groups;
     const highestPoints = [...groups]
       .sort((a, b) => b.totalPoints - a.totalPoints || a.title.localeCompare(b.title))[0];
-    const biggestClimb = biggestClimbFor(releaseCt);
     const mostNumberOnes = [...groups]
       .filter((group) => group.numberOneMonths.size > 0)
       .sort((a, b) => b.numberOneMonths.size - a.numberOneMonths.size || b.totalPoints - a.totalPoints)[0];
     const longestRun = [...groups]
       .sort((a, b) => b.months.size - a.months.size || b.totalPoints - a.totalPoints)[0];
-    const fullCoverageCount = groups.filter((group) => group.fullCoverageMonths.size > 0).length;
 
     return [
       {
@@ -3107,23 +3100,6 @@ const top = data[0];
         certificationEntry: highestPoints ? { title: highestPoints.title, artist: highestPoints.artist, cover_image: highestPoints.cover_image || "" } : null,
       },
       {
-        label: "Biggest Monthly Climb",
-        displayLabel: "Biggest Monthly Climb",
-        value: biggestClimb?.title || "—",
-        displaySub: biggestClimb
-          ? `${biggestClimb.artist} · #${biggestClimb.from} → #${biggestClimb.to}`
-          : `No monthly climb found`,
-        climbDelta: biggestClimb?.delta || null,
-        certificationEntry: biggestClimb,
-      },
-      {
-        label: "Perfect Coverage Club",
-        displayLabel: "Perfect Coverage Club",
-        value: `${fullCoverageCount} ${releaseLabelLower}`,
-        displaySub: `${currentRecordsCoverageTarget}/${currentRecordsCoverageTarget} platform coverage`,
-        isCoverage: true,
-      },
-      {
         label: "Chart Longevity",
         displayLabel: "Chart Longevity",
         value: longestRun?.title || "—",
@@ -3142,23 +3118,8 @@ const top = data[0];
     ];
   })() : [];
   return { records: currentRecords, pool: currentRecordsPool };
-  }, [recordsActive, isArtists, ct, analyticsDefaultPlatform, currentRecordsCoverageTarget, dataRevision]);
+  }, [recordsActive, isArtists, ct, analyticsDefaultPlatform, dataRevision]);
 
-  const fullCoverageClub = useMemo(() => {
-    if (!recordsActive) return [];
-    const seen = new Map();
-    MONTHS.forEach((m) => {
-      recordsTop50RowsFor(ct, m).forEach((entry) => {
-        const hits = recordsPlatformHitsFor(ct, m, entry.title, entry.primary_artist || entry.artist, entry.release_id);
-        const count = hits.length;
-        if (count >= currentRecordsCoverageTarget) {
-          const key = entryKey(entry);
-          if (!seen.has(key)) seen.set(key, { title: entry.title, artist: entry.artist, month: m, pts: entry.pts });
-        }
-      });
-    });
-    return [...seen.values()].sort((a, b) => num(b.pts) - num(a.pts));
-  }, [ct, currentRecordsCoverageTarget, recordsActive, isArtists, analyticsDefaultPlatform, dataRevision]);
 
   const navTo=p=>{
     const nextPage=PUBLIC_PAGE_ROUTES[p]?p:"charts";
@@ -3272,19 +3233,19 @@ const top = data[0];
     const bars = getTrendPoints(trend);
 
     return (
-      <div style={{display:"flex",alignItems:"flex-end",gap:compact?"3px":"6px",height,justifyContent:compact?"flex-end":"center"}}>
+      <div style={{display:"flex",alignItems:"flex-end",gap:compact?"3px":"5px",height,justifyContent:compact?"flex-end":"center"}}>
         {bars.map((bar, index) => (
           <div key={`${bar.month}-${index}`} title={`${bar.month}: ${bar.rank ? `#${bar.rank}` : "not charted"}`} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:compact?"2px":"4px"}}>
             <div
               style={{
-                width:compact?"7px":"28px",
+                width:compact?"10px":"38px",
                 height:bar.rank ? Math.max(compact?3:4, ((51 - bar.rank) / 50) * (compact ? 24 : 54)) + "px" : compact?"3px":"4px",
                 background:bar.rank ? (index === bars.length - 1 ? "#2DB04A" : "#CDE8D2") : "#E7EAE7",
-                borderRadius:compact?"1px":"3px",
+                borderRadius:compact?"2px":"4px",
                 transition:"height 0.5s",
               }}
             />
-            {!compact && <span style={{fontFamily:F,fontSize:"8px",color:"#7C8A80"}}>{bar.label}</span>}
+            {!compact && <span style={{fontFamily:F,fontSize:"8px",color:isDark?"#FFFFFF":"#000000"}}>{bar.label}</span>}
           </div>
         ))}
       </div>
@@ -3303,7 +3264,6 @@ const top = data[0];
       setCt(normalizedType);
       setPlat((current) => isRegionalChartScope(current) ? current : "Combined");
       if (page === "analytics") {
-        setOpenRecord(null);
         const visibleDefaults = analyticsRowsForType(normalizedType, anMonth)
           .slice(0, 2)
           .map(comparisonKeyForEntry)
@@ -3347,7 +3307,7 @@ const top = data[0];
           background:tActive?tBg:(isDark?"transparent":"#FFF"),
           border:"1px solid "+(tActive?tBg:(isDark?"transparent":"rgba(0,0,0,0.14)")),
           borderRadius:"999px",
-          color:tActive?(isDark?"#000000":"#FFF"):(isDark?"#B8BDB8":"#111"),
+          color:tActive?(isDark?"#000000":"#FFF"):(isDark?"#FFFFFF":"#000000"),
           cursor:"pointer",
           fontSize:sm?"10px":"11px",
           fontWeight:900,
@@ -3378,7 +3338,7 @@ const top = data[0];
               border:0,
               borderRadius:"999px",
               background:active?(isDark?"#363C33":"#1A1A1A"):"transparent",
-              color:active?"#FFF":(isDark?"#B8BDB8":"#59645D"),
+              color:active?"#FFF":(isDark?"#FFFFFF":"#000000"),
               padding:"7px 12px",
               fontFamily:F,
               fontSize:"9.5px",
@@ -3684,6 +3644,8 @@ const top = data[0];
     DATA_PERIOD,
     F,
     GOLD,
+    GOLD_BRIGHT,
+    GOLD_TEXTURE_URL,
     Line,
     LineChart,
     MEDALS,
@@ -3743,7 +3705,6 @@ const top = data[0];
     expandedTrendingRows,
     expandedYearEndRows,
     formulaLabel,
-    fullCoverageClub,
     getArtistCountry,
     getArtistImageUrl,
     getCertificationForEntry,
@@ -3773,7 +3734,6 @@ const top = data[0];
     openArtistDetails,
     openMomentumRelease,
     openNewsDetails,
-    openRecord,
     openReleaseDetails,
     platformLabelForScope,
     plat,
@@ -3800,7 +3760,6 @@ const top = data[0];
     setCmpS2,
     setCt,
     setMonth,
-    setOpenRecord,
     setPlat,
     setRankJourneyView,
     selectedCountryScope,
@@ -3875,8 +3834,10 @@ const top = data[0];
         .ngoma-mobile-text-safe{min-width:0;overflow-wrap:anywhere;}
         .ngoma-analytics-chart-scroll{max-width:100%;overflow-x:auto;overflow-y:hidden;padding-bottom:4px;}
         .ngoma-analytics-chart-inner{min-width:0;}
-        .ngoma-analytics-metric-label{color:#59645D !important;}
-        .ngoma-analytics-muted{color:#59645D !important;}
+        .ngoma-analytics-metric-label{color:#000000 !important;}
+        .ngoma-analytics-muted{color:#000000 !important;}
+        html[data-ngoma-theme="dark"] .ngoma-analytics-metric-label{color:#ffffff !important;}
+        html[data-ngoma-theme="dark"] .ngoma-analytics-muted{color:#ffffff !important;}
         .ngoma-analytics-page > *{content-visibility:auto;contain-intrinsic-size:auto 320px;}
         .ngoma-mobile-collapsible{margin:0 0 24px;}
         .ngoma-mobile-collapsible > summary{display:none;}
@@ -3899,20 +3860,20 @@ const top = data[0];
           .ngoma-mobile-collapsible{background:#fff;border:1px solid #ECEAE3;border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,0.05);overflow:hidden;margin-bottom:12px !important;}
           .ngoma-mobile-collapsible > summary{display:flex;align-items:center;justify-content:space-between;gap:10px;list-style:none;padding:17px 18px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13.5px;font-weight:800;letter-spacing:-0.1px;color:#1A1A1A;cursor:pointer;user-select:none;-webkit-user-select:none;}
           .ngoma-mobile-collapsible > summary::-webkit-details-marker{display:none;}
-          .ngoma-mobile-collapsible > summary .anl-chev{font-size:20px;font-weight:300;color:#B8860B;transition:transform 0.22s ease;flex-shrink:0;line-height:1;display:inline-block;}
+          .ngoma-mobile-collapsible > summary .anl-chev{font-size:20px;font-weight:300;color:#C97A12;transition:transform 0.22s ease;flex-shrink:0;line-height:1;display:inline-block;}
           .ngoma-mobile-collapsible[open] > summary{border-bottom:1px solid #F0EDE6;background:#FAFAF8;}
           .ngoma-mobile-collapsible[open] > summary .anl-chev{transform:rotate(90deg);}
           .ngoma-mobile-collapsible-body{padding:0 0 4px;}
           .ngoma-mobile-collapsible-body > div{border:none !important;box-shadow:none !important;margin-bottom:0 !important;border-radius:0 !important;}
         }
         html[data-ngoma-theme="dark"] .ngoma-mobile-collapsible{background:#0f1110 !important;border-color:#2b302b !important;}
-        html[data-ngoma-theme="dark"] .ngoma-mobile-collapsible > summary{color:#f6f3ea !important;}
+        html[data-ngoma-theme="dark"] .ngoma-mobile-collapsible > summary{color:#ffffff !important;}
         html[data-ngoma-theme="dark"] .ngoma-mobile-collapsible[open] > summary{background:#131716 !important;border-bottom-color:#2b302b !important;}
         ::-webkit-scrollbar{height:5px;width:5px;}
         ::-webkit-scrollbar-thumb{background:#D8D2C4;border-radius:3px;}
         * { -webkit-tap-highlight-color: transparent; }
-        .ngoma-title-link:hover{ color:#B8860B !important; text-decoration: underline; text-underline-offset: 2px; }
-        .ngoma-artist-link:hover{ color:#B8860B !important; text-decoration: underline; text-underline-offset: 2px; }
+        .ngoma-title-link:hover{ color:#C97A12 !important; text-decoration: underline; text-underline-offset: 2px; }
+        .ngoma-artist-link:hover{ color:#C97A12 !important; text-decoration: underline; text-underline-offset: 2px; }
         @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
       `}</style>
 
@@ -4073,7 +4034,7 @@ const top = data[0];
                 }}
                 placeholder="Search songs, albums, artists, news…"
                 autoFocus
-                style={{flex:1,border:"none",outline:"none",fontSize:"16px",fontFamily:SF,background:"transparent",color:isDark?"#F6F3EA":"#1A1A1A"}}
+                style={{flex:1,border:"none",outline:"none",fontSize:"16px",fontFamily:SF,background:"transparent",color:isDark?"#FFFFFF":"#000000"}}
               />
               {srch&&<button type="button" onClick={()=>{setSrch("");setSActiveIdx(-1);}} style={{border:"none",background:"none",cursor:"pointer",color:isDark?"#666":"#CCC",fontSize:"18px",lineHeight:1,padding:"0 2px"}}>×</button>}
               <button type="button" onClick={closeSearch} style={{border:`1px solid ${isDark?"#333":"#E0E0E0"}`,borderRadius:"7px",background:"none",cursor:"pointer",color:isDark?"#888":"#999",fontFamily:F,fontSize:"10px",fontWeight:700,letterSpacing:"1px",padding:"4px 8px",whiteSpace:"nowrap"}}>ESC</button>
@@ -4086,7 +4047,7 @@ const top = data[0];
               {/* Songs */}
               {sResults&&sResults.songs.length>0&&(
                 <>
-                  <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#AEB6AE":"#59645D",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>Songs</div>
+                  <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>Songs</div>
                   {sResults.songs.map((e,i)=>{
                     const flatIdx=i;
                     const cert=dedupedLiveCerts?dedupedLiveCerts.find(c=>String(c.t||"").toLowerCase()===String(e.title||"").toLowerCase()&&String(c.a||"").toLowerCase()===String(e.artist||"").toLowerCase()):null;
@@ -4098,7 +4059,7 @@ const top = data[0];
                         style={{display:"flex",alignItems:"center",gap:"12px",width:"100%",textAlign:"left",padding:"10px 18px",border:"none",borderBottom:`1px solid ${isDark?"#1c2320":"#F8F8F5"}`,cursor:"pointer",background:flatIdx===sActiveIdx?(isDark?"#1a2518":"#F0F7FF"):(isDark?"transparent":"transparent")}}>
                         <EntryThumb item={e} name={e.artist} size={34} radius="8px" accent={GOLD} />
                         <div style={{flex:1,minWidth:0}}>
-                          <div style={{fontSize:"13px",fontWeight:700,color:isDark?"#F6F3EA":"#1A1A1A",display:"flex",alignItems:"center",gap:"5px",overflow:"hidden"}}>
+                          <div style={{fontSize:"13px",fontWeight:700,color:isDark?"#FFFFFF":"#000000",display:"flex",alignItems:"center",gap:"5px",overflow:"hidden"}}>
                             <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.title}</span>
                             {certMeta&&<span title={`${certMeta.label} certified`} style={{fontSize:"12px",flexShrink:0}}><span style={certMeta.iconFilter?{filter:certMeta.iconFilter}:{}}>{certMeta.icon}</span></span>}
                           </div>
@@ -4116,7 +4077,7 @@ const top = data[0];
               {/* Albums */}
               {sResults&&sResults.albums.length>0&&(
                 <>
-                  <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#AEB6AE":"#59645D",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>Albums</div>
+                  <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>Albums</div>
                   {sResults.albums.map((e,i)=>{
                     const flatIdx=sResults.songs.length+i;
                     return(
@@ -4126,7 +4087,7 @@ const top = data[0];
                         style={{display:"flex",alignItems:"center",gap:"12px",width:"100%",textAlign:"left",padding:"10px 18px",border:"none",borderBottom:`1px solid ${isDark?"#1c2320":"#F8F8F5"}`,cursor:"pointer",background:flatIdx===sActiveIdx?(isDark?"#1a2518":"#F0F7FF"):"transparent"}}>
                         <EntryThumb item={e} name={e.artist} size={34} radius="8px" accent="#1a8a5a" />
                         <div style={{flex:1,minWidth:0}}>
-                          <div style={{fontSize:"13px",fontWeight:700,color:isDark?"#F6F3EA":"#1A1A1A",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.title}</div>
+                          <div style={{fontSize:"13px",fontWeight:700,color:isDark?"#FFFFFF":"#000000",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.title}</div>
                           <div style={{fontSize:"11px",color:isDark?"#7a8a7a":"#888",marginTop:"1px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.artist}</div>
                         </div>
                         <div style={{textAlign:"right",flexShrink:0,fontFamily:F}}>
@@ -4141,7 +4102,7 @@ const top = data[0];
               {/* Artists */}
               {sResults&&sResults.artists.length>0&&(
                 <>
-                  <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#AEB6AE":"#59645D",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>Artists</div>
+                  <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>Artists</div>
                   {sResults.artists.map((a,i)=>{
                     const flatIdx=sResults.songs.length+sResults.albums.length+i;
                     const accent="#69716B";
@@ -4152,7 +4113,7 @@ const top = data[0];
                         style={{display:"flex",alignItems:"center",gap:"12px",width:"100%",textAlign:"left",padding:"10px 18px",border:"none",borderBottom:`1px solid ${isDark?"#1c2320":"#F8F8F5"}`,cursor:"pointer",background:flatIdx===sActiveIdx?(isDark?"#1a2518":"#F0F7FF"):"transparent"}}>
                         {a.image?<img src={a.image} alt={a.name} style={{width:34,height:34,borderRadius:"50%",objectFit:"cover",flexShrink:0,border:`1px solid ${isDark?"#333":"#EEE"}`}}/>:<div style={{width:34,height:34,borderRadius:"50%",background:isDark?"#222":"#F0EDE7",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"14px",fontWeight:800,color:isDark?"#666":"#CCC"}}>{String(a.name||"").charAt(0)}</div>}
                         <div style={{flex:1,minWidth:0}}>
-                          <div style={{fontSize:"13px",fontWeight:700,color:isDark?"#F6F3EA":"#1A1A1A",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{a.display_name||a.name}</div>
+                          <div style={{fontSize:"13px",fontWeight:700,color:isDark?"#FFFFFF":"#000000",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{a.display_name||a.name}</div>
                           <div style={{fontSize:"11px",color:isDark?"#7a8a7a":"#888",marginTop:"1px"}}>{a.genre||""}{a.genre&&a.country?" · ":""}{a.country||""}</div>
                         </div>
                         {a.country_code&&<span style={{fontSize:"9px",fontWeight:800,letterSpacing:"0.8px",color:accent,border:`1px solid ${accent}55`,borderRadius:"6px",padding:"2px 6px",flexShrink:0,background:`${accent}12`}}>{a.country_code}</span>}
@@ -4164,7 +4125,7 @@ const top = data[0];
               {/* News */}
               {sResults&&sResults.news.length>0&&(
                 <>
-                  <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#AEB6AE":"#59645D",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>News</div>
+                  <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>News</div>
                   {sResults.news.map((n,i)=>{
                     const flatIdx=sResults.songs.length+sResults.albums.length+sResults.artists.length+i;
                     return(
@@ -4174,7 +4135,7 @@ const top = data[0];
                         style={{display:"flex",alignItems:"center",gap:"12px",width:"100%",textAlign:"left",padding:"10px 18px",border:"none",borderBottom:`1px solid ${isDark?"#1c2320":"#F8F8F5"}`,cursor:"pointer",background:flatIdx===sActiveIdx?(isDark?"#1a2518":"#F0F7FF"):"transparent"}}>
                         <EntryThumb item={n} name={n.title} size={34} radius="8px" accent="#c05c00" />
                         <div style={{flex:1,minWidth:0}}>
-                          <div style={{fontSize:"13px",fontWeight:700,color:isDark?"#F6F3EA":"#1A1A1A",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{n.title}</div>
+                          <div style={{fontSize:"13px",fontWeight:700,color:isDark?"#FFFFFF":"#000000",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{n.title}</div>
                           <div style={{fontSize:"11px",color:isDark?"#7a8a7a":"#888",marginTop:"1px"}}><span style={{color:"#c05c00",fontWeight:700}}>{n.cat}</span>{n.date?" · "+n.date:""}</div>
                         </div>
                       </button>
@@ -4185,7 +4146,7 @@ const top = data[0];
               {/* Certifications */}
               {sResults&&sResults.certs.length>0&&(
                 <>
-                  <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#AEB6AE":"#59645D",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>Certifications</div>
+                  <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>Certifications</div>
                   {sResults.certs.map((c,i)=>{
                     const flatIdx=sResults.songs.length+sResults.albums.length+sResults.artists.length+sResults.news.length+i;
                     const certMeta=certificationMetaForLevel(c.level);
@@ -4195,7 +4156,7 @@ const top = data[0];
                         onClick={()=>selectSearchResult({...c,_kind:"cert"})}
                         style={{display:"flex",alignItems:"center",gap:"12px",width:"100%",textAlign:"left",padding:"10px 18px",border:"none",borderBottom:`1px solid ${isDark?"#1c2320":"#F8F8F5"}`,cursor:"pointer",background:flatIdx===sActiveIdx?(isDark?"#1a2518":"#F0F7FF"):"transparent"}}>
                         <div style={{flex:1,minWidth:0}}>
-                          <div style={{fontSize:"13px",fontWeight:700,color:isDark?"#F6F3EA":"#1A1A1A",display:"flex",alignItems:"center",gap:"6px",overflow:"hidden"}}>
+                          <div style={{fontSize:"13px",fontWeight:700,color:isDark?"#FFFFFF":"#000000",display:"flex",alignItems:"center",gap:"6px",overflow:"hidden"}}>
                             {certMeta&&<span style={certMeta.iconFilter?{filter:certMeta.iconFilter,fontSize:"12px"}:{fontSize:"12px"}}>{certMeta.icon}</span>}
                             <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.t}</span>
                           </div>
@@ -4223,7 +4184,7 @@ const top = data[0];
         {section.title&&<h2 style={{margin:"0 0 8px",fontFamily:SF,fontSize:isMobile?"19px":"23px",color:themeColors.text}}>{section.title}</h2>}
         {section.content&&<div style={{fontFamily:F,fontSize:"13px",lineHeight:1.75,color:themeColors.muted,whiteSpace:"pre-wrap"}}>{section.content}</div>}
         {section.data?.image&&<img src={section.data.image} alt={section.data.alt || section.title || ""} style={{display:"block",marginTop:"12px",maxHeight:"360px",borderRadius:"10px",objectFit:"cover"}} />}
-        {section.data?.cta_url&&<a href={section.data.cta_url} style={{display:"inline-flex",marginTop:"12px",padding:"9px 14px",borderRadius:"999px",background:GOLD,color:"#FFF",fontFamily:F,fontSize:"11px",fontWeight:850,textDecoration:"none"}}>{section.data.cta_label || "Learn more"}</a>}
+        {section.data?.cta_url&&<a href={section.data.cta_url} style={{display:"inline-flex",marginTop:"12px",padding:"9px 14px",borderRadius:"999px",backgroundColor:GOLD_BRIGHT,backgroundImage:`url(${GOLD_TEXTURE_URL})`,backgroundSize:"160px 106px",backgroundRepeat:"repeat",color:"#FFF",fontFamily:F,fontSize:"11px",fontWeight:850,textDecoration:"none"}}>{section.data.cta_label || "Learn more"}</a>}
       </section>)}
       {/* RELEASE DETAIL */}
       {selR && <ReleaseDetailPage ctx={pageContext} />}

@@ -1545,25 +1545,25 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
 
       {ALPHA_TYPES.has(type) && (
         <div className="cms-alpha-bar" style={{ background: "#f7f5f0", border: "1px solid #e8e0cc", borderRadius: 8, padding: "8px 12px", margin: "0 0 12px", display: "flex", flexWrap: "wrap", gap: 4, alignItems: "center" }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: "#999", textTransform: "uppercase", letterSpacing: ".05em", marginRight: 4 }}>A–Z:</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: "#000000", textTransform: "uppercase", letterSpacing: ".05em", marginRight: 4 }}>A–Z:</span>
           <button
             type="button"
-            style={{ minWidth: 40, height: 28, padding: "0 10px", border: "none", borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: "pointer", background: !alphaFilter ? "#b8860b" : "#fff", color: !alphaFilter ? "#fff" : "#555", boxShadow: !alphaFilter ? "0 1px 4px rgba(184,134,11,.35)" : "0 1px 2px rgba(0,0,0,.08)" }}
+            style={{ minWidth: 40, height: 28, padding: "0 10px", border: "none", borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: "pointer", background: !alphaFilter ? "#c97a12" : "#fff", color: !alphaFilter ? "#fff" : "#000000", boxShadow: !alphaFilter ? "0 1px 4px rgba(201,122,18,.35)" : "0 1px 2px rgba(0,0,0,.08)" }}
             onClick={() => setAlphaFilter("")}
           >All</button>
           {ALPHABET.map(letter => (
             <button
               key={letter}
               type="button"
-              style={{ width: 28, height: 28, border: "none", borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer", background: alphaFilter === letter ? "#b8860b" : "#fff", color: alphaFilter === letter ? "#fff" : "#555", boxShadow: alphaFilter === letter ? "0 1px 4px rgba(184,134,11,.35)" : "0 1px 2px rgba(0,0,0,.08)" }}
+              style={{ width: 28, height: 28, border: "none", borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer", background: alphaFilter === letter ? "#c97a12" : "#fff", color: alphaFilter === letter ? "#fff" : "#000000", boxShadow: alphaFilter === letter ? "0 1px 4px rgba(201,122,18,.35)" : "0 1px 2px rgba(0,0,0,.08)" }}
               onClick={() => setAlphaFilter(alphaFilter === letter ? "" : letter)}
             >{letter}</button>
           ))}
           {(alphaFilter || search) && (
-            <span style={{ marginLeft: 6, fontSize: 11, color: "#b8860b", fontWeight: 600 }}>
+            <span style={{ marginLeft: 6, fontSize: 11, color: "#c97a12", fontWeight: 600 }}>
               {alphaFilter && search ? `${alphaFilter}… + "${search}"` : alphaFilter ? `Showing: ${alphaFilter}` : `"${search}"`}
               {alphaFilter && (
-                <button type="button" onClick={() => setAlphaFilter("")} style={{ border: "none", background: "none", color: "#b8860b", cursor: "pointer", fontSize: 12, padding: "0 0 0 6px", fontWeight: 700 }}>✕ letter</button>
+                <button type="button" onClick={() => setAlphaFilter("")} style={{ border: "none", background: "none", color: "#c97a12", cursor: "pointer", fontSize: 12, padding: "0 0 0 6px", fontWeight: 700 }}>✕ letter</button>
               )}
             </span>
           )}
@@ -1586,7 +1586,7 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
             return (
               <div key={gi} style={{ borderTop: "1px solid #f0e4b4", paddingTop: 8, marginTop: 8 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                  <span style={{ fontSize: 12, color: "#666" }}><strong>{label}</strong></span>
+                  <span style={{ fontSize: 12, color: "#000000" }}><strong>{label}</strong></span>
                   <button
                     className="cms-btn"
                     style={{ fontSize: 11, padding: "2px 12px" }}
@@ -1596,7 +1596,7 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
                 </div>
                 <table style={{ width: "100%", fontSize: 11, borderCollapse: "collapse" }}>
                   <thead>
-                    <tr style={{ color: "#999", textAlign: "left" }}>
+                    <tr style={{ color: "#000000", textAlign: "left" }}>
                       <th style={{ padding: "2px 6px" }}>ID</th>
                       <th style={{ padding: "2px 6px" }}>{isArtist ? "Name" : "Title"}</th>
                       {!isArtist && <th style={{ padding: "2px 6px" }}>Artist</th>}
@@ -1608,7 +1608,7 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
                   <tbody>
                     {group.map((r, ri) => (
                       <tr key={r.id} style={{ background: ri === 0 ? "#f5fce8" : "transparent" }}>
-                        <td style={{ padding: "2px 6px", color: "#888" }}>{r.id}</td>
+                        <td style={{ padding: "2px 6px", color: "#000000" }}>{r.id}</td>
                         <td style={{ padding: "2px 6px" }}>
                           {isArtist ? r.name : r.title}
                           {ri === 0 && <span style={{ color: "#5a9a2f", fontSize: 10, marginLeft: 4 }}>◀ keep</span>}
@@ -1649,7 +1649,7 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
       )}
       {totalCount !== null && (
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 2px", marginTop:4, borderTop:"1px solid #f0f0f0" }}>
-          <span style={{ fontSize:12, color:"#999" }}>
+          <span style={{ fontSize:12, color:"#000000" }}>
             {totalCount === 0
               ? "No results"
               : rows.length === 0
@@ -1664,7 +1664,7 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
                 disabled={page === 1 || loading}
                 onClick={() => setPage(p => p - 1)}
               >← Prev</button>
-              <span style={{ fontSize:12, color:"#666", minWidth:90, textAlign:"center" }}>
+              <span style={{ fontSize:12, color:"#000000", minWidth:90, textAlign:"center" }}>
                 Page {page} / {Math.max(1, Math.ceil(totalCount / PAGE_SIZE))}
               </span>
               <button
@@ -1695,18 +1695,18 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
         const statBox = (label, value) => (
           <div key={label} style={{ background: "#f8f8f8", borderRadius: 8, padding: "10px 12px", textAlign: "center" }}>
             <div style={{ fontSize: 20, fontWeight: 700 }}>{value ?? "—"}</div>
-            <div style={{ fontSize: 10, color: "#888", marginTop: 2, textTransform: "uppercase", letterSpacing: ".04em" }}>{label}</div>
+            <div style={{ fontSize: 10, color: "#000000", marginTop: 2, textTransform: "uppercase", letterSpacing: ".04em" }}>{label}</div>
           </div>
         );
         const metaRow = (label, value) => value ? (
           <div key={label} style={{ display: "flex", gap: 8, padding: "5px 0", borderBottom: "1px solid #f5f5f5", fontSize: 12 }}>
-            <span style={{ color: "#aaa", minWidth: 110, flexShrink: 0 }}>{label}</span>
-            <span style={{ color: "#333", fontWeight: 500, wordBreak: "break-word" }}>{value}</span>
+            <span style={{ color: "#000000", minWidth: 110, flexShrink: 0 }}>{label}</span>
+            <span style={{ color: "#000000", fontWeight: 500, wordBreak: "break-word" }}>{value}</span>
           </div>
         ) : null;
         const linkPill = (href, label) => href ? (
           <a key={label} href={href} target="_blank" rel="noreferrer"
-            style={{ fontSize: 11, padding: "4px 10px", borderRadius: 6, border: "1px solid #ddd", color: "#444", textDecoration: "none", background: "#fafafa" }}>
+            style={{ fontSize: 11, padding: "4px 10px", borderRadius: 6, border: "1px solid #ddd", color: "#000000", textDecoration: "none", background: "#fafafa" }}>
             {label} ↗
           </a>
         ) : null;
@@ -1741,10 +1741,10 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
                       }
                       <div>
                         <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 4 }}>{r.title}</div>
-                        <div style={{ fontSize: 13, color: "#555", marginBottom: 8 }}>{r.artist_credit || r.artist_display}</div>
+                        <div style={{ fontSize: 13, color: "#000000", marginBottom: 8 }}>{r.artist_credit || r.artist_display}</div>
                         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
                           <StatusBadge value={r.status} />
-                          <span style={{ fontSize: 11, color: "#aaa" }}>{r.chart_type} · id {r.id}</span>
+                          <span style={{ fontSize: 11, color: "#000000" }}>{r.chart_type} · id {r.id}</span>
                         </div>
                       </div>
                     </div>
@@ -1760,10 +1760,10 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
                     {/* Certifications */}
                     {r.certifications?.length > 0 && (
                       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center", marginBottom: 14 }}>
-                        <span style={{ fontSize: 11, color: "#888" }}>Certifications:</span>
+                        <span style={{ fontSize: 11, color: "#000000" }}>Certifications:</span>
                         {r.certifications.map((c, i) => {
                           const lvl = typeof c === "string" ? c : c.level;
-                          const colors = { gold: ["#fef9e7","#b8860b"], platinum: ["#f4f4f4","#868C97"], diamond: ["#eef6ff","#1d6fa4"] };
+                          const colors = { gold: ["#fef9e7","#c97a12"], platinum: ["#f4f4f4","#868C97"], diamond: ["#eef6ff","#1d6fa4"] };
                           const [bg, fg] = colors[lvl] || ["#f0f0f0","#555"];
                           return <span key={i} style={{ fontSize: 11, fontWeight: 700, background: bg, color: fg, border: `1px solid ${fg}`, borderRadius: 4, padding: "2px 9px", textTransform: "capitalize" }}>{lvl}</span>;
                         })}
@@ -1797,14 +1797,14 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
                       }
                       <div>
                         <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 2 }}>{r.display_name || r.name}</div>
-                        {r.display_name && r.display_name !== r.name && <div style={{ fontSize: 12, color: "#888", marginBottom: 4 }}>aka {r.name}</div>}
-                        <div style={{ fontSize: 13, color: "#555", marginBottom: 8 }}>
+                        {r.display_name && r.display_name !== r.name && <div style={{ fontSize: 12, color: "#000000", marginBottom: 4 }}>aka {r.name}</div>}
+                        <div style={{ fontSize: 13, color: "#000000", marginBottom: 8 }}>
                           {[r.country, r.genre, r.artist_type].filter(Boolean).join(" · ")}
                         </div>
                         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
                           <StatusBadge value={r.status} />
                           {r.verified && <span style={{ fontSize: 11, background: "#e8f4fd", color: "#1d6fa4", borderRadius: 4, padding: "2px 7px", fontWeight: 600 }}>✓ Verified</span>}
-                          <span style={{ fontSize: 11, color: "#aaa" }}>id {r.id}</span>
+                          <span style={{ fontSize: 11, color: "#000000" }}>id {r.id}</span>
                         </div>
                       </div>
                     </div>
@@ -1819,7 +1819,7 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
 
                     {/* Bio */}
                     {r.biography && (
-                      <div style={{ fontSize: 13, color: "#555", lineHeight: 1.6, background: "#f9f9f9", borderRadius: 8, padding: "10px 14px", marginBottom: 14 }}>
+                      <div style={{ fontSize: 13, color: "#000000", lineHeight: 1.6, background: "#f9f9f9", borderRadius: 8, padding: "10px 14px", marginBottom: 14 }}>
                         {r.biography}
                       </div>
                     )}
@@ -1837,13 +1837,13 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
 
                     {/* Credited releases */}
                     <div>
-                      <div style={{ fontSize: 11, color: "#888", textTransform: "uppercase", letterSpacing: ".05em", marginBottom: 6 }}>
+                      <div style={{ fontSize: 11, color: "#000000", textTransform: "uppercase", letterSpacing: ".05em", marginBottom: 6 }}>
                         Credited releases{creditedReleases.items.length > 0 ? ` (${creditedReleases.items.length})` : ""}
                       </div>
-                      {creditedReleases.loading && <div style={{ fontSize: 12, color: "#aaa" }}>Loading credited releases…</div>}
+                      {creditedReleases.loading && <div style={{ fontSize: 12, color: "#000000" }}>Loading credited releases…</div>}
                       {creditedReleases.error && <div style={{ fontSize: 12, color: "#c0392b" }}>Could not load credited releases: {creditedReleases.error}</div>}
                       {!creditedReleases.loading && !creditedReleases.error && creditedReleases.items.length === 0 && (
-                        <div style={{ fontSize: 12, color: "#aaa" }}>No songs or albums credit this artist yet.</div>
+                        <div style={{ fontSize: 12, color: "#000000" }}>No songs or albums credit this artist yet.</div>
                       )}
                       {creditedReleases.items.length > 0 && (
                         <div style={{ display: "flex", flexDirection: "column", gap: 4, maxHeight: 220, overflowY: "auto" }}>
@@ -1859,8 +1859,8 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
                               }}
                             >
                               <span style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-                                <span style={{ fontSize: 12, fontWeight: 600, color: "#222", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{release.title}</span>
-                                <span style={{ fontSize: 10, color: "#999" }}>
+                                <span style={{ fontSize: 12, fontWeight: 600, color: "#000000", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{release.title}</span>
+                                <span style={{ fontSize: 10, color: "#000000" }}>
                                   {release.chart_type === "albums" ? "Album" : "Song"}{release.release_year ? ` · ${release.release_year}` : ""}
                                 </span>
                               </span>
@@ -1950,7 +1950,7 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
               <h3>Merge {bulkMergeTarget.rows.length} selected records</h3>
               <button type="button" onClick={() => setBulkMergeTarget(null)} disabled={actionBusy}>×</button>
             </div>
-            <p style={{ fontSize: 13, color: "#666", margin: "10px 0" }}>
+            <p style={{ fontSize: 13, color: "#000000", margin: "10px 0" }}>
               Choose the one record to keep. Every other selected record will be merged into it and removed.
             </p>
             <div className="cms-bulk-keeper-list">
@@ -1979,7 +1979,7 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
                 );
               })}
             </div>
-            <p style={{ fontSize: 12, color: "#888", margin: "12px 0 4px" }}>
+            <p style={{ fontSize: 12, color: "#000000", margin: "12px 0 4px" }}>
               {isArtist
                 ? "Releases and aliases move to the keeper."
                 : "Monthly chart points are combined, duplicate weekly entries are removed, and certifications are recalculated."}
@@ -2009,12 +2009,12 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
               <h3>Bulk edit {bulkEditTarget.rows.length} artists</h3>
               <button type="button" onClick={() => setBulkEditTarget(null)} disabled={actionBusy}>×</button>
             </div>
-            <p style={{ fontSize: 13, color: "#666", margin: "10px 0" }}>
+            <p style={{ fontSize: 13, color: "#000000", margin: "10px 0" }}>
               Set the country for every selected artist. Leave a field blank to leave it unchanged.
               This also cascades the country to each artist's releases, exactly like a single artist edit does.
             </p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, margin: "10px 0 14px" }}>
-              <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 12, color: "#666" }}>
+              <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 12, color: "#000000" }}>
                 <span>Country</span>
                 <input
                   className="cms-search"
@@ -2033,7 +2033,7 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
                   }}
                 />
               </label>
-              <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 12, color: "#666" }}>
+              <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 12, color: "#000000" }}>
                 <span>Country code</span>
                 <input
                   className="cms-search"
@@ -2122,9 +2122,9 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
                     <div style={{ border: "1.5px solid #fca5a5", borderRadius: 10, padding: "12px 14px", background: "#fff5f5", display: "flex", flexDirection: "column", gap: 3 }}>
                       <div style={{ fontSize: 9, fontWeight: 800, color: "#dc2626", textTransform: "uppercase", letterSpacing: ".09em", marginBottom: 2 }}>Delete</div>
                       <div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.35 }}>{rLabel(dup)}</div>
-                      {rSub(dup) && <div style={{ fontSize: 11, color: "#666" }}>{rSub(dup)}</div>}
-                      {rMeta(dup) && <div style={{ fontSize: 10, color: "#aaa" }}>{rMeta(dup)}</div>}
-                      <div style={{ fontSize: 10, color: "#ccc" }}>id {dup.id}</div>
+                      {rSub(dup) && <div style={{ fontSize: 11, color: "#000000" }}>{rSub(dup)}</div>}
+                      {rMeta(dup) && <div style={{ fontSize: 10, color: "#000000" }}>{rMeta(dup)}</div>}
+                      <div style={{ fontSize: 10, color: "#000000" }}>id {dup.id}</div>
                       <button
                         type="button"
                         className="cms-btn light"
@@ -2137,9 +2137,9 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
                     <div style={{ border: "1.5px solid #86efac", borderRadius: 10, padding: "12px 14px", background: "#f0fdf4", display: "flex", flexDirection: "column", gap: 3 }}>
                       <div style={{ fontSize: 9, fontWeight: 800, color: "#16a34a", textTransform: "uppercase", letterSpacing: ".09em", marginBottom: 2 }}>✓ Keep</div>
                       <div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.35 }}>{rLabel(keeper)}</div>
-                      {rSub(keeper) && <div style={{ fontSize: 11, color: "#666" }}>{rSub(keeper)}</div>}
-                      {rMeta(keeper) && <div style={{ fontSize: 10, color: "#aaa" }}>{rMeta(keeper)}</div>}
-                      <div style={{ fontSize: 10, color: "#ccc" }}>id {keeper.id}</div>
+                      {rSub(keeper) && <div style={{ fontSize: 11, color: "#000000" }}>{rSub(keeper)}</div>}
+                      {rMeta(keeper) && <div style={{ fontSize: 10, color: "#000000" }}>{rMeta(keeper)}</div>}
+                      <div style={{ fontSize: 10, color: "#000000" }}>id {keeper.id}</div>
                       <button
                         type="button"
                         className="cms-btn light"
@@ -2149,7 +2149,7 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
                       >Change keeper…</button>
                     </div>
                   </div>
-                  <p style={{ fontSize: 12, color: "#888", margin: "0 0 4px" }}>
+                  <p style={{ fontSize: 12, color: "#000000", margin: "0 0 4px" }}>
                     {isArtistType
                       ? "The deleted artist's releases move to the kept artist. Aliases are preserved."
                       : "Monthly chart points are summed into the kept record. Weekly entries on the same chart in the same week are dropped. Certifications are recalculated."}
@@ -2159,11 +2159,11 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
               ) : (
                 /* ── Keeper not yet chosen: show search ── */
                 <>
-                  <p style={{ fontSize: 13, margin: "10px 0 12px", color: "#555" }}>
+                  <p style={{ fontSize: 13, margin: "10px 0 12px", color: "#000000" }}>
                     <strong>Record to delete:</strong> {rLabel(dup)}{" "}
-                    <span style={{ fontSize: 11, color: "#aaa" }}>id {dup.id}</span>
+                    <span style={{ fontSize: 11, color: "#000000" }}>id {dup.id}</span>
                   </p>
-                  <label style={{ display: "block", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".07em", color: "#666", marginBottom: 6 }}>
+                  <label style={{ display: "block", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".07em", color: "#000000", marginBottom: 6 }}>
                     Search for the {typeLabel} to keep
                   </label>
                   <input
@@ -2189,8 +2189,8 @@ export default function ResourcePage({ type, searchJump, user, onNavigate }) {
                           onClick={() => setMergeTarget(t => ({ ...t, keeper: r, keeperSearch: rLabel(r), keeperResults: [] }))}
                         >
                           <span style={{ fontWeight: 700, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{rLabel(r)}</span>
-                          {rSub(r) && <span style={{ fontSize: 11, color: "#777", flexShrink: 0 }}>{rSub(r)}</span>}
-                          <span style={{ fontSize: 10, color: "#ccc", flexShrink: 0 }}>id {r.id}</span>
+                          {rSub(r) && <span style={{ fontSize: 11, color: "#000000", flexShrink: 0 }}>{rSub(r)}</span>}
+                          <span style={{ fontSize: 10, color: "#000000", flexShrink: 0 }}>id {r.id}</span>
                         </button>
                       ))}
                     </div>

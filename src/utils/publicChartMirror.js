@@ -432,7 +432,7 @@ export function historyKeyForRow(type, row) {
 // ── Platform labels/colors — shared across every Analytics-section poster ──
 
 export const PLATFORM_COLORS = {
-  COMBINED: "#B8860B",
+  COMBINED: "#C97A12",
   KENYAN: "#006600",
   SPOTIFY: "#1DB954",
   "APPLE MUSIC": "#FC3C44",
@@ -551,7 +551,7 @@ export function buildTopCountryStats(payload, chartType, month, platform = "Comb
     if (!code) return;
     const current = countryMap.get(code) || {
       code, country: name || code, entries: 0, points: 0,
-      color: COUNTRY_ACCENTS[code] || "#B8860B",
+      color: COUNTRY_ACCENTS[code] || "#C97A12",
     };
     current.entries += 1;
     current.points += Number(row.p ?? row.pts ?? row.points) || 0;

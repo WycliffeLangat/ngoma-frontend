@@ -22,8 +22,8 @@ export default function CertificationsPage({ ctx }) {
     secLbl
   } = ctx;
 
-  const textPrimary = isDark ? "#F6F3EA" : "#1A1A1A";
-  const textMuted = isDark ? "#8F968F" : "#69716B";
+  const textPrimary = isDark ? "#FFFFFF" : "#000000";
+  const textMuted = isDark ? "#FFFFFF" : "#000000";
   const cardBg = isDark ? "#141814" : "#FFFFFF";
   const cardBorder = isDark ? "#242923" : "#EFEDE7";
   const cardShadow = isDark ? "0 8px 24px rgba(0,0,0,0.32)" : "0 1px 3px rgba(0,0,0,0.02),0 8px 24px rgba(0,0,0,0.02)";

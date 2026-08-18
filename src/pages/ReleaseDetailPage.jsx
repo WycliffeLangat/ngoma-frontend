@@ -46,16 +46,16 @@ export default function ReleaseDetailPage({ ctx }) {
   // Shared chart theming — keeps every Recharts panel dark-mode-aware
   // and consistent with the rest of the app instead of hardcoded light colors.
   const gridStroke = isDark ? "#242923" : "#EDEAE2";
-  const axisTick = (size, extra) => ({ fontSize: size, fontFamily: F, fill: isDark ? "#93A093" : "#59645D", fontWeight: 650, ...extra });
+  const axisTick = (size, extra) => ({ fontSize: size, fontFamily: F, fill: isDark ? "#FFFFFF" : "#000000", fontWeight: 650, ...extra });
   const tooltipStyle = {
     fontFamily: F, fontSize: 11,
     background: isDark ? "#161A16" : "#FFFFFF",
     border: "1px solid " + (isDark ? "#2F352F" : "#E4E1D8"),
     borderRadius: "8px",
     boxShadow: isDark ? "0 8px 24px rgba(0,0,0,0.35)" : "0 8px 24px rgba(31,36,31,0.08)",
-    color: isDark ? "#F6F3EA" : "#1A1A1A",
+    color: isDark ? "#FFFFFF" : "#000000",
   };
-  const tooltipLabelStyle = { color: isDark ? "#D7DBD7" : "#59645D", fontWeight: 700, marginBottom: "2px" };
+  const tooltipLabelStyle = { color: isDark ? "#FFFFFF" : "#000000", fontWeight: 700, marginBottom: "2px" };
   const dividerColor = isDark ? "#2B302B" : "#F0F0EC";
   const darkCard = (extra = {}) => ({ ...card(extra), background: isDark ? "#0F120F" : "#FFFFFF", borderColor: isDark ? "#2B302B" : "#EFEDE7" });
 
@@ -153,7 +153,7 @@ export default function ReleaseDetailPage({ ctx }) {
 
         return (
         <div style={{padding:PAD,background:isDark?"#050505":"#ffffff",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
-          <span onClick={closeDetails} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#F6F3EA":"#1A1A1A",cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>← Back</span>
+          <span onClick={closeDetails} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#FFFFFF":"#000000",cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>← Back</span>
 
           {/* Hero — cover art beside identity, matching the artist detail page's layout */}
           <div style={{marginTop:"20px",display:"flex",gap:isMobile?"16px":"24px",alignItems:"flex-start",flexDirection:isMobile?"column":"row",minWidth:0}}>
@@ -161,11 +161,11 @@ export default function ReleaseDetailPage({ ctx }) {
               <img src={releaseDetails.cover_image} alt={`${selR.title} cover`} style={{width:isMobile?"120px":"156px",height:isMobile?"120px":"156px",aspectRatio:"1",objectFit:"cover",borderRadius:"20px",boxShadow:isDark?"0 12px 30px rgba(0,0,0,0.4)":"0 12px 30px rgba(0,0,0,0.14)",flexShrink:0}} />
             )}
             <div style={{flex:1,minWidth:0}}>
-              <h1 style={{display:"flex",alignItems:"center",flexWrap:"wrap",gap:"8px",fontSize:isMobile?"24px":"32px",fontWeight:850,margin:"0 0 10px",lineHeight:1.1,fontFamily:SF,letterSpacing:"-0.5px",color:isDark?"#F6F3EA":"#1A1A1A"}}>
+              <h1 style={{display:"flex",alignItems:"center",flexWrap:"wrap",gap:"8px",fontSize:isMobile?"24px":"32px",fontWeight:850,margin:"0 0 10px",lineHeight:1.1,fontFamily:SF,letterSpacing:"-0.5px",color:isDark?"#FFFFFF":"#000000"}}>
                 {selR.title}{selectedCertification&&<span aria-label={`${selectedCertification.label} certified`} title={`${selectedCertification.label} certified · ${Number(selectedCertification.totalPts||0).toLocaleString()} points`} style={{fontSize:isMobile?"14px":"20px",opacity:0.9,lineHeight:1}}><span style={selectedCertification.iconFilter?{filter:selectedCertification.iconFilter}:undefined}>{selectedCertification.icon}</span></span>}
               </h1>
               <div style={{display:"flex",alignItems:"center",gap:"9px",flexWrap:"wrap"}}>
-                <button type="button" onClick={()=>openArtistDetails(selR.primary_artist||selR.artist)} style={{fontSize:isMobile?"15px":"18px",color:isDark?"#C7CCC6":"#4E5851",margin:0,padding:0,border:0,background:"transparent",fontFamily:F,cursor:"pointer",fontWeight:800}}>{selR.artist}</button>
+                <button type="button" onClick={()=>openArtistDetails(selR.primary_artist||selR.artist)} style={{fontSize:isMobile?"15px":"18px",color:isDark?"#FFFFFF":"#000000",margin:0,padding:0,border:0,background:"transparent",fontFamily:F,cursor:"pointer",fontWeight:800}}>{selR.artist}</button>
                 <CountryBadge artist={selR.primary_artist||selR.artist} item={releaseDetails} showName />
               </div>
             </div>
@@ -182,26 +182,26 @@ export default function ReleaseDetailPage({ ctx }) {
                 {label:"Platforms",value:platformNames.size},
                 {label:"Best Coverage",value:`${bestCoverage}/${tp}`},
                 {label:"Release Year",value:selR.release_year||releaseMetadata.release_year||"—"},
-              ].map((stat)=><div key={stat.label} style={{padding:"14px 15px",border:"1px solid "+(isDark?"#2B302B":"#ECE9E1"),borderRadius:"10px",background:isDark?"#151815":"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#8F968F":"#7B857D"}}>{stat.label}</div><div style={{fontFamily:F,fontSize:"22px",fontWeight:900,color:isDark?"#F6F3EA":"#1A1A1A",marginTop:"5px"}}>{stat.value}</div></div>)}
+              ].map((stat)=><div key={stat.label} style={{padding:"14px 15px",border:"1px solid "+(isDark?"#2B302B":"#ECE9E1"),borderRadius:"10px",background:isDark?"#151815":"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000"}}>{stat.label}</div><div style={{fontFamily:F,fontSize:"22px",fontWeight:900,color:isDark?"#FFFFFF":"#000000",marginTop:"5px"}}>{stat.value}</div></div>)}
             </div>
             <div style={{marginBottom:"18px",border:`1px solid ${isDark?"#2B302B":"#ECE9E1"}`,borderRadius:"12px",overflow:"hidden"}}>
               {infoRows.map(([label, value], idx) => (
                 <div key={label} style={{display:"grid",gridTemplateColumns:isMobile?"110px 1fr":"170px 1fr",gap:"14px",padding:"12px 16px",background:isDark?(idx%2===0?"#121612":"#0F1110"):(idx%2===0?"#FAFAF8":"#FFFFFF"),borderTop:idx===0?"none":`1px solid ${isDark?"#2B302B":"#F0EDE6"}`,alignItems:"center"}}>
-                  <span style={{fontFamily:F,fontSize:"11px",fontWeight:750,letterSpacing:"0.4px",color:isDark?"#8F968F":"#7B857D",textTransform:"uppercase"}}>{label}</span>
+                  <span style={{fontFamily:F,fontSize:"11px",fontWeight:750,letterSpacing:"0.4px",color:isDark?"#FFFFFF":"#000000",textTransform:"uppercase"}}>{label}</span>
                   {urlLabels.has(label) ? (
-                    <a href={value} target="_blank" rel="noopener noreferrer" onClick={(e)=>e.stopPropagation()} style={{fontFamily:F,fontSize:"14px",fontWeight:700,color:isDark?"#F6F3EA":"#1A1A1A",textDecoration:"none",wordBreak:"break-all"}}>{value} ↗</a>
+                    <a href={value} target="_blank" rel="noopener noreferrer" onClick={(e)=>e.stopPropagation()} style={{fontFamily:F,fontSize:"14px",fontWeight:700,color:isDark?"#FFFFFF":"#000000",textDecoration:"none",wordBreak:"break-all"}}>{value} ↗</a>
                   ) : artistCreditLabels.has(label) ? (
-                    <ArtistCredit credit={value} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="14px" fontWeight={650} color="#1A1A1A" darkColor="#F6F3EA" separatorColor="#7B857D" darkSeparatorColor="#8F968F" />
+                    <ArtistCredit credit={value} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="14px" fontWeight={650} color="#000000" darkColor="#FFFFFF" separatorColor="#000000" darkSeparatorColor="#FFFFFF" />
                   ) : (
-                    <span style={{fontFamily:F,fontSize:"14px",fontWeight:650,color:isDark?"#F6F3EA":"#1A1A1A",wordBreak:"break-word"}}>{value}</span>
+                    <span style={{fontFamily:F,fontSize:"14px",fontWeight:650,color:isDark?"#FFFFFF":"#000000",wordBreak:"break-word"}}>{value}</span>
                   )}
                 </div>
               ))}
             </div>
             <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1.4fr 0.8fr",gap:"14px",marginBottom:"20px"}}>
               <div style={darkCard()}>
-                <div style={secLbl(isDark?"#F6F3EA":"#1A1A1A")}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Combined Rank Journey</div>
-                <div style={{fontFamily:F,fontSize:"9.5px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#8F968F":"#7B857D",margin:"-6px 0 6px"}}>Lower = better</div>
+                <div style={secLbl(isDark?"#FFFFFF":"#000000")}><SecMark c={isDark?"#FFFFFF":"#000000"}/>Combined Rank Journey</div>
+                <div style={{fontFamily:F,fontSize:"9.5px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",margin:"-6px 0 6px"}}>Lower = better</div>
                 <ResponsiveContainer width="100%" height={220}>
                   <LineChart data={releaseRankData} margin={{top:8,right:18,left:0,bottom:0}}>
                     <CartesianGrid stroke={gridStroke} vertical={false}/>
@@ -213,8 +213,8 @@ export default function ReleaseDetailPage({ ctx }) {
                 </ResponsiveContainer>
               </div>
               <div style={darkCard()}>
-                <div style={secLbl(isDark?"#F6F3EA":"#1A1A1A")}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Platform Peak Ranks</div>
-                {platformPeaks.map((item)=><div key={item.platform} style={{display:"flex",justifyContent:"space-between",gap:"12px",padding:"8px 0",borderBottom:`1px solid ${dividerColor}`,fontFamily:F,fontSize:"12px"}}><span style={{color:PC[item.platform]||(isDark?"#93A093":"#59645D"),fontWeight:800}}>{item.platform}</span><strong style={{color:isDark?"#F6F3EA":"#1A1A1A"}}>#{item.rank}</strong></div>)}
+                <div style={secLbl(isDark?"#FFFFFF":"#000000")}><SecMark c={isDark?"#FFFFFF":"#000000"}/>Platform Peak Ranks</div>
+                {platformPeaks.map((item)=><div key={item.platform} style={{display:"flex",justifyContent:"space-between",gap:"12px",padding:"8px 0",borderBottom:`1px solid ${dividerColor}`,fontFamily:F,fontSize:"12px"}}><span style={{color:PC[item.platform]||(isDark?"#93A093":"#59645D"),fontWeight:800}}>{item.platform}</span><strong style={{color:isDark?"#FFFFFF":"#000000"}}>#{item.rank}</strong></div>)}
               </div>
             </div>
             <PlatformPerformance
@@ -230,20 +230,20 @@ export default function ReleaseDetailPage({ ctx }) {
                 .map((platform) => PLAT_LABEL[platform] || platform)}
             />
             <div style={darkCard({marginBottom:0})}>
-              <div style={secLbl(isDark?"#F6F3EA":"#1A1A1A")}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Cross-Platform Journey</div>
+              <div style={secLbl(isDark?"#FFFFFF":"#000000")}><SecMark c={isDark?"#FFFFFF":"#000000"}/>Cross-Platform Journey</div>
               <div style={{border:`1px solid ${isDark?"#2B302B":"#E4E1D8"}`,borderRadius:"12px",overflow:"hidden"}}>
-                <div style={{display:"grid",gridTemplateColumns:isMobile?"58px 84px 46px minmax(0,1fr)":"74px 140px 60px minmax(0,1fr)",gap:"8px",padding:isMobile?"9px":"11px 14px",background:"#1F241F",fontFamily:F,fontSize:"10.5px",fontWeight:850,letterSpacing:"0.8px",textTransform:"uppercase",color:"#C9CEC9"}}>
+                <div style={{display:"grid",gridTemplateColumns:isMobile?"58px 84px 46px minmax(0,1fr)":"74px 140px 60px minmax(0,1fr)",gap:"8px",padding:isMobile?"9px":"11px 14px",background:"#1F241F",fontFamily:F,fontSize:"10.5px",fontWeight:850,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF"}}>
                   <div>Month</div><div>Combined</div><div>Cover</div><div>Platforms</div>
                 </div>
                 {chartedJourney.map(({month:m,combined,platforms},idx)=>{
                   const isPeak = combined && Number(combined.rank) === 1;
                   return (
-                  <div key={m} style={{display:"grid",gridTemplateColumns:isMobile?"58px 84px 46px minmax(0,1fr)":"74px 140px 60px minmax(0,1fr)",gap:"8px",alignItems:"center",padding:isMobile?"9px":"10px 14px",background:isDark?(idx%2?"#121612":"#0F120F"):(idx%2?"#FBFAF7":"#FFFFFF"),borderTop:idx===0?"none":`1px solid ${dividerColor}`,borderLeft:isPeak?`3px solid ${isDark?"#F6F3EA":"#1A1A1A"}`:"3px solid transparent"}}>
-                    <span style={{fontFamily:SF,fontSize:"12px",fontWeight:800,color:isDark?"#F6F3EA":"#1A1A1A"}}>{m}</span>
+                  <div key={m} style={{display:"grid",gridTemplateColumns:isMobile?"58px 84px 46px minmax(0,1fr)":"74px 140px 60px minmax(0,1fr)",gap:"8px",alignItems:"center",padding:isMobile?"9px":"10px 14px",background:isDark?(idx%2?"#121612":"#0F120F"):(idx%2?"#FBFAF7":"#FFFFFF"),borderTop:idx===0?"none":`1px solid ${dividerColor}`,borderLeft:isPeak?`3px solid ${isDark?"#FFFFFF":"#000000"}`:"3px solid transparent"}}>
+                    <span style={{fontFamily:SF,fontSize:"12px",fontWeight:800,color:isDark?"#FFFFFF":"#000000"}}>{m}</span>
                     {combined
-                      ? <span style={{fontFamily:F,fontSize:"11.5px",fontWeight:800,color:isDark?"#F6F3EA":"#1A1A1A"}}>#{combined.rank} · {combined.pts.toLocaleString()} pts</span>
-                      : <span style={{fontFamily:F,fontSize:"11px",color:isDark?"#8F968F":"#7B857D"}}>—</span>}
-                    <span style={{fontFamily:F,fontSize:"11px",fontWeight:800,color:isDark?"#AEB6AE":"#69716B"}}>{platforms.length}/{tp}</span>
+                      ? <span style={{fontFamily:F,fontSize:"11.5px",fontWeight:800,color:isDark?"#FFFFFF":"#000000"}}>#{combined.rank} · {combined.pts.toLocaleString()} pts</span>
+                      : <span style={{fontFamily:F,fontSize:"11px",color:isDark?"#FFFFFF":"#000000"}}>—</span>}
+                    <span style={{fontFamily:F,fontSize:"11px",fontWeight:800,color:isDark?"#FFFFFF":"#000000"}}>{platforms.length}/{tp}</span>
                     <div style={{display:"flex",gap:"5px",flexWrap:"wrap"}}>
                       {platforms.map(p=>(
                         <span key={p.platform} title={`${p.platform} #${p.rank}`} style={{padding:"2px 8px",background:(PC[p.platform]||"#888")+"18",borderRadius:"999px",fontSize:"9.5px",fontFamily:F,fontWeight:700,color:PC[p.platform]||"#888"}}>

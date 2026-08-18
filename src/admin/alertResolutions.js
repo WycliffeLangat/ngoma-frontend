@@ -55,7 +55,7 @@ const URL_FIELD_BY_LABEL = {
 
 const STATUS_DONE = "resolved";
 const DEFAULT_PLATFORM_COLOR = "#111111";
-const NGOMA_GOLD = "#B8860B";
+const NGOMA_GOLD = "#C97A12";
 const DEFAULT_CERTIFICATION_RULES = [
   { level: "diamond", threshold: 600 },
   { level: "platinum", threshold: 400 },

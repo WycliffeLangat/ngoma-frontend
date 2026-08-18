@@ -24,7 +24,7 @@ const TYPES = [
   ["artists", "Artist"],
 ];
 
-const CERT_COLORS = { gold: "#B8860B", platinum: "#8C97A8", diamond: "#4FC3F7" };
+const CERT_COLORS = { gold: "#C97A12", platinum: "#8C97A8", diamond: "#4FC3F7" };
 const CERT_ORDER = ["diamond", "platinum", "gold"];
 
 // The releases/artists list endpoints already return peak_rank/total_points/
@@ -89,7 +89,7 @@ function SpotlightContent({ item, type, theme = "dark" }) {
   }
 
   const topCert = CERT_ORDER.find((level) => item.certifications.includes(level)) || null;
-  const certColor = topCert ? CERT_COLORS[topCert] : "#B8860B";
+  const certColor = topCert ? CERT_COLORS[topCert] : "#C97A12";
   const artSize = 560;
   const tileBg = theme === "light" ? "rgba(0,0,0,0.045)" : "rgba(255,255,255,0.055)";
   const tileBorder = theme === "light" ? "rgba(0,0,0,0.14)" : "rgba(255,255,255,0.16)";
@@ -219,7 +219,7 @@ function SpotlightContent({ item, type, theme = "dark" }) {
             [item.secondaryStatLabel, item.secondaryStatValue],
           ].map(([label, value]) => (
             <div key={label} style={{ background: tileBg, border: `1px solid ${tileBorder}`, borderRadius: 16, padding: "24px 8px", textAlign: "center" }}>
-              <div style={{ fontSize: 50, fontWeight: 900, color: "#B8860B" }}>{value}</div>
+              <div style={{ fontSize: 50, fontWeight: 900, color: "#C97A12" }}>{value}</div>
               <div style={{ fontSize: 17, fontWeight: 800, letterSpacing: "0.5px", textTransform: "uppercase", color: t.metaColor, marginTop: 8 }}>
                 {label}
               </div>

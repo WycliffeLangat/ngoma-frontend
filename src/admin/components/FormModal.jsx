@@ -159,7 +159,7 @@ function ImageUploadBox({ fieldName, label, help, form, set }) {
     : (typeof raw === "string" && raw ? raw : null);
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-      <span style={{ fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: ".08em", color: "#5e625c" }}>{label}</span>
+      <span style={{ fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: ".08em", color: "#000000" }}>{label}</span>
       <div style={{ position: "relative", display: "inline-block", flexShrink: 0 }}>
         <div
           onClick={() => inputRef.current?.click()}
@@ -183,8 +183,8 @@ function ImageUploadBox({ fieldName, label, help, form, set }) {
             ? <img src={src} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
             : (
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", padding: "8px", textAlign: "center" }}>
-                <span style={{ fontSize: "28px", lineHeight: 1, color: "#bbb", fontWeight: 300 }}>+</span>
-                <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: ".06em", fontWeight: 700, color: "#999", lineHeight: 1.3 }}>{label}</span>
+                <span style={{ fontSize: "28px", lineHeight: 1, color: "#000000", fontWeight: 300 }}>+</span>
+                <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: ".06em", fontWeight: 700, color: "#000000", lineHeight: 1.3 }}>{label}</span>
               </div>
             )
           }
@@ -213,7 +213,7 @@ function ImageUploadBox({ fieldName, label, help, form, set }) {
           >×</button>
         )}
       </div>
-      {help && <small style={{ fontSize: "11px", color: "#888", lineHeight: 1.4 }}>{help}</small>}
+      {help && <small style={{ fontSize: "11px", color: "#000000", lineHeight: 1.4 }}>{help}</small>}
     </div>
   );
 }
@@ -375,7 +375,7 @@ export default function FormModal({ open, title, entityId, fields = [], initial 
           <h3>
             {title}
             {entityId != null && (
-              <span style={{ marginLeft: 10, fontSize: 11, fontWeight: 500, color: "#999", letterSpacing: ".04em", verticalAlign: "middle" }}>
+              <span style={{ marginLeft: 10, fontSize: 11, fontWeight: 500, color: "#000000", letterSpacing: ".04em", verticalAlign: "middle" }}>
                 ID&nbsp;{entityId}
               </span>
             )}

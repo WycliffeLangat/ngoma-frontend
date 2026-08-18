@@ -124,14 +124,14 @@ function ChartCard({ chart }) {
         <ResponsiveContainer width="100%" height="100%">
           <Chart data={data} margin={{ top: 10, right: 12, left: -12, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#EAE6DC" />
-            <XAxis dataKey="label" tick={{ fontSize: 9, fill: "#69716B" }} interval="preserveStartEnd" />
-            <YAxis reversed={isRank} allowDecimals={false} tick={{ fontSize: 9, fill: "#69716B" }} />
+            <XAxis dataKey="label" tick={{ fontSize: 9, fill: "#000000" }} interval="preserveStartEnd" />
+            <YAxis reversed={isRank} allowDecimals={false} tick={{ fontSize: 9, fill: "#000000" }} />
             <Tooltip contentStyle={{ borderRadius: 10, border: "1px solid #DDD7C9", fontSize: 11 }} />
             {chart.series.length > 1 && <Legend wrapperStyle={{ fontSize: 10 }} />}
             {chart.series.map((series) => chart.type === "bar" ? (
-              <Bar key={series.name} dataKey={series.name} fill={series.color || "#B8860B"} radius={[4, 4, 0, 0]} />
+              <Bar key={series.name} dataKey={series.name} fill={series.color || "#C97A12"} radius={[4, 4, 0, 0]} />
             ) : (
-              <Line key={series.name} type="monotone" dataKey={series.name} stroke={series.color || "#B8860B"} strokeWidth={2.5} dot={{ r: 3 }} connectNulls />
+              <Line key={series.name} type="monotone" dataKey={series.name} stroke={series.color || "#C97A12"} strokeWidth={2.5} dot={{ r: 3 }} connectNulls />
             ))}
           </Chart>
         </ResponsiveContainer>
@@ -443,8 +443,8 @@ export default function NgomaAIWidget() {
 }
 
 const styles = {
-  floatingButton: { position: "fixed", right: "clamp(14px,2.4vw,28px)", bottom: "clamp(14px,2.4vw,28px)", zIndex: 9999, minWidth: 54, height: 54, padding: "0 17px 0 8px", borderRadius: 999, border: "1px solid rgba(184,134,11,.45)", background: "#11130f", color: "#fff", cursor: "pointer", boxShadow: "0 12px 32px rgba(0,0,0,.22)", display: "flex", alignItems: "center", justifyContent: "center", gap: 9, fontFamily: "'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" },
-  spark: { width: 38, height: 38, borderRadius: "50%", display: "grid", placeItems: "center", background: "#B8860B", fontFamily: "'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif", fontWeight: 900, fontSize: 19 },
+  floatingButton: { position: "fixed", right: "clamp(14px,2.4vw,28px)", bottom: "clamp(14px,2.4vw,28px)", zIndex: 9999, minWidth: 54, height: 54, padding: "0 17px 0 8px", borderRadius: 999, border: "1px solid rgba(201,122,18,.45)", background: "#11130f", color: "#fff", cursor: "pointer", boxShadow: "0 12px 32px rgba(0,0,0,.22)", display: "flex", alignItems: "center", justifyContent: "center", gap: 9, fontFamily: "'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" },
+  spark: { width: 38, height: 38, borderRadius: "50%", display: "grid", placeItems: "center", backgroundColor: "#F2981A", backgroundImage: "url(/textures/gold-texture.png)", backgroundSize: "60px 40px", backgroundRepeat: "repeat", fontFamily: "'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif", fontWeight: 900, fontSize: 19 },
   floatingLabel: { fontSize: 10, fontWeight: 900, letterSpacing: 1.2, whiteSpace: "nowrap" },
   panel: { position: "fixed", right: "clamp(8px,1.5vw,20px)", bottom: "clamp(76px,8vw,92px)", width: "min(780px,calc(100vw - 16px))", height: "min(760px,calc(100vh - 92px))", background: "#fff", color: "#171914", borderRadius: 18, boxShadow: "0 24px 70px rgba(0,0,0,.28)", display: "flex", overflow: "hidden", zIndex: 10000, border: "1px solid #E7E3D8", fontFamily: "'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" },
   sidebar: { width: 190, flex: "0 0 190px", background: "#171914", color: "#fff", display: "flex", flexDirection: "column", minWidth: 0 },
@@ -452,57 +452,57 @@ const styles = {
   newChatButton: { border: "1px solid rgba(255,255,255,.2)", borderRadius: 8, background: "transparent", color: "#fff", padding: "6px 8px", fontSize: 9, fontWeight: 800, cursor: "pointer" },
   conversationList: { padding: 8, overflowY: "auto", display: "flex", flexDirection: "column", gap: 5 },
   conversationRow: { display: "flex", alignItems: "center", borderRadius: 9, border: "1px solid transparent" },
-  activeConversation: { background: "rgba(184,134,11,.2)", borderColor: "rgba(184,134,11,.38)" },
+  activeConversation: { background: "rgba(201,122,18,.2)", borderColor: "rgba(201,122,18,.38)" },
   conversationButton: { flex: 1, minWidth: 0, border: 0, background: "transparent", color: "inherit", padding: "9px 6px 9px 9px", cursor: "pointer", textAlign: "left" },
   conversationTitle: { display: "block", fontSize: 10, fontWeight: 750, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
-  conversationDate: { display: "block", color: "#A9AEA8", fontSize: 8, marginTop: 3 },
-  deleteChat: { border: 0, background: "transparent", color: "#9EA49E", cursor: "pointer", fontSize: 11, padding: 8 },
+  conversationDate: { display: "block", color: "#FFFFFF", fontSize: 8, marginTop: 3 },
+  deleteChat: { border: 0, background: "transparent", color: "#FFFFFF", cursor: "pointer", fontSize: 11, padding: 8 },
   mainChat: { flex: 1, minWidth: 0, display: "flex", flexDirection: "column", background: "#F7F5EF" },
   header: { flex: "0 0 auto", padding: "14px 16px", background: "#fff", borderBottom: "1px solid #E5E0D4", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 },
   headerLeft: { display: "flex", alignItems: "center", gap: 10, minWidth: 0 },
   historyButton: { display: "none", border: 0, background: "#F3F0E8", borderRadius: 8, width: 34, height: 34, cursor: "pointer" },
   title: { fontSize: 17, fontWeight: 850 },
-  subtitle: { display: "flex", alignItems: "center", gap: 5, fontSize: 8, letterSpacing: .75, fontWeight: 850, color: "#6B7169", marginTop: 3 },
+  subtitle: { display: "flex", alignItems: "center", gap: 5, fontSize: 8, letterSpacing: .75, fontWeight: 850, color: "#000000", marginTop: 3 },
   statusDot: { display: "inline-block", width: 6, height: 6, borderRadius: "50%", background: "#2F9E44" },
   headerActions: { display: "flex", alignItems: "center", gap: 5 },
   headerNewChat: { border: "1px solid #DED8C9", background: "#fff", borderRadius: 8, padding: "7px 9px", fontSize: 9, fontWeight: 800, cursor: "pointer" },
-  closeButton: { border: 0, background: "transparent", fontSize: 26, cursor: "pointer", color: "#37413A", lineHeight: 1 },
+  closeButton: { border: 0, background: "transparent", fontSize: 26, cursor: "pointer", color: "#000000", lineHeight: 1 },
   messages: { flex: 1, minHeight: 0, padding: "18px clamp(12px,3vw,24px)", overflowY: "auto", display: "flex", flexDirection: "column", gap: 18 },
   messageWrap: { display: "flex", flexDirection: "column", width: "100%", gap: 5 },
   message: { padding: "13px 15px", borderRadius: 15, fontSize: 13, lineHeight: 1.58, maxWidth: "92%", boxSizing: "border-box" },
   userMessage: { background: "#171914", color: "#fff", borderBottomRightRadius: 4, maxWidth: "82%" },
   assistantMessage: { background: "#fff", border: "1px solid #E5E0D4", color: "#171914", borderBottomLeftRadius: 4 },
-  assistantLabel: { fontSize: 8, letterSpacing: 1.15, fontWeight: 900, color: "#B8860B", marginBottom: 7 },
+  assistantLabel: { fontSize: 8, letterSpacing: 1.15, fontWeight: 900, color: "#C97A12", marginBottom: 7 },
   answerParagraph: { margin: "2px 0" },
   answerList: { margin: "6px 0 6px 18px", padding: 0 },
   chartCard: { marginTop: 14, borderRadius: 12, border: "1px solid #E3DED2", padding: "12px 10px 8px", background: "#FCFBF8" },
   chartTitleRow: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, padding: "0 3px 8px" },
   chartTitle: { fontSize: 12, fontWeight: 850 },
-  chartSubtitle: { marginTop: 3, fontSize: 9, color: "#69716B", lineHeight: 1.4 },
+  chartSubtitle: { marginTop: 3, fontSize: 9, color: "#000000", lineHeight: 1.4 },
   predictionTag: { borderRadius: 999, background: "#FFF3CD", border: "1px solid #E7C75C", color: "#785D00", padding: "4px 7px", fontSize: 7, fontWeight: 900, letterSpacing: .8 },
   chartFrame: { width: "100%", height: 235 },
-  axisNote: { textAlign: "center", fontSize: 8, color: "#8A908A", marginTop: 3 },
+  axisNote: { textAlign: "center", fontSize: 8, color: "#000000", marginTop: 3 },
   details: { marginTop: 12, borderTop: "1px solid #EEEAE1", paddingTop: 9 },
-  detailsSummary: { cursor: "pointer", fontSize: 9, fontWeight: 850, color: "#59645D" },
-  detailsText: { fontSize: 10, color: "#626A63", lineHeight: 1.55, marginTop: 7 },
+  detailsSummary: { cursor: "pointer", fontSize: 9, fontWeight: 850, color: "#000000" },
+  detailsText: { fontSize: 10, color: "#000000", lineHeight: 1.55, marginTop: 7 },
   sources: { display: "flex", flexWrap: "wrap", gap: 5, marginTop: 10 },
-  sourceChip: { padding: "4px 7px", borderRadius: 999, background: "#F3F0E8", color: "#626962", fontSize: 8, fontWeight: 700 },
-  modelLine: { marginTop: 9, color: "#969B95", fontSize: 8 },
+  sourceChip: { padding: "4px 7px", borderRadius: 999, background: "#F3F0E8", color: "#000000", fontSize: 8, fontWeight: 700 },
+  modelLine: { marginTop: 9, color: "#000000", fontSize: 8 },
   messageActions: { display: "flex", gap: 10, paddingLeft: 5 },
-  textAction: { border: 0, background: "transparent", color: "#727972", fontSize: 9, fontWeight: 750, cursor: "pointer", padding: "2px 0" },
+  textAction: { border: 0, background: "transparent", color: "#000000", fontSize: 9, fontWeight: 750, cursor: "pointer", padding: "2px 0" },
   followUps: { display: "flex", gap: 6, flexWrap: "wrap", maxWidth: "94%", marginTop: 2 },
-  followUpButton: { border: "1px solid #DAD4C7", background: "#fff", color: "#505850", borderRadius: 999, padding: "7px 10px", fontSize: 9, fontWeight: 700, cursor: "pointer", textAlign: "left" },
+  followUpButton: { border: "1px solid #DAD4C7", background: "#fff", color: "#000000", borderRadius: 999, padding: "7px 10px", fontSize: 9, fontWeight: 700, cursor: "pointer", textAlign: "left" },
   thinkingRow: { display: "flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700 },
-  thinkingDot: { width: 8, height: 8, borderRadius: "50%", background: "#B8860B", boxShadow: "0 0 0 4px rgba(184,134,11,.14)" },
-  thinkingNote: { fontSize: 9, color: "#858B85", marginTop: 7 },
+  thinkingDot: { width: 8, height: 8, borderRadius: "50%", background: "#C97A12", boxShadow: "0 0 0 4px rgba(201,122,18,.14)" },
+  thinkingNote: { fontSize: 9, color: "#000000", marginTop: 7 },
   composerWrap: { flex: "0 0 auto", background: "#fff", borderTop: "1px solid #E5E0D4", padding: "9px 13px 10px" },
   starters: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 8 },
-  starterButton: { border: "1px solid #DED8C9", background: "#FAF9F5", color: "#4F574F", borderRadius: 10, padding: "8px 9px", fontSize: 9, lineHeight: 1.35, textAlign: "left", cursor: "pointer" },
+  starterButton: { border: "1px solid #DED8C9", background: "#FAF9F5", color: "#000000", borderRadius: 10, padding: "8px 9px", fontSize: 9, lineHeight: 1.35, textAlign: "left", cursor: "pointer" },
   inputArea: { display: "flex", gap: 8, alignItems: "flex-end" },
   textarea: { flex: 1, resize: "none", border: "1px solid #D8D2C5", borderRadius: 12, padding: "10px 12px", fontSize: 12, outline: "none", fontFamily: "inherit", maxHeight: 100 },
-  sendButton: { width: 58, height: 40, borderRadius: 10, border: 0, background: "#B8860B", color: "#fff", fontSize: 9, fontWeight: 900, cursor: "pointer" },
+  sendButton: { width: 58, height: 40, borderRadius: 10, border: 0, backgroundColor: "#F2981A", backgroundImage: "url(/textures/gold-texture.png)", backgroundSize: "90px 60px", backgroundRepeat: "repeat", color: "#fff", fontSize: 9, fontWeight: 900, cursor: "pointer" },
   stopButton: { width: 58, height: 40, borderRadius: 10, border: "1px solid #B94747", background: "#fff", color: "#A13232", fontSize: 9, fontWeight: 900, cursor: "pointer" },
-  disclaimer: { paddingTop: 7, color: "#8A908A", fontSize: 8, textAlign: "center" },
+  disclaimer: { paddingTop: 7, color: "#000000", fontSize: 8, textAlign: "center" },
 };
 
 if (typeof document !== "undefined") {

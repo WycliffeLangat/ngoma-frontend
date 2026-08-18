@@ -41,7 +41,7 @@ export default function YearEndPage({ ctx }) {
     fontWeight:750,
     cursor:"pointer",
     outline:"none",
-    color:isDark?"#F6F3EA":"#1A1A1A",
+    color:isDark?"#FFFFFF":"#000000",
   };
 
   const detailPanelStyle = {
@@ -76,7 +76,7 @@ export default function YearEndPage({ ctx }) {
     display:"block",
     fontFamily:F,
     fontSize:"8.8px",
-    color:isDark?"#AEB6AE":"#777",
+    color:isDark?"#FFFFFF":"#000000",
     fontWeight:900,
     letterSpacing:"0.7px",
     lineHeight:1.15,
@@ -87,7 +87,7 @@ export default function YearEndPage({ ctx }) {
     display:"block",
     marginTop:"5px",
     fontFamily:F,
-    color:isDark?"#F6F3EA":"#050505",
+    color:isDark?"#FFFFFF":"#000000",
     fontSize:"12px",
     fontWeight:500,
     lineHeight:1.2,
@@ -116,8 +116,8 @@ export default function YearEndPage({ ctx }) {
           <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:isMobile?"16px":"20px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
             <div>
               <div style={{fontFamily:F,fontSize:isMobile?"10.5px":"11px",letterSpacing:isMobile?"1.8px":"2px",textTransform:"uppercase",color:GOLD,marginBottom:"6px",fontWeight:850}}>{yearEndMode==="bestofyear"?"BEST OF YEAR":"ALL TIME"}</div>
-              <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0,color:isDark?"#F6F3EA":"#050505"}}>{yearEndMode==="bestofyear"?"Best of the Year":"All Time Charts"}</h2>
-              <p style={{fontFamily:F,fontSize:TXT.lead,color:isDark?"#D7DBD7":"#59645D",margin:"4px 0 0",lineHeight:1.55}}>Aggregated Display Points across {yearEndPeriodLabel}</p>
+              <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0,color:isDark?"#FFFFFF":"#000000"}}>{yearEndMode==="bestofyear"?"Best of the Year":"All Time Charts"}</h2>
+              <p style={{fontFamily:F,fontSize:TXT.lead,color:isDark?"#FFFFFF":"#000000",margin:"4px 0 0",lineHeight:1.55}}>Aggregated Display Points across {yearEndPeriodLabel}</p>
             </div>
             <div className="year-end-actions" data-share-action-area="true" style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap",position:isMobile?"sticky":"static",top:isMobile?"0":"auto",zIndex:isMobile?5:"auto",background:isMobile?(isDark?"#050805":"#FFF"):"transparent",padding:isMobile?"8px 0 4px":"0"}}>
               <select value={yearEndMode} onChange={e=>setYearEndMode(e.target.value)} style={{...selectStyle,minWidth:isMobile?"120px":"150px"}}>
@@ -152,7 +152,7 @@ export default function YearEndPage({ ctx }) {
                 textTransform:"uppercase",
                 background:isDark?"#0f120f":"#f0ede6",
                 borderBottom:"2px solid "+(isDark?"#2F352F":"#e4e1d8"),
-                color:isDark?"#8a9288":"#3d4440",
+                color:isDark?"#FFFFFF":"#000000",
               }}>
                 <span style={{textAlign:"center"}}>#</span>
                 <span>{isArtists?"ARTIST":"TITLE"}</span>
@@ -164,7 +164,7 @@ export default function YearEndPage({ ctx }) {
                 const expanded = Boolean(expandedYearEndRows[rowKey]);
                 const t3 = idx < 3;
                 const isLast = idx === Math.min(yearEnd.length,50)-1;
-                const medalColor = t3 ? MEDALS[idx] : (isDark?"#F6F3EA":"#050505");
+                const medalColor = t3 ? MEDALS[idx] : (isDark?"#FFFFFF":"#000000");
                 const certification = isArtists ? null : getCertificationForEntry(item, isSingles ? "single" : "album");
                 const statItems = isArtists ? [
                   { label:"Total Pts", value:item.totalPts.toLocaleString() },
@@ -185,7 +185,7 @@ export default function YearEndPage({ ctx }) {
                     style={{
                       borderBottom:isLast?"none":"1px solid "+(isDark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.08)"),
                       background:isDark?"#0d0f0d":"#ffffff",
-                      color:isDark?"#F6F3EA":"#050505",
+                      color:isDark?"#FFFFFF":"#000000",
                     }}
                   >
                     <div
@@ -230,7 +230,7 @@ export default function YearEndPage({ ctx }) {
                               fontSize:t3?"15px":"13.5px",
                               fontWeight:850,
                               lineHeight:1.15,
-                              color:isDark?"#F6F3EA":"#050505",
+                              color:isDark?"#FFFFFF":"#000000",
                               whiteSpace:"normal",
                               overflow:"visible",
                               textOverflow:"clip",
@@ -241,7 +241,7 @@ export default function YearEndPage({ ctx }) {
                             {item.t}
                           </button>
                           {isArtists ? (
-                            <div style={{margin:"4px 0 0",fontFamily:F,fontSize:"12px",fontWeight:700,lineHeight:1.35,color:isDark?"#8a9288":"#59645D",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
+                            <div style={{margin:"4px 0 0",fontFamily:F,fontSize:"12px",fontWeight:700,lineHeight:1.35,color:isDark?"#FFFFFF":"#000000",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
                               {item.entries || 0} {item.entries===1?"entry":"entries"} · {item.months} {item.months===1?"month":"months"}
                             </div>
                           ) : (
@@ -260,7 +260,7 @@ export default function YearEndPage({ ctx }) {
                                 fontSize:"12.5px",
                                 fontWeight:700,
                                 lineHeight:1.35,
-                                color:isDark?"#D7DBD7":"#59645D",
+                                color:isDark?"#FFFFFF":"#000000",
                                 whiteSpace:"nowrap",
                                 overflow:"hidden",
                                 textOverflow:"ellipsis",
@@ -284,7 +284,7 @@ export default function YearEndPage({ ctx }) {
                           border:"1px solid "+(isDark?"rgba(255,255,255,0.14)":"rgba(0,0,0,0.08)"),
                           borderRadius:"9px",
                           background:isDark?"#151915":"#FBFAF7",
-                          color:isDark?"#F6F3EA":"#555",
+                          color:isDark?"#FFFFFF":"#000000",
                           fontSize:"16px",
                           fontWeight:900,
                           lineHeight:1,
@@ -339,7 +339,7 @@ export default function YearEndPage({ ctx }) {
                   fontWeight:900,
                   letterSpacing:"1.5px",
                   textTransform:"uppercase",
-                  color:isDark?"#8a9288":"#4F5751",
+                  color:isDark?"#FFFFFF":"#000000",
                   alignItems:"end"
                 }}>
                   <span style={{textAlign:"center"}}>#</span>
@@ -367,7 +367,7 @@ export default function YearEndPage({ ctx }) {
                       onMouseLeave={e=>e.currentTarget.style.background="transparent"}
                     >
                       {/* Rank */}
-                      <div style={{textAlign:"center",fontSize:t3?"22px":"16px",fontWeight:900,color:t3?MEDALS[idx]:(isDark?"#5a625a":"#B0B5B0"),letterSpacing:"-0.3px"}}>{idx+1}</div>
+                      <div style={{textAlign:"center",fontSize:t3?"22px":"16px",fontWeight:900,color:t3?MEDALS[idx]:(isDark?"#FFFFFF":"#000000"),letterSpacing:"-0.3px"}}>{idx+1}</div>
 
                       {/* Title + artist + art */}
                       <div style={{display:"flex",alignItems:"center",gap:"12px",minWidth:0}}>
@@ -387,18 +387,18 @@ export default function YearEndPage({ ctx }) {
                             fontWeight:850,
                             marginBottom:"2px",
                             lineHeight:1.15,
-                            color:isDark?"#F6F3EA":"#050505",
+                            color:isDark?"#FFFFFF":"#000000",
                           }}>
                             <button type="button" onClick={()=>isArtists ? openArtistDetails(item.t) : openReleaseDetails(item,isSingles?"single":"album")} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:"inherit",fontWeight:"inherit",lineHeight:"inherit",cursor:"pointer",textAlign:"left",color:"inherit"}}>{item.t}</button>
                           </div>
                           {isArtists ? (
-                            <div style={{fontSize:"13px",color:isDark?"#8a9288":"#59645D",fontFamily:F,marginTop:"2px"}}>
+                            <div style={{fontSize:"13px",color:isDark?"#FFFFFF":"#000000",fontFamily:F,marginTop:"2px"}}>
                               {item.entries || 0} {item.entries===1?"entry":"entries"} · {item.months} {item.months===1?"month":"months"}
                             </div>
                           ) : (
                             <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(item.a);}} style={{
                               fontSize:"13px",
-                              color:isDark?"#8a9288":"#59645D",
+                              color:isDark?"#FFFFFF":"#000000",
                               fontFamily:F,
                               border:0,
                               background:"transparent",
@@ -420,7 +420,7 @@ export default function YearEndPage({ ctx }) {
                         fontFamily:F,
                         fontSize:t3?"17px":"15px",
                         fontWeight:900,
-                        color:t3?GOLD:(isDark?"#8a9288":"#8a9288"),
+                        color:t3?GOLD:(isDark?"#FFFFFF":"#000000"),
                         whiteSpace:"nowrap"
                       }}>
                         {item.totalPts.toLocaleString()}
@@ -432,7 +432,7 @@ export default function YearEndPage({ ctx }) {
                         justifySelf:"stretch",
                         fontFamily:F,
                         fontSize:"14px",
-                        color:isDark?"#8a9288":"#8a9288",
+                        color:isDark?"#FFFFFF":"#000000",
                         fontWeight:800,
                         whiteSpace:"nowrap"
                       }}>

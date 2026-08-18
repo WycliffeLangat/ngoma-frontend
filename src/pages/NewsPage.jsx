@@ -54,8 +54,8 @@ export default function NewsPage({ ctx }) {
   if (!NEWS.length) {
     return (
       <div style={{padding:PAD,minHeight:"60vh",maxWidth:"1040px",margin:"0 auto",boxSizing:"border-box"}}>
-        <h2 style={{fontFamily:F,fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px",color:isDark?"#F6F3EA":"#050505"}}>Chart News</h2>
-        <p style={{fontFamily:F,fontSize:TXT.lead,color:isDark?"#D7DBD7":"#69716b",lineHeight:1.6}}>No stories published yet - check back soon.</p>
+        <h2 style={{fontFamily:F,fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px",color:isDark?"#FFFFFF":"#000000"}}>Chart News</h2>
+        <p style={{fontFamily:F,fontSize:TXT.lead,color:isDark?"#FFFFFF":"#000000",lineHeight:1.6}}>No stories published yet - check back soon.</p>
       </div>
     );
   }
@@ -66,7 +66,7 @@ export default function NewsPage({ ctx }) {
   const rest = heroCandidate ? filtered.filter((n) => n.id !== heroCandidate.id) : filtered;
 
   function Pill({ cat, label }) {
-    const color = isDark ? "#F6F3EA" : "#1A1A1A";
+    const color = isDark ? "#FFFFFF" : "#000000";
     const active = filter === cat;
     return (
       <button
@@ -76,7 +76,7 @@ export default function NewsPage({ ctx }) {
           padding:"6px 13px",borderRadius:"999px",cursor:"pointer",whiteSpace:"nowrap",
           border:active ? `1px solid ${color}` : (isDark?"1px solid #2F352F":"1px solid #E8E5DC"),
           background:active ? (isDark? color+"2A" : color+"1A") : (isDark?"#14170F":"#FAF8F3"),
-          color:active ? color : (isDark?"#B8BEB8":"#59645D"),
+          color:active ? color : (isDark?"#FFFFFF":"#000000"),
           transition:"background 150ms ease, color 150ms ease",
         }}
       >{label}</button>
@@ -84,7 +84,7 @@ export default function NewsPage({ ctx }) {
   }
 
   function CategoryPillTag({ n, size = "sm" }) {
-    const color = isDark ? "#F6F3EA" : "#1A1A1A";
+    const color = isDark ? "#FFFFFF" : "#000000";
     return (
       <span style={{
         display:"inline-flex",alignItems:"center",height:size==="lg"?"22px":"20px",fontFamily:F,
@@ -99,9 +99,9 @@ export default function NewsPage({ ctx }) {
     return (
       <div style={{display:"flex",gap:"8px",alignItems:"center",marginBottom:size==="lg"?"10px":"8px",flexWrap:"wrap"}}>
         <CategoryPillTag n={n} size={size} />
-        <span style={{fontFamily:F,fontSize:"12px",fontWeight:600,color:isDark?"#9a9a9a":"#9a9a9a"}}>{n.date}</span>
-        <span style={{fontFamily:F,fontSize:"12px",color:isDark?"#666":"#B7BCB6"}}>/</span>
-        <span style={{fontFamily:F,fontSize:"12px",fontWeight:600,color:isDark?"#9a9a9a":"#9a9a9a"}}>{readingTime(n.body)} min read</span>
+        <span style={{fontFamily:F,fontSize:"12px",fontWeight:600,color:isDark?"#FFFFFF":"#000000"}}>{n.date}</span>
+        <span style={{fontFamily:F,fontSize:"12px",color:isDark?"#FFFFFF":"#000000"}}>/</span>
+        <span style={{fontFamily:F,fontSize:"12px",fontWeight:600,color:isDark?"#FFFFFF":"#000000"}}>{readingTime(n.body)} min read</span>
         {n.breaking && (
           <span style={{fontFamily:F,fontSize:"10.5px",fontWeight:900,letterSpacing:"0.8px",color:"#fff",background:"#C2364A",padding:"2px 7px",borderRadius:"5px"}}>BREAKING</span>
         )}
@@ -110,7 +110,7 @@ export default function NewsPage({ ctx }) {
   }
 
   function Card({ n, hero }) {
-    const color = isDark ? "#F6F3EA" : "#1A1A1A";
+    const color = isDark ? "#FFFFFF" : "#000000";
     const art = resolveNewsArt(n);
     const hasArt = !!art.url;
     const media = art.media || [];
@@ -149,8 +149,8 @@ export default function NewsPage({ ctx }) {
         <div style={{padding:isMobile?"16px":"22px",display:"flex",gap:isMobile?"12px":"16px",alignItems:"flex-start",minWidth:0}}>
           <div style={{flex:1,minWidth:0}}>
             <MetaRow n={n} size={hero?"lg":"sm"} />
-            <h3 style={{fontFamily:F,fontSize:hero?(isMobile?"20px":"22px"):(isMobile?"17px":"18px"),fontWeight:800,margin:hero?"0 0 8px":"0 0 7px",lineHeight:1.28,color:isDark?"#F6F3EA":"#050505"}}>{n.title}</h3>
-            <p style={{fontFamily:F,fontSize:"14px",color:isDark?"#B8BEB8":"#59645D",margin:0,lineHeight:1.65}}>{n.excerpt}</p>
+            <h3 style={{fontFamily:F,fontSize:hero?(isMobile?"20px":"22px"):(isMobile?"17px":"18px"),fontWeight:800,margin:hero?"0 0 8px":"0 0 7px",lineHeight:1.28,color:isDark?"#FFFFFF":"#000000"}}>{n.title}</h3>
+            <p style={{fontFamily:F,fontSize:"14px",color:isDark?"#FFFFFF":"#000000",margin:0,lineHeight:1.65}}>{n.excerpt}</p>
           </div>
           {!hero && (
             <EntryThumb
@@ -162,7 +162,7 @@ export default function NewsPage({ ctx }) {
               style={{alignSelf:"center"}}
             />
           )}
-          <span aria-hidden="true" style={{fontFamily:F,fontSize:isMobile?"20px":"18px",color:isDark?"#555":"#C0C7C1",flexShrink:0,padding:isMobile?"6px 0 6px 4px":"4px 0 4px 10px",marginTop:"2px"}}>{">"}</span>
+          <span aria-hidden="true" style={{fontFamily:F,fontSize:isMobile?"20px":"18px",color:isDark?"#FFFFFF":"#000000",flexShrink:0,padding:isMobile?"6px 0 6px 4px":"4px 0 4px 10px",marginTop:"2px"}}>{">"}</span>
         </div>
       </div>
     );
@@ -170,8 +170,8 @@ export default function NewsPage({ ctx }) {
 
   return (
     <div style={{padding:PAD,background:"transparent",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden",maxWidth:"1040px",margin:"0 auto"}}>
-      <h2 style={{fontFamily:F,fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px",color:isDark?"#F6F3EA":"#050505"}}>Chart News</h2>
-      <p style={{fontFamily:F,fontSize:isMobile?"11.5px":TXT.lead,color:isDark?"#D7DBD7":"#69716b",margin:isMobile?"0 0 16px":"0 0 20px",lineHeight:1.6}}>Analysis and stories from Ngoma Charts</p>
+      <h2 style={{fontFamily:F,fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px",color:isDark?"#FFFFFF":"#000000"}}>Chart News</h2>
+      <p style={{fontFamily:F,fontSize:isMobile?"11.5px":TXT.lead,color:isDark?"#FFFFFF":"#000000",margin:isMobile?"0 0 16px":"0 0 20px",lineHeight:1.6}}>Analysis and stories from Ngoma Charts</p>
 
       {breaking && (
         <div
@@ -181,7 +181,7 @@ export default function NewsPage({ ctx }) {
             border:"1px solid rgba(194,54,74,0.35)"}}
         >
           <span style={{fontFamily:F,fontSize:"10.5px",fontWeight:900,letterSpacing:"0.8px",color:"#fff",background:"#C2364A",padding:"3px 8px",borderRadius:"5px",flexShrink:0}}>BREAKING</span>
-          <span style={{fontFamily:F,fontSize:isMobile?"13px":"14px",fontWeight:700,color:isDark?"#F6F3EA":"#1a1a1a",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{breaking.title}</span>
+          <span style={{fontFamily:F,fontSize:isMobile?"13px":"14px",fontWeight:700,color:isDark?"#FFFFFF":"#000000",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{breaking.title}</span>
         </div>
       )}
 
@@ -191,7 +191,7 @@ export default function NewsPage({ ctx }) {
       </div>
 
       {!filtered.length ? (
-        <p style={{fontFamily:F,fontSize:"14px",color:isDark?"#B8BEB8":"#59645D"}}>No stories in this category yet.</p>
+        <p style={{fontFamily:F,fontSize:"14px",color:isDark?"#FFFFFF":"#000000"}}>No stories in this category yet.</p>
       ) : (
         <div className="news-grid" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(2,minmax(0,1fr))",gap:isMobile?"16px":"20px"}}>
           {heroCandidate && <Card key={heroCandidate.id} n={heroCandidate} hero />}

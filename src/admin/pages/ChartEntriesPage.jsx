@@ -1014,13 +1014,13 @@ export default function ChartEntriesPage({ user, searchJump }) {
   // ──────────────────────────────────────────────────────────────────────────
 
   const activePlatform =
-    platformId === COMBINED ? { name: "Combined", color: "#B8860B" } :
+    platformId === COMBINED ? { name: "Combined", color: "#C97A12" } :
     isCountryChartScope(platformId) ? { name: platformName, color: COUNTRY_ACCENTS[countryCodeForChartScope(platformId)] || "#006600" } :
     platforms.find(p => String(p.id) === String(platformId));
   const isRegionalScope = isCountryChartScope(platformId);
 
   const panelLabel = (label) => (
-    <span style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", color: "#5e625c", display: "block", marginBottom: 5 }}>
+    <span style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", color: "#000000", display: "block", marginBottom: 5 }}>
       {label}
     </span>
   );
@@ -1040,7 +1040,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
           fontWeight: 750,
           cursor: "pointer",
           background: active ? (color || "#111") : "#fff",
-          color: active ? "#fff" : "#555",
+          color: active ? "#fff" : "#000000",
           whiteSpace: "nowrap",
           transition: "all .12s",
         }}
@@ -1078,7 +1078,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
               style={{
                 border: 0, borderRadius: 9, padding: "5px 16px", fontSize: 13, fontWeight: 750, cursor: "pointer",
                 background: chartType === t ? "#111" : "transparent",
-                color:      chartType === t ? "#fff"  : "#666",
+                color:      chartType === t ? "#fff"  : "#000000",
               }}
             >{label}</button>
           ))}
@@ -1103,7 +1103,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
         )}
 
         {canEdit && chartType === "artists" && artistRankings.length > 0 && (
-          <span style={{ fontSize: 12, color: "#888" }}>
+          <span style={{ fontSize: 12, color: "#000000" }}>
             {artistRankings.length} artists · {platformName.toLowerCase()} · singles + albums
           </span>
         )}
@@ -1118,7 +1118,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
         )}
 
         {chartType !== "artists" && chartId && entries.length > 0 && (
-          <span style={{ marginLeft: "auto", fontSize: 12, color: "#888" }}>
+          <span style={{ marginLeft: "auto", fontSize: 12, color: "#000000" }}>
             {entries.length} entr{entries.length === 1 ? "y" : "ies"}
             {activePlatform ? ` · ${activePlatform.name}` : ""}
           </span>
@@ -1128,7 +1128,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
       {/* Platform pills mirror the live public payload. */}
       {(chartType === "artists" || chartId) && (
         <div className="cms-pill-bar" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16, alignItems: "center" }}>
-          {pillBtn(COMBINED, "Combined", "#B8860B")}
+          {pillBtn(COMBINED, "Combined", "#C97A12")}
           {pillBtn("kenyan", chartType === "artists" ? "Kenyan Artists" : (chartType === "albums" ? "Kenyan Albums" : "Kenyan Singles"), "#006600")}
           {visiblePlatforms.map(p =>
             pillBtn(p.id, p.short_name || p.name, p.color || "#555")
@@ -1146,7 +1146,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
               padding: "4px 10px",
               fontSize: 12,
               fontWeight: 750,
-              color: isCountryChartScope(platformId) ? (COUNTRY_ACCENTS[countryCodeForChartScope(platformId)] || "#555") : "#555",
+              color: isCountryChartScope(platformId) ? (COUNTRY_ACCENTS[countryCodeForChartScope(platformId)] || "#555") : "#000000",
               background: "#fff",
             }}
           >
@@ -1212,7 +1212,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
                           onClick={() => setSelectedArtist(active ? null : artist)}
                           style={{ background: active ? "#fffaf0" : undefined }}
                         >
-                          <td style={{ fontWeight: 800, color: "#aaa", fontSize: 13 }}>{artist.rank}</td>
+                          <td style={{ fontWeight: 800, color: "#000000", fontSize: 13 }}>{artist.rank}</td>
                           <td style={{ padding: "8px 6px" }}>
                             {artist.image
                               ? <img src={artist.image} alt="" style={{ width: 36, height: 36, borderRadius: 8, objectFit: "cover", display: "block" }} />
@@ -1220,7 +1220,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
                           </td>
                           <td style={{ fontWeight: 700, fontSize: 13 }}>{artist.name}</td>
                           <td style={{ fontSize: 13, fontWeight: 600 }}>{artist.pts.toLocaleString()}</td>
-                          <td style={{ fontSize: 13, color: "#666" }}>{artist.entriesCount}</td>
+                          <td style={{ fontSize: 13, color: "#000000" }}>{artist.entriesCount}</td>
                           {canEdit && <td>
                             <button
                               type="button"
@@ -1249,7 +1249,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                   <div>
                     <div style={{ fontSize: 16, fontWeight: 800, lineHeight: 1.2 }}>{selectedArtist.name}</div>
-                    <div style={{ fontSize: 12, color: "#b8860b", fontWeight: 700, marginTop: 2 }}>
+                    <div style={{ fontSize: 12, color: "#c97a12", fontWeight: 700, marginTop: 2 }}>
                       #{selectedArtist.rank} · {selectedArtist.pts.toLocaleString()} pts cumulative
                     </div>
                   </div>
@@ -1282,11 +1282,11 @@ export default function ChartEntriesPage({ user, searchJump }) {
                   Delete artist
                 </button>}
 
-                <div style={{ fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", color: "#5e625c", marginBottom: 8 }}>
+                <div style={{ fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em", color: "#000000", marginBottom: 8 }}>
                   Chart entries ({selectedArtist.entriesCount})
                 </div>
                 {selectedArtist.songs.length === 0 && selectedArtist.entriesCount > 0 && (
-                  <div style={{ fontSize: 12, color: "#888", marginBottom: 8 }}>
+                  <div style={{ fontSize: 12, color: "#000000", marginBottom: 8 }}>
                     Song-level breakdown isn't available for the regional {platformName} artist chart.
                   </div>
                 )}
@@ -1302,7 +1302,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
                         onClick={() => canEdit && s.releaseId && openReleaseEdit(s.releaseId)}
                         title={canEdit ? "Edit this release" : undefined}
                       >{s.title}</div>
-                      <div style={{ fontSize: 11, color: "#888" }}>rank #{s.rank} · {s.pts} pts</div>
+                      <div style={{ fontSize: 11, color: "#000000" }}>rank #{s.rank} · {s.pts} pts</div>
                     </div>
                   </div>
                 ))}
@@ -1357,7 +1357,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
                           onClick={() => pickEntry(entry)}
                           style={{ background: active ? "#fffaf0" : undefined }}
                         >
-                          <td style={{ fontWeight: 800, color: "#aaa", fontSize: 13 }}>{entry.rank}</td>
+                          <td style={{ fontWeight: 800, color: "#000000", fontSize: 13 }}>{entry.rank}</td>
                           <td style={{ padding: "8px 10px" }}>
                             {entry.cover_image
                               ? <img src={entry.cover_image} alt="" style={{ width: 36, height: 36, borderRadius: 7, objectFit: "cover", display: "block" }} />
@@ -1366,14 +1366,14 @@ export default function ChartEntriesPage({ user, searchJump }) {
                           </td>
                           <td>
                             <div style={{ fontWeight: 700, fontSize: 13, lineHeight: 1.3 }}>{entry.title}</div>
-                            <div style={{ fontSize: 11, color: "#888", marginTop: 1 }}>{entry.artist_display || entry.artist}</div>
+                            <div style={{ fontSize: 11, color: "#000000", marginTop: 1 }}>{entry.artist_display || entry.artist}</div>
                           </td>
-                          <td style={{ fontSize: 12, color: "#666", textAlign: "center" }} title={artistCountry?.country || ""}>
+                          <td style={{ fontSize: 12, color: "#000000", textAlign: "center" }} title={artistCountry?.country || ""}>
                             {artistCountry?.country_code || "—"}
                           </td>
                           <td style={{ fontSize: 13, fontWeight: 600 }}>{(entry.raw_total_points || 0).toLocaleString()}</td>
-                          <td style={{ fontSize: 13, color: "#666" }}>{entry.weeks_on_chart ?? "—"}</td>
-                          <td style={{ fontSize: 13, color: "#666" }}>{entry.peak_rank ?? "—"}</td>
+                          <td style={{ fontSize: 13, color: "#000000" }}>{entry.weeks_on_chart ?? "—"}</td>
+                          <td style={{ fontSize: 13, color: "#000000" }}>{entry.peak_rank ?? "—"}</td>
                           <td>
                             <span style={{ fontSize: 11, fontWeight: 800, color: mv.color }}>{mv.label}</span>
                           </td>
@@ -1397,7 +1397,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
                         : selected.title
                       }
                     </div>
-                    <div style={{ fontSize: 13, color: "#888" }}>
+                    <div style={{ fontSize: 13, color: "#000000" }}>
                       {clickLink(() => openArtistEdit(primaryArtistName(selected.artist_display || selected.artist)), selected.artist_display || selected.artist)}
                     </div>
                     {activePlatform?.name && activePlatform.name !== "Combined" && (
@@ -1447,10 +1447,10 @@ export default function ChartEntriesPage({ user, searchJump }) {
                         >
                           {(imagePreview || selected.cover_image)
                             ? <img src={imagePreview || selected.cover_image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                            : <span style={{ fontSize: 26, color: "#ccc" }}>+</span>
+                            : <span style={{ fontSize: 26, color: "#000000" }}>+</span>
                           }
                         </button>
-                        <div style={{ fontSize: 12, color: "#888", lineHeight: 1.5 }}>
+                        <div style={{ fontSize: 12, color: "#000000", lineHeight: 1.5 }}>
                           {imageFile
                             ? <span style={{ color: "#1B7F3A", fontWeight: 700 }}>✓ {imageFile.name}</span>
                             : isRegionalScope ? "Edit release metadata from the button above" : "Click thumbnail to replace"
