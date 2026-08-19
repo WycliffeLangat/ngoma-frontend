@@ -277,14 +277,6 @@ export async function fetchRevision() {
   });
 }
 
-// Returns an array of news articles.
-export async function fetchNews() {
-  const data = await publicRequest("/news/?page_size=100", {
-    errorMessage: "News fetch failed",
-  });
-  return Array.isArray(data) ? data : (data.results || []);
-}
-
 // Returns an array of certified releases (gold / platinum / diamond).
 export async function fetchCertifications() {
   const data = await publicRequest("/certifications/?page_size=200", {

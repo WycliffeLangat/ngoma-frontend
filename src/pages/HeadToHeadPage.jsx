@@ -1,6 +1,9 @@
 import { useState } from "react";
 import EntryThumb from "../components/EntryThumb.jsx";
 import ArtistCredit from "../components/ArtistCredit.jsx";
+import ShareButton from "../components/ShareButton.jsx";
+import HeadToHeadSharePoster from "../components/sharePosters/HeadToHeadSharePoster.jsx";
+import { buildHeadToHeadShareUrl } from "../utils/shareLinks.js";
 
 export default function HeadToHeadPage({ ctx }) {
   const {
@@ -79,6 +82,27 @@ export default function HeadToHeadPage({ ctx }) {
               <p style={{fontFamily:F,fontSize:"14px",color:isDark?"#FFFFFF":"#000000",margin:0,lineHeight:1.6}}>Compare two {isArtists ? "artists" : (isSingles?"songs":"albums")} across points, rank, platforms, and chart history.</p>
             </div>
             <div style={{display:"flex",gap:"10px",flexDirection:"row",alignItems:"center",flexShrink:0,flexWrap:"wrap"}}>
+              <ShareButton
+                isDark={isDark}
+                F={F}
+                GOLD={GOLD}
+                shareUrl={buildHeadToHeadShareUrl({
+                  chartType: isArtists ? "artists" : (isSingles ? "singles" : "albums"),
+                  title1: sp1?.title || "",
+                  artist1: sp1?.artist || "",
+                  title2: sp2?.title || "",
+                  artist2: sp2?.artist || "",
+                })}
+                fileName={`ngoma-head-to-head-${isArtists ? "artists" : (isSingles ? "singles" : "albums")}.png`}
+                posterContent={sp1 && sp2 ? (
+                  <HeadToHeadSharePoster
+                    profile1={sp1}
+                    profile2={sp2}
+                    months={MONTHS}
+                    chartType={isArtists ? "artists" : (isSingles ? "singles" : "albums")}
+                  />
+                ) : null}
+              />
               <Tog sm/>
             </div>
           </div>

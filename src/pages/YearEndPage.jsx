@@ -1,7 +1,12 @@
+import ShareButton from "../components/ShareButton.jsx";
+import ChartListSharePoster from "../components/sharePosters/ChartListSharePoster.jsx";
+import { buildYearEndShareUrl } from "../utils/shareLinks.js";
+
 export default function YearEndPage({ ctx }) {
   const {
     BRONZE,
     CertificationTag,
+    ct,
     F,
     GOLD,
     MEDALS,
@@ -127,6 +132,14 @@ export default function YearEndPage({ ctx }) {
               <select value={yearEndPlat} onChange={e=>setYearEndPlat(e.target.value)} style={{...selectStyle,minWidth:isMobile?"110px":"140px"}}>
                 {yearEndPlatOptions.map(p=><option key={p} value={p}>{platformLabelForScope ? platformLabelForScope(p) : (p==="Combined"?"Combined":(PLAT_LABEL[p]||p))}</option>)}
               </select>
+              <ShareButton
+                isDark={isDark}
+                F={F}
+                GOLD={GOLD}
+                shareUrl={buildYearEndShareUrl({ chartType: ct })}
+                fileName={`ngoma-all-time-${ct}.png`}
+                posterContent={<ChartListSharePoster chartType={ct} period="all-time" count={10} />}
+              />
               <Tog sm/>
             </div>
           </div>

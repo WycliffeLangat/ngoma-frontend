@@ -1,10 +1,14 @@
 import EntryThumb from "../components/EntryThumb.jsx";
+import ShareButton from "../components/ShareButton.jsx";
+import CertificationSharePoster, { certificationToPosterItem } from "../components/sharePosters/CertificationSharePoster.jsx";
+import { buildCertificationsShareUrl, buildReleaseShareUrl } from "../utils/shareLinks.js";
 
 export default function CertificationsPage({ ctx }) {
   const {
     CERTIFICATION_LEVELS,
     CountryBadge,
     F,
+    GOLD,
     PAD,
     SF,
     SecMark,
@@ -43,6 +47,7 @@ export default function CertificationsPage({ ctx }) {
       return acc;
     }, {})
   );
+  const topCert = [...deduplicatedCerts].sort((a, b) => (b.totalPts || 0) - (a.totalPts || 0))[0] || null;
 
   if (isArtists) {
     return (
@@ -76,6 +81,14 @@ export default function CertificationsPage({ ctx }) {
               <p style={{fontFamily:F,fontSize:TXT.lead,color:textMuted,margin:0,lineHeight:1.55}}>Awarded from cumulative Combined chart points earned across every month a song or album appears.</p>
             </div>
             <div style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap"}}>
+              <ShareButton
+                isDark={isDark}
+                F={F}
+                GOLD={GOLD}
+                shareUrl={buildCertificationsShareUrl()}
+                fileName="ngoma-certifications.png"
+                posterContent={topCert ? <CertificationSharePoster item={certificationToPosterItem(topCert)} /> : null}
+              />
               <Tog sm/>
             </div>
           </div>
@@ -110,6 +123,15 @@ export default function CertificationsPage({ ctx }) {
                         <div style={{fontSize:"18px",fontWeight:900,color:textPrimary,lineHeight:1}}>{c.totalPts.toLocaleString()}</div>
                         <div style={{fontSize:"11px",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.8px",color:textMuted,marginTop:"2px"}}>pts</div>
                       </div>
+                      <ShareButton
+                        compact
+                        isDark={isDark}
+                        F={F}
+                        GOLD={GOLD}
+                        shareUrl={buildReleaseShareUrl({ title: c.t, artist: c.a, type: isSingles ? "single" : "album" })}
+                        fileName={`ngoma-${String(c.t||"certification").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")}.png`}
+                        posterContent={<CertificationSharePoster item={certificationToPosterItem(c)} />}
+                      />
                     </div>
                   ))}
                 </div>

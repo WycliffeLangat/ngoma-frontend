@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef, useCallback, useTransition } from
 import { API_BASE, resolveMediaUrl } from "./api/config.js";
 import { artistNameVariants, findArtistProfileInPublicData, getArtistImageUrl, withResolvedArtistImage } from "./utils/artistImages.js";
 import {
-  fetchNews, fetchCertifications, fetchChartImageData, fetchAppData, fetchRevision,
+  fetchCertifications, fetchChartImageData, fetchAppData, fetchRevision,
 } from "./api/public.js";
 import {
   releaseTitle, normFt, releaseArtist, cleanArtistDisplay,
@@ -12,14 +12,13 @@ import {
   firstFiniteNumber, certificationKey,
   getMonthYearParts, platformToSlug,
   normArtistKey, artistSetKey, entryKey, sameRelease, normalizeRankedRows,
-  mv, resolveMovementFromHistory, mapPublicNews,
+  mv, resolveMovementFromHistory,
 } from "./utils/chartHelpers.js";
 import { normalizePublicPayload, publishedMonthOptions, runtimePublicData } from "./utils/publicDataRuntime.js";
+import { parseShareParamsFromLocation } from "./utils/shareLinks.js";
 import {
   buildAutomaticCertifications,
-  buildAutomaticNews,
   mergeCertifications,
-  mergeNews,
 } from "./utils/automaticPublicContent.js";
 import {
   COUNTRY_ACCENTS,
@@ -51,14 +50,13 @@ import PremiumChartsPage, { getArtistCountry } from "./components/PremiumChartsP
 import ArtistAmbientField from "./components/ArtistAmbientField.jsx";
 import EntryThumb from "./components/EntryThumb.jsx";
 import NgomaMark from "./components/NgomaMark.jsx";
+import PillDropdown from "./components/PillDropdown.jsx";
 
 // Persists cover images fetched from the live API so the Kenyan chart
 // (which never calls the API directly) can still show artwork.
 const coverImageCache = new Map();
 
 import AboutPage from "./pages/AboutPage";
-import NewsDetailPage from "./pages/NewsDetailPage";
-import NewsPage from "./pages/NewsPage";
 import CertificationsPage from "./pages/CertificationsPage";
 import YearEndPage from "./pages/YearEndPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
@@ -1653,8 +1651,6 @@ const RecordIcon = ({ label = "", size = 30, muted = false }) => {
   );
 };
 
-const NEWS=[];
-
 const mapPublicCertifications = (items = []) => items.map((c) => ({
   ...c,
   t: c.title || "",
@@ -1707,7 +1703,6 @@ const PUBLIC_PAGE_ROUTES = {
   "head-to-head": "/head-to-head",
   "year-end": "/year-end",
   certifications: "/certifications",
-  news: "/news",
   about: "/about",
 };
 const PUBLIC_PAGE_TITLES = {
@@ -1716,7 +1711,6 @@ const PUBLIC_PAGE_TITLES = {
   "head-to-head": "Head to Head",
   "year-end": "All Time Charts",
   certifications: "Certifications",
-  news: "News",
   about: "About",
 };
 function publicPageFromPath() {
@@ -1751,7 +1745,6 @@ export default function NgomaCharts(){
   const [moreOpen,setMoreOpen]=useState(false);
   const [selA,setSelA]=useState(null);
   const [selR,setSelR]=useState(null);
-  const [selNews,setSelNews]=useState(null);
   const [cmpA1,setCmpA1]=useState("");
   const [cmpA2,setCmpA2]=useState("");
   const [cmpS1,setCmpS1]=useState(() => comparisonDefaultKeys("singles", CURRENT_MONTH)[0] || defaultComparisonKey("singles", 0));
@@ -1767,7 +1760,6 @@ export default function NgomaCharts(){
   const [liveChartEntries, setLiveChartEntries] = useState([]);
   const [liveChartMeta, setLiveChartMeta] = useState(null);
   const [liveChartLoading, setLiveChartLoading] = useState(false);
-  const [liveNews, setLiveNews] = useState(() => PUBLIC_DATA.news?.length ? mapPublicNews(PUBLIC_DATA.news) : null);
   const [liveCerts, setLiveCerts] = useState(() => PUBLIC_DATA.certifications?.length ? mapPublicCertifications(PUBLIC_DATA.certifications) : null);
   const [expandedYearEndRows, setExpandedYearEndRows] = useState({});
   const [yearEndMode, setYearEndMode] = useState("alltime"); // "alltime" | "bestofyear"
@@ -1876,7 +1868,6 @@ export default function NgomaCharts(){
       setPage(publicPageFromPath());
       setSelA(null);
       setSelR(null);
-      setSelNews(null);
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
@@ -1936,7 +1927,6 @@ export default function NgomaCharts(){
     setMonth(keepValidMonth);
     setAnMonth(keepValidMonth);
     setArtistMonth(keepValidMonth);
-    setLiveNews(freshData.news?.length ? mapPublicNews(freshData.news) : null);
     setLiveCerts(mapPublicCertifications(freshData.certifications || []));
     setLiveChartEntries([]);
     setLiveChartMeta(null);
@@ -2068,12 +2058,6 @@ export default function NgomaCharts(){
       if (_cmsChannel) _cmsChannel.close();
     };
   }, [syncLatestPublicData]);
-
-  useEffect(() => {
-    fetchNews()
-      .then((items) => setLiveNews(mapPublicNews(items)))
-      .catch(() => setLiveNews(null));
-  }, []);
 
   useEffect(() => {
     fetchCertifications()
@@ -2501,12 +2485,6 @@ const top = data[0];
       .sort((x,y)=>y.score-x.score)
       .map(x=>x.a)
       .slice(0,6);
-    const newsItems=(liveNews||NEWS)
-      .map(n=>({n,score:fuzzyMatchScore([n.title,n.excerpt,n.body,n.cat].filter(Boolean).join(" ").toLowerCase(),q)}))
-      .filter(x=>x.score>=1)
-      .sort((x,y)=>y.score-x.score)
-      .map(x=>x.n)
-      .slice(0,4);
     // A release can have one raw cert row per threshold it has ever crossed
     // (Gold, then later Platinum) — keep only the highest-ranked row per
     // release so search never lists the same song twice at two levels.
@@ -2524,15 +2502,14 @@ const top = data[0];
       }
     });
     const certs=Array.from(certsByKey.values()).slice(0,4);
-    return {songs,albums,artists,news:newsItems,certs};
-  },[srch,songSearchIndex,albumSearchIndex,liveNews,dedupedLiveCerts,dataRevision]);
+    return {songs,albums,artists,certs};
+  },[srch,songSearchIndex,albumSearchIndex,dedupedLiveCerts,dataRevision]);
   const sFlatResults=useMemo(()=>{
     if(!sResults) return [];
     return [
       ...sResults.songs.map(e=>({...e,_kind:"song"})),
       ...sResults.albums.map(e=>({...e,_kind:"album"})),
       ...sResults.artists.map(a=>({...a,_kind:"artist"})),
-      ...sResults.news.map(n=>({...n,_kind:"news"})),
       ...sResults.certs.map(c=>({...c,_kind:"cert"})),
     ];
   },[sResults]);
@@ -2626,8 +2603,6 @@ const top = data[0];
         setSelA({n:item.name||item.display_name||"",rh:{},mp:{},pk:"—",rank:"—",p:0,m:0,t:0,prevRank:null});
         prepareDetailNavigation();
       }
-    } else if(item._kind==="news"){
-      openNewsDetails(item);
     } else if(item._kind==="cert"){
       // Open the song's release detail if it's in chart history; otherwise go to certifications page
       const entry=songSearchIndex.find(e=>String(e.title||"").toLowerCase()===String(item.t||"").toLowerCase()&&String(e.artist||"").toLowerCase()===String(item.a||"").toLowerCase())
@@ -2656,6 +2631,46 @@ const top = data[0];
     });
     prepareDetailNavigation();
   };
+  const deepLinkHandledRef = useRef(false);
+  useEffect(() => {
+    if (deepLinkHandledRef.current) return;
+    if (!songSearchIndex.length && !albumSearchIndex.length) return;
+    deepLinkHandledRef.current = true;
+    const shared = parseShareParamsFromLocation();
+    if (!shared) return;
+    if (shared.kind === "release") {
+      const index = shared.type === "album" ? albumSearchIndex : songSearchIndex;
+      const entry = index.find((e) =>
+        String(e.title || "").toLowerCase() === shared.title.toLowerCase() &&
+        (!shared.artist || String(e.artist || "").toLowerCase() === shared.artist.toLowerCase())
+      );
+      if (entry) {
+        setPage("charts");
+        setMonth(entry._bestMonth || CURRENT_MONTH);
+        openReleaseDetails(entry, shared.type);
+      }
+    } else if (shared.kind === "artist") {
+      openArtistDetails(shared.artist);
+    } else if (shared.kind === "charts") {
+      setPage("charts");
+      setCt(shared.chartType);
+      setPlat(shared.platform);
+      if (shared.month && MONTHS.includes(shared.month)) setMonth(shared.month);
+    } else if (shared.kind === "year-end") {
+      setPage("year-end");
+      setCt(shared.chartType);
+    } else if (shared.kind === "head-to-head") {
+      setPage("head-to-head");
+      setCt(shared.chartType);
+      if (shared.title1) setCmpS1(`${shared.title1} — ${shared.artist1}`);
+      if (shared.title2) setCmpS2(`${shared.title2} — ${shared.artist2}`);
+    } else if (shared.kind === "certifications") {
+      setPage("certifications");
+    } else if (shared.kind === "analytics") {
+      setPage("analytics");
+      setCt(shared.chartType);
+    }
+  }, [songSearchIndex, albumSearchIndex]);
   const artistTrendFor=(artist={})=>{
     if(!artist.prevRank) return {symbol:"NEW",color:isDark?"#FFFFFF":"#000000",label:"New",shortLabel:"New"};
     const delta=Number(artist.prevRank)-Number(artist.rank);
@@ -3127,10 +3142,10 @@ const top = data[0];
     if(window.location.pathname!==nextPath){
       window.history.pushState({page:nextPage},"",nextPath);
     }
-    setPage(nextPage);setSelA(null);setSelR(null);setSelNews(null);setMNav(false);setMoreOpen(false);
+    setPage(nextPage);setSelA(null);setSelR(null);setMNav(false);setMoreOpen(false);
   };
-  const navItems=["charts","analytics","head-to-head","year-end","certifications","news","about"];
-  const primaryNavItems=["charts","analytics","head-to-head","year-end","certifications"];
+  const navItems=["charts","analytics","head-to-head","year-end","certifications","about"];
+  const primaryNavItems=["charts","analytics","head-to-head","year-end","certifications","about"];
   const moreNavItems=navItems.filter((item)=>!primaryNavItems.includes(item));
   const navLabel=t=>t==="year-end"?"All Time":t==="head-to-head"?"Head to Head":t;
   const applyCountryScope=(scope)=>{
@@ -3141,11 +3156,8 @@ const top = data[0];
     setPlat("Combined");
     setYearEndPlat("Combined");
   };
-  const countryScopeSelectStyle=(compact=false, fullWidth=false)=>({
-    minWidth: fullWidth ? 0 : (compact ? "138px" : (isTablet ? "136px" : "154px")),
-    width: fullWidth ? "100%" : (compact ? "138px" : (isTablet ? "136px" : "154px")),
-    maxWidth:"100%",
-    padding:compact?"8px 28px 8px 10px":(isTablet?"7px 26px 7px 10px":"8px 30px 8px 11px"),
+  const countryScopeSelectStyle=(compact=false)=>({
+    padding:compact?"8px 10px":(isTablet?"7px 10px":"8px 11px"),
     borderRadius:"999px",
     border:`1px solid ${themeColors.border}`,
     background:isDark?"transparent":themeColors.elevated,
@@ -3159,25 +3171,28 @@ const top = data[0];
     cursor:"pointer",
     boxShadow:isDark?"none":"0 4px 14px rgba(0,0,0,0.035)",
   });
+  const countryScopeGroups = KENYA_ONLY_COUNTRY_GROUPS.map((region)=>({
+    label: region.label,
+    options: region.countries.map((country)=>({ value: africaCountryChartKey(country.code), label: country.name })),
+  }));
   const CountryScopeSelect=({compact=false, fullWidth=false}={})=>(
-    <select
-      aria-label="Country"
-      // The legacy "Kenyan" scope value has no matching <option> below (Kenya's own
+    <PillDropdown
+      ariaLabel="Country"
+      isDark={isDark}
+      F={F}
+      GOLD={GOLD}
+      // The legacy "Kenyan" scope value has no matching option below (Kenya's own
       // option is keyed by its country-chart value) — map it so the dropdown actually
       // shows Kenya selected by default instead of silently falling back to whichever
       // option happens to be first in the list.
       value={selectedCountryScope === KENYAN_CHART ? africaCountryChartKey(KENYA_COUNTRY_CODE) : selectedCountryScope}
-      onChange={(event)=>applyCountryScope(event.target.value)}
-      style={countryScopeSelectStyle(compact, fullWidth)}
-    >
-      {KENYA_ONLY_COUNTRY_GROUPS.map((region)=>(
-        <optgroup key={region.key} label={region.label}>
-          {region.countries.map((country)=>(
-            <option key={country.code} value={africaCountryChartKey(country.code)}>{country.name}</option>
-          ))}
-        </optgroup>
-      ))}
-    </select>
+      onChange={applyCountryScope}
+      groups={countryScopeGroups}
+      align="right"
+      width={fullWidth ? "100%" : (compact ? "108px" : (isTablet ? "110px" : "122px"))}
+      menuWidth="200px"
+      pillStyle={countryScopeSelectStyle(compact)}
+    />
   );
   const card=(extra={})=>({background:"#FFF",borderRadius:"14px",border:"1px solid #EFEDE7",padding:isMobile?"18px":"22px",boxSizing:"border-box",maxWidth:"100%",boxShadow:"0 1px 3px rgba(0,0,0,0.02),0 8px 24px rgba(0,0,0,0.02)",...extra});
   const TXT = {
@@ -3496,70 +3511,6 @@ const top = data[0];
       type: cert.chart_type === "albums" ? "album" : "single",
     })).sort((a, b) => b.totalPts - a.totalPts);
   }, [dedupedLiveCerts]);
-  const publicNews = useMemo(() => {
-    const monthLabel = latestPublishedMonthLabel();
-    const automaticNews = buildAutomaticNews({
-      latestMonth: monthLabel,
-      singlesRows: getCombined("singles", monthLabel),
-      albumsRows: getCombined("albums", monthLabel),
-      certifications: allCertifiedReleases,
-      levels: CERTIFICATION_LEVELS,
-      generatedAt: PUBLIC_DATA.generated_at || PUBLIC_DATA.revision || "",
-      siteName: SITE_NAME,
-    });
-    return mergeNews(liveNews || [], automaticNews);
-  }, [allCertifiedReleases, liveNews, dataRevision]);
-
-  const newsSelectionKey = (article = {}) => String(article.id || article.slug || article.title || "").trim().toLowerCase();
-  const selectedNews = useMemo(() => {
-    if (!selNews) return null;
-    const key = newsSelectionKey(selNews);
-    const titleKey = String(selNews.title || "").trim().toLowerCase();
-    const resolved = (publicNews || []).find((article) => {
-      if (key && newsSelectionKey(article) === key) return true;
-      return titleKey && String(article.title || "").trim().toLowerCase() === titleKey;
-    });
-    return resolved || (selNews.title ? selNews : null);
-  }, [selNews, publicNews]);
-
-  const openNewsDetails = (article = {}) => {
-    if (!article?.title) return;
-    const nextPath = PUBLIC_PAGE_ROUTES.news;
-    if (window.location.pathname !== nextPath) {
-      window.history.pushState({ page: "news" }, "", nextPath);
-    }
-    const key = newsSelectionKey(article);
-    const titleKey = String(article.title || "").trim().toLowerCase();
-    const resolved = (publicNews || []).find((candidate) => {
-      if (key && newsSelectionKey(candidate) === key) return true;
-      return titleKey && String(candidate.title || "").trim().toLowerCase() === titleKey;
-    });
-    setPage("news");
-    setSelA(null);
-    setSelR(null);
-    setSelNews(resolved || article);
-    setMNav(false);
-    setMoreOpen(false);
-    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
-  };
-
-  const getCertificationsForNews = (news = {}, limit = 3) => {
-    const text = `${news.title || ""} ${news.excerpt || ""} ${news.body || ""}`.toLowerCase();
-    if (!text.trim()) return [];
-
-    const seen = new Set();
-    return allCertifiedReleases.filter((cert) => {
-      const key = certificationKey(cert.t, cert.a);
-      if (seen.has(key)) return false;
-      const title = String(cert.t || "").toLowerCase();
-      const artist = String(cert.a || "").toLowerCase();
-      const matches = title && text.includes(title) || (artist && title && text.includes(artist) && text.includes(title));
-      if (matches) seen.add(key);
-      return matches;
-    }).slice(0, limit);
-  };
-
-
   // Hall of Fame: #1 each month for singles, albums, and artists — scoped to
   // whichever country is currently selected (empty months fall out naturally
   // when that country has no chart data yet).
@@ -3650,7 +3601,6 @@ const top = data[0];
     LineChart,
     MEDALS,
     MONTHS,
-    NEWS: isNonKenyaCountryScope(selectedCountryScope) ? [] : publicNews,
     PAD,
     PAGE_MAX,
     PC,
@@ -3733,7 +3683,6 @@ const top = data[0];
     navTo,
     openArtistDetails,
     openMomentumRelease,
-    openNewsDetails,
     openReleaseDetails,
     platformLabelForScope,
     plat,
@@ -3746,7 +3695,6 @@ const top = data[0];
     releaseLabelLower,
     secLbl,
     selA,
-    selNews: selectedNews,
     selR,
     selectedArtistEntries,
     selectedArtistEntryGroups,
@@ -3764,7 +3712,6 @@ const top = data[0];
     setRankJourneyView,
     selectedCountryScope,
     setSelA,
-    setSelNews,
     setSelR,
     setVc,
     songMonthlyData,
@@ -3956,6 +3903,7 @@ const top = data[0];
                   onMouseLeave={e=>{if(page!==t)e.currentTarget.style.color=themeColors.muted;}}
                 >{navLabel(t)}</span>
               ))}
+              {moreNavItems.length > 0 && (
               <div style={{position:"relative"}}>
                 <button
                   type="button"
@@ -3993,6 +3941,7 @@ const top = data[0];
                   </div>
                 )}
               </div>
+              )}
               <CountryScopeSelect />
               <button
                 type="button"
@@ -4032,7 +3981,7 @@ const top = data[0];
                   else if(e.key==="ArrowUp"){e.preventDefault();setSActiveIdx(i=>Math.max(i-1,0));}
                   else if(e.key==="Enter"&&sActiveIdx>=0){e.preventDefault();selectSearchResult(sFlatResults[sActiveIdx]);}
                 }}
-                placeholder="Search songs, albums, artists, news…"
+                placeholder="Search songs, albums, artists…"
                 autoFocus
                 style={{flex:1,border:"none",outline:"none",fontSize:"16px",fontFamily:SF,background:"transparent",color:isDark?"#FFFFFF":"#000000"}}
               />
@@ -4042,7 +3991,7 @@ const top = data[0];
             {/* Results */}
             <div style={{overflowY:"auto",flex:1}}>
               {/* Empty / hint states */}
-              {!sResults&&<div style={{padding:"28px 20px",textAlign:"center",color:isDark?"#555":"#CCC",fontFamily:F,fontSize:"13px"}}>Search songs, albums, artists and news</div>}
+              {!sResults&&<div style={{padding:"28px 20px",textAlign:"center",color:isDark?"#555":"#CCC",fontFamily:F,fontSize:"13px"}}>Search songs, albums and artists</div>}
               {sResults&&sFlatResults.length===0&&<div style={{padding:"28px 20px",textAlign:"center",color:isDark?"#666":"#BBB",fontFamily:F,fontSize:"13px"}}>No results for "{srch}"</div>}
               {/* Songs */}
               {sResults&&sResults.songs.length>0&&(
@@ -4122,33 +4071,12 @@ const top = data[0];
                   })}
                 </>
               )}
-              {/* News */}
-              {sResults&&sResults.news.length>0&&(
-                <>
-                  <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>News</div>
-                  {sResults.news.map((n,i)=>{
-                    const flatIdx=sResults.songs.length+sResults.albums.length+sResults.artists.length+i;
-                    return(
-                      <button key={`n-${i}`} type="button"
-                        onMouseEnter={()=>setSActiveIdx(flatIdx)}
-                        onClick={()=>selectSearchResult({...n,_kind:"news"})}
-                        style={{display:"flex",alignItems:"center",gap:"12px",width:"100%",textAlign:"left",padding:"10px 18px",border:"none",borderBottom:`1px solid ${isDark?"#1c2320":"#F8F8F5"}`,cursor:"pointer",background:flatIdx===sActiveIdx?(isDark?"#1a2518":"#F0F7FF"):"transparent"}}>
-                        <EntryThumb item={n} name={n.title} size={34} radius="8px" accent="#c05c00" />
-                        <div style={{flex:1,minWidth:0}}>
-                          <div style={{fontSize:"13px",fontWeight:700,color:isDark?"#FFFFFF":"#000000",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{n.title}</div>
-                          <div style={{fontSize:"11px",color:isDark?"#7a8a7a":"#888",marginTop:"1px"}}><span style={{color:"#c05c00",fontWeight:700}}>{n.cat}</span>{n.date?" · "+n.date:""}</div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </>
-              )}
               {/* Certifications */}
               {sResults&&sResults.certs.length>0&&(
                 <>
                   <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>Certifications</div>
                   {sResults.certs.map((c,i)=>{
-                    const flatIdx=sResults.songs.length+sResults.albums.length+sResults.artists.length+sResults.news.length+i;
+                    const flatIdx=sResults.songs.length+sResults.albums.length+sResults.artists.length+i;
                     const certMeta=certificationMetaForLevel(c.level);
                     return(
                       <button key={`c-${i}`} type="button"
@@ -4253,10 +4181,6 @@ const top = data[0];
 
       {/* CERTIFICATIONS PAGE */}
       {page === "certifications" && !selA && !selR && <CertificationsPage ctx={pageContext} />}
-
-      {/* NEWS PAGE */}
-      {page === "news" && !selectedNews && !selA && !selR && <NewsPage ctx={pageContext} />}
-      {page === "news" && selectedNews && !selA && !selR && <NewsDetailPage ctx={pageContext} />}
 
       {/* ABOUT PAGE */}
       {page === "about" && !selA && !selR && <AboutPage ctx={pageContext} />}

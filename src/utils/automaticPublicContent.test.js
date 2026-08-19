@@ -3,9 +3,7 @@ import test from "node:test";
 
 import {
   buildAutomaticCertifications,
-  buildAutomaticNews,
   mergeCertifications,
-  mergeNews,
 } from "./automaticPublicContent.js";
 
 const levels = [
@@ -67,52 +65,4 @@ test("stale live CMS certification levels are capped by current points", () => {
   assert.equal(merged[0].id, 8);
   assert.equal(merged[0].level, "platinum");
   assert.equal(merged[0].totalPts, 410);
-});
-
-test("automatic news includes chart recaps and certification stories", () => {
-  const news = buildAutomaticNews({
-    latestMonth: "July 2026",
-    singlesRows: [
-      { title: "Hit One", artist: "Artist A", rank: 1, pts: 50, prev: 3, plat: "6/6", peak_rank: 1, times_on_chart: 2, release_id: 20 },
-      { title: "Second Song", artist: "Artist B", rank: 2, pts: 49, prev: 5 },
-    ],
-    albumsRows: [{ title: "Long Play", artist: "Artist C", rank: 1, pts: 50 }],
-    certifications: [{ t: "Hit One", a: "Artist A", chart_type: "singles", level: "diamond", totalPts: 620 }],
-    levels,
-    generatedAt: "2026-07-16T00:00:00Z",
-  });
-
-  assert.equal(news.length, 3);
-  assert.equal(news[0].status, "published");
-  assert.match(news[0].title, /Artist A's Hit One leads July 2026 singles at #1/);
-  assert.match(news[0].body, /opens the July 2026 singles chart at #1/i);
-  assert.doesNotMatch(news[0].body, /generated automatically|updates organically/i);
-  assert.ok(news[0].body.split("\n\n").length >= 5);
-  assert.equal(news[0].related_release, 20);
-  assert.equal(news[0].published_at, "2026-07-01T09:00:00.000Z");
-  assert.equal(news.some((item) => item.category === "certifications"), true);
-});
-
-test("automatic chart news falls back to the chart month for dates", () => {
-  const news = buildAutomaticNews({
-    latestMonth: "July 2026",
-    singlesRows: [{ title: "Hit One", artist: "Artist A", rank: 1, pts: 50 }],
-    albumsRows: [],
-    certifications: [],
-    levels,
-    generatedAt: "revision-abc123",
-  });
-
-  assert.equal(news[0].published_at, "2026-07-01T09:00:00.000Z");
-  assert.equal(news[0].date, "July 1, 2026");
-});
-
-test("live news overrides generated rows with the same slug", () => {
-  const merged = mergeNews(
-    [{ id: 1, slug: "auto-singles-july-2026", title: "Human headline", published_at: "2026-07-17T00:00:00Z" }],
-    [{ id: "auto", slug: "auto-singles-july-2026", title: "Generated headline", published_at: "2026-07-16T00:00:00Z" }],
-  );
-
-  assert.equal(merged.length, 1);
-  assert.equal(merged[0].title, "Human headline");
 });

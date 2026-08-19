@@ -1,5 +1,8 @@
 import PlatformPerformance from "../components/PlatformPerformance.jsx";
 import ArtistCredit from "../components/ArtistCredit.jsx";
+import ShareButton from "../components/ShareButton.jsx";
+import SharePosterCard from "../components/SharePosterCard.jsx";
+import { buildReleaseShareUrl } from "../utils/shareLinks.js";
 
 export default function ReleaseDetailPage({ ctx }) {
   const {
@@ -151,9 +154,32 @@ export default function ReleaseDetailPage({ ctx }) {
         const urlLabels = new Set(["Spotify URL", "Apple Music URL", "Boomplay URL", "Audiomack URL", "YouTube URL", "TikTok URL", "Shazam URL"]);
         const artistCreditLabels = new Set(["Main artists", "Featuring", "Songwriters", "Producers"]);
 
+        const releaseStats = [
+          { label: "Peak Rank", value: peakRank < 999 ? `#${peakRank}` : "—" },
+          { label: "Total Points", value: totalPoints.toLocaleString() },
+          { label: "Months Charted", value: chartedJourney.length },
+        ];
+
         return (
         <div style={{padding:PAD,background:isDark?"#050505":"#ffffff",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
-          <span onClick={closeDetails} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#FFFFFF":"#000000",cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>← Back</span>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px",flexWrap:"wrap"}}>
+            <span onClick={closeDetails} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#FFFFFF":"#000000",cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>← Back</span>
+            <ShareButton
+              isDark={isDark}
+              F={F}
+              GOLD={GOLD}
+              shareUrl={buildReleaseShareUrl(selR)}
+              fileName={`ngoma-${String(selR.title||"release").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")}.png`}
+              posterContent={
+                <SharePosterCard
+                  image={releaseDetails.cover_image || ""}
+                  title={selR.title || ""}
+                  subtitle={selR.artist || ""}
+                  stats={releaseStats}
+                />
+              }
+            />
+          </div>
 
           {/* Hero — cover art beside identity, matching the artist detail page's layout */}
           <div style={{marginTop:"20px",display:"flex",gap:isMobile?"16px":"24px",alignItems:"flex-start",flexDirection:isMobile?"column":"row",minWidth:0}}>

@@ -3,6 +3,10 @@ import { getArtistImageUrl } from "../utils/artistImages.js";
 import { fallbackBiographyForArtist, fallbackCountryForArtist } from "../utils/artistMetadataFallbacks.js";
 import { splitArtistTokens } from "../utils/artistCredit.js";
 import ArtistCredit from "./ArtistCredit.jsx";
+import ShareButton from "./ShareButton.jsx";
+import PillDropdown from "./PillDropdown.jsx";
+import ChartListSharePoster from "./sharePosters/ChartListSharePoster.jsx";
+import { buildChartsShareUrl } from "../utils/shareLinks.js";
 import { API_BASE, resolveMediaUrl } from "../api/config.js";
 import {
   KENYA_COUNTRY_CODE,
@@ -1352,37 +1356,26 @@ export default function PremiumChartsPage({
                   width: mobile ? "100%" : "auto",
                 }}
               >
-                <label
-                  style={{
+                <PillDropdown
+                  ariaLabel="Chart period"
+                  isDark={darkMode}
+                  F={F}
+                  GOLD={GOLD}
+                  value={month}
+                  onChange={setMonth}
+                  options={MONTHS.map((item) => ({ value: item, label: item }))}
+                  renderValue={() => mastheadPeriodLabel}
+                  width={mobile ? "100%" : "auto"}
+                  menuWidth="200px"
+                  pillStyle={{
                     ...styles.mastheadPill,
-                    width: mobile ? "100%" : (tablet ? "190px" : "212px"),
+                    minWidth: mobile ? undefined : (tablet ? "150px" : "160px"),
                     background: "transparent",
                     backgroundColor: "transparent",
                     borderColor: mastheadBorder,
                     color: mastheadText,
                   }}
-                >
-                  <span style={styles.screenReaderOnly}>Chart period</span>
-                  <select
-                    className="ytc-masthead-select"
-                    value={month}
-                    onChange={(event) => setMonth(event.target.value)}
-                    aria-label="Chart period"
-                  >
-                    {mastheadPeriodLabel !== month && (
-                      <option value={month}>{mastheadPeriodLabel}</option>
-                    )}
-                    {MONTHS.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                  <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ ...styles.mastheadPillIcon, color: mastheadText }}>
-                    <path d="m6 9 6 6 6-6" />
-                  </svg>
-                </label>
-
+                />
               </div>
             </div>
           </div>
@@ -1529,6 +1522,15 @@ export default function PremiumChartsPage({
                 </option>
               ))}
             </select>
+            <ShareButton
+              compact
+              isDark={darkMode}
+              F={F}
+              GOLD={GOLD}
+              shareUrl={buildChartsShareUrl({ chartType: ct, platform: plat, month })}
+              fileName={`ngoma-top-${ct}-${String(plat).toLowerCase().replace(/\s+/g,"-")}-${String(month).toLowerCase().replace(/\s+/g,"-")}.png`}
+              posterContent={<ChartListSharePoster chartType={ct} period="monthly" platform={plat} month={month} count={10} />}
+            />
           </div>
         ) : (
           <>
@@ -1585,6 +1587,14 @@ export default function PremiumChartsPage({
                   );
                 })}
               </div>
+              <ShareButton
+                isDark={darkMode}
+                F={F}
+                GOLD={GOLD}
+                shareUrl={buildChartsShareUrl({ chartType: ct, platform: plat, month })}
+                fileName={`ngoma-top-${ct}-${String(plat).toLowerCase().replace(/\s+/g,"-")}-${String(month).toLowerCase().replace(/\s+/g,"-")}.png`}
+                posterContent={<ChartListSharePoster chartType={ct} period="monthly" platform={plat} month={month} count={10} />}
+              />
             </div>
           </>
         )}
@@ -1954,16 +1964,17 @@ const styles = {
     display: "inline-flex",
     alignItems: "center",
     minHeight: "44px",
-    padding: "0 16px",
+    padding: "0 14px",
     borderRadius: "999px",
     border: "1px solid rgba(255,255,255,0.28)",
     background: "transparent",
     color: "#000000",
-    fontSize: "17px",
+    fontSize: "15px",
     fontWeight: 800,
     lineHeight: 1,
     boxSizing: "border-box",
     backdropFilter: "none",
+    whiteSpace: "nowrap",
   },
 
   mastheadPillIcon: {

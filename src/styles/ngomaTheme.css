@@ -3204,20 +3204,6 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell select optgroup {
 .cert-wall-card.platinum { border-left-color: #868C97; }
 .cert-wall-card.gold     { border-left-color: var(--ngoma-gold); }
 
-/* --- News publication layout --------------------------- */
-.news-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
-}
-.news-grid .news-card-featured {
-  grid-column: 1 / -1;
-}
-@media (max-width: 640px) {
-  .news-grid { grid-template-columns: 1fr; }
-  .news-grid .news-card-featured { grid-column: auto; }
-}
-
 /* --- Spacing rhythm (cards breathe) -------------------- */
 .card,
 .ngoma-card,

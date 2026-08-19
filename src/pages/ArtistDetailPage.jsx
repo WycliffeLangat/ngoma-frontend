@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { artistAliasValues, findArtistProfileInPublicData, getArtistImageUrl } from "../utils/artistImages.js";
 import { fallbackBiographyForArtist, fallbackCountryForArtist } from "../utils/artistMetadataFallbacks.js";
+import ShareButton from "../components/ShareButton.jsx";
+import SharePosterCard from "../components/SharePosterCard.jsx";
+import { buildArtistShareUrl } from "../utils/shareLinks.js";
 
 export default function ArtistDetailPage({ ctx }) {
   const {
@@ -150,9 +153,32 @@ export default function ArtistDetailPage({ ctx }) {
   const dividerColor = isDark ? "#2B302B" : "#F2F2EE";
   const darkCard = (extra = {}) => ({ ...card(extra), background: isDark ? "#0F120F" : "#FFFFFF", borderColor: isDark ? "#2B302B" : "#EFEDE7" });
 
+  const artistStats = [
+    { label: "Best Rank", value: formatRank(selA.pk) },
+    { label: "Total Points", value: totalArtistPoints.toLocaleString() },
+    { label: "Months Charted", value: chartedMonthCount },
+  ];
+
   return (
 <div style={{padding:PAD,background:isDark?"#050505":"#f8f7f3",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
-          <span onClick={closeDetails} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#FFFFFF":"#000000",cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:700}}>← Back</span>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px",flexWrap:"wrap"}}>
+            <span onClick={closeDetails} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#FFFFFF":"#000000",cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:700}}>← Back</span>
+            <ShareButton
+              isDark={isDark}
+              F={F}
+              GOLD={GOLD}
+              shareUrl={buildArtistShareUrl(selA.n)}
+              fileName={`ngoma-${String(selA.n||"artist").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")}.png`}
+              posterContent={
+                <SharePosterCard
+                  image={artistImage || ""}
+                  title={selA.n || ""}
+                  subtitle={resolvedCountry || ""}
+                  stats={artistStats}
+                />
+              }
+            />
+          </div>
 
           {/* Profile header */}
           <div style={{marginTop:"22px",display:"flex",gap:isMobile?"16px":"24px",alignItems:"flex-start",flexDirection:isMobile?"column":"row",minWidth:0}}>

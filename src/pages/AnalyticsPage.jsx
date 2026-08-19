@@ -1,6 +1,9 @@
 import EntryThumb from "../components/EntryThumb.jsx";
 import ArtistCredit from "../components/ArtistCredit.jsx";
 import { useRotatingArt } from "../hooks/useRotatingArt.js";
+import ShareButton from "../components/ShareButton.jsx";
+import HallOfFameSharePoster from "../components/sharePosters/HallOfFameSharePoster.jsx";
+import { buildAnalyticsShareUrl } from "../utils/shareLinks.js";
 
 // Full month name → abbreviated, e.g. "September 2025" → "Sep 2025".
 const MONTH_ABBR = { January: "Jan", February: "Feb", March: "Mar", April: "Apr", May: "May", June: "Jun", July: "Jul", August: "Aug", September: "Sep", October: "Oct", November: "Nov", December: "Dec" };
@@ -195,6 +198,14 @@ export default function AnalyticsPage({ ctx }) {
               <select value={anMonth} onChange={e=>setAnMonth(e.target.value)} style={{flex:isMobile?"1":"none",minWidth:isMobile?"120px":"160px",padding:isMobile?"10px 12px":"8px 14px",border:"1.5px solid "+(isDark?"#2F352F":"#DEDAD2"),borderRadius:"10px",background:isDark?"#1A1E1A":"#FAFAF8",fontSize:isMobile?"13px":"12px",fontFamily:F,fontWeight:750,cursor:"pointer",outline:"none",color:isDark?"#FFFFFF":"#000000"}}>
                 {MONTHS.map(m=><option key={m} value={m}>{m}</option>)}
               </select>
+              <ShareButton
+                isDark={isDark}
+                F={F}
+                GOLD={GOLD}
+                shareUrl={buildAnalyticsShareUrl({ chartType: isArtists ? "artists" : (isSingles ? "singles" : "albums") })}
+                fileName={`ngoma-hall-of-fame-${isArtists ? "artists" : (isSingles ? "singles" : "albums")}.png`}
+                posterContent={<HallOfFameSharePoster chartType={isArtists ? "artists" : (isSingles ? "singles" : "albums")} />}
+              />
               <Tog sm/>
             </div>
           </div>
