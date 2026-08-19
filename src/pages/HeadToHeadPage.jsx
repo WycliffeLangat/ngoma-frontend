@@ -100,6 +100,7 @@ export default function HeadToHeadPage({ ctx }) {
                     profile2={sp2}
                     months={MONTHS}
                     chartType={isArtists ? "artists" : (isSingles ? "singles" : "albums")}
+                    theme={isDark ? "dark" : "light"}
                   />
                 ) : null}
               />

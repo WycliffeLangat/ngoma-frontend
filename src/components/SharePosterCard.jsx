@@ -12,8 +12,8 @@ import {
 // artist — same visual kit the CMS poster generators use, but with no
 // settings panel: readers only ever get the one finished layout to
 // download and share as-is.
-export default function SharePosterCard({ image, title = "", subtitle = "", stats = [], accentColor = "#C97A12" }) {
-  const t = POSTER_THEMES.dark;
+export default function SharePosterCard({ image, title = "", subtitle = "", stats = [], accentColor = "#C97A12", theme = "dark" }) {
+  const t = POSTER_THEMES[theme] || POSTER_THEMES.dark;
   const artSize = 480;
 
   return (
@@ -28,7 +28,7 @@ export default function SharePosterCard({ image, title = "", subtitle = "", stat
       }}
     >
       <div style={{ padding: "72px 64px 0", position: "relative", zIndex: 1 }}>
-        <PosterBrandRow theme="dark" />
+        <PosterBrandRow theme={theme} />
       </div>
 
       <div
@@ -54,7 +54,7 @@ export default function SharePosterCard({ image, title = "", subtitle = "", stat
           />
         ) : (
           <div style={{ boxShadow: "0 24px 60px rgba(0,0,0,0.4)", borderRadius: 32 }}>
-            <ArtPlaceholder width={artSize} height={artSize} radius={32} theme="dark" accentColor={accentColor} markSize={148} />
+            <ArtPlaceholder width={artSize} height={artSize} radius={32} theme={theme} accentColor={accentColor} markSize={148} />
           </div>
         )}
         <div
@@ -99,7 +99,7 @@ export default function SharePosterCard({ image, title = "", subtitle = "", stat
         </div>
       )}
 
-      <PosterFooter theme="dark" padX={64} />
+      <PosterFooter theme={theme} padX={64} />
     </div>
   );
 }

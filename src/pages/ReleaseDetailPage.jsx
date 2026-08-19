@@ -176,6 +176,7 @@ export default function ReleaseDetailPage({ ctx }) {
                   title={selR.title || ""}
                   subtitle={selR.artist || ""}
                   stats={releaseStats}
+                  theme={isDark ? "dark" : "light"}
                 />
               }
             />

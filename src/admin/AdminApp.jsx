@@ -40,6 +40,12 @@ const NAV_GROUPS = [
       ["chart-entries", "Chart entries"],
       ["uploads", "Imports & uploads"],
       ["year-end", "Year-end charts"],
+    ],
+  },
+  {
+    label: "Posters",
+    permission: "can_manage_data",
+    items: [
       ["poster", "Social poster generator"],
       ["spotlight", "Spotlight card generator"],
       ["analytics-record", "Analytics record cards"],

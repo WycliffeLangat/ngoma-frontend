@@ -138,7 +138,7 @@ export default function YearEndPage({ ctx }) {
                 GOLD={GOLD}
                 shareUrl={buildYearEndShareUrl({ chartType: ct })}
                 fileName={`ngoma-all-time-${ct}.png`}
-                posterContent={<ChartListSharePoster chartType={ct} period="all-time" count={10} />}
+                posterContent={<ChartListSharePoster chartType={ct} period="all-time" count={10} theme={isDark ? "dark" : "light"} />}
               />
               <Tog sm/>
             </div>

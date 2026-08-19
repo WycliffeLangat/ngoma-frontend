@@ -175,6 +175,7 @@ export default function ArtistDetailPage({ ctx }) {
                   title={selA.n || ""}
                   subtitle={resolvedCountry || ""}
                   stats={artistStats}
+                  theme={isDark ? "dark" : "light"}
                 />
               }
             />

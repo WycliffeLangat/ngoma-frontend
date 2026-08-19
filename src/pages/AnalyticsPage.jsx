@@ -3,6 +3,10 @@ import ArtistCredit from "../components/ArtistCredit.jsx";
 import { useRotatingArt } from "../hooks/useRotatingArt.js";
 import ShareButton from "../components/ShareButton.jsx";
 import HallOfFameSharePoster from "../components/sharePosters/HallOfFameSharePoster.jsx";
+import MoversSharePoster from "../components/sharePosters/MoversSharePoster.jsx";
+import CrossPlatformSharePoster from "../components/sharePosters/CrossPlatformSharePoster.jsx";
+import PlatformBreakdownSharePoster from "../components/sharePosters/PlatformBreakdownSharePoster.jsx";
+import RecordCardSharePoster from "../components/sharePosters/RecordCardSharePoster.jsx";
 import { buildAnalyticsShareUrl } from "../utils/shareLinks.js";
 
 // Full month name → abbreviated, e.g. "September 2025" → "Sep 2025".
@@ -14,15 +18,39 @@ const abbrevMonth = (label = "") => String(label).replace(/^(\w+)(?=\s\d{4}$)/, 
 // their thumbnail through the eligible pool.
 function RecordRow({ r, pool, ctx, theme, rowStyle }) {
   const {
-    F, RecordIcon, SF,
+    F, GOLD, RecordIcon, SF,
     isArtists, isMobile, isSingles,
-    openArtistDetails, openReleaseDetails,
+    anMonth, openArtistDetails, openReleaseDetails,
   } = ctx;
   const { isDark } = theme;
+  const chartTypeKey = isArtists ? "artists" : (isSingles ? "singles" : "albums");
 
   const rotating = useRotatingArt(pool);
   const thumbItem = r.certificationEntry || rotating?.entry || null;
   const thumbName = r.certificationEntry ? (r.certificationEntry.artist || r.value) : (rotating?.name || r.value);
+
+  const shareButton = (
+    <ShareButton
+      compact
+      isDark={isDark}
+      F={F}
+      GOLD={GOLD}
+      shareUrl={buildAnalyticsShareUrl({ chartType: chartTypeKey, month: anMonth })}
+      fileName={`ngoma-record-${String(r.displayLabel || "record").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")}.png`}
+      posterContent={
+        <RecordCardSharePoster
+          title={String(r.value ?? "")}
+          subtitle={r.certificationEntry?.artist || ""}
+          image={thumbItem?.cover_image || thumbItem?.image || ""}
+          isArtist={isArtists}
+          recordLabel={r.displayLabel}
+          statValue={r.climbDelta ? `+${r.climbDelta}` : String(r.displaySub ?? "")}
+          statLabel={r.climbDelta ? "Change" : "Detail"}
+          theme={isDark ? "dark" : "light"}
+        />
+      }
+    />
+  );
 
   const leaderNode = (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start", gap: "10px", minWidth: 0 }}>
@@ -58,7 +86,10 @@ function RecordRow({ r, pool, ctx, theme, rowStyle }) {
     return (
       <tr style={rowStyle}>
         <td style={{ padding: "12px 14px", verticalAlign: "middle" }}>
-          <div style={{ fontFamily: F, fontSize: "10px", fontWeight: 800, letterSpacing: "0.6px", textTransform: "uppercase", color: isDark ? "#FFFFFF" : "#000000", marginBottom: "8px" }}>{r.displayLabel}</div>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "8px", marginBottom: "8px" }}>
+            <div style={{ fontFamily: F, fontSize: "10px", fontWeight: 800, letterSpacing: "0.6px", textTransform: "uppercase", color: isDark ? "#FFFFFF" : "#000000" }}>{r.displayLabel}</div>
+            {shareButton}
+          </div>
           <div style={{ marginBottom: "6px" }}>{leaderNode}</div>
           <div style={{ fontFamily: F, fontSize: "12px", color: isDark ? "#FFFFFF" : "#000000", lineHeight: 1.4 }}>{detailNode}</div>
         </td>
@@ -71,6 +102,7 @@ function RecordRow({ r, pool, ctx, theme, rowStyle }) {
       <td style={{ padding: "14px 16px", verticalAlign: "middle", textAlign: "left", fontFamily: F, fontSize: "11px", fontWeight: 800, letterSpacing: "0.6px", textTransform: "uppercase", color: isDark ? "#FFFFFF" : "#000000" }}>{r.displayLabel}</td>
       <td style={{ padding: "14px 16px", verticalAlign: "middle", textAlign: "left" }}>{leaderNode}</td>
       <td style={{ padding: "14px 16px", verticalAlign: "middle", textAlign: "left", fontFamily: F, fontSize: "13px", color: isDark ? "#FFFFFF" : "#000000", lineHeight: 1.4 }}>{detailNode}</td>
+      <td style={{ padding: "14px 16px", verticalAlign: "middle", textAlign: "right" }}>{shareButton}</td>
     </tr>
   );
 }
@@ -129,6 +161,7 @@ export default function AnalyticsPage({ ctx }) {
     viewMode
   } = ctx;
 
+  const chartTypeKey = isArtists ? "artists" : (isSingles ? "singles" : "albums");
   const xHitsRows = crossPlatformRows.filter(e => e.count >= tp);
   const hofType = isArtists ? "artist" : (isSingles ? "single" : "album");
   const hofMonthIndex = new Map(MONTHS.map((monthLabel, index) => [monthLabel, index]));
@@ -202,9 +235,9 @@ export default function AnalyticsPage({ ctx }) {
                 isDark={isDark}
                 F={F}
                 GOLD={GOLD}
-                shareUrl={buildAnalyticsShareUrl({ chartType: isArtists ? "artists" : (isSingles ? "singles" : "albums") })}
-                fileName={`ngoma-hall-of-fame-${isArtists ? "artists" : (isSingles ? "singles" : "albums")}.png`}
-                posterContent={<HallOfFameSharePoster chartType={isArtists ? "artists" : (isSingles ? "singles" : "albums")} />}
+                shareUrl={buildAnalyticsShareUrl({ chartType: chartTypeKey, month: anMonth })}
+                fileName={`ngoma-hall-of-fame-${chartTypeKey}.png`}
+                posterContent={<HallOfFameSharePoster chartType={chartTypeKey} theme={isDark ? "dark" : "light"} />}
               />
               <Tog sm/>
             </div>
@@ -214,7 +247,18 @@ export default function AnalyticsPage({ ctx }) {
           <AnalyticsDeepSection label="Climbers & Drops" isMobile={isMobile}>
           <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(3,1fr)",gap:"14px",...sectionGap}}>
             <div style={card()}>
-              <div style={{...secLbl(isDark?"#FFFFFF":"#000000"), fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Top {releaseLabel} Climbers — {anMonth}</div>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"14px",flexWrap:"wrap"}}>
+                <div style={{...secLbl(isDark?"#FFFFFF":"#000000"),marginBottom:0,fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Top {releaseLabel} Climbers — {anMonth}</div>
+                <ShareButton
+                  compact
+                  isDark={isDark}
+                  F={F}
+                  GOLD={GOLD}
+                  shareUrl={buildAnalyticsShareUrl({ chartType: chartTypeKey, month: anMonth })}
+                  fileName={`ngoma-climbers-${chartTypeKey}.png`}
+                  posterContent={<MoversSharePoster chartType={chartTypeKey} move="risers" month={anMonth} theme={isDark ? "dark" : "light"} />}
+                />
+              </div>
               {mvData.risers.map((s,i)=>{
                 return (
                 <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:isMobile?"8px 0":"6px 0",borderBottom:"1px solid #F0F0EC"}}>
@@ -237,7 +281,18 @@ export default function AnalyticsPage({ ctx }) {
               {!mvData.risers.length&&<div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#FFFFFF":"#000000",padding:"20px 0",textAlign:"center"}}>No movement data (debut month)</div>}
             </div>
             <div style={card()}>
-              <div style={{...secLbl(isDark?"#FFFFFF":"#000000"), fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Biggest {releaseLabel} Drops — {anMonth}</div>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"14px",flexWrap:"wrap"}}>
+                <div style={{...secLbl(isDark?"#FFFFFF":"#000000"),marginBottom:0,fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Biggest {releaseLabel} Drops — {anMonth}</div>
+                <ShareButton
+                  compact
+                  isDark={isDark}
+                  F={F}
+                  GOLD={GOLD}
+                  shareUrl={buildAnalyticsShareUrl({ chartType: chartTypeKey, month: anMonth })}
+                  fileName={`ngoma-drops-${chartTypeKey}.png`}
+                  posterContent={<MoversSharePoster chartType={chartTypeKey} move="fallers" month={anMonth} theme={isDark ? "dark" : "light"} />}
+                />
+              </div>
               {mvData.fallers.map((s,i)=>{
                 return (
                 <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:isMobile?"8px 0":"6px 0",borderBottom:"1px solid #F0F0EC"}}>
@@ -260,7 +315,18 @@ export default function AnalyticsPage({ ctx }) {
               {!mvData.fallers.length&&<div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#FFFFFF":"#000000",padding:"20px 0",textAlign:"center"}}>No drops (debut month)</div>}
             </div>
             <div style={card()}>
-              <div style={{...secLbl(isDark?"#FFFFFF":"#000000"), fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>New Entries — {anMonth}</div>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"14px",flexWrap:"wrap"}}>
+                <div style={{...secLbl(isDark?"#FFFFFF":"#000000"),marginBottom:0,fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>New Entries — {anMonth}</div>
+                <ShareButton
+                  compact
+                  isDark={isDark}
+                  F={F}
+                  GOLD={GOLD}
+                  shareUrl={buildAnalyticsShareUrl({ chartType: chartTypeKey, month: anMonth })}
+                  fileName={`ngoma-new-entries-${chartTypeKey}.png`}
+                  posterContent={<MoversSharePoster chartType={chartTypeKey} move="newEntries" month={anMonth} theme={isDark ? "dark" : "light"} />}
+                />
+              </div>
               {mvData.newEntries.slice(0,5).map((s,i)=>{
                 return (
                 <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:isMobile?"8px 0":"6px 0",borderBottom:"1px solid #F0F0EC"}}>
@@ -289,7 +355,18 @@ export default function AnalyticsPage({ ctx }) {
           <AnalyticsDeepSection label="Cross-Platform Reach" isMobile={isMobile}>
           <div style={{...sectionGap}}>
           <div style={card()}>
-            <div style={{...secLbl(isDark?"#FFFFFF":"#000000"), fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Cross-Platform Hits — {anMonth}</div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px"}}>
+              <div style={{...secLbl(isDark?"#FFFFFF":"#000000"), fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Cross-Platform Hits — {anMonth}</div>
+              <ShareButton
+                compact
+                isDark={isDark}
+                F={F}
+                GOLD={GOLD}
+                shareUrl={buildAnalyticsShareUrl({ chartType: chartTypeKey, month: anMonth })}
+                fileName={`ngoma-cross-platform-hits-${chartTypeKey}.png`}
+                posterContent={<CrossPlatformSharePoster chartType={isSingles ? "singles" : "albums"} mode="hits" month={anMonth} theme={isDark ? "dark" : "light"} />}
+              />
+            </div>
             <p style={{fontFamily:F,fontSize:"12px",color:isDark?"#FFFFFF":"#000000",margin:"-4px 0 12px",lineHeight:1.45}}>{releaseLabel} charting on all {tp} tracked platforms at once.</p>
             {xHitsRows.slice(0,8).map((s,i)=>{
               return (
@@ -317,7 +394,18 @@ export default function AnalyticsPage({ ctx }) {
             <AnalyticsDeepSection label="Platform Totals" isMobile={isMobile}>
             <div style={{...card(),...sectionGap}}>
               <div style={{...secLbl(isDark?"#FFFFFF":"#000000"), fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Combined Top 50 Entries Contributed Per Platform — {anMonth}</div>
-              <div style={{display:"flex",justifyContent:"flex-end",margin:"-4px 0 12px"}}><ViewToggle id="platformTotals" /></div>
+              <div style={{display:"flex",justifyContent:"flex-end",alignItems:"center",gap:"10px",margin:"-4px 0 12px"}}>
+                <ShareButton
+                  compact
+                  isDark={isDark}
+                  F={F}
+                  GOLD={GOLD}
+                  shareUrl={buildAnalyticsShareUrl({ chartType: chartTypeKey, month: anMonth })}
+                  fileName={`ngoma-platform-totals-${chartTypeKey}.png`}
+                  posterContent={<PlatformBreakdownSharePoster chartType={isSingles ? "singles" : "albums"} metric="totals" month={anMonth} viewMode={viewMode("platformTotals")} theme={isDark ? "dark" : "light"} />}
+                />
+                <ViewToggle id="platformTotals" />
+              </div>
               {viewMode("platformTotals")==="table" ? (
                 <div style={{display:"grid",gap:"8px"}}>
                   {platTotalsData.map((entry)=>(
@@ -348,7 +436,18 @@ export default function AnalyticsPage({ ctx }) {
           <div style={{...card(),...sectionGap}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",marginBottom:"14px",flexWrap:"wrap"}}>
               <div style={{...secLbl(isDark?"#FFFFFF":"#000000"),marginBottom:0,fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Top 5 Countries — {anMonth}</div>
-              <ViewToggle id="topCountries" />
+              <div style={{display:"flex",alignItems:"center",gap:"10px"}}>
+                <ShareButton
+                  compact
+                  isDark={isDark}
+                  F={F}
+                  GOLD={GOLD}
+                  shareUrl={buildAnalyticsShareUrl({ chartType: chartTypeKey, month: anMonth })}
+                  fileName={`ngoma-top-countries-${chartTypeKey}.png`}
+                  posterContent={<PlatformBreakdownSharePoster chartType={chartTypeKey} metric="country" month={anMonth} viewMode={viewMode("topCountries")} theme={isDark ? "dark" : "light"} />}
+                />
+                <ViewToggle id="topCountries" />
+              </div>
             </div>
             {viewMode("topCountries")==="table" ? (
               <div style={{display:"grid",gap:"8px"}}>
@@ -380,12 +479,13 @@ export default function AnalyticsPage({ ctx }) {
             <div style={{...secLbl(isDark?"#FFFFFF":"#000000"), fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>{isMobile?"Records & Milestones":"Records & Milestones — All Time"}</div>
             <p style={{fontFamily:F,fontSize:"13px",color:isDark?"#FFFFFF":"#000000",margin:"-4px 0 18px",lineHeight:1.5}}>{chartTypeLabel} achievements calculated solely from published public Top 50 charts across all tracked months.</p>
             <div style={{overflowX:isMobile?"visible":"auto",border:"1px solid "+(isDark?"#242923":"#EFEDE7"),borderRadius:"12px"}}>
-              <table style={{width:"100%",borderCollapse:"collapse",tableLayout:"fixed",minWidth:isMobile?"0":"520px",fontFamily:F}}>
+              <table style={{width:"100%",borderCollapse:"collapse",tableLayout:"fixed",minWidth:isMobile?"0":"560px",fontFamily:F}}>
                 {!isMobile && (
                 <colgroup>
-                  <col style={{width:"22%"}}/>
-                  <col style={{width:"28%"}}/>
-                  <col style={{width:"50%"}}/>
+                  <col style={{width:"20%"}}/>
+                  <col style={{width:"26%"}}/>
+                  <col style={{width:"40%"}}/>
+                  <col style={{width:"56px"}}/>
                 </colgroup>
                 )}
                 {!isMobile && (
@@ -394,6 +494,7 @@ export default function AnalyticsPage({ ctx }) {
                     <th style={{padding:"12px 16px",textAlign:"left",fontSize:"10px",letterSpacing:"0.8px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000"}}>Record</th>
                     <th style={{padding:"12px 16px",textAlign:"left",fontSize:"10px",letterSpacing:"0.8px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000"}}>Leader</th>
                     <th style={{padding:"12px 16px",textAlign:"left",fontSize:"10px",letterSpacing:"0.8px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000"}}>Detail</th>
+                    <th style={{padding:"12px 16px",textAlign:"right",fontSize:"10px",letterSpacing:"0.8px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000"}}></th>
                   </tr>
                 </thead>
                 )}

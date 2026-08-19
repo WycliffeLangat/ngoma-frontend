@@ -49,9 +49,9 @@ export function buildCertificationsShareUrl() {
   return `${originPath("/certifications")}?${params.toString()}`;
 }
 
-export function buildAnalyticsShareUrl({ chartType = "singles" } = {}) {
+export function buildAnalyticsShareUrl({ chartType = "singles", month = "" } = {}) {
   if (typeof window === "undefined") return "";
-  const params = new URLSearchParams({ share: "analytics", type: chartType });
+  const params = new URLSearchParams({ share: "analytics", type: chartType, ...(month ? { month } : {}) });
   return `${originPath("/analytics")}?${params.toString()}`;
 }
 
@@ -96,7 +96,7 @@ export function parseShareParamsFromLocation() {
     return { kind };
   }
   if (kind === "analytics") {
-    return { kind, chartType: params.get("type") || "singles" };
+    return { kind, chartType: params.get("type") || "singles", month: params.get("month") || "" };
   }
   return null;
 }

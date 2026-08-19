@@ -2669,6 +2669,7 @@ const top = data[0];
     } else if (shared.kind === "analytics") {
       setPage("analytics");
       setCt(shared.chartType);
+      if (shared.month && MONTHS.includes(shared.month)) setAnMonth(shared.month);
     }
   }, [songSearchIndex, albumSearchIndex]);
   const artistTrendFor=(artist={})=>{

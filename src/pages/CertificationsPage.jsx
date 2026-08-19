@@ -87,7 +87,7 @@ export default function CertificationsPage({ ctx }) {
                 GOLD={GOLD}
                 shareUrl={buildCertificationsShareUrl()}
                 fileName="ngoma-certifications.png"
-                posterContent={topCert ? <CertificationSharePoster item={certificationToPosterItem(topCert)} /> : null}
+                posterContent={topCert ? <CertificationSharePoster item={certificationToPosterItem(topCert)} theme={isDark ? "dark" : "light"} /> : null}
               />
               <Tog sm/>
             </div>
@@ -130,7 +130,7 @@ export default function CertificationsPage({ ctx }) {
                         GOLD={GOLD}
                         shareUrl={buildReleaseShareUrl({ title: c.t, artist: c.a, type: isSingles ? "single" : "album" })}
                         fileName={`ngoma-${String(c.t||"certification").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")}.png`}
-                        posterContent={<CertificationSharePoster item={certificationToPosterItem(c)} />}
+                        posterContent={<CertificationSharePoster item={certificationToPosterItem(c)} theme={isDark ? "dark" : "light"} />}
                       />
                     </div>
                   ))}

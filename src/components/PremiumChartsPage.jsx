@@ -1529,7 +1529,7 @@ export default function PremiumChartsPage({
               GOLD={GOLD}
               shareUrl={buildChartsShareUrl({ chartType: ct, platform: plat, month })}
               fileName={`ngoma-top-${ct}-${String(plat).toLowerCase().replace(/\s+/g,"-")}-${String(month).toLowerCase().replace(/\s+/g,"-")}.png`}
-              posterContent={<ChartListSharePoster chartType={ct} period="monthly" platform={plat} month={month} count={10} />}
+              posterContent={<ChartListSharePoster chartType={ct} period="monthly" platform={plat} month={month} count={10} theme={darkMode ? "dark" : "light"} />}
             />
           </div>
         ) : (
@@ -1593,7 +1593,7 @@ export default function PremiumChartsPage({
                 GOLD={GOLD}
                 shareUrl={buildChartsShareUrl({ chartType: ct, platform: plat, month })}
                 fileName={`ngoma-top-${ct}-${String(plat).toLowerCase().replace(/\s+/g,"-")}-${String(month).toLowerCase().replace(/\s+/g,"-")}.png`}
-                posterContent={<ChartListSharePoster chartType={ct} period="monthly" platform={plat} month={month} count={10} />}
+                posterContent={<ChartListSharePoster chartType={ct} period="monthly" platform={plat} month={month} count={10} theme={darkMode ? "dark" : "light"} />}
               />
             </div>
           </>
