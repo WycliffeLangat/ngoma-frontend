@@ -3876,9 +3876,9 @@ const top = data[0];
                   aria-expanded={mNav}
                   style={{display:"flex",flexDirection:"column",justifyContent:"center",gap:"4px",width:"42px",height:"38px",border:`1px solid ${themeColors.border}`,borderRadius:"11px",background:themeColors.elevated,cursor:"pointer",padding:"0 10px",flexShrink:0}}
                 >
-                  <span style={{display:"block",height:"2px",background:themeColors.text,borderRadius:"2px",transition:"all .2s",transform:mNav?"translateY(6px) rotate(45deg)":"none"}}/>
-                  <span style={{display:"block",height:"2px",background:themeColors.text,borderRadius:"2px",opacity:mNav?0:1,transition:"opacity .2s"}}/>
-                  <span style={{display:"block",height:"2px",background:themeColors.text,borderRadius:"2px",transition:"all .2s",transform:mNav?"translateY(-6px) rotate(-45deg)":"none"}}/>
+                  <span className="ngoma-hamburger-bar" style={{display:"block",height:"2px",background:themeColors.text,borderRadius:"2px",transition:"all .2s",transform:mNav?"translateY(6px) rotate(45deg)":"none"}}/>
+                  <span className="ngoma-hamburger-bar" style={{display:"block",height:"2px",background:themeColors.text,borderRadius:"2px",opacity:mNav?0:1,transition:"opacity .2s"}}/>
+                  <span className="ngoma-hamburger-bar" style={{display:"block",height:"2px",background:themeColors.text,borderRadius:"2px",transition:"all .2s",transform:mNav?"translateY(-6px) rotate(-45deg)":"none"}}/>
                 </button>
               </div>
               <div style={{width:"100%",display:"flex",alignItems:"center",gap:"10px",marginTop:"-4px"}}>

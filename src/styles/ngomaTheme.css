@@ -3467,3 +3467,15 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell .ngoma-source-selector-option[ari
   border-color: var(--platform-pill-active-border) !important;
   box-shadow: var(--platform-pill-active-shadow) !important;
 }
+
+/* Mobile hamburger icon bars: same substring-matching problem as above. The
+   bars are intentionally white (foreground icon color) in dark mode, but
+   the inline-style attribute matchers earlier in this file treat any
+   "background: rgb(255, 255, 255)" as a leftover light card background and
+   repaint it dark, making the icon invisible against the dark header. */
+html[data-ngoma-theme="dark"] .ngoma-app-shell .ngoma-hamburger-bar {
+  background: #ffffff !important;
+}
+html[data-ngoma-theme="light"] .ngoma-app-shell .ngoma-hamburger-bar {
+  background: #000000 !important;
+}
