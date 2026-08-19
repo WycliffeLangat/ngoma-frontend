@@ -39,14 +39,15 @@ export default function CrossPlatformSharePoster({ chartType = "singles", mode =
   const typeLabel = CHART_TYPES.find(([value]) => value === chartType)?.[1] || "Chart";
   const modeLabel = MODES.find(([value]) => value === mode)?.[1] || "";
   const headerTitle = `${modeLabel} — ${typeLabel}`;
+  // Same list proportions as the Top-N chart poster (ChartListSharePoster).
   const n = Math.max(rows.length, 1);
-  const listTop = 340;
+  const listTop = 365;
   const footerH = 74;
   const listH = POSTER_H - listTop - footerH;
-  const gap = 16;
+  const gap = 18;
   const rowH = (listH - gap * (n - 1)) / n;
-  const scale = Math.min(1.4, Math.max(0.65, rowH / 92));
-  const artSize = Math.round(Math.min(80, Math.max(38, rowH - 16)));
+  const scale = Math.min(1.55, Math.max(0.7, rowH / 96));
+  const artSize = Math.round(Math.min(88, Math.max(40, rowH - 18)));
 
   return (
     <div
@@ -80,11 +81,11 @@ export default function CrossPlatformSharePoster({ chartType = "singles", mode =
               key={`${row.r ?? row.rank}-${row.t || row.title}-${i}`}
               style={{
                 height: rowH, boxSizing: "border-box", display: "flex", alignItems: "center",
-                gap: Math.round(16 * scale), marginBottom: i === rows.length - 1 ? 0 : gap,
+                gap: Math.round(18 * Math.min(scale, 1.2)), marginBottom: i === rows.length - 1 ? 0 : gap,
                 borderBottom: i === rows.length - 1 ? "none" : `1px solid ${t.dividerColor}`,
               }}
             >
-              <span style={{ width: Math.round(42 * scale), flexShrink: 0, fontSize: Math.round(30 * scale), fontWeight: 900, color: i < 3 ? "#00897B" : t.metaColor }}>
+              <span style={{ width: Math.round(48 * scale), flexShrink: 0, fontSize: Math.round(30 * scale), fontWeight: 900, color: i < 3 ? "#00897B" : t.metaColor }}>
                 {i + 1}
               </span>
               {row.cover_image ? (
@@ -102,7 +103,8 @@ export default function CrossPlatformSharePoster({ chartType = "singles", mode =
               </div>
               <div
                 style={{
-                  flexShrink: 0, whiteSpace: "nowrap", padding: `${Math.round(6 * scale)}px ${Math.round(14 * scale)}px`, borderRadius: 999,
+                  flexShrink: 0, marginRight: Math.round(38 * Math.min(scale, 1.2)), whiteSpace: "nowrap", textAlign: "center",
+                  padding: `${Math.round(6 * scale)}px ${Math.round(14 * scale)}px`, borderRadius: 999,
                   background: "#00897B22", color: "#00897B", fontWeight: 900, fontSize: Math.round(18 * scale),
                 }}
               >

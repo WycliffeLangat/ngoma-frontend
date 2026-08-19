@@ -60,14 +60,17 @@ export default function MoversSharePoster({ chartType = "singles", move = "riser
   const [, moveLabel, accentColor] = MOVES.find(([value]) => value === move) || MOVES[0];
   const typeLabel = CHART_TYPES.find(([value]) => value === chartType)?.[1] || "Chart";
   const headerTitle = `${moveLabel} — ${typeLabel}`;
+  // Same list proportions as the Top-N chart poster (ChartListSharePoster) —
+  // same header offset, row gap, and scale curve — so Climbers/Drops/New
+  // Entries read as the same family of poster instead of a cramped variant.
   const n = Math.max(rows.length, 1);
-  const listTop = 340;
+  const listTop = 365;
   const footerH = 74;
   const listH = POSTER_H - listTop - footerH;
-  const gap = 16;
+  const gap = 18;
   const rowH = (listH - gap * (n - 1)) / n;
-  const scale = Math.min(1.4, Math.max(0.65, rowH / 92));
-  const artSize = Math.round(Math.min(80, Math.max(38, rowH - 16)));
+  const scale = Math.min(1.55, Math.max(0.7, rowH / 96));
+  const artSize = Math.round(Math.min(88, Math.max(40, rowH - 18)));
 
   return (
     <div
@@ -101,11 +104,11 @@ export default function MoversSharePoster({ chartType = "singles", move = "riser
               key={`${rowTitle(chartType, row)}-${i}`}
               style={{
                 height: rowH, boxSizing: "border-box", display: "flex", alignItems: "center",
-                gap: Math.round(16 * scale), marginBottom: i === rows.length - 1 ? 0 : gap,
+                gap: Math.round(18 * Math.min(scale, 1.2)), marginBottom: i === rows.length - 1 ? 0 : gap,
                 borderBottom: i === rows.length - 1 ? "none" : `1px solid ${t.dividerColor}`,
               }}
             >
-              <span style={{ width: Math.round(42 * scale), flexShrink: 0, fontSize: Math.round(30 * scale), fontWeight: 900, color: t.metaColor }}>
+              <span style={{ width: Math.round(48 * scale), flexShrink: 0, fontSize: Math.round(30 * scale), fontWeight: 900, color: t.metaColor }}>
                 #{rowRank(chartType, row)}
               </span>
               {rowImage(chartType, row) ? (
@@ -133,7 +136,8 @@ export default function MoversSharePoster({ chartType = "singles", move = "riser
               </div>
               <div
                 style={{
-                  flexShrink: 0, whiteSpace: "nowrap", padding: `${Math.round(6 * scale)}px ${Math.round(14 * scale)}px`, borderRadius: 999,
+                  flexShrink: 0, marginRight: Math.round(38 * Math.min(scale, 1.2)), whiteSpace: "nowrap", textAlign: "center",
+                  padding: `${Math.round(6 * scale)}px ${Math.round(14 * scale)}px`, borderRadius: 999,
                   background: `${accentColor}22`, color: accentColor, fontWeight: 900, fontSize: Math.round(18 * scale),
                 }}
               >
