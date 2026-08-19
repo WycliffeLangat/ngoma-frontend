@@ -1207,9 +1207,10 @@ export default function PremiumChartsPage({
         }
         @media (max-width: 768px) {
           .ytc-masthead-heading {
-            font-size: 40px !important;
+            font-size: clamp(30px, 10.8vw, 40px) !important;
             line-height: 1.02 !important;
             letter-spacing: 0 !important;
+            white-space: nowrap !important;
           }
         }
         @media (hover: hover) {
@@ -1315,12 +1316,13 @@ export default function PremiumChartsPage({
                 ...styles.heroTitle,
                 color: mastheadText,
                 fontFamily: F,
-                fontSize: mobile ? "40px" : (tablet ? "56px" : "76px"),
+                fontSize: mobile ? "clamp(30px, 10.8vw, 40px)" : (tablet ? "56px" : "76px"),
                 letterSpacing: 0,
                 lineHeight: mobile ? 1.02 : 0.98,
                 margin: 0,
                 textTransform: "none",
-                maxWidth: mobile ? "12ch" : "760px",
+                maxWidth: mobile ? "100%" : "760px",
+                whiteSpace: mobile ? "nowrap" : "normal",
               }}
             >
               {mastheadTitle}
@@ -1410,7 +1412,7 @@ export default function PremiumChartsPage({
                   borderRadius: "8px",
                   overflow: "hidden",
                   background: `linear-gradient(135deg, ${chartAccent}42 0%, #cfd6d3 100%)`,
-                  width: mobile ? "min(74vw, 278px)" : (tablet ? "min(28vw, 300px)" : "min(24vw, 352px)"),
+                  width: mobile ? "min(74vw, 278px)" : (tablet ? "min(28vw, 300px)" : "min(19vw, 280px)"),
                   aspectRatio: "1 / 1",
                   cursor: "pointer",
                   boxShadow: cardShadow,
