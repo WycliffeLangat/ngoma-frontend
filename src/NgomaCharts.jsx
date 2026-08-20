@@ -349,6 +349,22 @@ const GOLD=THEME_SETTING.primary || "#C97A12"; const GOLD_BRIGHT="#F2981A"; cons
 // certification badge can read as a brighter silver-white on its own.
 const PLATINUM_SILVER="#868C97";
 const MEDALS=[GOLD,SILVER,BRONZE];
+// Picks black or white text for legibility against an arbitrary accent color —
+// matters because THEME_SETTING.primary is CMS-configurable, not always this
+// dark a gold, so a hardcoded text color could go low-contrast.
+function readableInk(color){
+  const hex=String(color||"").trim().match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+  if(!hex)return "#050505";
+  let value=hex[1];
+  if(value.length===3)value=value.split("").map(c=>c+c).join("");
+  const int=Number.parseInt(value,16);
+  const srgb=[(int>>16)&255,(int>>8)&255,int&255].map(channel=>{
+    const n=channel/255;
+    return n<=0.03928?n/12.92:Math.pow((n+0.055)/1.055,2.4);
+  });
+  const luminance=0.2126*srgb[0]+0.7152*srgb[1]+0.0722*srgb[2];
+  return luminance>0.35?"#000000":"#ffffff";
+}
 const SYSTEM_SANS = "'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
 const F = SYSTEM_SANS;
 const SF = SYSTEM_SANS;
@@ -3331,7 +3347,7 @@ const top = data[0];
     >
       {["singles","albums","artists"].map(t=>{
         const tActive=chartTypePreview===t;
-        const tBg=isDark?"#FFFFFF":"#1A1A1A";
+        const tBg=GOLD;
         return <button
         key={t}
         type="button"
@@ -3341,7 +3357,7 @@ const top = data[0];
           background:tActive?tBg:(isDark?"transparent":"#FFF"),
           border:"1px solid "+(tActive?tBg:(isDark?"transparent":"rgba(0,0,0,0.14)")),
           borderRadius:"999px",
-          color:tActive?(isDark?"#000000":"#FFF"):(isDark?"#FFFFFF":"#000000"),
+          color:tActive?readableInk(tBg):(isDark?"#FFFFFF":"#000000"),
           cursor:"pointer",
           fontSize:sm?"10px":"11px",
           fontWeight:900,

@@ -1081,8 +1081,8 @@ export default function PremiumChartsPage({
       <div style={{...styles.toggleWrap, background: darkMode ? "#181C18" : "#f2f2f2", border: `1px solid ${darkMode ? "#2F352F" : "rgba(0,0,0,0.08)"}`}}>
         {["singles", "albums", "artists"].map((item) => {
           const active = ct === item;
-          const activeBg = darkMode ? "#FFFFFF" : "#1A1A1A";
-          const activeText = darkMode ? "#000000" : "#FFFFFF";
+          const activeBg = GOLD;
+          const activeText = readableInk(GOLD);
 
           return (
             <button
@@ -1557,7 +1557,7 @@ export default function PremiumChartsPage({
                   const active = item === "Kenyan"
                     ? plat === selectedCountryScope
                     : plat === item;
-                  const color = darkMode ? "#F6F3EA" : "#1A1A1A";
+                  const color = GOLD;
                   const ink = readableInk(color);
                   const label = item === "Kenyan" ? regionalTop50Label : (item === "Combined" ? item : PLAT_LABEL[item] || item);
 
