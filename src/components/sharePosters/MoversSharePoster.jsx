@@ -104,11 +104,11 @@ export default function MoversSharePoster({ chartType = "singles", move = "riser
               key={`${rowTitle(chartType, row)}-${i}`}
               style={{
                 height: rowH, boxSizing: "border-box", display: "flex", alignItems: "center",
-                gap: Math.round(18 * Math.min(scale, 1.2)), marginBottom: i === rows.length - 1 ? 0 : gap,
+                gap: Math.round(28 * scale), marginBottom: i === rows.length - 1 ? 0 : gap,
                 borderBottom: i === rows.length - 1 ? "none" : `1px solid ${t.dividerColor}`,
               }}
             >
-              <span style={{ width: Math.round(48 * scale), flexShrink: 0, fontSize: Math.round(30 * scale), fontWeight: 900, color: t.metaColor }}>
+              <span style={{ width: Math.round(56 * scale), flexShrink: 0, fontSize: Math.round(30 * scale), fontWeight: 900, color: t.metaColor }}>
                 #{rowRank(chartType, row)}
               </span>
               {rowImage(chartType, row) ? (

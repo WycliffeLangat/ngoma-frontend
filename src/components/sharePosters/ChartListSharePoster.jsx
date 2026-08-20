@@ -202,7 +202,7 @@ export default function ChartListSharePoster({ chartType = "singles", period = "
                   boxSizing: "border-box",
                   display: "flex",
                   alignItems: "center",
-                  gap: Math.round(18 * Math.min(scale, 1.2)),
+                  gap: Math.round(28 * scale),
                   marginBottom: i === rows.length - 1 ? 0 : gap,
                   borderTop: i === 0 ? `1px solid ${t.dividerColor}` : "none",
                   borderBottom: i === rows.length - 1 ? "none" : `1px solid ${t.dividerColor}`,
@@ -210,7 +210,7 @@ export default function ChartListSharePoster({ chartType = "singles", period = "
               >
                 <span
                   style={{
-                    width: Math.round(48 * scale),
+                    width: Math.round(58 * scale),
                     flexShrink: 0,
                     fontSize: Math.round(36 * scale),
                     fontWeight: 900,

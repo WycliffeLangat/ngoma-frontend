@@ -598,7 +598,7 @@ export default function PremiumChartsPage({
                 key={`${token.value}-${tokenIndex}`}
                 style={{
                   ...styles.artistSeparator,
-                  ...(mobile ? { fontSize: "12px", fontWeight: 700 } : null),
+                  ...(mobile ? { fontSize: "12px" } : null),
                   ...(darkMode ? styles.artistSeparatorDark : null),
                 }}
               >
@@ -618,7 +618,7 @@ export default function PremiumChartsPage({
               style={{
                 ...styles.artistButton,
                 fontFamily: F,
-                ...(mobile ? { fontSize: "12px", fontWeight: 700 } : null),
+                ...(mobile ? { fontSize: "12px" } : null),
                 ...(darkMode ? styles.artistButtonDark : null),
               }}
               title={`Open ${token.value}`}
@@ -1350,35 +1350,37 @@ export default function PremiumChartsPage({
                 {mastheadSubtitle}
               </p>
 
-              <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: mobile ? "10px" : "16px",
-                  width: mobile ? "100%" : "auto",
-                }}
-              >
-                <PillDropdown
-                  ariaLabel="Chart period"
-                  isDark={darkMode}
-                  F={F}
-                  GOLD={GOLD}
-                  value={month}
-                  onChange={setMonth}
-                  options={MONTHS.map((item) => ({ value: item, label: item }))}
-                  renderValue={() => mastheadPeriodLabel}
-                  width={mobile ? "100%" : "auto"}
-                  menuWidth="200px"
-                  pillStyle={{
-                    ...styles.mastheadPill,
-                    minWidth: mobile ? undefined : (tablet ? "150px" : "160px"),
-                    background: "transparent",
-                    backgroundColor: "transparent",
-                    borderColor: mastheadBorder,
-                    color: mastheadText,
+              {!mobile && (
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "16px",
+                    width: "auto",
                   }}
-                />
-              </div>
+                >
+                  <PillDropdown
+                    ariaLabel="Chart period"
+                    isDark={darkMode}
+                    F={F}
+                    GOLD={GOLD}
+                    value={month}
+                    onChange={setMonth}
+                    options={MONTHS.map((item) => ({ value: item, label: item }))}
+                    renderValue={() => mastheadPeriodLabel}
+                    width="auto"
+                    menuWidth="200px"
+                    pillStyle={{
+                      ...styles.mastheadPill,
+                      minWidth: tablet ? "150px" : "160px",
+                      background: "transparent",
+                      backgroundColor: "transparent",
+                      borderColor: mastheadBorder,
+                      color: mastheadText,
+                    }}
+                  />
+                </div>
+              )}
             </div>
           </div>
 

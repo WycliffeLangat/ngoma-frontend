@@ -81,11 +81,11 @@ export default function CrossPlatformSharePoster({ chartType = "singles", mode =
               key={`${row.r ?? row.rank}-${row.t || row.title}-${i}`}
               style={{
                 height: rowH, boxSizing: "border-box", display: "flex", alignItems: "center",
-                gap: Math.round(18 * Math.min(scale, 1.2)), marginBottom: i === rows.length - 1 ? 0 : gap,
+                gap: Math.round(28 * scale), marginBottom: i === rows.length - 1 ? 0 : gap,
                 borderBottom: i === rows.length - 1 ? "none" : `1px solid ${t.dividerColor}`,
               }}
             >
-              <span style={{ width: Math.round(48 * scale), flexShrink: 0, fontSize: Math.round(30 * scale), fontWeight: 900, color: i < 3 ? "#00897B" : t.metaColor }}>
+              <span style={{ width: Math.round(56 * scale), flexShrink: 0, fontSize: Math.round(30 * scale), fontWeight: 900, color: i < 3 ? "#00897B" : t.metaColor }}>
                 {i + 1}
               </span>
               {row.cover_image ? (

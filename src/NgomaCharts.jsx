@@ -3195,6 +3195,21 @@ const top = data[0];
       pillStyle={countryScopeSelectStyle(compact)}
     />
   );
+  const MonthScopeSelect=({compact=false, fullWidth=false}={})=>(
+    <PillDropdown
+      ariaLabel="Chart period"
+      isDark={isDark}
+      F={F}
+      GOLD={GOLD}
+      value={month}
+      onChange={setMonth}
+      options={MONTHS.map((item) => ({ value: item, label: item }))}
+      align="right"
+      width={fullWidth ? "100%" : (compact ? "108px" : (isTablet ? "110px" : "122px"))}
+      menuWidth="200px"
+      pillStyle={countryScopeSelectStyle(compact)}
+    />
+  );
   const card=(extra={})=>({background:"#FFF",borderRadius:"14px",border:"1px solid #EFEDE7",padding:isMobile?"18px":"22px",boxSizing:"border-box",maxWidth:"100%",boxShadow:"0 1px 3px rgba(0,0,0,0.02),0 8px 24px rgba(0,0,0,0.02)",...extra});
   const TXT = {
     kicker: isMobile ? "9px" : "10.5px",
@@ -3882,7 +3897,8 @@ const top = data[0];
                 </button>
               </div>
               <div style={{width:"100%",display:"flex",alignItems:"center",gap:"10px",marginTop:"-4px"}}>
-                <CountryScopeSelect compact fullWidth />
+                <div style={{flex:1,minWidth:0}}><CountryScopeSelect compact fullWidth /></div>
+                {page==="charts"&&<div style={{flex:1,minWidth:0}}><MonthScopeSelect compact fullWidth /></div>}
               </div>
               {mNav&&(
                 <div style={{width:"100%",display:"flex",flexDirection:"column",gap:"2px",marginTop:"8px",borderTop:`1px solid ${themeColors.border}`,paddingTop:"10px"}}>
