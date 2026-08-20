@@ -3823,6 +3823,8 @@ const top = data[0];
         .ngoma-analytics-page > *{content-visibility:auto;contain-intrinsic-size:auto 320px;}
         .ngoma-mobile-collapsible{margin:0 0 24px;}
         .ngoma-mobile-collapsible > summary{display:none;}
+        @keyframes ngoma-slide-in{from{opacity:0;transform:translateX(14px);}to{opacity:1;transform:none;}}
+        .ngoma-hero-slide{animation:ngoma-slide-in 0.38s cubic-bezier(.22,.68,0,1.2) both;}
         @media (max-width: 860px){
           .anl-2col{grid-template-columns:1fr !important;}
         }
@@ -3830,6 +3832,7 @@ const top = data[0];
           .anl-grid-2{grid-template-columns:1fr !important;}
           .anl-2col{grid-template-columns:1fr !important;}
           .anl-grid-3{grid-template-columns:1fr !important;}
+          .anl-split-row{grid-template-columns:1fr !important;}
           .anl-grid-4{grid-template-columns:1fr 1fr !important;}
           .podium-grid{grid-template-columns:1fr !important;}
           .race-card{min-width:100% !important;}

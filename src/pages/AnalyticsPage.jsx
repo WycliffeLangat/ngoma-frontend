@@ -1,10 +1,10 @@
 import EntryThumb from "../components/EntryThumb.jsx";
 import ArtistCredit from "../components/ArtistCredit.jsx";
+import AnalyticsSlideshowFrame from "../components/AnalyticsSlideshowFrame.jsx";
 import { useRotatingArt } from "../hooks/useRotatingArt.js";
 import ShareButton from "../components/ShareButton.jsx";
 import HallOfFameSharePoster from "../components/sharePosters/HallOfFameSharePoster.jsx";
 import MoversSharePoster from "../components/sharePosters/MoversSharePoster.jsx";
-import CrossPlatformSharePoster from "../components/sharePosters/CrossPlatformSharePoster.jsx";
 import PlatformBreakdownSharePoster from "../components/sharePosters/PlatformBreakdownSharePoster.jsx";
 import RecordCardSharePoster from "../components/sharePosters/RecordCardSharePoster.jsx";
 import { buildAnalyticsShareUrl } from "../utils/shareLinks.js";
@@ -13,10 +13,11 @@ import { buildAnalyticsShareUrl } from "../utils/shareLinks.js";
 const MONTH_ABBR = { January: "Jan", February: "Feb", March: "Mar", April: "Apr", May: "May", June: "Jun", July: "Jul", August: "Aug", September: "Sep", October: "Oct", November: "Nov", December: "Dec" };
 const abbrevMonth = (label = "") => String(label).replace(/^(\w+)(?=\s\d{4}$)/, (full) => MONTH_ABBR[full] || full);
 
-// A single Records & Milestones row, rendered as a table row. Records that
-// don't pin to a single release/artist (e.g. "Total Charted Songs") rotate
-// their thumbnail through the eligible pool.
-function RecordRow({ r, pool, ctx, theme, rowStyle }) {
+// A single Records & Milestones row, rendered as a CSS-grid row (matches the
+// Head-to-Head comparison table's chrome). Records that don't pin to a single
+// release/artist (e.g. "Total Charted Songs") rotate their thumbnail through
+// the eligible pool.
+function RecordRow({ r, pool, ctx, theme, rowStyle, cols }) {
   const {
     F, GOLD, RecordIcon, SF,
     isArtists, isMobile, isSingles,
@@ -80,30 +81,13 @@ function RecordRow({ r, pool, ctx, theme, rowStyle }) {
     </>
   );
 
-  if (isMobile) {
-    // Stacked single-column row: label, then leader, then detail — avoids
-    // horizontal scrolling on narrow screens.
-    return (
-      <tr style={rowStyle}>
-        <td style={{ padding: "12px 14px", verticalAlign: "middle" }}>
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "8px", marginBottom: "8px" }}>
-            <div style={{ fontFamily: F, fontSize: "10px", fontWeight: 800, letterSpacing: "0.6px", textTransform: "uppercase", color: isDark ? "#FFFFFF" : "#000000" }}>{r.displayLabel}</div>
-            {shareButton}
-          </div>
-          <div style={{ marginBottom: "6px" }}>{leaderNode}</div>
-          <div style={{ fontFamily: F, fontSize: "12px", color: isDark ? "#FFFFFF" : "#000000", lineHeight: 1.4 }}>{detailNode}</div>
-        </td>
-      </tr>
-    );
-  }
-
   return (
-    <tr style={rowStyle}>
-      <td style={{ padding: "14px 16px", verticalAlign: "middle", textAlign: "left", fontFamily: F, fontSize: "11px", fontWeight: 800, letterSpacing: "0.6px", textTransform: "uppercase", color: isDark ? "#FFFFFF" : "#000000" }}>{r.displayLabel}</td>
-      <td style={{ padding: "14px 16px", verticalAlign: "middle", textAlign: "left" }}>{leaderNode}</td>
-      <td style={{ padding: "14px 16px", verticalAlign: "middle", textAlign: "left", fontFamily: F, fontSize: "13px", color: isDark ? "#FFFFFF" : "#000000", lineHeight: 1.4 }}>{detailNode}</td>
-      <td style={{ padding: "14px 16px", verticalAlign: "middle", textAlign: "right" }}>{shareButton}</td>
-    </tr>
+    <div style={{ display: "grid", gridTemplateColumns: cols, gap: isMobile ? "8px" : "10px", alignItems: "center", padding: isMobile ? "10px 10px" : "14px 16px", ...rowStyle }}>
+      <div style={{ minWidth: 0, fontFamily: F, fontSize: isMobile ? "9px" : "11px", fontWeight: 800, letterSpacing: "0.6px", textTransform: "uppercase", color: isDark ? "#FFFFFF" : "#000000", overflowWrap: "anywhere" }}>{r.displayLabel}</div>
+      {leaderNode}
+      <div style={{ minWidth: 0, fontFamily: F, fontSize: isMobile ? "11px" : "13px", color: isDark ? "#FFFFFF" : "#000000", lineHeight: 1.4, overflowWrap: "anywhere" }}>{detailNode}</div>
+      {shareButton}
+    </div>
   );
 }
 
@@ -137,9 +121,7 @@ export default function AnalyticsPage({ ctx }) {
     artists,
     card,
     chartTypeLabel,
-    crossPlatformRows,
     ct,
-    currentPlatformKeys,
     currentRecords,
     currentRecordsPool,
     getCertificationForEntry,
@@ -157,12 +139,10 @@ export default function AnalyticsPage({ ctx }) {
     secLbl,
     setAnMonth,
     topCountryData,
-    tp,
     viewMode
   } = ctx;
 
   const chartTypeKey = isArtists ? "artists" : (isSingles ? "singles" : "albums");
-  const xHitsRows = crossPlatformRows.filter(e => e.count >= tp);
   const hofType = isArtists ? "artist" : (isSingles ? "single" : "album");
   const hofMonthIndex = new Map(MONTHS.map((monthLabel, index) => [monthLabel, index]));
   const hofEntryKey = (entry = {}) => {
@@ -217,7 +197,26 @@ export default function AnalyticsPage({ ctx }) {
   };
   const tooltipLabelStyle = { color: isDark ? "#FFFFFF" : "#000000", fontWeight: 700, marginBottom: "2px" };
   const barCursorFill = isDark ? "rgba(255,255,255,0.05)" : "rgba(31,36,31,0.04)";
+  const axisStroke = isDark ? "#3A413A" : "#D9D5CB";
   const sectionGap = { marginBottom: isMobile ? "20px" : "26px" };
+
+  // Head-to-Head-style CSS-grid table chrome, reused by Records and Hall of Fame.
+  const gridBorder = "1px solid " + (isDark ? "#2F352F" : "#EEEAE1");
+  const gridRowBg = (i) => isDark ? (i % 2 ? "#121612" : "#0F120F") : (i % 2 ? "#FBFAF7" : "#FFF");
+  const gridHeaderStyle = { background: "#1F241F", color: "#FFFFFF" };
+  const recordsCols = isMobile ? "56px minmax(64px,1fr) minmax(56px,1fr) 26px" : "150px minmax(160px,1fr) minmax(180px,1.4fr) 48px";
+  const gridRowGap = isMobile ? "8px" : "10px";
+  const hofCols = isMobile
+    ? "28px minmax(0,1fr) 70px"
+    : (isArtists ? "48px minmax(220px,1fr) 92px minmax(220px,1.4fr)" : "48px minmax(160px,1fr) minmax(140px,0.9fr) 92px minmax(160px,1.3fr)");
+
+  // Normalized pools (title/artist field names) so useRotatingArt's default
+  // name lookup works for risers/fallers, which carry t/a instead of title/artist.
+  const risersPool = mvData.risers.map(s => ({ ...s, title: s.t, artist: s.a }));
+  const fallersPool = mvData.fallers.map(s => ({ ...s, title: s.t, artist: s.a }));
+  const newEntriesPool = mvData.newEntries.slice(0, 5);
+  const openMoverDetails = (entry) => openReleaseDetails(entry, isArtists ? "artist" : (isSingles ? "single" : "album"));
+  const splitRowStyle = { display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "20px", alignItems: "center", ...sectionGap };
 
   return (
 <div className="ngoma-analytics-page" style={{padding:PAD,background:"transparent",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
@@ -245,8 +244,13 @@ export default function AnalyticsPage({ ctx }) {
 
           {/* Climbers, Fallers & New Entries — what moved this month */}
           <AnalyticsDeepSection label="Climbers & Drops" isMobile={isMobile}>
-          <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(3,1fr)",gap:"14px",...sectionGap}}>
-            <div style={card()}>
+          <div className="anl-split-row" style={splitRowStyle}>
+            {!isMobile && (
+              <div style={{order:1}}>
+                <AnalyticsSlideshowFrame pool={risersPool} isArtist={isArtists} accent="#2DB04A" onOpen={openMoverDetails} label={`Top ${releaseLabel} Climbers`} />
+              </div>
+            )}
+            <div style={{...card(),order:2}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"14px",flexWrap:"wrap"}}>
                 <div style={{...secLbl(isDark?"#FFFFFF":"#000000"),marginBottom:0,fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Top {releaseLabel} Climbers — {anMonth}</div>
                 <ShareButton
@@ -280,7 +284,10 @@ export default function AnalyticsPage({ ctx }) {
               })}
               {!mvData.risers.length&&<div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#FFFFFF":"#000000",padding:"20px 0",textAlign:"center"}}>No movement data (debut month)</div>}
             </div>
-            <div style={card()}>
+          </div>
+
+          <div className="anl-split-row" style={splitRowStyle}>
+            <div style={{...card(),order:1}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"14px",flexWrap:"wrap"}}>
                 <div style={{...secLbl(isDark?"#FFFFFF":"#000000"),marginBottom:0,fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Biggest {releaseLabel} Drops — {anMonth}</div>
                 <ShareButton
@@ -314,7 +321,20 @@ export default function AnalyticsPage({ ctx }) {
               })}
               {!mvData.fallers.length&&<div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#FFFFFF":"#000000",padding:"20px 0",textAlign:"center"}}>No drops (debut month)</div>}
             </div>
-            <div style={card()}>
+            {!isMobile && (
+              <div style={{order:2}}>
+                <AnalyticsSlideshowFrame pool={fallersPool} isArtist={isArtists} accent="#E53935" onOpen={openMoverDetails} label={`Biggest ${releaseLabel} Drops`} />
+              </div>
+            )}
+          </div>
+
+          <div className="anl-split-row" style={splitRowStyle}>
+            {!isMobile && (
+              <div style={{order:1}}>
+                <AnalyticsSlideshowFrame pool={newEntriesPool} isArtist={isArtists} accent={GOLD} onOpen={openMoverDetails} label="New Entries" />
+              </div>
+            )}
+            <div style={{...card(),order:2}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"14px",flexWrap:"wrap"}}>
                 <div style={{...secLbl(isDark?"#FFFFFF":"#000000"),marginBottom:0,fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>New Entries — {anMonth}</div>
                 <ShareButton
@@ -351,43 +371,6 @@ export default function AnalyticsPage({ ctx }) {
           </div>
           </AnalyticsDeepSection>
 
-          {/* Cross-platform overlap */}
-          <AnalyticsDeepSection label="Cross-Platform Reach" isMobile={isMobile}>
-          <div style={{...sectionGap}}>
-          <div style={card()}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px"}}>
-              <div style={{...secLbl(isDark?"#FFFFFF":"#000000"), fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Cross-Platform Hits — {anMonth}</div>
-              <ShareButton
-                compact
-                isDark={isDark}
-                F={F}
-                GOLD={GOLD}
-                shareUrl={buildAnalyticsShareUrl({ chartType: chartTypeKey, month: anMonth })}
-                fileName={`ngoma-cross-platform-hits-${chartTypeKey}.png`}
-                posterContent={<CrossPlatformSharePoster chartType={isSingles ? "singles" : "albums"} mode="hits" month={anMonth} theme={isDark ? "dark" : "light"} />}
-              />
-            </div>
-            <p style={{fontFamily:F,fontSize:"12px",color:isDark?"#FFFFFF":"#000000",margin:"-4px 0 12px",lineHeight:1.45}}>{releaseLabel} charting on all {tp} tracked platforms at once.</p>
-            {xHitsRows.slice(0,8).map((s,i)=>{
-              return (
-              <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:"7px 0",borderBottom:"1px solid #F0F0EC"}}>
-                <div style={{display:"flex",alignItems:"center",gap:"10px",flex:1,minWidth:0}}>
-                  <EntryThumb item={s} name={isArtists?s.t:s.a} isArtist={isArtists} size={44} accent={isDark?"#F6F3EA":"#1A1A1A"} />
-                  <div style={{minWidth:0}}>
-                    <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
-                      <button type="button" onClick={()=>openReleaseDetails(s,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,cursor:"pointer",textAlign:"left"}}>{s.t}</button>
-                    </div>
-                    {!isArtists && <div style={{fontSize:TXT.cardMeta,marginTop:"2px"}}><ArtistCredit credit={s.a} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize={TXT.cardMeta} fontWeight={400} color="#000000" darkColor="#FFFFFF" separatorColor="#000000" darkSeparatorColor="#FFFFFF" /></div>}
-                  </div>
-                </div>
-                <div style={{display:"inline-flex",alignItems:"center",gap:"4px",background:isDark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.06)",borderRadius:"6px",padding:"3px 8px",color:isDark?"#FFFFFF":"#000000",fontSize:"12px",fontWeight:900,flexShrink:0}}>{s.count}/{currentPlatformKeys.length}</div>
-              </div>
-              );
-            })}
-            {!xHitsRows.length&&<div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#FFFFFF":"#000000",padding:"20px 0",textAlign:"center"}}>No full cross-platform hits this month</div>}
-          </div>
-          </div>
-          </AnalyticsDeepSection>
 
           {/* Platform totals */}
           {platTotalsData.length>0&&(
@@ -419,8 +402,8 @@ export default function AnalyticsPage({ ctx }) {
               <ResponsiveContainer width="100%" height={isMobile?230:200}>
                 <BarChart data={platTotalsData} margin={{top:12,right:isMobile?16:20,left:isMobile?0:8,bottom:isMobile?6:0}} barCategoryGap="14%">
                   <CartesianGrid stroke={gridStroke} vertical={false}/>
-                  <XAxis dataKey="platform" tick={isMobile?false:axisTick(10)} tickLine={false} axisLine={false}/>
-                  <YAxis domain={[dataMin => Math.max(0, Math.floor(dataMin * 0.9)), dataMax => Math.ceil(dataMax * 1.05)]} allowDecimals={false} tick={axisTick(isMobile?10.5:10)} axisLine={false} tickLine={false}/>
+                  <XAxis dataKey="platform" tick={isMobile?false:axisTick(10)} tickLine={{stroke:axisStroke}} axisLine={{stroke:axisStroke}}/>
+                  <YAxis domain={[dataMin => Math.max(0, Math.floor(dataMin * 0.9)), dataMax => Math.ceil(dataMax * 1.05)]} allowDecimals={false} tick={axisTick(isMobile?10.5:10)} axisLine={{stroke:axisStroke}} tickLine={{stroke:axisStroke}}/>
                   <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} cursor={{fill:barCursorFill}} formatter={v=>[v,"Combined entries"]}/>
                   <Bar dataKey="entries" radius={[6,6,0,0]} maxBarSize={84}>{platTotalsData.map((e,i)=><Cell key={i} fill={e.color}/>)}</Bar>
                 </BarChart>
@@ -463,8 +446,8 @@ export default function AnalyticsPage({ ctx }) {
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={topCountryData} layout="vertical" margin={{left:8,right:16,top:0,bottom:0}} barCategoryGap="18%">
                   <CartesianGrid stroke={gridStroke} horizontal={false}/>
-                  <XAxis type="number" allowDecimals={false} tick={axisTick(10)} axisLine={false} tickLine={false}/>
-                  <YAxis type="category" dataKey="code" width={38} tick={axisTick(11,{fontWeight:850})} axisLine={false} tickLine={false}/>
+                  <XAxis type="number" allowDecimals={false} tick={axisTick(10)} axisLine={{stroke:axisStroke}} tickLine={{stroke:axisStroke}}/>
+                  <YAxis type="category" dataKey="code" width={38} tick={axisTick(11,{fontWeight:850})} axisLine={{stroke:axisStroke}} tickLine={{stroke:axisStroke}}/>
                   <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} cursor={{fill:barCursorFill}} formatter={(v,n)=>[v,n==="entries"?"Entries":"Points"]}/>
                   <Bar dataKey="entries" radius={[0,6,6,0]} maxBarSize={56}>{topCountryData.map((entry)=><Cell key={entry.code} fill={entry.color}/>)}</Bar>
                 </BarChart>
@@ -478,42 +461,27 @@ export default function AnalyticsPage({ ctx }) {
           <div style={{...card(),...sectionGap}}>
             <div style={{...secLbl(isDark?"#FFFFFF":"#000000"), fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>{isMobile?"Records & Milestones":"Records & Milestones — All Time"}</div>
             <p style={{fontFamily:F,fontSize:"13px",color:isDark?"#FFFFFF":"#000000",margin:"-4px 0 18px",lineHeight:1.5}}>{chartTypeLabel} achievements calculated solely from published public Top 50 charts across all tracked months.</p>
-            <div style={{overflowX:isMobile?"visible":"auto",border:"1px solid "+(isDark?"#242923":"#EFEDE7"),borderRadius:"12px"}}>
-              <table style={{width:"100%",borderCollapse:"collapse",tableLayout:"fixed",minWidth:isMobile?"0":"560px",fontFamily:F}}>
-                {!isMobile && (
-                <colgroup>
-                  <col style={{width:"20%"}}/>
-                  <col style={{width:"26%"}}/>
-                  <col style={{width:"40%"}}/>
-                  <col style={{width:"56px"}}/>
-                </colgroup>
-                )}
-                {!isMobile && (
-                <thead>
-                  <tr style={{background:isDark?"#151915":"#FAFAF8"}}>
-                    <th style={{padding:"12px 16px",textAlign:"left",fontSize:"10px",letterSpacing:"0.8px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000"}}>Record</th>
-                    <th style={{padding:"12px 16px",textAlign:"left",fontSize:"10px",letterSpacing:"0.8px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000"}}>Leader</th>
-                    <th style={{padding:"12px 16px",textAlign:"left",fontSize:"10px",letterSpacing:"0.8px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000"}}>Detail</th>
-                    <th style={{padding:"12px 16px",textAlign:"right",fontSize:"10px",letterSpacing:"0.8px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000"}}></th>
-                  </tr>
-                </thead>
-                )}
-                <tbody>
-                  {currentRecords.map((r,i)=>{
-                    const pool = r.isTotalCount ? currentRecordsPool : [];
-                    return (
-                      <RecordRow
-                        key={`${r.displayLabel}-${r.value}`}
-                        r={r}
-                        pool={pool}
-                        ctx={ctx}
-                        theme={recordsTheme}
-                        rowStyle={{borderTop:"1px solid "+(isDark?"#242923":"#EFEDE7"),background:isDark?(i%2?"#121612":"#0F120F"):(i%2?"#FBFAF7":"#FFF")}}
-                      />
-                    );
-                  })}
-                </tbody>
-              </table>
+            <div style={{border:"1px solid "+(isDark?"#242923":"#EFEDE7"),borderRadius:"12px",overflow:"hidden"}}>
+              <div style={{display:"grid",gridTemplateColumns:recordsCols,gap:gridRowGap,padding:isMobile?"10px 10px":"12px 16px",...gridHeaderStyle}}>
+                <div style={{fontFamily:F,fontSize:isMobile?"9px":"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF"}}>Record</div>
+                <div style={{fontFamily:F,fontSize:isMobile?"9px":"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF"}}>Leader</div>
+                <div style={{fontFamily:F,fontSize:isMobile?"9px":"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF"}}>Detail</div>
+                <div/>
+              </div>
+              {currentRecords.map((r,i)=>{
+                const pool = r.isTotalCount ? currentRecordsPool : [];
+                return (
+                  <RecordRow
+                    key={`${r.displayLabel}-${r.value}`}
+                    r={r}
+                    pool={pool}
+                    ctx={ctx}
+                    theme={recordsTheme}
+                    cols={recordsCols}
+                    rowStyle={{borderTop:gridBorder,background:gridRowBg(i)}}
+                  />
+                );
+              })}
             </div>
           </div>
           </AnalyticsDeepSection>
@@ -524,69 +492,38 @@ export default function AnalyticsPage({ ctx }) {
             <div style={{...secLbl(isDark?"#FFFFFF":"#000000"), fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>{isMobile?"Monthly #1s":"Hall of Fame — Monthly #1s"}</div>
             <p style={{fontFamily:F,fontSize:"13px",color:isDark?"#FFFFFF":"#000000",margin:"-4px 0 18px",lineHeight:1.5}}>Monthly leaders from the published public Top 50 charts across the full tracked dataset.</p>
             <div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1.8px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",marginBottom:"12px",paddingBottom:"6px",borderBottom:"1px solid "+(isDark?"#2F352F":"#E4E1D8")}}>{hofLabel}</div>
-            <div style={{overflowX:isMobile?"visible":"auto",border:"1px solid "+(isDark?"#242923":"#EFEDE7"),borderRadius:"12px"}}>
-              <table style={{width:"100%",borderCollapse:"collapse",tableLayout:"fixed",minWidth:isMobile?"0":(isArtists?"460px":"620px"),fontFamily:F}}>
-                {!isMobile && (
-                <colgroup>
-                  <col style={{width:"56px"}}/>
-                  <col style={{width:isArtists?"auto":"24%"}}/>
-                  {!isArtists && <col style={{width:"20%"}}/>}
-                  <col style={{width:"100px"}}/>
-                  <col style={{width:isArtists?"38%":"30%"}}/>
-                </colgroup>
-                )}
-                {!isMobile && (
-                <thead>
-                  <tr style={{background:isDark?"#151915":"#FAFAF8"}}>
-                    <th style={{padding:"12px 16px",textAlign:"center",fontSize:"10px",letterSpacing:"0.8px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000"}}>#</th>
-                    <th style={{padding:"12px 16px",textAlign:"left",fontSize:"10px",letterSpacing:"0.8px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000"}}>{isArtists?"Artist":"Title"}</th>
-                    {!isArtists && <th style={{padding:"12px 16px",textAlign:"left",fontSize:"10px",letterSpacing:"0.8px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000"}}>Artist</th>}
-                    <th style={{padding:"12px 16px",textAlign:"right",fontSize:"10px",letterSpacing:"0.8px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000"}}>Time at #1</th>
-                    <th style={{padding:"12px 16px",textAlign:"left",fontSize:"10px",letterSpacing:"0.8px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000"}}>Months</th>
-                  </tr>
-                </thead>
-                )}
-                <tbody>
-                  {hofItems.map((e,i)=>{
-                    const rowStyle = {borderTop:"1px solid "+(isDark?"#242923":"#EFEDE7"),background:isDark?(i%2?"#121612":"#0F120F"):(i%2?"#FBFAF7":"#FFF")};
-                    const timeLabel = e.hofMonths.length > 1 ? `${e.hofMonths.length} months` : "1 month";
-                    const monthsLabel = e.hofMonths.map(abbrevMonth).join(", ");
-                    if (isMobile) {
-                      return (
-                        <tr key={`${e.type}-${e.month}-${i}`} style={rowStyle}>
-                          <td style={{padding:"12px 14px",verticalAlign:"middle"}}>
-                            <div style={{display:"flex",alignItems:"center",justifyContent:"flex-start",gap:"10px",minWidth:0}}>
-                              <span style={{fontFamily:F,fontSize:"12px",fontWeight:900,color:isDark?"#FFFFFF":"#000000",flexShrink:0,width:"18px"}}>{i+1}</span>
-                              <EntryThumb item={e} name={isArtists?e.title:e.artist} isArtist={isArtists} size={34} accent={isDark?"#F6F3EA":"#1A1A1A"} />
-                              <div style={{minWidth:0,flex:1}}>
-                                <button type="button" onClick={()=>openReleaseDetails(e,e.type)} style={{display:"block",border:0,background:"transparent",padding:0,fontFamily:SF,fontWeight:800,fontSize:"14px",cursor:"pointer",textAlign:"left",color:isDark?"#FFFFFF":"inherit",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",maxWidth:"100%"}}>{e.title}</button>
-                                {!isArtists && <div style={{fontFamily:F,fontSize:"12px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}><ArtistCredit credit={e.artist} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="12px" fontWeight={400} color="#000000" darkColor="#FFFFFF" separatorColor="#000000" darkSeparatorColor="#FFFFFF" /></div>}
-                              </div>
-                            </div>
-                            <div title={monthsLabel} style={{marginTop:"8px",paddingLeft:"62px",fontFamily:F,fontSize:"11px",color:isDark?"#FFFFFF":"#000000",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
-                              <strong>{timeLabel}</strong> · {monthsLabel}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    }
-                    return (
-                      <tr key={`${e.type}-${e.month}-${i}`} style={rowStyle}>
-                        <td style={{padding:"14px 16px",verticalAlign:"middle",textAlign:"center",fontFamily:F,fontSize:"13px",fontWeight:900,color:isDark?"#FFFFFF":"#000000"}}>{i+1}</td>
-                        <td style={{padding:"14px 16px",verticalAlign:"middle",textAlign:"left"}}>
-                          <div style={{display:"flex",alignItems:"center",justifyContent:"flex-start",gap:"10px",minWidth:0}}>
-                            <EntryThumb item={e} name={isArtists?e.title:e.artist} isArtist={isArtists} size={38} accent={isDark?"#F6F3EA":"#1A1A1A"} />
-                            <button type="button" onClick={()=>openReleaseDetails(e,e.type)} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontWeight:800,fontSize:"14px",cursor:"pointer",textAlign:"left",color:isDark?"#FFFFFF":"inherit",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",maxWidth:"100%"}}>{e.title}</button>
-                          </div>
-                        </td>
-                        {!isArtists && <td style={{padding:"14px 16px",verticalAlign:"middle",textAlign:"left",fontFamily:F,fontSize:"13px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}><ArtistCredit credit={e.artist} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="13px" fontWeight={400} color="#000000" darkColor="#FFFFFF" separatorColor="#000000" darkSeparatorColor="#FFFFFF" /></td>}
-                        <td style={{padding:"14px 16px",verticalAlign:"middle",textAlign:"right",fontFamily:F,fontSize:"13px",fontWeight:800,color:isDark?"#FFFFFF":"#000000",whiteSpace:"nowrap"}}>{timeLabel}</td>
-                        <td title={monthsLabel} style={{padding:"14px 16px",verticalAlign:"middle",textAlign:"left",fontFamily:F,fontSize:"12px",color:isDark?"#FFFFFF":"#000000",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{monthsLabel}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            <div style={{border:"1px solid "+(isDark?"#242923":"#EFEDE7"),borderRadius:"12px",overflow:"hidden"}}>
+              <div style={{display:"grid",gridTemplateColumns:hofCols,gap:gridRowGap,padding:isMobile?"10px 10px":"12px 16px",...gridHeaderStyle}}>
+                <div style={{fontFamily:F,fontSize:isMobile?"9px":"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF",textAlign:"center"}}>#</div>
+                <div style={{fontFamily:F,fontSize:isMobile?"9px":"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF"}}>{isArtists?"Artist":"Title"}</div>
+                {!isMobile && !isArtists && <div style={{fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF"}}>Artist</div>}
+                <div style={{fontFamily:F,fontSize:isMobile?"9px":"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF",textAlign:"center"}}>{isMobile?"Time":"Time at #1"}</div>
+                {!isMobile && <div style={{fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF"}}>Months</div>}
+              </div>
+              {hofItems.map((e,i)=>{
+                const rowStyle = {borderTop:gridBorder,background:gridRowBg(i)};
+                const timeLabel = e.hofMonths.length > 1 ? `${e.hofMonths.length} months` : "1 month";
+                const monthsLabel = e.hofMonths.map(abbrevMonth).join(", ");
+                const titleCell = (
+                  <div style={{display:"flex",alignItems:"center",gap:"10px",minWidth:0}}>
+                    <EntryThumb item={e} name={isArtists?e.title:e.artist} isArtist={isArtists} size={isMobile?32:38} accent={isDark?"#F6F3EA":"#1A1A1A"} />
+                    <div style={{minWidth:0,flex:1}}>
+                      <button type="button" onClick={()=>openReleaseDetails(e,e.type)} style={{display:"block",border:0,background:"transparent",padding:0,fontFamily:SF,fontWeight:800,fontSize:isMobile?"13px":"14px",cursor:"pointer",textAlign:"left",color:isDark?"#FFFFFF":"inherit",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",maxWidth:"100%"}}>{e.title}</button>
+                      {isMobile && !isArtists && <div style={{fontFamily:F,fontSize:"11px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}><ArtistCredit credit={e.artist} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="11px" fontWeight={400} color="#000000" darkColor="#FFFFFF" separatorColor="#000000" darkSeparatorColor="#FFFFFF" /></div>}
+                      {isMobile && <div title={monthsLabel} style={{fontFamily:F,fontSize:"10px",color:isDark?"#FFFFFF":"#000000",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",marginTop:"2px"}}>{monthsLabel}</div>}
+                    </div>
+                  </div>
+                );
+                return (
+                  <div key={`${e.type}-${e.month}-${i}`} style={{display:"grid",gridTemplateColumns:hofCols,gap:gridRowGap,alignItems:"center",padding:isMobile?"10px 10px":"14px 16px",...rowStyle}}>
+                    <div style={{fontFamily:F,fontSize:isMobile?"12px":"13px",fontWeight:900,color:isDark?"#FFFFFF":"#000000",textAlign:"center"}}>{i+1}</div>
+                    {titleCell}
+                    {!isMobile && !isArtists && <div style={{minWidth:0,fontFamily:F,fontSize:"13px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}><ArtistCredit credit={e.artist} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="13px" fontWeight={400} color="#000000" darkColor="#FFFFFF" separatorColor="#000000" darkSeparatorColor="#FFFFFF" /></div>}
+                    <div style={{fontFamily:F,fontSize:isMobile?"11px":"13px",fontWeight:800,color:isDark?"#FFFFFF":"#000000",whiteSpace:"nowrap",textAlign:"center"}}>{timeLabel}</div>
+                    {!isMobile && <div title={monthsLabel} style={{minWidth:0,fontFamily:F,fontSize:"12px",color:isDark?"#FFFFFF":"#000000",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{monthsLabel}</div>}
+                  </div>
+                );
+              })}
             </div>
           </div>
           </AnalyticsDeepSection>

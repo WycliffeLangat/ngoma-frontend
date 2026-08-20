@@ -52,6 +52,7 @@ export default function HeadToHeadPage({ ctx }) {
   const [platCompareView, setPlatCompareView] = useState("table");
 
   const gridStroke = isDark ? "#242923" : "#EDEAE2";
+  const axisStroke = isDark ? "#3A413A" : "#D9D5CB";
   const axisTick = (size, extra) => ({ fontSize: size, fontFamily: F, fill: isDark ? "#FFFFFF" : "#000000", fontWeight: 650, ...extra });
   const tooltipStyle = {
     fontFamily: F, fontSize: 11,
@@ -195,8 +196,8 @@ export default function HeadToHeadPage({ ctx }) {
                     <ResponsiveContainer width="100%" height={isMobile?190:180}>
                       <LineChart data={songRankData} margin={{top:14,right:isMobile?20:14,left:isMobile?8:4,bottom:4}}>
                         <CartesianGrid stroke={gridStroke} vertical={false}/>
-                        <XAxis dataKey="month" tick={axisTick(isMobile?11:10.5)} tickLine={false} axisLine={false}/>
-                        <YAxis width={isMobile?42:40} reversed domain={[1,"dataMax"]} tick={axisTick(isMobile?10.5:10)} tickFormatter={v=>"#"+v} axisLine={false} tickLine={false}/>
+                        <XAxis dataKey="month" tick={axisTick(isMobile?11:10.5)} tickLine={{stroke:axisStroke}} axisLine={{stroke:axisStroke}}/>
+                        <YAxis width={isMobile?42:40} reversed domain={[1,"dataMax"]} tick={axisTick(isMobile?10.5:10)} tickFormatter={v=>"#"+v} axisLine={{stroke:axisStroke}} tickLine={{stroke:axisStroke}}/>
                         <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} cursor={{stroke:gridStroke}} formatter={(v,n)=>["#"+v,n==="A"?sp1.title:sp2.title]}/>
                         <Line dataKey="A" stroke={GOLD} strokeWidth={2} dot={{r:4,fill:GOLD,stroke:isDark?"#0F120F":"#FFFFFF",strokeWidth:2}} activeDot={{r:6}} connectNulls/>
                         <Line dataKey="B" stroke="#1565C0" strokeWidth={2} dot={{r:4,fill:"#1565C0",stroke:isDark?"#0F120F":"#FFFFFF",strokeWidth:2}} activeDot={{r:6}} connectNulls/>
@@ -254,8 +255,8 @@ export default function HeadToHeadPage({ ctx }) {
                       </pattern>
                     </defs>
                     <CartesianGrid stroke={gridStroke} vertical={false}/>
-                    <XAxis dataKey="platform" tick={axisTick(isMobile?9:9.5)} tickLine={false} axisLine={false} angle={isMobile?-30:0} textAnchor={isMobile?"end":"middle"}/>
-                    <YAxis domain={[0,50]} tick={axisTick(10)} tickFormatter={v=>v===0?"":v===50?"#1":"#"+(51-v)} axisLine={false} tickLine={false} ticks={[0,10,20,30,40,50]}/>
+                    <XAxis dataKey="platform" tick={axisTick(isMobile?9:9.5)} tickLine={{stroke:axisStroke}} axisLine={{stroke:axisStroke}} angle={isMobile?-30:0} textAnchor={isMobile?"end":"middle"}/>
+                    <YAxis domain={[0,50]} tick={axisTick(10)} tickFormatter={v=>v===0?"":v===50?"#1":"#"+(51-v)} axisLine={{stroke:axisStroke}} tickLine={{stroke:axisStroke}} ticks={[0,10,20,30,40,50]}/>
                     <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} formatter={(v,n,p)=>["#"+(51-v),n==="aVal"?sp1.title:sp2.title]} cursor={{fill:barCursorFill}}/>
                     <Bar dataKey="aVal" fill="url(#h2hGoldTexture)" stroke={GOLD} strokeWidth={1} radius={[5,5,0,0]} maxBarSize={64} name="aVal"/>
                     <Bar dataKey="bVal" fill="#1565C0" radius={[5,5,0,0]} maxBarSize={64} name="bVal"/>
