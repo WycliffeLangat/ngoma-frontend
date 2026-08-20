@@ -1,6 +1,7 @@
 import "./styles/ngomaTheme.css";
 import { lazy, Suspense } from "react";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage.jsx";
+import StartupSplash from "./components/StartupSplash.jsx";
 
 // Lazy-load both apps so the browser only downloads the code it actually needs.
 // Public visitors never download any CMS JS; CMS users never download the full
@@ -13,17 +14,6 @@ function isCmsPath() {
   return p.startsWith("/cms") || p.startsWith("/admin-cms") || p.startsWith("/admin");
 }
 
-function Spinner({ label }) {
-  return (
-    <div style={{
-      display: "grid", placeItems: "center", height: "100vh",
-      fontFamily: "system-ui, sans-serif", color: "#999", fontSize: 14,
-    }}>
-      {label}
-    </div>
-  );
-}
-
 export default function App() {
   const path = window.location.pathname.toLowerCase();
   if (path === "/privacy" || path === "/privacy-policy") {
@@ -32,7 +22,7 @@ export default function App() {
 
   const cms = isCmsPath();
   return (
-    <Suspense fallback={<Spinner label={cms ? "Loading CMS…" : "Loading…"} />}>
+    <Suspense fallback={<StartupSplash label={cms ? "Loading CMS…" : null} />}>
       {cms ? <AdminApp /> : <NgomaCharts />}
     </Suspense>
   );

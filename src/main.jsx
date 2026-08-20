@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { API_BASE, API_CONFIGURED } from "./api/config.js";
 import { fetchAppDataWithFallback, readCachedAppDataAsync } from "./api/public.js";
 import { normalizePublicPayload } from "./utils/publicDataRuntime.js";
+import StartupSplash from "./components/StartupSplash.jsx";
 import "./index.css";
 import "./styles/mobilePremiumFixes.css";
 
@@ -144,11 +145,7 @@ async function start() {
   // NgomaCharts builds CMS lookup maps when its module loads. Hydrate first so
   // a refreshed page starts with current CMS data instead of stale snapshots.
   if (isPublicAppPath() && !isStaticPublicPath()) {
-    root.render(
-      <div style={{display:"grid",placeItems:"center",height:"100vh",fontFamily:"system-ui, sans-serif",color:"#777",fontSize:14}}>
-        Loading Ngoma Charts…
-      </div>
-    );
+    root.render(<StartupSplash />);
   }
   // The public application module is loaded only after the backend payload is
   // ready because its chart indexes are built at module initialization.
