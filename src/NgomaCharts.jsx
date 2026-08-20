@@ -3146,7 +3146,10 @@ const top = data[0];
     setPage(nextPage);setSelA(null);setSelR(null);setMNav(false);setMoreOpen(false);
   };
   const navItems=["charts","analytics","head-to-head","year-end","certifications","about"];
-  const primaryNavItems=["charts","analytics","head-to-head","year-end","certifications","about"];
+  // Below ~1400px the full six-item nav no longer fits next to the logo on one
+  // line (font/gap can only shrink so far), so fold the tail into "More" —
+  // keeps the logo and nav on the same row instead of wrapping to a second line.
+  const primaryNavItems=vw<1400?navItems.slice(0,3):navItems;
   const moreNavItems=navItems.filter((item)=>!primaryNavItems.includes(item));
   const navLabel=t=>t==="year-end"?"All Time":t==="head-to-head"?"Head to Head":t;
   const applyCountryScope=(scope)=>{
@@ -3913,7 +3916,7 @@ const top = data[0];
               )}
             </>
           ) : (
-            <nav style={{display:"flex",gap:isTablet?"8px":"14px",fontFamily:F,fontSize:isTablet?"11.5px":"13px",fontWeight:700,letterSpacing:isTablet?"0.9px":"1.5px",textTransform:"uppercase",alignItems:"center",flexShrink:0,flexBasis:"100%",position:"relative"}}>
+            <nav style={{display:"flex",gap:isTablet?"8px":"14px",fontFamily:F,fontSize:isTablet?"11.5px":"13px",fontWeight:700,letterSpacing:isTablet?"0.9px":"1.5px",textTransform:"uppercase",alignItems:"center",flexShrink:0,flexWrap:"wrap",justifyContent:"flex-end",marginLeft:"auto",position:"relative"}}>
               {primaryNavItems.map(t=>(
                 <span key={t} onClick={()=>navTo(t)} style={{color:page===t?themeColors.text:themeColors.muted,cursor:"pointer",whiteSpace:"nowrap",padding:isTablet?"6px 8px":"6px 12px",borderRadius:"20px",background:page===t?themeColors.active:"transparent",fontWeight:page===t?800:700,transition:"all 0.15s",border:page===t?"1px solid #D4B65E":"1px solid transparent"}}
                   onMouseEnter={e=>{if(page!==t)e.currentTarget.style.color=themeColors.text;}}
