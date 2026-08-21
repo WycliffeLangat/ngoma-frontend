@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback, useTransition } from "react";
 import { API_BASE, resolveMediaUrl } from "./api/config.js";
+import { trackEvent } from "./utils/track.js";
 import { artistNameVariants, findArtistProfileInPublicData, getArtistImageUrl, withResolvedArtistImage } from "./utils/artistImages.js";
 import {
   fetchCertifications, fetchChartImageData, fetchAppData, fetchRevision,
@@ -1876,6 +1877,13 @@ export default function NgomaCharts(){
     const ogDescription = document.querySelector('meta[property="og:description"]');
     if (ogTitle) ogTitle.setAttribute("content", document.title);
     if (ogDescription) ogDescription.setAttribute("content", description);
+  }, [page]);
+
+  // One pageview per page change, including the initial landing page — `page`
+  // is the single source of truth every navigation path (navTo, popstate,
+  // deep links) already funnels through, so this catches all of them.
+  useEffect(() => {
+    trackEvent({ eventType: "pageview", page, path: window.location.pathname });
   }, [page]);
 
   useEffect(() => {
@@ -4264,6 +4272,7 @@ const top = data[0];
               },
             ].map(s=>(
               <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label}
+                 onClick={()=>trackEvent({eventType:"click",page,label:`social_${s.label.toLowerCase()}`})}
                  style={{display:"flex",alignItems:"center",justifyContent:"center",width:isMobile?"42px":"36px",height:isMobile?"42px":"36px",borderRadius:"50%",color:"#FFF",transition:"transform .2s, box-shadow .2s",background:s.bg,boxShadow:"0 8px 18px rgba(0,0,0,0.16)"}}
                  onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px) scale(1.04)";e.currentTarget.style.boxShadow="0 12px 26px rgba(0,0,0,0.24)";}}
                  onMouseLeave={e=>{e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow="0 8px 18px rgba(0,0,0,0.16)";}}>

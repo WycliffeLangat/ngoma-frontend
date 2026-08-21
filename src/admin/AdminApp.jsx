@@ -10,6 +10,7 @@ import "./styles/admin.css";
 // All CMS pages are lazy-loaded so they only download when first visited.
 // Switching between pages is instant on repeat visits (JS is cached by the browser).
 const DashboardPage       = lazy(() => import("./pages/DashboardPage"));
+const WebsiteAnalyticsPage = lazy(() => import("./pages/WebsiteAnalyticsPage"));
 const ResourcePage        = lazy(() => import("./pages/ResourcePage"));
 const DuplicateReviewPage = lazy(() => import("./pages/DuplicateReviewPage"));
 const UploadsPage         = lazy(() => import("./pages/UploadsPage"));
@@ -30,7 +31,7 @@ const HelpCenterPage      = lazy(() => import("./pages/HelpCenterPage"));
 const NAV_GROUPS = [
   {
     label: "Overview",
-    items: [["dashboard", "Dashboard"]],
+    items: [["dashboard", "Dashboard"], ["website-analytics", "Website Analytics"]],
   },
   {
     label: "Chart operations",
@@ -157,6 +158,7 @@ function PageLoader() {
 
 function renderPage(page, user, searchJump, onNavigate) {
   if (page === "dashboard")       return <DashboardPage user={user} onNavigate={onNavigate} searchJump={searchJump} />;
+  if (page === "website-analytics") return <WebsiteAnalyticsPage />;
   if (page === "chart-entries")   return <ChartEntriesPage user={user} searchJump={searchJump} />;
   if (page === "year-end")        return <YearEndPage onNavigate={onNavigate} />;
   if (page === "poster")          return <PosterGeneratorPage />;

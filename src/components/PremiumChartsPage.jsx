@@ -8,6 +8,7 @@ import PillDropdown from "./PillDropdown.jsx";
 import ChartListSharePoster from "./sharePosters/ChartListSharePoster.jsx";
 import { buildChartsShareUrl } from "../utils/shareLinks.js";
 import { API_BASE, resolveMediaUrl } from "../api/config.js";
+import { trackEvent } from "../utils/track.js";
 import {
   KENYA_COUNTRY_CODE,
   africaChartLabel,
@@ -871,7 +872,7 @@ export default function PremiumChartsPage({
     return (
       <div style={styles.detailLinks}>
         {entries.map(([label, url]) => (
-          <a key={`${label}-${url}`} href={url} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()} style={{ ...styles.detailLink, color: chartAccent, borderColor: darkMode ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)", background: darkMode ? "#101310" : "#ffffff" }}>
+          <a key={`${label}-${url}`} href={url} target="_blank" rel="noreferrer" onClick={(event) => { event.stopPropagation(); trackEvent({ eventType: "click", page: ct, label: `listen_${label.toLowerCase().replace(/\s+/g, "_")}` }); }} style={{ ...styles.detailLink, color: chartAccent, borderColor: darkMode ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)", background: darkMode ? "#101310" : "#ffffff" }}>
             {label} ↗
           </a>
         ))}

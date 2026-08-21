@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { exportNodeAsPng } from "../admin/utils/exportPoster.jsx";
+import { trackEvent } from "../utils/track.js";
 
 // Share entry point for any reader-facing page or detail panel (song,
 // album, artist, charts, head-to-head, certifications...). Offers exactly
@@ -60,6 +61,7 @@ export default function ShareButton({ shareUrl, fileName, posterContent, isDark,
 
   const handleCopyLink = async () => {
     if (!shareUrl) return;
+    trackEvent({ eventType: "click", label: `share_copy_link_${fileName || "share"}` });
     try {
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
@@ -72,6 +74,7 @@ export default function ShareButton({ shareUrl, fileName, posterContent, isDark,
 
   const handleDownloadPoster = async () => {
     if (!posterRef.current || !posterContent || downloading) return;
+    trackEvent({ eventType: "click", label: `share_download_${fileName || "poster"}` });
     setDownloading(true);
     setDownloadError(false);
     try {
