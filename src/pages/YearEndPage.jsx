@@ -271,7 +271,7 @@ export default function YearEndPage({ ctx }) {
                                 textAlign:"left",
                                 fontFamily:F,
                                 fontSize:"12.5px",
-                                fontWeight:700,
+                                fontWeight:400,
                                 lineHeight:1.35,
                                 color:isDark?"#FFFFFF":"#000000",
                                 whiteSpace:"nowrap",
