@@ -15,9 +15,9 @@ test("fallback artist biography uses available profile metadata", () => {
   });
 
   assert.match(bio, /Test Artist is a solo artist from Nairobi, Kenya working in Afropop\./);
-  assert.match(bio, /They are also credited as Alias One and Alias Two\./);
   assert.match(bio, /releases including First Song and Second Song\./);
   assert.match(bio, /verified artist profile\./);
+  assert.doesNotMatch(bio, /They are also credited as|credited as Alias/i);
   assert.doesNotMatch(bio, /Top-?50|placements across|monthly platform/i);
 });
 

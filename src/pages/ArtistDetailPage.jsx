@@ -136,7 +136,6 @@ export default function ArtistDetailPage({ ctx }) {
     cityRegion: profile.city_region,
     genre: profile.genre,
     artistType: profile.artist_type,
-    aliases,
     verified: profile.verified,
     releaseTitles: selectedArtistReleases.map((entry) => entry.title || entry.t),
   });

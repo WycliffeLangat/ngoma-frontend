@@ -252,7 +252,6 @@ function buildArtistBioSentences({
   cityRegion,
   genre,
   artistType,
-  aliases,
   verified,
   releaseTitles,
   releases,
@@ -270,9 +269,6 @@ function buildArtistBioSentences({
   ].filter(Boolean);
   const intro = `${introParts.join(" ")}.`;
 
-  const aliasList = naturalList(valuesFromMaybeList(aliases), 3);
-  const aliasSentence = aliasList ? `They are also credited as ${aliasList}.` : "";
-
   const titles = releaseTitleValues(releaseTitles, releases)
     .filter((title) => title.toLowerCase() !== artistName.toLowerCase());
   const releaseList = naturalList(titles, 3);
@@ -281,7 +277,7 @@ function buildArtistBioSentences({
     : "Their Ngoma Charts profile brings together artist credits, release metadata, and public chart context.";
 
   const verificationSentence = verified ? "Ngoma Charts marks this as a verified artist profile." : "";
-  return [intro, aliasSentence, releaseSentence, verificationSentence].filter(Boolean);
+  return [intro, releaseSentence, verificationSentence].filter(Boolean);
 }
 
 export function fallbackCountryForArtist(name) {
@@ -305,7 +301,6 @@ export function fallbackBiographyForArtist({
   cityRegion,
   genre,
   artistType,
-  aliases,
   verified,
   releaseTitles,
   releases,
@@ -316,7 +311,6 @@ export function fallbackBiographyForArtist({
     cityRegion,
     genre,
     artistType,
-    aliases,
     verified,
     releaseTitles,
     releases,

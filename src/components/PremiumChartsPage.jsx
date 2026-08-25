@@ -896,7 +896,6 @@ export default function PremiumChartsPage({
         cityRegion: artistProfile.city_region || item.city_region,
         genre: artistProfile.genre || item.genre,
         artistType: artistProfile.artist_type || item.artist_type,
-        aliases: artistProfile.aliases || item.aliases,
         verified: artistProfile.verified || item.verified,
         releases: item.releases,
       });
