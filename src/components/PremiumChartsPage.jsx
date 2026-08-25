@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getArtistImageUrl } from "../utils/artistImages.js";
-import { fallbackBiographyForArtist, fallbackCountryForArtist } from "../utils/artistMetadataFallbacks.js";
+import { enrichBiographyForArtist, fallbackCountryForArtist } from "../utils/artistMetadataFallbacks.js";
+import { detailLinkEntries } from "../utils/detailLinks.js";
 import { splitArtistTokens } from "../utils/artistCredit.js";
 import ArtistCredit from "./ArtistCredit.jsx";
 import ShareButton from "./ShareButton.jsx";
@@ -761,15 +762,15 @@ export default function PremiumChartsPage({
   }
 
   function hasReleaseLinks(item) {
-    return [
-      "spotify_url",
-      "apple_music_url",
-      "youtube_url",
-      "boomplay_url",
-      "audiomack_url",
-      "tiktok_url",
-      "shazam_url",
-    ].some((key) => Boolean(item?.[key]));
+    return detailLinkEntries(item, [
+      { key: "spotify", label: "Spotify" },
+      { key: "apple_music", label: "Apple Music" },
+      { key: "youtube", label: "YouTube" },
+      { key: "boomplay", label: "Boomplay" },
+      { key: "audiomack", label: "Audiomack" },
+      { key: "tiktok", label: "TikTok" },
+      { key: "shazam", label: "Shazam" },
+    ]).length > 0;
   }
 
   function ReleaseArtwork({ item, size = 50 }) {
@@ -855,23 +856,11 @@ export default function PremiumChartsPage({
   }
 
   function DetailLinks({ links = {} }) {
-    const entries = [
-      ["Spotify", links.spotify || links.spotify_url],
-      ["Apple Music", links.apple_music || links.apple_music_url],
-      ["YouTube", links.youtube || links.youtube_url],
-      ["Boomplay", links.boomplay || links.boomplay_url],
-      ["Audiomack", links.audiomack || links.audiomack_url],
-      ["TikTok", links.tiktok || links.tiktok_url],
-      ["Shazam", links.shazam || links.shazam_url],
-      ["Instagram", links.instagram || links.instagram_url],
-      ["X", links.x || links.x_url],
-      ["Facebook", links.facebook || links.facebook_url],
-      ["Website", links.website || links.website_url],
-    ].filter(([, url]) => Boolean(url));
+    const entries = detailLinkEntries(links);
     if (!entries.length) return null;
     return (
       <div style={styles.detailLinks}>
-        {entries.map(([label, url]) => (
+        {entries.map(({ label, url }) => (
           <a key={`${label}-${url}`} href={url} target="_blank" rel="noreferrer" onClick={(event) => { event.stopPropagation(); trackEvent({ eventType: "click", page: ct, label: `listen_${label.toLowerCase().replace(/\s+/g, "_")}` }); }} style={{ ...styles.detailLink, color: chartAccent, borderColor: darkMode ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)", background: darkMode ? "#101310" : "#ffffff" }}>
             {label} ↗
           </a>
@@ -890,18 +879,26 @@ export default function PremiumChartsPage({
     if (isArtistsChart || item?.is_artist_entry) {
       const artistProfile = managedArtistForItem(item);
       const aliases = normalizeDetailValue(artistProfile.aliases || item.aliases, "");
-      const artistLinks = artistProfile.social_links || item.social_links || {};
-      const hasArtistLinks = Object.values(artistLinks).some(Boolean);
+      const artistLinks = {
+        ...item,
+        ...artistProfile,
+        social_links: {
+          ...(item.social_links || {}),
+          ...(artistProfile.social_links || {}),
+        },
+      };
+      const hasArtistLinks = detailLinkEntries(artistLinks).length > 0;
       const compactMove = compact ? movement(item) : null;
       const compactMoveStyle = compact ? movementStyle(item) : null;
-      const artistBiography = artistProfile.biography || item.biography || fallbackBiographyForArtist({
+      const artistBiography = enrichBiographyForArtist(artistProfile.biography || item.biography, {
         name: item.title || item.n || item.artist,
         country: artistCountry.country || artistCountry.listedCountry,
+        cityRegion: artistProfile.city_region || item.city_region,
         genre: artistProfile.genre || item.genre,
-        placementCount: item.entries_count || item.t,
-        releaseCount: item.entries_count || item.t,
-        monthCount: getMonthsOnChart(item),
-        peakRank: profile.peak || item.pk,
+        artistType: artistProfile.artist_type || item.artist_type,
+        aliases: artistProfile.aliases || item.aliases,
+        verified: artistProfile.verified || item.verified,
+        releases: item.releases,
       });
       return (
         <div style={gridStyle}>

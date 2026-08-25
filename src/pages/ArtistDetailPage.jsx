@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { artistAliasValues, findArtistProfileInPublicData, getArtistImageUrl } from "../utils/artistImages.js";
-import { fallbackBiographyForArtist, fallbackCountryForArtist } from "../utils/artistMetadataFallbacks.js";
+import { enrichBiographyForArtist, fallbackCountryForArtist } from "../utils/artistMetadataFallbacks.js";
 import ShareButton from "../components/ShareButton.jsx";
 import SharePosterCard from "../components/SharePosterCard.jsx";
 import { buildArtistShareUrl } from "../utils/shareLinks.js";
+import { detailLinkEntries } from "../utils/detailLinks.js";
 
 export default function ArtistDetailPage({ ctx }) {
   const {
@@ -62,7 +63,6 @@ export default function ArtistDetailPage({ ctx }) {
     { ...selA, ...profile, title: selA?.n, artist_profile: profile, image: profile.image || selA?.image },
     { name: selA?.n, isArtist: true }
   );
-  const artistLinks = Object.entries(profile.social_links || {}).filter(([, url]) => url);
 
   const entryCountryCode = selectedArtistEntries[0]?.artist_country_code || selectedArtistEntries[0]?.country_code || "";
   const entryCountry = selectedArtistEntries[0]?.artist_country || selectedArtistEntries[0]?.country || "";
@@ -80,6 +80,18 @@ export default function ArtistDetailPage({ ctx }) {
 
   const aliases = artistAliasValues(profile.aliases);
   const aliasesDisplay = aliases.length ? JSON.stringify(aliases) : "[]";
+  const socialLinkRows = detailLinkEntries(profile, [
+    { key: "spotify", label: "Spotify" },
+    { key: "apple_music", label: "Apple Music" },
+    { key: "youtube", label: "YouTube" },
+    { key: "boomplay", label: "Boomplay" },
+    { key: "audiomack", label: "Audiomack" },
+    { key: "tiktok", label: "TikTok" },
+    { key: "instagram", label: "Instagram" },
+    { key: "x", label: "X" },
+    { key: "facebook", label: "Facebook" },
+    { key: "website", label: "Website" },
+  ]).map(({ label, url }) => [`${label} URL`, url]);
 
   const artistInfoRows = [
     ["Artist name", selA.n],
@@ -92,16 +104,7 @@ export default function ArtistDetailPage({ ctx }) {
     ["Artist type", profile.artist_type],
     ["Verified", profile.verified ? "Yes" : null],
     ["Status", profile.status],
-    ["Spotify URL", profile.social_links?.spotify],
-    ["Apple Music URL", profile.social_links?.apple_music],
-    ["YouTube URL", profile.social_links?.youtube],
-    ["Boomplay URL", profile.social_links?.boomplay],
-    ["Audiomack URL", profile.social_links?.audiomack],
-    ["TikTok URL", profile.social_links?.tiktok],
-    ["Instagram URL", profile.social_links?.instagram],
-    ["X URL", profile.social_links?.x],
-    ["Facebook URL", profile.social_links?.facebook],
-    ["Website URL", profile.social_links?.website],
+    ...socialLinkRows,
   ].filter(([, value]) => value !== null && value !== undefined && value !== "");
 
   const urlLabels = new Set(["Spotify URL", "Apple Music URL", "YouTube URL", "Boomplay URL", "Audiomack URL", "TikTok URL", "Instagram URL", "X URL", "Facebook URL", "Website URL"]);
@@ -117,7 +120,7 @@ export default function ArtistDetailPage({ ctx }) {
     { key: "Audiomack URL", label: "Audiomack", icon: "◈" },
     { key: "Website URL", label: "Website", icon: "⊕" },
   ];
-  const socialLinks = artistInfoRows.filter(([label]) => urlLabels.has(label));
+  const socialLinks = socialLinkRows;
   const metaRows = artistInfoRows.filter(([label]) => !urlLabels.has(label));
   const formatRank = (value) => Number.isFinite(Number(value)) && Number(value) > 0 ? `#${Number(value)}` : "—";
   const placementCount = selectedArtistEntries.length;
@@ -127,14 +130,15 @@ export default function ArtistDetailPage({ ctx }) {
   const numberOnePlacements = selectedArtistEntries.filter((entry) => Number(entry.rank) === 1).length;
   const releaseRanks = selectedArtistEntries.map((entry) => Number(entry.rank)).filter(Number.isFinite);
   const bestReleaseRank = releaseRanks.length ? Math.min(...releaseRanks) : null;
-  const profileBiography = profile.biography || fallbackBiographyForArtist({
+  const profileBiography = enrichBiographyForArtist(profile.biography, {
     name: selA?.n,
     country: resolvedCountry,
+    cityRegion: profile.city_region,
     genre: profile.genre,
-    placementCount,
-    releaseCount: selectedArtistReleases.length,
-    monthCount: chartedMonthCount,
-    peakRank: selA?.pk,
+    artistType: profile.artist_type,
+    aliases,
+    verified: profile.verified,
+    releaseTitles: selectedArtistReleases.map((entry) => entry.title || entry.t),
   });
   // Shared chart theming — mirrors ReleaseDetailPage/AnalyticsPage so every
   // Recharts panel reacts to dark mode instead of hardcoded light colors.
@@ -191,7 +195,6 @@ export default function ArtistDetailPage({ ctx }) {
                 <h2 style={{margin:0,fontFamily:SF,fontSize:isMobile?"26px":"32px",fontWeight:800,lineHeight:1.08,letterSpacing:"-0.5px",color:isDark?"#FFFFFF":"#000000"}}>{selA.n}</h2>
                 <CountryBadge item={countryItem} showName />
               </div>
-              <div style={{fontFamily:F,fontSize:"14px",color:isDark?"#FFFFFF":"#000000",marginTop:"6px",lineHeight:1.5}}>Recorded {placementCount} Top-50 platform placements across {chartedMonthCount} months</div>
               {profileBiography&&<p className="bio-text" style={{fontFamily:F,fontSize:"15px",lineHeight:1.72,color:isDark?"#FFFFFF":"#000000",margin:"12px 0 0",maxWidth:"680px"}}>{profileBiography}</p>}
 
               {/* Social icon links */}

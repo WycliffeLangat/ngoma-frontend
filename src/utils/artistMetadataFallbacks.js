@@ -180,6 +180,110 @@ function countryForCode(code) {
   return normalized ? { code: normalized, country: COUNTRY_BY_CODE[normalized] || "" } : null;
 }
 
+function cleanText(value) {
+  const text = String(value ?? "").trim();
+  return text && !/^(null|undefined|n\/a|none)$/i.test(text) ? text : "";
+}
+
+function uniqueValues(values = []) {
+  const seen = new Set();
+  const result = [];
+  values.forEach((value) => {
+    const text = cleanText(value);
+    const key = text.toLowerCase();
+    if (!text || seen.has(key)) return;
+    seen.add(key);
+    result.push(text);
+  });
+  return result;
+}
+
+function valuesFromMaybeList(value) {
+  if (Array.isArray(value)) return value;
+  const text = cleanText(value);
+  if (!text || text === "[]") return [];
+  try {
+    const parsed = JSON.parse(text);
+    if (Array.isArray(parsed)) return parsed;
+  } catch {
+    // Plain text aliases/release lists are handled below.
+  }
+  return text.split(/[|,]/);
+}
+
+function naturalList(values = [], limit = 3) {
+  const items = uniqueValues(values).slice(0, limit);
+  if (!items.length) return "";
+  if (items.length === 1) return items[0];
+  if (items.length === 2) return `${items[0]} and ${items[1]}`;
+  return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`;
+}
+
+function articleFor(text) {
+  return /^[aeiou]/i.test(cleanText(text)) ? "an" : "a";
+}
+
+function normalizeArtistType(value) {
+  const type = cleanText(value).toLowerCase();
+  if (!type) return "artist";
+  if (/\b(dj|producer)\b/.test(type)) return type;
+  if (/\b(duo|group|band|collective|choir|crew)\b/.test(type)) return type;
+  if (/\bsolo\b/.test(type)) return "solo artist";
+  return type.includes("artist") ? type : `${type} artist`;
+}
+
+function originFor({ cityRegion, country } = {}) {
+  const city = cleanText(cityRegion);
+  const homeCountry = cleanText(country);
+  if (city && homeCountry && city.toLowerCase() !== homeCountry.toLowerCase()) return `${city}, ${homeCountry}`;
+  return city || homeCountry;
+}
+
+function releaseTitleValues(releaseTitles, releases) {
+  return uniqueValues([
+    ...valuesFromMaybeList(releaseTitles),
+    ...(Array.isArray(releases) ? releases.map((release) => release?.title || release?.t || release?.name) : []),
+  ]);
+}
+
+function buildArtistBioSentences({
+  name,
+  country,
+  cityRegion,
+  genre,
+  artistType,
+  aliases,
+  verified,
+  releaseTitles,
+  releases,
+} = {}) {
+  const artistName = cleanText(name);
+  if (!artistName) return [];
+
+  const type = normalizeArtistType(artistType);
+  const origin = originFor({ cityRegion, country });
+  const style = cleanText(genre);
+  const introParts = [
+    `${artistName} is ${articleFor(type)} ${type}`,
+    origin ? `from ${origin}` : "",
+    style ? `working in ${style}` : "",
+  ].filter(Boolean);
+  const intro = `${introParts.join(" ")}.`;
+
+  const aliasList = naturalList(valuesFromMaybeList(aliases), 3);
+  const aliasSentence = aliasList ? `They are also credited as ${aliasList}.` : "";
+
+  const titles = releaseTitleValues(releaseTitles, releases)
+    .filter((title) => title.toLowerCase() !== artistName.toLowerCase());
+  const releaseList = naturalList(titles, 3);
+  const releaseSentence = releaseList
+    ? `Their Ngoma Charts profile highlights releases including ${releaseList}.`
+    : "Their Ngoma Charts profile brings together artist credits, release metadata, and public chart context.";
+
+  const verificationSentence = verified ? "Ngoma Charts marks this as a verified artist profile." : "";
+  return [intro, aliasSentence, releaseSentence, verificationSentence].filter(Boolean);
+}
+
 export function fallbackCountryForArtist(name) {
   const normalized = normalizeArtistName(name);
   if (!normalized) return null;
@@ -198,31 +302,35 @@ export function fallbackCountryForArtist(name) {
 export function fallbackBiographyForArtist({
   name,
   country,
+  cityRegion,
   genre,
-  placementCount,
-  releaseCount,
-  monthCount,
-  peakRank,
+  artistType,
+  aliases,
+  verified,
+  releaseTitles,
+  releases,
 } = {}) {
-  const artistName = String(name || "").trim();
-  if (!artistName) return "";
+  return buildArtistBioSentences({
+    name,
+    country,
+    cityRegion,
+    genre,
+    artistType,
+    aliases,
+    verified,
+    releaseTitles,
+    releases,
+  }).join(" ");
+}
 
-  const home = country ? ` from ${country}` : "";
-  const style = genre ? ` whose Ngoma Charts profile is tagged with ${genre}` : "";
-  const placements = Number(placementCount) || 0;
-  const releases = Number(releaseCount) || 0;
-  const months = Number(monthCount) || 0;
-  const peak = Number(peakRank);
-  const peakText = Number.isFinite(peak) && peak > 0 ? `, with a best artist rank of #${peak}` : "";
-  const releaseText = releases
-    ? `${releases} credited Top 50 ${releases === 1 ? "release" : "releases"}`
-    : "credited Top 50 entries";
-  const placementText = placements
-    ? `${placements} monthly platform ${placements === 1 ? "placement" : "placements"}`
-    : "monthly platform placements";
-  const monthText = months
-    ? ` across ${months} ${months === 1 ? "month" : "months"}`
-    : "";
+export function enrichBiographyForArtist(baseBiography, metadata = {}) {
+  const base = cleanText(baseBiography);
+  const generated = buildArtistBioSentences(metadata);
+  if (!base) return generated.join(" ");
 
-  return `${artistName} is an artist${home}${style}. Their Ngoma Charts profile covers ${releaseText} and ${placementText}${monthText} in the September 2025 to July 2026 chart archive${peakText}.`;
+  const context = generated
+    .slice(1)
+    .filter((sentence) => !base.toLowerCase().includes(sentence.toLowerCase()))
+    .slice(0, base.length < 180 ? 2 : 1);
+  return [base, ...context].filter(Boolean).join(" ");
 }

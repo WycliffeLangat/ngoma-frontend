@@ -2641,14 +2641,16 @@ const top = data[0];
       return;
     }
     const normalizedType = String(type || entry.type || "single").toLowerCase().includes("album") ? "album" : "single";
-    const displayArtist = releaseArtist(entry);
-    const primaryArtist = entry.primary_artist || entry.pa || publicArtistCreditMembers({ artist: displayArtist })[0] || displayArtist;
+    const releaseDetails = lookupReleaseForEntry(entry) || {};
+    const detailEntry = { ...releaseDetails, ...entry, canonical_release: releaseDetails };
+    const displayArtist = releaseArtist(detailEntry);
+    const primaryArtist = detailEntry.primary_artist || detailEntry.pa || publicArtistCreditMembers({ artist: displayArtist })[0] || displayArtist;
     setCt(normalizedType === "album" ? "albums" : "singles");
     setPlat((current) => isRegionalChartScope(current) ? current : "Combined");
     setSelA(null);
     setSelR({
-      ...entry,
-      title: releaseTitle(entry),
+      ...detailEntry,
+      title: releaseTitle(detailEntry),
       artist: displayArtist,
       primary_artist: primaryArtist,
       type: normalizedType,

@@ -3,6 +3,7 @@ import ArtistCredit from "../components/ArtistCredit.jsx";
 import ShareButton from "../components/ShareButton.jsx";
 import SharePosterCard from "../components/SharePosterCard.jsx";
 import { buildReleaseShareUrl } from "../utils/shareLinks.js";
+import { detailLinkEntries } from "../utils/detailLinks.js";
 
 export default function ReleaseDetailPage({ ctx }) {
   const {
@@ -123,6 +124,15 @@ export default function ReleaseDetailPage({ ctx }) {
         const liveCountry = getArtistCountry(releaseDetails);
         const displayCountry = liveCountry.country || releaseDetails.country || "";
         const displayCountryCode = liveCountry.code || releaseDetails.country_code || "";
+        const releaseLinks = detailLinkEntries(releaseDetails, [
+          { key: "spotify", label: "Spotify" },
+          { key: "apple_music", label: "Apple Music" },
+          { key: "boomplay", label: "Boomplay" },
+          { key: "audiomack", label: "Audiomack" },
+          { key: "youtube", label: "YouTube" },
+          ...(!isAlbum ? [{ key: "tiktok", label: "TikTok" }] : []),
+          ...(!isAlbum ? [{ key: "shazam", label: "Shazam" }] : []),
+        ]).map(({ label, url }) => [`${label} URL`, url]);
 
         const infoRows = [
           ["Title", releaseDetails.title || selR.title],
@@ -140,13 +150,7 @@ export default function ReleaseDetailPage({ ctx }) {
           ["Genre", releaseDetails.genre],
           ["Label", releaseDetails.label],
           ["Distributor", releaseDetails.distributor],
-          ["Spotify URL", releaseDetails.spotify_url],
-          ["Apple Music URL", releaseDetails.apple_music_url],
-          ["Boomplay URL", releaseDetails.boomplay_url],
-          ["Audiomack URL", releaseDetails.audiomack_url],
-          ["YouTube URL", releaseDetails.youtube_url],
-          ...(!isAlbum ? [["TikTok URL", releaseDetails.tiktok_url]] : []),
-          ...(!isAlbum ? [["Shazam URL", releaseDetails.shazam_url]] : []),
+          ...releaseLinks,
           ["Radio info", releaseDetails.radio_info],
           ["Status", releaseDetails.status],
         ].filter(([, value]) => value !== null && value !== undefined && value !== "");
