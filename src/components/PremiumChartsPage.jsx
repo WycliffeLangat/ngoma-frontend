@@ -878,7 +878,6 @@ export default function PremiumChartsPage({
 
     if (isArtistsChart || item?.is_artist_entry) {
       const artistProfile = managedArtistForItem(item);
-      const aliases = normalizeDetailValue(artistProfile.aliases || item.aliases, "");
       const artistLinks = {
         ...item,
         ...artistProfile,
@@ -914,7 +913,6 @@ export default function PremiumChartsPage({
           {(artistProfile.genre || item.genre) && <DetailCard label="Genre" value={artistProfile.genre || item.genre} />}
           {(artistProfile.artist_type || item.artist_type) && <DetailCard label="Artist type" value={artistProfile.artist_type || item.artist_type} />}
           {(artistProfile.verified || item.verified) && <DetailCard label="Verification" value="Verified artist" accent={badge.accent} />}
-          {aliases && <DetailCard label="Aliases" value={aliases} wide />}
           {artistBiography && <DetailCard label="Biography" value={artistBiography} wide />}
           {hasArtistLinks && <DetailCard label="Artist links" value={<DetailLinks links={artistLinks} />} wide />}
         </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { artistAliasValues, findArtistProfileInPublicData, getArtistImageUrl } from "../utils/artistImages.js";
+import { findArtistProfileInPublicData, getArtistImageUrl } from "../utils/artistImages.js";
 import { enrichBiographyForArtist, fallbackCountryForArtist } from "../utils/artistMetadataFallbacks.js";
 import ShareButton from "../components/ShareButton.jsx";
 import SharePosterCard from "../components/SharePosterCard.jsx";
@@ -78,8 +78,6 @@ export default function ArtistDetailPage({ ctx }) {
     artist: selA.n,
   };
 
-  const aliases = artistAliasValues(profile.aliases);
-  const aliasesDisplay = aliases.length ? JSON.stringify(aliases) : "[]";
   const socialLinkRows = detailLinkEntries(profile, [
     { key: "spotify", label: "Spotify" },
     { key: "apple_music", label: "Apple Music" },
@@ -96,7 +94,6 @@ export default function ArtistDetailPage({ ctx }) {
   const artistInfoRows = [
     ["Artist name", selA.n],
     ["Display name", profile.display_name],
-    ["Aliases", aliasesDisplay !== "[]" ? aliasesDisplay : null],
     ["Country", resolvedCountry],
     ["Country code", resolvedCountryCode],
     ["City / Region", profile.city_region],
