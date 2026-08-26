@@ -3170,39 +3170,185 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell select optgroup {
 }
 
 /* --- Certification award list -------------------------- */
-.cert-wall {
+.ngoma-certifications-page {
+  color: var(--cert-text);
+}
+.ngoma-cert-hero {
+  border: 1px solid var(--cert-border);
+  border-radius: 16px;
+  padding: clamp(18px, 3vw, 30px);
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  box-sizing: border-box;
+}
+.ngoma-cert-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.ngoma-cert-dashboard {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.82fr) minmax(320px, 1.18fr);
+  gap: 14px;
+  margin-top: 14px;
+}
+.ngoma-cert-rules {
+  border: 1px solid var(--cert-border);
+  border-radius: 14px;
+  padding: clamp(16px, 2.2vw, 22px);
+  box-sizing: border-box;
+}
+.ngoma-cert-rule {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 14px;
+  padding-top: 13px;
+  margin-top: 13px;
+  border-top: 1px solid var(--cert-border);
+}
+.ngoma-cert-tile {
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
+}
+.ngoma-cert-tile:hover {
+  transform: translateY(-3px);
+}
+.ngoma-cert-section {
+  margin-bottom: 28px;
+}
+.ngoma-cert-section-heading {
+  border-bottom: 1px solid var(--cert-border);
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.cert-wall {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  gap: 10px;
 }
 .cert-wall-card {
-  border-radius: 10px;
-  padding: 12px 16px;
+  border-radius: 12px;
+  padding: 13px 14px;
   box-sizing: border-box;
-  background: var(--ngoma-card-bg);
-  border: 1px solid var(--ngoma-border-light);
-  border-top: none !important;
-  border-left: 3px solid transparent;
+  background: var(--cert-card-bg, var(--ngoma-card-bg));
+  border: 1px solid var(--cert-border, var(--ngoma-border-light));
+  border-left: 4px solid var(--cert-level-color, transparent);
   box-shadow: none;
-  display: flex;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: 30px auto minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+  min-width: 0;
   transition:
     border-color var(--ngoma-transition),
-    background var(--ngoma-transition);
+    background var(--ngoma-transition),
+    transform var(--ngoma-transition);
 }
 .cert-wall-card:hover {
-  background: var(--ngoma-card-bg-hover, rgba(0,0,0,0.02));
+  transform: translateY(-2px);
+  background: var(--cert-soft-bg, rgba(0,0,0,0.02));
 }
 .cert-wall-card .cert-icon {
-  font-size: 24px;
+  font-size: 23px;
   line-height: 1;
   flex-shrink: 0;
+}
+.cert-wall-card .cert-release-copy {
+  min-width: 0;
+}
+.cert-wall-card .cert-points {
+  text-align: right;
+  flex-shrink: 0;
+}
+.cert-wall-card .cert-share {
+  display: flex;
+  justify-content: flex-end;
 }
 .cert-wall-card.diamond { border-left-color: #7b1fa2; }
 .cert-wall-card.platinum { border-left-color: #868C97; }
 .cert-wall-card.gold     { border-left-color: var(--ngoma-gold); }
+
+/* --- About methodology flow ---------------------------- */
+.ngoma-about-process {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 18px;
+}
+.ngoma-about-process-row {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 12px;
+  padding: 14px 0;
+  border-top: 1px solid;
+}
+.ngoma-about-step-number {
+  width: 34px;
+  height: 34px;
+  border: 1px solid;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.4px;
+  line-height: 1;
+}
+
+@media (max-width: 768px) {
+  .ngoma-cert-hero,
+  .ngoma-cert-dashboard,
+  .ngoma-about-process {
+    grid-template-columns: 1fr;
+  }
+  .ngoma-cert-hero {
+    display: grid;
+  }
+  .ngoma-cert-actions {
+    justify-content: flex-start;
+  }
+  .ngoma-cert-rule {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+  .cert-wall {
+    grid-template-columns: 1fr;
+  }
+  .cert-wall-card {
+    grid-template-columns: 26px auto minmax(0, 1fr) auto;
+    gap: 10px;
+    padding: 12px;
+  }
+  .cert-wall-card .cert-points {
+    grid-column: 3 / 5;
+    text-align: left;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  .cert-wall-card .cert-points div:last-child {
+    margin-top: 0 !important;
+  }
+  .cert-wall-card .cert-share {
+    align-self: start;
+  }
+  .ngoma-cert-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
 
 /* --- Spacing rhythm (cards breathe) -------------------- */
 .card,
