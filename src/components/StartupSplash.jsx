@@ -22,7 +22,7 @@ export default function StartupSplash({ label }) {
       display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "14px",
       height: "100vh", background: bg,
     }}>
-      <NgomaMark size={40} inkColor={ink} style={{ animation: "ngoma-splash-pulse 1.4s ease-in-out infinite" }} />
+      <NgomaMark size={120} inkColor={ink} style={{ animation: "ngoma-splash-pulse 1.4s ease-in-out infinite" }} />
       <span style={{
         fontFamily: "system-ui, sans-serif", fontSize: "13px", fontWeight: 900,
         letterSpacing: "0.5px", textTransform: "uppercase", color: ink,
