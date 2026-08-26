@@ -775,7 +775,8 @@ export default function PremiumChartsPage({
 
   function ReleaseArtwork({ item, size = 50 }) {
     const nameKey = String(item?.title || "").trim().toLowerCase();
-    const artworkUrl = (isArtistsChart ? artistImageOverrides[nameKey] : "") || getArtworkUrl(item) || "";
+    const isArtistArtwork = isArtistsChart || item?.is_artist_entry || item?.type === "artist";
+    const artworkUrl = (isArtistArtwork ? artistImageOverrides[nameKey] : "") || getArtworkUrl(item) || "";
     const label = getArtworkLabel(item);
 
     return (
@@ -785,10 +786,10 @@ export default function PremiumChartsPage({
           width: size,
           height: size,
           minWidth: size,
-          borderRadius: "10px",
+          borderRadius: isArtistArtwork ? "50%" : "10px",
           background: `linear-gradient(135deg, ${chartAccent} 0%, #111111 100%)`,
         }}
-        title={`${item.title || "Release"} artwork`}
+        title={`${item.title || "Release"} ${isArtistArtwork ? "photo" : "artwork"}`}
       >
         {artworkUrl ? (
           <img
