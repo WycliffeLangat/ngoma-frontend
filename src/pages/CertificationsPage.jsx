@@ -198,8 +198,6 @@ export default function CertificationsPage({ ctx }) {
               <div className="cert-wall">
                 {filtered.map((c,i)=>{
                   const releaseType = c.chart_type === "albums" ? "album" : "single";
-                  const nextLevel = CERTIFICATION_LEVELS[(levelRank[c.level] ?? 0) - 1] || null;
-                  const pointsToNext = nextLevel ? Math.max(0, nextLevel.pts - (Number(c.totalPts)||0)) : null;
                   return (
                     <div key={`${c.t}-${c.a}-${i}`} className={`cert-wall-card ${level}`} style={{"--cert-level-color":meta.color || textPrimary,background:isDark?"rgba(255,255,255,0.035)":"rgba(0,0,0,0.018)"}}>
                       <span className="cert-icon"><span style={certIconFilters[level]?{filter:certIconFilters[level]}:undefined}>{certIcons[level]}</span></span>
@@ -209,9 +207,6 @@ export default function CertificationsPage({ ctx }) {
                         <div style={{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap",marginTop:"4px"}}>
                           <ArtistCredit credit={c.artist_credit || c.a} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="13px" fontWeight={400} color="#000000" darkColor="#FFFFFF" separatorColor="#000000" darkSeparatorColor="#FFFFFF" />
                           <CountryBadge artist={c.a} item={c} compact />
-                        </div>
-                        <div style={{fontFamily:F,fontSize:"11px",fontWeight:800,color:textMuted,textTransform:"uppercase",letterSpacing:"0.7px",marginTop:"9px"}}>
-                          {releaseType} - {pointsToNext === null ? "Top certification tier" : `${pointsToNext.toLocaleString()} pts to ${nextLevel.label}`}
                         </div>
                       </div>
                       <div className="cert-points" style={{fontFamily:F}}>
