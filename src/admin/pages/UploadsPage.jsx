@@ -269,14 +269,16 @@ export default function UploadsPage({ user, searchJump }) {
     return upload?._uploadKind === RAW_WEEKLY ? "/weekly-uploads/" : "/chart-uploads/";
   }
 
-  async function openWorkbook(upload = selected) {
+  async function openWorkbook(upload = selected, mode = "view") {
     if (!upload || workbookBusy) return;
+    const workbookMode = mode === "edit" && canManageData ? "edit" : "view";
     setError("");
-    setWorkbookBusy(`open-${upload._uploadKind}-${upload.id}`);
+    setWorkbookBusy(`${workbookMode}-${upload._uploadKind}-${upload.id}`);
     try {
       const data = await cmsApi.get(`${uploadEndpoint(upload)}${upload.id}/workbook/`);
       setWorkbookModal({
         upload,
+        mode: workbookMode,
         filename: data.filename || upload.original_filename || "workbook.xlsx",
         sheets: normaliseWorkbookSheets(data.sheets || []),
         activeSheet: 0,
@@ -289,7 +291,7 @@ export default function UploadsPage({ user, searchJump }) {
   }
 
   async function saveWorkbook() {
-    if (!workbookModal || !canManageData || workbookBusy) return;
+    if (!workbookModal || workbookModal.mode !== "edit" || !canManageData || workbookBusy) return;
     const { upload, filename, sheets } = workbookModal;
     setError("");
     setWorkbookBusy("save");
@@ -350,9 +352,24 @@ export default function UploadsPage({ user, searchJump }) {
     }
   }
 
+  function viewUpload(upload) {
+    if (!upload || actionBusy || workbookBusy) return;
+    setSelected(upload);
+    if (upload.workbook_available) {
+      openWorkbook(upload, "view");
+    }
+  }
+
+  function editUpload(upload) {
+    if (!upload || !canManageData || actionBusy || workbookBusy) return;
+    setSelected(upload);
+    if (upload.workbook_available) {
+      openWorkbook(upload, "edit");
+    }
+  }
+
   function renderUploadActions(row) {
     const busy = Boolean(actionBusy || workbookBusy);
-    if (!row.workbook_available && !canManageData) return "—";
     return (
       <div className="cms-row-actions">
         <button
@@ -360,12 +377,25 @@ export default function UploadsPage({ user, searchJump }) {
           className="cms-btn light small"
           onClick={(event) => {
             event.stopPropagation();
-            openWorkbook(row);
+            viewUpload(row);
           }}
-          disabled={busy || !row.workbook_available}
+          disabled={busy}
         >
           View
         </button>
+        {canManageData ? (
+          <button
+            type="button"
+            className="cms-btn light small"
+            onClick={(event) => {
+              event.stopPropagation();
+              editUpload(row);
+            }}
+            disabled={busy || !row.workbook_available}
+          >
+            Edit
+          </button>
+        ) : null}
         <button
           type="button"
           className="cms-btn light small"
@@ -569,8 +599,11 @@ export default function UploadsPage({ user, searchJump }) {
                   selected={selected}
                   canManageData={canManageData}
                   workbookBusy={workbookBusy}
-                  onViewWorkbook={() => openWorkbook(selected)}
+                  actionBusy={actionBusy}
+                  onViewWorkbook={() => openWorkbook(selected, "view")}
+                  onEditWorkbook={() => openWorkbook(selected, "edit")}
                   onDownloadWorkbook={() => downloadWorkbook(selected)}
+                  onDelete={() => setDeleteTarget(selected)}
                 />
               : <FinalSummary
                   selected={selected}
@@ -578,8 +611,11 @@ export default function UploadsPage({ user, searchJump }) {
                   canManageData={canManageData}
                   canPublish={canPublish}
                   workbookBusy={workbookBusy}
-                  onViewWorkbook={() => openWorkbook(selected)}
+                  actionBusy={actionBusy}
+                  onViewWorkbook={() => openWorkbook(selected, "view")}
+                  onEditWorkbook={() => openWorkbook(selected, "edit")}
                   onDownloadWorkbook={() => downloadWorkbook(selected)}
+                  onDelete={() => setDeleteTarget(selected)}
                 />
           ) : (
             <div className="cms-empty compact">
@@ -626,7 +662,7 @@ export default function UploadsPage({ user, searchJump }) {
       {workbookModal && (
         <WorkbookModal
           workbook={workbookModal}
-          canEdit={canManageData}
+          canEdit={canManageData && workbookModal.mode === "edit"}
           busy={workbookBusy}
           onClose={() => {
             if (!workbookBusy) setWorkbookModal(null);
@@ -652,7 +688,16 @@ export default function UploadsPage({ user, searchJump }) {
   );
 }
 
-function WeeklySummary({ selected, canManageData, workbookBusy, onViewWorkbook, onDownloadWorkbook }) {
+function WeeklySummary({
+  selected,
+  canManageData,
+  workbookBusy,
+  actionBusy,
+  onViewWorkbook,
+  onEditWorkbook,
+  onDownloadWorkbook,
+  onDelete,
+}) {
   const notes = String(selected.processing_notes || "");
   const queued = !selected.processed && /queued|background|processing/i.test(notes);
   const failed = !selected.processed && !queued || notes.startsWith("Error:");
@@ -673,17 +718,38 @@ function WeeklySummary({ selected, canManageData, workbookBusy, onViewWorkbook, 
       </div>
       <div className="cms-actions wrap">
         <button className="cms-btn light" onClick={onViewWorkbook} disabled={!!workbookBusy || !selected.workbook_available}>
-          {canManageData ? "View / edit workbook" : "View workbook"}
+          View workbook
         </button>
+        {canManageData ? (
+          <button className="cms-btn light" onClick={onEditWorkbook} disabled={!!workbookBusy || !selected.workbook_available}>
+            Edit workbook
+          </button>
+        ) : null}
         <button className="cms-btn light" onClick={onDownloadWorkbook} disabled={!!workbookBusy || !selected.workbook_available}>
           Download workbook
         </button>
+        {canManageData ? (
+          <button className="cms-btn danger" onClick={onDelete} disabled={!!workbookBusy || !!actionBusy}>
+            Delete import
+          </button>
+        ) : null}
       </div>
     </div>
   );
 }
 
-function FinalSummary({ selected, onAction, canManageData, canPublish, workbookBusy, onViewWorkbook, onDownloadWorkbook }) {
+function FinalSummary({
+  selected,
+  onAction,
+  canManageData,
+  canPublish,
+  workbookBusy,
+  actionBusy,
+  onViewWorkbook,
+  onEditWorkbook,
+  onDownloadWorkbook,
+  onDelete,
+}) {
   const summary = selected.validation_summary || {};
   const job = selected._processingJob || selected.job;
   return (
@@ -718,11 +784,21 @@ function FinalSummary({ selected, onAction, canManageData, canPublish, workbookB
       )}
       <div className="cms-actions wrap">
         <button className="cms-btn light" onClick={onViewWorkbook} disabled={!!workbookBusy || !selected.workbook_available}>
-          {canManageData ? "View / edit workbook" : "View workbook"}
+          View workbook
         </button>
+        {canManageData ? (
+          <button className="cms-btn light" onClick={onEditWorkbook} disabled={!!workbookBusy || !selected.workbook_available}>
+            Edit workbook
+          </button>
+        ) : null}
         <button className="cms-btn light" onClick={onDownloadWorkbook} disabled={!!workbookBusy || !selected.workbook_available}>
           Download workbook
         </button>
+        {canManageData ? (
+          <button className="cms-btn danger" onClick={onDelete} disabled={!!workbookBusy || !!actionBusy}>
+            Delete import
+          </button>
+        ) : null}
       </div>
       {canManageData && (
         <div className="cms-actions wrap">
