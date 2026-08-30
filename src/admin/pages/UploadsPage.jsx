@@ -41,11 +41,24 @@ export default function UploadsPage({ user, searchJump }) {
 
   useEffect(() => {
     loadJobs();
-    const timer = window.setInterval(() => {
-      if (jobs.some((job) => ["queued", "running"].includes(job.status))) loadJobs();
+  }, []);
+
+  useEffect(() => {
+    if (uploadKind === FINAL_CHART && jobs.some(isUploadPublishJob)) {
+      load(FINAL_CHART);
+    }
+  }, [jobs, uploadKind]);
+
+  useEffect(() => {
+    if (!jobs.some(jobIsPending)) return undefined;
+    const timer = window.setInterval(async () => {
+      const nextJobs = await loadJobs();
+      if (uploadKind === FINAL_CHART && nextJobs.some(isUploadPublishJob)) {
+        await load(FINAL_CHART);
+      }
     }, 4000);
     return () => window.clearInterval(timer);
-  }, [jobs]);
+  }, [jobs, uploadKind]);
 
   useEffect(() => {
     setSelected(null);
@@ -123,7 +136,7 @@ export default function UploadsPage({ user, searchJump }) {
       setSelected((current) => {
         if (!current || current._uploadKind !== kind) return current;
         const fresh = rows.find((row) => sameUpload(row, current));
-        const job = current._processingJob || current.job;
+        const job = fresh?._processingJob || current._processingJob || current.job;
         return fresh ? decorateUpload(fresh, kind, {
           job,
           queued: jobIsPending(job) || uploadNeedsRefresh(fresh),
@@ -138,14 +151,17 @@ export default function UploadsPage({ user, searchJump }) {
     try {
       const data = getResults(await cmsApi.get("/chart-jobs/?page_size=8", { skipCache: true }));
       setJobs(data);
+      return data;
     } catch {
       // Job status is helpful, not required for the upload workflow.
+      return [];
     }
   }
 
   function decorateUpload(upload, kind = uploadKind, meta = {}) {
     if (!upload) return upload;
-    const job = meta.job || upload._processingJob || upload.job || null;
+    const matchingJob = kind === FINAL_CHART ? latestUploadJob(upload, jobs) : null;
+    const job = meta.job || matchingJob || upload._processingJob || upload.job || null;
     return {
       ...upload,
       _uploadKind: kind,
@@ -429,7 +445,7 @@ export default function UploadsPage({ user, searchJump }) {
                   <strong>{jobLabel(job)}</strong>
                   <span>{job.created_at ? new Date(job.created_at).toLocaleString() : ""}</span>
                 </div>
-                <StatusBadge value={job.status === "succeeded" ? "published" : job.status === "failed" ? "error" : "pending_review"} />
+                <StatusBadge value={jobStatus(job)} />
               </div>
             ))}
           </div>
@@ -599,7 +615,7 @@ export default function UploadsPage({ user, searchJump }) {
             { key: "chart_type", label: "Type" },
             { key: "platform_name", label: "Scope", render: (row) => row.platform_name || "Combined" },
             { key: "row_count", label: "Rows" },
-            { key: "status", label: "Status", render: (row) => <StatusBadge value={row.status} /> },
+            { key: "status", label: "Status", render: (row) => <StatusBadge value={finalUploadStatus(row)} /> },
             { key: "actions", label: "Actions", render: renderUploadActions },
           ]}
           rows={uploads}
@@ -669,13 +685,14 @@ function WeeklySummary({ selected, canManageData, workbookBusy, onViewWorkbook, 
 
 function FinalSummary({ selected, onAction, canManageData, canPublish, workbookBusy, onViewWorkbook, onDownloadWorkbook }) {
   const summary = selected.validation_summary || {};
+  const job = selected._processingJob || selected.job;
   return (
     <div>
       <div className="cms-upload-summary">
         <div><span>Rows</span><strong>{summary.row_count || selected.row_count || 0}</strong></div>
         <div><span>Errors</span><strong>{summary.error_count || 0}</strong></div>
         <div><span>Warnings</span><strong>{summary.warning_count || 0}</strong></div>
-        <div><span>Status</span><StatusBadge value={selected.status} /></div>
+        <div><span>Status</span><StatusBadge value={finalUploadStatus(selected)} /></div>
       </div>
       {(summary.errors || []).slice(0, 5).map((item, index) => (
         <div className="cms-alert error" key={`e${index}`}>
@@ -687,10 +704,16 @@ function FinalSummary({ selected, onAction, canManageData, canPublish, workbookB
           <ErrorHelpLink message={item.message}>Row {item.row || "—"}: {item.message}</ErrorHelpLink>
         </div>
       ))}
-      {selected.queued && selected.job && (
+      {jobIsPending(job) && (
         <div className="cms-alert info">
-          <strong>Calculation queued</strong><br />
-          Publishing will finish in the background. Watch Calculation jobs for progress.
+          <strong>Publishing chart</strong><br />
+          Chart integration is running in the background.
+        </div>
+      )}
+      {jobFailed(job) && selected.status !== "published" && (
+        <div className="cms-alert error">
+          <strong>Publish failed</strong><br />
+          The chart was not integrated. Open the calculation job for the full error.
         </div>
       )}
       <div className="cms-actions wrap">
@@ -877,6 +900,35 @@ function weeklyStatus(row) {
 
 function jobIsPending(job) {
   return ["queued", "running"].includes(String(job?.status || ""));
+}
+
+function jobFailed(job) {
+  return String(job?.status || "") === "failed";
+}
+
+function isUploadPublishJob(job) {
+  return String(job?.job_type || "") === "publish_chart_upload" && job?.payload?.chart_upload_id;
+}
+
+function latestUploadJob(upload, jobs = []) {
+  if (!upload?.id) return null;
+  const uploadId = String(upload.id);
+  return jobs
+    .filter((job) => isUploadPublishJob(job) && String(job.payload.chart_upload_id) === uploadId)
+    .sort((a, b) => Date.parse(b.created_at || b.updated_at || "") - Date.parse(a.created_at || a.updated_at || ""))[0] || null;
+}
+
+function finalUploadStatus(upload) {
+  const job = upload?._processingJob || upload?.job;
+  if (jobIsPending(job)) return "publishing";
+  if (jobFailed(job) && upload?.status !== "published") return "error";
+  return upload?.status || "draft";
+}
+
+function jobStatus(job) {
+  if (String(job?.status || "") === "succeeded") return "published";
+  if (jobFailed(job)) return "error";
+  return job?.status || "pending_review";
 }
 
 function uploadNeedsRefresh(upload) {

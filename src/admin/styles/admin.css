@@ -350,3 +350,4 @@
   .cms-help-results-head{flex-direction:column}
   .cms-help-article{padding:15px}
 }
+.cms-status-publishing,.cms-status-queued,.cms-status-running{background:#EFF6FF;color:var(--cms-blue)}
