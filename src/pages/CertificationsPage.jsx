@@ -127,8 +127,37 @@ export default function CertificationsPage({ ctx }) {
           <div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:textMuted}}>Current leader</div>
           {topCert ? (
             <>
-              <div style={{display:"flex",alignItems:"center",gap:"12px",marginTop:"12px"}}>
-                <span style={{fontSize:"30px",lineHeight:1,filter:topCertMeta?.iconFilter||undefined}}>{certIcons[topCert.level]}</span>
+              <div style={{display:"flex",alignItems:"center",gap:"13px",marginTop:"12px"}}>
+                <div style={{position:"relative",flexShrink:0}}>
+                  <EntryThumb
+                    item={topCert}
+                    name={topCert.a}
+                    size={isMobile?62:76}
+                    radius="10px"
+                    accent={topCertMeta?.color || textPrimary}
+                    style={{boxShadow:isDark?"0 10px 22px rgba(0,0,0,0.28)":"0 10px 22px rgba(0,0,0,0.10)"}}
+                  />
+                  <span
+                    style={{
+                      position:"absolute",
+                      right:"-6px",
+                      bottom:"-6px",
+                      width:isMobile?24:28,
+                      height:isMobile?24:28,
+                      borderRadius:"50%",
+                      display:"flex",
+                      alignItems:"center",
+                      justifyContent:"center",
+                      background:cardBg,
+                      border:`1px solid ${cardBorder}`,
+                      boxShadow:isDark?"0 4px 12px rgba(0,0,0,0.35)":"0 4px 12px rgba(0,0,0,0.12)",
+                      fontSize:isMobile?"15px":"17px",
+                      lineHeight:1,
+                    }}
+                  >
+                    <span style={{filter:topCertMeta?.iconFilter||undefined}}>{certIcons[topCert.level]}</span>
+                  </span>
+                </div>
                 <div style={{minWidth:0}}>
                   <button type="button" onClick={()=>openReleaseDetails(topCert,topCert.chart_type==="albums"?"album":"single")} style={{display:"block",border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:isMobile?"20px":"24px",fontWeight:850,lineHeight:1.08,cursor:"pointer",textAlign:"left",color:textPrimary,whiteSpace:"normal",wordBreak:"break-word"}}>{topCert.t}</button>
                   <div style={{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap",marginTop:"7px"}}>
