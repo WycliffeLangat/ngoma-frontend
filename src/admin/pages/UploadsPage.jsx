@@ -355,17 +355,13 @@ export default function UploadsPage({ user, searchJump }) {
   function viewUpload(upload) {
     if (!upload || actionBusy || workbookBusy) return;
     setSelected(upload);
-    if (upload.workbook_available) {
-      openWorkbook(upload, "view");
-    }
+    openWorkbook(upload, "view");
   }
 
   function editUpload(upload) {
     if (!upload || !canManageData || actionBusy || workbookBusy) return;
     setSelected(upload);
-    if (upload.workbook_available) {
-      openWorkbook(upload, "edit");
-    }
+    openWorkbook(upload, "edit");
   }
 
   function renderUploadActions(row) {
