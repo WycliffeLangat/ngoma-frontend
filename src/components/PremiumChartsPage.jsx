@@ -1362,7 +1362,7 @@ export default function PremiumChartsPage({
                     GOLD={GOLD}
                     value={month}
                     onChange={setMonth}
-                    options={MONTHS.map((item) => ({ value: item, label: item }))}
+                    options={[...MONTHS].reverse().map((item) => ({ value: item, label: item }))}
                     renderValue={() => mastheadPeriodLabel}
                     width="auto"
                     menuWidth="200px"

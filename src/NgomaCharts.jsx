@@ -3232,7 +3232,7 @@ const top = data[0];
       GOLD={GOLD}
       value={month}
       onChange={setMonth}
-      options={MONTHS.map((item) => ({ value: item, label: item }))}
+      options={[...MONTHS].reverse().map((item) => ({ value: item, label: item }))}
       align="right"
       width={fullWidth ? "100%" : (compact ? "108px" : (isTablet ? "110px" : "122px"))}
       menuWidth="200px"
