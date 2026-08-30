@@ -139,7 +139,11 @@ export default function ChartListSharePoster({ chartType = "singles", period = "
   const listH = POSTER_H - headerH - footerH;
   const gap = 18;
   const n = Math.max(rows.length, 1);
-  const rowH = (listH - gap * (n - 1)) / n;
+  // One `gap` precedes every row, including the first (via the list's own
+  // paddingTop below) — so n gaps total, not n-1. Without that leading gap,
+  // row #1 sat flush against the top divider while every other row had a
+  // gap above it, making #1 read as visibly shorter than the rest.
+  const rowH = (listH - gap * n) / n;
   const scale = Math.min(1.55, Math.max(0.7, rowH / 96));
   const artSize = Math.round(Math.min(88, Math.max(40, rowH - 18)));
 
@@ -185,7 +189,7 @@ export default function ChartListSharePoster({ chartType = "singles", period = "
         </div>
       </div>
 
-      <div style={{ position: "absolute", top: headerH, left: padX, right: padX, zIndex: 1 }}>
+      <div style={{ position: "absolute", top: headerH, left: padX, right: padX, zIndex: 1, borderTop: rows.length ? `1px solid ${t.dividerColor}` : "none", paddingTop: rows.length ? gap : 0 }}>
         {rows.length === 0 ? (
           <div style={{ padding: "40px 0", textAlign: "center", color: t.emptyColor, fontSize: 18, fontWeight: 700 }}>
             No chart data for this selection
@@ -204,7 +208,6 @@ export default function ChartListSharePoster({ chartType = "singles", period = "
                   alignItems: "center",
                   gap: Math.round(28 * scale),
                   marginBottom: i === rows.length - 1 ? 0 : gap,
-                  borderTop: i === 0 ? `1px solid ${t.dividerColor}` : "none",
                   borderBottom: i === rows.length - 1 ? "none" : `1px solid ${t.dividerColor}`,
                 }}
               >
