@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback, useTransition } from "react";
 import { API_BASE, resolveMediaUrl } from "./api/config.js";
-import { trackEvent } from "./utils/track.js";
+import { startPageAnalytics, trackEvent } from "./utils/track.js";
 import { artistNameVariants, findArtistProfileInPublicData, getArtistImageUrl, withResolvedArtistImage } from "./utils/artistImages.js";
 import {
   fetchCertifications, fetchChartImageData, fetchAppData, fetchRevision,
@@ -1883,7 +1883,8 @@ export default function NgomaCharts(){
   // is the single source of truth every navigation path (navTo, popstate,
   // deep links) already funnels through, so this catches all of them.
   useEffect(() => {
-    trackEvent({ eventType: "pageview", page, path: window.location.pathname });
+    const path = `${window.location.pathname}${window.location.search}`;
+    return startPageAnalytics({ page, path });
   }, [page]);
 
   useEffect(() => {

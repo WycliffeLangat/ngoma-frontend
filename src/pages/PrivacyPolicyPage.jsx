@@ -8,7 +8,7 @@ const sections = [
     title: "Information We Collect",
     body: [
       "The public Ngoma Charts app does not require visitors to create an account and does not ask public users to submit personal information.",
-      "When you use the public app, the service may process routine technical information such as IP address, device or browser details, access times, pages viewed, and error logs so the app can load, stay secure, and be improved.",
+      "When you use the public app, the service may process routine technical and analytics information such as IP address, device or browser details, language, timezone, access times, pages viewed, clicks, scroll depth, page speed, referral source, campaign tags, and error logs so the app can load, stay secure, and be improved.",
       "If you contact us by email, we receive the information you choose to send, including your email address and message.",
       "Administrative CMS areas are for approved Ngoma Charts team members only. If an approved team member signs in, we process login and session information needed to operate the CMS.",
     ],
@@ -24,6 +24,7 @@ const sections = [
     title: "Local Storage and Caching",
     body: [
       "The app may use local storage or IndexedDB on your device to remember preferences such as theme and to cache public chart data so pages load faster and can recover from temporary network issues.",
+      "The public app may also store a random anonymous analytics ID in local storage. This helps count repeat visits without using advertising cookies or asking visitors to sign in.",
       "You can clear this data using your browser or device settings.",
     ],
   },
@@ -65,7 +66,7 @@ export default function PrivacyPolicyPage() {
         </a>
 
         <section style={{padding:"clamp(34px,7vw,72px) 0 28px",borderBottom:"1px solid rgba(25,27,23,0.16)"}}>
-          <p style={{margin:"0 0 12px",fontSize:"12px",fontWeight:900,letterSpacing:"0.12em",textTransform:"uppercase",color:"#7A6A2E"}}>Effective August 18, 2026</p>
+          <p style={{margin:"0 0 12px",fontSize:"12px",fontWeight:900,letterSpacing:"0.12em",textTransform:"uppercase",color:"#7A6A2E"}}>Effective August 31, 2026</p>
           <h1 style={{fontFamily:S,fontSize:"clamp(42px,8vw,82px)",lineHeight:0.95,margin:"0 0 18px",letterSpacing:0}}>Privacy Policy</h1>
           <p style={{maxWidth:"720px",fontSize:"clamp(16px,2.2vw,20px)",lineHeight:1.65,margin:0,color:"#000000"}}>
             This Privacy Policy explains how Ngoma Media Ltd handles information for Ngoma Charts, including the website and Android app.
