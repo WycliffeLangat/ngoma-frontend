@@ -97,8 +97,11 @@ function PosterContent({ rows, chartType, move, month, theme = "dark" }) {
             <div
               key={`${rowTitle(chartType, row)}-${i}`}
               style={{
-                height: rowH, boxSizing: "border-box", display: "flex", alignItems: "center",
-                gap: Math.round(16 * scale), marginBottom: i === rows.length - 1 ? 0 : gap,
+                height: rowH + (i > 0 ? gap / 2 : 0) + (i < rows.length - 1 ? gap / 2 : 0),
+                boxSizing: "border-box", display: "flex", alignItems: "center",
+                gap: Math.round(16 * scale),
+                paddingTop: i > 0 ? gap / 2 : 0,
+                paddingBottom: i < rows.length - 1 ? gap / 2 : 0,
                 borderBottom: i === rows.length - 1 ? "none" : `1px solid ${t.dividerColor}`,
               }}
             >

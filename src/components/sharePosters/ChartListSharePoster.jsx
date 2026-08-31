@@ -139,11 +139,15 @@ export default function ChartListSharePoster({ chartType = "singles", period = "
   const listH = POSTER_H - headerH - footerH;
   const gap = 18;
   const n = Math.max(rows.length, 1);
-  // One `gap` precedes every row, including the first (via the list's own
-  // paddingTop below) — so n gaps total, not n-1. Without that leading gap,
-  // row #1 sat flush against the top divider while every other row had a
-  // gap above it, making #1 read as visibly shorter than the rest.
+  // One `gap` is budgeted per row (n gaps total, not n-1) and split as
+  // gap/2 padding above and below each row's content — see rowPadY below.
+  // Splitting it symmetrically keeps "divider to content" equal on both
+  // sides of every row; putting the whole gap on one side (e.g. as a
+  // trailing marginBottom) made the space above each row's content look
+  // bigger than the space below it.
   const rowH = (listH - gap * n) / n;
+  const rowPadY = gap / 2;
+  const slotH = rowH + gap;
   const scale = Math.min(1.55, Math.max(0.7, rowH / 96));
   const artSize = Math.round(Math.min(88, Math.max(40, rowH - 18)));
 
@@ -189,7 +193,7 @@ export default function ChartListSharePoster({ chartType = "singles", period = "
         </div>
       </div>
 
-      <div style={{ position: "absolute", top: headerH, left: padX, right: padX, zIndex: 1, borderTop: rows.length ? `1px solid ${t.dividerColor}` : "none", paddingTop: rows.length ? gap : 0 }}>
+      <div style={{ position: "absolute", top: headerH, left: padX, right: padX, zIndex: 1, borderTop: rows.length ? `1px solid ${t.dividerColor}` : "none" }}>
         {rows.length === 0 ? (
           <div style={{ padding: "40px 0", textAlign: "center", color: t.emptyColor, fontSize: 18, fontWeight: 700 }}>
             No chart data for this selection
@@ -202,12 +206,13 @@ export default function ChartListSharePoster({ chartType = "singles", period = "
               <div
                 key={`${row.rank}-${row.title}-${i}`}
                 style={{
-                  height: rowH,
+                  height: slotH,
                   boxSizing: "border-box",
                   display: "flex",
                   alignItems: "center",
                   gap: Math.round(28 * scale),
-                  marginBottom: i === rows.length - 1 ? 0 : gap,
+                  paddingTop: rowPadY,
+                  paddingBottom: rowPadY,
                   borderBottom: i === rows.length - 1 ? "none" : `1px solid ${t.dividerColor}`,
                 }}
               >

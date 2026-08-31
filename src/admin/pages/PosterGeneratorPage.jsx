@@ -154,11 +154,15 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
   const listH = POSTER_H - headerH - footerH;
   const gap = 18;
   const n = Math.max(rows.length, 1);
-  // One `gap` precedes every row, including the first (via the list's own
-  // paddingTop below) — so n gaps total, not n-1. Without that leading gap,
-  // row #1 sat flush against the top divider while every other row had a
-  // gap above it, making #1 read as visibly shorter than the rest.
+  // One `gap` is budgeted per row (n gaps total, not n-1) and split as
+  // gap/2 padding above and below each row's content — see rowPadY below.
+  // Splitting it symmetrically keeps "divider to content" equal on both
+  // sides of every row; putting the whole gap on one side (e.g. as a
+  // trailing marginBottom) made the space above each row's content look
+  // bigger than the space below it.
   const rowH = (listH - gap * n) / n;
+  const rowPadY = gap / 2;
+  const slotH = rowH + gap;
   // Rows scale up when there are fewer entries (more room per row) and down
   // when there are more, clamped so text never goes illegibly small or
   // comically large. 96px is roughly a Top-10 row's natural height.
@@ -210,7 +214,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
         </div>
       </div>
 
-      <div style={{ position: "absolute", top: headerH, left: padX, right: padX, zIndex: 1, borderTop: rows.length ? `1px solid ${t.dividerColor}` : "none", paddingTop: rows.length ? gap : 0 }}>
+      <div style={{ position: "absolute", top: headerH, left: padX, right: padX, zIndex: 1, borderTop: rows.length ? `1px solid ${t.dividerColor}` : "none" }}>
         {rows.length === 0 ? (
           <div style={{ padding: "40px 0", textAlign: "center", color: t.emptyColor, fontSize: 18, fontWeight: 700 }}>
             No chart data for this selection
@@ -227,12 +231,13 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
               <div
                 key={`${row.rank}-${row.title}-${i}`}
                 style={{
-                  height: rowH,
+                  height: slotH,
                   boxSizing: "border-box",
                   display: "flex",
                   alignItems: "center",
                   gap: Math.round(28 * scale),
-                  marginBottom: i === rows.length - 1 ? 0 : gap,
+                  paddingTop: rowPadY,
+                  paddingBottom: rowPadY,
                   borderBottom: i === rows.length - 1 ? "none" : `1px solid ${t.dividerColor}`,
                 }}
               >
