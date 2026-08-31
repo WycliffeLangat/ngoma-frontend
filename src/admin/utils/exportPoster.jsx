@@ -9,7 +9,10 @@ export const POSTER_W = 1080;
 export const POSTER_H = 1350;
 export const PREVIEW_W = 360;
 export const PREVIEW_SCALE = PREVIEW_W / POSTER_W;
-export const POSTER_EXPORT_SCALE = 1;
+// 2x supersampling on export — matches the "Super HD" scale the News Card
+// page already used — so every poster PNG downloads crisp instead of at the
+// exact 1080x1350 CSS pixel size, which read as soft/blurry once shared.
+export const POSTER_EXPORT_SCALE = 2;
 export const POSTER_EXPORT_W = POSTER_W * POSTER_EXPORT_SCALE;
 export const POSTER_EXPORT_H = POSTER_H * POSTER_EXPORT_SCALE;
 export const VIDEO_EXPORT_SCALE = 1;
