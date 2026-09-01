@@ -25,11 +25,15 @@ const CHART_TYPES = [
   ["artists", "Artists"],
 ];
 
+// Third element is the poster's header title template ({typeLabel} is
+// substituted in) — matches the public Movers poster's phrasing so a
+// reader can't tell which side generated it, and "Falling" avoids "Drops"
+// ever being misread as a new release.
 const MOVES = [
-  ["risers", "Climbers", "#2DB04A"],
-  ["fallers", "Drops", "#E5484D"],
-  ["newEntries", "New Entries", "#2DB04A"],
-  ["reEntries", "Re-Entries", "#1565C0"],
+  ["risers", "Climbers", "Top Climbing {typeLabel}", "#2DB04A"],
+  ["fallers", "Fallers", "Top Falling {typeLabel}", "#E5484D"],
+  ["newEntries", "New Entries", "New Entries — {typeLabel}", "#2DB04A"],
+  ["reEntries", "Re-Entries", "Re-Entries — {typeLabel}", "#1565C0"],
 ];
 
 function rowTitle(chartType, row) {
@@ -54,9 +58,9 @@ function rowRank(chartType, row) {
 function PosterContent({ rows, chartType, move, month, theme = "dark" }) {
   const t = usePosterTheme(theme);
   const padX = 56;
-  const [, moveLabel, accentColor] = MOVES.find(([value]) => value === move) || MOVES[0];
+  const [, , titleTemplate, accentColor] = MOVES.find(([value]) => value === move) || MOVES[0];
   const typeLabel = CHART_TYPES.find(([value]) => value === chartType)?.[1] || "Chart";
-  const headerTitle = `${moveLabel} — ${typeLabel}`;
+  const headerTitle = titleTemplate.replace("{typeLabel}", typeLabel);
   const n = Math.max(rows.length, 1);
   const listTop = 340;
   const footerH = 74;
@@ -200,7 +204,7 @@ export default function MoversPosterPage() {
       <div className="cms-page-head">
         <div>
           <h1>Movers &amp; Shakers Poster</h1>
-          <p>Turn Climbers, Drops, New Entries, or Re-Entries into a 4:5 share card.</p>
+          <p>Turn Climbers, Fallers, New Entries, or Re-Entries into a 4:5 share card.</p>
         </div>
       </div>
 

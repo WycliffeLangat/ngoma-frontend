@@ -14,18 +14,22 @@ import {
 } from "../../admin/utils/exportPoster.jsx";
 
 // Same design as the CMS's Movers & Shakers Poster (admin/pages/MoversPosterPage.jsx),
-// fed from the public Analytics page's Climbers/Drops/New Entries panels.
+// fed from the public Analytics page's Climbers/Fallers/New Entries panels.
 const CHART_TYPES = [
   ["singles", "Songs"],
   ["albums", "Albums"],
   ["artists", "Artists"],
 ];
 
+// Third element is the poster's header title template ({typeLabel} is
+// substituted in) — "Top Climbing/Falling X" reads as plain English on its
+// own (a shared/downloaded poster has no surrounding page for context),
+// and "Falling" avoids "Drops" ever being misread as a new release.
 const MOVES = [
-  ["risers", "Climbers", "#2DB04A"],
-  ["fallers", "Drops", "#E5484D"],
-  ["newEntries", "New Entries", "#2DB04A"],
-  ["reEntries", "Re-Entries", "#1565C0"],
+  ["risers", "Climbers", "Top Climbing {typeLabel}", "#2DB04A"],
+  ["fallers", "Fallers", "Top Falling {typeLabel}", "#E5484D"],
+  ["newEntries", "New Entries", "New Entries — {typeLabel}", "#2DB04A"],
+  ["reEntries", "Re-Entries", "Re-Entries — {typeLabel}", "#1565C0"],
 ];
 
 function rowTitle(chartType, row) {
@@ -57,11 +61,11 @@ export default function MoversSharePoster({ chartType = "singles", move = "riser
   }, [payload, chartType, move, month]);
 
   const padX = 56;
-  const [, moveLabel, accentColor] = MOVES.find(([value]) => value === move) || MOVES[0];
+  const [, , titleTemplate, accentColor] = MOVES.find(([value]) => value === move) || MOVES[0];
   const typeLabel = CHART_TYPES.find(([value]) => value === chartType)?.[1] || "Chart";
-  const headerTitle = `${moveLabel} — ${typeLabel}`;
+  const headerTitle = titleTemplate.replace("{typeLabel}", typeLabel);
   // Same list proportions as the Top-N chart poster (ChartListSharePoster) —
-  // same header offset, row gap, and scale curve — so Climbers/Drops/New
+  // same header offset, row gap, and scale curve — so Climbers/Fallers/New
   // Entries read as the same family of poster instead of a cramped variant.
   const n = Math.max(rows.length, 1);
   const listTop = 365;
