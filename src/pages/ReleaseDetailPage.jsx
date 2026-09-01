@@ -2,6 +2,8 @@ import PlatformPerformance from "../components/PlatformPerformance.jsx";
 import ArtistCredit from "../components/ArtistCredit.jsx";
 import ShareButton from "../components/ShareButton.jsx";
 import SharePosterCard from "../components/SharePosterCard.jsx";
+import DetailListPoster, { chunkPosterRows, posterFileSlug } from "../components/sharePosters/DetailListPoster.jsx";
+import DetailChartPoster from "../components/sharePosters/DetailChartPoster.jsx";
 import { buildReleaseShareUrl } from "../utils/shareLinks.js";
 import { detailLinkEntries } from "../utils/detailLinks.js";
 
@@ -118,12 +120,15 @@ export default function ReleaseDetailPage({ ctx }) {
         ))?.combined || {};
         const releaseDetails = {...releaseMetadata, ...selR};
         const isAlbum = selR.type === "album" || !isSingles;
+        const formatRankValue = (value) => Number.isFinite(Number(value)) && Number(value) > 0 ? `#${Number(value)}` : "—";
 
         // Resolve country via live CMS artist record (same priority as CountryBadge),
         // falling back to the country baked into the chart entry at export time.
         const liveCountry = getArtistCountry(releaseDetails);
         const displayCountry = liveCountry.country || releaseDetails.country || "";
         const displayCountryCode = liveCountry.code || releaseDetails.country_code || "";
+        const releaseYearForPoster = releaseDetails.release_year || releaseMetadata.release_year || "";
+        const posterSubtitle = [selR.artist, isAlbum ? "Album" : "Single", displayCountry, releaseYearForPoster].filter(Boolean).join(" · ");
         const releaseLinks = detailLinkEntries(releaseDetails, [
           { key: "spotify", label: "Spotify" },
           { key: "apple_music", label: "Apple Music" },
@@ -159,9 +164,110 @@ export default function ReleaseDetailPage({ ctx }) {
         const artistCreditLabels = new Set(["Main artists", "Featuring", "Songwriters", "Producers"]);
 
         const releaseStats = [
+          { label: "Current Rank", value: formatRankValue(currentCombined?.combined?.rank) },
           { label: "Peak Rank", value: peakRank < 999 ? `#${peakRank}` : "—" },
           { label: "Total Points", value: totalPoints.toLocaleString() },
           { label: "Months Charted", value: chartedJourney.length },
+          { label: "Platforms", value: platformNames.size },
+          { label: "Best Coverage", value: `${bestCoverage}/${tp}` },
+        ];
+
+        // "Download Full Details" — pairs the compact SharePosterCard with a
+        // paginated set of poster images carrying the rest of the page: the
+        // full info table and the full cross-platform monthly journey.
+        const releaseBaseFileName = `ngoma-${posterFileSlug(selR.title || "release")}`;
+        const releaseLinkPlatforms = releaseLinks.map(([label]) => label.replace(" URL", ""));
+        const releaseFullInfoRows = [
+          ...infoRows.filter(([label]) => !urlLabels.has(label)),
+          ...(releaseLinkPlatforms.length ? [["Available Links", releaseLinkPlatforms.join(", ")]] : []),
+        ].map(([label, value]) => [label, String(value)]);
+        const releaseJourneyRows = chartedJourney.map(({ month: journeyMonth, combined, platforms }) => [
+          journeyMonth,
+          combined ? `#${combined.rank} · ${combined.pts.toLocaleString()} pts` : "—",
+          `${platforms.length}/${tp}`,
+          platforms.length ? platforms.map((p) => `${p.platform} #${p.rank}`).join(", ") : "—",
+        ]);
+        // Platform cells can wrap to 3 lines, so the journey table uses a
+        // smaller page size than the plain info list to keep every row a
+        // comfortable height instead of shrinking to fit a crowded page.
+        const releaseJourneyChunks = chunkPosterRows(releaseJourneyRows, 4);
+        const releaseInfoChunks = chunkPosterRows(releaseFullInfoRows, 5);
+        const releaseHasTrendData = releaseRankData.length > 0;
+        const releaseFullDetailFiles = [
+          ...releaseInfoChunks.map((chunk, index) => ({
+            id: `info-${index + 1}`,
+            fileName: `${releaseBaseFileName}-full-info-${String(index + 1).padStart(2, "0")}-of-${releaseInfoChunks.length}.png`,
+            posterContent: (
+              <DetailListPoster
+                title={selR.title || ""}
+                subtitle={posterSubtitle}
+                image={releaseDetails.cover_image || ""}
+                sectionLabel={releaseInfoChunks.length > 1 ? `Release Info · ${index + 1}/${releaseInfoChunks.length}` : "Release Info"}
+                columns={[{ label: "Field", width: "34%" }, { label: "Detail" }]}
+                hideColumnHeader
+                rows={chunk}
+                theme={isDark ? "dark" : "light"}
+              />
+            ),
+          })),
+          ...(releaseHasTrendData ? [{
+            id: "trends",
+            fileName: `${releaseBaseFileName}-full-trends.png`,
+            posterContent: (
+              <DetailChartPoster
+                title={selR.title || ""}
+                subtitle={posterSubtitle}
+                image={releaseDetails.cover_image || ""}
+                sectionLabel="Monthly Trends"
+                charts={[
+                  { label: "Combined Points Trend", kind: "bar", data: releaseRankData, xKey: "month", dataKey: "points", color: GOLD },
+                  { label: "Combined Rank Journey", hint: "Lower is better", kind: "line", data: releaseRankData, xKey: "month", dataKey: "rank", color: GOLD, reversed: true, yDomain: [1, 50], yTickFormatter: (v) => `#${v}` },
+                ]}
+                theme={isDark ? "dark" : "light"}
+              />
+            ),
+          }] : []),
+          ...releaseJourneyChunks.map((chunk, index) => ({
+            id: `journey-${index + 1}`,
+            fileName: `${releaseBaseFileName}-full-journey-${String(index + 1).padStart(2, "0")}-of-${releaseJourneyChunks.length}.png`,
+            posterContent: (
+              <DetailListPoster
+                title={selR.title || ""}
+                subtitle={posterSubtitle}
+                image={releaseDetails.cover_image || ""}
+                sectionLabel={releaseJourneyChunks.length > 1 ? `Platform Journey · ${index + 1}/${releaseJourneyChunks.length}` : "Platform Journey"}
+                columns={[
+                  { label: "Month", width: "18%" },
+                  { label: "Combined", width: "22%" },
+                  { label: "Coverage", width: "13%" },
+                  { label: "Platforms", lines: 3 },
+                ]}
+                rows={chunk}
+                theme={isDark ? "dark" : "light"}
+              />
+            ),
+          })),
+        ];
+        const releasePosterDownloadOptions = [
+          {
+            id: "poster",
+            label: "Download poster",
+            fileName: `${releaseBaseFileName}.png`,
+            posterContent: (
+              <SharePosterCard
+                image={releaseDetails.cover_image || ""}
+                title={selR.title || ""}
+                subtitle={posterSubtitle}
+                stats={releaseStats}
+                theme={isDark ? "dark" : "light"}
+              />
+            ),
+          },
+          {
+            id: "full-details",
+            label: `Download Full Details (${releaseFullDetailFiles.length} files)`,
+            files: releaseFullDetailFiles,
+          },
         ];
 
         return (
@@ -173,16 +279,8 @@ export default function ReleaseDetailPage({ ctx }) {
               F={F}
               GOLD={GOLD}
               shareUrl={buildReleaseShareUrl(selR)}
-              fileName={`ngoma-${String(selR.title||"release").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")}.png`}
-              posterContent={
-                <SharePosterCard
-                  image={releaseDetails.cover_image || ""}
-                  title={selR.title || ""}
-                  subtitle={selR.artist || ""}
-                  stats={releaseStats}
-                  theme={isDark ? "dark" : "light"}
-                />
-              }
+              fileName={`${releaseBaseFileName}.png`}
+              posterDownloadOptions={releasePosterDownloadOptions}
             />
           </div>
 

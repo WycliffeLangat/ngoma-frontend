@@ -31,6 +31,8 @@ const CHART_TYPES = [
   ["albums", "Albums"],
   ["artists", "Artists"],
 ];
+const FULL_CHART_POSTER_LIMIT = 50;
+const CHART_POSTER_BATCH_SIZE = 5;
 
 function normalizeMonthlyRows(chartType, rawRows, historyMap) {
   return rawRows.map((row) => {
@@ -112,28 +114,44 @@ function MovementChip({ movement, sameColor, scale }) {
   return null;
 }
 
-export default function ChartListSharePoster({ chartType = "singles", period = "monthly", platform = "Combined", month = "", count = 10, theme = "dark" }) {
+export default function ChartListSharePoster({
+  chartType = "singles",
+  period = "monthly",
+  platform = "Combined",
+  month = "",
+  count = 10,
+  offset = 0,
+  titleCount = null,
+  rangeLabel = "",
+  theme = "dark",
+}) {
   const t = usePosterTheme(theme);
   const payload = useMemo(() => runtimePublicData(), []);
+  const startIndex = Math.max(0, Number(offset) || 0);
+  const rowCount = Math.max(1, Number(count) || 10);
 
   const rows = useMemo(() => {
     if (period === "all-time") {
-      return normalizeYearEndRows(chartType, buildYearEndMirror(payload, chartType).slice(0, count));
+      return normalizeYearEndRows(chartType, buildYearEndMirror(payload, chartType).slice(startIndex, startIndex + rowCount));
     }
     if (!month) return [];
     const rawRows = chartType === "artists"
       ? buildArtistMonthMirror(payload, month, platform)
       : publicChartRows(payload, chartType, month, platform);
     const historyMap = chartHistoryForMonth(payload, chartType, month, platform);
-    return normalizeMonthlyRows(chartType, rawRows.slice(0, count), historyMap);
-  }, [payload, chartType, period, platform, month, count]);
+    return normalizeMonthlyRows(chartType, rawRows.slice(startIndex, startIndex + rowCount), historyMap);
+  }, [payload, chartType, period, platform, month, startIndex, rowCount]);
 
   const accentColor = period === "all-time" ? "#C97A12" : platformColorFor(platform);
   const countryLabel = "Kenya";
   const padX = 56;
   const isArtists = chartType === "artists";
   const typeLabel = CHART_TYPES.find(([key]) => key === chartType)?.[1] || "Chart";
-  const headerTitle = `Top ${rows.length || 0} ${typeLabel} in ${countryLabel}`;
+  const posterTopCount = Number.isFinite(Number(titleCount)) && Number(titleCount) > 0 ? Number(titleCount) : (rows.length || 0);
+  const headerTitle = `Top ${posterTopCount} ${typeLabel} in ${countryLabel}`;
+  const startRank = rows[0]?.rank ?? (startIndex + 1);
+  const endRank = rows[rows.length - 1]?.rank ?? (startIndex + rows.length);
+  const effectiveRangeLabel = rangeLabel || (posterTopCount > rows.length ? `Ranks ${startRank}-${endRank}` : "");
   const headerH = 365;
   const footerH = 74;
   const listH = POSTER_H - headerH - footerH;
@@ -190,6 +208,14 @@ export default function ChartListSharePoster({ chartType = "singles", period = "
           <span style={{ fontSize: 17, fontWeight: 900, letterSpacing: "0.6px", textTransform: "uppercase", color: accentColor }}>
             {period === "all-time" ? "All Time" : platformLabel(platform)}
           </span>
+          {effectiveRangeLabel && (
+            <>
+              <span style={{ width: 5, height: 5, borderRadius: "50%", background: t.metaColor, opacity: 0.6 }} />
+              <span style={{ fontSize: 17, fontWeight: 900, letterSpacing: "0.6px", textTransform: "uppercase", color: t.metaColor }}>
+                {effectiveRangeLabel}
+              </span>
+            </>
+          )}
         </div>
       </div>
 
@@ -286,4 +312,58 @@ export default function ChartListSharePoster({ chartType = "singles", period = "
       <PosterFooter theme={theme} height={footerH} padX={padX} />
     </div>
   );
+}
+
+function safePosterPart(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "chart";
+}
+
+export function buildChartPosterDownloadOptions({
+  chartType = "singles",
+  period = "monthly",
+  platform = "Combined",
+  month = "",
+  theme = "dark",
+  maxEntries = FULL_CHART_POSTER_LIMIT,
+} = {}) {
+  const effectiveMax = Math.max(CHART_POSTER_BATCH_SIZE, Number(maxEntries) || FULL_CHART_POSTER_LIMIT);
+  const chunkCount = Math.ceil(effectiveMax / CHART_POSTER_BATCH_SIZE);
+  const safePlatform = safePosterPart(period === "all-time" ? "Combined" : platform);
+  const safePeriod = safePosterPart(period === "all-time" ? "all-time" : month);
+  const fileBase = `ngoma-chart-${safePosterPart(chartType)}-${safePlatform}-${safePeriod}`;
+  const commonProps = { chartType, period, platform, month, theme };
+
+  return [
+    {
+      id: "top-10",
+      label: "Download Top 10",
+      fileName: `${fileBase}-top-10.png`,
+      posterContent: <ChartListSharePoster {...commonProps} count={10} />,
+    },
+    {
+      id: "full-chart",
+      label: `Download Full Chart (${chunkCount} files)`,
+      files: Array.from({ length: chunkCount }, (_, index) => {
+        const start = index * CHART_POSTER_BATCH_SIZE;
+        const end = Math.min(start + CHART_POSTER_BATCH_SIZE, effectiveMax);
+        return {
+          id: `ranks-${start + 1}-${end}`,
+          fileName: `${fileBase}-top-${effectiveMax}-ranks-${String(start + 1).padStart(2, "0")}-${String(end).padStart(2, "0")}.png`,
+          posterContent: (
+            <ChartListSharePoster
+              {...commonProps}
+              count={end - start}
+              offset={start}
+              titleCount={effectiveMax}
+              rangeLabel={`Ranks ${start + 1}-${end}`}
+            />
+          ),
+        };
+      }),
+    },
+  ];
 }

@@ -3,6 +3,8 @@ import { findArtistProfileInPublicData, getArtistImageUrl } from "../utils/artis
 import { enrichBiographyForArtist, fallbackCountryForArtist } from "../utils/artistMetadataFallbacks.js";
 import ShareButton from "../components/ShareButton.jsx";
 import SharePosterCard from "../components/SharePosterCard.jsx";
+import DetailListPoster, { chunkPosterRows, posterFileSlug } from "../components/sharePosters/DetailListPoster.jsx";
+import DetailChartPoster from "../components/sharePosters/DetailChartPoster.jsx";
 import { buildArtistShareUrl } from "../utils/shareLinks.js";
 import { detailLinkEntries } from "../utils/detailLinks.js";
 
@@ -154,9 +156,111 @@ export default function ArtistDetailPage({ ctx }) {
   const darkCard = (extra = {}) => ({ ...card(extra), background: isDark ? "#0F120F" : "#FFFFFF", borderColor: isDark ? "#2B302B" : "#EFEDE7" });
 
   const artistStats = [
+    { label: "Current Rank", value: formatRank(selA.rank) },
     { label: "Best Rank", value: formatRank(selA.pk) },
     { label: "Total Points", value: totalArtistPoints.toLocaleString() },
+    { label: "Entries", value: placementCount },
     { label: "Months Charted", value: chartedMonthCount },
+    { label: "Top 10 Entries", value: topTenPlacements },
+  ];
+  const artistPosterSubtitle = [resolvedCountry, profile.genre, profile.artist_type].filter(Boolean).join(" · ");
+
+  // "Download Full Profile" — the compact SharePosterCard only fits a few
+  // stat tiles, so readers who want everything on the page (full info table,
+  // full charted-entries history) get a paginated set of poster images
+  // alongside it, mirroring the chart pages' "Download Full Chart" option.
+  const artistBaseFileName = `ngoma-${posterFileSlug(selA.n || "artist")}`;
+  const artistLinkPlatforms = socialLinks.map(([label]) => label.replace(" URL", ""));
+  const artistFullInfoRows = [
+    ...metaRows,
+    ...(artistLinkPlatforms.length ? [["Available Links", artistLinkPlatforms.join(", ")]] : []),
+  ].map(([label, value]) => [label, String(value)]);
+  const artistJourneyRows = selectedArtistEntryGroups.flatMap((group) =>
+    [...group.rows].sort((a, b) => monthIndex(a.month) - monthIndex(b.month)).map((row) => [
+      group.title,
+      row.month + (row.sourcePlatform ? ` · ${row.sourcePlatform}` : ""),
+      `#${row.rank}`,
+      `${Number(row.pts || 0).toLocaleString()} pts`,
+    ])
+  );
+  const artistJourneyChunks = chunkPosterRows(artistJourneyRows, 5);
+  const artistInfoChunks = chunkPosterRows(artistFullInfoRows, 5);
+  const artistHasTrendData = selectedArtistRankData.length > 0;
+  const artistFullProfileFiles = [
+    ...artistInfoChunks.map((chunk, index) => ({
+      id: `info-${index + 1}`,
+      fileName: `${artistBaseFileName}-full-info-${String(index + 1).padStart(2, "0")}-of-${artistInfoChunks.length}.png`,
+      posterContent: (
+        <DetailListPoster
+          title={selA.n || ""}
+          subtitle={artistPosterSubtitle}
+          image={artistImage || ""}
+          sectionLabel={artistInfoChunks.length > 1 ? `Profile Info · ${index + 1}/${artistInfoChunks.length}` : "Profile Info"}
+          columns={[{ label: "Field", width: "34%" }, { label: "Detail" }]}
+          hideColumnHeader
+          rows={chunk}
+          theme={isDark ? "dark" : "light"}
+        />
+      ),
+    })),
+    ...(artistHasTrendData ? [{
+      id: "trends",
+      fileName: `${artistBaseFileName}-full-trends.png`,
+      posterContent: (
+        <DetailChartPoster
+          title={selA.n || ""}
+          subtitle={artistPosterSubtitle}
+          image={artistImage || ""}
+          sectionLabel="Monthly Trends"
+          charts={[
+            { label: "Monthly Credited Points", kind: "bar", data: selectedArtistRankData, xKey: "month", dataKey: "points", color: GOLD },
+            { label: "Monthly Artist Rank", hint: "Lower is better", kind: "line", data: selectedArtistRankData, xKey: "month", dataKey: "rank", color: "#1565C0", reversed: true, yDomain: [1, "dataMax"], yTickFormatter: (v) => `#${v}` },
+          ]}
+          theme={isDark ? "dark" : "light"}
+        />
+      ),
+    }] : []),
+    ...artistJourneyChunks.map((chunk, index) => ({
+      id: `history-${index + 1}`,
+      fileName: `${artistBaseFileName}-full-history-${String(index + 1).padStart(2, "0")}-of-${artistJourneyChunks.length}.png`,
+      posterContent: (
+        <DetailListPoster
+          title={selA.n || ""}
+          subtitle={artistPosterSubtitle}
+          image={artistImage || ""}
+          sectionLabel={artistJourneyChunks.length > 1 ? `Chart History · ${index + 1}/${artistJourneyChunks.length}` : "Chart History"}
+          columns={[
+            { label: "Release", width: "34%" },
+            { label: "Month" },
+            { label: "Rank", width: "80px", align: "right" },
+            { label: "Points", width: "120px", align: "right" },
+          ]}
+          rows={chunk}
+          theme={isDark ? "dark" : "light"}
+        />
+      ),
+    })),
+  ];
+  const artistPosterDownloadOptions = [
+    {
+      id: "poster",
+      label: "Download poster",
+      fileName: `${artistBaseFileName}.png`,
+      posterContent: (
+        <SharePosterCard
+          image={artistImage || ""}
+          title={selA.n || ""}
+          subtitle={artistPosterSubtitle}
+          stats={artistStats}
+          theme={isDark ? "dark" : "light"}
+        />
+      ),
+    },
+    {
+      id: "full-profile",
+      label: `Download Full Profile (${artistFullProfileFiles.length} files)`,
+      files: artistFullProfileFiles,
+    },
   ];
 
   return (
@@ -168,16 +272,8 @@ export default function ArtistDetailPage({ ctx }) {
               F={F}
               GOLD={GOLD}
               shareUrl={buildArtistShareUrl(selA.n)}
-              fileName={`ngoma-${String(selA.n||"artist").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")}.png`}
-              posterContent={
-                <SharePosterCard
-                  image={artistImage || ""}
-                  title={selA.n || ""}
-                  subtitle={resolvedCountry || ""}
-                  stats={artistStats}
-                  theme={isDark ? "dark" : "light"}
-                />
-              }
+              fileName={`${artistBaseFileName}.png`}
+              posterDownloadOptions={artistPosterDownloadOptions}
             />
           </div>
 

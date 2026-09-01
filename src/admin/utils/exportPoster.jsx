@@ -144,6 +144,29 @@ export async function ensurePosterFontsReady() {
   await waitForPosterFonts();
 }
 
+export function formatPosterDownloadDate(date = new Date()) {
+  const parsed = date instanceof Date ? date : new Date(date);
+  if (Number.isNaN(parsed.getTime())) return "";
+  return new Intl.DateTimeFormat(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(parsed);
+}
+
+export function posterDownloadDateLabel(date = new Date()) {
+  const formatted = formatPosterDownloadDate(date);
+  return formatted ? `Downloaded ${formatted}` : "";
+}
+
+function stampPosterDownloadDates(node, date = new Date()) {
+  if (!node?.querySelectorAll) return;
+  const label = posterDownloadDateLabel(date);
+  node.querySelectorAll("[data-poster-download-date]").forEach((element) => {
+    element.textContent = label;
+  });
+}
+
 export function posterExportSizeLabel(scale = POSTER_EXPORT_SCALE) {
   const ratio = exportPixelRatio(scale);
   return `${POSTER_W * ratio}x${POSTER_H * ratio}px`;
@@ -181,6 +204,7 @@ export function videoExportFrameRate() {
 }
 
 export async function exportNodeAsPng(node, filename, options = {}) {
+  stampPosterDownloadDates(node);
   await waitForPosterFonts();
   await waitForPosterImages(node);
   const backgroundColor = options.backgroundColor || "#050505";
@@ -645,6 +669,7 @@ export function PosterFooter({ theme, height = 74, padX = 56, primaryColor, poin
   const t = usePosterTheme(theme);
   const scale = settings.footerScale / 100;
   const primary = primaryColor || t.footerPrimary;
+  const downloadDate = posterDownloadDateLabel();
   return (
     <div
       style={{
@@ -662,6 +687,17 @@ export function PosterFooter({ theme, height = 74, padX = 56, primaryColor, poin
       }}
     >
       <span style={{ fontSize: 14 * scale, fontWeight: 700, color: primary }}>© 2026 Ngoma Media Ltd.</span>
+      <span
+        data-poster-download-date
+        style={{
+          fontSize: 14 * scale,
+          fontWeight: 700,
+          color: primary,
+          textAlign: "right",
+        }}
+      >
+        {downloadDate}
+      </span>
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { splitArtistTokens } from "../utils/artistCredit.js";
 import ArtistCredit from "./ArtistCredit.jsx";
 import ShareButton from "./ShareButton.jsx";
 import PillDropdown from "./PillDropdown.jsx";
-import ChartListSharePoster from "./sharePosters/ChartListSharePoster.jsx";
+import { buildChartPosterDownloadOptions } from "./sharePosters/ChartListSharePoster.jsx";
 import { buildChartsShareUrl } from "../utils/shareLinks.js";
 import { API_BASE, resolveMediaUrl } from "../api/config.js";
 import { trackEvent } from "../utils/track.js";
@@ -308,6 +308,13 @@ export default function PremiumChartsPage({
   }, []);
 
   const darkMode = Boolean(isDark || detectedDarkMode);
+  const chartPosterDownloadOptions = useMemo(() => buildChartPosterDownloadOptions({
+    chartType: ct,
+    period: "monthly",
+    platform: plat,
+    month,
+    theme: darkMode ? "dark" : "light",
+  }), [ct, plat, month, darkMode]);
   const isArtistsChart = ct === "artists";
   const publicArtists = useMemo(() => {
     const publicData = typeof window !== "undefined" ? (window.__NGOMA_PUBLIC_DATA__ || {}) : {};
@@ -1529,7 +1536,7 @@ export default function PremiumChartsPage({
               GOLD={GOLD}
               shareUrl={buildChartsShareUrl({ chartType: ct, platform: plat, month })}
               fileName={`ngoma-top-${ct}-${String(plat).toLowerCase().replace(/\s+/g,"-")}-${String(month).toLowerCase().replace(/\s+/g,"-")}.png`}
-              posterContent={<ChartListSharePoster chartType={ct} period="monthly" platform={plat} month={month} count={10} theme={darkMode ? "dark" : "light"} />}
+              posterDownloadOptions={chartPosterDownloadOptions}
             />
           </div>
         ) : (
@@ -1593,7 +1600,7 @@ export default function PremiumChartsPage({
                 GOLD={GOLD}
                 shareUrl={buildChartsShareUrl({ chartType: ct, platform: plat, month })}
                 fileName={`ngoma-top-${ct}-${String(plat).toLowerCase().replace(/\s+/g,"-")}-${String(month).toLowerCase().replace(/\s+/g,"-")}.png`}
-                posterContent={<ChartListSharePoster chartType={ct} period="monthly" platform={plat} month={month} count={10} theme={darkMode ? "dark" : "light"} />}
+                posterDownloadOptions={chartPosterDownloadOptions}
               />
             </div>
           </>

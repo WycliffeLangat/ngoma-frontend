@@ -27,6 +27,10 @@ const TYPES = [
 const CERT_COLORS = { gold: "#C97A12", platinum: "#8C97A8", diamond: "#4FC3F7" };
 const CERT_ORDER = ["diamond", "platinum", "gold"];
 
+function currentRankFromRow(row = {}) {
+  return row.current_rank ?? row.currentRank ?? row.latest_rank ?? row.latestRank ?? row.rank ?? row.r ?? null;
+}
+
 // The releases/artists list endpoints already return peak_rank/total_points/
 // months_on_chart/cover_image etc. directly on each row (same fields the
 // CMS's own resource detail panel reads) — no extra per-record fetch needed.
@@ -35,8 +39,9 @@ function normalizeCandidate(type, row) {
     return {
       id: row.id,
       title: row.display_name || row.name || "",
-      subtitle: [row.country, row.genre].filter(Boolean).join(" · "),
+      subtitle: [row.country, row.genre, row.artist_type].filter(Boolean).join(" · "),
       image: row.image || "",
+      currentRank: currentRankFromRow(row),
       peakRank: row.peak_rank,
       points: Number(row.total_points) || 0,
       monthsOnChart: row.months_on_chart ?? 0,
@@ -49,8 +54,9 @@ function normalizeCandidate(type, row) {
   return {
     id: row.id,
     title: row.title || "",
-    subtitle: row.artist_credit || row.artist_display || "",
+    subtitle: [row.artist_credit || row.artist_display || "", type === "albums" ? "Album" : "Single", row.release_year, row.genre].filter(Boolean).join(" · "),
     image: row.cover_image || "",
+    currentRank: currentRankFromRow(row),
     peakRank: row.peak_rank,
     points: Number(row.total_points) || 0,
     monthsOnChart: row.months_on_chart ?? 0,
@@ -90,9 +96,25 @@ function SpotlightContent({ item, type, theme = "dark" }) {
 
   const topCert = CERT_ORDER.find((level) => item.certifications.includes(level)) || null;
   const certColor = topCert ? CERT_COLORS[topCert] : "#C97A12";
-  const artSize = 560;
   const tileBg = theme === "light" ? "rgba(0,0,0,0.045)" : "rgba(255,255,255,0.055)";
   const tileBorder = theme === "light" ? "rgba(0,0,0,0.14)" : "rgba(255,255,255,0.16)";
+  const formatRank = (value) => Number.isFinite(Number(value)) && Number(value) > 0 ? `#${Number(value)}` : "—";
+  const statItems = [
+    ["Current Rank", formatRank(item.currentRank)],
+    ["Peak Rank", formatRank(item.peakRank)],
+    ["Total Points", item.points ? item.points.toLocaleString() : "0"],
+    ["Months Charted", item.monthsOnChart],
+    [item.secondaryStatLabel, item.secondaryStatValue],
+  ];
+  const compactStats = statItems.length > 4;
+  const statColumns = Math.min(compactStats ? 3 : statItems.length, 3);
+  const statRows = Math.ceil(statItems.length / statColumns);
+  const statGap = compactStats ? 12 : 14;
+  const statTileMinH = compactStats ? 102 : 132;
+  const statsBottom = compactStats ? 138 : 150;
+  const statsPanelHeight = 30 + (statRows * statTileMinH) + (Math.max(0, statRows - 1) * statGap);
+  const identityBottom = statsBottom + statsPanelHeight + 42;
+  const artSize = compactStats ? 430 : 560;
 
   return (
     <div
@@ -120,7 +142,7 @@ function SpotlightContent({ item, type, theme = "dark" }) {
         style={{
           position: "absolute",
           top: HEADER_ZONE_H,
-          bottom: 360,
+          bottom: identityBottom,
           left: 0,
           right: 0,
           display: "flex",
@@ -183,7 +205,7 @@ function SpotlightContent({ item, type, theme = "dark" }) {
         <div
           style={{
             marginTop: topCert ? 48 : 32,
-            fontSize: item.title.length > 22 ? 44 : item.title.length > 14 ? 52 : 60,
+            fontSize: item.title.length > 22 ? (compactStats ? 40 : 44) : item.title.length > 14 ? (compactStats ? 46 : 52) : (compactStats ? 52 : 60),
             fontWeight: 900,
             lineHeight: 1.12,
             letterSpacing: "-1px",
@@ -200,7 +222,7 @@ function SpotlightContent({ item, type, theme = "dark" }) {
           {item.title}
         </div>
         {item.subtitle && (
-          <div style={{ marginTop: 14, fontSize: 30, fontWeight: 700, color: t.metaColor, textAlign: "center" }}>
+          <div style={{ marginTop: 14, fontSize: compactStats ? 26 : 30, fontWeight: 700, color: t.metaColor, textAlign: "center" }}>
             {item.subtitle}
           </div>
         )}
@@ -209,18 +231,28 @@ function SpotlightContent({ item, type, theme = "dark" }) {
       {/* Stat tiles are anchored a fixed distance above the footer — at
           least ~2cm (76px) of clear air below them — instead of trailing
           the identity block, so they read as a distinct "details" strip. */}
-      <div style={{ position: "absolute", bottom: 150, left: 0, right: 0, padding: `0 ${padX}px`, zIndex: 1 }}>
+      <div style={{ position: "absolute", bottom: statsBottom, left: 0, right: 0, padding: `0 ${padX}px`, zIndex: 1 }}>
         <div style={{ borderTop: `2px solid ${t.dividerColor}`, marginBottom: 30 }} />
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
-          {[
-            ["Peak Rank", item.peakRank ? `#${item.peakRank}` : "—"],
-            ["Total Points", item.points ? item.points.toLocaleString() : "0"],
-            ["Months Charted", item.monthsOnChart],
-            [item.secondaryStatLabel, item.secondaryStatValue],
-          ].map(([label, value]) => (
-            <div key={label} style={{ background: tileBg, border: `1px solid ${tileBorder}`, borderRadius: 16, padding: "24px 8px", textAlign: "center" }}>
-              <div style={{ fontSize: 50, fontWeight: 900, color: "#C97A12" }}>{value}</div>
-              <div style={{ fontSize: 17, fontWeight: 800, letterSpacing: "0.5px", textTransform: "uppercase", color: t.metaColor, marginTop: 8 }}>
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${statColumns}, 1fr)`, gap: statGap }}>
+          {statItems.map(([label, value]) => (
+            <div
+              key={label}
+              style={{
+                minHeight: statTileMinH,
+                background: tileBg,
+                border: `1px solid ${tileBorder}`,
+                borderRadius: 16,
+                padding: compactStats ? "16px 8px" : "24px 8px",
+                textAlign: "center",
+                boxSizing: "border-box",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <div style={{ fontSize: compactStats ? 34 : 50, fontWeight: 900, color: "#C97A12" }}>{value}</div>
+              <div style={{ fontSize: compactStats ? 12 : 17, fontWeight: 800, letterSpacing: "0.5px", textTransform: "uppercase", color: t.metaColor, marginTop: 8 }}>
                 {label}
               </div>
             </div>

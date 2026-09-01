@@ -14,7 +14,25 @@ import {
 // download and share as-is.
 export default function SharePosterCard({ image, title = "", subtitle = "", stats = [], accentColor = "#C97A12", theme = "dark" }) {
   const t = POSTER_THEMES[theme] || POSTER_THEMES.dark;
-  const artSize = 480;
+  const visibleStats = stats.filter((stat) =>
+    stat?.label &&
+    stat.value !== null &&
+    stat.value !== undefined &&
+    stat.value !== ""
+  );
+  const statCount = visibleStats.length;
+  const compactStats = statCount > 3;
+  const statColumns = statCount ? Math.min(compactStats ? 3 : statCount, 3) : 1;
+  const statRows = statCount ? Math.ceil(statCount / statColumns) : 0;
+  const statTileMinH = compactStats ? 104 : 112;
+  const statGap = compactStats ? 12 : 14;
+  const statsBottom = compactStats ? 138 : 150;
+  const statsPanelHeight = statCount
+    ? 30 + (statRows * statTileMinH) + (Math.max(0, statRows - 1) * statGap)
+    : 0;
+  const contentBottom = statCount ? statsBottom + statsPanelHeight + 34 : 150;
+  const artSize = compactStats ? 420 : 480;
+  const titleFontSize = title.length > 22 ? (compactStats ? 42 : 46) : (compactStats ? 50 : 56);
 
   return (
     <div
@@ -35,7 +53,7 @@ export default function SharePosterCard({ image, title = "", subtitle = "", stat
         style={{
           position: "absolute",
           top: 256,
-          bottom: stats.length ? 280 : 150,
+          bottom: contentBottom,
           left: 0,
           right: 0,
           display: "flex",
@@ -60,7 +78,7 @@ export default function SharePosterCard({ image, title = "", subtitle = "", stat
         <div
           style={{
             marginTop: 44,
-            fontSize: title.length > 22 ? 46 : 56,
+            fontSize: titleFontSize,
             fontWeight: 900,
             lineHeight: 1.14,
             letterSpacing: "-0.5px",
@@ -77,20 +95,48 @@ export default function SharePosterCard({ image, title = "", subtitle = "", stat
           {title}
         </div>
         {subtitle && (
-          <div style={{ marginTop: 14, fontSize: 28, fontWeight: 700, color: t.metaColor, textAlign: "center" }}>
+          <div
+            style={{
+              marginTop: 14,
+              fontSize: compactStats ? 24 : 28,
+              fontWeight: 700,
+              lineHeight: 1.25,
+              color: t.metaColor,
+              textAlign: "center",
+              maxWidth: 880,
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+            }}
+          >
             {subtitle}
           </div>
         )}
       </div>
 
-      {stats.length > 0 && (
-        <div style={{ position: "absolute", bottom: 150, left: 0, right: 0, padding: "0 64px", zIndex: 1 }}>
+      {statCount > 0 && (
+        <div style={{ position: "absolute", bottom: statsBottom, left: 0, right: 0, padding: "0 64px", zIndex: 1 }}>
           <div style={{ borderTop: `2px solid ${t.dividerColor}`, marginBottom: 28 }} />
-          <div style={{ display: "grid", gridTemplateColumns: `repeat(${stats.length}, 1fr)`, gap: 14 }}>
-            {stats.map((stat) => (
-              <div key={stat.label} style={{ background: t.rowBg, borderRadius: 16, padding: "22px 8px", textAlign: "center" }}>
-                <div style={{ fontSize: 32, fontWeight: 900, color: t.titleColor }}>{stat.value}</div>
-                <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: "0.6px", textTransform: "uppercase", color: t.metaColor, marginTop: 8 }}>
+          <div style={{ display: "grid", gridTemplateColumns: `repeat(${statColumns}, 1fr)`, gap: statGap }}>
+            {visibleStats.map((stat) => (
+              <div
+                key={stat.label}
+                style={{
+                  minHeight: statTileMinH,
+                  background: t.rowBg,
+                  borderRadius: 16,
+                  padding: compactStats ? "16px 8px" : "22px 8px",
+                  textAlign: "center",
+                  boxSizing: "border-box",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <div style={{ fontSize: compactStats ? 30 : 32, fontWeight: 900, color: t.titleColor }}>{stat.value}</div>
+                <div style={{ fontSize: compactStats ? 12 : 13, fontWeight: 800, letterSpacing: "0.6px", textTransform: "uppercase", color: t.metaColor, marginTop: 8 }}>
                   {stat.label}
                 </div>
               </div>
