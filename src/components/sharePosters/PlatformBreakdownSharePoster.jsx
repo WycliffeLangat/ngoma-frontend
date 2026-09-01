@@ -120,20 +120,51 @@ export default function PlatformBreakdownSharePoster({ chartType = "singles", me
             </BarChart>
           </div>
         ) : (() => {
+          // Proportional bar-leaderboard instead of a bare dot+label+number
+          // list — the bar length carries the comparison at a glance, and a
+          // rank number gives the same "ranked poster" family feel as the
+          // Top-N chart and Movers posters instead of reading as a plain table.
           const tableRows = rows.slice(0, 10);
           const tableGap = 14;
           const tableH = POSTER_H - 340 - 74;
-          const rowH = (tableH - tableGap * (tableRows.length - 1)) / tableRows.length;
-          const tableScale = Math.min(2.2, Math.max(0.8, rowH / 90));
+          const n = tableRows.length;
+          const rowH = (tableH - tableGap * n) / n;
+          const rowPadY = tableGap / 2;
+          const slotH = rowH + tableGap;
+          const tableScale = Math.min(2.2, Math.max(0.8, rowH / 96));
+          const maxValue = Math.max(...tableRows.map((row) => Number(row.value) || 0), 1);
           return (
-          <div style={{ display: "grid", gap: tableGap }}>
-            {tableRows.map((row) => (
-              <div key={row.label} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: Math.round(16 * tableScale), alignItems: "center", padding: `${Math.round(12 * tableScale)}px 0`, borderBottom: `1px solid ${t.dividerColor}` }}>
-                <div style={{ display: "flex", alignItems: "center", gap: Math.round(12 * tableScale), minWidth: 0 }}>
-                  <span style={{ width: Math.round(16 * tableScale), height: Math.round(16 * tableScale), borderRadius: 4, background: row.color, flexShrink: 0 }} />
-                  <span style={{ fontSize: Math.round(26 * tableScale), fontWeight: 800, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{row.label}</span>
+          <div style={{ borderTop: `1px solid ${t.dividerColor}` }}>
+            {tableRows.map((row, i) => (
+              <div
+                key={row.label}
+                style={{
+                  height: slotH, boxSizing: "border-box", display: "flex", alignItems: "center",
+                  gap: Math.round(20 * tableScale), paddingTop: rowPadY, paddingBottom: rowPadY,
+                  borderBottom: i === tableRows.length - 1 ? "none" : `1px solid ${t.dividerColor}`,
+                }}
+              >
+                <span style={{ width: Math.round(46 * tableScale), flexShrink: 0, fontSize: Math.round(26 * tableScale), fontWeight: 900, color: i < 3 ? row.color : t.metaColor }}>
+                  {i + 1}
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, marginBottom: Math.round(8 * tableScale) }}>
+                    <span style={{ fontSize: Math.round(24 * tableScale), fontWeight: 800, color: t.titleColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {row.label}
+                    </span>
+                    <span style={{ fontSize: Math.round(24 * tableScale), fontWeight: 900, color: row.color, flexShrink: 0 }}>
+                      {row.value}
+                    </span>
+                  </div>
+                  <div style={{ height: Math.max(6, Math.round(10 * tableScale)), borderRadius: 999, background: t.rowBg, overflow: "hidden" }}>
+                    <div
+                      style={{
+                        width: `${Math.max(4, (Number(row.value) / maxValue) * 100)}%`,
+                        height: "100%", borderRadius: 999, background: row.color,
+                      }}
+                    />
+                  </div>
                 </div>
-                <span style={{ fontSize: Math.round(30 * tableScale), fontWeight: 900, color: "#C97A12", flexShrink: 0 }}>{row.value}</span>
               </div>
             ))}
           </div>

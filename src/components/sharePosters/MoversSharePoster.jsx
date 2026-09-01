@@ -68,7 +68,14 @@ export default function MoversSharePoster({ chartType = "singles", move = "riser
   const footerH = 74;
   const listH = POSTER_H - listTop - footerH;
   const gap = 18;
-  const rowH = (listH - gap * (n - 1)) / n;
+  // One `gap` is budgeted per row (n gaps total, not n-1) and split as
+  // gap/2 padding above and below each row's content — same symmetric
+  // approach as ChartListSharePoster, so every row (including the first
+  // and last) comes out the same height instead of the ends reading
+  // shorter than the middle rows.
+  const rowH = (listH - gap * n) / n;
+  const rowPadY = gap / 2;
+  const slotH = rowH + gap;
   const scale = Math.min(1.55, Math.max(0.7, rowH / 96));
   const artSize = Math.round(Math.min(88, Math.max(40, rowH - 18)));
 
@@ -93,7 +100,7 @@ export default function MoversSharePoster({ chartType = "singles", move = "riser
         </div>
       </div>
 
-      <div style={{ position: "absolute", top: listTop, left: padX, right: padX, bottom: footerH, zIndex: 1 }}>
+      <div style={{ position: "absolute", top: listTop, left: padX, right: padX, bottom: footerH, zIndex: 1, borderTop: rows.length ? `1px solid ${t.dividerColor}` : "none" }}>
         {rows.length === 0 ? (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: t.emptyColor, fontSize: 22, fontWeight: 700, textAlign: "center" }}>
             No qualifying entries for this selection
@@ -103,11 +110,11 @@ export default function MoversSharePoster({ chartType = "singles", move = "riser
             <div
               key={`${rowTitle(chartType, row)}-${i}`}
               style={{
-                height: rowH + (i > 0 ? gap / 2 : 0) + (i < rows.length - 1 ? gap / 2 : 0),
+                height: slotH,
                 boxSizing: "border-box", display: "flex", alignItems: "center",
                 gap: Math.round(28 * scale),
-                paddingTop: i > 0 ? gap / 2 : 0,
-                paddingBottom: i < rows.length - 1 ? gap / 2 : 0,
+                paddingTop: rowPadY,
+                paddingBottom: rowPadY,
                 borderBottom: i === rows.length - 1 ? "none" : `1px solid ${t.dividerColor}`,
               }}
             >

@@ -206,7 +206,7 @@ export default function ChartListSharePoster({
           </span>
           <span style={{ width: 5, height: 5, borderRadius: "50%", background: t.metaColor, opacity: 0.6 }} />
           <span style={{ fontSize: 17, fontWeight: 900, letterSpacing: "0.6px", textTransform: "uppercase", color: accentColor }}>
-            {period === "all-time" ? "All Time" : platformLabel(platform)}
+            {period === "all-time" ? "Kenyan" : platformLabel(platform)}
           </span>
           {effectiveRangeLabel && (
             <>

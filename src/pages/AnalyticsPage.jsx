@@ -218,6 +218,58 @@ export default function AnalyticsPage({ ctx }) {
   const openMoverDetails = (entry) => openReleaseDetails(entry, isArtists ? "artist" : (isSingles ? "single" : "album"));
   const splitRowStyle = { display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "20px", alignItems: "center", ...sectionGap };
 
+  // "Download All Posters" — the top Share button covers every poster this
+  // page can produce (Hall of Fame, Climbers/Drops/New Entries, Platform
+  // Totals, Top Countries) in one batch, alongside the plain Hall of Fame
+  // poster it already offered. Sections with no qualifying data this month
+  // are skipped rather than shipping an empty-state poster nobody asked for.
+  const analyticsPosterTheme = isDark ? "dark" : "light";
+  const analyticsPosterFiles = [
+    {
+      id: "hall-of-fame",
+      fileName: `ngoma-hall-of-fame-${chartTypeKey}.png`,
+      posterContent: <HallOfFameSharePoster chartType={chartTypeKey} theme={analyticsPosterTheme} />,
+    },
+    ...(mvData.risers.length ? [{
+      id: "climbers",
+      fileName: `ngoma-climbers-${chartTypeKey}.png`,
+      posterContent: <MoversSharePoster chartType={chartTypeKey} move="risers" month={anMonth} theme={analyticsPosterTheme} />,
+    }] : []),
+    ...(mvData.fallers.length ? [{
+      id: "drops",
+      fileName: `ngoma-drops-${chartTypeKey}.png`,
+      posterContent: <MoversSharePoster chartType={chartTypeKey} move="fallers" month={anMonth} theme={analyticsPosterTheme} />,
+    }] : []),
+    ...(mvData.newEntries.length ? [{
+      id: "new-entries",
+      fileName: `ngoma-new-entries-${chartTypeKey}.png`,
+      posterContent: <MoversSharePoster chartType={chartTypeKey} move="newEntries" month={anMonth} theme={analyticsPosterTheme} />,
+    }] : []),
+    ...(platTotalsData.length ? [{
+      id: "platform-totals",
+      fileName: `ngoma-platform-totals-${chartTypeKey}.png`,
+      posterContent: <PlatformBreakdownSharePoster chartType={isSingles ? "singles" : "albums"} metric="totals" month={anMonth} viewMode={viewMode("platformTotals")} theme={analyticsPosterTheme} />,
+    }] : []),
+    ...(topCountryData.length ? [{
+      id: "top-countries",
+      fileName: `ngoma-top-countries-${chartTypeKey}.png`,
+      posterContent: <PlatformBreakdownSharePoster chartType={chartTypeKey} metric="country" month={anMonth} viewMode={viewMode("topCountries")} theme={analyticsPosterTheme} />,
+    }] : []),
+  ];
+  const analyticsPosterDownloadOptions = [
+    {
+      id: "poster",
+      label: "Download poster",
+      fileName: `ngoma-hall-of-fame-${chartTypeKey}.png`,
+      posterContent: <HallOfFameSharePoster chartType={chartTypeKey} theme={analyticsPosterTheme} />,
+    },
+    {
+      id: "all",
+      label: `Download All Posters (${analyticsPosterFiles.length} files)`,
+      files: analyticsPosterFiles,
+    },
+  ];
+
   return (
 <div className="ngoma-analytics-page" style={{padding:PAD,background:"transparent",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"center",marginBottom:"28px",gap:isMobile?"14px":"24px",flexDirection:isMobile?"column":"row",paddingBottom:"20px",borderBottom:"1px solid "+(isDark?"#2F352F":"#EFEDE7")}}>
@@ -226,18 +278,25 @@ export default function AnalyticsPage({ ctx }) {
               <h2 style={{fontSize:isMobile?"22px":"28px",fontWeight:900,margin:"0 0 4px",letterSpacing:"-0.5px",color:isDark?"#FFFFFF":"#000000"}}>{isArtists?"Artist Analytics":isSingles?"Singles Analytics":"Albums Analytics"}</h2>
               <p style={{fontFamily:F,fontSize:"14px",color:isDark?"#FFFFFF":"#000000",margin:0,lineHeight:1.6}}>Full Top 50 data across all platforms and months.</p>
             </div>
-            <div style={{display:"flex",gap:"10px",flexDirection:"row",alignItems:"center",flexShrink:0,flexWrap:"wrap"}}>
-              <select value={anMonth} onChange={e=>setAnMonth(e.target.value)} style={{flex:isMobile?"1":"none",minWidth:isMobile?"120px":"160px",padding:isMobile?"10px 12px":"8px 14px",border:"1.5px solid "+(isDark?"#2F352F":"#DEDAD2"),borderRadius:"10px",background:isDark?"#1A1E1A":"#FAFAF8",fontSize:isMobile?"13px":"12px",fontFamily:F,fontWeight:750,cursor:"pointer",outline:"none",color:isDark?"#FFFFFF":"#000000"}}>
-                {MONTHS.map(m=><option key={m} value={m}>{m}</option>)}
-              </select>
-              <ShareButton
-                isDark={isDark}
-                F={F}
-                GOLD={GOLD}
-                shareUrl={buildAnalyticsShareUrl({ chartType: chartTypeKey, month: anMonth })}
-                fileName={`ngoma-hall-of-fame-${chartTypeKey}.png`}
-                posterContent={<HallOfFameSharePoster chartType={chartTypeKey} theme={isDark ? "dark" : "light"} />}
-              />
+            <div style={{display:"flex",gap:"10px",flexDirection:isMobile?"column":"row",alignItems:isMobile?"stretch":"center",flexShrink:0,width:isMobile?"100%":"auto"}}>
+              {/* Month select + Share are grouped on their own row (space-
+                  between on mobile) so Share always lands on the right edge
+                  instead of wrapping onto a second line behind the wide
+                  chart-type switcher below it — three wide controls crammed
+                  into one row was what pushed Share out of position. */}
+              <div style={{display:"flex",gap:"10px",alignItems:"center",justifyContent:isMobile?"space-between":"flex-start"}}>
+                <select value={anMonth} onChange={e=>setAnMonth(e.target.value)} style={{flex:isMobile?"1":"none",minWidth:isMobile?"120px":"160px",padding:isMobile?"10px 12px":"8px 14px",border:"1.5px solid "+(isDark?"#2F352F":"#DEDAD2"),borderRadius:"10px",background:isDark?"#1A1E1A":"#FAFAF8",fontSize:isMobile?"13px":"12px",fontFamily:F,fontWeight:750,cursor:"pointer",outline:"none",color:isDark?"#FFFFFF":"#000000"}}>
+                  {MONTHS.map(m=><option key={m} value={m}>{m}</option>)}
+                </select>
+                <ShareButton
+                  isDark={isDark}
+                  F={F}
+                  GOLD={GOLD}
+                  shareUrl={buildAnalyticsShareUrl({ chartType: chartTypeKey, month: anMonth })}
+                  fileName={`ngoma-hall-of-fame-${chartTypeKey}.png`}
+                  posterDownloadOptions={analyticsPosterDownloadOptions}
+                />
+              </div>
               <Tog sm/>
             </div>
           </div>

@@ -120,7 +120,6 @@ export default function AboutPage({ ctx }) {
               </div>
             ))}
           </div>
-          <span style={{marginLeft:"14px",fontFamily:F,fontSize:isMobile?"11px":"12px",fontWeight:800,letterSpacing:"0.4px",color:textPrimary}}>The artists {SITE_NAME} tracks every month</span>
         </div>
       )}
 

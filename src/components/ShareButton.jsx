@@ -3,6 +3,10 @@ import { createPortal } from "react-dom";
 import { exportNodeAsPng } from "../admin/utils/exportPoster.jsx";
 import { trackEvent } from "../utils/track.js";
 
+// Must match the menu's minWidth below — used to keep the menu on-screen
+// on narrow viewports (see updatePosition's clamp).
+const MENU_WIDTH = 240;
+
 // Share entry point for any reader-facing page or detail panel (song,
 // album, artist, charts, head-to-head, certifications...). Offers a copy-link
 // action plus one or more poster download actions. `posterContent` keeps the
@@ -65,9 +69,18 @@ export default function ShareButton({
       if (!rect) return;
       const estimatedMenuHeight = 60 + (hasPosterDownloads ? downloadChoices.length * 48 : 0);
       const openUpward = window.innerHeight - rect.bottom < estimatedMenuHeight + 8 && rect.top > estimatedMenuHeight;
+      // Right-aligning to the button (the common case — the trigger usually
+      // sits at the right edge of its row) can push the menu off the left
+      // edge of the screen when the button itself sits further left, e.g. a
+      // narrow mobile viewport where the button isn't flush with the page
+      // edge. Clamp so the menu's left edge never goes past a small margin,
+      // instead of rendering partially or fully off-screen.
+      const margin = 12;
+      const rightAligned = window.innerWidth - rect.right;
+      const right = Math.min(rightAligned, Math.max(margin, window.innerWidth - MENU_WIDTH - margin));
       setMenuPos(openUpward
-        ? { bottom: window.innerHeight - rect.top + 8, right: window.innerWidth - rect.right }
-        : { top: rect.bottom + 8, right: window.innerWidth - rect.right });
+        ? { bottom: window.innerHeight - rect.top + 8, right }
+        : { top: rect.bottom + 8, right });
     };
     updatePosition();
     const onDocClick = (event) => {
@@ -210,7 +223,7 @@ export default function ShareButton({
             top: menuPos.top,
             bottom: menuPos.bottom,
             right: menuPos.right,
-            minWidth: "240px",
+            minWidth: MENU_WIDTH,
             padding: "8px",
             borderRadius: "14px",
             background: isDark ? "#151815" : "#FFFFFF",

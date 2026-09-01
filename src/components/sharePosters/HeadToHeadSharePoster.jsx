@@ -72,8 +72,8 @@ export default function HeadToHeadSharePoster({ profile1, profile2, months = [],
           <div style={{ position: "absolute", top: 320, left: padX, right: padX, display: "flex", gap: 20, zIndex: 1 }}>
             {[[profile1, GOLD], [profile2, BLUE]].map(([p, color], i) => (
               <div key={i} style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 8, padding: 14, borderRadius: 14, background: t.rowBg, borderLeft: `4px solid ${color}` }}>
-                {p.image ? (
-                  <img src={resolveMediaUrl(p.image)} alt="" style={{ width: 100, height: 100, borderRadius: chartType === "artists" ? 50 : 10, objectFit: "cover" }} />
+                {p.cover_image || p.image ? (
+                  <img src={resolveMediaUrl(p.cover_image || p.image)} alt="" style={{ width: 100, height: 100, borderRadius: chartType === "artists" ? 50 : 10, objectFit: "cover" }} />
                 ) : (
                   <ArtPlaceholder width={100} height={100} radius={chartType === "artists" ? 50 : 10} theme={theme} accentColor={color} />
                 )}

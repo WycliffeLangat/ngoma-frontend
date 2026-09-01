@@ -88,21 +88,31 @@ export default function HallOfFameSharePoster({ chartType = "singles", theme = "
               <div
                 key={`${itemTitle(chartType, item)}-${i}`}
                 style={{
-                  width: cardW, height: cardH, boxSizing: "border-box", padding: 16, borderRadius: 14,
-                  background: t.rowBg, display: "flex", flexDirection: "column", alignItems: "center",
-                  justifyContent: "center", gap: 8, textAlign: "center",
+                  width: cardW, height: cardH, boxSizing: "border-box", padding: 18, borderRadius: 16,
+                  background: t.rowBg, border: `1px solid ${t.dividerColor}`,
+                  display: "flex", flexDirection: "column", alignItems: "center",
+                  justifyContent: "center", gap: 8, textAlign: "center", position: "relative",
                 }}
               >
+                <div
+                  style={{
+                    position: "absolute", top: 12, left: 12, display: "flex", alignItems: "center", gap: 5,
+                    padding: "4px 10px 4px 8px", borderRadius: 999, background: `${GOLD}22`, color: GOLD,
+                    fontSize: Math.round(11 * Math.min(cardScale, 1.1)), fontWeight: 900, letterSpacing: "0.4px",
+                  }}
+                >
+                  ★ #1
+                </div>
                 {itemImage(chartType, item) ? (
                   <img
                     src={resolveMediaUrl(itemImage(chartType, item))}
                     alt=""
-                    style={{ width: artSize, height: artSize, borderRadius: chartType === "artists" ? artSize / 2 : 10, objectFit: "cover" }}
+                    style={{ width: artSize, height: artSize, borderRadius: chartType === "artists" ? artSize / 2 : 12, objectFit: "cover", boxShadow: "0 10px 22px rgba(0,0,0,0.22)" }}
                   />
                 ) : (
-                  <ArtPlaceholder width={artSize} height={artSize} radius={chartType === "artists" ? artSize / 2 : 10} theme={theme} accentColor={GOLD} />
+                  <ArtPlaceholder width={artSize} height={artSize} radius={chartType === "artists" ? artSize / 2 : 12} theme={theme} accentColor={GOLD} />
                 )}
-                <div style={{ fontSize: Math.round(20 * cardScale), fontWeight: 800, color: t.titleColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>
+                <div style={{ fontSize: Math.round(21 * cardScale), fontWeight: 850, color: t.titleColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%", marginTop: 4 }}>
                   {itemTitle(chartType, item)}
                 </div>
                 {itemArtist(chartType, item) && (
@@ -110,7 +120,12 @@ export default function HallOfFameSharePoster({ chartType = "singles", theme = "
                     {itemArtist(chartType, item)}
                   </div>
                 )}
-                <div style={{ fontSize: Math.round(12 * cardScale), fontWeight: 900, letterSpacing: "0.6px", textTransform: "uppercase", color: GOLD }}>
+                <div
+                  style={{
+                    marginTop: 4, padding: "4px 12px", borderRadius: 999, background: t.pageBg,
+                    fontSize: Math.round(12 * cardScale), fontWeight: 900, letterSpacing: "0.6px", textTransform: "uppercase", color: GOLD,
+                  }}
+                >
                   {monthLabel}
                 </div>
               </div>

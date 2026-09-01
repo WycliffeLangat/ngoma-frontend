@@ -3247,6 +3247,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell select optgroup {
   box-shadow: none;
   display: grid;
   grid-template-columns: 30px auto minmax(0, 1fr) auto auto;
+  grid-template-areas: "icon thumb copy points share";
   align-items: center;
   gap: 12px;
   min-width: 0;
@@ -3260,18 +3261,26 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell select optgroup {
   background: var(--cert-soft-bg, rgba(0,0,0,0.02));
 }
 .cert-wall-card .cert-icon {
+  grid-area: icon;
   font-size: 23px;
   line-height: 1;
   flex-shrink: 0;
 }
+.cert-wall-card .cert-thumb {
+  grid-area: thumb;
+  display: flex;
+}
 .cert-wall-card .cert-release-copy {
+  grid-area: copy;
   min-width: 0;
 }
 .cert-wall-card .cert-points {
+  grid-area: points;
   text-align: right;
   flex-shrink: 0;
 }
 .cert-wall-card .cert-share {
+  grid-area: share;
   display: flex;
   justify-content: flex-end;
 }
@@ -3325,24 +3334,31 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell select optgroup {
   .cert-wall {
     grid-template-columns: 1fr;
   }
+  /* Two clean rows instead of cramming five items into one — identity
+     (icon/thumbnail/title) on top, points and the share action on their
+     own row below — so every tile in the wall lines up the same way
+     instead of points and copy fighting for the same grid cell. */
   .cert-wall-card {
     grid-template-columns: 26px auto minmax(0, 1fr) auto;
-    gap: 10px;
+    grid-template-areas:
+      "icon thumb copy copy"
+      "points points points share";
+    row-gap: 10px;
+    column-gap: 10px;
     padding: 12px;
   }
   .cert-wall-card .cert-points {
-    grid-column: 3 / 5;
+    align-self: center;
     text-align: left;
     display: flex;
     align-items: baseline;
     gap: 6px;
-    margin-top: 4px;
   }
   .cert-wall-card .cert-points div:last-child {
     margin-top: 0 !important;
   }
   .cert-wall-card .cert-share {
-    align-self: start;
+    align-self: center;
   }
   .ngoma-cert-section-heading {
     align-items: flex-start;

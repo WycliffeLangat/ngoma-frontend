@@ -230,7 +230,7 @@ export default function CertificationsPage({ ctx }) {
                   return (
                     <div key={`${c.t}-${c.a}-${i}`} className={`cert-wall-card ${level}`} style={{"--cert-level-color":meta.color || textPrimary,background:isDark?"rgba(255,255,255,0.035)":"rgba(0,0,0,0.018)"}}>
                       <span className="cert-icon"><span style={certIconFilters[level]?{filter:certIconFilters[level]}:undefined}>{certIcons[level]}</span></span>
-                      <EntryThumb item={c} name={c.a} size={isMobile?54:62} accent={textPrimary} />
+                      <div className="cert-thumb"><EntryThumb item={c} name={c.a} size={isMobile?54:62} accent={textPrimary} /></div>
                       <div className="cert-release-copy">
                         <button type="button" onClick={()=>openReleaseDetails(c,releaseType)} style={{display:"block",border:0,background:"transparent",padding:0,fontFamily:SF,fontWeight:850,fontSize:"15px",lineHeight:1.25,cursor:"pointer",textAlign:"left",color:textPrimary,whiteSpace:"normal",wordBreak:"break-word"}}>{c.t}</button>
                         <div style={{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap",marginTop:"4px"}}>

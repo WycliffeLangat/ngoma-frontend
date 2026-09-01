@@ -1,5 +1,5 @@
 import ShareButton from "../components/ShareButton.jsx";
-import ChartListSharePoster from "../components/sharePosters/ChartListSharePoster.jsx";
+import { buildChartPosterDownloadOptions } from "../components/sharePosters/ChartListSharePoster.jsx";
 import { buildYearEndShareUrl } from "../utils/shareLinks.js";
 
 export default function YearEndPage({ ctx }) {
@@ -138,7 +138,11 @@ export default function YearEndPage({ ctx }) {
                 GOLD={GOLD}
                 shareUrl={buildYearEndShareUrl({ chartType: ct })}
                 fileName={`ngoma-all-time-${ct}.png`}
-                posterContent={<ChartListSharePoster chartType={ct} period="all-time" count={10} theme={isDark ? "dark" : "light"} />}
+                posterDownloadOptions={buildChartPosterDownloadOptions({
+                  chartType: ct,
+                  period: "all-time",
+                  theme: isDark ? "dark" : "light",
+                })}
               />
               <Tog sm/>
             </div>
