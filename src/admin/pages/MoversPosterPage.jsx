@@ -27,11 +27,10 @@ const CHART_TYPES = [
 
 // Third element is the poster's header title template ({typeLabel} is
 // substituted in) — matches the public Movers poster's phrasing so a
-// reader can't tell which side generated it, and "Falling" avoids "Drops"
-// ever being misread as a new release.
+// reader can't tell which side generated it.
 const MOVES = [
-  ["risers", "Climbers", "Top Climbing {typeLabel}", "#2DB04A"],
-  ["fallers", "Fallers", "Top Falling {typeLabel}", "#E5484D"],
+  ["risers", "Climbers", "Biggest {typeLabel} Climbers", "#2DB04A"],
+  ["fallers", "Drops", "Biggest {typeLabel} Drops", "#E5484D"],
   ["newEntries", "New Entries", "New Entries — {typeLabel}", "#2DB04A"],
   ["reEntries", "Re-Entries", "Re-Entries — {typeLabel}", "#1565C0"],
 ];
@@ -204,7 +203,7 @@ export default function MoversPosterPage() {
       <div className="cms-page-head">
         <div>
           <h1>Movers &amp; Shakers Poster</h1>
-          <p>Turn Climbers, Fallers, New Entries, or Re-Entries into a 4:5 share card.</p>
+          <p>Turn Climbers, Drops, New Entries, or Re-Entries into a 4:5 share card.</p>
         </div>
       </div>
 

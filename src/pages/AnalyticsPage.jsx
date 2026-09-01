@@ -219,7 +219,7 @@ export default function AnalyticsPage({ ctx }) {
   const splitRowStyle = { display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "20px", alignItems: "center", ...sectionGap };
 
   // "Download All Posters" — the top Share button covers every poster this
-  // page can produce (Hall of Fame, Climbers/Fallers/New Entries, Platform
+  // page can produce (Hall of Fame, Climbers/Drops/New Entries, Platform
   // Totals, Top Countries) in one batch, alongside the plain Hall of Fame
   // poster it already offered. Sections with no qualifying data this month
   // are skipped rather than shipping an empty-state poster nobody asked for.
@@ -236,8 +236,8 @@ export default function AnalyticsPage({ ctx }) {
       posterContent: <MoversSharePoster chartType={chartTypeKey} move="risers" month={anMonth} theme={analyticsPosterTheme} />,
     }] : []),
     ...(mvData.fallers.length ? [{
-      id: "fallers",
-      fileName: `ngoma-fallers-${chartTypeKey}.png`,
+      id: "drops",
+      fileName: `ngoma-drops-${chartTypeKey}.png`,
       posterContent: <MoversSharePoster chartType={chartTypeKey} move="fallers" month={anMonth} theme={analyticsPosterTheme} />,
     }] : []),
     ...(mvData.newEntries.length ? [{
@@ -301,17 +301,17 @@ export default function AnalyticsPage({ ctx }) {
             </div>
           </div>
 
-          {/* Climbers, Fallers & New Entries — what moved this month */}
-          <AnalyticsDeepSection label="Climbers & Fallers" isMobile={isMobile}>
+          {/* Climbers, Drops & New Entries — what moved this month */}
+          <AnalyticsDeepSection label="Biggest Climbers & Drops" isMobile={isMobile}>
           <div className="anl-split-row" style={splitRowStyle}>
             {!isMobile && (
               <div style={{order:1}}>
-                <AnalyticsSlideshowFrame pool={risersPool} isArtist={isArtists} accent="#2DB04A" onOpen={openMoverDetails} label={`Top Climbing ${releaseLabel}`} />
+                <AnalyticsSlideshowFrame pool={risersPool} isArtist={isArtists} accent="#2DB04A" onOpen={openMoverDetails} label={`Biggest ${releaseLabel} Climbers`} />
               </div>
             )}
             <div style={{...card(),order:2}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"14px",flexWrap:"wrap"}}>
-                <div style={{...secLbl(isDark?"#FFFFFF":"#000000"),marginBottom:0,fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Top Climbing {releaseLabel} — {anMonth}</div>
+                <div style={{...secLbl(isDark?"#FFFFFF":"#000000"),marginBottom:0,fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Biggest {releaseLabel} Climbers — {anMonth}</div>
                 <ShareButton
                   compact
                   isDark={isDark}
@@ -348,14 +348,14 @@ export default function AnalyticsPage({ ctx }) {
           <div className="anl-split-row" style={splitRowStyle}>
             <div style={{...card(),order:1}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"14px",flexWrap:"wrap"}}>
-                <div style={{...secLbl(isDark?"#FFFFFF":"#000000"),marginBottom:0,fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Top Falling {releaseLabel} — {anMonth}</div>
+                <div style={{...secLbl(isDark?"#FFFFFF":"#000000"),marginBottom:0,fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Biggest {releaseLabel} Drops — {anMonth}</div>
                 <ShareButton
                   compact
                   isDark={isDark}
                   F={F}
                   GOLD={GOLD}
                   shareUrl={buildAnalyticsShareUrl({ chartType: chartTypeKey, month: anMonth })}
-                  fileName={`ngoma-fallers-${chartTypeKey}.png`}
+                  fileName={`ngoma-drops-${chartTypeKey}.png`}
                   posterContent={<MoversSharePoster chartType={chartTypeKey} move="fallers" month={anMonth} theme={isDark ? "dark" : "light"} />}
                 />
               </div>
@@ -378,11 +378,11 @@ export default function AnalyticsPage({ ctx }) {
                 </div>
                 );
               })}
-              {!mvData.fallers.length&&<div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#FFFFFF":"#000000",padding:"20px 0",textAlign:"center"}}>No fallers (debut month)</div>}
+              {!mvData.fallers.length&&<div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#FFFFFF":"#000000",padding:"20px 0",textAlign:"center"}}>No drops (debut month)</div>}
             </div>
             {!isMobile && (
               <div style={{order:2}}>
-                <AnalyticsSlideshowFrame pool={fallersPool} isArtist={isArtists} accent="#E53935" onOpen={openMoverDetails} label={`Top Falling ${releaseLabel}`} />
+                <AnalyticsSlideshowFrame pool={fallersPool} isArtist={isArtists} accent="#E53935" onOpen={openMoverDetails} label={`Biggest ${releaseLabel} Drops`} />
               </div>
             )}
           </div>
