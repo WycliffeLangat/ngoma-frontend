@@ -74,6 +74,7 @@ const DEFAULT_NEWS_DESIGN = {
   textPosition: "bottom",
   textAlign: "left",
   overlay: 58,
+  overlayMode: "gradient",
   imageZoom: 108,
   imageX: 50,
   imageY: 50,
@@ -112,6 +113,7 @@ const DEFAULT_VIDEO_DESIGN = {
   textPosition: "bottom",
   textAlign: "left",
   overlay: 52,
+  overlayMode: "gradient",
   mediaZoom: 104,
   mediaX: 50,
   mediaY: 50,
@@ -259,9 +261,34 @@ function mediaTransform(zoom = 100) {
   return `scale(${Math.max(100, Number(zoom) || 100) / 100})`;
 }
 
-function overlayStyle(theme, overlay, position) {
+// Media legibility filter over a card's photo/video. "gradient" (the
+// original behavior) biases darkness toward whichever edge the text sits
+// on; "solid" applies one flat tint across the whole frame instead of
+// concentrating it; "vignette" only darkens the edges and leaves the center
+// (where a face usually sits) clear; "none" skips the filter entirely so
+// the source image/video shows with its true color and skin tones. Readers
+// asked for control here because the default gradient's dark tint was
+// visibly shifting subjects' complexion in the frame.
+export const OVERLAY_MODE_OPTIONS = [
+  ["gradient", "Gradient"],
+  ["solid", "Solid"],
+  ["vignette", "Vignette"],
+  ["none", "None"],
+];
+
+function overlayStyle(theme, overlay, position, mode = "gradient") {
+  if (mode === "none") return null;
   const strength = Math.max(0, Math.min(90, Number(overlay) || 0)) / 100;
   const ink = theme === "light" ? "255,255,255" : "0,0,0";
+  if (mode === "solid") {
+    return { background: `rgba(${ink},${strength * 0.7})`, opacity: 1 };
+  }
+  if (mode === "vignette") {
+    return {
+      background: `radial-gradient(ellipse at center, rgba(${ink},${strength * 0.1}) 0%, rgba(${ink},${strength * 0.28}) 55%, rgba(${ink},${Math.min(0.92, strength + 0.15)}) 100%)`,
+      opacity: 1,
+    };
+  }
   const directional = position === "top"
     ? `linear-gradient(180deg, rgba(${ink},${Math.min(0.9, strength + 0.18)}) 0%, rgba(${ink},${strength * 0.55}) 42%, rgba(${ink},${strength * 0.15}) 100%)`
     : position === "center"
@@ -455,9 +482,34 @@ function drawCoverMedia(ctx, media, design) {
   ctx.restore();
 }
 
+// Canvas twin of overlayStyle() above — used for the actual frame-by-frame
+// MP4/WebM export, so the exported video's filter has to match whichever
+// mode the JSX preview is showing (including skipping it for "none").
 function drawCanvasOverlay(ctx, design) {
+  const mode = design.overlayMode || "gradient";
+  if (mode === "none") return;
   const strength = Math.max(0, Math.min(90, Number(design.overlay) || 0)) / 100;
   const color = design.theme === "light" ? "255,255,255" : "0,0,0";
+
+  if (mode === "solid") {
+    ctx.fillStyle = `rgba(${color},${strength * 0.7})`;
+    ctx.fillRect(0, 0, VIDEO_EXPORT_W, VIDEO_EXPORT_H);
+    return;
+  }
+
+  if (mode === "vignette") {
+    const cx = VIDEO_EXPORT_W / 2;
+    const cy = VIDEO_EXPORT_H / 2;
+    const radius = Math.max(VIDEO_EXPORT_W, VIDEO_EXPORT_H) * 0.72;
+    const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+    gradient.addColorStop(0, `rgba(${color},${strength * 0.1})`);
+    gradient.addColorStop(0.55, `rgba(${color},${strength * 0.28})`);
+    gradient.addColorStop(1, `rgba(${color},${Math.min(0.92, strength + 0.15)})`);
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, VIDEO_EXPORT_W, VIDEO_EXPORT_H);
+    return;
+  }
+
   const gradient = ctx.createLinearGradient(0, 0, 0, VIDEO_EXPORT_H);
   if (design.textPosition === "top") {
     gradient.addColorStop(0, `rgba(${color},${Math.min(0.9, strength + 0.18)})`);
@@ -1030,6 +1082,7 @@ function NewsPostContent({ design }) {
   const mediaFilter = posterMediaFilter(design);
   const finishOverlay = posterFinishOverlayStyle(design, design.theme);
   const frameOverlay = posterFrameOverlayStyle(design, design.theme);
+  const newsOverlay = overlayStyle(design.theme, design.overlay, design.textPosition, design.overlayMode);
 
   return (
     <div
@@ -1064,7 +1117,7 @@ function NewsPostContent({ design }) {
         <MediaPlaceholder label="Insert image" theme={design.theme} accent={design.accent} blank />
       )}
 
-      {design.image && <div style={{ position: "absolute", inset: 0, ...overlayStyle(design.theme, design.overlay, design.textPosition) }} />}
+      {design.image && newsOverlay && <div style={{ position: "absolute", inset: 0, ...newsOverlay }} />}
       {design.image && finishOverlay && <div style={{ position: "absolute", inset: 0, pointerEvents: "none", ...finishOverlay }} />}
 
       {design.showBrand !== false && (
@@ -1173,6 +1226,7 @@ function VideoPostContent({ design, exportMode = false, videoRef = null, onVideo
   const mediaFilter = posterMediaFilter(design);
   const finishOverlay = posterFinishOverlayStyle(design, design.theme);
   const frameOverlay = posterFrameOverlayStyle(design, design.theme);
+  const videoOverlay = overlayStyle(design.theme, design.overlay, design.textPosition, design.overlayMode);
   const mediaStyle = {
     position: "absolute",
     inset: 0,
@@ -1216,7 +1270,7 @@ function VideoPostContent({ design, exportMode = false, videoRef = null, onVideo
         <MediaPlaceholder label="Insert video" theme={design.theme} accent={design.accent} />
       )}
 
-      <div style={{ position: "absolute", inset: 0, pointerEvents: "none", ...overlayStyle(design.theme, design.overlay, design.textPosition) }} />
+      {videoOverlay && <div style={{ position: "absolute", inset: 0, pointerEvents: "none", ...videoOverlay }} />}
       {finishOverlay && <div style={{ position: "absolute", inset: 0, pointerEvents: "none", ...finishOverlay }} />}
 
       {design.showBrand !== false && (
@@ -1505,7 +1559,15 @@ export default function NewsCardPage() {
         const maxStart = maxVideoTrimStart(nextDuration);
         const trimStart = clampTrimValue(current.trimStart, 0, maxStart);
         const maxLength = maxVideoExportLength(nextDuration, trimStart);
-        const exportDuration = clampTrimValue(current.exportDuration, VIDEO_EXPORT_MIN_SECONDS, maxLength);
+        // Before the real duration is known, trimStart/exportDuration sit at
+        // the untouched upload placeholder (0 / 15s). Once metadata loads,
+        // default the export to the video's full length instead of silently
+        // keeping that 15s cap — a shorter export should only happen because
+        // the admin explicitly trimmed it (via the trim controls below).
+        const isUntrimmed = current.trimStart === 0 && current.exportDuration === VIDEO_EXPORT_DEFAULT_SECONDS;
+        const exportDuration = isUntrimmed
+          ? maxLength
+          : clampTrimValue(current.exportDuration, VIDEO_EXPORT_MIN_SECONDS, maxLength);
         return trimStart === current.trimStart && exportDuration === current.exportDuration
           ? current
           : { ...current, trimStart, exportDuration };
@@ -1816,9 +1878,13 @@ export default function NewsCardPage() {
                   </ControlField>
                 )}
 
+                <SegmentedControl label="Overlay style" value={newsDesign.overlayMode || "gradient"} options={OVERLAY_MODE_OPTIONS} onChange={(value) => updateNews({ overlayMode: value })} />
+
                 <div style={CONTROL_GRID}>
                   <RangeControl label="Zoom" min={100} max={170} value={newsDesign.imageZoom} suffix="%" onChange={(value) => updateNews({ imageZoom: value })} />
-                  <RangeControl label="Overlay" min={15} max={82} value={newsDesign.overlay} suffix="%" onChange={(value) => updateNews({ overlay: value })} />
+                  {(newsDesign.overlayMode || "gradient") !== "none" && (
+                    <RangeControl label="Overlay" min={15} max={82} value={newsDesign.overlay} suffix="%" onChange={(value) => updateNews({ overlay: value })} />
+                  )}
                   <RangeControl label="Horizontal" min={0} max={100} value={newsDesign.imageX} suffix="%" onChange={(value) => updateNews({ imageX: value })} />
                   <RangeControl label="Vertical" min={0} max={100} value={newsDesign.imageY} suffix="%" onChange={(value) => updateNews({ imageY: value })} />
                   <RangeControl label="Headline size" min={70} max={135} value={newsDesign.headlineScale} suffix="%" onChange={(value) => updateNews({ headlineScale: value })} />
@@ -1983,9 +2049,13 @@ export default function NewsCardPage() {
                   </ControlField>
                 )}
 
+                <SegmentedControl label="Overlay style" value={videoDesign.overlayMode || "gradient"} options={OVERLAY_MODE_OPTIONS} onChange={(value) => updateVideo({ overlayMode: value })} />
+
                 <div style={CONTROL_GRID}>
                   <RangeControl label="Zoom" min={100} max={170} value={videoDesign.mediaZoom} suffix="%" onChange={(value) => updateVideo({ mediaZoom: value })} />
-                  <RangeControl label="Overlay" min={15} max={82} value={videoDesign.overlay} suffix="%" onChange={(value) => updateVideo({ overlay: value })} />
+                  {(videoDesign.overlayMode || "gradient") !== "none" && (
+                    <RangeControl label="Overlay" min={15} max={82} value={videoDesign.overlay} suffix="%" onChange={(value) => updateVideo({ overlay: value })} />
+                  )}
                   <RangeControl label="Horizontal" min={0} max={100} value={videoDesign.mediaX} suffix="%" onChange={(value) => updateVideo({ mediaX: value })} />
                   <RangeControl label="Vertical" min={0} max={100} value={videoDesign.mediaY} suffix="%" onChange={(value) => updateVideo({ mediaY: value })} />
                   <RangeControl label="Title size" min={70} max={135} value={videoDesign.titleScale} suffix="%" onChange={(value) => updateVideo({ titleScale: value })} />
