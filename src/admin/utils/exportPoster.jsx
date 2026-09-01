@@ -159,10 +159,14 @@ export function posterDownloadDateLabel(date = new Date()) {
   return formatted ? `Downloaded ${formatted}` : "";
 }
 
+// Only refreshes spans still showing the auto-computed label — a CMS poster
+// with a custom `downloadDateText` (or the date hidden entirely) carries no
+// `data-poster-download-date-auto` marker, so this leaves it untouched
+// instead of clobbering the edit at export time.
 function stampPosterDownloadDates(node, date = new Date()) {
   if (!node?.querySelectorAll) return;
   const label = posterDownloadDateLabel(date);
-  node.querySelectorAll("[data-poster-download-date]").forEach((element) => {
+  node.querySelectorAll("[data-poster-download-date-auto]").forEach((element) => {
     element.textContent = label;
   });
 }
@@ -266,6 +270,14 @@ export const POSTER_SETTINGS_DEFAULTS = {
   footerScale: 100,
   showBrand: true,
   showFooter: true,
+  // Public reader-facing pages (ShareButton downloads) never go through
+  // PosterSettingsPanel/PosterSettingsProvider, so they always fall back to
+  // these context defaults — showDownloadDate stays true and downloadDateText
+  // stays auto there, keeping the date stamp public-only by construction.
+  // CMS poster generators explicitly opt into editing/removing it via the
+  // panel below.
+  showDownloadDate: true,
+  downloadDateText: "",
 };
 
 export const POSTER_FINISH_OPTIONS = [
@@ -319,6 +331,8 @@ export function normalizePosterSettings(settings = {}) {
     footerScale: boundedNumber(settings.footerScale, POSTER_SETTINGS_DEFAULTS.footerScale, 70, 140),
     showBrand: settings.showBrand !== false,
     showFooter: settings.showFooter !== false,
+    showDownloadDate: settings.showDownloadDate !== false,
+    downloadDateText: String(settings.downloadDateText || "").slice(0, 40),
   };
 }
 
@@ -603,13 +617,37 @@ export function PosterSettingsPanel({ settings, onChange, onReset, theme = "dark
         />
       )}
       {normalized.showFooter && (
-        <PosterRange
-          label="Footer size"
-          min={70}
-          max={140}
-          value={normalized.footerScale}
-          onChange={(footerScale) => update({ footerScale })}
-        />
+        <>
+          <PosterRange
+            label="Footer size"
+            min={70}
+            max={140}
+            value={normalized.footerScale}
+            onChange={(footerScale) => update({ footerScale })}
+          />
+          <label style={{ display: "grid", gap: 6, fontSize: 12, fontWeight: 800, textTransform: "uppercase", color: "var(--cms-muted)" }}>
+            <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+              <span>Download date</span>
+              <button
+                type="button"
+                className={`cms-btn small ${normalized.showDownloadDate ? "" : "light"}`}
+                onClick={() => update({ showDownloadDate: !normalized.showDownloadDate })}
+              >
+                {normalized.showDownloadDate ? "On" : "Off"}
+              </button>
+            </span>
+            {normalized.showDownloadDate && (
+              <input
+                className="cms-select"
+                type="text"
+                value={normalized.downloadDateText}
+                placeholder={posterDownloadDateLabel()}
+                maxLength={40}
+                onChange={(event) => update({ downloadDateText: event.target.value })}
+              />
+            )}
+          </label>
+        </>
       )}
     </div>
   );
@@ -662,14 +700,21 @@ export function PosterBrandRow({ theme, size = 56, fontSize = 26, gap = 14, colo
   );
 }
 
-// The footer strip, identical across every card type.
-export function PosterFooter({ theme, height = 74, padX = 56, primaryColor, pointerEvents }) {
+// The footer strip, identical across every card type. The download-date
+// stamp defaults to the settings context (PosterSettingsPanel-driven CMS
+// pages, or the always-on public-page default when no provider wraps the
+// poster) but `showDownloadDate`/`downloadDateText` props let a caller that
+// keeps its own design state outside the settings context (e.g. NewsCardPage)
+// override it directly instead of needing a PosterSettingsProvider.
+export function PosterFooter({ theme, height = 74, padX = 56, primaryColor, pointerEvents, showDownloadDate, downloadDateText }) {
   const settings = usePosterSettings();
   if (!settings.showFooter) return null;
   const t = usePosterTheme(theme);
   const scale = settings.footerScale / 100;
   const primary = primaryColor || t.footerPrimary;
-  const downloadDate = posterDownloadDateLabel();
+  const dateVisible = showDownloadDate !== undefined ? showDownloadDate : settings.showDownloadDate;
+  const customText = (downloadDateText !== undefined ? downloadDateText : settings.downloadDateText || "").trim();
+  const downloadDate = dateVisible ? (customText || posterDownloadDateLabel()) : "";
   return (
     <div
       style={{
@@ -687,17 +732,19 @@ export function PosterFooter({ theme, height = 74, padX = 56, primaryColor, poin
       }}
     >
       <span style={{ fontSize: 14 * scale, fontWeight: 700, color: primary }}>© 2026 Ngoma Media Ltd.</span>
-      <span
-        data-poster-download-date
-        style={{
-          fontSize: 14 * scale,
-          fontWeight: 700,
-          color: primary,
-          textAlign: "right",
-        }}
-      >
-        {downloadDate}
-      </span>
+      {downloadDate && (
+        <span
+          {...(customText ? {} : { "data-poster-download-date-auto": "1" })}
+          style={{
+            fontSize: 14 * scale,
+            fontWeight: 700,
+            color: primary,
+            textAlign: "right",
+          }}
+        >
+          {downloadDate}
+        </span>
+      )}
     </div>
   );
 }

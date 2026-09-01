@@ -23,6 +23,7 @@ import {
   posterFinishOverlayStyle,
   posterFrameOverlayStyle,
   posterMediaFilter,
+  posterDownloadDateLabel,
   preferredVideoMimeType,
   superHdHelpText,
   videoExportFrameRate,
@@ -96,6 +97,8 @@ const DEFAULT_NEWS_DESIGN = {
   showFooter: true,
   showCategory: true,
   showSubheadline: true,
+  showDownloadDate: true,
+  downloadDateText: "",
 };
 
 const DEFAULT_VIDEO_DESIGN = {
@@ -133,6 +136,8 @@ const DEFAULT_VIDEO_DESIGN = {
   showBrand: true,
   showFooter: true,
   showBadge: true,
+  showDownloadDate: true,
+  downloadDateText: "",
 };
 
 const FIELD_LABEL = {
@@ -1140,7 +1145,15 @@ function NewsPostContent({ design }) {
         </div>
       </div>
 
-      {design.showFooter !== false && <PosterFooter theme={design.theme} padX={padX} primaryColor={footerTextColor} />}
+      {design.showFooter !== false && (
+        <PosterFooter
+          theme={design.theme}
+          padX={padX}
+          primaryColor={footerTextColor}
+          showDownloadDate={design.showDownloadDate !== false}
+          downloadDateText={design.downloadDateText}
+        />
+      )}
       {frameOverlay && <div style={{ position: "absolute", zIndex: 5, pointerEvents: "none", ...frameOverlay }} />}
     </div>
   );
@@ -1282,7 +1295,16 @@ function VideoPostContent({ design, exportMode = false, videoRef = null, onVideo
         </div>
       </div>
 
-      {design.showFooter !== false && <PosterFooter theme={design.theme} padX={padX} primaryColor={footerTextColor} pointerEvents={exportMode ? undefined : "none"} />}
+      {design.showFooter !== false && (
+        <PosterFooter
+          theme={design.theme}
+          padX={padX}
+          primaryColor={footerTextColor}
+          pointerEvents={exportMode ? undefined : "none"}
+          showDownloadDate={design.showDownloadDate !== false}
+          downloadDateText={design.downloadDateText}
+        />
+      )}
       {frameOverlay && <div style={{ position: "absolute", zIndex: 5, pointerEvents: "none", ...frameOverlay }} />}
     </div>
   );
@@ -1779,7 +1801,20 @@ export default function NewsCardPage() {
                   <ToggleControl label="Footer" checked={newsDesign.showFooter !== false} onChange={(value) => updateNews({ showFooter: value })} />
                   <ToggleControl label="Category" checked={newsDesign.showCategory !== false} onChange={(value) => updateNews({ showCategory: value })} />
                   <ToggleControl label="Subheadline" checked={newsDesign.showSubheadline !== false} onChange={(value) => updateNews({ showSubheadline: value })} />
+                  <ToggleControl label="Download date" checked={newsDesign.showDownloadDate !== false} onChange={(value) => updateNews({ showDownloadDate: value })} />
                 </div>
+                {newsDesign.showDownloadDate !== false && (
+                  <ControlField label="Download date text">
+                    <input
+                      className="cms-select"
+                      type="text"
+                      value={newsDesign.downloadDateText}
+                      placeholder={posterDownloadDateLabel()}
+                      maxLength={40}
+                      onChange={(event) => updateNews({ downloadDateText: event.target.value })}
+                    />
+                  </ControlField>
+                )}
 
                 <div style={CONTROL_GRID}>
                   <RangeControl label="Zoom" min={100} max={170} value={newsDesign.imageZoom} suffix="%" onChange={(value) => updateNews({ imageZoom: value })} />
@@ -1933,7 +1968,20 @@ export default function NewsCardPage() {
                   <ToggleControl label="Brand" checked={videoDesign.showBrand !== false} onChange={(value) => updateVideo({ showBrand: value })} />
                   <ToggleControl label="Footer" checked={videoDesign.showFooter !== false} onChange={(value) => updateVideo({ showFooter: value })} />
                   <ToggleControl label="Video label" checked={videoDesign.showBadge !== false} onChange={(value) => updateVideo({ showBadge: value })} />
+                  <ToggleControl label="Download date" checked={videoDesign.showDownloadDate !== false} onChange={(value) => updateVideo({ showDownloadDate: value })} />
                 </div>
+                {videoDesign.showDownloadDate !== false && (
+                  <ControlField label="Download date text">
+                    <input
+                      className="cms-select"
+                      type="text"
+                      value={videoDesign.downloadDateText}
+                      placeholder={posterDownloadDateLabel()}
+                      maxLength={40}
+                      onChange={(event) => updateVideo({ downloadDateText: event.target.value })}
+                    />
+                  </ControlField>
+                )}
 
                 <div style={CONTROL_GRID}>
                   <RangeControl label="Zoom" min={100} max={170} value={videoDesign.mediaZoom} suffix="%" onChange={(value) => updateVideo({ mediaZoom: value })} />
