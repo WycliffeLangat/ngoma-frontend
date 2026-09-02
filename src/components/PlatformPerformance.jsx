@@ -18,6 +18,7 @@ export default function PlatformPerformance({
   SF,
   GOLD,
   PC = {},
+  InfoButton = null,
   showReleases = false,
   expectedPlatforms = [],
 }) {
@@ -76,6 +77,19 @@ export default function PlatformPerformance({
   };
   const tooltipLabelStyle = { color: isDark ? "#FFFFFF" : "#000000", fontWeight: 700, marginBottom: "2px" };
   const barCursorFill = isDark ? "rgba(255,255,255,0.05)" : "rgba(31,36,31,0.04)";
+  const headerInfoStyle = { background: "rgba(255,255,255,0.10)", color: "#FFFFFF", borderColor: "rgba(255,255,255,0.32)" };
+  const infoCopy = {
+    "#": "The row order after sorting platforms by points, peak rank, and platform name.",
+    Platform: "The source platform being summarized for this song, album, or artist.",
+    Points: "The total points accumulated from this platform's tracked chart placements.",
+    Placements: "How many tracked chart placements contributed to this platform total.",
+    Peak: "The best rank reached on this platform. Lower numbers are stronger.",
+    Months: "How many distinct published months include activity on this platform.",
+    Releases: "How many different releases contributed to this platform total.",
+  };
+  const info = (title, body, items = [], size = 14, style = {}) => InfoButton ? (
+    <InfoButton title={title} body={body} items={items} size={size} style={style} />
+  ) : null;
 
   return (
     <section className="ngoma-platform-performance" style={{
@@ -90,6 +104,7 @@ export default function PlatformPerformance({
           <div style={{ margin: 0, fontFamily: F, fontSize: "20px", fontWeight: 800, letterSpacing: isMobile ? "2px" : "2.4px", textTransform: "uppercase", color: isDark?"#FFFFFF":"#000000", display: "flex", alignItems: "center", gap: "7px", lineHeight: 1.35 }}>
             <span style={{ display: "inline-block", width: "14px", height: "2px", background: isDark?"#FFFFFF":"#000000", borderRadius: "1px", flexShrink: 0 }} />
             Points by Platform
+            {info("Points by Platform", "This chart summarizes how much each tracked source platform contributes to the selected song, album, or artist.", ["Graph view makes the strongest platforms easy to scan.", "Table view exposes the underlying totals, placements, peaks, months, and release counts when available."], 16)}
           </div>
           <p style={{ margin: "-4px 0 0", fontFamily: F, fontSize: "12px", lineHeight: 1.5, color: isDark ? "#FFFFFF" : "#000000" }}>
             Monthly platform placements are aggregated here for quick cross-platform comparison.
@@ -97,27 +112,29 @@ export default function PlatformPerformance({
         </div>
         <div style={{ display: "inline-flex", padding: "3px", borderRadius: "999px", background: isDark ? "#181C18" : "#F0EEE8", border: "1px solid " + (isDark ? "#2F352F" : "#E3E0D8") }}>
           {["graph", "table"].map((option) => (
-            <button
-              key={option}
-              type="button"
-              onClick={() => setView(option)}
-              aria-pressed={view === option}
-              style={{
-                border: 0,
-                borderRadius: "999px",
-                padding: "7px 12px",
-                background: view === option ? (isDark ? "#363C33" : "#1A1A1A") : "transparent",
-                color: view === option ? "#FFFFFF" : (isDark ? "#FFFFFF" : "#000000"),
-                fontFamily: F,
-                fontSize: "10px",
-                fontWeight: 900,
-                letterSpacing: ".8px",
-                textTransform: "uppercase",
-                cursor: "pointer",
-              }}
-            >
-              {option}
-            </button>
+            <span key={option} style={{ display: "inline-flex", alignItems: "center", gap: "2px" }}>
+              <button
+                type="button"
+                onClick={() => setView(option)}
+                aria-pressed={view === option}
+                style={{
+                  border: 0,
+                  borderRadius: "999px",
+                  padding: "7px 12px",
+                  background: view === option ? (isDark ? "#363C33" : "#1A1A1A") : "transparent",
+                  color: view === option ? "#FFFFFF" : (isDark ? "#FFFFFF" : "#000000"),
+                  fontFamily: F,
+                  fontSize: "10px",
+                  fontWeight: 900,
+                  letterSpacing: ".8px",
+                  textTransform: "uppercase",
+                  cursor: "pointer",
+                }}
+              >
+                {option}
+              </button>
+              {info(`${option === "graph" ? "Graph" : "Table"} View`, option === "graph" ? "Graph view displays platform points as horizontal bars so relative strength is easy to compare." : "Table view lists the exact platform totals and supporting metrics.", [], 14)}
+            </span>
           ))}
         </div>
       </div>
@@ -143,7 +160,7 @@ export default function PlatformPerformance({
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px", marginBottom: "8px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0 }}>
                   <span style={{ fontFamily: F, fontSize: "11px", fontWeight: 900, color: isDark ? "#FFFFFF" : "#000000", flexShrink: 0 }}>{index + 1}</span>
-                  <span style={{ fontFamily: F, fontSize: "13px", fontWeight: 850, color: platformColor(row.platform), whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{row.platform}</span>
+                  <span style={{ fontFamily: F, fontSize: "13px", fontWeight: 850, color: platformColor(row.platform), whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "inline-flex", alignItems: "center", gap: "5px" }}>{row.platform}{info(`${row.platform} Performance`, `${row.platform} totals for the selected item, including points, placements, peak rank, and months charted.`, [], 14)}</span>
                 </div>
                 <span style={{ fontFamily: F, fontSize: "14px", fontWeight: 900, color: isDark ? "#FFFFFF" : "#000000", flexShrink: 0 }}>{Number(row.points).toLocaleString()} pts</span>
               </div>
@@ -151,7 +168,7 @@ export default function PlatformPerformance({
                 {[["Placements", row.placements], ["Peak", row.peakRank === "—" ? "—" : `#${row.peakRank}`], ["Months", row.months], ...(showReleases ? [["Releases", row.releases]] : [])].map(([label, value]) => (
                   <div key={label} style={{ textAlign: "center" }}>
                     <div style={{ color: isDark ? "#FFFFFF" : "#000000", fontWeight: 800 }}>{value}</div>
-                    <div style={{ color: isDark ? "#FFFFFF" : "#000000", fontSize: "9px", textTransform: "uppercase", letterSpacing: ".6px", marginTop: "2px" }}>{label}</div>
+                    <div style={{ color: isDark ? "#FFFFFF" : "#000000", fontSize: "9px", textTransform: "uppercase", letterSpacing: ".6px", marginTop: "2px", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>{label}{info(label, infoCopy[label] || `${label} summarizes platform performance for the selected item.`, [], 13)}</div>
                   </div>
                 ))}
               </div>
@@ -165,7 +182,7 @@ export default function PlatformPerformance({
           <thead>
             <tr style={{ background: isDark ? "#151815" : "#FAFAF8", color: isDark ? "#FFFFFF" : "#000000", textAlign: "center" }}>
               {["#", "Platform", "Points", "Placements", "Peak", "Months", ...(showReleases ? ["Releases"] : [])].map((label) => (
-                <th key={label} style={{ padding: "10px 12px", fontSize: "10px", letterSpacing: ".8px", textTransform: "uppercase", textAlign: "center" }}>{label}</th>
+                <th key={label} style={{ padding: "10px 12px", fontSize: "10px", letterSpacing: ".8px", textTransform: "uppercase", textAlign: "center" }}><span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",gap:"5px"}}>{label}{info(label === "#" ? "Platform Sort Order" : label, infoCopy[label] || `${label} summarizes platform performance for the selected item.`, [], 13, headerInfoStyle)}</span></th>
               ))}
             </tr>
           </thead>
@@ -173,7 +190,7 @@ export default function PlatformPerformance({
             {ranked.map((row, index) => (
               <tr key={row.platform} style={{ borderTop: `1px solid ${isDark ? "#2B302B" : "#F0EDE6"}` }}>
                 <td style={{ padding: "10px 12px", fontWeight: 900, color: isDark ? "#FFFFFF" : "#000000", textAlign: "center" }}>{index + 1}</td>
-                <td style={{ padding: "10px 12px", fontWeight: 850, color: platformColor(row.platform), textAlign: "center" }}>{row.platform}</td>
+                <td style={{ padding: "10px 12px", fontWeight: 850, color: platformColor(row.platform), textAlign: "center" }}><span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",gap:"5px"}}>{row.platform}{info(`${row.platform} Performance`, `${row.platform} totals for the selected item, including points, placements, peak rank, and months charted.`, [], 13)}</span></td>
                 <td style={{ padding: "10px 12px", fontWeight: 900, color: isDark ? "#FFFFFF" : "#000000", textAlign: "center" }}>{Number(row.points).toLocaleString()}</td>
                 <td style={{ padding: "10px 12px", color: isDark ? "#FFFFFF" : "#000000", textAlign: "center" }}>{row.placements}</td>
                 <td style={{ padding: "10px 12px", color: isDark ? "#FFFFFF" : "#000000", textAlign: "center" }}>{row.peakRank === "—" ? "—" : `#${row.peakRank}`}</td>

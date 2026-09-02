@@ -207,6 +207,8 @@ export default function PremiumChartsPage({
   F,
   SF,
   GOLD,
+  InfoButton = null,
+  InfoLabel = null,
   MEDALS,
   MONTHS,
   VO,
@@ -826,11 +828,15 @@ export default function PremiumChartsPage({
         <span
           style={{
             ...styles.detailCardLabel,
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "5px",
             ...(mobile ? { fontSize: "9.5px" } : null),
             ...(darkMode ? styles.detailCardLabelDark : null),
           }}
         >
-          {label}
+          <span>{label}</span>
+          {InfoButton && <InfoButton title={label} body={detailInfo(label)} size={14} />}
         </span>
         <div
           style={{
@@ -1122,6 +1128,54 @@ export default function PremiumChartsPage({
             .filter(Boolean)
             .join(" by "))
     : `${mastheadTitle} artwork`;
+  const chartInfoBody = [
+    "This is the public Top 50 table for the selected chart type, month, and source.",
+    "Combined charts rank entries by adding comparable chart points from the tracked platform charts. Platform charts show that individual source's published ranking.",
+  ];
+  const chartInfoItems = [
+    "Rank shows the current position for the selected month.",
+    "Move compares the current rank with the previous month.",
+    "Months counts how many published months the entry has charted.",
+    "Peak is the best rank the entry has reached in the selected chart history.",
+    "Details opens the entry's metadata, credits, platform reach, and links when available.",
+  ];
+  const detailInfo = (label) => {
+    const copy = {
+      Move: "Movement compares this entry's current rank with its previous charted month. New and re-entry labels mark entries without a direct previous-month rank.",
+      Months: "Months counts the published months where this entry appears on the relevant chart.",
+      "Last Month": "Last Month is the entry's rank in the immediately previous chart month, when available.",
+      Peak: "Peak is the best rank this entry has reached in this chart history.",
+      Country: "Country comes from the primary artist profile or chart metadata attached to the entry.",
+      Platforms: "Platforms shows how many tracked source platforms also carried this entry for the selected month. On Combined charts it appears as charted platforms out of total tracked platforms.",
+      Points: "Points are the public display points for this monthly chart row. Higher ranks earn more points.",
+      Entries: "Entries counts the credited songs, albums, or artist appearances that feed the row when that metadata is available.",
+      "City / Region": "City or region is profile metadata for the artist when it has been added in the CMS.",
+      Genre: "Genre is release or artist metadata supplied by the public dataset.",
+      "Artist type": "Artist type describes how the artist is categorized in the profile data.",
+      Verification: "Verification marks an artist profile that has been flagged as verified in the CMS.",
+      Biography: "Biography is the public artist profile summary enriched from available metadata.",
+      "Artist links": "Artist links open the public social or profile URLs attached to the artist.",
+      "Main artist(s)": "Main artist credits identify the primary credited artist or artists on the release.",
+      Featuring: "Featuring lists featured artist credits on the release.",
+      "Additional credits": "Additional credits show extra credited contributors attached to the release.",
+      "Songwriter(s)": "Songwriters are writing credits from release metadata, when available.",
+      "Producer(s)": "Producers are production credits from release metadata, when available.",
+      "Release date": "Release date is the exact date stored for this song or album.",
+      "Release year": "Release year is the year parsed from release metadata.",
+      Label: "Label is the record label or imprint stored for the release.",
+      Distributor: "Distributor is the distribution partner stored for the release.",
+      Tracks: "Tracks is the number of tracks stored for an album or release.",
+      "Radio information": "Radio information contains public notes about radio support when that metadata exists.",
+      Listen: "Listen contains official listening links from the release metadata.",
+    };
+    return copy[label] || `${label} is metadata attached to this chart entry when it exists in the public dataset.`;
+  };
+  const HeaderInfo = ({ children, title, body, items }) => (
+    <span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",gap:"5px",width:"100%"}}>
+      <span>{children}</span>
+      {InfoButton && <InfoButton title={title} body={body} items={items} size={14} style={{background:darkMode?"rgba(255,255,255,0.10)":"rgba(255,255,255,0.72)"}} />}
+    </span>
+  );
 
   return (
     <>
@@ -1312,24 +1366,35 @@ export default function PremiumChartsPage({
               )}
             </div>
 
-            <h1
-              className="ytc-masthead-heading ngoma-chart-hero-title"
-              aria-label={mastheadTitle}
-              style={{
-                ...styles.heroTitle,
-                color: mastheadText,
-                fontFamily: F,
-                fontSize: mobile ? "clamp(30px, 10.8vw, 40px)" : (tablet ? "56px" : "76px"),
-                letterSpacing: 0,
-                lineHeight: mobile ? 1.02 : 0.98,
-                margin: 0,
-                textTransform: "none",
-                maxWidth: mobile ? "100%" : "760px",
-                whiteSpace: mobile ? "nowrap" : "normal",
-              }}
-            >
-              {mastheadTitle}
-            </h1>
+            <div style={{display:"flex",alignItems:"center",gap:mobile?"8px":"12px",flexWrap:"wrap"}}>
+              <h1
+                className="ytc-masthead-heading ngoma-chart-hero-title"
+                aria-label={mastheadTitle}
+                style={{
+                  ...styles.heroTitle,
+                  color: mastheadText,
+                  fontFamily: F,
+                  fontSize: mobile ? "clamp(30px, 10.8vw, 40px)" : (tablet ? "56px" : "76px"),
+                  letterSpacing: 0,
+                  lineHeight: mobile ? 1.02 : 0.98,
+                  margin: 0,
+                  textTransform: "none",
+                  maxWidth: mobile ? "100%" : "760px",
+                  whiteSpace: mobile ? "nowrap" : "normal",
+                }}
+              >
+                {mastheadTitle}
+              </h1>
+              {InfoButton && (
+                <InfoButton
+                  title="Ngoma Top 50"
+                  body={chartInfoBody}
+                  items={chartInfoItems}
+                  size={mobile ? 20 : 22}
+                  style={{background:darkMode?"rgba(255,255,255,0.10)":"#FFFFFF"}}
+                />
+              )}
+            </div>
 
             <div
               style={{
@@ -1382,6 +1447,14 @@ export default function PremiumChartsPage({
                       color: mastheadText,
                     }}
                   />
+                  {InfoButton && (
+                    <InfoButton
+                      title="Chart Period"
+                      body="Use this control to choose the month or published period shown in the chart. Changing it refreshes ranks, movement, points, peaks, and detail history for that period."
+                      size={18}
+                      style={{alignSelf:"center",borderColor:mastheadBorder,background:"transparent",color:mastheadText}}
+                    />
+                  )}
                 </div>
               )}
             </div>
@@ -1438,6 +1511,14 @@ export default function PremiumChartsPage({
                   }
                 }}
               >
+                {InfoButton && (
+                  <InfoButton
+                    title="Featured Chart Artwork"
+                    body="This tile rotates through entries from the selected Top 50. Click the artwork to open that entry's detail page; hover pauses the rotation on desktop."
+                    size={22}
+                    style={{position:"absolute",right:"10px",top:"10px",zIndex:3,background:"rgba(0,0,0,0.48)",color:"#FFFFFF",borderColor:"rgba(255,255,255,0.45)"}}
+                  />
+                )}
                 {/* Cover art */}
                 {img && (
                   <img
@@ -1529,6 +1610,19 @@ export default function PremiumChartsPage({
                 </option>
               ))}
             </select>
+            {InfoButton && (
+              <InfoButton
+                title="Chart Controls"
+                body="Use these controls to switch the public chart between singles, albums, artists, Combined ranking, country scope, and available source platforms."
+                items={[
+                  "Chart type changes whether the list is songs, albums, or artists.",
+                  "Platform changes whether you see the Combined chart, a country chart, or a specific source platform.",
+                  "Share downloads the current chart artwork.",
+                ]}
+                size={34}
+                style={{borderRadius:"11px",background:darkMode?"#151815":"#FFFFFF"}}
+              />
+            )}
             <ShareButton
               compact
               isDark={darkMode}
@@ -1541,7 +1635,16 @@ export default function PremiumChartsPage({
           </div>
         ) : (
           <>
-            <ChartToggle />
+            <div style={{display:"inline-flex",alignItems:"center",gap:"8px",minWidth:0}}>
+              <ChartToggle />
+              {InfoButton && (
+                <InfoButton
+                  title="Chart Type"
+                  body="Switch between the public singles, albums, and artists charts. Singles and albums rank releases; artists rank credited artist performance."
+                  size={18}
+                />
+              )}
+            </div>
 
             <div style={{ display: "contents" }}>
               <div
@@ -1565,32 +1668,44 @@ export default function PremiumChartsPage({
                   const label = item === "Kenyan" ? regionalTop50Label : (item === "Combined" ? item : PLAT_LABEL[item] || item);
 
                   return (
-                    <button
-                      key={item}
-                      ref={active ? activePlatformPillRef : null}
-                      className="ngoma-source-selector-option"
-                      aria-current={active ? "true" : undefined}
-                      onClick={() => setPlat(item === "Kenyan" ? selectedCountryScope : item)}
-                      style={{
-                        ...styles.platformButton,
-                        "--platform-pill-bg": darkMode ? "#151815" : "#ffffff",
-                        "--platform-pill-text": darkMode ? "#FFFFFF" : "#000000",
-                        "--platform-pill-border": darkMode ? "#2F352F" : "rgba(0,0,0,0.12)",
-                        "--platform-pill-shadow": "none",
-                        "--platform-pill-active-bg": color,
-                        "--platform-pill-active-text": ink,
-                        "--platform-pill-active-border": color,
-                        "--platform-pill-active-shadow": `0 2px 10px ${color}33`,
-                        padding: tablet ? "7px 10px" : "8px 12px",
-                        borderColor: active ? color : (darkMode ? "#2F352F" : "rgba(0,0,0,0.12)"),
-                        background: active ? color : (darkMode ? "#151815" : "#ffffff"),
-                        color: active ? ink : (darkMode ? "#FFFFFF" : "#000000"),
-                        boxShadow: active ? `0 2px 10px ${color}33` : "none",
-                        flexShrink: 0,
-                      }}
-                    >
-                      {label}
-                    </button>
+                    <div key={item} style={{display:"inline-flex",alignItems:"center",gap:"4px",flexShrink:0}}>
+                      <button
+                        ref={active ? activePlatformPillRef : null}
+                        className="ngoma-source-selector-option"
+                        aria-current={active ? "true" : undefined}
+                        onClick={() => setPlat(item === "Kenyan" ? selectedCountryScope : item)}
+                        style={{
+                          ...styles.platformButton,
+                          "--platform-pill-bg": darkMode ? "#151815" : "#ffffff",
+                          "--platform-pill-text": darkMode ? "#FFFFFF" : "#000000",
+                          "--platform-pill-border": darkMode ? "#2F352F" : "rgba(0,0,0,0.12)",
+                          "--platform-pill-shadow": "none",
+                          "--platform-pill-active-bg": color,
+                          "--platform-pill-active-text": ink,
+                          "--platform-pill-active-border": color,
+                          "--platform-pill-active-shadow": `0 2px 10px ${color}33`,
+                          padding: tablet ? "7px 10px" : "8px 12px",
+                          borderColor: active ? color : (darkMode ? "#2F352F" : "rgba(0,0,0,0.12)"),
+                          background: active ? color : (darkMode ? "#151815" : "#ffffff"),
+                          color: active ? ink : (darkMode ? "#FFFFFF" : "#000000"),
+                          boxShadow: active ? `0 2px 10px ${color}33` : "none",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {label}
+                      </button>
+                      {InfoButton && (
+                        <InfoButton
+                          title={`${label} Source`}
+                          body={item === "Combined"
+                            ? "Combined ranks entries after adding their comparable points from every tracked source platform for the selected month."
+                            : item === "Kenyan"
+                              ? "This country shortcut shows the selected country's public Top 50, built from entries eligible for that country before the Top 50 cutoff."
+                              : `This source view shows the ${label} chart data for the selected month. It is one input into the broader Combined chart when that platform supports the selected chart type.`}
+                          size={14}
+                        />
+                      )}
+                    </div>
                   );
                 })}
               </div>
@@ -1626,9 +1741,15 @@ export default function PremiumChartsPage({
       >
         {mobile ? (
           <div className="ngoma-mobile-table-header" style={{...styles.mobileTableHeader, background: darkMode ? "#0f120f" : "#f0ede6", borderBottom: `2px solid ${chartAccentBorder}`, color: darkMode ? "#FFFFFF" : "#000000"}}>
-            <span style={styles.mobileTableHeaderCell}>#</span>
-            <span style={{...styles.mobileTableHeaderCell, textAlign: "left"}}>{isArtistsChart ? "Artist" : (isSingles ? "Song" : "Album")}</span>
-            <span style={styles.mobileTableHeaderCell}>Info</span>
+            <span style={styles.mobileTableHeaderCell}>
+              <HeaderInfo title="Rank" body="Rank is the entry's current position in the selected Top 50. Lower numbers are better.">#</HeaderInfo>
+            </span>
+            <span style={{...styles.mobileTableHeaderCell, textAlign: "left"}}>
+              <HeaderInfo title={isArtistsChart ? "Artist" : (isSingles ? "Song" : "Album")} body={`This column names the charted ${isArtistsChart ? "artist" : (isSingles ? "song" : "album")} and opens the public detail view.`}>{isArtistsChart ? "Artist" : (isSingles ? "Song" : "Album")}</HeaderInfo>
+            </span>
+            <span style={styles.mobileTableHeaderCell}>
+              <HeaderInfo title="Info" body="Tap the plus button on a row to expand its movement, metadata, points, platform coverage, credits, and links when available.">Info</HeaderInfo>
+            </span>
           </div>
         ) : (
           <div className="ngoma-table-header" style={{...styles.tableHeader, ...(tablet ? { gridTemplateColumns: "48px 72px minmax(0, 1fr) 82px 74px 66px 58px", gap: "14px", padding: "11px 18px", fontSize: "9.5px" } : null), background: darkMode ? "#0f120f" : "#f0ede6", borderBottom: `2px solid ${chartAccentBorder}`, color: darkMode ? "#FFFFFF" : "#000000"}}>
@@ -1637,32 +1758,38 @@ export default function PremiumChartsPage({
               onClick={() => handleSort("rank")}
               title="Sort by position"
             >
-              #{sortArrow("rank")}
+              <HeaderInfo title="Rank" body="Rank is the current Top 50 position for the selected chart. Click the header to sort by rank.">#{sortArrow("rank")}</HeaderInfo>
             </span>
-            <span style={styles.headerCell}>Move</span>
-            <span style={{ ...styles.headerEntryCell, ...(tablet ? { paddingLeft: "52px" } : null) }}>{isArtistsChart ? "Artist" : (isSingles ? "Song" : "Album")}</span>
+            <span style={styles.headerCell}>
+              <HeaderInfo title="Move" body="Move compares this entry's rank with the previous month. Up means it climbed, down means it fell, NEW means first appearance, and RE means re-entry.">Move</HeaderInfo>
+            </span>
+            <span style={{ ...styles.headerEntryCell, ...(tablet ? { paddingLeft: "52px" } : null) }}>
+              <HeaderInfo title={isArtistsChart ? "Artist" : (isSingles ? "Song" : "Album")} body={`This column shows the charted ${isArtistsChart ? "artist" : (isSingles ? "song" : "album")} and its main public credit. Click the name to open the detail page.`}>{isArtistsChart ? "Artist" : (isSingles ? "Song" : "Album")}</HeaderInfo>
+            </span>
             <span
               style={{ ...styles.headerCell, cursor: "pointer" }}
               onClick={() => handleSort("monthsOnChart")}
               title="Sort by months on chart"
             >
-              Months{sortArrow("monthsOnChart")}
+              <HeaderInfo title="Months" body="Months counts how many published months this entry has appeared on this chart. Click the header to sort by longest or shortest run.">Months{sortArrow("monthsOnChart")}</HeaderInfo>
             </span>
             <span
               style={{ ...styles.headerCell, cursor: "pointer" }}
               onClick={() => handleSort("lastMonth")}
               title="Sort by last month"
             >
-              Last Month{sortArrow("lastMonth")}
+              <HeaderInfo title="Last Month" body="Last Month shows the entry's position in the previous chart month when it was present. Click the header to sort by previous rank.">Last Month{sortArrow("lastMonth")}</HeaderInfo>
             </span>
             <span
               style={{ ...styles.headerCell, cursor: "pointer" }}
               onClick={() => handleSort("peak")}
               title="Sort by peak position"
             >
-              Peak{sortArrow("peak")}
+              <HeaderInfo title="Peak" body="Peak is the best rank the entry has reached across its chart history. Click the header to sort by best peak.">Peak{sortArrow("peak")}</HeaderInfo>
             </span>
-            <span style={styles.headerCell}>Details</span>
+            <span style={styles.headerCell}>
+              <HeaderInfo title="Details" body="Details opens the row's expanded information panel, including credits, points, platform coverage, metadata, and listening links when available.">Details</HeaderInfo>
+            </span>
           </div>
         )}
 

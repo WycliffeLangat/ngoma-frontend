@@ -15,6 +15,7 @@ export default function ReleaseDetailPage({ ctx }) {
     CountryBadge,
     F,
     GOLD,
+    InfoButton,
     Line,
     LineChart,
     PAD,
@@ -64,6 +65,28 @@ export default function ReleaseDetailPage({ ctx }) {
   const tooltipLabelStyle = { color: isDark ? "#FFFFFF" : "#000000", fontWeight: 700, marginBottom: "2px" };
   const dividerColor = isDark ? "#2B302B" : "#F0F0EC";
   const darkCard = (extra = {}) => ({ ...card(extra), background: isDark ? "#0F120F" : "#FFFFFF", borderColor: isDark ? "#2B302B" : "#EFEDE7" });
+  const info = (title, body, items = [], size = 16) => InfoButton ? (
+    <InfoButton title={title} body={body} items={items} size={size} />
+  ) : null;
+  const statInfo = (label) => {
+    const copy = {
+      "Current Rank": "The release's rank in the latest selected Combined chart month where it appears.",
+      "Current Combined Rank": "The release's rank in the latest Combined chart month in its journey.",
+      "Peak Rank": "The release's best Combined chart rank. Lower is better.",
+      "Combined Peak Rank": "The release's best rank on the Combined chart. Lower is better.",
+      "Total Points": "The sum of public display points this release has earned on the Combined chart across its charted months.",
+      "Months Charted": "How many published months this release has appeared in Combined or platform chart history.",
+      "#1 Combined Months": "How many published months this release finished at #1 on the Combined chart.",
+      Platforms: "How many tracked source platforms have chart data for this release.",
+      "Best Coverage": "The highest number of tracked platforms this release appeared on in a single Combined chart month.",
+      "Release Year": "The release year stored in the public metadata.",
+      Month: "The published chart month for this journey row.",
+      Combined: "The release's Combined rank and points for that month.",
+      Cover: "Platform coverage for that month: platforms charted out of total tracked platforms.",
+      "Platform Peak Ranks": "Each platform's best rank for this release across tracked months.",
+    };
+    return copy[label] || `${label} is release metadata from the public dataset.`;
+  };
 
   return (()=>{
         const selectedCertification = getCertificationForEntry(selR, selR.type || (isSingles ? "single" : "album"));
@@ -292,6 +315,7 @@ export default function ReleaseDetailPage({ ctx }) {
             <div style={{flex:1,minWidth:0}}>
               <h1 style={{display:"flex",alignItems:"center",flexWrap:"wrap",gap:"8px",fontSize:isMobile?"24px":"32px",fontWeight:850,margin:"0 0 10px",lineHeight:1.1,fontFamily:SF,letterSpacing:"-0.5px",color:isDark?"#FFFFFF":"#000000"}}>
                 {selR.title}{selectedCertification&&<span aria-label={`${selectedCertification.label} certified`} title={`${selectedCertification.label} certified · ${Number(selectedCertification.totalPts||0).toLocaleString()} points`} style={{fontSize:isMobile?"14px":"20px",opacity:0.9,lineHeight:1}}><span style={selectedCertification.iconFilter?{filter:selectedCertification.iconFilter}:undefined}>{selectedCertification.icon}</span></span>}
+                {info("Release Detail", "This page brings together the release identity, metadata, Combined chart history, platform performance, and monthly platform journey for the selected song or album.", ["The top cards summarize the release's current chart status and lifetime public chart activity.", "The metadata table shows artist credits, identifiers, links, country, genre, label, and other public fields when available.", "The charts and tables below explain where the release peaked, how it moved over time, and which platforms contributed to its chart presence."])}
               </h1>
               <div style={{display:"flex",alignItems:"center",gap:"9px",flexWrap:"wrap"}}>
                 <button type="button" onClick={()=>openArtistDetails(selR.primary_artist||selR.artist)} style={{fontSize:isMobile?"15px":"18px",color:isDark?"#FFFFFF":"#000000",margin:0,padding:0,border:0,background:"transparent",fontFamily:F,cursor:"pointer",fontWeight:800}}>{selR.artist}</button>
@@ -311,12 +335,12 @@ export default function ReleaseDetailPage({ ctx }) {
                 {label:"Platforms",value:platformNames.size},
                 {label:"Best Coverage",value:`${bestCoverage}/${tp}`},
                 {label:"Release Year",value:selR.release_year||releaseMetadata.release_year||"—"},
-              ].map((stat)=><div key={stat.label} style={{padding:"14px 15px",border:"1px solid "+(isDark?"#2B302B":"#ECE9E1"),borderRadius:"10px",background:isDark?"#151815":"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000"}}>{stat.label}</div><div style={{fontFamily:F,fontSize:"22px",fontWeight:900,color:isDark?"#FFFFFF":"#000000",marginTop:"5px"}}>{stat.value}</div></div>)}
+              ].map((stat)=><div key={stat.label} style={{padding:"14px 15px",border:"1px solid "+(isDark?"#2B302B":"#ECE9E1"),borderRadius:"10px",background:isDark?"#151815":"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",display:"inline-flex",alignItems:"center",gap:"6px"}}>{stat.label}{info(stat.label, statInfo(stat.label), [], 14)}</div><div style={{fontFamily:F,fontSize:"22px",fontWeight:900,color:isDark?"#FFFFFF":"#000000",marginTop:"5px"}}>{stat.value}</div></div>)}
             </div>
             <div style={{marginBottom:"18px",border:`1px solid ${isDark?"#2B302B":"#ECE9E1"}`,borderRadius:"12px",overflow:"hidden"}}>
               {infoRows.map(([label, value], idx) => (
                 <div key={label} style={{display:"grid",gridTemplateColumns:isMobile?"110px 1fr":"170px 1fr",gap:"14px",padding:"12px 16px",background:isDark?(idx%2===0?"#121612":"#0F1110"):(idx%2===0?"#FAFAF8":"#FFFFFF"),borderTop:idx===0?"none":`1px solid ${isDark?"#2B302B":"#F0EDE6"}`,alignItems:"center"}}>
-                  <span style={{fontFamily:F,fontSize:"11px",fontWeight:750,letterSpacing:"0.4px",color:isDark?"#FFFFFF":"#000000",textTransform:"uppercase"}}>{label}</span>
+                  <span style={{fontFamily:F,fontSize:"11px",fontWeight:750,letterSpacing:"0.4px",color:isDark?"#FFFFFF":"#000000",textTransform:"uppercase",display:"inline-flex",alignItems:"center",gap:"6px"}}>{label}{info(label, statInfo(label), [], 14)}</span>
                   {urlLabels.has(label) ? (
                     <a href={value} target="_blank" rel="noopener noreferrer" onClick={(e)=>e.stopPropagation()} style={{fontFamily:F,fontSize:"14px",fontWeight:700,color:isDark?"#FFFFFF":"#000000",textDecoration:"none",wordBreak:"break-all"}}>{value} ↗</a>
                   ) : artistCreditLabels.has(label) ? (
@@ -329,7 +353,7 @@ export default function ReleaseDetailPage({ ctx }) {
             </div>
             <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1.4fr 0.8fr",gap:"14px",marginBottom:"20px"}}>
               <div style={darkCard()}>
-                <div style={secLbl(isDark?"#FFFFFF":"#000000")}><SecMark c={isDark?"#FFFFFF":"#000000"}/>Combined Rank Journey</div>
+                <div style={secLbl(isDark?"#FFFFFF":"#000000")}><SecMark c={isDark?"#FFFFFF":"#000000"}/>Combined Rank Journey{info("Combined Rank Journey", "This line chart shows the release's Combined chart rank across its charted months. The y-axis is reversed because a lower rank number is better.", ["A point at #1 marks a month where the release led the Combined chart.", "Gaps are excluded so the line focuses on months where Combined history exists."])}</div>
                 <div style={{fontFamily:F,fontSize:"9.5px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",margin:"-6px 0 6px"}}>Lower = better</div>
                 <ResponsiveContainer width="100%" height={220}>
                   <LineChart data={releaseRankData} margin={{top:8,right:18,left:0,bottom:0}}>
@@ -342,8 +366,8 @@ export default function ReleaseDetailPage({ ctx }) {
                 </ResponsiveContainer>
               </div>
               <div style={darkCard()}>
-                <div style={secLbl(isDark?"#FFFFFF":"#000000")}><SecMark c={isDark?"#FFFFFF":"#000000"}/>Platform Peak Ranks</div>
-                {platformPeaks.map((item)=><div key={item.platform} style={{display:"flex",justifyContent:"space-between",gap:"12px",padding:"8px 0",borderBottom:`1px solid ${dividerColor}`,fontFamily:F,fontSize:"12px"}}><span style={{color:PC[item.platform]||(isDark?"#93A093":"#59645D"),fontWeight:800}}>{item.platform}</span><strong style={{color:isDark?"#FFFFFF":"#000000"}}>#{item.rank}</strong></div>)}
+                <div style={secLbl(isDark?"#FFFFFF":"#000000")}><SecMark c={isDark?"#FFFFFF":"#000000"}/>Platform Peak Ranks{info("Platform Peak Ranks", "This list shows the best rank the release reached on each tracked source platform during its public chart history.", ["Lower numbers are stronger.", "Only platforms with at least one placement for this release appear here."])}</div>
+                {platformPeaks.map((item)=><div key={item.platform} style={{display:"flex",justifyContent:"space-between",gap:"12px",padding:"8px 0",borderBottom:`1px solid ${dividerColor}`,fontFamily:F,fontSize:"12px"}}><span style={{color:PC[item.platform]||(isDark?"#93A093":"#59645D"),fontWeight:800,display:"inline-flex",alignItems:"center",gap:"6px"}}>{item.platform}{info(`${item.platform} Peak Rank`, `${item.platform}'s best observed rank for this release across the available monthly source-platform data.`, [], 14)}</span><strong style={{color:isDark?"#FFFFFF":"#000000"}}>#{item.rank}</strong></div>)}
               </div>
             </div>
             <PlatformPerformance
@@ -354,15 +378,16 @@ export default function ReleaseDetailPage({ ctx }) {
               SF={SF}
               GOLD={GOLD}
               PC={PC}
+              InfoButton={InfoButton}
               expectedPlatforms={(isAlbum ? A_PLATS : S_PLATS)
                 .filter((platform) => platform !== "Combined" && platform !== "Kenyan")
                 .map((platform) => PLAT_LABEL[platform] || platform)}
             />
             <div style={darkCard({marginBottom:0})}>
-              <div style={secLbl(isDark?"#FFFFFF":"#000000")}><SecMark c={isDark?"#FFFFFF":"#000000"}/>Cross-Platform Journey</div>
+              <div style={secLbl(isDark?"#FFFFFF":"#000000")}><SecMark c={isDark?"#FFFFFF":"#000000"}/>Cross-Platform Journey{info("Cross-Platform Journey", "This table follows the release month by month, showing its Combined rank, platform coverage, and the source-platform placements behind that month.", ["Use it to see whether the release was driven by one platform, broad platform coverage, or both.", "The platform chips show each source platform and its rank for that month."])}</div>
               <div style={{border:`1px solid ${isDark?"#2B302B":"#E4E1D8"}`,borderRadius:"12px",overflow:"hidden"}}>
                 <div style={{display:"grid",gridTemplateColumns:isMobile?"58px 84px 46px minmax(0,1fr)":"74px 140px 60px minmax(0,1fr)",gap:"8px",padding:isMobile?"9px":"11px 14px",background:"#1F241F",fontFamily:F,fontSize:"10.5px",fontWeight:850,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF"}}>
-                  <div>Month</div><div>Combined</div><div>Cover</div><div>Platforms</div>
+                  <div style={{display:"inline-flex",alignItems:"center",gap:"5px"}}>Month{InfoButton && <InfoButton title="Journey Month" body={statInfo("Month")} size={14} style={{background:"rgba(255,255,255,0.10)",color:"#FFFFFF",borderColor:"rgba(255,255,255,0.32)"}} />}</div><div style={{display:"inline-flex",alignItems:"center",gap:"5px"}}>Combined{InfoButton && <InfoButton title="Combined Journey Value" body={statInfo("Combined")} size={14} style={{background:"rgba(255,255,255,0.10)",color:"#FFFFFF",borderColor:"rgba(255,255,255,0.32)"}} />}</div><div style={{display:"inline-flex",alignItems:"center",gap:"5px"}}>Cover{InfoButton && <InfoButton title="Platform Coverage" body={statInfo("Cover")} size={14} style={{background:"rgba(255,255,255,0.10)",color:"#FFFFFF",borderColor:"rgba(255,255,255,0.32)"}} />}</div><div style={{display:"inline-flex",alignItems:"center",gap:"5px"}}>Platforms{InfoButton && <InfoButton title="Journey Platforms" body="The source platforms where this release appeared in the selected month, with each chip showing that platform's rank." size={14} style={{background:"rgba(255,255,255,0.10)",color:"#FFFFFF",borderColor:"rgba(255,255,255,0.32)"}} />}</div>
                 </div>
                 {chartedJourney.map(({month:m,combined,platforms},idx)=>{
                   const isPeak = combined && Number(combined.rank) === 1;

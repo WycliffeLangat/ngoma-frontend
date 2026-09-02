@@ -10,6 +10,7 @@ export default function CertificationsPage({ ctx }) {
     CountryBadge,
     F,
     GOLD,
+    InfoButton,
     PAD,
     SF,
     SecMark,
@@ -65,13 +66,25 @@ export default function CertificationsPage({ ctx }) {
     ["Running total", `Points keep adding every month a ${activeSingular} appears on the Combined Top 50.`],
     ["Current tier", "Each release appears once, at the highest award level it has reached."],
   ];
+  const info = (title, body, items = [], size = 16) => InfoButton ? (
+    <InfoButton title={title} body={body} items={items} size={size} />
+  ) : null;
+  const sectionLabel = (label, title, body, items = []) => (
+    <div style={{...secLbl(textPrimary),marginBottom:"14px",display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}>
+      <span><SecMark c={textPrimary}/>{label}</span>
+      {info(title || label, body, items)}
+    </div>
+  );
 
   if (isArtists) {
     return (
       <div style={{padding:PAD,minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:"24px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
           <div>
-            <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px",color:textPrimary}}>Artist Certifications</h2>
+            <div style={{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}>
+              <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px",color:textPrimary}}>Artist Certifications</h2>
+              {info("Artist Certifications", "Artist certification rules are not active yet, so this page intentionally points users back to artist rankings and comparisons.")}
+            </div>
             <p style={{fontFamily:F,fontSize:TXT.lead,color:textMuted,margin:0,lineHeight:1.55}}>Artist certification rules have not been activated yet. Song and album certifications remain based on cumulative Combined chart points.</p>
           </div>
           <div style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap"}}>
@@ -103,8 +116,11 @@ export default function CertificationsPage({ ctx }) {
     >
       <section className="ngoma-cert-hero" style={{borderColor:cardBorder,background:isDark?"linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))":"linear-gradient(135deg,#FFF,#FAF8F2)"}}>
         <div style={{minWidth:0}}>
-          <div style={{...secLbl(textPrimary),marginBottom:"10px"}}><SecMark c={textPrimary}/>Point-Based Awards</div>
-          <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 8px",color:textPrimary}}>Certifications</h2>
+          <div style={{...secLbl(textPrimary),marginBottom:"10px",display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}><span><SecMark c={textPrimary}/>Point-Based Awards</span>{info("Point-Based Awards", "Certification awards are based on lifetime public display points from the Combined chart, not on streams or one-platform performance.")}</div>
+          <div style={{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}>
+            <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 8px",color:textPrimary}}>Certifications</h2>
+            {info("Certifications", `Certified ${activeLabel} have crossed the active lifetime Combined chart point thresholds.`, ["Each release appears once at its highest current tier.", "The page sorts certified releases by total lifetime points within each award group."])}
+          </div>
           <p style={{fontFamily:F,fontSize:TXT.lead,color:textMuted,margin:0,lineHeight:1.65,maxWidth:"760px"}}>
             Certifications show which {activeLabel} have built enough lifetime Combined chart points to cross an award threshold. The page is grouped by award level, then sorted by total points so the strongest certified releases are easiest to scan.
           </p>
@@ -124,7 +140,7 @@ export default function CertificationsPage({ ctx }) {
 
       <div className="ngoma-cert-dashboard">
         <div className="ngoma-cert-feature" style={tileCard({borderRadius:"14px"})}>
-          <div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:textMuted}}>Current leader</div>
+          <div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:textMuted,display:"inline-flex",alignItems:"center",gap:"6px"}}>Current leader{info("Current Leader", "The certified release with the highest lifetime Combined chart points on this page.", [], 14)}</div>
           {topCert ? (
             <>
               <div style={{display:"flex",alignItems:"center",gap:"13px",marginTop:"12px"}}>
@@ -168,11 +184,11 @@ export default function CertificationsPage({ ctx }) {
               </div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px",marginTop:"18px"}}>
                 <div style={{padding:"12px",borderRadius:"10px",background:softBg,border:`1px solid ${cardBorder}`}}>
-                  <div style={{fontFamily:F,fontSize:"11px",fontWeight:850,color:textMuted,textTransform:"uppercase",letterSpacing:"0.7px"}}>Award</div>
+                  <div style={{fontFamily:F,fontSize:"11px",fontWeight:850,color:textMuted,textTransform:"uppercase",letterSpacing:"0.7px",display:"inline-flex",alignItems:"center",gap:"5px"}}>Award{info("Award", "The highest certification tier this release has reached based on its lifetime point total.", [], 14)}</div>
                   <div style={{fontFamily:F,fontSize:"16px",fontWeight:850,color:topCertMeta?.color || textPrimary,marginTop:"4px"}}>{topCertMeta?.label || topCert.level}</div>
                 </div>
                 <div style={{padding:"12px",borderRadius:"10px",background:softBg,border:`1px solid ${cardBorder}`}}>
-                  <div style={{fontFamily:F,fontSize:"11px",fontWeight:850,color:textMuted,textTransform:"uppercase",letterSpacing:"0.7px"}}>Points</div>
+                  <div style={{fontFamily:F,fontSize:"11px",fontWeight:850,color:textMuted,textTransform:"uppercase",letterSpacing:"0.7px",display:"inline-flex",alignItems:"center",gap:"5px"}}>Points{info("Certification Points", "Lifetime public display points accumulated from months on the Combined Top 50.", [], 14)}</div>
                   <div style={{fontFamily:F,fontSize:"16px",fontWeight:850,color:textPrimary,marginTop:"4px"}}>{(topCert.totalPts || 0).toLocaleString()}</div>
                 </div>
               </div>
@@ -183,10 +199,10 @@ export default function CertificationsPage({ ctx }) {
         </div>
 
         <div className="ngoma-cert-rules" style={{borderColor:cardBorder,background:softBg}}>
-          <div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:textMuted}}>How awards are decided</div>
+          <div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:textMuted,display:"inline-flex",alignItems:"center",gap:"6px"}}>How awards are decided{info("How Awards Are Decided", "These rules summarize the certification engine used for public song and album awards.", [], 14)}</div>
           {awardRules.map(([label, detail]) => (
             <div key={label} className="ngoma-cert-rule">
-              <span style={{fontFamily:F,fontSize:"13px",fontWeight:850,color:textPrimary}}>{label}</span>
+              <span style={{fontFamily:F,fontSize:"13px",fontWeight:850,color:textPrimary,display:"inline-flex",alignItems:"center",gap:"6px"}}>{label}{info(label, detail, [], 14)}</span>
               <p style={{fontFamily:F,fontSize:"13px",lineHeight:1.5,color:textMuted,margin:0}}>{detail}</p>
             </div>
           ))}
@@ -194,23 +210,23 @@ export default function CertificationsPage({ ctx }) {
       </div>
 
       <section style={{marginTop:"26px"}}>
-        <div style={{...secLbl(textPrimary),marginBottom:"14px"}}><SecMark c={textPrimary}/>Award Levels</div>
+        {sectionLabel("Award Levels", "Award Levels", "Shows the active certification tiers, their point thresholds, and how many releases currently sit at each tier.")}
         <div className="anl-grid-3 ngoma-cert-level-grid" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"12px"}}>
           {levelStats.map((level)=>(
             <div key={level.level} className="ngoma-cert-tile" style={{...tileCard({borderRadius:"14px",borderTop:`3px solid ${level.color}`})}}>
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px"}}>
                 <span style={{fontSize:"28px",lineHeight:1,filter:level.iconFilter||undefined}}>{level.icon}</span>
-                <span style={{fontFamily:F,fontSize:"12px",fontWeight:850,color:textMuted}}>{level.count.toLocaleString()} current</span>
+                <span style={{fontFamily:F,fontSize:"12px",fontWeight:850,color:textMuted,display:"inline-flex",alignItems:"center",gap:"5px"}}>{level.count.toLocaleString()} current{info(`${level.label} Count`, `The number of certified ${activeLabel} currently shown at ${level.label}.`, [], 14)}</span>
               </div>
-              <div style={{fontFamily:SF,fontWeight:850,fontSize:TXT.metric,margin:"12px 0 3px",color:level.color}}>{level.label}</div>
-              <div style={{fontFamily:F,fontSize:TXT.cardMeta,color:textMuted}}>{level.pts.toLocaleString()}+ lifetime points</div>
+              <div style={{fontFamily:SF,fontWeight:850,fontSize:TXT.metric,margin:"12px 0 3px",color:level.color,display:"inline-flex",alignItems:"center",gap:"7px"}}>{level.label}{info(level.label, `${level.label} starts at ${level.pts.toLocaleString()} lifetime Combined chart points.`, [], 14)}</div>
+              <div style={{fontFamily:F,fontSize:TXT.cardMeta,color:textMuted,display:"inline-flex",alignItems:"center",gap:"6px"}}>{level.pts.toLocaleString()}+ lifetime points{info(`${level.label} Threshold`, `A release reaches ${level.label} when its lifetime Combined chart points are at least ${level.pts.toLocaleString()}.`, [], 14)}</div>
             </div>
           ))}
         </div>
       </section>
 
       <section style={{marginTop:"30px"}}>
-        <div style={{...secLbl(textPrimary),marginBottom:"14px"}}><SecMark c={textPrimary}/>Certified {isSingles ? "Songs" : "Albums"} ({totalCertified.toLocaleString()})</div>
+        {sectionLabel(`Certified ${isSingles ? "Songs" : "Albums"} (${totalCertified.toLocaleString()})`, "Certified Releases", `All ${activeLabel} that currently meet at least one active certification threshold.`, ["Releases are grouped by highest certification tier.", "Within a tier, higher lifetime points appear first."])}
         {CERTIFICATION_LEVELS.map(({ level })=>{
           const filtered=deduplicatedCerts.filter(c=>c.level===level).sort((a,b)=>(b.totalPts||0)-(a.totalPts||0));
           const meta = certMetaByLevel[level] || {};
@@ -222,7 +238,7 @@ export default function CertificationsPage({ ctx }) {
                   <span style={{filter:certIconFilters[level]||undefined}}>{certIcons[level]}</span>
                   {level.charAt(0).toUpperCase()+level.slice(1)}
                 </span>
-                <span style={{fontFamily:F,fontSize:"12px",fontWeight:850,color:textMuted}}>{filtered.length.toLocaleString()} certified</span>
+                <span style={{fontFamily:F,fontSize:"12px",fontWeight:850,color:textMuted,display:"inline-flex",alignItems:"center",gap:"5px"}}>{filtered.length.toLocaleString()} certified{info(`${meta.label || level} Certified`, `This group contains ${filtered.length.toLocaleString()} ${activeLabel} whose highest current award is ${meta.label || level}.`, [], 14)}</span>
               </div>
               <div className="cert-wall">
                 {filtered.map((c,i)=>{
@@ -240,7 +256,7 @@ export default function CertificationsPage({ ctx }) {
                       </div>
                       <div className="cert-points" style={{fontFamily:F}}>
                         <div style={{fontSize:"19px",fontWeight:900,color:textPrimary,lineHeight:1}}>{(c.totalPts || 0).toLocaleString()}</div>
-                        <div style={{fontSize:"10px",fontWeight:800,textTransform:"uppercase",letterSpacing:"0.8px",color:textMuted,marginTop:"3px"}}>points</div>
+                        <div style={{fontSize:"10px",fontWeight:800,textTransform:"uppercase",letterSpacing:"0.8px",color:textMuted,marginTop:"3px",display:"inline-flex",alignItems:"center",gap:"5px"}}>points{info("Release Certification Points", "The release's lifetime Combined chart points used to decide certification tier.", [], 14)}</div>
                       </div>
                       <div className="cert-share">
                         <ShareButton

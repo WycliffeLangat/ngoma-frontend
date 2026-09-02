@@ -3,6 +3,7 @@ export default function ArtistsPage({ ctx }) {
     CountryBadge,
     F,
     GOLD,
+    InfoButton,
     MEDALS,
     MONTHS,
     PAD,
@@ -30,6 +31,23 @@ export default function ArtistsPage({ ctx }) {
     setCmpA2,
     toggleArtistRow
   } = ctx;
+  const info = (title, body, items = [], size = 16) => InfoButton ? (
+    <InfoButton title={title} body={body} items={items} size={size} />
+  ) : null;
+  const metricInfo = (label) => {
+    const copy = {
+      "Total Points": "The artist's accumulated public display points from credited chart activity through the selected month.",
+      "Best Artist Rank": "The artist's best rank on the artist chart through the selected month. Lower is better.",
+      "Months Active": "How many published months the artist has charted through the selected month.",
+      Entries: "How many credited songs or albums contribute to the artist's chart performance.",
+      "Peak Rank": "The best rank this artist has reached.",
+      Months: "How many published months this artist has appeared in the artist ranking.",
+      Points: "The artist's accumulated public display points from credited chart entries.",
+      Move: "Movement compared with the previous artist chart month.",
+      Artist: "The ranked artist. Tap or click the name to open the artist profile.",
+    };
+    return copy[label] || `${label} summarizes this artist's public chart performance.`;
+  };
 
   const ArtistArtwork = ({ artist, size = 54, compact = false, style = {} }) => {
     const name = typeof artist === "string" ? artist : artist?.n || artist?.title || artist?.name || "";
@@ -97,19 +115,23 @@ export default function ArtistsPage({ ctx }) {
 <div style={{padding:PAD,background:isDark?"#050505":"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:isMobile?"18px":"22px",gap:isMobile?"14px":"20px",flexDirection:isMobile?"column":"row"}}>
             <div>
-              <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0}}>Top Artists</h2>
+              <div style={{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}>
+                <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0}}>Top Artists</h2>
+                {info("Top Artists", "Ranks artists by cumulative credited performance from published public chart entries through the selected month.", ["Artist points come from songs, albums, and collaborations where the artist is credited.", "The list rewards both major hits and repeated chart activity."])}
+              </div>
               <p style={{fontFamily:F,fontSize:isMobile?"12.5px":"11.5px",color:isDark?"#FFFFFF":"#000000",margin:"5px 0 0",lineHeight:1.6}}>Cumulative credited performance from {MONTHS[0]} through {artistMonth}</p>
             </div>
             <div style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap"}}>
               <select value={artistMonth} onChange={e=>setArtistMonth(e.target.value)} style={{width:isMobile?"100%":"auto",padding:isMobile?"11px 12px":"8px 12px",border:"1.5px solid "+(isDark?"#3A3F3A":"#DDD"),borderRadius:"9px",background:isDark?"#1A1E1A":"#FFF",color:isDark?"#FFFFFF":"inherit",fontSize:isMobile?"12.5px":"10.5px",fontFamily:F,fontWeight:750,cursor:"pointer",outline:"none"}}>
                 {MONTHS.map(m=><option key={m} value={m}>{m}</option>)}
               </select>
+              {info("Artist Month", "Choose the endpoint month for cumulative artist rankings and comparisons.", [], 14)}
               <Tog sm/>
             </div>
           </div>
           {/* Comparison */}
           <div style={{...card(),padding:isMobile?"18px":"22px",marginBottom:"22px",background:isDark?"#111411":"#FAFAF8"}}>
-            <div style={{...secLbl(isDark?"#FFFFFF":"#000000"),marginBottom:isMobile?"14px":"16px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Artist Comparison</div>
+            <div style={{...secLbl(isDark?"#FFFFFF":"#000000"),marginBottom:isMobile?"14px":"16px",display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}><span><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Artist Comparison</span>{info("Artist Comparison", "Compare two artists side by side using the same chart metrics that power the artist ranking.")}</div>
             <div style={{display:"flex",gap:isMobile?"9px":"12px",alignItems:"center",flexDirection:isMobile?"column":"row",marginBottom:"16px",flexWrap:"wrap"}}>
               <select value={cmpA1} onChange={e=>setCmpA1(e.target.value)} style={{flex:isMobile?"none":1,width:isMobile?"100%":"auto",minWidth:0,padding:isMobile?"11px 12px":"9px 12px",border:"1.5px solid "+(isDark?"#3A3F3A":"#D6D1C7"),borderRadius:"8px",background:isDark?"#1A1E1A":"#FFF",fontSize:isMobile?"12px":"11.5px",fontFamily:F,fontWeight:700,cursor:"pointer",outline:"none",color:isDark?"#FFFFFF":"#000000"}}>
                 {allArtistNames.map(n=><option key={n} value={n}>{n}</option>)}
@@ -145,7 +167,7 @@ export default function ArtistsPage({ ctx }) {
                 const bWins=row.hi==="max"?row.b>row.a:row.b<row.a;
                 return <div key={row.label} style={{display:"grid",gridTemplateColumns:isMobile?"minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)":"minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)",alignItems:"stretch",background:isDark?(i%2?"#121612":"#0F120F"):(i%2?"#FBFAF7":"#FFF"),borderBottom:i===3?"none":"1px solid "+(isDark?"#2F352F":"#EEEAE1")}}>
                   <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:isMobile?"9px 6px":"11px 12px",fontFamily:F,fontSize:isMobile?"13px":"14px",fontWeight:aWins?900:800,color:GOLD,background:"transparent"}}>{row.fmt(row.a)}</div>
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"9px 5px":"11px 10px",borderLeft:"1px solid "+(isDark?"#2F352F":"#EEEAE1"),borderRight:"1px solid "+(isDark?"#2F352F":"#EEEAE1"),fontFamily:F,fontSize:isMobile?"8.6px":"9.5px",letterSpacing:"0.8px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",fontWeight:850,lineHeight:1.25}}>{row.label}</div>
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"9px 5px":"11px 10px",borderLeft:"1px solid "+(isDark?"#2F352F":"#EEEAE1"),borderRight:"1px solid "+(isDark?"#2F352F":"#EEEAE1"),fontFamily:F,fontSize:isMobile?"8.6px":"9.5px",letterSpacing:"0.8px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",fontWeight:850,lineHeight:1.25,gap:"5px"}}>{row.label}{info(row.label, metricInfo(row.label), [], 14)}</div>
                   <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:isMobile?"9px 6px":"11px 12px",fontFamily:F,fontSize:isMobile?"13px":"14px",fontWeight:bWins?900:800,color:isDark?"#FFFFFF":"#000000",background:"transparent"}}>{row.fmt(row.b)}</div>
                 </div>;
               })}
@@ -179,7 +201,7 @@ export default function ArtistsPage({ ctx }) {
                         <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:"8px"}}>
                           {artistStats.map((stat)=>(
                             <div key={stat.label} style={{background:isDark?"#1A1E1A":"#FFF",border:"1px solid "+(isDark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.06)"),borderRadius:"12px",padding:"9px 7px",minWidth:0}}>
-                              <span style={{display:"block",fontFamily:F,fontSize:"9px",color:isDark?"#FFFFFF":"#000000",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",textAlign:"center"}}>{stat.label}</span>
+                              <span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",gap:"5px",fontFamily:F,fontSize:"9px",color:isDark?"#FFFFFF":"#000000",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",textAlign:"center"}}>{stat.label}{info(stat.label, metricInfo(stat.label), [], 14)}</span>
                               <span style={{display:"block",marginTop:"4px",fontFamily:F,color:isDark?"#FFFFFF":"#000000",fontSize:"12px",fontWeight:900,textAlign:"center",whiteSpace:"normal",overflowWrap:"anywhere"}}>{stat.value}</span>
                             </div>
                           ))}
@@ -193,7 +215,7 @@ export default function ArtistsPage({ ctx }) {
             </div>
           ) : (<>
             <div style={{display:"grid",gridTemplateColumns:"44px 38px minmax(0,1fr) 70px 126px",gap:"12px",alignItems:"center",padding:"0 12px 10px",borderBottom:"1px solid #EDEBE4",fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"1.6px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000"}}>
-              <div></div><div title="Country"></div><div>Artist</div><div style={{textAlign:"center"}}>Move</div><div style={{textAlign:"center"}}>Total Points</div>
+              <div></div><div title="Country"></div><div style={{display:"inline-flex",alignItems:"center",gap:"5px"}}>Artist{info("Artist", metricInfo("Artist"), [], 14)}</div><div style={{textAlign:"center"}}>Move{info("Move", metricInfo("Move"), [], 14)}</div><div style={{textAlign:"center"}}>Total Points{info("Total Points", metricInfo("Total Points"), [], 14)}</div>
             </div>
             {artists.slice(0,50).map((a,i)=>{const trend=artistTrendFor(a);return(
               <div key={a.n} className="ngoma-artist-row" style={{display:"grid",gridTemplateColumns:"44px 38px minmax(0,1fr) 70px 126px",gap:"12px",padding:"12px",borderBottom:"1px solid #F2F2EE",alignItems:"center",minWidth:0}}

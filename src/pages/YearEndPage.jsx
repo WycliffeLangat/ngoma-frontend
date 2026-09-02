@@ -9,6 +9,7 @@ export default function YearEndPage({ ctx }) {
     ct,
     F,
     GOLD,
+    InfoButton,
     MEDALS,
     PAD,
     PLAT_LABEL,
@@ -35,6 +36,20 @@ export default function YearEndPage({ ctx }) {
     yearEndPlatOptions,
   } = ctx;
   const yearEnd = yearEndDisplay;
+  const info = (title, body, items = [], size = 16) => InfoButton ? (
+    <InfoButton title={title} body={body} items={items} size={size} />
+  ) : null;
+  const statInfo = (label) => {
+    const copy = {
+      "Total Pts": "The sum of public display points earned across the selected Year End window and source.",
+      Months: "How many published months this entry appeared in the selected Year End window.",
+      Entries: "For artist rows, the number of credited charted releases contributing to the artist total.",
+      Peak: "The best rank reached within the selected Year End window.",
+      "Year-End Rank": "The entry's rank in this aggregated Year End table.",
+      Certification: "The release's current public certification tier, based on lifetime Combined chart points.",
+    };
+    return copy[label] || `${label} summarizes this entry within the selected Year End table.`;
+  };
 
   const selectStyle = {
     padding:isMobile?"10px 12px":"8px 14px",
@@ -121,7 +136,14 @@ export default function YearEndPage({ ctx }) {
           <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:isMobile?"16px":"20px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
             <div>
               <div style={{fontFamily:F,fontSize:isMobile?"10.5px":"11px",letterSpacing:isMobile?"1.8px":"2px",textTransform:"uppercase",color:GOLD,marginBottom:"6px",fontWeight:850}}>{yearEndMode==="bestofyear"?"BEST OF YEAR":"ALL TIME"}</div>
-              <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0,color:isDark?"#FFFFFF":"#000000"}}>{yearEndMode==="bestofyear"?"Best of the Year":"All Time Charts"}</h2>
+              <div style={{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}>
+                <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0,color:isDark?"#FFFFFF":"#000000"}}>{yearEndMode==="bestofyear"?"Best of the Year":"All Time Charts"}</h2>
+                {info(
+                  yearEndMode==="bestofyear" ? "Best of the Year" : "All Time Charts",
+                  "This table aggregates public display points across the selected period, then ranks entries by total points.",
+                  ["All Time uses every tracked published month.", "Best of Year limits the table to the selected year window.", "Changing source can show Combined, platform, or country-scoped totals where available."]
+                )}
+              </div>
               <p style={{fontFamily:F,fontSize:TXT.lead,color:isDark?"#FFFFFF":"#000000",margin:"4px 0 0",lineHeight:1.55}}>Aggregated Display Points across {yearEndPeriodLabel}</p>
             </div>
             <div className="year-end-actions" data-share-action-area="true" style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap",position:isMobile?"sticky":"static",top:isMobile?"0":"auto",zIndex:isMobile?5:"auto",background:isMobile?(isDark?"#050805":"#FFF"):"transparent",padding:isMobile?"8px 0 4px":"0"}}>
@@ -129,9 +151,11 @@ export default function YearEndPage({ ctx }) {
                 <option value="alltime">All Time</option>
                 <option value="bestofyear">Best of Year</option>
               </select>
+              {info("Year End Mode", "Switch between lifetime all-time totals and a single-year best-of-year table.", [], 14)}
               <select value={yearEndPlat} onChange={e=>setYearEndPlat(e.target.value)} style={{...selectStyle,minWidth:isMobile?"110px":"140px"}}>
                 {yearEndPlatOptions.map(p=><option key={p} value={p}>{platformLabelForScope ? platformLabelForScope(p) : (p==="Combined"?"Combined":(PLAT_LABEL[p]||p))}</option>)}
               </select>
+              {info("Year End Source", "Choose whether the aggregation reads from the Combined chart, a platform chart, or an available country scope.", [], 14)}
               <ShareButton
                 isDark={isDark}
                 F={F}
@@ -171,9 +195,9 @@ export default function YearEndPage({ ctx }) {
                 borderBottom:"2px solid "+(isDark?"#2F352F":"#e4e1d8"),
                 color:isDark?"#FFFFFF":"#000000",
               }}>
-                <span style={{textAlign:"center"}}>#</span>
-                <span>{isArtists?"ARTIST":"TITLE"}</span>
-                <span style={{textAlign:"center"}}>INFO</span>
+                <span style={{textAlign:"center"}}>#{info("Year-End Rank", "The entry's position in this aggregated Year End table.", [], 14)}</span>
+                <span style={{display:"inline-flex",alignItems:"center",gap:"5px"}}>{isArtists?"ARTIST":"TITLE"}{info(isArtists ? "Artist" : "Title", `The ${isArtists ? "artist" : "release"} being ranked by aggregated display points.`, [], 14)}</span>
+                <span style={{textAlign:"center"}}>INFO{info("Info", "Tap the plus button to see total points, months, peak, certification, and other available row details.", [], 14)}</span>
               </div>
 
               {yearEnd.slice(0,50).map((item,idx)=>{
@@ -322,7 +346,7 @@ export default function YearEndPage({ ctx }) {
                         <div style={detailGridStyle}>
                           {statItems.map((stat)=>(
                             <div key={stat.label} style={detailStatStyle}>
-                              <span style={detailLabelStyle}>{stat.label}</span>
+                              <span style={{...detailLabelStyle,display:"inline-flex",alignItems:"center",gap:"5px"}}>{stat.label}{info(stat.label, statInfo(stat.label), [], 14)}</span>
                               <span style={detailValueStyle}>{stat.value}</span>
                             </div>
                           ))}
@@ -359,10 +383,10 @@ export default function YearEndPage({ ctx }) {
                   color:isDark?"#FFFFFF":"#000000",
                   alignItems:"end"
                 }}>
-                  <span style={{textAlign:"center"}}>#</span>
-                  <span>{isArtists ? "ARTIST" : "TITLE"}</span>
-                  <span style={{textAlign:"center",justifySelf:"stretch",whiteSpace:"nowrap"}}>TOTAL PTS</span>
-                  <span style={{textAlign:"center",justifySelf:"stretch",whiteSpace:"nowrap"}}>MONTHS</span>
+                  <span style={{textAlign:"center"}}>#{info("Year-End Rank", "The entry's position in this aggregated Year End table.", [], 14)}</span>
+                  <span style={{display:"inline-flex",alignItems:"center",gap:"5px"}}>{isArtists ? "ARTIST" : "TITLE"}{info(isArtists ? "Artist" : "Title", `The ${isArtists ? "artist" : "release"} being ranked by aggregated display points.`, [], 14)}</span>
+                  <span style={{textAlign:"center",justifySelf:"stretch",whiteSpace:"nowrap"}}>TOTAL PTS{info("Total Points", "The sum of public display points earned across the selected Year End period and source.", [], 14)}</span>
+                  <span style={{textAlign:"center",justifySelf:"stretch",whiteSpace:"nowrap"}}>MONTHS{info("Months", "How many published months this entry appeared in the selected Year End period.", [], 14)}</span>
                 </div>
 
                 {yearEnd.slice(0,50).map((item,idx)=>{

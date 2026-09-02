@@ -8,6 +8,7 @@ export default function AboutPage({ ctx }) {
     DATA_PERIOD,
     F,
     GOLD,
+    InfoButton,
     PAD,
     PUBLIC_PLATFORMS,
     PUBLIC_METHODOLOGY,
@@ -95,13 +96,25 @@ export default function AboutPage({ ctx }) {
       .slice(0, isMobile ? 6 : 10)
       .map((item) => item.url);
   }, [isMobile]);
-  const aboutSectionTitle = (label) => (
-    <div style={secLbl(textPrimary)}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>{label}</div>
+  const info = (title, body, items = [], size = 16) => InfoButton ? (
+    <InfoButton title={title} body={body} items={items} size={size} />
+  ) : null;
+  const aboutCopy = {
+    "How It Works": "A step-by-step overview of how public chart data moves from source-platform ranks into monthly Combined charts, artist rankings, analytics, and certifications.",
+    "Platforms Tracked": `The public source platforms included in the dataset: ${platformList}.`,
+    "Singles Chart": "The singles chart scores songs across the tracked song platforms, then combines those platform points into one monthly Top 50.",
+    "Albums Chart": "The albums chart applies the same Top 50 idea to album source charts available in the dataset.",
+    "Artist Rankings": "Artist rankings aggregate credited chart impact so a performer can be measured across lead releases, collaborations, and multiple titles.",
+    Certifications: "Certifications are lifetime point awards based on accumulated Combined chart points.",
+    "Hall of Fame": "The Hall of Fame highlights entries that reached #1 on the Combined chart.",
+  };
+  const aboutSectionTitle = (label, items = []) => (
+    <div style={secLbl(textPrimary)}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>{label}{info(label, aboutCopy[label] || `${label} is part of the public chart explanation.`, items)}</div>
   );
 
   return (
     <div style={{padding:PAD,background:isDark?"#050505":"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
-      <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px",color:textPrimary}}>About {SITE_NAME}</h2>
+      <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px",color:textPrimary,display:"inline-flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}>About {SITE_NAME}{info(`About ${SITE_NAME}`, `${SITE_NAME} explains how the public charts are calculated, which platforms are tracked, and how rankings, records, and awards connect to the same monthly dataset.`, ["Use this page when you want the plain-language methodology behind the public app.", "Each info sign opens extra context without changing the chart view."])}</h2>
       <p style={{fontFamily:F,fontSize:isMobile?"14px":"15px",color:textPrimary,margin:"0 0 18px",lineHeight:1.7}}>
         {SITE_NAME} tracks the music performing strongly in Kenya by comparing songs and albums across major digital platforms, then turning that activity into simple monthly Top 50 charts, artist rankings, analytics, records and certifications.
       </p>
@@ -120,6 +133,7 @@ export default function AboutPage({ ctx }) {
               </div>
             ))}
           </div>
+          {info("Featured Artist Portraits", "These portraits come from public artist image metadata and are shown as a visual cue for the Kenyan music ecosystem represented in the charts.", [], 15)}
         </div>
       )}
 
@@ -138,14 +152,14 @@ export default function AboutPage({ ctx }) {
             <div key={step.title} className="ngoma-about-process-row" style={{borderColor:panelBorder}}>
               <span className="ngoma-about-step-number" style={{background:panelBg,borderColor:panelBorder,color:textPrimary,fontFamily:F}}>{String(index + 1).padStart(2, "0")}</span>
               <div style={{minWidth:0}}>
-                <h3 style={{fontFamily:F,fontSize:isMobile?"15px":"16px",lineHeight:1.3,fontWeight:850,color:textPrimary,margin:"0 0 5px"}}>{step.title.replace(/^\d+\.\s*/, "")}</h3>
+                <h3 style={{fontFamily:F,fontSize:isMobile?"15px":"16px",lineHeight:1.3,fontWeight:850,color:textPrimary,margin:"0 0 5px",display:"inline-flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>{step.title.replace(/^\d+\.\s*/, "")}{info(step.title.replace(/^\d+\.\s*/, ""), step.body, [], 13)}</h3>
                 <p style={{fontFamily:F,fontSize:"14px",lineHeight:1.68,color:textMuted,margin:0}}>{step.body}</p>
               </div>
             </div>
           ))}
         </div>
         <div style={{marginTop:"16px",padding:"14px",background:panelBg,border:`1px solid ${panelBorder}`,borderRadius:"12px"}}>
-          <strong style={{display:"block",fontFamily:F,fontSize:"13px",color:textPrimary,marginBottom:"5px"}}>Simple example</strong>
+          <strong style={{display:"inline-flex",alignItems:"center",gap:"6px",fontFamily:F,fontSize:"13px",color:textPrimary,marginBottom:"5px"}}>Simple example{info("Simple Example", "This example shows the core scoring idea: platform ranks are converted into points first, then those points are added into one Combined score.", [], 13)}</strong>
           <p style={{fontFamily:F,fontSize:"14px",lineHeight:1.65,color:textMuted,margin:0}}>
             If one song is #1 on Apple Music and #8 on Spotify, those two ranks are first changed into points, then added together. If another song appears on more platforms but at lower ranks, its total is calculated the same way. The higher total ranks higher on the Combined chart, and those monthly points also feed the song's lifetime certification total.
           </p>
@@ -155,17 +169,17 @@ export default function AboutPage({ ctx }) {
       <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px"}}>
         <div style={card()}>
           {aboutSectionTitle("Platforms Tracked")}
-          <div style={{display:"flex",flexWrap:"wrap",gap:"7px"}}>{trackedPlatforms.map((platform)=>{const p=platform.name,c=platform.brand_color||platform.color||"#69716B";return <span key={p} style={{display:"inline-flex",alignItems:"center",minHeight:"28px",padding:"5px 10px",background:c+"18",borderRadius:"999px",fontSize:"13px",fontFamily:F,fontWeight:750,color:p==="Boomplay"?"#007C7C":c,border:`1px solid ${c}35`}}>{p}</span>;})}</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:"7px"}}>{trackedPlatforms.map((platform)=>{const p=platform.name,c=platform.brand_color||platform.color||"#69716B";return <span key={p} style={{display:"inline-flex",alignItems:"center",gap:"6px",minHeight:"28px",padding:"5px 10px",background:c+"18",borderRadius:"999px",fontSize:"13px",fontFamily:F,fontWeight:750,color:p==="Boomplay"?"#007C7C":c,border:`1px solid ${c}35`}}>{p}{info(p, `${p} is one of the tracked source platforms used to build public chart rankings when data is available for the selected chart type.`, [], 13)}</span>;})}</div>
         </div>
         <div style={card()}>
           {aboutSectionTitle("Singles Chart")}
           <p style={{fontSize:"14px",color:textPrimary,lineHeight:1.65,margin:"0 0 13px",fontFamily:F}}>The singles chart combines song performance across the tracked song platforms. Each platform rank becomes points, then the song's points are added into one Combined monthly score.</p>
-          <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>{["Apple Music","Audiomack","Boomplay","Spotify","YouTube","Shazam"].map(p=><span key={p} style={{padding:"5px 9px",borderRadius:"9px",background:isDark?"#1A1E1A":"#F7F6F2",border:"1px solid "+(isDark?"#2F352F":"#E9E6DE"),fontFamily:F,fontSize:"12px",fontWeight:800,color:textPrimary}}>{p}</span>)}</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>{["Apple Music","Audiomack","Boomplay","Spotify","YouTube","Shazam"].map(p=><span key={p} style={{padding:"5px 9px",borderRadius:"9px",background:isDark?"#1A1E1A":"#F7F6F2",border:"1px solid "+(isDark?"#2F352F":"#E9E6DE"),fontFamily:F,fontSize:"12px",fontWeight:800,color:textPrimary,display:"inline-flex",alignItems:"center",gap:"6px"}}>{p}{info(`${p} Singles Source`, `${p} is included as a singles source platform when the public dataset has monthly chart rows for it.`, [], 13)}</span>)}</div>
         </div>
         <div style={card()}>
           {aboutSectionTitle("Albums Chart")}
           <p style={{fontSize:"14px",color:textPrimary,lineHeight:1.65,margin:"0 0 13px",fontFamily:F}}>Album rankings use the album source charts available in the dataset. The album rows are scored, combined, and displayed on the same Top 50 idea as singles: strongest total points first.</p>
-          <div style={{display:"flex",flexWrap:"wrap",gap:"7px"}}><span style={{padding:"6px 10px",borderRadius:"9px",background:"#FC3C4412",border:"1px solid #FC3C4435",fontFamily:F,fontSize:"12px",fontWeight:850,color:"#FC3C44"}}>Apple Music</span><span style={{padding:"6px 10px",borderRadius:"9px",background:"#F68B1F12",border:"1px solid #F68B1F35",fontFamily:F,fontSize:"12px",fontWeight:850,color:"#D66E00"}}>Audiomack</span></div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:"7px"}}><span style={{padding:"6px 10px",borderRadius:"9px",background:"#FC3C4412",border:"1px solid #FC3C4435",fontFamily:F,fontSize:"12px",fontWeight:850,color:"#FC3C44",display:"inline-flex",alignItems:"center",gap:"6px"}}>Apple Music{info("Apple Music Albums", "Apple Music album rankings contribute to the albums chart when monthly album data is available.", [], 13)}</span><span style={{padding:"6px 10px",borderRadius:"9px",background:"#F68B1F12",border:"1px solid #F68B1F35",fontFamily:F,fontSize:"12px",fontWeight:850,color:"#D66E00",display:"inline-flex",alignItems:"center",gap:"6px"}}>Audiomack{info("Audiomack Albums", "Audiomack album rankings contribute to the albums chart when monthly album data is available.", [], 13)}</span></div>
         </div>
         <div style={card()}>
           {aboutSectionTitle("Artist Rankings")}
@@ -173,7 +187,7 @@ export default function AboutPage({ ctx }) {
         </div>
         <div style={card()}>
           {aboutSectionTitle("Certifications")}
-          <div style={{display:"grid",gap:"8px"}}>{CERTIFICATION_LEVELS.map(level=><div key={level.level} style={{display:"grid",gridTemplateColumns:"34px minmax(0,1fr) auto",gap:"9px",alignItems:"center",padding:"9px 10px",borderRadius:"11px",background:`${level.color}0B`,border:`1px solid ${level.color}25`}}><span style={{fontSize:"22px",textAlign:"center"}}>{level.icon}</span><strong style={{fontFamily:F,fontSize:"14px",color:level.color}}>{level.label}</strong><span style={{fontFamily:F,fontSize:"13px",fontWeight:800,color:textPrimary}}>{level.pts.toLocaleString()}+ pts</span></div>)}</div>
+          <div style={{display:"grid",gap:"8px"}}>{CERTIFICATION_LEVELS.map(level=><div key={level.level} style={{display:"grid",gridTemplateColumns:"34px minmax(0,1fr) auto",gap:"9px",alignItems:"center",padding:"9px 10px",borderRadius:"11px",background:`${level.color}0B`,border:`1px solid ${level.color}25`}}><span style={{fontSize:"22px",textAlign:"center"}}>{level.icon}</span><strong style={{fontFamily:F,fontSize:"14px",color:level.color,display:"inline-flex",alignItems:"center",gap:"6px"}}>{level.label}{info(level.label, `${level.label} is awarded when a song or album reaches at least ${level.pts.toLocaleString()} lifetime Combined chart points.`, [], 13)}</strong><span style={{fontFamily:F,fontSize:"13px",fontWeight:800,color:textPrimary,display:"inline-flex",alignItems:"center",gap:"6px"}}>{level.pts.toLocaleString()}+ pts{info(`${level.label} Points`, "This is the lifetime Combined points threshold required for the award tier.", [], 13)}</span></div>)}</div>
         </div>
         <div style={card()}>
           {aboutSectionTitle("Hall of Fame")}

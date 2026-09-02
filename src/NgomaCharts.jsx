@@ -1783,6 +1783,8 @@ export default function NgomaCharts(){
   const [yearEndPlat, setYearEndPlat] = useState("Combined");
   const [expandedArtistRows, setExpandedArtistRows] = useState({});
   const [expandedTrendingRows, setExpandedTrendingRows] = useState({});
+  const [infoPanel, setInfoPanel] = useState(null);
+  const infoDialogRef = useRef(null);
   const detailOpenRef = useRef(false);
   const detailReturnScrollRef = useRef(0);
   const publicHeaderRef = useRef(null);
@@ -1815,6 +1817,83 @@ export default function NgomaCharts(){
         active: "#F1E3BF",
         hover: "#FAF5EA",
       };
+
+  useEffect(() => {
+    if (!infoPanel || typeof window === "undefined") return undefined;
+    const previouslyFocused = document.activeElement;
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") setInfoPanel(null);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    infoDialogRef.current?.focus();
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      if (previouslyFocused && typeof previouslyFocused.focus === "function") previouslyFocused.focus();
+    };
+  }, [infoPanel]);
+
+  const InfoButton = ({ title, body, items = [], note = "", ariaLabel = "", size = 18, style = {} }) => {
+    const paragraphs = Array.isArray(body) ? body : (body ? [body] : []);
+    const normalizedItems = Array.isArray(items) ? items.filter(Boolean) : [];
+    return (
+      <button
+        type="button"
+        className="ngoma-info-button"
+        aria-label={ariaLabel || `Explain ${title}`}
+        title={ariaLabel || `Explain ${title}`}
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          setInfoPanel({
+            title,
+            paragraphs,
+            items: normalizedItems,
+            note,
+          });
+        }}
+        style={{
+          width: `${size}px`,
+          height: `${size}px`,
+          minWidth: `${size}px`,
+          borderRadius: "50%",
+          border: `1px solid ${isDark ? "rgba(255,255,255,0.28)" : "rgba(0,0,0,0.22)"}`,
+          background: isDark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.86)",
+          color: isDark ? "#FFFFFF" : "#1A1A1A",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 0,
+          fontFamily: F,
+          fontSize: size <= 16 ? "10px" : "11px",
+          fontWeight: 950,
+          lineHeight: 1,
+          cursor: "pointer",
+          boxShadow: isDark ? "none" : "0 2px 8px rgba(0,0,0,0.06)",
+          verticalAlign: "middle",
+          flexShrink: 0,
+          ...style,
+        }}
+      >
+        i
+      </button>
+    );
+  };
+
+  const InfoLabel = ({ children, title, body, items, note, style = {}, buttonStyle = {} }) => (
+    <span
+      className="ngoma-info-label"
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "7px",
+        minWidth: 0,
+        ...style,
+      }}
+    >
+      <span style={{ minWidth: 0 }}>{children}</span>
+      <InfoButton title={title} body={body} items={items} note={note} size={16} style={buttonStyle} />
+    </span>
+  );
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -2369,6 +2448,7 @@ const top = data[0];
     const trackH = isMobile ? 26 : 22;
     const knob = trackH - 4;
     return (
+    <span style={{display:"inline-flex",alignItems:"center",gap:"6px",flexShrink:0}}>
     <button
       type="button"
       role="switch"
@@ -2407,6 +2487,8 @@ const top = data[0];
         }}
       />
     </button>
+    <InfoButton title="Theme Mode" body={`This switch changes the public app from ${isDark ? "dark" : "light"} mode to ${isDark ? "light" : "dark"} mode. It affects the visual theme only; chart data and rankings stay the same.`} size={14} />
+    </span>
     );
   };
 
@@ -3643,6 +3725,8 @@ const top = data[0];
     GOLD,
     GOLD_BRIGHT,
     GOLD_TEXTURE_URL,
+    InfoButton,
+    InfoLabel,
     Line,
     LineChart,
     MEDALS,
@@ -3829,6 +3913,13 @@ const top = data[0];
         .ngoma-analytics-chart-inner{min-width:0;}
         .ngoma-analytics-metric-label{color:#000000 !important;}
         .ngoma-analytics-muted{color:#000000 !important;}
+        .ngoma-info-button:focus-visible{outline:2px solid #C97A12;outline-offset:3px;}
+        .ngoma-info-button:hover{transform:translateY(-1px);}
+        .ngoma-info-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.56);z-index:140;display:flex;align-items:center;justify-content:center;padding:18px;}
+        .ngoma-info-modal{width:min(560px,100%);max-height:min(78vh,720px);overflow:auto;border-radius:16px;box-shadow:0 28px 80px rgba(0,0,0,0.34);}
+        .ngoma-info-modal p{margin:0 0 12px;}
+        .ngoma-info-modal ul{margin:0;padding-left:20px;}
+        .ngoma-info-modal li{margin:0 0 8px;}
         html[data-ngoma-theme="dark"] .ngoma-analytics-metric-label{color:#ffffff !important;}
         html[data-ngoma-theme="dark"] .ngoma-analytics-muted{color:#ffffff !important;}
         .ngoma-analytics-page > *{content-visibility:auto;contain-intrinsic-size:auto 320px;}
@@ -3872,6 +3963,72 @@ const top = data[0];
         .ngoma-artist-link:hover{ color:#C97A12 !important; text-decoration: underline; text-underline-offset: 2px; }
         @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
       `}</style>
+
+      {infoPanel && (
+        <div
+          className="ngoma-info-modal-backdrop"
+          role="presentation"
+          onClick={() => setInfoPanel(null)}
+        >
+          <section
+            className="ngoma-info-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="ngoma-info-modal-title"
+            tabIndex={-1}
+            ref={infoDialogRef}
+            onClick={(event) => event.stopPropagation()}
+            style={{
+              background: themeColors.elevated,
+              border: `1px solid ${themeColors.border}`,
+              color: themeColors.text,
+              fontFamily: F,
+            }}
+          >
+            <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:"16px",padding:isMobile?"18px 18px 10px":"22px 24px 12px",borderBottom:`1px solid ${themeColors.border}`}}>
+              <div style={{minWidth:0}}>
+                <div style={{fontSize:"10px",fontWeight:900,letterSpacing:"1.4px",textTransform:"uppercase",color:GOLD,marginBottom:"6px"}}>Overview</div>
+                <h2 id="ngoma-info-modal-title" style={{fontFamily:SF,fontSize:isMobile?"21px":"24px",fontWeight:900,lineHeight:1.15,margin:0,color:themeColors.text}}>{infoPanel.title}</h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setInfoPanel(null)}
+                aria-label="Close explanation"
+                style={{
+                  width:"34px",
+                  height:"34px",
+                  borderRadius:"50%",
+                  border:`1px solid ${themeColors.border}`,
+                  background:isDark?"#111411":"#FFFFFF",
+                  color:themeColors.text,
+                  fontSize:"20px",
+                  fontWeight:800,
+                  lineHeight:1,
+                  cursor:"pointer",
+                  flexShrink:0,
+                }}
+              >
+                x
+              </button>
+            </div>
+            <div style={{padding:isMobile?"16px 18px 20px":"18px 24px 24px",fontSize:isMobile?"13.5px":"14px",lineHeight:1.62,color:themeColors.text}}>
+              {(infoPanel.paragraphs || []).map((paragraph, index) => (
+                <p key={index}>{paragraph}</p>
+              ))}
+              {infoPanel.items?.length > 0 && (
+                <ul style={{color:themeColors.text}}>
+                  {infoPanel.items.map((item, index) => <li key={index}>{item}</li>)}
+                </ul>
+              )}
+              {infoPanel.note && (
+                <div style={{marginTop:"14px",padding:"12px 13px",borderRadius:"12px",background:isDark?"rgba(255,255,255,0.06)":"#FAF5EA",border:`1px solid ${GOLD}33`,fontWeight:750}}>
+                  {infoPanel.note}
+                </div>
+              )}
+            </div>
+          </section>
+        </div>
+      )}
 
       {MAINTENANCE_SETTING.enabled&&<div role="status" style={{padding:"11px 18px",background:MAINTENANCE_SETTING.background || "#FFF3CD",color:MAINTENANCE_SETTING.color || "#5F4700",fontFamily:F,fontSize:"12px",fontWeight:800,textAlign:"center",borderBottom:`1px solid ${GOLD}55`}}>{MAINTENANCE_SETTING.message || `${SITE_NAME} is currently undergoing maintenance.`}</div>}
 
@@ -4217,6 +4374,7 @@ const top = data[0];
           pageMax={PAGE_MAX}
           certificationForEntry={getCertificationForEntry}
           CertificationTag={CertificationTag}
+          InfoButton={InfoButton}
         />
       )}
 

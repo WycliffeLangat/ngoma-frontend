@@ -3,6 +3,7 @@ export default function ArtistChartSection({ ctx, title = "Top Artists", descrip
     CountryBadge,
     F,
     GOLD,
+    InfoButton,
     MEDALS,
     MONTHS,
     PAD,
@@ -32,6 +33,23 @@ export default function ArtistChartSection({ ctx, title = "Top Artists", descrip
   const cardBorder = isDark ? "#2F352F" : "rgba(0,0,0,0.08)";
   const text = isDark ? "#FFFFFF" : "#000000";
   const muted = isDark ? "#FFFFFF" : "#000000";
+  const info = (title, body, items = [], size = 16) => InfoButton ? (
+    <InfoButton title={title} body={body} items={items} size={size} />
+  ) : null;
+  const metricInfo = (label) => {
+    const copy = {
+      "Total Points": "The artist's accumulated public display points from credited chart activity through the selected month.",
+      "Best Artist Rank": "The artist's best rank on the artist chart through the selected month. Lower is better.",
+      "Months Active": "How many published months the artist has charted through the selected month.",
+      Entries: "How many credited songs or albums contribute to the artist's chart performance.",
+      "Peak Rank": "The best rank this artist has reached.",
+      Months: "How many published months this artist has appeared in the artist ranking.",
+      Points: "The artist's accumulated public display points from credited chart entries.",
+      Move: "Movement compared with the previous artist chart month.",
+      Artist: "The ranked artist. Tap or click the name to open the artist profile.",
+    };
+    return copy[label] || `${label} summarizes this artist's public chart performance.`;
+  };
 
   const ArtistArtwork = ({ artist, size = 54, compact = false, style = {} }) => {
     const name = typeof artist === "string" ? artist : artist?.n || artist?.title || artist?.name || "";
@@ -107,19 +125,23 @@ export default function ArtistChartSection({ ctx, title = "Top Artists", descrip
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: isMobile ? "stretch" : "flex-end", marginBottom: isMobile ? "18px" : "22px", gap: isMobile ? "14px" : "20px", flexDirection: isMobile ? "column" : "row" }}>
         <div style={{ maxWidth: isMobile ? "100%" : "660px" }}>
           {!compactIntro && <div style={{ fontFamily: F, fontSize: TXT.kicker, letterSpacing: "2.6px", textTransform: "uppercase", color: GOLD, marginBottom: "6px" }}>Artist chart</div>}
-          <h2 style={{ fontSize: TXT.pageTitle, fontWeight: 800, margin: 0, color: text }}>{title}</h2>
+          <div style={{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}>
+            <h2 style={{ fontSize: TXT.pageTitle, fontWeight: 800, margin: 0, color: text }}>{title}</h2>
+            {info(title, "Ranks artists by cumulative credited performance from published public chart entries through the selected month.", ["Artist points come from songs, albums, and collaborations where the artist is credited.", "The list rewards both major hits and repeated chart activity."])}
+          </div>
           <p style={{ fontFamily: F, fontSize: TXT.lead, color: muted, margin: "4px 0 0", lineHeight: 1.55 }}>{description}</p>
         </div>
         <div style={{ display: "flex", gap: isMobile ? "10px" : "10px", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", width: isMobile ? "100%" : "auto" }}>
           <select value={artistMonth} onChange={(event) => setArtistMonth(event.target.value)} style={{ width: isMobile ? "100%" : "auto", padding: isMobile ? "11px 12px" : "8px 12px", border: `1.5px solid ${cardBorder}`, borderRadius: "9px", background: surface, color: text, fontSize: isMobile ? "12.5px" : "10.5px", fontFamily: F, fontWeight: 750, cursor: "pointer", outline: "none" }}>
             {MONTHS.map((month) => <option key={month} value={month}>{month}</option>)}
           </select>
+          {info("Artist Month", "Choose the endpoint month for cumulative artist rankings and comparisons.", [], 14)}
           <Tog sm />
         </div>
       </div>
 
       <section style={{ background: surface, border: `1px solid ${cardBorder}`, borderRadius: "16px", padding: isMobile ? "16px" : "20px", marginBottom: isMobile ? "18px" : "22px", boxShadow: isDark ? "none" : "0 8px 24px rgba(31,36,31,0.04)" }}>
-        <div style={{ fontFamily: F, fontSize: isMobile ? "10px" : "10.5px", fontWeight: 900, letterSpacing: "2px", textTransform: "uppercase", color: GOLD, marginBottom: "12px" }}>Artist comparison</div>
+        <div style={{ fontFamily: F, fontSize: isMobile ? "10px" : "10.5px", fontWeight: 900, letterSpacing: "2px", textTransform: "uppercase", color: GOLD, marginBottom: "12px", display:"inline-flex", alignItems:"center", gap:"6px" }}>Artist comparison{info("Artist Comparison", "Compare two artists side by side using the same chart metrics that power the artist ranking.", [], 14)}</div>
         <div style={{ display: "flex", gap: isMobile ? "9px" : "12px", alignItems: "center", flexDirection: isMobile ? "column" : "row", marginBottom: "16px", flexWrap: "wrap" }}>
           <select value={cmpA1} onChange={(event) => setCmpA1(event.target.value)} style={{ flex: isMobile ? "none" : 1, width: isMobile ? "100%" : "auto", minWidth: 0, padding: isMobile ? "11px 12px" : "9px 12px", border: `1.5px solid ${cardBorder}`, borderRadius: "8px", background: surface, color: text, fontSize: isMobile ? "12px" : "11.5px", fontFamily: F, fontWeight: 700, cursor: "pointer", outline: "none" }}>
             {artists.map((artist) => <option key={artist.n} value={artist.n}>{artist.n}</option>)}
@@ -144,7 +166,7 @@ export default function ArtistChartSection({ ctx, title = "Top Artists", descrip
         <div style={{ width: "100%", maxWidth: isMobile ? "360px" : "none", margin: "0 auto", border: `1px solid ${cardBorder}`, borderRadius: "12px", overflow: "hidden", background: surface }}>
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)" : "minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)", gap: "8px", alignItems: "center", padding: isMobile ? "10px 9px" : "12px 16px", background: "#1F241F", color: "#FFF" }}>
             <div style={{ fontFamily: F, fontSize: isMobile ? "10px" : "11px", fontWeight: 850, textAlign: "center", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#E4BE55" }}>{cmp1.n}</div>
-            <div style={{ fontFamily: F, fontSize: "9px", fontWeight: 900, letterSpacing: "1.4px", textAlign: "center", textTransform: "uppercase", color: "#FFFFFF" }}>Metric</div>
+            <div style={{ fontFamily: F, fontSize: "9px", fontWeight: 900, letterSpacing: "1.4px", textAlign: "center", textTransform: "uppercase", color: "#FFFFFF", display:"inline-flex", alignItems:"center", justifyContent:"center", gap:"5px" }}>Metric{info("Metric", "The comparison category being measured for both selected artists.", [], 14)}</div>
             <div style={{ fontFamily: F, fontSize: isMobile ? "10px" : "11px", fontWeight: 850, textAlign: "center", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#FFF" }}>{cmp2.n}</div>
           </div>
           {metricRows.map((row, index) => {
@@ -153,7 +175,7 @@ export default function ArtistChartSection({ ctx, title = "Top Artists", descrip
             return (
               <div key={row.label} style={{ display: "grid", gridTemplateColumns: isMobile ? "minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)" : "minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)", alignItems: "stretch", background: isDark ? (index % 2 ? "#121612" : "#0F120F") : (index % 2 ? "#FBFAF7" : "#FFF"), borderBottom: index === metricRows.length - 1 ? "none" : `1px solid ${cardBorder}` }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: isMobile ? "9px 6px" : "11px 12px", fontFamily: F, fontSize: isMobile ? "13px" : "14px", fontWeight: aWins ? 900 : 800, color: GOLD }}>{row.fmt(row.a)}</div>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", padding: isMobile ? "9px 5px" : "11px 10px", borderLeft: `1px solid ${cardBorder}`, borderRight: `1px solid ${cardBorder}`, fontFamily: F, fontSize: isMobile ? "8.6px" : "9.5px", letterSpacing: "0.8px", textTransform: "uppercase", color: muted, fontWeight: 850, lineHeight: 1.25 }}>{row.label}</div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", padding: isMobile ? "9px 5px" : "11px 10px", borderLeft: `1px solid ${cardBorder}`, borderRight: `1px solid ${cardBorder}`, fontFamily: F, fontSize: isMobile ? "8.6px" : "9.5px", letterSpacing: "0.8px", textTransform: "uppercase", color: muted, fontWeight: 850, lineHeight: 1.25, gap:"5px" }}>{row.label}{info(row.label, metricInfo(row.label), [], 14)}</div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: isMobile ? "9px 6px" : "11px 12px", fontFamily: F, fontSize: isMobile ? "13px" : "14px", fontWeight: bWins ? 900 : 800, color: text }}>{row.fmt(row.b)}</div>
               </div>
             );
@@ -163,8 +185,8 @@ export default function ArtistChartSection({ ctx, title = "Top Artists", descrip
 
       <section style={{ background: surface, border: `1px solid ${cardBorder}`, borderRadius: "16px", padding: isMobile ? "16px" : "20px", boxShadow: isDark ? "none" : "0 8px 24px rgba(31,36,31,0.04)" }}>
         <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: "10px", marginBottom: "14px" }}>
-          <div style={{ fontFamily: F, fontSize: isMobile ? "10px" : "10.5px", fontWeight: 900, letterSpacing: "2px", textTransform: "uppercase", color: GOLD }}>Top 50 artists</div>
-          <div style={{ fontFamily: F, fontSize: "10px", color: muted, fontWeight: 800 }}>Through {artistMonth}</div>
+          <div style={{ fontFamily: F, fontSize: isMobile ? "10px" : "10.5px", fontWeight: 900, letterSpacing: "2px", textTransform: "uppercase", color: GOLD, display:"inline-flex", alignItems:"center", gap:"6px" }}>Top 50 artists{info("Top 50 Artists", "The 50 highest-ranked artists by cumulative credited chart performance through the selected month.", [], 14)}</div>
+          <div style={{ fontFamily: F, fontSize: "10px", color: muted, fontWeight: 800, display:"inline-flex", alignItems:"center", gap:"5px" }}>Through {artistMonth}{info("Through Month", "Artist totals include published chart activity up to and including this month.", [], 14)}</div>
         </div>
 
         {isMobile ? (
@@ -195,7 +217,7 @@ export default function ArtistChartSection({ ctx, title = "Top Artists", descrip
                       <div style={{ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: "8px" }}>
                         {artistStats.map((stat) => (
                           <div key={stat.label} style={{ background: surface, border: `1px solid ${cardBorder}`, borderRadius: "12px", padding: "9px 7px", minWidth: 0 }}>
-                            <span style={{ display: "block", fontFamily: F, fontSize: "9px", color: muted, fontWeight: 900, letterSpacing: "1px", textTransform: "uppercase", textAlign: "center" }}>{stat.label}</span>
+                            <span style={{ display: "inline-flex", alignItems:"center", justifyContent:"center", gap:"5px", fontFamily: F, fontSize: "9px", color: muted, fontWeight: 900, letterSpacing: "1px", textTransform: "uppercase", textAlign: "center" }}>{stat.label}{info(stat.label, metricInfo(stat.label), [], 14)}</span>
                             <span style={{ display: "block", marginTop: "4px", fontFamily: F, color: text, fontSize: "12px", fontWeight: 850, textAlign: "center", whiteSpace: "normal", overflowWrap: "anywhere" }}>{stat.value}</span>
                           </div>
                         ))}
@@ -210,7 +232,7 @@ export default function ArtistChartSection({ ctx, title = "Top Artists", descrip
         ) : (
           <>
             <div style={{ display: "grid", gridTemplateColumns: "44px 38px minmax(0,1fr) 70px 126px", gap: "12px", alignItems: "center", padding: "0 12px 10px", borderBottom: `1px solid ${cardBorder}`, fontFamily: F, fontSize: "10px", fontWeight: 900, letterSpacing: "1.6px", textTransform: "uppercase", color: muted }}>
-              <div></div><div title="Country"></div><div>Artist</div><div style={{ textAlign: "center" }}>Move</div><div style={{ textAlign: "center" }}>Total Points</div>
+              <div></div><div title="Country"></div><div style={{display:"inline-flex",alignItems:"center",gap:"5px"}}>Artist{info("Artist", metricInfo("Artist"), [], 14)}</div><div style={{ textAlign: "center" }}>Move{info("Move", metricInfo("Move"), [], 14)}</div><div style={{ textAlign: "center" }}>Total Points{info("Total Points", metricInfo("Total Points"), [], 14)}</div>
             </div>
             {artists.slice(0, 50).map((artist, index) => {
               const trend = artistTrendFor(artist);

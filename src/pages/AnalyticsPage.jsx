@@ -20,11 +20,31 @@ const abbrevMonth = (label = "") => String(label).replace(/^(\w+)(?=\s\d{4}$)/, 
 function RecordRow({ r, pool, ctx, theme, rowStyle, cols }) {
   const {
     F, GOLD, RecordIcon, SF,
+    InfoButton,
     isArtists, isMobile, isSingles,
     anMonth, openArtistDetails, openReleaseDetails,
   } = ctx;
   const { isDark } = theme;
   const chartTypeKey = isArtists ? "artists" : (isSingles ? "singles" : "albums");
+  const recordInfoFor = (label = "") => {
+    const normalized = String(label).toLowerCase();
+    if (normalized.includes("total charted")) {
+      return "Counts the unique entries that have appeared in the public Top 50 for this chart type across the tracked period.";
+    }
+    if (normalized.includes("points")) {
+      return "Identifies the entry or artist with the strongest accumulated public display points in the selected record pool.";
+    }
+    if (normalized.includes("peak") || normalized.includes("#1") || normalized.includes("number one")) {
+      return "Tracks the strongest rank achievements from published public Top 50 history.";
+    }
+    if (normalized.includes("month")) {
+      return "Counts chart longevity using published monthly Top 50 appearances.";
+    }
+    if (normalized.includes("climb")) {
+      return "Measures the biggest upward rank movement between consecutive published months.";
+    }
+    return "This record is calculated from published public Top 50 chart history for the selected chart type.";
+  };
 
   const rotating = useRotatingArt(pool);
   const thumbItem = r.certificationEntry || rotating?.entry || null;
@@ -83,7 +103,10 @@ function RecordRow({ r, pool, ctx, theme, rowStyle, cols }) {
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: cols, gap: isMobile ? "8px" : "10px", alignItems: "center", padding: isMobile ? "10px 10px" : "14px 16px", ...rowStyle }}>
-      <div style={{ minWidth: 0, fontFamily: F, fontSize: isMobile ? "9px" : "11px", fontWeight: 800, letterSpacing: "0.6px", textTransform: "uppercase", color: isDark ? "#FFFFFF" : "#000000", overflowWrap: "anywhere" }}>{r.displayLabel}</div>
+      <div style={{ minWidth: 0, fontFamily: F, fontSize: isMobile ? "9px" : "11px", fontWeight: 800, letterSpacing: "0.6px", textTransform: "uppercase", color: isDark ? "#FFFFFF" : "#000000", overflowWrap: "anywhere", display:"inline-flex", alignItems:"center", gap:"5px" }}>
+        <span>{r.displayLabel}</span>
+        {InfoButton && <InfoButton title={r.displayLabel} body={recordInfoFor(r.displayLabel)} size={14} />}
+      </div>
       {leaderNode}
       <div style={{ minWidth: 0, fontFamily: F, fontSize: isMobile ? "11px" : "13px", color: isDark ? "#FFFFFF" : "#000000", lineHeight: 1.4, overflowWrap: "anywhere" }}>{detailNode}</div>
       {shareButton}
@@ -102,6 +125,7 @@ export default function AnalyticsPage({ ctx }) {
     CertificationTag,
     F,
     GOLD,
+    InfoButton,
     MEDALS,
     MONTHS,
     PAD,
@@ -199,6 +223,15 @@ export default function AnalyticsPage({ ctx }) {
   const barCursorFill = isDark ? "rgba(255,255,255,0.05)" : "rgba(31,36,31,0.04)";
   const axisStroke = isDark ? "#3A413A" : "#D9D5CB";
   const sectionGap = { marginBottom: isMobile ? "20px" : "26px" };
+  const sectionTitle = (label, title, body, items = []) => (
+    <div style={{...secLbl(isDark?"#FFFFFF":"#000000"), marginBottom:0, fontSize:"20px", display:"flex", alignItems:"center", gap:"8px", flexWrap:"wrap"}}>
+      <span><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>{label}</span>
+      {InfoButton && <InfoButton title={title || label} body={body} items={items} size={16} />}
+    </div>
+  );
+  const compactInfo = (title, body, items = []) => InfoButton ? (
+    <InfoButton title={title} body={body} items={items} size={16} />
+  ) : null;
 
   // Head-to-Head-style CSS-grid table chrome, reused by Records and Hall of Fame.
   const gridBorder = "1px solid " + (isDark ? "#2F352F" : "#EEEAE1");
@@ -275,7 +308,13 @@ export default function AnalyticsPage({ ctx }) {
           <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"center",marginBottom:"28px",gap:isMobile?"14px":"24px",flexDirection:isMobile?"column":"row",paddingBottom:"20px",borderBottom:"1px solid "+(isDark?"#2F352F":"#EFEDE7")}}>
             <div>
               <div style={{display:"inline-block",width:"28px",height:"3px",background:isDark?"#FFFFFF":"#000000",borderRadius:"2px",marginBottom:"10px"}}/>
-              <h2 style={{fontSize:isMobile?"22px":"28px",fontWeight:900,margin:"0 0 4px",letterSpacing:"-0.5px",color:isDark?"#FFFFFF":"#000000"}}>{isArtists?"Artist Analytics":isSingles?"Singles Analytics":"Albums Analytics"}</h2>
+              <div style={{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}>
+                <h2 style={{fontSize:isMobile?"22px":"28px",fontWeight:900,margin:"0 0 4px",letterSpacing:"-0.5px",color:isDark?"#FFFFFF":"#000000"}}>{isArtists?"Artist Analytics":isSingles?"Singles Analytics":"Albums Analytics"}</h2>
+                {compactInfo(
+                  isArtists ? "Artist Analytics" : (isSingles ? "Singles Analytics" : "Albums Analytics"),
+                  "Analytics summarizes movement, countries, records, milestones, and Hall of Fame results from the published public Top 50 data."
+                )}
+              </div>
               <p style={{fontFamily:F,fontSize:"14px",color:isDark?"#FFFFFF":"#000000",margin:0,lineHeight:1.6}}>Full Top 50 data across all platforms and months.</p>
             </div>
             <div style={{display:"flex",gap:"10px",flexDirection:isMobile?"column":"row",alignItems:isMobile?"stretch":"center",flexShrink:0,width:isMobile?"100%":"auto"}}>
@@ -288,6 +327,7 @@ export default function AnalyticsPage({ ctx }) {
                 <select value={anMonth} onChange={e=>setAnMonth(e.target.value)} style={{flex:isMobile?"1":"none",minWidth:isMobile?"120px":"160px",padding:isMobile?"10px 12px":"8px 14px",border:"1.5px solid "+(isDark?"#2F352F":"#DEDAD2"),borderRadius:"10px",background:isDark?"#1A1E1A":"#FAFAF8",fontSize:isMobile?"13px":"12px",fontFamily:F,fontWeight:750,cursor:"pointer",outline:"none",color:isDark?"#FFFFFF":"#000000"}}>
                   {MONTHS.map(m=><option key={m} value={m}>{m}</option>)}
                 </select>
+                {compactInfo("Analytics Month", "Choose which published month powers the movement, platform, country, and monthly analytics panels. All-time records still use the full tracked history.")}
                 <ShareButton
                   isDark={isDark}
                   F={F}
@@ -311,7 +351,12 @@ export default function AnalyticsPage({ ctx }) {
             )}
             <div style={{...card(),order:2}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"14px",flexWrap:"wrap"}}>
-                <div style={{...secLbl(isDark?"#FFFFFF":"#000000"),marginBottom:0,fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Biggest {releaseLabel} Climbers — {anMonth}</div>
+                {sectionTitle(
+                  `Biggest ${releaseLabel} Climbers - ${anMonth}`,
+                  `Biggest ${releaseLabel} Climbers`,
+                  "Shows entries with the largest upward rank movement compared with the previous published month.",
+                  ["The change is measured in chart places gained.", "Higher positive movement means a stronger climb.", "Debut-month charts may have no movement because there is no previous month to compare."]
+                )}
                 <ShareButton
                   compact
                   isDark={isDark}
@@ -348,7 +393,12 @@ export default function AnalyticsPage({ ctx }) {
           <div className="anl-split-row" style={splitRowStyle}>
             <div style={{...card(),order:1}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"14px",flexWrap:"wrap"}}>
-                <div style={{...secLbl(isDark?"#FFFFFF":"#000000"),marginBottom:0,fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Biggest {releaseLabel} Drops — {anMonth}</div>
+                {sectionTitle(
+                  `Biggest ${releaseLabel} Drops - ${anMonth}`,
+                  `Biggest ${releaseLabel} Drops`,
+                  "Shows entries with the largest downward rank movement compared with the previous published month.",
+                  ["The drop is measured in chart places lost.", "This is movement within the public Top 50 history, not a drop in streams or listeners."]
+                )}
                 <ShareButton
                   compact
                   isDark={isDark}
@@ -395,7 +445,12 @@ export default function AnalyticsPage({ ctx }) {
             )}
             <div style={{...card(),order:2}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"14px",flexWrap:"wrap"}}>
-                <div style={{...secLbl(isDark?"#FFFFFF":"#000000"),marginBottom:0,fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>New Entries — {anMonth}</div>
+                {sectionTitle(
+                  `New Entries - ${anMonth}`,
+                  "New Entries",
+                  "Shows entries appearing on this public Top 50 for the first time in the tracked history.",
+                  ["A new entry is not necessarily a newly released song or album.", "It means this is its first charted public Top 50 appearance in the dataset."]
+                )}
                 <ShareButton
                   compact
                   isDark={isDark}
@@ -435,7 +490,12 @@ export default function AnalyticsPage({ ctx }) {
           {platTotalsData.length>0&&(
             <AnalyticsDeepSection label="Platform Totals" isMobile={isMobile}>
             <div style={{...card(),...sectionGap}}>
-              <div style={{...secLbl(isDark?"#FFFFFF":"#000000"), fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Platform Totals — {anMonth}</div>
+              {sectionTitle(
+                `Platform Totals - ${anMonth}`,
+                "Platform Totals",
+                "Counts how many entries from the selected month's Combined Top 50 also appeared on each tracked source platform.",
+                ["This is a coverage count, not streams, listeners, or total points.", "A single entry can count on multiple platforms, so the bars can add up to more than 50."]
+              )}
               <div style={{display:"flex",justifyContent:"flex-end",alignItems:"center",gap:"10px",margin:"-4px 0 12px"}}>
                 <ShareButton
                   compact
@@ -452,7 +512,7 @@ export default function AnalyticsPage({ ctx }) {
                 <div style={{display:"grid",gap:"8px"}}>
                   {platTotalsData.map((entry)=>(
                     <div key={entry.platform} style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) 70px",gap:"10px",alignItems:"center",padding:"9px 0",borderBottom:"1px solid "+(isDark?"#2F352F":"#F0F0EC")}}>
-                      <div style={{display:"flex",alignItems:"center",gap:"8px",minWidth:0}}><span style={{width:"10px",height:"10px",borderRadius:"3px",background:entry.color,flexShrink:0}}/><span style={{fontFamily:F,fontSize:TXT.cardTitle,fontWeight:850,color:isDark?"#FFFFFF":"#000000",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{entry.platform}</span></div>
+                      <div style={{display:"flex",alignItems:"center",gap:"8px",minWidth:0}}><span style={{width:"10px",height:"10px",borderRadius:"3px",background:entry.color,flexShrink:0}}/><span style={{fontFamily:F,fontSize:TXT.cardTitle,fontWeight:850,color:isDark?"#FFFFFF":"#000000",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{entry.platform}</span>{InfoButton && <InfoButton title={`${entry.platform} Platform Total`} body={`${entry.platform} has ${entry.entries} entries from the selected month's Combined Top 50. This is a coverage count, not streams or points.`} size={14} />}</div>
                       <span style={{fontFamily:F,fontSize:TXT.cardTitle,fontWeight:900,color:isDark?"#FFFFFF":"#000000",textAlign:"right"}}>{entry.entries}</span>
                     </div>
                   ))}
@@ -477,7 +537,12 @@ export default function AnalyticsPage({ ctx }) {
           <AnalyticsDeepSection label="Country Stats" isMobile={isMobile}>
           <div style={{...card(),...sectionGap}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",marginBottom:"14px",flexWrap:"wrap"}}>
-              <div style={{...secLbl(isDark?"#FFFFFF":"#000000"),marginBottom:0,fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Top 5 Countries — {anMonth}</div>
+              {sectionTitle(
+                `Top 5 Countries - ${anMonth}`,
+                "Top Countries",
+                "Counts the most represented artist countries among entries in the selected public chart month.",
+                ["Country comes from artist profile metadata when available.", "For songs and albums, the primary artist usually determines the country count."]
+              )}
               <div style={{display:"flex",alignItems:"center",gap:"10px"}}>
                 <ShareButton
                   compact
@@ -496,7 +561,7 @@ export default function AnalyticsPage({ ctx }) {
                 {topCountryData.map((country)=>(
                   <div key={country.code} style={{display:"grid",gridTemplateColumns:"54px minmax(0,1fr) 72px",gap:"10px",alignItems:"center",padding:"9px 0",borderBottom:"1px solid "+(isDark?"#2F352F":"#F0F0EC")}}>
                     <span style={{fontFamily:F,fontSize:TXT.cardMeta,fontWeight:950,color:isDark?"#FFFFFF":"#000000"}}>{country.code}</span>
-                    <span style={{fontFamily:F,fontSize:TXT.cardTitle,fontWeight:850,color:isDark?"#FFFFFF":"#000000",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{country.country}</span>
+                    <span style={{fontFamily:F,fontSize:TXT.cardTitle,fontWeight:850,color:isDark?"#FFFFFF":"#000000",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",display:"inline-flex",alignItems:"center",gap:"6px"}}>{country.country}{InfoButton && <InfoButton title={`${country.country} Country Count`} body={`${country.country} appears ${country.entries} time${country.entries === 1 ? "" : "s"} among the selected month's public chart entries, based on artist country metadata.`} size={14} />}</span>
                     <span style={{fontFamily:F,fontSize:TXT.cardTitle,fontWeight:900,color:isDark?"#FFFFFF":"#000000",textAlign:"right"}}>{country.entries}</span>
                   </div>
                 ))}
@@ -518,13 +583,18 @@ export default function AnalyticsPage({ ctx }) {
           {/* Records & Milestones — all-time achievements for the selected chart type. */}
           <AnalyticsDeepSection label="Records & Milestones" isMobile={isMobile}>
           <div style={{...card(),...sectionGap}}>
-            <div style={{...secLbl(isDark?"#FFFFFF":"#000000"), fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>{isMobile?"Records & Milestones":"Records & Milestones — All Time"}</div>
+            {sectionTitle(
+              isMobile ? "Records & Milestones" : "Records & Milestones - All Time",
+              "Records & Milestones",
+              "Highlights all-time achievements calculated from the published public Top 50 charts.",
+              ["Records use the currently selected chart type.", "They are based on chart ranks, points, months, and appearances stored in the public dataset."]
+            )}
             <p style={{fontFamily:F,fontSize:"13px",color:isDark?"#FFFFFF":"#000000",margin:"-4px 0 18px",lineHeight:1.5}}>{chartTypeLabel} achievements calculated solely from published public Top 50 charts across all tracked months.</p>
             <div style={{border:"1px solid "+(isDark?"#242923":"#EFEDE7"),borderRadius:"12px",overflow:"hidden"}}>
               <div style={{display:"grid",gridTemplateColumns:recordsCols,gap:gridRowGap,padding:isMobile?"10px 10px":"12px 16px",...gridHeaderStyle}}>
-                <div style={{fontFamily:F,fontSize:isMobile?"9px":"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF"}}>Record</div>
-                <div style={{fontFamily:F,fontSize:isMobile?"9px":"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF"}}>Leader</div>
-                <div style={{fontFamily:F,fontSize:isMobile?"9px":"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF"}}>Detail</div>
+                <div style={{fontFamily:F,fontSize:isMobile?"9px":"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF",display:"inline-flex",alignItems:"center",gap:"5px"}}>Record{InfoButton && <InfoButton title="Record" body="The achievement being measured, such as highest points, most charted entries, biggest climb, or total charted releases." size={14} style={{background:"rgba(255,255,255,0.10)",color:"#FFFFFF",borderColor:"rgba(255,255,255,0.32)"}} />}</div>
+                <div style={{fontFamily:F,fontSize:isMobile?"9px":"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF",display:"inline-flex",alignItems:"center",gap:"5px"}}>Leader{InfoButton && <InfoButton title="Leader" body="The song, album, or artist currently leading that record category." size={14} style={{background:"rgba(255,255,255,0.10)",color:"#FFFFFF",borderColor:"rgba(255,255,255,0.32)"}} />}</div>
+                <div style={{fontFamily:F,fontSize:isMobile?"9px":"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF",display:"inline-flex",alignItems:"center",gap:"5px"}}>Detail{InfoButton && <InfoButton title="Record Detail" body="The supporting value behind the record, such as points, months, entries, rank change, or award level." size={14} style={{background:"rgba(255,255,255,0.10)",color:"#FFFFFF",borderColor:"rgba(255,255,255,0.32)"}} />}</div>
                 <div/>
               </div>
               {currentRecords.map((r,i)=>{
@@ -548,16 +618,21 @@ export default function AnalyticsPage({ ctx }) {
           {hofItems.length > 0 && (
           <AnalyticsDeepSection label="Hall of Fame" isMobile={isMobile}>
           <div style={card({marginBottom:isMobile?"20px":"26px"})}>
-            <div style={{...secLbl(isDark?"#FFFFFF":"#000000"), fontSize:"20px"}}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>{isMobile?"Monthly #1s":"Hall of Fame — Monthly #1s"}</div>
+            {sectionTitle(
+              isMobile ? "Monthly #1s" : "Hall of Fame - Monthly #1s",
+              "Hall of Fame",
+              "Lists entries that reached #1 on a published monthly Combined chart.",
+              ["Time at #1 counts how many months the entry led the chart.", "Months lists the specific published chart months where it finished at #1."]
+            )}
             <p style={{fontFamily:F,fontSize:"13px",color:isDark?"#FFFFFF":"#000000",margin:"-4px 0 18px",lineHeight:1.5}}>Monthly leaders from the published public Top 50 charts across the full tracked dataset.</p>
             <div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1.8px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",marginBottom:"12px",paddingBottom:"6px",borderBottom:"1px solid "+(isDark?"#2F352F":"#E4E1D8")}}>{hofLabel}</div>
             <div style={{border:"1px solid "+(isDark?"#242923":"#EFEDE7"),borderRadius:"12px",overflow:"hidden"}}>
               <div style={{display:"grid",gridTemplateColumns:hofCols,gap:gridRowGap,padding:isMobile?"10px 10px":"12px 16px",...gridHeaderStyle}}>
-                <div style={{fontFamily:F,fontSize:isMobile?"9px":"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF",textAlign:"center"}}>#</div>
-                <div style={{fontFamily:F,fontSize:isMobile?"9px":"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF"}}>{isArtists?"Artist":"Title"}</div>
-                {!isMobile && !isArtists && <div style={{fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF"}}>Artist</div>}
-                <div style={{fontFamily:F,fontSize:isMobile?"9px":"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF",textAlign:"center"}}>{isMobile?"Time":"Time at #1"}</div>
-                {!isMobile && <div style={{fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF"}}>Months</div>}
+                <div style={{fontFamily:F,fontSize:isMobile?"9px":"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF",textAlign:"center"}}>#{InfoButton && <InfoButton title="Hall of Fame Rank" body="Rows are ordered by time spent at #1, then by recency and title when needed." size={14} style={{marginLeft:"5px",background:"rgba(255,255,255,0.10)",color:"#FFFFFF",borderColor:"rgba(255,255,255,0.32)"}} />}</div>
+                <div style={{fontFamily:F,fontSize:isMobile?"9px":"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF",display:"inline-flex",alignItems:"center",gap:"5px"}}>{isArtists?"Artist":"Title"}{InfoButton && <InfoButton title={isArtists ? "Artist" : "Title"} body={`The ${isArtists ? "artist" : "release"} that reached #1 on a published monthly Combined chart.`} size={14} style={{background:"rgba(255,255,255,0.10)",color:"#FFFFFF",borderColor:"rgba(255,255,255,0.32)"}} />}</div>
+                {!isMobile && !isArtists && <div style={{fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF",display:"inline-flex",alignItems:"center",gap:"5px"}}>Artist{InfoButton && <InfoButton title="Artist" body="The primary artist credit attached to the Hall of Fame release." size={14} style={{background:"rgba(255,255,255,0.10)",color:"#FFFFFF",borderColor:"rgba(255,255,255,0.32)"}} />}</div>}
+                <div style={{fontFamily:F,fontSize:isMobile?"9px":"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF",textAlign:"center"}}>{isMobile?"Time":"Time at #1"}{InfoButton && <InfoButton title="Time at #1" body="Counts how many published months this entry finished at rank #1." size={14} style={{marginLeft:"5px",background:"rgba(255,255,255,0.10)",color:"#FFFFFF",borderColor:"rgba(255,255,255,0.32)"}} />}</div>
+                {!isMobile && <div style={{fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF",display:"inline-flex",alignItems:"center",gap:"5px"}}>Months{InfoButton && <InfoButton title="Hall of Fame Months" body="The specific published months where the entry held #1." size={14} style={{background:"rgba(255,255,255,0.10)",color:"#FFFFFF",borderColor:"rgba(255,255,255,0.32)"}} />}</div>}
               </div>
               {hofItems.map((e,i)=>{
                 const rowStyle = {borderTop:gridBorder,background:gridRowBg(i)};

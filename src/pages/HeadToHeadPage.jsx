@@ -15,6 +15,7 @@ export default function HeadToHeadPage({ ctx }) {
     F,
     GOLD,
     GOLD_TEXTURE_URL,
+    InfoButton,
     Line,
     LineChart,
     MONTHS,
@@ -73,13 +74,31 @@ export default function HeadToHeadPage({ ctx }) {
     boxShadow: isDark ? "none" : "0 6px 20px rgba(31,36,31,0.04)",
     overflow: "hidden",
   };
+  const info = (title, body, items = [], size = 16) => InfoButton ? (
+    <InfoButton title={title} body={body} items={items} size={size} />
+  ) : null;
+  const metricInfo = (label) => {
+    const copy = {
+      "Total Points": "All public display points accumulated by this entry across tracked months.",
+      Peak: "The best Combined rank reached by this entry. Lower is better.",
+      "Avg. Rank": "The average rank across the entry's charted months. Lower is better.",
+      Months: "How many published months the entry appeared on the chart.",
+      "#1 Finishes": "How many published months the entry finished at rank #1.",
+      "Platforms Charted": "How many tracked source platforms have carried the entry.",
+      Appearances: "Total chart appearances counted for the entry across the tracked data.",
+    };
+    return copy[label] || `${label} is a comparison metric calculated from public chart history.`;
+  };
 
   return (
 <div className="ngoma-analytics-page" style={{padding:PAD,background:"transparent",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"center",marginBottom:"28px",gap:isMobile?"14px":"24px",flexDirection:isMobile?"column":"row",paddingBottom:"20px",borderBottom:"1px solid "+(isDark?"#2F352F":"#EFEDE7")}}>
             <div>
               <div style={{display:"inline-block",width:"28px",height:"3px",background:isDark?"#FFFFFF":"#000000",borderRadius:"2px",marginBottom:"10px"}}/>
-              <h2 style={{fontSize:isMobile?"22px":"28px",fontWeight:900,margin:"0 0 4px",letterSpacing:"-0.5px",color:isDark?"#FFFFFF":"#000000"}}>Head-to-Head</h2>
+              <div style={{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}>
+                <h2 style={{fontSize:isMobile?"22px":"28px",fontWeight:900,margin:"0 0 4px",letterSpacing:"-0.5px",color:isDark?"#FFFFFF":"#000000"}}>Head-to-Head</h2>
+                {info("Head-to-Head", `Compare two ${isArtists ? "artists" : (isSingles ? "songs" : "albums")} using points, ranks, platform coverage, and chart history from the public dataset.`)}
+              </div>
               <p style={{fontFamily:F,fontSize:"14px",color:isDark?"#FFFFFF":"#000000",margin:0,lineHeight:1.6}}>Compare two {isArtists ? "artists" : (isSingles?"songs":"albums")} across points, rank, platforms, and chart history.</p>
             </div>
             <div style={{display:"flex",gap:"10px",flexDirection:"row",alignItems:"center",flexShrink:0,flexWrap:"wrap"}}>
@@ -110,13 +129,14 @@ export default function HeadToHeadPage({ ctx }) {
           </div>
 
           <div style={{...card(),padding:isMobile?"16px":"18px",background:isDark?"#0F120F":"linear-gradient(135deg,#FAFAF8,#FFFFFF)",borderColor:isDark?"#2F352F":"#EFEDE7"}}>
-            <div style={{...secLbl(isDark?"#FFFFFF":"#000000"), fontSize:"20px"}}><SecMark c={isDark?"#FFFFFF":"#000000"}/>{isArtists ? "Artist" : (isSingles?"Song":"Album")} Head-to-Head</div>
+            <div style={{...secLbl(isDark?"#FFFFFF":"#000000"), fontSize:"20px",display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}><span><SecMark c={isDark?"#FFFFFF":"#000000"}/>{isArtists ? "Artist" : (isSingles?"Song":"Album")} Head-to-Head</span>{info(`${isArtists ? "Artist" : (isSingles?"Song":"Album")} Head-to-Head`, "Choose two entries and compare their public chart performance side by side.")}</div>
             <p style={{fontFamily:F,fontSize:"13px",color:isDark?"#FFFFFF":"#000000",margin:"-8px 0 14px",lineHeight:1.45}}>Compare two {isArtists ? "artists" : (isSingles?"songs":"albums")} across points, rank, platforms, and chart history.</p>
             <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"minmax(0,1fr) auto minmax(0,1fr)",gap:isMobile?"10px":"12px",alignItems:"center",marginBottom:isMobile?"14px":"14px"}}>
               <div style={{minWidth:0}}>
                 <div style={{display:"flex",alignItems:"center",gap:"5px",fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",marginBottom:"6px"}}>
                   <span style={{width:"6px",height:"6px",borderRadius:"50%",background:GOLD,flexShrink:0}}/>
                   {isArtists ? "Artist" : (isSingles?"Song":"Album")} One
+                  {info("Comparison One", "The first entry in the comparison. Its values appear on the left side of the metric table and charts.", [], 14)}
                 </div>
                 <select value={cmpS1} onChange={e=>setCmpS1(e.target.value)} title={sp1?(isArtists?sp1.title:`${sp1.title} — ${sp1.artist}`):""} style={{width:"100%",minWidth:0,padding:isMobile?"11px 12px":"8px 10px",border:"1.5px solid "+(isDark?"#3A3F3A":"#DEDAD2"),borderRadius:"8px",background:"#FFF",fontSize:isMobile?"12px":"11px",fontFamily:F,fontWeight:700,cursor:"pointer",outline:"none",color:"#1F241F"}}>
                   {allTitles.map(t=><option key={t.key} value={t.key}>{t.title} — {t.artist}</option>)}
@@ -128,6 +148,7 @@ export default function HeadToHeadPage({ ctx }) {
                 <div style={{display:"flex",alignItems:"center",gap:"5px",fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",marginBottom:"6px"}}>
                   <span style={{width:"6px",height:"6px",borderRadius:"50%",background:"#1565C0",flexShrink:0}}/>
                   {isArtists ? "Artist" : (isSingles?"Song":"Album")} Two
+                  {info("Comparison Two", "The second entry in the comparison. Its values appear on the right side of the metric table and charts.", [], 14)}
                 </div>
                 <select value={cmpS2} onChange={e=>setCmpS2(e.target.value)} title={sp2?(isArtists?sp2.title:`${sp2.title} — ${sp2.artist}`):""} style={{width:"100%",minWidth:0,padding:isMobile?"11px 12px":"8px 10px",border:"1.5px solid "+(isDark?"#3A3F3A":"#DEDAD2"),borderRadius:"8px",background:"#FFF",fontSize:isMobile?"12px":"11px",fontFamily:F,fontWeight:700,cursor:"pointer",outline:"none",color:"#1F241F"}}>
                   {allTitles.map(t=><option key={t.key} value={t.key}>{t.title} — {t.artist}</option>)}
@@ -151,8 +172,8 @@ export default function HeadToHeadPage({ ctx }) {
                     </div>
                     {isMobile&&<button type="button" onClick={()=>openReleaseDetails(d,isArtists ? "artist" : (isSingles?"single":"album"))} style={{marginTop:"12px",border:"1px solid "+accent+"55",borderRadius:"999px",background:isDark?"rgba(255,255,255,0.04)":"#FFF",color:accent,fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",padding:"8px 12px",cursor:"pointer"}}>View Details</button>}
                     <div style={{display:"flex",gap:isMobile?"18px":"28px",marginTop:isMobile?"16px":"20px",paddingTop:isMobile?"14px":"18px",borderTop:"1px solid "+(isDark?"#242923":"#EFEDE7"),flexWrap:"wrap"}}>
-                      <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"24px",fontWeight:800,color:c}}>{d.totalPts.toLocaleString()}</div><div style={{fontFamily:F,fontSize:"11px",letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",fontWeight:700,marginTop:"3px"}}>Total Pts</div></div>
-                      <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"24px",fontWeight:800,color:c}}>#{d.peak}</div><div style={{fontFamily:F,fontSize:"11px",letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",fontWeight:700,marginTop:"3px"}}>Peak</div></div>
+                      <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"24px",fontWeight:800,color:c}}>{d.totalPts.toLocaleString()}</div><div style={{fontFamily:F,fontSize:"11px",letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",fontWeight:700,marginTop:"3px",display:"inline-flex",alignItems:"center",gap:"5px"}}>Total Pts{info("Total Points", metricInfo("Total Points"), [], 14)}</div></div>
+                      <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"24px",fontWeight:800,color:c}}>#{d.peak}</div><div style={{fontFamily:F,fontSize:"11px",letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",fontWeight:700,marginTop:"3px",display:"inline-flex",alignItems:"center",gap:"5px"}}>Peak{info("Peak", metricInfo("Peak"), [], 14)}</div></div>
                     </div>
                   </div>
                 ))}
@@ -162,7 +183,7 @@ export default function HeadToHeadPage({ ctx }) {
               <div style={{width:"100%",maxWidth:isMobile?"360px":"none",margin:"0 auto 16px",border:"1px solid "+(isDark?"#2F352F":"#E4E1D8"),borderRadius:"12px",overflow:"hidden",background:isDark?"#0F120F":"#FFF",boxShadow:isDark?"none":"0 8px 24px rgba(31,36,31,0.05)"}}>
                 <div style={{display:"grid",gridTemplateColumns:isMobile?"minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)":"minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)",gap:"8px",alignItems:"center",padding:isMobile?"10px 9px":"12px 16px",background:"#1F241F",color:"#FFF"}}>
                   <div style={{fontFamily:F,fontSize:"13px",fontWeight:850,textAlign:"center",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",color:"#FFF"}}>{sp1.title}</div>
-                  <div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1.2px",textAlign:"center",textTransform:"uppercase",color:"#FFFFFF"}}>Metric</div>
+                  <div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1.2px",textAlign:"center",textTransform:"uppercase",color:"#FFFFFF",display:"inline-flex",alignItems:"center",justifyContent:"center",gap:"5px"}}>Metric{info("Metric", "The comparison category being measured for both selected entries.", [], 14)}</div>
                   <div style={{fontFamily:F,fontSize:"13px",fontWeight:850,textAlign:"center",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",color:"#FFF"}}>{sp2.title}</div>
                 </div>
                 {(()=>{
@@ -181,7 +202,7 @@ export default function HeadToHeadPage({ ctx }) {
                     return(
                       <div key={i} style={{display:"grid",gridTemplateColumns:isMobile?"minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)":"minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)",alignItems:"stretch",background:isDark?(i%2?"#121612":"#0F120F"):(i%2?"#FBFAF7":"#FFF"),borderBottom:i===rows.length-1?"none":"1px solid "+(isDark?"#2F352F":"#EEEAE1"),gap:0}}>
                         <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"12px 6px":"16px 14px",fontFamily:F,fontSize:"16px",fontWeight:aWins?900:800,color:isDark?"#FFFFFF":"#000000",background:"transparent"}}>{r.fmt(r.a)}</div>
-                        <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"12px 5px":"16px 10px",borderLeft:"1px solid "+(isDark?"#2F352F":"#EEEAE1"),borderRight:"1px solid "+(isDark?"#2F352F":"#EEEAE1"),fontFamily:F,fontSize:"11px",letterSpacing:"0.8px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",fontWeight:850,lineHeight:1.25}}>{r.label}</div>
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"12px 5px":"16px 10px",borderLeft:"1px solid "+(isDark?"#2F352F":"#EEEAE1"),borderRight:"1px solid "+(isDark?"#2F352F":"#EEEAE1"),fontFamily:F,fontSize:"11px",letterSpacing:"0.8px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",fontWeight:850,lineHeight:1.25,gap:"5px"}}>{r.label}{info(r.label, metricInfo(r.label), [], 14)}</div>
                         <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"12px 6px":"16px 14px",fontFamily:F,fontSize:"16px",fontWeight:bWins?900:800,color:isDark?"#FFFFFF":"#000000",background:"transparent"}}>{r.fmt(r.b)}</div>
                       </div>
                     );
@@ -191,7 +212,7 @@ export default function HeadToHeadPage({ ctx }) {
               {/* Rank trajectory chart */}
               <div style={{marginTop:isMobile?"14px":"0"}}>
                 <div style={chartPanel}>
-                  <div style={{fontFamily:F,fontSize:isMobile?"10px":"9.5px",fontWeight:800,letterSpacing:"1.4px",textTransform:"uppercase",textAlign:isMobile?"center":"left",color:isDark?"#FFFFFF":"#000000",marginBottom:"8px"}}>Rank Trajectory (lower = better)</div>
+                  <div style={{fontFamily:F,fontSize:isMobile?"10px":"9.5px",fontWeight:800,letterSpacing:"1.4px",textTransform:"uppercase",textAlign:isMobile?"center":"left",color:isDark?"#FFFFFF":"#000000",marginBottom:"8px",display:"flex",alignItems:"center",gap:"6px",justifyContent:isMobile?"center":"flex-start"}}>Rank Trajectory (lower = better){info("Rank Trajectory", "Plots each selected entry's rank over time. The y-axis is reversed because #1 is best, so higher points on the line represent better ranks.", [], 14)}</div>
                   <div style={{width:"100%",maxWidth:isMobile?"340px":"none",margin:"0 auto"}}>
                     <ResponsiveContainer width="100%" height={isMobile?190:180}>
                       <LineChart data={songRankData} margin={{top:14,right:isMobile?20:14,left:isMobile?8:4,bottom:4}}>
@@ -209,12 +230,15 @@ export default function HeadToHeadPage({ ctx }) {
               {/* Platform-by-platform peak ranks */}
               <div style={{marginTop:isMobile?"14px":"16px"}}>
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"10px",gap:"10px",flexWrap:"wrap"}}>
-                  <div style={{fontFamily:F,fontSize:isMobile?"10px":"9.5px",fontWeight:800,letterSpacing:"1.4px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000"}}>Peak Rank by Platform</div>
+                  <div style={{fontFamily:F,fontSize:isMobile?"10px":"9.5px",fontWeight:800,letterSpacing:"1.4px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",display:"inline-flex",alignItems:"center",gap:"6px"}}>Peak Rank by Platform{info("Peak Rank by Platform", "Compares each entry's best rank on every tracked source platform. Lower ranks are better; blank values mean no platform rank in the data.", [], 14)}</div>
                   <div style={{display:"flex",gap:"6px"}}>
                     {["table","graph"].map(v=>(
-                      <button key={v} type="button" onClick={()=>setPlatCompareView(v)} style={{padding:"5px 12px",borderRadius:"999px",border:"1.5px solid "+(platCompareView===v?(isDark?"#363C33":"#1A1A1A"):(isDark?"#2F352F":"#DEDAD2")),background:platCompareView===v?(isDark?"#363C33":"#1A1A1A"):"transparent",color:platCompareView===v?"#FFF":isDark?"#FFFFFF":"#000000",fontFamily:F,fontSize:"10px",fontWeight:800,cursor:"pointer",textTransform:"uppercase",letterSpacing:"0.8px"}}>
-                        {v==="table"?"Table":"Chart"}
-                      </button>
+                      <span key={v} style={{display:"inline-flex",alignItems:"center",gap:"4px"}}>
+                        <button type="button" onClick={()=>setPlatCompareView(v)} style={{padding:"5px 12px",borderRadius:"999px",border:"1.5px solid "+(platCompareView===v?(isDark?"#363C33":"#1A1A1A"):(isDark?"#2F352F":"#DEDAD2")),background:platCompareView===v?(isDark?"#363C33":"#1A1A1A"):"transparent",color:platCompareView===v?"#FFF":isDark?"#FFFFFF":"#000000",fontFamily:F,fontSize:"10px",fontWeight:800,cursor:"pointer",textTransform:"uppercase",letterSpacing:"0.8px"}}>
+                          {v==="table"?"Table":"Chart"}
+                        </button>
+                        {info(v==="table"?"Platform Table View":"Platform Chart View", v==="table"?"Shows the platform comparison as exact peak-rank values.":"Shows platform peak ranks as bars. Taller bars represent better peak ranks because rank #1 maps highest.", [], 14)}
+                      </span>
                     ))}
                   </div>
                 </div>
@@ -222,7 +246,7 @@ export default function HeadToHeadPage({ ctx }) {
                 <div style={{border:"1px solid "+(isDark?"#2F352F":"#E4E1D8"),borderRadius:"12px",overflow:"hidden",background:isDark?"#0F120F":"#FFF"}}>
                   <div style={{display:"grid",gridTemplateColumns:isMobile?"minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)":"minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)",gap:"8px",padding:isMobile?"10px 9px":"12px 16px",background:"#1F241F",fontFamily:F,fontSize:"11px",fontWeight:850,letterSpacing:"1px",textTransform:"uppercase",color:"#FFFFFF"}}>
                     <div style={{textAlign:"center",color:"#FFF",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{sp1.title.length>16?sp1.title.slice(0,14)+"…":sp1.title}</div>
-                    <div style={{textAlign:"center"}}>Platform</div>
+                    <div style={{textAlign:"center",display:"inline-flex",alignItems:"center",justifyContent:"center",gap:"5px"}}>Platform{info("Platform", "The source platform being compared for peak rank performance.", [], 14)}</div>
                     <div style={{textAlign:"center",color:"#FFF",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{sp2.title.length>16?sp2.title.slice(0,14)+"…":sp2.title}</div>
                   </div>
                   {PLATS_FOR.map((pl,i)=>{

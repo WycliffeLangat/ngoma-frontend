@@ -5,6 +5,7 @@ export default function TrendingPage({ ctx }) {
     CertificationTag,
     F,
     GOLD,
+    InfoButton,
     PAD,
     SF,
     SecMark,
@@ -28,6 +29,21 @@ export default function TrendingPage({ ctx }) {
     trendLabelText,
     uniqueByMomentumIdentity
   } = ctx;
+  const info = (title, body, items = [], size = 16) => InfoButton ? (
+    <InfoButton title={title} body={body} items={items} size={size} />
+  ) : null;
+  const sectionTitle = (label, title, body, items = []) => (
+    <div style={{...secLbl(isDark?"#FFFFFF":"#000000"), display:"flex", alignItems:"center", gap:"8px", flexWrap:"wrap"}}>
+      <span><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>{label}</span>
+      {info(title || label, body, items)}
+    </div>
+  );
+  const statInfo = {
+    "Previous Rank": "The entry's position in the previous published Combined chart month.",
+    [`${latestMonthShort} Rank`]: `The entry's position in the ${latestMonth} Combined chart.`,
+    "Places Gained": "The number of positions climbed between the previous month and the selected month.",
+    "Rank Path": "A compact month-by-month path of the entry's recent ranks. Lower numbers are better.",
+  };
 
   return (
 <div style={{padding:PAD,minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
@@ -35,7 +51,10 @@ export default function TrendingPage({ ctx }) {
             <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"flex-start":"flex-end",marginBottom:isMobile?"16px":"20px",flexWrap:"wrap",gap:isMobile?"10px":"12px"}}>
               <div style={{minWidth:0,flex:isMobile?"1 1 100%":"1"}}>
                 <div style={{fontFamily:F,fontSize:isMobile?"9px":"10.5px",letterSpacing:isMobile?"2.2px":"2.6px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",marginBottom:"6px"}}>RANK MOMENTUM</div>
-                <h2 style={{fontSize:isMobile?"24px":"24px",fontWeight:800,margin:0}}>Trending Up</h2>
+                <div style={{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}>
+                  <h2 style={{fontSize:isMobile?"24px":"24px",fontWeight:800,margin:0}}>Trending Up</h2>
+                  {info("Trending Up", "Tracks the entries gaining the most rank positions on the Combined chart.", ["It compares the latest month against the previous published month.", "The page focuses on movement, not raw streams or total audience."])}
+                </div>
                 <p style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#FFFFFF":"#000000",margin:"6px 0 0",lineHeight:1.55}}>Tracks rising fastest on the Combined chart, measured by positions gained.</p>
               </div>
               <div style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap",marginTop:isMobile?"2px":0}}>
@@ -47,7 +66,7 @@ export default function TrendingPage({ ctx }) {
               <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"6px"}}>
                 <span style={{fontSize:"22px"}}>🔥</span>
                 <div>
-                  <div style={{fontFamily:F,fontSize:isMobile?"10.5px":"11px",fontWeight:800,letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000"}}>Biggest Climb</div>
+                  <div style={{fontFamily:F,fontSize:isMobile?"10.5px":"11px",fontWeight:800,letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",display:"inline-flex",alignItems:"center",gap:"6px"}}>Biggest Climb{info("Biggest Climb", `The ${isSingles ? "song" : "album"} with the largest upward movement on the Combined chart in ${latestMonth}.`)}</div>
                   <div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#FFFFFF":"#000000"}}>Most Combined chart places gained in {latestMonth}</div>
                 </div>
               </div>
@@ -60,9 +79,9 @@ export default function TrendingPage({ ctx }) {
                       </div>
                       <div style={{marginTop:"6px"}}><ArtistCredit credit={hot.a} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="15px" fontWeight={700} color="#000000" darkColor="#FFFFFF" separatorColor="#000000" darkSeparatorColor="#FFFFFF" /></div>
                       <div style={{display:"flex",gap:isMobile?"14px":"20px",marginTop:"12px",flexWrap:"wrap"}}>
-                        <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"20px",fontWeight:900,color:"#2DB04A"}}>+{hot.places}</div><div style={{fontFamily:F,fontSize:"10px",letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",fontWeight:800}}>Places</div></div>
-                        <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"20px",fontWeight:900,color:isDark?"#FFFFFF":"#000000"}}>#{hot.fromRank}</div><div style={{fontFamily:F,fontSize:"10px",letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",fontWeight:800}}>Previous Rank</div></div>
-                        <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"20px",fontWeight:900,color:GOLD}}>#{hot.decRank}</div><div style={{fontFamily:F,fontSize:"10px",letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",fontWeight:800}}>{latestMonthShort} Rank</div></div>
+                        <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"20px",fontWeight:900,color:"#2DB04A"}}>+{hot.places}</div><div style={{fontFamily:F,fontSize:"10px",letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",fontWeight:800,display:"inline-flex",alignItems:"center",gap:"5px"}}>Places{info("Places Gained", statInfo["Places Gained"], [], 14)}</div></div>
+                        <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"20px",fontWeight:900,color:isDark?"#FFFFFF":"#000000"}}>#{hot.fromRank}</div><div style={{fontFamily:F,fontSize:"10px",letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",fontWeight:800,display:"inline-flex",alignItems:"center",gap:"5px"}}>Previous Rank{info("Previous Rank", statInfo["Previous Rank"], [], 14)}</div></div>
+                        <div><div style={{fontFamily:F,fontSize:isMobile?"20px":"20px",fontWeight:900,color:GOLD}}>#{hot.decRank}</div><div style={{fontFamily:F,fontSize:"10px",letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",fontWeight:800,display:"inline-flex",alignItems:"center",gap:"5px"}}>{latestMonthShort} Rank{info(`${latestMonthShort} Rank`, statInfo[`${latestMonthShort} Rank`], [], 14)}</div></div>
                       </div>
                     </div>
                     <div style={{minWidth:isMobile?"100%":"180px",display:"flex",justifyContent:isMobile?"flex-start":"flex-end"}}>
@@ -74,7 +93,7 @@ export default function TrendingPage({ ctx }) {
             </div>
 
             <div style={card({padding:isMobile?"18px":"22px"})}>
-              <div style={secLbl(isDark?"#FFFFFF":"#000000")}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Rising Fast — Most Places Gained ({isSingles?"Singles":"Albums"})</div>
+              {sectionTitle(`Rising Fast - Most Places Gained (${isSingles?"Singles":"Albums"})`, "Rising Fast", "Ranks entries by how many positions they gained on the Combined chart compared with the previous month.", ["The list is deduplicated so the same release is not repeated under slightly different credits.", "Bars show recent rank strength; shorter/lower rank numbers are better."])}
               {uniqueByMomentumIdentity(currentTrending.rising).map((p,i)=>{
                 const rowKey=`rising-${p.t}-${p.a}-${p.decRank}`;
                 const expanded=Boolean(expandedTrendingRows[rowKey]);
@@ -91,7 +110,7 @@ export default function TrendingPage({ ctx }) {
                     {expanded&&<div style={{marginTop:"13px",padding:"13px",borderRadius:"13px",background:isDark?"#151815":"#F7F7F5",border:"1px solid "+(isDark?"#2B302B":"#E8E5DC")}}>
                       <div style={{lineHeight:1.5}}><ArtistCredit credit={p.a} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="12px" fontWeight={750} color="#000000" darkColor="#FFFFFF" separatorColor="#000000" darkSeparatorColor="#FFFFFF" /></div>
                       <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:"8px",marginTop:"10px"}}>
-                        {[{l:"Previous Rank",v:`#${p.fromRank}`},{l:`${latestMonthShort} Rank`,v:`#${p.decRank}`},{l:"Places Gained",v:`+${p.places}`},{l:"Rank Path",v:(p.trend||[]).map(v=>v?`#${v}`:"—").join(" → ")}].map(s=><div key={s.l} style={{padding:"9px 6px",background:isDark?"#151815":"#FFF",borderRadius:"10px",textAlign:"center",minWidth:0}}><span style={{display:"block",fontFamily:F,fontSize:"8.5px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000"}}>{s.l}</span><strong style={{display:"block",marginTop:"4px",fontFamily:F,fontSize:"12px",overflowWrap:"anywhere",color:s.l==="Places Gained"?"#2DB04A":(isDark?"#FFFFFF":"#000000")}}>{s.v}</strong></div>)}
+                        {[{l:"Previous Rank",v:`#${p.fromRank}`},{l:`${latestMonthShort} Rank`,v:`#${p.decRank}`},{l:"Places Gained",v:`+${p.places}`},{l:"Rank Path",v:(p.trend||[]).map(v=>v?`#${v}`:"—").join(" → ")}].map(s=><div key={s.l} style={{padding:"9px 6px",background:isDark?"#151815":"#FFF",borderRadius:"10px",textAlign:"center",minWidth:0}}><span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",gap:"5px",fontFamily:F,fontSize:"8.5px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000"}}>{s.l}{info(s.l, statInfo[s.l] || "This value summarizes the entry's rank movement for the selected month.", [], 14)}</span><strong style={{display:"block",marginTop:"4px",fontFamily:F,fontSize:"12px",overflowWrap:"anywhere",color:s.l==="Places Gained"?"#2DB04A":(isDark?"#FFFFFF":"#000000")}}>{s.v}</strong></div>)}
                       </div>
                       <button type="button" onClick={()=>openMomentumRelease(p)} style={{marginTop:"10px",width:"100%",padding:"9px 10px",borderRadius:"11px",border:"1px solid "+(isDark?"#2B302B":"#E8E5DC"),background:isDark?"#151815":"#FFF",color:isDark?"#FFFFFF":"#000000",fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",cursor:"pointer"}}>View Details</button>
                     </div>}
@@ -118,7 +137,7 @@ export default function TrendingPage({ ctx }) {
 
             {/* Strong Debuts */}
             <div style={{...card({padding:isMobile?"18px":"22px"}),marginTop:isMobile?"16px":"20px"}}>
-              <div style={secLbl(isDark?"#FFFFFF":"#000000")}><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Strongest {latestMonthName} Debuts</div>
+              {sectionTitle(`Strongest ${latestMonthName} Debuts`, "Strongest Debuts", `Shows new public Top 50 entries that arrived highest in ${latestMonth}.`, ["A debut means first charted appearance in the tracked public chart history.", "The rank shown is the entry's first Combined chart rank."])}
               <p style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#FFFFFF":"#000000",margin:"-8px 0 14px",lineHeight:1.45}}>New entries that arrived high in {latestMonth}.</p>
               <div className="anl-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:isMobile?"8px":"10px"}}>
                 {uniqueByMomentumIdentity(currentTrending.debuts).map((p)=>{
