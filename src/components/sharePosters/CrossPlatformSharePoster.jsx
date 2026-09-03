@@ -16,7 +16,7 @@ import {
 // Same design as the CMS's Cross-Platform Poster (admin/pages/CrossPlatformPosterPage.jsx),
 // fed from the public Analytics page's Cross-Platform Hits panel.
 const CHART_TYPES = [
-  ["singles", "Songs"],
+  ["singles", "Singles"],
   ["albums", "Albums"],
 ];
 

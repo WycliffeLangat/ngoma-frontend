@@ -16,7 +16,7 @@ import {
 // Same design as the CMS's Movers & Shakers Poster (admin/pages/MoversPosterPage.jsx),
 // fed from the public Analytics page's Climbers/Drops/New Entries panels.
 const CHART_TYPES = [
-  ["singles", "Songs"],
+  ["singles", "Singles"],
   ["albums", "Albums"],
   ["artists", "Artists"],
 ];

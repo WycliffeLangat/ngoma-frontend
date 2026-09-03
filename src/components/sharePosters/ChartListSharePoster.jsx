@@ -27,7 +27,7 @@ import {
 // selection, just fed from the public page's current view instead of an
 // editor's manual picks.
 const CHART_TYPES = [
-  ["singles", "Songs"],
+  ["singles", "Singles"],
   ["albums", "Albums"],
   ["artists", "Artists"],
 ];

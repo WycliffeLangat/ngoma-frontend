@@ -19,7 +19,7 @@ import {
 // (admin/pages/PlatformBreakdownPosterPage.jsx), fed from the public
 // Analytics page's country stats panel.
 const CHART_TYPES = [
-  ["singles", "Songs"],
+  ["singles", "Singles"],
   ["albums", "Albums"],
   ["artists", "Artists"],
 ];

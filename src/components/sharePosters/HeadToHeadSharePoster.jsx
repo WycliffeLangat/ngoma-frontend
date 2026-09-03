@@ -15,7 +15,7 @@ import {
 // (admin/pages/HeadToHeadPosterPage.jsx), fed from the public Head-to-Head
 // page's currently-selected pair instead of an editor's manual picks.
 const CHART_TYPES = [
-  ["singles", "Songs"],
+  ["singles", "Singles"],
   ["albums", "Albums"],
   ["artists", "Artists"],
 ];
