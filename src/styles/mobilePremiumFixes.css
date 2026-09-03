@@ -45,7 +45,7 @@
 
   .ngoma-mobile-table-header,
   .ngoma-mobile-table-row {
-    grid-template-columns: 36px minmax(0, 1fr) 32px !important;
+    grid-template-columns: 34px minmax(0, 1fr) 46px !important;
     gap: 8px !important;
   }
 

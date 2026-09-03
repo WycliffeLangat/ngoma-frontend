@@ -1170,10 +1170,10 @@ export default function PremiumChartsPage({
     };
     return copy[label] || `${label} is metadata attached to this chart entry when it exists in the public dataset.`;
   };
-  const HeaderInfo = ({ children, title, body, items }) => (
-    <span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",gap:"5px",width:"100%"}}>
-      <span>{children}</span>
-      {InfoButton && <InfoButton title={title} body={body} items={items} size={14} style={{background:darkMode?"rgba(255,255,255,0.10)":"rgba(255,255,255,0.72)"}} />}
+  const HeaderInfo = ({ children, title, body, items, iconSize = 14 }) => (
+    <span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",gap:"4px",width:"100%",minWidth:0}}>
+      <span style={{whiteSpace:"nowrap"}}>{children}</span>
+      {InfoButton && <InfoButton title={title} body={body} items={items} size={iconSize} style={{background:darkMode?"rgba(255,255,255,0.10)":"rgba(255,255,255,0.72)",flexShrink:0}} />}
     </span>
   );
 
@@ -1744,13 +1744,13 @@ export default function PremiumChartsPage({
         {mobile ? (
           <div className="ngoma-mobile-table-header" style={{...styles.mobileTableHeader, background: darkMode ? "#0f120f" : "#f0ede6", borderBottom: `2px solid ${chartAccentBorder}`, color: darkMode ? "#FFFFFF" : "#000000"}}>
             <span style={styles.mobileTableHeaderCell}>
-              <HeaderInfo title="Rank" body="Rank is the entry's current position in the selected Top 50. Lower numbers are better.">#</HeaderInfo>
+              <HeaderInfo title="Rank" body="Rank is the entry's current position in the selected Top 50. Lower numbers are better." iconSize={11}>#</HeaderInfo>
             </span>
             <span style={{...styles.mobileTableHeaderCell, textAlign: "left"}}>
-              <HeaderInfo title={isArtistsChart ? "Artist" : (isSingles ? "Song" : "Album")} body={`This column names the charted ${isArtistsChart ? "artist" : (isSingles ? "song" : "album")} and opens the public detail view.`}>{isArtistsChart ? "Artist" : (isSingles ? "Song" : "Album")}</HeaderInfo>
+              <HeaderInfo title={isArtistsChart ? "Artist" : (isSingles ? "Song" : "Album")} body={`This column names the charted ${isArtistsChart ? "artist" : (isSingles ? "song" : "album")} and opens the public detail view.`} iconSize={11}>{isArtistsChart ? "Artist" : (isSingles ? "Song" : "Album")}</HeaderInfo>
             </span>
             <span style={styles.mobileTableHeaderCell}>
-              <HeaderInfo title="Info" body="Tap the plus button on a row to expand its movement, metadata, points, platform coverage, credits, and links when available.">Info</HeaderInfo>
+              <HeaderInfo title="Info" body="Tap the plus button on a row to expand its movement, metadata, points, platform coverage, credits, and links when available." iconSize={11}>Info</HeaderInfo>
             </span>
           </div>
         ) : (
@@ -2357,7 +2357,7 @@ const styles = {
 
   mobileTableHeader: {
     display: "grid",
-    gridTemplateColumns: "38px minmax(0, 1fr) 34px",
+    gridTemplateColumns: "34px minmax(0, 1fr) 46px",
     gap: "9px",
     alignItems: "center",
     padding: "10px 12px",
@@ -2389,7 +2389,7 @@ const styles = {
 
   mobileDesktopRow: {
     display: "grid",
-    gridTemplateColumns: "38px minmax(0, 1fr) 34px",
+    gridTemplateColumns: "34px minmax(0, 1fr) 46px",
     gap: "9px",
     alignItems: "center",
     minWidth: 0,
