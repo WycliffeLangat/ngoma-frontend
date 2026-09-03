@@ -39,6 +39,19 @@ export const COUNTRY_ACCENTS = {
   ZM: "#19E26D", ZW: "#F59B0A",
 };
 
+// Top Countries charts use rank-based colors so the bars stay distinct even
+// when the countries in a month share similar flag/accent colors.
+export const COUNTRY_CHART_COLORS = [
+  "#1565C0",
+  "#C97A12",
+  "#00897B",
+  "#AD1457",
+  "#7B1FA2",
+  "#E53935",
+  "#2DB04A",
+  "#37474F",
+];
+
 export const AFRICA_REGION_GROUPS = [
   {
     key: "eastern-africa",

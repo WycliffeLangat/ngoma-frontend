@@ -6,7 +6,7 @@ import {
   protectedArtistCreditNames,
 } from "./chartHelpers.js";
 import {
-  COUNTRY_ACCENTS,
+  COUNTRY_CHART_COLORS,
   KENYA_COUNTRY_CODE,
   africaCountryCodesForRegion,
   africaCountryForCode,
@@ -537,7 +537,6 @@ export function buildTopCountryStats(payload, chartType, month, platform = "Comb
     if (!code) return;
     const current = countryMap.get(code) || {
       code, country: name || code, entries: 0, points: 0,
-      color: COUNTRY_ACCENTS[code] || "#C97A12",
     };
     current.entries += 1;
     current.points += Number(row.p ?? row.pts ?? row.points) || 0;
@@ -545,7 +544,11 @@ export function buildTopCountryStats(payload, chartType, month, platform = "Comb
   });
   return [...countryMap.values()]
     .sort((a, b) => b.entries - a.entries || b.points - a.points || a.code.localeCompare(b.code))
-    .slice(0, limit);
+    .slice(0, limit)
+    .map((entry, index) => ({
+      ...entry,
+      color: COUNTRY_CHART_COLORS[index % COUNTRY_CHART_COLORS.length],
+    }));
 }
 
 // ── Climbers / Drops / New Entries / Re-Entries ─────────────────────────────
