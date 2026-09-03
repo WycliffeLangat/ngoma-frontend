@@ -64,11 +64,37 @@ export function countryChartColor(code) {
   if (!upper) return ensureBarContrast(COUNTRY_CHART_COLORS[0]);
   // Kenya's brand green is pinned as-is everywhere else in the app — never contrast-adjust it.
   if (upper === KENYA_COUNTRY_CODE) return COUNTRY_ACCENTS[upper];
-  if (COUNTRY_ACCENTS[upper]) return ensureBarContrast(COUNTRY_ACCENTS[upper]);
-  let hash = 0;
-  for (let i = 0; i < upper.length; i += 1) hash = (hash * 31 + upper.charCodeAt(i)) >>> 0;
-  return ensureBarContrast(COUNTRY_CHART_COLORS[hash % COUNTRY_CHART_COLORS.length]);
+  const accent = COUNTRY_ACCENTS[upper];
+  if (accent) {
+    // So many African flag accents share the same green family that the chart
+    // reads as one solid color block — swap those (Kenya excluded above) for a
+    // deterministic non-green pick so the bars actually look distinct.
+    if (isGreenHue(accent)) return ensureBarContrast(pickAltColor(upper));
+    return ensureBarContrast(accent);
+  }
+  return ensureBarContrast(COUNTRY_CHART_COLORS[hashCode(upper) % COUNTRY_CHART_COLORS.length]);
 }
+
+function hashCode(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i += 1) hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
+  return hash;
+}
+
+// Non-green subset of COUNTRY_CHART_COLORS, used to re-color countries whose
+// flag accent is green so the Top Countries chart isn't dominated by one hue.
+const ALT_COUNTRY_COLORS = COUNTRY_CHART_COLORS.filter((hex) => !isGreenHue(hex));
+
+function pickAltColor(code) {
+  return ALT_COUNTRY_COLORS[hashCode(code) % ALT_COUNTRY_COLORS.length];
+}
+
+function isGreenHue(hex) {
+  const { h } = rgbToHsl(hexToRgb(hex));
+  const deg = h * 360;
+  return deg >= 95 && deg <= 160;
+}
+
 
 function hexToRgb(hex) {
   const clean = String(hex).replace("#", "");
