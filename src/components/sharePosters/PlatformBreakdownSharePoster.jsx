@@ -50,7 +50,7 @@ export default function PlatformBreakdownSharePoster({ chartType = "singles", me
   const padX = 64;
   const metricLabel = METRICS.find(([value]) => value === metric)?.[1] || "";
   const typeLabel = CHART_TYPES.find(([value]) => value === chartType)?.[1] || "Chart";
-  const headerTitle = `${metricLabel} — ${typeLabel}`;
+  const headerTitle = `${metricLabel} — ${typeLabel} Chart`;
 
   return (
     <div
