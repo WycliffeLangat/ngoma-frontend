@@ -6,11 +6,11 @@ import {
   protectedArtistCreditNames,
 } from "./chartHelpers.js";
 import {
-  COUNTRY_CHART_COLORS,
   KENYA_COUNTRY_CODE,
   africaCountryCodesForRegion,
   africaCountryForCode,
   africaRegionBackendKeys,
+  countryChartColor,
   countryCodeFromAfricaChart,
   isAfricaChart,
   isAfricaRegionChart,
@@ -545,9 +545,9 @@ export function buildTopCountryStats(payload, chartType, month, platform = "Comb
   return [...countryMap.values()]
     .sort((a, b) => b.entries - a.entries || b.points - a.points || a.code.localeCompare(b.code))
     .slice(0, limit)
-    .map((entry, index) => ({
+    .map((entry) => ({
       ...entry,
-      color: COUNTRY_CHART_COLORS[index % COUNTRY_CHART_COLORS.length],
+      color: countryChartColor(entry.code),
     }));
 }
 

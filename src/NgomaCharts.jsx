@@ -22,7 +22,6 @@ import {
   mergeCertifications,
 } from "./utils/automaticPublicContent.js";
 import {
-  COUNTRY_CHART_COLORS,
   KENYA_COUNTRY_CODE,
   KENYA_ONLY_COUNTRY_GROUPS,
   africaChartLabel,
@@ -30,6 +29,7 @@ import {
   africaCountryCodesForRegion,
   africaCountryForCode,
   africaRegionBackendKeys,
+  countryChartColor,
   countryCodeFromAfricaChart,
   isAfricaChart,
   isAfricaRegionChart,
@@ -3031,9 +3031,9 @@ const top = data[0];
     return [...countryMap.values()]
       .sort((a, b) => b.entries - a.entries || b.points - a.points || a.code.localeCompare(b.code))
       .slice(0, 5)
-      .map((entry, index) => ({
+      .map((entry) => ({
         ...entry,
-        color: COUNTRY_CHART_COLORS[index % COUNTRY_CHART_COLORS.length],
+        color: countryChartColor(entry.code),
       }));
   })() : [],
     [analyticsActive, ct, anMonth, analyticsDefaultPlatform, dataRevision]);

@@ -52,6 +52,21 @@ export const COUNTRY_CHART_COLORS = [
   "#37474F",
 ];
 
+// Assigns each country a fixed color that never changes between renders/months,
+// instead of picking by sorted rank position (which reshuffles as entry counts
+// change). Countries with a dedicated flag accent keep that color; any other
+// code is hashed onto COUNTRY_CHART_COLORS so it still gets a stable, distinct
+// shade every time.
+export function countryChartColor(code) {
+  const upper = String(code || "").trim().toUpperCase();
+  if (!upper) return COUNTRY_CHART_COLORS[0];
+  if (COUNTRY_ACCENTS[upper]) return COUNTRY_ACCENTS[upper];
+  let hash = 0;
+  for (let i = 0; i < upper.length; i += 1) hash = (hash * 31 + upper.charCodeAt(i)) >>> 0;
+  return COUNTRY_CHART_COLORS[hash % COUNTRY_CHART_COLORS.length];
+}
+
+
 export const AFRICA_REGION_GROUPS = [
   {
     key: "eastern-africa",
