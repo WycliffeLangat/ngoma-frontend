@@ -101,6 +101,25 @@ function RecordRow({ r, pool, ctx, theme, rowStyle, cols }) {
     </>
   );
 
+  if (isMobile) {
+    return (
+      <div style={{ padding: "12px 10px", ...rowStyle }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "10px" }}>
+          <div style={{ minWidth: 0, fontFamily: F, fontSize: "10px", fontWeight: 900, letterSpacing: "0.6px", textTransform: "uppercase", color: GOLD, lineHeight: 1.35, overflowWrap: "anywhere", display: "inline-flex", alignItems: "center", gap: "5px" }}>
+            <span>{r.displayLabel}</span>
+            {InfoButton && <InfoButton title={r.displayLabel} body={recordInfoFor(r.displayLabel)} size={14} />}
+          </div>
+          <div style={{ flexShrink: 0 }}>{shareButton}</div>
+        </div>
+        <div style={{ marginTop: "10px", minWidth: 0 }}>{leaderNode}</div>
+        <div style={{ marginTop: "8px", display: "grid", gap: "3px", minWidth: 0 }}>
+          <span style={{ fontFamily: F, fontSize: "9px", fontWeight: 900, letterSpacing: "0.8px", textTransform: "uppercase", color: isDark ? "rgba(255,255,255,0.68)" : "rgba(0,0,0,0.58)" }}>Detail</span>
+          <div style={{ minWidth: 0, fontFamily: F, fontSize: "12px", color: isDark ? "#FFFFFF" : "#000000", lineHeight: 1.45, overflowWrap: "anywhere" }}>{detailNode}</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ display: "grid", gridTemplateColumns: cols, gap: isMobile ? "8px" : "10px", alignItems: "center", padding: isMobile ? "10px 10px" : "14px 16px", ...rowStyle }}>
       <div style={{ minWidth: 0, fontFamily: F, fontSize: isMobile ? "9px" : "11px", fontWeight: 800, letterSpacing: "0.6px", textTransform: "uppercase", color: isDark ? "#FFFFFF" : "#000000", overflowWrap: "anywhere", display:"inline-flex", alignItems:"center", gap:"5px" }}>
@@ -539,7 +558,7 @@ export default function AnalyticsPage({ ctx }) {
           </AnalyticsDeepSection>
 
           {/* Records & Milestones — all-time achievements for the selected chart type. */}
-          <AnalyticsDeepSection label="Records & Milestones" isMobile={isMobile}>
+          <AnalyticsDeepSection label="Records & Milestones" isMobile={isMobile} defaultOpen>
           <div style={{...card(),...sectionGap}}>
             {sectionTitle(
               isMobile ? "Records & Milestones" : "Records & Milestones - All Time",
@@ -549,7 +568,7 @@ export default function AnalyticsPage({ ctx }) {
             )}
             <p style={{fontFamily:F,fontSize:"13px",color:isDark?"#FFFFFF":"#000000",margin:"-4px 0 18px",lineHeight:1.5}}>{chartTypeLabel} achievements calculated solely from published public Top 50 charts across all tracked months.</p>
             <div style={{border:"1px solid "+(isDark?"#242923":"#EFEDE7"),borderRadius:"12px",overflow:"hidden"}}>
-              <div style={{display:"grid",gridTemplateColumns:recordsCols,gap:gridRowGap,padding:isMobile?"10px 10px":"12px 16px",...gridHeaderStyle}}>
+              <div style={{display:isMobile?"none":"grid",gridTemplateColumns:recordsCols,gap:gridRowGap,padding:isMobile?"10px 10px":"12px 16px",...gridHeaderStyle}}>
                 <div style={{fontFamily:F,fontSize:isMobile?"9px":"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF",display:"inline-flex",alignItems:"center",gap:"5px"}}>Record{InfoButton && <InfoButton title="Record" body="The achievement being measured, such as highest points, most charted entries, biggest climb, or total charted releases." size={14} style={{background:"rgba(255,255,255,0.10)",color:"#FFFFFF",borderColor:"rgba(255,255,255,0.32)"}} />}</div>
                 <div style={{fontFamily:F,fontSize:isMobile?"9px":"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF",display:"inline-flex",alignItems:"center",gap:"5px"}}>Leader{InfoButton && <InfoButton title="Leader" body="The song, album, or artist currently leading that record category." size={14} style={{background:"rgba(255,255,255,0.10)",color:"#FFFFFF",borderColor:"rgba(255,255,255,0.32)"}} />}</div>
                 <div style={{fontFamily:F,fontSize:isMobile?"9px":"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF",display:"inline-flex",alignItems:"center",gap:"5px"}}>Detail{InfoButton && <InfoButton title="Record Detail" body="The supporting value behind the record, such as points, months, entries, rank change, or award level." size={14} style={{background:"rgba(255,255,255,0.10)",color:"#FFFFFF",borderColor:"rgba(255,255,255,0.32)"}} />}</div>
@@ -574,7 +593,7 @@ export default function AnalyticsPage({ ctx }) {
           </AnalyticsDeepSection>
 
           {hofItems.length > 0 && (
-          <AnalyticsDeepSection label="Hall of Fame" isMobile={isMobile}>
+          <AnalyticsDeepSection label={isMobile ? "Monthly #1s" : "Hall of Fame"} isMobile={isMobile} defaultOpen>
           <div style={card({marginBottom:isMobile?"20px":"26px"})}>
             {sectionTitle(
               isMobile ? "Monthly #1s" : "Hall of Fame - Monthly #1s",
@@ -585,7 +604,7 @@ export default function AnalyticsPage({ ctx }) {
             <p style={{fontFamily:F,fontSize:"13px",color:isDark?"#FFFFFF":"#000000",margin:"-4px 0 18px",lineHeight:1.5}}>Monthly leaders from the published public Top 50 charts across the full tracked dataset.</p>
             <div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1.8px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",marginBottom:"12px",paddingBottom:"6px",borderBottom:"1px solid "+(isDark?"#2F352F":"#E4E1D8")}}>{hofLabel}</div>
             <div style={{border:"1px solid "+(isDark?"#242923":"#EFEDE7"),borderRadius:"12px",overflow:"hidden"}}>
-              <div style={{display:"grid",gridTemplateColumns:hofCols,gap:gridRowGap,padding:isMobile?"10px 10px":"12px 16px",...gridHeaderStyle}}>
+              <div style={{display:isMobile?"none":"grid",gridTemplateColumns:hofCols,gap:gridRowGap,padding:isMobile?"10px 10px":"12px 16px",...gridHeaderStyle}}>
                 <div style={{fontFamily:F,fontSize:isMobile?"9px":"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF",textAlign:"center"}}>#{InfoButton && <InfoButton title="Hall of Fame Rank" body="Rows are ordered by time spent at #1, then by recency and title when needed." size={14} style={{marginLeft:"5px",background:"rgba(255,255,255,0.10)",color:"#FFFFFF",borderColor:"rgba(255,255,255,0.32)"}} />}</div>
                 <div style={{fontFamily:F,fontSize:isMobile?"9px":"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF",display:"inline-flex",alignItems:"center",gap:"5px"}}>{isArtists?"Artist":"Title"}{InfoButton && <InfoButton title={isArtists ? "Artist" : "Title"} body={`The ${isArtists ? "artist" : "release"} that reached #1 on a published monthly Combined chart.`} size={14} style={{background:"rgba(255,255,255,0.10)",color:"#FFFFFF",borderColor:"rgba(255,255,255,0.32)"}} />}</div>
                 {!isMobile && !isArtists && <div style={{fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF",display:"inline-flex",alignItems:"center",gap:"5px"}}>Artist{InfoButton && <InfoButton title="Artist" body="The primary artist credit attached to the Hall of Fame release." size={14} style={{background:"rgba(255,255,255,0.10)",color:"#FFFFFF",borderColor:"rgba(255,255,255,0.32)"}} />}</div>}
@@ -606,6 +625,19 @@ export default function AnalyticsPage({ ctx }) {
                     </div>
                   </div>
                 );
+                if (isMobile) {
+                  return (
+                    <div key={`${e.type}-${e.month}-${i}`} style={{display:"grid",gridTemplateColumns:"30px minmax(0,1fr)",gap:"10px",alignItems:"start",padding:"12px 10px",...rowStyle}}>
+                      <div style={{fontFamily:F,fontSize:"12px",fontWeight:900,color:GOLD,textAlign:"center",paddingTop:"7px"}}>{i+1}</div>
+                      <div style={{minWidth:0}}>
+                        <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:"8px",minWidth:0}}>
+                          <div style={{minWidth:0,flex:"1 1 auto"}}>{titleCell}</div>
+                          <span style={{fontFamily:F,fontSize:"10px",fontWeight:900,color:isDark?"#FFFFFF":"#000000",background:isDark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.06)",borderRadius:"999px",padding:"4px 8px",whiteSpace:"nowrap",flexShrink:0}}>{timeLabel}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
                 return (
                   <div key={`${e.type}-${e.month}-${i}`} style={{display:"grid",gridTemplateColumns:hofCols,gap:gridRowGap,alignItems:"center",padding:isMobile?"10px 10px":"14px 16px",...rowStyle}}>
                     <div style={{fontFamily:F,fontSize:isMobile?"12px":"13px",fontWeight:900,color:isDark?"#FFFFFF":"#000000",textAlign:"center"}}>{i+1}</div>

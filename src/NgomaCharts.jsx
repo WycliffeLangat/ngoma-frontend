@@ -1566,14 +1566,15 @@ function applyRuntimePublicData(rawPayload) {
   return PUBLIC_DATA;
 }
 
-function AnalyticsDeepSection({ label, isMobile, children }) {
-  const [isOpen, setIsOpen] = useState(false);
+function AnalyticsDeepSection({ label, isMobile, children, defaultOpen = false }) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
 
   if (!isMobile) return <>{children}</>;
 
   return (
     <details
       className="ngoma-mobile-collapsible"
+      open={isOpen}
       onToggle={(event) => setIsOpen(event.currentTarget.open)}
     >
       <summary>{label}<span className="anl-chev">›</span></summary>
@@ -3917,6 +3918,16 @@ const top = data[0];
         @media (max-width: 860px){
           .anl-2col{grid-template-columns:1fr !important;}
         }
+        @media (max-width: 768px){
+          .ngoma-mobile-collapsible{background:#fff;border:1px solid #ECEAE3;border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,0.05);overflow:hidden;margin-bottom:12px !important;}
+          .ngoma-mobile-collapsible > summary{display:flex;align-items:center;justify-content:space-between;gap:10px;list-style:none;padding:17px 18px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13.5px;font-weight:800;letter-spacing:0;color:#1A1A1A;cursor:pointer;user-select:none;-webkit-user-select:none;}
+          .ngoma-mobile-collapsible > summary::-webkit-details-marker{display:none;}
+          .ngoma-mobile-collapsible > summary .anl-chev{font-size:20px;font-weight:300;color:#C97A12;transition:transform 0.22s ease;flex-shrink:0;line-height:1;display:inline-block;}
+          .ngoma-mobile-collapsible[open] > summary{border-bottom:1px solid #F0EDE6;background:#FAFAF8;}
+          .ngoma-mobile-collapsible[open] > summary .anl-chev{transform:rotate(90deg);}
+          .ngoma-mobile-collapsible-body{padding:0 0 4px;}
+          .ngoma-mobile-collapsible-body > div{border:none !important;box-shadow:none !important;margin-bottom:0 !important;border-radius:0 !important;}
+        }
         @media (max-width: 640px){
           .anl-grid-2{grid-template-columns:1fr !important;}
           .anl-2col{grid-template-columns:1fr !important;}
@@ -3931,14 +3942,6 @@ const top = data[0];
           .ngoma-analytics-chart-scroll{margin-left:-2px;margin-right:-2px;padding-bottom:8px;}
           .ngoma-analytics-chart-inner{min-width:520px;}
           .ngoma-analytics-wide-chart{min-width:620px;}
-          .ngoma-mobile-collapsible{background:#fff;border:1px solid #ECEAE3;border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,0.05);overflow:hidden;margin-bottom:12px !important;}
-          .ngoma-mobile-collapsible > summary{display:flex;align-items:center;justify-content:space-between;gap:10px;list-style:none;padding:17px 18px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13.5px;font-weight:800;letter-spacing:-0.1px;color:#1A1A1A;cursor:pointer;user-select:none;-webkit-user-select:none;}
-          .ngoma-mobile-collapsible > summary::-webkit-details-marker{display:none;}
-          .ngoma-mobile-collapsible > summary .anl-chev{font-size:20px;font-weight:300;color:#C97A12;transition:transform 0.22s ease;flex-shrink:0;line-height:1;display:inline-block;}
-          .ngoma-mobile-collapsible[open] > summary{border-bottom:1px solid #F0EDE6;background:#FAFAF8;}
-          .ngoma-mobile-collapsible[open] > summary .anl-chev{transform:rotate(90deg);}
-          .ngoma-mobile-collapsible-body{padding:0 0 4px;}
-          .ngoma-mobile-collapsible-body > div{border:none !important;box-shadow:none !important;margin-bottom:0 !important;border-radius:0 !important;}
         }
         html[data-ngoma-theme="dark"] .ngoma-mobile-collapsible{background:#0f1110 !important;border-color:#2b302b !important;}
         html[data-ngoma-theme="dark"] .ngoma-mobile-collapsible > summary{color:#ffffff !important;}
