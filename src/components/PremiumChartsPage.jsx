@@ -1570,7 +1570,7 @@ export default function PremiumChartsPage({
         }}
       >
         {mobile ? (
-          <div style={{ display: "flex", gap: "8px", width: "100%" }}>
+          <div style={{ display: "flex", gap: "10px", width: "100%" }}>
             <select
               aria-label="Chart type"
               value={ct}
@@ -1631,11 +1631,12 @@ export default function PremiumChartsPage({
               shareUrl={buildChartsShareUrl({ chartType: ct, platform: plat, month })}
               fileName={`ngoma-top-${ct}-${String(plat).toLowerCase().replace(/\s+/g,"-")}-${String(month).toLowerCase().replace(/\s+/g,"-")}.png`}
               posterDownloadOptions={chartPosterDownloadOptions}
+              style={{ marginLeft: "4px" }}
             />
           </div>
         ) : (
           <>
-            <div style={{display:"inline-flex",alignItems:"center",gap:"8px",minWidth:0}}>
+            <div style={{display:"inline-flex",alignItems:"center",gap:"10px",minWidth:0}}>
               <ChartToggle />
               {InfoButton && (
                 <InfoButton
@@ -1668,7 +1669,7 @@ export default function PremiumChartsPage({
                   const label = item === "Kenyan" ? regionalTop50Label : (item === "Combined" ? item : PLAT_LABEL[item] || item);
 
                   return (
-                    <div key={item} style={{display:"inline-flex",alignItems:"center",gap:"4px",flexShrink:0}}>
+                    <div key={item} style={{display:"inline-flex",alignItems:"center",gap:"6px",flexShrink:0}}>
                       <button
                         ref={active ? activePlatformPillRef : null}
                         className="ngoma-source-selector-option"
@@ -1716,6 +1717,7 @@ export default function PremiumChartsPage({
                 shareUrl={buildChartsShareUrl({ chartType: ct, platform: plat, month })}
                 fileName={`ngoma-top-${ct}-${String(plat).toLowerCase().replace(/\s+/g,"-")}-${String(month).toLowerCase().replace(/\s+/g,"-")}.png`}
                 posterDownloadOptions={chartPosterDownloadOptions}
+                style={{ marginLeft: "auto" }}
               />
             </div>
           </>
@@ -2193,7 +2195,8 @@ const styles = {
 
   controls: {
     display: "flex",
-    gap: "10px",
+    gap: "14px",
+    rowGap: "12px",
     flexWrap: "wrap",
     background: "#ffffff",
     color: "#000000",
@@ -2238,7 +2241,7 @@ const styles = {
 
   platforms: {
     display: "flex",
-    gap: "6px",
+    gap: "10px",
     scrollbarWidth: "thin",
     maxWidth: "100%",
   },

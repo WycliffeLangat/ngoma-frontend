@@ -21,6 +21,7 @@ export default function ShareButton({
   F,
   GOLD,
   compact = false,
+  style = {},
 }) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -169,7 +170,7 @@ export default function ShareButton({
   };
 
   return (
-    <div ref={containerRef} style={{ position: "relative", display: "inline-block" }}>
+    <div ref={containerRef} style={{ position: "relative", display: "inline-block", ...style }}>
       <button
         ref={buttonRef}
         type="button"

@@ -223,10 +223,15 @@ export default function AnalyticsPage({ ctx }) {
   const barCursorFill = isDark ? "rgba(255,255,255,0.05)" : "rgba(31,36,31,0.04)";
   const axisStroke = isDark ? "#3A413A" : "#D9D5CB";
   const sectionGap = { marginBottom: isMobile ? "20px" : "26px" };
+  // display:block (not secLbl's default flex) so the info button flows as
+  // normal inline content right after the label text — if the label wraps
+  // onto multiple lines, the button stays attached to the last line instead
+  // of dropping onto its own separate line below the whole heading.
   const sectionTitle = (label, title, body, items = []) => (
-    <div style={{...secLbl(isDark?"#FFFFFF":"#000000"), marginBottom:0, fontSize:"20px", display:"flex", alignItems:"center", gap:"8px", flexWrap:"wrap"}}>
-      <span><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>{label}</span>
-      {InfoButton && <InfoButton title={title || label} body={body} items={items} size={16} />}
+    <div style={{...secLbl(isDark?"#FFFFFF":"#000000"), marginBottom:0, fontSize:"20px", display:"block", flex:"1 1 auto", minWidth:0}}>
+      <SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>
+      <span style={{marginLeft:"7px"}}>{label}</span>
+      {InfoButton && <InfoButton title={title || label} body={body} items={items} size={16} style={{marginLeft:"8px"}} />}
     </div>
   );
   const compactInfo = (title, body, items = []) => InfoButton ? (
@@ -308,8 +313,12 @@ export default function AnalyticsPage({ ctx }) {
           <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"center",marginBottom:"28px",gap:isMobile?"14px":"24px",flexDirection:isMobile?"column":"row",paddingBottom:"20px",borderBottom:"1px solid "+(isDark?"#2F352F":"#EFEDE7")}}>
             <div>
               <div style={{display:"inline-block",width:"28px",height:"3px",background:isDark?"#FFFFFF":"#000000",borderRadius:"2px",marginBottom:"10px"}}/>
-              <div style={{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}>
-                <h2 style={{fontSize:isMobile?"22px":"28px",fontWeight:900,margin:"0 0 4px",letterSpacing:"-0.5px",color:isDark?"#FFFFFF":"#000000"}}>{isArtists?"Artist Analytics":isSingles?"Singles Analytics":"Albums Analytics"}</h2>
+              {/* h2 is inline (not the default block) so the info button flows
+                  right after the heading text instead of dropping below it
+                  when the heading itself wraps onto multiple lines. */}
+              <div style={{display:"block",marginBottom:"4px"}}>
+                <h2 style={{display:"inline",fontSize:isMobile?"22px":"28px",fontWeight:900,margin:0,letterSpacing:"-0.5px",color:isDark?"#FFFFFF":"#000000"}}>{isArtists?"Artist Analytics":isSingles?"Singles Analytics":"Albums Analytics"}</h2>
+                {" "}
                 {compactInfo(
                   isArtists ? "Artist Analytics" : (isSingles ? "Singles Analytics" : "Albums Analytics"),
                   "Analytics summarizes movement, countries, records, milestones, and Hall of Fame results from the published public Top 50 data."
@@ -350,7 +359,7 @@ export default function AnalyticsPage({ ctx }) {
               </div>
             )}
             <div style={{...card(),order:2}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"14px",flexWrap:"wrap"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:"10px",marginBottom:"14px",flexWrap:"nowrap"}}>
                 {sectionTitle(
                   `Biggest ${releaseLabel} Climbers - ${anMonth}`,
                   `Biggest ${releaseLabel} Climbers`,
@@ -365,6 +374,7 @@ export default function AnalyticsPage({ ctx }) {
                   shareUrl={buildAnalyticsShareUrl({ chartType: chartTypeKey, month: anMonth })}
                   fileName={`ngoma-climbers-${chartTypeKey}.png`}
                   posterContent={<MoversSharePoster chartType={chartTypeKey} move="risers" month={anMonth} theme={isDark ? "dark" : "light"} />}
+                  style={{ flexShrink: 0 }}
                 />
               </div>
               {mvData.risers.map((s,i)=>{
@@ -392,7 +402,7 @@ export default function AnalyticsPage({ ctx }) {
 
           <div className="anl-split-row" style={splitRowStyle}>
             <div style={{...card(),order:1}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"14px",flexWrap:"wrap"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:"10px",marginBottom:"14px",flexWrap:"nowrap"}}>
                 {sectionTitle(
                   `Biggest ${releaseLabel} Drops - ${anMonth}`,
                   `Biggest ${releaseLabel} Drops`,
@@ -407,6 +417,7 @@ export default function AnalyticsPage({ ctx }) {
                   shareUrl={buildAnalyticsShareUrl({ chartType: chartTypeKey, month: anMonth })}
                   fileName={`ngoma-drops-${chartTypeKey}.png`}
                   posterContent={<MoversSharePoster chartType={chartTypeKey} move="fallers" month={anMonth} theme={isDark ? "dark" : "light"} />}
+                  style={{ flexShrink: 0 }}
                 />
               </div>
               {mvData.fallers.map((s,i)=>{
@@ -444,7 +455,7 @@ export default function AnalyticsPage({ ctx }) {
               </div>
             )}
             <div style={{...card(),order:2}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"10px",marginBottom:"14px",flexWrap:"wrap"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:"10px",marginBottom:"14px",flexWrap:"nowrap"}}>
                 {sectionTitle(
                   `New Entries - ${anMonth}`,
                   "New Entries",
@@ -459,6 +470,7 @@ export default function AnalyticsPage({ ctx }) {
                   shareUrl={buildAnalyticsShareUrl({ chartType: chartTypeKey, month: anMonth })}
                   fileName={`ngoma-new-entries-${chartTypeKey}.png`}
                   posterContent={<MoversSharePoster chartType={chartTypeKey} move="newEntries" month={anMonth} theme={isDark ? "dark" : "light"} />}
+                  style={{ flexShrink: 0 }}
                 />
               </div>
               {mvData.newEntries.slice(0,5).map((s,i)=>{

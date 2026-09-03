@@ -91,31 +91,6 @@ body {
   min-height: 100vh;
 }
 
-/* Scales the whole public site (text, images, logos, icons, spacing) up
-   one small step together, without the overflow/blank-space problems a
-   transform: scale() causes. Scoped to the public shell so the CMS/admin
-   app (which never renders .ngoma-app-shell) is unaffected, and to
-   desktop widths only — mobile stays exactly as-is. */
-@media (min-width: 769px) {
-  .ngoma-app-shell {
-    zoom: 1.05;
-  }
-
-  /* zoom scales a position:fixed element's own box past the true
-     viewport (the fixed header, search overlay, and AI widget panel
-     would render ~5% wider/taller than the screen). Resetting zoom
-     only affects that element's own fixed box, not its normal-flow
-     descendants — their layout still resolves against the shell's
-     1.05 ambient zoom on its own, so the header's logo/nav content
-     is already sized and centered correctly with nothing further
-     needed here. */
-  .ngoma-app-shell > header,
-  .ngoma-app-shell [style*="position: fixed" i],
-  .ngoma-app-shell [style*="position:fixed" i] {
-    zoom: 1;
-  }
-}
-
 * {
   box-sizing: border-box;
 }
