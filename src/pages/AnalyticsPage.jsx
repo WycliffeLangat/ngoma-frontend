@@ -615,6 +615,9 @@ export default function AnalyticsPage({ ctx }) {
                 const rowStyle = {borderTop:gridBorder,background:gridRowBg(i)};
                 const timeLabel = e.hofMonths.length > 1 ? `${e.hofMonths.length} months` : "1 month";
                 const monthsLabel = e.hofMonths.map(abbrevMonth).join(", ");
+                const mobileFieldLabel = {fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:0,textTransform:"uppercase",color:isDark?"rgba(255,255,255,0.66)":"rgba(0,0,0,0.56)",lineHeight:1.2};
+                const mobileFieldValue = {fontFamily:F,fontSize:"12px",fontWeight:850,color:isDark?"#FFFFFF":"#000000",lineHeight:1.35,overflowWrap:"anywhere"};
+                const mobileFieldBox = {display:"grid",gap:"4px",minWidth:0,padding:"9px 10px",borderRadius:"10px",background:isDark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.035)",border:"1px solid "+(isDark?"#2F352F":"#EEEAE1")};
                 const titleCell = (
                   <div style={{display:"flex",alignItems:"center",gap:"10px",minWidth:0}}>
                     <EntryThumb item={e} name={isArtists?e.title:e.artist} isArtist={isArtists} size={isMobile?32:38} accent={isDark?"#F6F3EA":"#1A1A1A"} />
@@ -627,12 +630,26 @@ export default function AnalyticsPage({ ctx }) {
                 );
                 if (isMobile) {
                   return (
-                    <div key={`${e.type}-${e.month}-${i}`} style={{display:"grid",gridTemplateColumns:"30px minmax(0,1fr)",gap:"10px",alignItems:"start",padding:"12px 10px",...rowStyle}}>
-                      <div style={{fontFamily:F,fontSize:"12px",fontWeight:900,color:GOLD,textAlign:"center",paddingTop:"7px"}}>{i+1}</div>
-                      <div style={{minWidth:0}}>
-                        <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:"8px",minWidth:0}}>
-                          <div style={{minWidth:0,flex:"1 1 auto"}}>{titleCell}</div>
-                          <span style={{fontFamily:F,fontSize:"10px",fontWeight:900,color:isDark?"#FFFFFF":"#000000",background:isDark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.06)",borderRadius:"999px",padding:"4px 8px",whiteSpace:"nowrap",flexShrink:0}}>{timeLabel}</span>
+                    <div key={`${e.type}-${e.month}-${i}`} style={{padding:"13px 10px",...rowStyle}}>
+                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px",marginBottom:"10px"}}>
+                        <span style={{fontFamily:F,fontSize:"11px",fontWeight:950,color:GOLD,background:isDark?"rgba(201,122,18,0.16)":"rgba(201,122,18,0.12)",borderRadius:"999px",padding:"4px 9px",whiteSpace:"nowrap"}}>#{i+1}</span>
+                        <span style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:0,textTransform:"uppercase",color:isDark?"rgba(255,255,255,0.68)":"rgba(0,0,0,0.56)",whiteSpace:"nowrap"}}>{hofLabel}</span>
+                      </div>
+                      <div style={{display:"flex",alignItems:"flex-start",gap:"11px",minWidth:0}}>
+                        <EntryThumb item={e} name={isArtists?e.title:e.artist} isArtist={isArtists} size={44} accent={isDark?"#F6F3EA":"#1A1A1A"} />
+                        <div style={{minWidth:0,flex:1}}>
+                          <button type="button" onClick={()=>openReleaseDetails(e,e.type)} style={{display:"block",border:0,background:"transparent",padding:0,fontFamily:SF,fontWeight:850,fontSize:"14px",lineHeight:1.25,cursor:"pointer",textAlign:"left",color:isDark?"#FFFFFF":"inherit",whiteSpace:"normal",overflowWrap:"anywhere",maxWidth:"100%"}}>{e.title}</button>
+                          {!isArtists && <div style={{fontFamily:F,fontSize:"11.5px",lineHeight:1.35,marginTop:"3px",color:isDark?"#FFFFFF":"#000000",overflowWrap:"anywhere"}}><ArtistCredit credit={e.artist} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="11.5px" fontWeight={400} color="#000000" darkColor="#FFFFFF" separatorColor="#000000" darkSeparatorColor="#FFFFFF" style={{lineHeight:1.35}} /></div>}
+                        </div>
+                      </div>
+                      <div style={{display:"grid",gridTemplateColumns:"minmax(0,0.72fr) minmax(0,1.28fr)",gap:"8px",marginTop:"11px"}}>
+                        <div style={mobileFieldBox}>
+                          <span style={mobileFieldLabel}>Time at #1</span>
+                          <span style={mobileFieldValue}>{timeLabel}</span>
+                        </div>
+                        <div style={mobileFieldBox}>
+                          <span style={mobileFieldLabel}>Months</span>
+                          <span title={monthsLabel} style={mobileFieldValue}>{monthsLabel}</span>
                         </div>
                       </div>
                     </div>
