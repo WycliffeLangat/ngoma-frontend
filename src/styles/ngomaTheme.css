@@ -3291,6 +3291,12 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell select optgroup {
 }
 
 @media (max-width: 768px) {
+  .ngoma-analytics-page {
+    padding: 14px !important;
+  }
+  .ngoma-certifications-page {
+    padding: clamp(14px, 4vw, 20px) !important;
+  }
   .ngoma-cert-hero,
   .ngoma-cert-dashboard,
   .ngoma-about-process {
@@ -3298,6 +3304,18 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell select optgroup {
   }
   .ngoma-cert-hero {
     display: grid;
+    padding: 16px !important;
+  }
+  .ngoma-cert-dashboard {
+    gap: 10px;
+  }
+  .ngoma-cert-feature-points,
+  .ngoma-cert-threshold,
+  .cert-wall-card .cert-points {
+    display: none !important;
+  }
+  .ngoma-cert-tile {
+    padding: 14px !important;
   }
   .ngoma-cert-actions {
     justify-content: flex-start;
@@ -3309,28 +3327,14 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell select optgroup {
   .cert-wall {
     grid-template-columns: 1fr;
   }
-  /* Two clean rows instead of cramming five items into one — identity
-     (icon/thumbnail/title) on top, points and the share action on their
-     own row below — so every tile in the wall lines up the same way
-     instead of points and copy fighting for the same grid cell. */
+  /* Keep the release identity and share action visible without a second
+     metadata row competing for the phone's limited width. */
   .cert-wall-card {
     grid-template-columns: 26px auto minmax(0, 1fr) auto;
-    grid-template-areas:
-      "icon thumb copy copy"
-      "points points points share";
-    row-gap: 10px;
+    grid-template-areas: "icon thumb copy share";
+    row-gap: 0;
     column-gap: 10px;
     padding: 12px;
-  }
-  .cert-wall-card .cert-points {
-    align-self: center;
-    text-align: left;
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
-  }
-  .cert-wall-card .cert-points div:last-child {
-    margin-top: 0 !important;
   }
   .cert-wall-card .cert-share {
     align-self: center;

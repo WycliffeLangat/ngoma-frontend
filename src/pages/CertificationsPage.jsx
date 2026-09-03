@@ -183,7 +183,7 @@ export default function CertificationsPage({ ctx }) {
                 </div>
               </div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px",marginTop:"18px"}}>
-                <div style={{padding:"12px",borderRadius:"10px",background:softBg,border:`1px solid ${cardBorder}`}}>
+                <div className="ngoma-cert-feature-points" style={{padding:"12px",borderRadius:"10px",background:softBg,border:`1px solid ${cardBorder}`}}>
                   <div style={{fontFamily:F,fontSize:"11px",fontWeight:850,color:textMuted,textTransform:"uppercase",letterSpacing:"0.7px",display:"inline-flex",alignItems:"center",gap:"5px"}}>Award{info("Award", "The highest certification tier this release has reached based on its lifetime point total.", [], 14)}</div>
                   <div style={{fontFamily:F,fontSize:"16px",fontWeight:850,color:topCertMeta?.color || textPrimary,marginTop:"4px"}}>{topCertMeta?.label || topCert.level}</div>
                 </div>
@@ -219,7 +219,7 @@ export default function CertificationsPage({ ctx }) {
                 <span style={{fontFamily:F,fontSize:"12px",fontWeight:850,color:textMuted,display:"inline-flex",alignItems:"center",gap:"5px"}}>{level.count.toLocaleString()} current{info(`${level.label} Count`, `The number of certified ${activeLabel} currently shown at ${level.label}.`, [], 14)}</span>
               </div>
               <div style={{fontFamily:SF,fontWeight:850,fontSize:TXT.metric,margin:"12px 0 3px",color:level.color,display:"inline-flex",alignItems:"center",gap:"7px"}}>{level.label}{info(level.label, `${level.label} starts at ${level.pts.toLocaleString()} lifetime Combined chart points.`, [], 14)}</div>
-              <div style={{fontFamily:F,fontSize:TXT.cardMeta,color:textMuted,display:"inline-flex",alignItems:"center",gap:"6px"}}>{level.pts.toLocaleString()}+ lifetime points{info(`${level.label} Threshold`, `A release reaches ${level.label} when its lifetime Combined chart points are at least ${level.pts.toLocaleString()}.`, [], 14)}</div>
+              <div className="ngoma-cert-threshold" style={{fontFamily:F,fontSize:TXT.cardMeta,color:textMuted,display:"inline-flex",alignItems:"center",gap:"6px"}}>{level.pts.toLocaleString()}+ lifetime points{info(`${level.label} Threshold`, `A release reaches ${level.label} when its lifetime Combined chart points are at least ${level.pts.toLocaleString()}.`, [], 14)}</div>
             </div>
           ))}
         </div>

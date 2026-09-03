@@ -246,7 +246,7 @@ export default function AnalyticsPage({ ctx }) {
   // onto multiple lines, the button stays attached to the last line instead
   // of dropping onto its own separate line below the whole heading.
   const sectionTitle = (label, title, body, items = []) => (
-    <div style={{...secLbl(isDark?"#FFFFFF":"#000000"), marginBottom:0, fontSize:"20px", display:"block", flex:"1 1 auto", minWidth:0}}>
+    <div style={{...secLbl(isDark?"#FFFFFF":"#000000"), marginBottom:0, fontSize:isMobile?"16px":"20px", letterSpacing:isMobile?"1px":"2px", display:"block", flex:"1 1 auto", minWidth:0, overflowWrap:"anywhere", wordBreak:"break-word"}}>
       <SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>
       <span style={{marginLeft:"7px"}}>{label}</span>
       {InfoButton && <InfoButton title={title || label} body={body} items={items} size={16} style={{marginLeft:"8px"}} />}
