@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, Cell, CartesianGrid } from "recharts";
 import { runtimePublicData } from "../../utils/publicDataRuntime.js";
 import {
-  buildPlatformTotals,
   buildUniquePlatformEntries,
   buildTopCountryStats,
 } from "../../utils/publicChartMirror.js";
@@ -18,7 +17,7 @@ import {
 
 // Same design as the CMS's Platform & Country Breakdown poster
 // (admin/pages/PlatformBreakdownPosterPage.jsx), fed from the public
-// Analytics page's Platform Totals / Country Stats panels.
+// Analytics page's country stats panel.
 const CHART_TYPES = [
   ["singles", "Songs"],
   ["albums", "Albums"],
@@ -26,16 +25,11 @@ const CHART_TYPES = [
 ];
 
 const METRICS = [
-  ["totals", "Platform Totals"],
   ["exclusives", "Platform Exclusives"],
   ["country", "Top Countries"],
 ];
 
 function rowsForMetric(payload, chartType, metric, month) {
-  if (metric === "totals") {
-    return buildPlatformTotals(payload, chartType, month)
-      .map((entry) => ({ label: entry.platform, value: entry.entries, color: entry.color }));
-  }
   if (metric === "exclusives") {
     return buildUniquePlatformEntries(payload, chartType, month)
       .filter((entry) => entry.count > 0)
@@ -45,7 +39,7 @@ function rowsForMetric(payload, chartType, metric, month) {
     .map((entry) => ({ label: `${entry.code} · ${entry.country}`, value: entry.entries, color: entry.color }));
 }
 
-export default function PlatformBreakdownSharePoster({ chartType = "singles", metric = "totals", month = "", viewMode = "graph", theme = "dark" }) {
+export default function PlatformBreakdownSharePoster({ chartType = "singles", metric = "country", month = "", viewMode = "graph", theme = "dark" }) {
   const t = usePosterTheme(theme);
   const payload = useMemo(() => runtimePublicData(), []);
   const rows = useMemo(() => {

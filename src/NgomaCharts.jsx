@@ -2959,23 +2959,6 @@ const top = data[0];
     .map(([count, value]) => ({ name: `${count} platform${Number(count) === 1 ? "" : "s"}`, value, count: Number(count) }))
     .sort((a, b) => b.count - a.count);
 
-  const platTotalsData = useMemo(() => analyticsActive ? currentPlatformKeys
-    .map((platform) => {
-      const entries = isArtists
-        ? buildArtistChart(anMonth, platform).length
-        : (() => {
-            const platformIndex = getRawPlatformIndex(releaseCt, platform, anMonth);
-            return getCombined(releaseCt, anMonth).filter((entry) => platformIndex.has(entryKey(entry))).length;
-          })();
-      return {
-        platform: PLAT_LABEL[platform] || platform,
-        entries,
-        color: PC[platform] || "#888",
-      };
-    })
-    .filter((entry) => entry.entries > 0) : [],
-    [analyticsActive, ct, anMonth, dataRevision]);
-
   const uniquePlatformData = useMemo(() => analyticsActive ? (() => {
     const top50RowsByPlatform = new Map(
       currentPlatformKeys.map((platform) => [
@@ -3819,7 +3802,6 @@ const top = data[0];
     platformLabelForScope,
     plat,
     platList,
-    platTotalsData,
     rankJourneyMonths,
     rankJourneyView,
     releaseJourney,

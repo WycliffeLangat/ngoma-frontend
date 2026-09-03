@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Cell, CartesianGrid } from "recharts";
 import { fetchAppData } from "../../api/public";
 import {
-  buildPlatformTotals,
   buildUniquePlatformEntries,
   buildTopCountryStats,
 } from "../../utils/publicChartMirror.js";
@@ -28,7 +27,6 @@ const CHART_TYPES = [
 ];
 
 const METRICS = [
-  ["totals", "Platform Totals"],
   ["exclusives", "Platform Exclusives"],
   ["country", "Top Countries"],
 ];
@@ -37,10 +35,6 @@ const METRICS = [
 // need to know which metric produced it: a plain `[{label, value, color}]`
 // list. Table mode reads the same array.
 function rowsForMetric(payload, chartType, metric, month) {
-  if (metric === "totals") {
-    return buildPlatformTotals(payload, chartType, month)
-      .map((entry) => ({ label: entry.platform, value: entry.entries, color: entry.color }));
-  }
   if (metric === "exclusives") {
     return buildUniquePlatformEntries(payload, chartType, month)
       .filter((entry) => entry.count > 0)
@@ -50,7 +44,7 @@ function rowsForMetric(payload, chartType, metric, month) {
     .map((entry) => ({ label: `${entry.code} · ${entry.country}`, value: entry.entries, color: entry.color }));
 }
 
-const METRIC_UNIT = { totals: "entries", exclusives: "unique entries", country: "entries" };
+const METRIC_UNIT = { exclusives: "unique entries", country: "entries" };
 
 function PosterContent({ rows, chartType, metric, month, viewMode, theme = "dark" }) {
   const t = usePosterTheme(theme);
@@ -165,7 +159,7 @@ export default function PlatformBreakdownPosterPage() {
   const [error, setError] = useState("");
   const [exportError, setExportError] = useState("");
   const [chartType, setChartType] = useState("singles");
-  const [metric, setMetric] = useState("totals");
+  const [metric, setMetric] = useState("exclusives");
   const [month, setMonth] = useState("");
   const [viewMode, setViewMode] = useState("graph");
   const [theme, setTheme] = useState("dark");
@@ -210,7 +204,7 @@ export default function PlatformBreakdownPosterPage() {
       <div className="cms-page-head">
         <div>
           <h1>Platform &amp; Country Breakdown</h1>
-          <p>Turn Platform Totals, Platform Exclusives, or Top Countries into a 4:5 share card.</p>
+          <p>Turn Platform Exclusives or Top Countries into a 4:5 share card.</p>
         </div>
       </div>
 

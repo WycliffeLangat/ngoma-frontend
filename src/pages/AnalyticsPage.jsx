@@ -158,7 +158,6 @@ export default function AnalyticsPage({ ctx }) {
     mvData,
     openArtistDetails,
     openReleaseDetails,
-    platTotalsData,
     releaseLabel,
     secLbl,
     setAnMonth,
@@ -257,8 +256,8 @@ export default function AnalyticsPage({ ctx }) {
   const splitRowStyle = { display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "20px", alignItems: "center", ...sectionGap };
 
   // "Download All Posters" — the top Share button covers every poster this
-  // page can produce (Hall of Fame, Climbers/Drops/New Entries, Platform
-  // Totals, Top Countries) in one batch, alongside the plain Hall of Fame
+  // page can produce (Hall of Fame, Climbers/Drops/New Entries, Top
+  // Countries) in one batch, alongside the plain Hall of Fame
   // poster it already offered. Sections with no qualifying data this month
   // are skipped rather than shipping an empty-state poster nobody asked for.
   const analyticsPosterTheme = isDark ? "dark" : "light";
@@ -282,11 +281,6 @@ export default function AnalyticsPage({ ctx }) {
       id: "new-entries",
       fileName: `ngoma-new-entries-${chartTypeKey}.png`,
       posterContent: <MoversSharePoster chartType={chartTypeKey} move="newEntries" month={anMonth} theme={analyticsPosterTheme} />,
-    }] : []),
-    ...(platTotalsData.length ? [{
-      id: "platform-totals",
-      fileName: `ngoma-platform-totals-${chartTypeKey}.png`,
-      posterContent: <PlatformBreakdownSharePoster chartType={isSingles ? "singles" : "albums"} metric="totals" month={anMonth} viewMode={viewMode("platformTotals")} theme={analyticsPosterTheme} />,
     }] : []),
     ...(topCountryData.length ? [{
       id: "top-countries",
@@ -496,54 +490,6 @@ export default function AnalyticsPage({ ctx }) {
             </div>
           </div>
           </AnalyticsDeepSection>
-
-
-          {/* Platform totals */}
-          {platTotalsData.length>0&&(
-            <AnalyticsDeepSection label="Platform Totals" isMobile={isMobile}>
-            <div style={{...card(),...sectionGap}}>
-              {sectionTitle(
-                `Platform Totals - ${anMonth}`,
-                "Platform Totals",
-                "Counts how many entries from the selected month's Combined Top 50 also appeared on each tracked source platform.",
-                ["This is a coverage count, not streams, listeners, or total points.", "A single entry can count on multiple platforms, so the bars can add up to more than 50."]
-              )}
-              <div style={{display:"flex",justifyContent:"flex-end",alignItems:"center",gap:"10px",margin:"-4px 0 12px"}}>
-                <ShareButton
-                  compact
-                  isDark={isDark}
-                  F={F}
-                  GOLD={GOLD}
-                  shareUrl={buildAnalyticsShareUrl({ chartType: chartTypeKey, month: anMonth })}
-                  fileName={`ngoma-platform-totals-${chartTypeKey}.png`}
-                  posterContent={<PlatformBreakdownSharePoster chartType={isSingles ? "singles" : "albums"} metric="totals" month={anMonth} viewMode={viewMode("platformTotals")} theme={isDark ? "dark" : "light"} />}
-                />
-                <ViewToggle id="platformTotals" />
-              </div>
-              {viewMode("platformTotals")==="table" ? (
-                <div style={{display:"grid",gap:"8px"}}>
-                  {platTotalsData.map((entry)=>(
-                    <div key={entry.platform} style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) 70px",gap:"10px",alignItems:"center",padding:"9px 0",borderBottom:"1px solid "+(isDark?"#2F352F":"#F0F0EC")}}>
-                      <div style={{display:"flex",alignItems:"center",gap:"8px",minWidth:0}}><span style={{width:"10px",height:"10px",borderRadius:"3px",background:entry.color,flexShrink:0}}/><span style={{fontFamily:F,fontSize:TXT.cardTitle,fontWeight:850,color:isDark?"#FFFFFF":"#000000",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{entry.platform}</span>{InfoButton && <InfoButton title={`${entry.platform} Platform Total`} body={`${entry.platform} has ${entry.entries} entries from the selected month's Combined Top 50. This is a coverage count, not streams or points.`} size={14} />}</div>
-                      <span style={{fontFamily:F,fontSize:TXT.cardTitle,fontWeight:900,color:isDark?"#FFFFFF":"#000000",textAlign:"right"}}>{entry.entries}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-              <ResponsiveContainer width="100%" height={isMobile?230:200}>
-                <BarChart data={platTotalsData} margin={{top:12,right:isMobile?16:20,left:isMobile?0:8,bottom:isMobile?6:0}} barCategoryGap="14%">
-                  <CartesianGrid stroke={gridStroke} vertical={false}/>
-                  <XAxis dataKey="platform" tick={isMobile?false:axisTick(10)} tickLine={{stroke:axisStroke}} axisLine={{stroke:axisStroke}}/>
-                  <YAxis domain={[dataMin => Math.max(0, Math.floor(dataMin * 0.9)), dataMax => Math.ceil(dataMax * 1.05)]} allowDecimals={false} tick={axisTick(isMobile?10.5:10)} axisLine={{stroke:axisStroke}} tickLine={{stroke:axisStroke}}/>
-                  <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} cursor={{fill:barCursorFill}} formatter={v=>[v,"Combined entries"]}/>
-                  <Bar dataKey="entries" radius={[6,6,0,0]} maxBarSize={84}>{platTotalsData.map((e,i)=><Cell key={i} fill={e.color}/>)}</Bar>
-                </BarChart>
-              </ResponsiveContainer>
-              )}
-              {isMobile&&<div style={{display:"flex",justifyContent:"center",gap:"8px 12px",flexWrap:"wrap",marginTop:"10px"}}>{platTotalsData.map((entry)=><div key={entry.platform} style={{display:"inline-flex",alignItems:"center",gap:"5px",fontFamily:F,fontSize:"12px",fontWeight:750,color:isDark?"#FFFFFF":"#000000"}}><span style={{width:"9px",height:"9px",borderRadius:"3px",background:entry.color,flexShrink:0}}/>{entry.platform}</div>)}</div>}
-            </div>
-            </AnalyticsDeepSection>
-          )}
 
           {/* Country analytics */}
           <AnalyticsDeepSection label="Country Stats" isMobile={isMobile}>

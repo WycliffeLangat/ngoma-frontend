@@ -133,7 +133,7 @@ export default function PlatformPerformance({
               >
                 {option}
               </button>
-              {info(`${option === "graph" ? "Graph" : "Table"} View`, option === "graph" ? "Graph view displays platform points as horizontal bars so relative strength is easy to compare." : "Table view lists the exact platform totals and supporting metrics.", [], 14)}
+              {info(`${option === "graph" ? "Graph" : "Table"} View`, option === "graph" ? "Graph view displays platform points as horizontal bars so relative strength is easy to compare." : "Table view lists the exact platform values and supporting metrics.", [], 14)}
             </span>
           ))}
         </div>

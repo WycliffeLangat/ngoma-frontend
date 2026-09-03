@@ -460,7 +460,7 @@ export function platformColorFor(name) {
 
 // Real per-platform breakdown only exists for singles/albums — the backend's
 // `full.artists.platforms` is always empty, so platform-scoped Analytics
-// sections (Cross-Platform Reach/Hits, Platform Totals, Platform Exclusives)
+// sections (Cross-Platform Reach/Hits, platform coverage counts, Platform Exclusives)
 // simply don't apply to the Artists chart type and return empty results.
 export function platformKeysForChart(payload, chartType) {
   if (chartType === "artists") return [];
@@ -487,21 +487,7 @@ export function buildCrossPlatformRows(payload, chartType, month, platform = "Co
     .sort((a, b) => b.count - a.count || (Number(b.p ?? b.pts) || 0) - (Number(a.p ?? a.pts) || 0));
 }
 
-// ── Platform Totals ──────────────────────────────────────────────────────
-
-export function buildPlatformTotals(payload, chartType, month) {
-  if (chartType === "artists") return [];
-  const combinedRows = publicChartRows(payload, chartType, month, "Combined");
-  return platformKeysForChart(payload, chartType)
-    .map((name) => {
-      const platIndex = new Set(
-        platformRows(payload?.full, chartType, name, month).map((row) => historyIdentity(chartType, row))
-      );
-      const entries = combinedRows.filter((row) => platIndex.has(historyIdentity(chartType, row))).length;
-      return { platform: platformLabel(name), entries, color: platformColorFor(name) };
-    })
-    .filter((entry) => entry.entries > 0);
-}
+// ── Platform Coverage Counts ─────────────────────────────────────────────
 
 // ── Platform Exclusives (platform-unique entries) ───────────────────────────
 
