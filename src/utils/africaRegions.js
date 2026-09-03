@@ -56,15 +56,92 @@ export const COUNTRY_CHART_COLORS = [
 // instead of picking by sorted rank position (which reshuffles as entry counts
 // change). Countries with a dedicated flag accent keep that color; any other
 // code is hashed onto COUNTRY_CHART_COLORS so it still gets a stable, distinct
-// shade every time.
+// shade every time. The result is then contrast-checked so pale flag accents
+// (mostly yellows) stay legible as a bare chart-bar fill on both light and
+// dark backgrounds, without losing the hue that makes each country unique.
 export function countryChartColor(code) {
   const upper = String(code || "").trim().toUpperCase();
-  if (!upper) return COUNTRY_CHART_COLORS[0];
-  if (COUNTRY_ACCENTS[upper]) return COUNTRY_ACCENTS[upper];
+  if (!upper) return ensureBarContrast(COUNTRY_CHART_COLORS[0]);
+  // Kenya's brand green is pinned as-is everywhere else in the app — never contrast-adjust it.
+  if (upper === KENYA_COUNTRY_CODE) return COUNTRY_ACCENTS[upper];
+  if (COUNTRY_ACCENTS[upper]) return ensureBarContrast(COUNTRY_ACCENTS[upper]);
   let hash = 0;
   for (let i = 0; i < upper.length; i += 1) hash = (hash * 31 + upper.charCodeAt(i)) >>> 0;
-  return COUNTRY_CHART_COLORS[hash % COUNTRY_CHART_COLORS.length];
+  return ensureBarContrast(COUNTRY_CHART_COLORS[hash % COUNTRY_CHART_COLORS.length]);
 }
+
+function hexToRgb(hex) {
+  const clean = String(hex).replace("#", "");
+  const full = clean.length === 3 ? clean.split("").map((c) => c + c).join("") : clean;
+  const value = parseInt(full, 16);
+  return { r: (value >> 16) & 255, g: (value >> 8) & 255, b: value & 255 };
+}
+
+function rgbToHex({ r, g, b }) {
+  const clamp = (v) => Math.round(Math.min(255, Math.max(0, v)));
+  return "#" + [r, g, b].map((v) => clamp(v).toString(16).padStart(2, "0")).join("").toUpperCase();
+}
+
+function rgbToHsl({ r, g, b }) {
+  const rn = r / 255, gn = g / 255, bn = b / 255;
+  const max = Math.max(rn, gn, bn), min = Math.min(rn, gn, bn);
+  const l = (max + min) / 2;
+  if (max === min) return { h: 0, s: 0, l };
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  let h;
+  if (max === rn) h = (gn - bn) / d + (gn < bn ? 6 : 0);
+  else if (max === gn) h = (bn - rn) / d + 2;
+  else h = (rn - gn) / d + 4;
+  return { h: h / 6, s, l };
+}
+
+function hslToRgb({ h, s, l }) {
+  if (s === 0) { const v = l * 255; return { r: v, g: v, b: v }; }
+  const hue2rgb = (p, q, t) => {
+    let tt = t;
+    if (tt < 0) tt += 1;
+    if (tt > 1) tt -= 1;
+    if (tt < 1 / 6) return p + (q - p) * 6 * tt;
+    if (tt < 1 / 2) return q;
+    if (tt < 2 / 3) return p + (q - p) * (2 / 3 - tt) * 6;
+    return p;
+  };
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  return {
+    r: hue2rgb(p, q, h + 1 / 3) * 255,
+    g: hue2rgb(p, q, h) * 255,
+    b: hue2rgb(p, q, h - 1 / 3) * 255,
+  };
+}
+
+// WCAG relative luminance — used to check a color's contrast as a bare fill
+// against a near-white light-mode background and a near-black dark-mode one.
+function relativeLuminance({ r, g, b }) {
+  const toLinear = (c) => {
+    const n = c / 255;
+    return n <= 0.03928 ? n / 12.92 : Math.pow((n + 0.055) / 1.055, 2.4);
+  };
+  return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+}
+
+// Darkens colors that are too pale to read against a white card, and lightens
+// colors that are too dark to read against a near-black one, while keeping
+// hue/saturation untouched so the color still reads as "that same country".
+function ensureBarContrast(hex) {
+  const rgb = hexToRgb(hex);
+  const lum = relativeLuminance(rgb);
+  const contrastOnWhite = 1.05 / (lum + 0.05);
+  const contrastOnDark = (lum + 0.05) / 0.07;
+  if (contrastOnWhite >= 2.5 && contrastOnDark >= 2.5) return hex;
+  const hsl = rgbToHsl(rgb);
+  let { l } = hsl;
+  if (contrastOnWhite < 2.5) l = Math.min(l, 0.42);
+  if (contrastOnDark < 2.5) l = Math.max(l, 0.3);
+  return rgbToHex(hslToRgb({ ...hsl, l }));
+}
+
 
 
 export const AFRICA_REGION_GROUPS = [
