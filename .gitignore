@@ -12,5 +12,10 @@ yarn-debug.log*
 yarn-error.log*
 .tmp/*.log
 
+# Local task scratch files, screenshots, and tool permissions
+tmp/
+.tmp/finish_title_credits.py
+.claude/settings.local.json
+
 # Local Netlify folder
 .netlify
