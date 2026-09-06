@@ -330,4 +330,32 @@ export function markMergeRulesApplied(ruleIds = [], storage) {
   return rules;
 }
 
+export function forgetMergeRules(ruleIds = [], storage) {
+  const ids = new Set(ruleIds.filter(Boolean));
+  if (!ids.size) return loadMergeRules(storage);
+  const rules = loadMergeRules(storage).filter((rule) => !ids.has(rule.id));
+  saveMergeRules(rules, storage);
+  return rules;
+}
+
+export function forgetMergeRulesForHistory(history, storage) {
+  if (!history) return loadMergeRules(storage);
+  const kind = history.merge_type || history.mergeType || "";
+  const keeperId = normalizeId(history.keeper_id ?? history.keeperId);
+  const duplicateId = normalizeId(history.duplicate_id ?? history.duplicateId);
+  if (!kind || !keeperId || !duplicateId) return loadMergeRules(storage);
+
+  const snapshot = history.snapshot || {};
+  const chartType = snapshot.chart_type || snapshot.keeper?.chart_type || snapshot.duplicate?.chart_type || "";
+  const rules = loadMergeRules(storage).filter((rule) => {
+    if (!ruleAppliesToKind(rule, kind, chartType)) return true;
+    return !(
+      normalizeId(rule.keeperId) === keeperId &&
+      normalizeId(rule.duplicateId) === duplicateId
+    );
+  });
+  saveMergeRules(rules, storage);
+  return rules;
+}
+
 export { MERGE_RULES_KEY };

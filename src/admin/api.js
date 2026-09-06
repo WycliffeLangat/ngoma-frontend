@@ -69,6 +69,8 @@ function mutationTouchesSharedPublicData(path) {
     cleanPath.startsWith("/regional-chart-entries/") ||
     cleanPath.includes("/hard_delete/") ||
     cleanPath.includes("/merge/") ||
+    cleanPath.includes("/undo/") ||
+    cleanPath.startsWith("/merge-history/") ||
     cleanPath.includes("/harmonize/") ||
     cleanPath.includes("/recalculate") ||
     cleanPath.includes("/reanaly")

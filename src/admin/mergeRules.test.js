@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  forgetMergeRulesForHistory,
   findStoredMergeRulePlan,
   loadMergeRules,
   rememberMergeRules,
@@ -130,4 +131,38 @@ test("stored release merge rule does not auto-merge same title with added artist
   const plan = findStoredMergeRulePlan([keeper, collab], rules);
 
   assert.equal(plan, null);
+});
+
+test("forgetMergeRulesForHistory removes the exact undone merge rule", () => {
+  const storage = new MemoryStorage();
+  const keeper = {
+    id: 10,
+    _type: "release",
+    _chartType: "singles",
+    title: "Baby",
+    artist_display: "Justin Bieber",
+  };
+  const duplicate = {
+    id: 11,
+    _type: "release",
+    _chartType: "singles",
+    title: "Baby",
+    artist_display: "The Ben",
+  };
+
+  rememberMergeRules({
+    kind: "release",
+    chartType: "singles",
+    keeper,
+    duplicates: [duplicate],
+  }, storage);
+
+  forgetMergeRulesForHistory({
+    merge_type: "release",
+    keeper_id: 10,
+    duplicate_id: 11,
+    snapshot: { chart_type: "singles" },
+  }, storage);
+
+  assert.equal(loadMergeRules(storage).length, 0);
 });
