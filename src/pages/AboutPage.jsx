@@ -193,7 +193,7 @@ export default function AboutPage({ ctx }) {
           <p style={{fontSize:"14px",color:textPrimary,lineHeight:1.68,margin:0,fontFamily:F}}>Songs and albums that reach #1 on the Combined chart enter the Hall of Fame. The full monthly leaders list covers the complete {DATA_PERIOD} dataset in Analytics.</p>
         </div>
       </div>
-      <div style={{display:"flex",justifyContent:"center",marginTop:"18px"}}><button type="button" onClick={()=>navTo("charts")} style={{padding:"12px 18px",borderRadius:"999px",border:"1px solid #C97A1255",backgroundColor:"#F2981A",backgroundImage:"url(/textures/gold-texture.png)",backgroundSize:"160px 106px",backgroundRepeat:"repeat",color:"#FFF",fontFamily:F,fontSize:"12px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",cursor:"pointer",boxShadow:"0 8px 20px rgba(201,122,18,0.18)"}}>Explore Current Charts</button></div>
+      <div style={{display:"flex",justifyContent:"center",marginTop:"18px"}}><button type="button" className="v2-about-explore-pill" onClick={()=>navTo("charts")} style={{padding:"12px 18px",borderRadius:"999px",border:"1px solid #C97A1255",backgroundColor:"#F2981A",backgroundImage:"url(/textures/gold-texture.png)",backgroundSize:"160px 106px",backgroundRepeat:"repeat",color:"#FFF",fontFamily:F,fontSize:"12px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",cursor:"pointer",boxShadow:"0 8px 20px rgba(201,122,18,0.18)"}}>Explore Current Charts</button></div>
       <div style={{marginTop:"18px",padding:"20px",background:isDark?"#111208":"#FAF5EA",border:"1px solid "+(isDark?"#2F2B1A":"#E8DDBF"),borderRadius:"14px",color:textPrimary}}>
         <div style={{display:"flex",alignItems:"center",gap:"10px"}}>
           <NgomaMark size={26} inkColor={textPrimary} />

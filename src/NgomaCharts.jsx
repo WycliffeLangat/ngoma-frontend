@@ -3307,7 +3307,7 @@ const top = data[0];
       pillStyle={countryScopeSelectStyle(compact)}
     />
   );
-  const MonthScopeSelect=({compact=false, fullWidth=false}={})=>(
+  const MonthScopeSelect=({compact=false, fullWidth=false, wide=false}={})=>(
     <PillDropdown
       ariaLabel="Chart period"
       isDark={isDark}
@@ -3317,7 +3317,7 @@ const top = data[0];
       onChange={setMonth}
       options={[...MONTHS].reverse().map((item) => ({ value: item, label: item }))}
       align="right"
-      width={fullWidth ? "100%" : (compact ? "108px" : (isTablet ? "110px" : "122px"))}
+      width={fullWidth ? "100%" : (wide ? (isMobile ? "100%" : "160px") : (compact ? "108px" : (isTablet ? "110px" : "122px")))}
       menuWidth="200px"
       pillStyle={countryScopeSelectStyle(compact)}
     />
@@ -3805,6 +3805,7 @@ const top = data[0];
     latestMonth,
     latestMonthName,
     latestMonthShort,
+    MonthScopeSelect,
     liveChartLoading,
     liveChartMeta,
     liveStatus,

@@ -149,14 +149,14 @@ export default function PillDropdown({
                     {group.label}
                   </div>
                   {group.options.map((option) => (
-                    <button key={option.value} type="button" role="option" aria-selected={option.value === value} onClick={() => selectValue(option.value)} style={rowStyle(option.value === value)}>
+                    <button className="ngoma-pill-option" data-selected={option.value === value ? "true" : "false"} key={option.value} type="button" role="option" aria-selected={option.value === value} onClick={() => selectValue(option.value)} style={rowStyle(option.value === value)}>
                       {option.label}
                     </button>
                   ))}
                 </div>
               ))
             : flatOptions.map((option) => (
-                <button key={option.value} type="button" role="option" aria-selected={option.value === value} onClick={() => selectValue(option.value)} style={rowStyle(option.value === value)}>
+                <button className="ngoma-pill-option" data-selected={option.value === value ? "true" : "false"} key={option.value} type="button" role="option" aria-selected={option.value === value} onClick={() => selectValue(option.value)} style={rowStyle(option.value === value)}>
                   {option.label}
                 </button>
               ))}

@@ -14,6 +14,8 @@ export default function AnalyticsSlideshowFrame({
   const [paused, setPaused] = useState(false);
   const rotating = useRotatingArt(pool, 3800, { paused });
 
+  if (!rotating) return null;
+
   const shape = isArtist ? "50%" : "8px";
   const cardBorder = "rgba(255,255,255,0.34)";
   const cardShadow = `0 0 0 1px ${cardBorder}, 0 20px 60px ${accent}33, 0 16px 44px rgba(0,0,0,0.30)`;

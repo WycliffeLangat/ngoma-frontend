@@ -58,7 +58,8 @@ export default function CertificationsPage({ ctx }) {
   const activeLabel = isSingles ? "songs" : "albums";
   const activeSingular = isSingles ? "song" : "album";
   const totalCertified = deduplicatedCerts.length;
-  const levelStats = CERTIFICATION_LEVELS.map((level) => ({
+  const displayCertificationLevels = [...CERTIFICATION_LEVELS].reverse();
+  const levelStats = displayCertificationLevels.map((level) => ({
     ...level,
     count: deduplicatedCerts.filter((cert) => cert.level === level.level).length,
   }));
@@ -216,7 +217,7 @@ export default function CertificationsPage({ ctx }) {
 
       <section style={{marginTop:"30px"}}>
         {sectionLabel(`Certified ${isSingles ? "Songs" : "Albums"} (${totalCertified.toLocaleString()})`, "Certified Releases", `All ${activeLabel} that currently meet at least one active certification threshold.`, ["Releases are grouped by highest certification tier.", "Within a tier, higher lifetime points appear first."])}
-        {CERTIFICATION_LEVELS.map(({ level })=>{
+        {displayCertificationLevels.map(({ level })=>{
           const filtered=deduplicatedCerts.filter(c=>c.level===level).sort((a,b)=>(b.totalPts||0)-(a.totalPts||0));
           const meta = certMetaByLevel[level] || {};
           if(!filtered.length)return null;

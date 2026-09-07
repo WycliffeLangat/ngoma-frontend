@@ -586,6 +586,21 @@ small,
   background: var(--ngoma-gold-soft);
 }
 
+/* Keep monochrome pills legible in both themes: light surfaces use dark ink,
+   dark surfaces use light ink. Branded active pills keep their own contrast. */
+html[data-ngoma-theme="light"] .ngoma-app-shell :is(.pill, .filter, .tab, .platform-filter, .month-filter) {
+  color: #000000;
+}
+
+html[data-ngoma-theme="dark"] .ngoma-app-shell :is(.pill, .filter, .tab, .platform-filter, .month-filter) {
+  color: #FFFFFF;
+}
+
+html[data-ngoma-theme="light"] .ngoma-app-shell :is(.pill, .filter, .tab, .platform-filter, .month-filter)[aria-current="true"],
+html[data-ngoma-theme="light"] .ngoma-app-shell :is(.pill, .filter, .tab, .platform-filter, .month-filter)[aria-pressed="true"] {
+  color: #FFFFFF;
+}
+
 /* Charts page filters should be white like Trending */
 .charts-page .filters,
 .chart-page .filters,

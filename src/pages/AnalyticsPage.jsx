@@ -148,6 +148,7 @@ export default function AnalyticsPage({ ctx }) {
     InfoButton,
     MEDALS,
     MONTHS,
+    MonthScopeSelect,
     PAD,
     PLATS_FOR,
     RecordIcon,
@@ -331,9 +332,7 @@ export default function AnalyticsPage({ ctx }) {
                   chart-type switcher below it — three wide controls crammed
                   into one row was what pushed Share out of position. */}
               <div style={{display:"flex",gap:"10px",alignItems:"center",justifyContent:isMobile?"space-between":"flex-start"}}>
-                <select value={anMonth} onChange={e=>setAnMonth(e.target.value)} style={{flex:isMobile?"1":"none",minWidth:isMobile?"120px":"160px",padding:isMobile?"10px 12px":"8px 14px",border:"1.5px solid "+(isDark?"#2F352F":"#DEDAD2"),borderRadius:"10px",background:isDark?"#1A1E1A":"#FAFAF8",fontSize:isMobile?"13px":"12px",fontFamily:F,fontWeight:750,cursor:"pointer",outline:"none",color:isDark?"#FFFFFF":"#000000"}}>
-                  {MONTHS.map(m=><option key={m} value={m}>{m}</option>)}
-                </select>
+                <MonthScopeSelect wide />
                 {compactInfo("Analytics Month", "Choose which published month powers the movement, platform, country, and monthly analytics panels. All-time records still use the full tracked history.")}
                 <ShareButton
                   isDark={isDark}
@@ -348,7 +347,7 @@ export default function AnalyticsPage({ ctx }) {
             </div>} />
 
           {/* Climbers, Drops & New Entries — what moved this month */}
-          <div className="v2-analytics-masonry"><div className="v2-analytics-column"><AnalyticsSlideshowFrame pool={risersPool} isArtist={isArtists} accent="#2DB04A" onOpen={openMoverDetails} label={`Biggest ${releaseLabel} Climbers`} /><div className="v2-movement-list" style={{...card(),order:1}}>
+          <div className="v2-analytics-masonry"><div className="v2-analytics-column"><AnalyticsSlideshowFrame pool={risersPool} isArtist={isArtists} accent="#2DB04A" onOpen={openMoverDetails} label={`Biggest ${releaseLabel} Climbers`} /><div className="v2-movement-list v2-movement-drops" style={{...card(),order:1}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:"10px",marginBottom:"14px",flexWrap:"nowrap"}}>
                 {sectionTitle(
                   `Biggest ${releaseLabel} Drops - ${anMonth}`,
@@ -387,7 +386,7 @@ export default function AnalyticsPage({ ctx }) {
                 );
               })}
               {!mvData.fallers.length&&<div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#FFFFFF":"#000000",padding:"20px 0",textAlign:"center"}}>No drops (debut month)</div>}
-            </div></div><div className="v2-analytics-column"><div className="v2-movement-list" style={{...card(),order:2}}>
+            </div></div><div className="v2-analytics-column"><div className="v2-movement-list v2-movement-climbers" style={{...card(),order:2}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:"10px",marginBottom:"14px",flexWrap:"nowrap"}}>
                 {sectionTitle(
                   `Biggest ${releaseLabel} Climbers - ${anMonth}`,
@@ -426,7 +425,7 @@ export default function AnalyticsPage({ ctx }) {
                 );
               })}
               {!mvData.risers.length&&<div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#FFFFFF":"#000000",padding:"20px 0",textAlign:"center"}}>No movement data (debut month)</div>}
-            </div><AnalyticsSlideshowFrame pool={fallersPool} isArtist={isArtists} accent="#E53935" onOpen={openMoverDetails} label={`Biggest ${releaseLabel} Drops`} /><div className="v2-movement-list" style={{...card(),order:2}}>
+            </div><AnalyticsSlideshowFrame pool={fallersPool} isArtist={isArtists} accent="#E53935" onOpen={openMoverDetails} label={`Biggest ${releaseLabel} Drops`} /><div className="v2-movement-list v2-movement-new" style={{...card(),order:2}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:"10px",marginBottom:"14px",flexWrap:"nowrap"}}>
                 {sectionTitle(
                   `New Entries - ${anMonth}`,
