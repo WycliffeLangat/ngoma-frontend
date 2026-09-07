@@ -1,3 +1,4 @@
+import EditorialHero from "../components/EditorialHero.jsx";
 import EntryThumb from "../components/EntryThumb.jsx";
 import ArtistCredit from "../components/ArtistCredit.jsx";
 import ShareButton from "../components/ShareButton.jsx";
@@ -101,7 +102,7 @@ export default function CertificationsPage({ ctx }) {
 
   return (
     <div
-      className="ngoma-certifications-page"
+      className="ngoma-certifications-page v2-certifications-page"
       style={{
         padding: PAD,
         minHeight: "60vh",
@@ -114,18 +115,7 @@ export default function CertificationsPage({ ctx }) {
         "--cert-muted": textMuted,
       }}
     >
-      <section className="ngoma-cert-hero" style={{borderColor:cardBorder,background:isDark?"linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))":"linear-gradient(135deg,#FFF,#FAF8F2)"}}>
-        <div style={{minWidth:0}}>
-          <div style={{...secLbl(textPrimary),marginBottom:"10px",display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}><span><SecMark c={textPrimary}/>Point-Based Awards</span>{info("Point-Based Awards", "Certification awards are based on lifetime public display points from the Combined chart, not on streams or one-platform performance.")}</div>
-          <div style={{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}>
-            <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 8px",color:textPrimary}}>Certifications</h2>
-            {info("Certifications", `Certified ${activeLabel} have crossed the active lifetime Combined chart point thresholds.`, ["Each release appears once at its highest current tier.", "The page sorts certified releases by total lifetime points within each award group."])}
-          </div>
-          <p style={{fontFamily:F,fontSize:TXT.lead,color:textMuted,margin:0,lineHeight:1.65,maxWidth:"760px"}}>
-            Certifications show which {activeLabel} have built enough lifetime Combined chart points to cross an award threshold. The page is grouped by award level, then sorted by total points so the strongest certified releases are easiest to scan.
-          </p>
-        </div>
-        <div className="ngoma-cert-actions">
+      <EditorialHero eyebrow="Point-based awards" title="Certifications" description={'Recognising the ' + activeLabel + ' that keep making an impact. Explore lifetime achievements, the current leader and every award tier.'} metric={totalCertified.toLocaleString()} metricLabel={'Certified ' + activeLabel + ', each shown at its highest earned award level.'} entry={topCert} pool={sortedCerts} onOpen={item => openReleaseDetails(item, isSingles ? 'single' : 'album')} actions={<div className="ngoma-cert-actions">
           <ShareButton
             isDark={isDark}
             F={F}
@@ -135,8 +125,7 @@ export default function CertificationsPage({ ctx }) {
             posterContent={topCert ? <CertificationSharePoster item={certificationToPosterItem(topCert)} theme={isDark ? "dark" : "light"} /> : null}
           />
           <Tog sm/>
-        </div>
-      </section>
+        </div>} />
 
       <div className="ngoma-cert-dashboard">
         <div className="ngoma-cert-feature" style={tileCard({borderRadius:"14px"})}>
@@ -218,8 +207,8 @@ export default function CertificationsPage({ ctx }) {
                 <span style={{fontSize:"28px",lineHeight:1,filter:level.iconFilter||undefined}}>{level.icon}</span>
                 <span style={{fontFamily:F,fontSize:"12px",fontWeight:850,color:textMuted,display:"inline-flex",alignItems:"center",gap:"5px"}}>{level.count.toLocaleString()} current{info(`${level.label} Count`, `The number of certified ${activeLabel} currently shown at ${level.label}.`, [], 14)}</span>
               </div>
-              <div style={{fontFamily:SF,fontWeight:850,fontSize:TXT.metric,margin:"12px 0 3px",color:isDark ? level.color : level.textColor,display:"inline-flex",alignItems:"center",gap:"7px"}}>{level.label}{info(level.label, `${level.label} starts at ${level.pts.toLocaleString()} lifetime Combined chart points.`, [], 14)}</div>
-              <div className="ngoma-cert-threshold" style={{fontFamily:F,fontSize:TXT.cardMeta,color:textMuted,display:"inline-flex",alignItems:"center",gap:"6px"}}>{level.pts.toLocaleString()}+ lifetime points{info(`${level.label} Threshold`, `A release reaches ${level.label} when its lifetime Combined chart points are at least ${level.pts.toLocaleString()}.`, [], 14)}</div>
+              <div style={{fontFamily:SF,fontWeight:850,fontSize:TXT.metric,margin:"12px 0 0",color:isDark ? level.color : level.textColor,display:"flex",alignItems:"center",gap:"9px",lineHeight:1.15}}>{level.label}{info(level.label, `${level.label} starts at ${level.pts.toLocaleString()} lifetime Combined chart points.`, [], 14)}</div>
+              <div className="ngoma-cert-threshold" style={{fontFamily:F,fontSize:TXT.cardMeta,color:textMuted,display:"flex",alignItems:"center",gap:"7px",marginTop:"8px",lineHeight:1.4,flexWrap:"wrap"}}>{level.pts.toLocaleString()}+ lifetime points{info(`${level.label} Threshold`, `A release reaches ${level.label} when its lifetime Combined chart points are at least ${level.pts.toLocaleString()}.`, [], 14)}</div>
             </div>
           ))}
         </div>

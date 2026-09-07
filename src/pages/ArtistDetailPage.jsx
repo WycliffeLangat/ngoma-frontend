@@ -1,3 +1,4 @@
+import EditorialHero from "../components/EditorialHero.jsx";
 import { useState, useEffect } from "react";
 import { findArtistProfileInPublicData, getArtistImageUrl } from "../utils/artistImages.js";
 import { enrichBiographyForArtist, fallbackCountryForArtist } from "../utils/artistMetadataFallbacks.js";
@@ -45,12 +46,16 @@ export default function ArtistDetailPage({ ctx }) {
     selectedArtistReleases
   } = ctx;
 
-  const artistMetadata = findArtistProfileInPublicData(selA?.n) || {};
+  const contributorRole = selA?.contributorRole || "artists";
+  const isContributorProfile = contributorRole === "songwriters" || contributorRole === "producers";
+  const personLabel = contributorRole === "songwriters" ? "Songwriter" : contributorRole === "producers" ? "Producer" : "Artist";
+  const personLabelLower = personLabel.toLowerCase();
+  const artistMetadata = isContributorProfile ? {} : (findArtistProfileInPublicData(selA?.n) || {});
 
   const [liveArtist, setLiveArtist] = useState(null);
 
   useEffect(() => {
-    if (!API_BASE || !selA?.n) return;
+    if (!API_BASE || !selA?.n || isContributorProfile) return;
     const slug = artistMetadata.slug ||
       String(selA.n).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     let cancelled = false;
@@ -59,7 +64,7 @@ export default function ArtistDetailPage({ ctx }) {
       .then((data) => { if (!cancelled && data?.artist) setLiveArtist(data.artist); })
       .catch(() => {});
     return () => { cancelled = true; };
-  }, [selA?.n, API_BASE]);
+  }, [selA?.n, API_BASE, isContributorProfile]);
 
   const profile = liveArtist || artistMetadata;
   const artistImage = getArtistImageUrl(
@@ -95,7 +100,7 @@ export default function ArtistDetailPage({ ctx }) {
   ]).map(({ label, url }) => [`${label} URL`, url]);
 
   const artistInfoRows = [
-    ["Artist name", selA.n],
+    [`${personLabel} name`, selA.n],
     ["Display name", profile.display_name],
     ["Country", resolvedCountry],
     ["Country code", resolvedCountryCode],
@@ -130,7 +135,7 @@ export default function ArtistDetailPage({ ctx }) {
   const numberOnePlacements = selectedArtistEntries.filter((entry) => Number(entry.rank) === 1).length;
   const releaseRanks = selectedArtistEntries.map((entry) => Number(entry.rank)).filter(Number.isFinite);
   const bestReleaseRank = releaseRanks.length ? Math.min(...releaseRanks) : null;
-  const profileBiography = enrichBiographyForArtist(profile.biography, {
+  const profileBiography = isContributorProfile ? "" : enrichBiographyForArtist(profile.biography, {
     name: selA?.n,
     country: resolvedCountry,
     cityRegion: profile.city_region,
@@ -160,17 +165,17 @@ export default function ArtistDetailPage({ ctx }) {
   ) : null;
   const statInfo = (label) => {
     const copy = {
-      "Current Rank": "The artist's rank in the current selected artist chart.",
-      "Best Rank": "The best artist-chart rank reached by this artist. Lower is better.",
-      "Total Points": "The sum of public display points from this artist's credited chart entries.",
-      Entries: "Total credited chart entries counted for this artist.",
-      Months: "How many published months this artist has charted.",
-      "Months Charted": "How many published months this artist has charted.",
-      "Top 10 Entries": "Credited entries where this artist appeared in the Top 10.",
-      "Unique Releases": "Distinct charted releases credited to this artist.",
-      "Top 10 Placements": "Credited chart appearances for this artist inside the Top 10.",
-      "#1 Placements": "Credited chart appearances for this artist at rank #1.",
-      "Best Release Rank": "The highest rank reached by any release credited to this artist.",
+      "Current Rank": `The ${personLabelLower}'s rank in the current selected ${personLabelLower} chart.`,
+      "Best Rank": `The best ${personLabelLower}-chart rank reached by this ${personLabelLower}. Lower is better.`,
+      "Total Points": `The sum of public display points from this ${personLabelLower}'s credited chart entries.`,
+      Entries: `Total credited chart entries counted for this ${personLabelLower}.`,
+      Months: `How many published months this ${personLabelLower} has charted.`,
+      "Months Charted": `How many published months this ${personLabelLower} has charted.`,
+      "Top 10 Entries": `Credited entries where this ${personLabelLower} appeared in the Top 10.`,
+      "Unique Releases": `Distinct charted releases credited to this ${personLabelLower}.`,
+      "Top 10 Placements": `Credited chart appearances for this ${personLabelLower} inside the Top 10.`,
+      "#1 Placements": `Credited chart appearances for this ${personLabelLower} at rank #1.`,
+      "Best Release Rank": `The highest rank reached by any release credited to this ${personLabelLower}.`,
     };
     return copy[label] || `${label} is profile or chart-history information for this artist.`;
   };
@@ -183,7 +188,7 @@ export default function ArtistDetailPage({ ctx }) {
     { label: "Months Charted", value: chartedMonthCount },
     { label: "Top 10 Entries", value: topTenPlacements },
   ];
-  const artistPosterSubtitle = [resolvedCountry, profile.genre, profile.artist_type].filter(Boolean).join(" · ");
+  const artistPosterSubtitle = [personLabel, resolvedCountry, profile.genre, profile.artist_type].filter(Boolean).join(" · ");
 
   // "Download Full Profile" — the compact SharePosterCard only fits a few
   // stat tiles, so readers who want everything on the page (full info table,
@@ -233,8 +238,8 @@ export default function ArtistDetailPage({ ctx }) {
           image={artistImage || ""}
           sectionLabel="Monthly Trends"
           charts={[
-            { label: "Monthly Credited Points", kind: "bar", data: selectedArtistRankData, xKey: "month", dataKey: "points", color: GOLD },
-            { label: "Monthly Artist Rank", hint: "Lower is better", kind: "line", data: selectedArtistRankData, xKey: "month", dataKey: "rank", color: "#1565C0", reversed: true, yDomain: [1, "dataMax"], yTickFormatter: (v) => `#${v}` },
+            { label: `Monthly ${personLabel} Credited Points`, kind: "bar", data: selectedArtistRankData, xKey: "month", dataKey: "points", color: GOLD },
+            { label: `Monthly ${personLabel} Rank`, hint: "Lower is better", kind: "line", data: selectedArtistRankData, xKey: "month", dataKey: "rank", color: "#1565C0", reversed: true, yDomain: [1, "dataMax"], yTickFormatter: (v) => `#${v}` },
           ]}
           theme={isDark ? "dark" : "light"}
         />
@@ -284,7 +289,7 @@ export default function ArtistDetailPage({ ctx }) {
   ];
 
   return (
-<div style={{padding:PAD,background:isDark?"#050505":"#f8f7f3",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
+<div className="v2-detail-page v2-artist-detail" style={{padding:PAD,background:isDark?"#050505":"#f8f7f3",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px",flexWrap:"wrap"}}>
             <span onClick={closeDetails} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#FFFFFF":"#000000",cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:700}}>← Back</span>
             <ShareButton
@@ -298,20 +303,7 @@ export default function ArtistDetailPage({ ctx }) {
           </div>
 
           {/* Profile header */}
-          <div style={{marginTop:"22px",display:"flex",gap:isMobile?"16px":"24px",alignItems:"flex-start",flexDirection:isMobile?"column":"row",minWidth:0}}>
-            <div style={{width:isMobile?"112px":"156px",height:isMobile?"112px":"156px",borderRadius:"20px",background: isDark ? "#1A1E1A" : "#F0EDE7",display:"flex",alignItems:"center",justifyContent:"center",fontSize:isMobile?"40px":"56px",fontWeight:900,color:isDark?"#FFFFFF":"#000000",flexShrink:0,border:"2px solid "+(isDark?"rgba(255,255,255,0.12)":"rgba(0,0,0,0.06)"),boxShadow:isDark?"0 12px 30px rgba(0,0,0,0.28)":"0 10px 28px rgba(0,0,0,0.10)",overflow:"hidden"}}>
-              {artistImage ? <img src={artistImage} alt={selA.n} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} /> : <span>{selA.n[0]}</span>}
-            </div>
-            <div style={{flex:1,minWidth:0}}>
-              <div style={{display:"flex",alignItems:"center",gap:"10px",flexWrap:"wrap"}}>
-                <h2 style={{margin:0,fontFamily:SF,fontSize:isMobile?"26px":"32px",fontWeight:800,lineHeight:1.08,letterSpacing:"-0.5px",color:isDark?"#FFFFFF":"#000000"}}>{selA.n}</h2>
-                {info("Artist Profile", "This page brings together the artist's profile metadata, charted releases, credited points, monthly rank movement, and public links.")}
-                <CountryBadge item={countryItem} showName />
-              </div>
-              {profileBiography&&<p className="bio-text" style={{fontFamily:F,fontSize:"15px",lineHeight:1.72,color:isDark?"#FFFFFF":"#000000",margin:"12px 0 0",maxWidth:"680px"}}>{profileBiography}</p>}
-
-              {/* Social icon links */}
-              {socialLinks.length > 0 && (
+          <EditorialHero eyebrow={`${personLabel} profile`} title={selA.n} description={`The releases, milestones and chart history behind the ${personLabelLower}.`} metric={totalArtistPoints.toLocaleString()} metricLabel={`Total credited points across this ${personLabelLower}'s chart appearances.`} entry={{...profile,image:artistImage,title:selA.n,is_artist_entry:true}} pool={[{...profile,image:artistImage,title:selA.n,is_artist_entry:true}, ...selectedArtistReleases]} actions={<>{!isContributorProfile && <CountryBadge item={countryItem} showName />}{socialLinks.length > 0 && (
                 <div style={{display:"flex",flexWrap:"wrap",gap:"8px",marginTop:"14px"}}>
                   {socialLinks.map(([label, url]) => {
                     const platform = socialPlatforms.find(p => p.key === label);
@@ -323,10 +315,8 @@ export default function ArtistDetailPage({ ctx }) {
                     );
                   })}
                 </div>
-              )}
-
-              {/* Stats strip */}
-              <div className="artist-stat-strip">
+              )}</>} />
+<div className="artist-stat-strip">
                 {[{v:formatRank(selA.rank),l:"Current Rank"},{v:formatRank(selA.pk),l:"Best Rank"},{v:totalArtistPoints.toLocaleString(),l:"Total Points"},{v:placementCount,l:"Entries"},{v:chartedMonthCount,l:"Months"}].map((s,i)=>(
                   <div key={i} className="artist-stat-item">
                     <div className="stat-value" style={{color:s.c||(isDark?"#FFFFFF":"#000000")}}>{s.v}</div>
@@ -334,12 +324,12 @@ export default function ArtistDetailPage({ ctx }) {
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
+{profileBiography && <section className="v2-detail-biography"><h2>Behind the music</h2><p>{profileBiography}</p></section>}
+
 
           {/* Meta table — exclude social links (shown as pill buttons above) */}
           {metaRows.length > 0 && (
-          <div style={{margin:"22px 0 18px",border:`1px solid ${isDark?"#2B302B":"#E8E5DC"}`,borderRadius:"14px",overflow:"hidden",background:isDark?"#0F1110":"#fff"}}>
+          <div className="v2-detail-metadata" style={{margin:"22px 0 18px",border:`1px solid ${isDark?"#2B302B":"#E8E5DC"}`,borderRadius:"14px",overflow:"hidden",background:isDark?"#0F1110":"#fff"}}>
             {metaRows.map(([label, value], idx) => (
               <div key={label} style={{display:"grid",gridTemplateColumns:isMobile?"110px 1fr":"170px 1fr",gap:"14px",padding:"12px 16px",background:isDark?(idx%2===0?"#121612":"#0F1110"):(idx%2===0?"#FAFAF8":"#FFFFFF"),borderTop:idx===0?"none":`1px solid ${isDark?"#2B302B":"#F0EDE6"}`,alignItems:"center"}}>
                 <span style={{fontFamily:F,fontSize:"11px",fontWeight:800,letterSpacing:"0.5px",color:isDark?"#FFFFFF":"#000000",textTransform:"uppercase",display:"inline-flex",alignItems:"center",gap:"5px"}}>{label}{info(label, statInfo(label), [], 14)}</span>
@@ -351,7 +341,7 @@ export default function ArtistDetailPage({ ctx }) {
 
           <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:"14px",marginBottom:"20px"}}>
             <div style={darkCard()}>
-              <div style={{...secLbl(isDark?"#FFFFFF":"#000000"),display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}><span><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Monthly Credited Points</span>{info("Monthly Credited Points", "Bars show the public display points this artist earned from credited chart activity in each month.")}</div>
+              <div style={{...secLbl(isDark?"#FFFFFF":"#000000"),display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}><span><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Monthly {personLabel} Credited Points</span>{info(`Monthly ${personLabel} Credited Points`, `Bars show the public display points this ${personLabelLower} earned from credited chart activity in each month.`)}</div>
               <ResponsiveContainer width="100%" height={190}>
                 <BarChart data={selectedArtistRankData} barCategoryGap="20%">
                   <defs>
@@ -368,13 +358,13 @@ export default function ArtistDetailPage({ ctx }) {
               </ResponsiveContainer>
             </div>
             <div style={darkCard()}>
-                <div style={{...secLbl(isDark?"#FFFFFF":"#000000"),display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}><span><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Monthly Artist Rank</span>{info("Monthly Artist Rank", "Line chart showing the artist's rank over time. The axis is reversed because #1 is best, so higher on the chart means a better rank.")}</div>
+                <div style={{...secLbl(isDark?"#FFFFFF":"#000000"),display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}><span><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Monthly {personLabel} Rank</span>{info(`Monthly ${personLabel} Rank`, `Line chart showing the ${personLabelLower}'s rank over time. The axis is reversed because #1 is best, so higher on the chart means a better rank.`)}</div>
               <ResponsiveContainer width="100%" height={190}>
                 <LineChart data={selectedArtistRankData} margin={{top:8,right:12,left:0,bottom:0}}>
                   <CartesianGrid stroke={gridStroke} vertical={false}/>
                   <XAxis dataKey="month" tick={axisTick(10.5)} tickLine={false} axisLine={false}/>
                   <YAxis reversed domain={[1,"dataMax"]} allowDecimals={false} tickCount={8} tick={axisTick(10)} tickFormatter={v=>`#${v}`} axisLine={false} tickLine={false}/>
-                  <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} cursor={{stroke:gridStroke}} formatter={v=>[`#${v}`,"Artist Rank"]}/>
+                  <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} cursor={{stroke:gridStroke}} formatter={v=>[`#${v}`,`${personLabel} Rank`]}/>
                   <Line type="monotone" dataKey="rank" stroke="#1565C0" strokeWidth={2} connectNulls dot={{r:4,fill:"#1565C0",stroke:isDark?"#0F120F":"#FFFFFF",strokeWidth:2}} activeDot={{r:6}}/>
                 </LineChart>
               </ResponsiveContainer>
@@ -388,7 +378,7 @@ export default function ArtistDetailPage({ ctx }) {
               {label:"Best Release Rank",value:bestReleaseRank?`#${bestReleaseRank}`:"—"},
             ].map((stat)=><div key={stat.label} style={{padding:"14px 15px",border:"1px solid "+(isDark?"#2B302B":"#ECE9E1"),borderRadius:"10px",background:isDark?"#151815":"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",display:"inline-flex",alignItems:"center",gap:"5px"}}>{stat.label}{info(stat.label, statInfo(stat.label), [], 14)}</div><div style={{fontFamily:F,fontSize:"22px",fontWeight:900,color:isDark?"#FFFFFF":"#000000",marginTop:"5px"}}>{stat.value}</div></div>)}
           </div>
-          <div style={{...secLbl(isDark?"#FFFFFF":"#000000"),display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}><span><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Charted Entries Across Months</span>{info("Charted Entries Across Months", "Lists the songs and albums credited to this artist, then expands each release into its monthly chart appearances, ranks, platforms, and points.")}</div>
+          <div style={{...secLbl(isDark?"#FFFFFF":"#000000"),display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}><span><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>{personLabel} Releases Across Months</span>{info(`${personLabel} Releases Across Months`, `Lists the songs and albums credited to this ${personLabelLower}, then expands each release into its monthly chart appearances, ranks, platforms, and points.`)}</div>
           {selectedArtistEntryGroups.map((group)=>{
             const releaseType = group.chart_type === "albums" || group.chart_type === "album" ? "album" : "single";
             const certification = getCertificationForEntry(group, releaseType);
@@ -406,7 +396,7 @@ export default function ArtistDetailPage({ ctx }) {
                     <span style={{display:"block",marginTop:"3px",color:isDark?"#FFFFFF":"#000000",fontSize:TXT.micro,fontFamily:F}}>{releaseType === "album" ? "Album" : "Single"} · {chartedMonthCount} {chartedMonthCount===1?"month":"months"} charted · peak #{group.peak}</span>
                   </div>
                   <div style={{fontFamily:F,fontSize:TXT.cardMeta,fontWeight:900,color:isDark?"#FFFFFF":"#000000",whiteSpace:"nowrap",textAlign:isMobile?"left":"right",display:"inline-flex",alignItems:"center",gap:"5px",justifyContent:isMobile?"flex-start":"flex-end"}}>{group.totalPoints.toLocaleString()} pts{info("Release Points", "Total public display points credited to this artist from this release.", [], 14)}</div>
-                  <div style={{fontFamily:F,fontSize:"10px",fontWeight:850,color:isDark?"#FFFFFF":"#000000",textAlign:isMobile?"left":"right",textTransform:"uppercase",letterSpacing:"1px",display:"inline-flex",alignItems:"center",gap:"5px",justifyContent:isMobile?"flex-start":"flex-end"}}>Months{info("Release Months", "How many published months this release contributed to the artist's chart history.", [], 14)}</div>
+                  <div style={{fontFamily:F,fontSize:"10px",fontWeight:850,color:isDark?"#FFFFFF":"#000000",textAlign:isMobile?"left":"right",textTransform:"uppercase",letterSpacing:"1px",display:"inline-flex",alignItems:"center",gap:"5px",justifyContent:isMobile?"flex-start":"flex-end"}}>Months{info("Release Months", `How many published months this release contributed to the ${personLabelLower}'s chart history.`, [], 14)}</div>
                 </summary>
                 <div style={{padding:"0 0 10px 0",display:"grid",gap:"6px"}}>
                   {[...group.rows].sort((a,b)=>monthIndex(a.month)-monthIndex(b.month)).map((row,rowIndex)=>(

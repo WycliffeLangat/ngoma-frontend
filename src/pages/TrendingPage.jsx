@@ -46,7 +46,7 @@ export default function TrendingPage({ ctx }) {
   };
 
   return (
-<div style={{padding:PAD,minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
+<div className="v2-secondary-page v2-trending-page" style={{padding:PAD,minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <div style={{maxWidth:"1240px",margin:"0 auto"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"flex-start":"flex-end",marginBottom:isMobile?"16px":"20px",flexWrap:"wrap",gap:isMobile?"10px":"12px"}}>
               <div style={{minWidth:0,flex:isMobile?"1 1 100%":"1"}}>

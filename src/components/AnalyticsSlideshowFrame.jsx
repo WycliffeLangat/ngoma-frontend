@@ -35,6 +35,8 @@ export default function AnalyticsSlideshowFrame({
       }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
+      onFocus={() => setPaused(true)}
+      onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setPaused(false); }}
       onClick={() => rotating && onOpen?.(rotating.entry)}
       role={rotating ? "button" : undefined}
       tabIndex={rotating ? 0 : undefined}

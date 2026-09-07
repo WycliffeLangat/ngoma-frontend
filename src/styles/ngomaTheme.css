@@ -69,8 +69,8 @@
   --ngoma-space-lg: 34px;
   --ngoma-space-xl: 52px;
 
-  --ngoma-transition: 180ms ease;
-  --ngoma-transition-slow: 300ms ease;
+  --ngoma-transition: 120ms ease-out;
+  --ngoma-transition-slow: 220ms ease-out;
 }
 
 /* =========================================================
@@ -3346,6 +3346,33 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell select optgroup {
 }
 
 /* --- Spacing rhythm (cards breathe) -------------------- */
+@keyframes ngoma-dropdown-in {
+  from { opacity: 0; transform: translateY(-3px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.ngoma-info-label {
+  flex-wrap: wrap;
+  row-gap: 5px;
+  line-height: 1.35;
+}
+.ngoma-info-label > span:first-child {
+  overflow-wrap: anywhere;
+}
+.ngoma-info-button {
+  flex: 0 0 auto;
+  margin-inline-start: 2px;
+}
+
 .card,
 .ngoma-card,
 .stat-card,

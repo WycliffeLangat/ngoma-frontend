@@ -1,3 +1,4 @@
+import "./styles/redesignV2.css";
 import CertificationIcon from "./components/CertificationIcon.jsx";
 import { CERTIFICATION_BRANDING } from "./utils/certificationBranding.js";
 import { contributorNames, PUBLIC_CHART_TYPES, isPeopleChart, chartTypeName } from "./utils/contributorCharts.js";
@@ -2474,7 +2475,7 @@ const top = data[0];
         background:isDark?`${themeColors.text}22`:`${themeColors.text}14`,
         cursor:"pointer",
         padding:0,
-        transition:"background 0.2s ease",
+        transition:"background 0.12s ease-out",
         ...extraStyle,
       }}
     >
@@ -2489,7 +2490,7 @@ const top = data[0];
           height:`${knob}px`,
           borderRadius:"50%",
           transform:`translateX(${isDark?trackW-trackH:0}px)`,
-          transition:"transform 0.2s ease",
+          transition:"transform 0.12s ease-out",
         }}
       />
     </button>
@@ -2675,6 +2676,7 @@ const top = data[0];
         n: (cmsArtist && (cmsArtist.display_name || cmsArtist.name)) || requestedName,
         rh: {}, mp: {}, pk: "—", rank: "—", p: 0, m: 0, t: 0, prevRank: null,
         artist_profile: cmsArtist || {},
+          contributorRole: detailRole,
         image: getArtistImageUrl(cmsArtist || { title: requestedName }, { name: requestedName, isArtist: true }),
       });
       prepareDetailNavigation();
@@ -2692,6 +2694,7 @@ const top = data[0];
       rank: monthlyRanks[CURRENT_MONTH] || "â€”",
       pk: rankedMonths.length ? Math.min(...rankedMonths) : "â€”",
       rh: monthlyRanks,
+      contributorRole: detailRole,
     };
     setPlat((current) => isRegionalChartScope(current) ? current : "Combined");
     setSelR(null);
@@ -3248,12 +3251,16 @@ const top = data[0];
     setPage(nextPage);setSelA(null);setSelR(null);setMNav(false);setMoreOpen(false);
   };
   const navItems=["charts","analytics","head-to-head","year-end","certifications","about"];
-  // Below ~1400px the full six-item nav no longer fits next to the logo on one
-  // line (font/gap can only shrink so far), so fold the tail into "More" —
-  // keeps the logo and nav on the same row instead of wrapping to a second line.
-  const primaryNavItems=vw<1400?navItems.slice(0,3):navItems;
-  const moreNavItems=navItems.filter((item)=>!primaryNavItems.includes(item));
-  const navLabel=t=>t==="year-end"?"All Time":t==="head-to-head"?"Head to Head":t;
+  const primaryNavItems=navItems;
+  const moreNavItems=[];
+  const navLabel=(t)=>({
+    charts:"CHARTS",
+    analytics:"ANALYSIS",
+    "head-to-head":"HEAD TO HEAD",
+    "year-end":"ALL TIME",
+    certifications:"CERTIFICATION",
+    about:"ABOUT",
+  }[t] || t);
   const applyCountryScope=(scope)=>{
     const nextScope=normalizeCountryScope(scope);
     setSelectedCountryScope(nextScope);
@@ -3315,11 +3322,11 @@ const top = data[0];
       pillStyle={countryScopeSelectStyle(compact)}
     />
   );
-  const card=(extra={})=>({background:"#FFF",borderRadius:"14px",border:"1px solid #EFEDE7",padding:isMobile?"18px":"22px",boxSizing:"border-box",maxWidth:"100%",boxShadow:"0 1px 3px rgba(0,0,0,0.02),0 8px 24px rgba(0,0,0,0.02)",...extra});
+  const card=(extra={})=>({background:"#FFF",borderRadius:"26px",border:"1px solid #e5dece",padding:isMobile?"20px":"28px",boxSizing:"border-box",maxWidth:"100%",boxShadow:"0 1px 3px rgba(0,0,0,0.02),0 8px 24px rgba(0,0,0,0.02)",...extra});
   const TXT = {
     kicker: isMobile ? "9px" : "10.5px",
-    pageTitle: isMobile ? "24px" : "24px",
-    lead: isMobile ? "12px" : "11px",
+    pageTitle: isMobile ? "42px" : "72px",
+    lead: isMobile ? "15px" : "17px",
     section: "20px",
     rowTitle: isMobile ? "15px" : "15px",
     rowMeta: isMobile ? "12px" : "12px",
@@ -3454,7 +3461,7 @@ const top = data[0];
           lineHeight:1,
           opacity:isChartTypePending && tActive ? 0.9 : 1,
           boxShadow:"none",
-          transition:"background-color .16s ease, border-color .16s ease, color .16s ease, box-shadow .16s ease, opacity .16s ease",
+          transition:"background-color .12s ease-out, border-color .12s ease-out, color .12s ease-out, box-shadow .12s ease-out, opacity .12s ease-out",
         }}
       >{t}</button>;})}
     </div>
@@ -3659,9 +3666,10 @@ const top = data[0];
   };
 
   const allArtistNames=[...new Set(artists.map(a=>a.n))].sort();
+  const selectedArtistRole = selA?.contributorRole || "artists";
   const selectedArtistEntries = selA ? MONTHS.flatMap((monthLabel) =>
-    getArtistSourceCombined("artists", monthLabel)
-      .filter((entry) => publicArtistChartCreditMembers(entry).some((name) => normArtistKey(name) === normArtistKey(selA.n)))
+    getArtistSourceCombined(selectedArtistRole, monthLabel)
+      .filter((entry) => chartCreditMembers(entry, selectedArtistRole).some((name) => normArtistKey(name) === normArtistKey(selA.n)))
       .map((entry) => ({
         ...entry,
         month: monthLabel,
@@ -3888,7 +3896,7 @@ const top = data[0];
   ) : null;
 
   return(
-    <div className="ngoma-app-shell" data-theme={theme} style={{fontFamily:SF,background:themeColors.page,color:themeColors.text,minHeight:"100vh",width:"100%",overflowX:"clip",isolation:"isolate"}}>
+    <div className="ngoma-app-shell ngoma-redesign-v2" data-theme={theme} style={{fontFamily:SF,background:themeColors.page,color:themeColors.text,minHeight:"100vh",width:"100%",overflowX:"clip",isolation:"isolate"}}>
       {/* EXPERIMENT: living artist-portrait backdrop, mounted once so it shows
           through every page's transparent gaps rather than being hero-only. */}
       <ArtistAmbientField theme={theme} isMobile={isMobile} isTablet={isTablet} />
@@ -4028,49 +4036,26 @@ const top = data[0];
       {MAINTENANCE_SETTING.enabled&&<div role="status" style={{padding:"11px 18px",background:MAINTENANCE_SETTING.background || "#FFF3CD",color:MAINTENANCE_SETTING.color || "#5F4700",fontFamily:F,fontSize:"12px",fontWeight:800,textAlign:"center",borderBottom:`1px solid ${GOLD}55`}}>{MAINTENANCE_SETTING.message || `${SITE_NAME} is currently undergoing maintenance.`}</div>}
 
       {/* HEADER */}
-      <header ref={publicHeaderRef} style={{background:themeColors.surface,borderBottom:`3px solid ${themeColors.text}`,position:"fixed",top:0,left:isMobile?0:"38px",right:isMobile?0:"38px",width:isMobile?"100%":"auto",zIndex:90,boxShadow:isDark?"0 8px 24px rgba(0,0,0,0.34)":"0 8px 24px rgba(31,36,31,0.10)"}}>
-        <div style={{background:isDark?"#1A1A1A":"#F5F3EA",color:isDark?"#FFF":"#1A1A1A"}}>
-          <div style={{...pageFrame({display:"flex",justifyContent:"flex-end",alignItems:"center",gap:"18px",padding:isMobile?"6px 16px":"5px 28px"}),fontFamily:F,fontSize:isMobile?"8px":"9.5px",letterSpacing:isMobile?"1px":"2px",textTransform:"uppercase"}}>
-            <span style={{color:isDark?"rgba(255,255,255,0.68)":"rgba(26,26,26,0.68)",fontSize:isMobile?"8px":"9.5px",letterSpacing:isMobile?"0.5px":"1px",fontFamily:"inherit",whiteSpace:"nowrap"}}>
+      <header ref={publicHeaderRef} style={{background:themeColors.surface,borderBottom:"none",position:"sticky",top:0,zIndex:90,boxShadow:isDark?"0 8px 24px rgba(0,0,0,0.34)":"0 8px 24px rgba(31,36,31,0.10)"}}>
+        <div style={{background:"#1A1A1A",color:"#FFF"}}>
+          <div style={{...pageFrame({display:"flex",justifyContent:"flex-end",alignItems:"center",gap:"10px",padding:isMobile?"6px 16px":"5px 28px"}),fontFamily:F,fontSize:isMobile?"8px":"9.5px",letterSpacing:isMobile?"1px":"2px",textTransform:"uppercase"}}>
+            <span style={{color:"rgba(255,255,255,0.68)",fontSize:isMobile?"8px":"9.5px",letterSpacing:isMobile?"0.5px":"1px",fontFamily:"inherit",whiteSpace:"nowrap"}}>
               {new Date().toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short",year:"numeric"})}
             </span>
             {liveIndicator}
           </div>
         </div>
-          <div style={{...pageFrame({display:"flex",justifyContent:"flex-start",alignItems:"center",padding:isMobile?"14px 16px":(isTablet?"16px 22px 18px":"18px 28px 22px")}),columnGap:isMobile?"16px":(isTablet?"24px":"40px"),rowGap:isTablet?"12px":"16px",flexWrap:"wrap"}}>
+          <div className="ngoma-public-header-row" style={{...pageFrame({display:"flex",justifyContent:"space-between",alignItems:"center",padding:isMobile?"14px 16px":(isTablet?"16px 22px 18px":"18px 28px 22px")}),columnGap:isMobile?"16px":(isTablet?"24px":"42px"),rowGap:"16px",flexWrap:isMobile?"wrap":"nowrap"}}>
           <div
             onClick={()=>navTo("charts")}
             style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:isMobile?"4px":"5px",cursor:"pointer",flexShrink:0}}
           >
             <NgomaMark size={isMobile?34:(isTablet?42:48)} inkColor={themeColors.text} />
-            <span
-              style={{
-                fontFamily:F,
-                fontSize:isMobile?"13px":(isTablet?"15px":"17px"),
-                fontWeight:950,
-                letterSpacing:"-0.4px",
-                color:themeColors.text,
-                textTransform:"uppercase",
-                whiteSpace:"nowrap",
-                lineHeight:1,
-              }}
-            >
-              {SITE_NAME}
-            </span>
+            <span style={{fontFamily:F,fontSize:isMobile?"13px":(isTablet?"15px":"17px"),fontWeight:950,letterSpacing:"-0.4px",color:themeColors.text,textTransform:"uppercase",whiteSpace:"nowrap",lineHeight:1}}>{SITE_NAME}</span>
           </div>
           {isMobile ? (
             <>
-              <div style={{display:"flex",alignItems:"center",gap:"8px",marginLeft:"auto",flexShrink:0}}>
-                <button
-                  type="button"
-                  onClick={()=>setSOpen(true)}
-                  aria-label="Search"
-                  title="Search"
-                  style={{display:"flex",alignItems:"center",justifyContent:"center",width:"38px",height:"38px",border:`1px solid ${themeColors.border}`,borderRadius:"11px",background:themeColors.elevated,cursor:"pointer",flexShrink:0}}
-                >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={themeColors.text} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                </button>
-                <button
+              <button
                   onClick={()=>setMNav(o=>!o)}
                   aria-label="Toggle menu"
                   aria-expanded={mNav}
@@ -4079,8 +4064,7 @@ const top = data[0];
                   <span className="ngoma-hamburger-bar" style={{display:"block",height:"2px",background:themeColors.text,borderRadius:"2px",transition:"all .2s",transform:mNav?"translateY(6px) rotate(45deg)":"none"}}/>
                   <span className="ngoma-hamburger-bar" style={{display:"block",height:"2px",background:themeColors.text,borderRadius:"2px",opacity:mNav?0:1,transition:"opacity .2s"}}/>
                   <span className="ngoma-hamburger-bar" style={{display:"block",height:"2px",background:themeColors.text,borderRadius:"2px",transition:"all .2s",transform:mNav?"translateY(-6px) rotate(-45deg)":"none"}}/>
-                </button>
-              </div>
+              </button>
               <div style={{width:"100%",display:"flex",alignItems:"center",gap:"10px",marginTop:"-4px"}}>
                 <div style={{flex:1,minWidth:0}}><CountryScopeSelect compact fullWidth /></div>
                 {page==="charts"&&<div style={{flex:1,minWidth:0}}><MonthScopeSelect compact fullWidth /></div>}
@@ -4088,8 +4072,9 @@ const top = data[0];
               {mNav&&(
                 <div style={{width:"100%",display:"flex",flexDirection:"column",gap:"2px",marginTop:"8px",borderTop:`1px solid ${themeColors.border}`,paddingTop:"10px"}}>
                   {navItems.map(t=>(
-                    <span key={t} onClick={()=>navTo(t)} style={{cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"13px",fontWeight:page===t?800:600,letterSpacing:"1px",textTransform:"uppercase",color:page===t?themeColors.text:themeColors.muted,background:page===t?themeColors.active:"transparent",border:page===t?"1px solid #D4B65E":"1px solid transparent"}}>{navLabel(t)}</span>
+                    <button type="button" key={t} className="ngoma-nav-link" aria-current={page===t?"page":undefined} data-nav-active={page===t} onClick={()=>navTo(t)} style={{cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"15px",fontWeight:page===t?900:850,letterSpacing:"1.8px",textTransform:"uppercase",color:page===t?themeColors.text:themeColors.muted,background:page===t?themeColors.active:"transparent",border:page===t?"1px solid #D4B65E":"1px solid transparent"}}>{navLabel(t)}</button>
                   ))}
+                  <button type="button" className="v2-nav-link" onClick={()=>{setMNav(false);setSOpen(true);}} style={{cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"13px",fontWeight:600,letterSpacing:"1px",textTransform:"uppercase",color:themeColors.muted,background:"transparent",border:"1px solid transparent",textAlign:"left"}}>Search</button>
                   <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px",marginTop:"8px",padding:"6px 14px"}}>
                     <span style={{fontFamily:F,fontSize:"13px",fontWeight:600,letterSpacing:"1px",textTransform:"uppercase",color:themeColors.muted}}>Dark Mode</span>
                     {themeToggle()}
@@ -4098,19 +4083,19 @@ const top = data[0];
               )}
             </>
           ) : (
-            <nav style={{display:"flex",gap:isTablet?"8px":"14px",fontFamily:F,fontSize:isTablet?"11.5px":"13px",fontWeight:700,letterSpacing:isTablet?"0.9px":"1.5px",textTransform:"uppercase",alignItems:"center",flexShrink:0,flexWrap:"wrap",justifyContent:"flex-end",marginLeft:"auto",position:"relative"}}>
+            <nav className="ngoma-public-nav" style={{display:"flex",gap:isTablet?"8px":"16px",fontFamily:F,fontSize:isTablet?"13px":"15px",fontWeight:850,letterSpacing:isTablet?"1px":"1.8px",textTransform:"uppercase",alignItems:"center",flex:1,minWidth:0,flexWrap:"nowrap",justifyContent:"space-between",marginLeft:"auto",position:"relative"}}>
               {primaryNavItems.map(t=>(
-                <span key={t} onClick={()=>navTo(t)} style={{color:page===t?themeColors.text:themeColors.muted,cursor:"pointer",whiteSpace:"nowrap",padding:isTablet?"6px 8px":"6px 12px",borderRadius:"20px",background:page===t?themeColors.active:"transparent",fontWeight:page===t?800:700,transition:"all 0.15s",border:page===t?"1px solid #D4B65E":"1px solid transparent"}}
+                <button type="button" key={t} className="ngoma-nav-link" aria-current={page===t?"page":undefined} data-nav-active={page===t} onClick={()=>navTo(t)} style={{color:page===t?themeColors.text:themeColors.muted,cursor:"pointer",whiteSpace:"nowrap",padding:isTablet?"6px 8px":"6px 12px",borderRadius:"20px",background:page===t?themeColors.active:"transparent",fontFamily:F,fontSize:isTablet?"13px":"15px",fontWeight:page===t?900:850,letterSpacing:isTablet?"1px":"1.8px",textTransform:"uppercase",transition:"all 0.15s",border:page===t?"1px solid #D4B65E":"1px solid transparent"}}
                   onMouseEnter={e=>{if(page!==t)e.currentTarget.style.color=themeColors.text;}}
                   onMouseLeave={e=>{if(page!==t)e.currentTarget.style.color=themeColors.muted;}}
-                >{navLabel(t)}</span>
+                >{navLabel(t)}</button>
               ))}
               {moreNavItems.length > 0 && (
               <div style={{position:"relative"}}>
                 <button
                   type="button"
                   onClick={()=>setMoreOpen((open)=>!open)}
-                  aria-haspopup="menu"
+                  className="v2-nav-more" aria-haspopup="menu"
                   aria-expanded={moreOpen}
                   style={{
                     cursor:"pointer",
@@ -4161,12 +4146,11 @@ const top = data[0];
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={themeColors.text} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
               </button>
-              {themeToggle()}
+              <span style={{display:"inline-flex",alignItems:"center",marginLeft:"auto",flexShrink:0}}>{themeToggle()}</span>
             </nav>
           )}
         </div>
       </header>
-      <div aria-hidden="true" style={{height:`${publicHeaderHeight}px`,flexShrink:0}} />
 
       {/* SEARCH */}
       {sOpen&&(

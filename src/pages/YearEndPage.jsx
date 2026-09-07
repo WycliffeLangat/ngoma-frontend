@@ -1,3 +1,5 @@
+import EditorialHero from "../components/EditorialHero.jsx";
+import RankingSpotlight from "../components/RankingSpotlight.jsx";
 import ShareButton from "../components/ShareButton.jsx";
 import { buildChartPosterDownloadOptions } from "../components/sharePosters/ChartListSharePoster.jsx";
 import { buildYearEndShareUrl } from "../utils/shareLinks.js";
@@ -132,21 +134,8 @@ export default function YearEndPage({ ctx }) {
   };
 
   return (
-<div style={{padding:PAD,background:isDark?"#050805":"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"flex-end",marginBottom:isMobile?"16px":"20px",gap:isMobile?"12px":"20px",flexDirection:isMobile?"column":"row"}}>
-            <div>
-              <div style={{fontFamily:F,fontSize:isMobile?"10.5px":"11px",letterSpacing:isMobile?"1.8px":"2px",textTransform:"uppercase",color:GOLD,marginBottom:"6px",fontWeight:850}}>{yearEndMode==="bestofyear"?"BEST OF YEAR":"ALL TIME"}</div>
-              <div style={{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}>
-                <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:0,color:isDark?"#FFFFFF":"#000000"}}>{yearEndMode==="bestofyear"?"Best of the Year":"All Time Charts"}</h2>
-                {info(
-                  yearEndMode==="bestofyear" ? "Best of the Year" : "All Time Charts",
-                  "This table aggregates public display points across the selected period, then ranks entries by total points.",
-                  ["All Time uses every tracked published month.", "Best of Year limits the table to the selected year window.", "Changing source can show Combined, platform, or country-scoped totals where available."]
-                )}
-              </div>
-              <p style={{fontFamily:F,fontSize:TXT.lead,color:isDark?"#FFFFFF":"#000000",margin:"4px 0 0",lineHeight:1.55}}>Aggregated Display Points across {yearEndPeriodLabel}</p>
-            </div>
-            <div className="year-end-actions" data-share-action-area="true" style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap",position:isMobile?"sticky":"static",top:isMobile?"0":"auto",zIndex:isMobile?5:"auto",background:isMobile?(isDark?"#050805":"#FFF"):"transparent",padding:isMobile?"8px 0 4px":"0"}}>
+<div className="v2-secondary-page v2-lifetime-page" style={{padding:PAD,background:isDark?"#050805":"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
+          <EditorialHero eyebrow={yearEndMode === 'bestofyear' ? 'Best of the year' : 'All time'} title={yearEndMode === 'bestofyear' ? 'The defining music of the year' : 'Legacy leaderboard'} description={'The music with staying power. Explore accumulated chart points across ' + yearEndPeriodLabel + '.'} metric={yearEnd[0] ? Number(yearEnd[0].totalPts).toLocaleString() : '0'} metricLabel={yearEnd[0] ? (yearEnd[0].t + ' leads the selected ranking by total points.') : 'No entries are available for this selection.'} entry={yearEnd[0]} pool={yearEnd} isArtist={isArtists} onOpen={item => isArtists ? openArtistDetails(item.t) : openReleaseDetails(item, isSingles ? 'single' : 'album')} actions={<div className="year-end-actions" data-share-action-area="true" style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap",position:isMobile?"sticky":"static",top:isMobile?"0":"auto",zIndex:isMobile?5:"auto",background:isMobile?(isDark?"#050805":"#FFF"):"transparent",padding:isMobile?"8px 0 4px":"0"}}>
               <select value={yearEndMode} onChange={e=>setYearEndMode(e.target.value)} style={{...selectStyle,minWidth:isMobile?"120px":"150px"}}>
                 <option value="alltime">All Time</option>
                 <option value="bestofyear">Best of Year</option>
@@ -169,9 +158,9 @@ export default function YearEndPage({ ctx }) {
                 })}
               />
               <Tog sm/>
-            </div>
-          </div>
+            </div>} />
 
+          <RankingSpotlight entries={yearEnd} lifetime onOpen={item => isArtists ? openArtistDetails(item.t) : openReleaseDetails(item,isSingles?"single":"album")} />
           {/* Full list */}
           {isMobile ? (
             <div style={{

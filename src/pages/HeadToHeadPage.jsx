@@ -1,3 +1,4 @@
+import EditorialHero from "../components/EditorialHero.jsx";
 import { useState } from "react";
 import EntryThumb from "../components/EntryThumb.jsx";
 import ArtistCredit from "../components/ArtistCredit.jsx";
@@ -91,17 +92,8 @@ export default function HeadToHeadPage({ ctx }) {
   };
 
   return (
-<div className="ngoma-analytics-page" style={{padding:PAD,background:"transparent",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"center",marginBottom:"28px",gap:isMobile?"14px":"24px",flexDirection:isMobile?"column":"row",paddingBottom:"20px",borderBottom:"1px solid "+(isDark?"#2F352F":"#EFEDE7")}}>
-            <div>
-              <div style={{display:"inline-block",width:"28px",height:"3px",background:isDark?"#FFFFFF":"#000000",borderRadius:"2px",marginBottom:"10px"}}/>
-              <div style={{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}>
-                <h2 style={{fontSize:isMobile?"22px":"28px",fontWeight:900,margin:"0 0 4px",letterSpacing:"-0.5px",color:isDark?"#FFFFFF":"#000000"}}>Head-to-Head</h2>
-                {info("Head-to-Head", `Compare two ${isArtists ? ctx.ct : (isSingles ? "songs" : "albums")} using points, ranks, platform coverage, and chart history from the public dataset.`)}
-              </div>
-              <p style={{fontFamily:F,fontSize:"14px",color:isDark?"#FFFFFF":"#000000",margin:0,lineHeight:1.6}}>Compare two {isArtists ? ctx.ct : (isSingles?"songs":"albums")} across points, rank, platforms, and chart history.</p>
-            </div>
-            <div style={{display:"flex",gap:"10px",flexDirection:"row",alignItems:"center",flexShrink:0,flexWrap:"wrap"}}>
+<div className="ngoma-analytics-page v2-comparison-page" style={{padding:PAD,background:"transparent",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
+          <EditorialHero eyebrow="Compare two entries" title="Head-to-Head" description="Two chart journeys, side by side. Compare lifetime points, follow each rank trajectory and see where every platform makes a difference." metric="VS" pool={[sp1, sp2].filter(Boolean)} isArtist={isArtists} onOpen={item => isArtists ? openArtistDetails(item.title) : openReleaseDetails(item, isSingles ? "single" : "album")} metricLabel={sp1 && sp2 ? (sp1.totalPts === sp2.totalPts ? 'The selected entries are tied on lifetime points.' : (sp1.totalPts > sp2.totalPts ? sp1.title : sp2.title) + ' leads the selected comparison on lifetime points.') : 'Choose two entries below to explore their chart histories.'} actions={<div style={{display:"flex",gap:"10px",flexDirection:"row",alignItems:"center",flexShrink:0,flexWrap:"wrap"}}>
               <ShareButton
                 isDark={isDark}
                 F={F}
@@ -125,8 +117,7 @@ export default function HeadToHeadPage({ ctx }) {
                 ) : null}
               />
               <Tog sm/>
-            </div>
-          </div>
+            </div>} />
 
           <div style={{...card(),padding:isMobile?"16px":"18px",background:isDark?"#0F120F":"linear-gradient(135deg,#FAFAF8,#FFFFFF)",borderColor:isDark?"#2F352F":"#EFEDE7"}}>
             <div style={{...secLbl(isDark?"#FFFFFF":"#000000"), fontSize:"20px",display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}><span><SecMark c={isDark?"#FFFFFF":"#000000"}/>{isArtists ? ctx.chartTypeLabel.slice(0, -1) : (isSingles?"Song":"Album")} Head-to-Head</span>{info(`${isArtists ? ctx.chartTypeLabel.slice(0, -1) : (isSingles?"Song":"Album")} Head-to-Head`, "Choose two entries and compare their public chart performance side by side.")}</div>
@@ -158,7 +149,7 @@ export default function HeadToHeadPage({ ctx }) {
             </div>
             {sp1&&sp2&&(<>
               {/* Title cards */}
-              <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:isMobile?"14px":"20px",marginBottom:isMobile?"16px":"22px"}}>
+              <div className="anl-grid-2 v2-compare-cards" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:isMobile?"14px":"20px",marginBottom:isMobile?"16px":"22px"}}>
                 {[{d:sp1,c:isDark?"#FFFFFF":"#000000",accent:GOLD},{d:sp2,c:isDark?"#FFFFFF":"#000000",accent:"#1565C0"}].map(({d,c,accent},i)=>(
                   <div key={i} style={{padding:isMobile?"18px 16px":"24px 22px",background:isDark?"#12150F":"#FFFFFF",borderRadius:"14px",border:"1px solid "+(isDark?"#2F352F":"#E9E5DC"),borderLeft:"4px solid "+accent,minWidth:0,boxShadow:isDark?"none":"0 6px 20px rgba(31,36,31,0.05)"}}>
                     <div style={{display:"flex",alignItems:"flex-start",gap:"14px",minWidth:0}}>
@@ -179,6 +170,24 @@ export default function HeadToHeadPage({ ctx }) {
                 ))}
               </div>
               <AnalyticsDeepSection label="Detailed Comparison" isMobile={isMobile}>
+              {/* Rank trajectory chart */}
+              <div style={{marginTop:isMobile?"14px":"0"}}>
+                <div style={chartPanel}>
+                  <div style={{fontFamily:F,fontSize:isMobile?"10px":"9.5px",fontWeight:800,letterSpacing:"1.4px",textTransform:"uppercase",textAlign:isMobile?"center":"left",color:isDark?"#FFFFFF":"#000000",marginBottom:"8px",display:"flex",alignItems:"center",gap:"6px",justifyContent:isMobile?"center":"flex-start"}}>Rank Trajectory (lower = better){info("Rank Trajectory", "Plots each selected entry's rank over time. The y-axis is reversed because #1 is best, so higher points on the line represent better ranks.", [], 14)}</div>
+                  <div style={{width:"100%",maxWidth:isMobile?"340px":"none",margin:"0 auto"}}>
+                    <ResponsiveContainer width="100%" height={isMobile?190:180}>
+                      <LineChart data={songRankData} margin={{top:14,right:isMobile?20:14,left:isMobile?8:4,bottom:4}}>
+                        <CartesianGrid stroke={gridStroke} vertical={false}/>
+                        <XAxis dataKey="month" tick={axisTick(isMobile?11:10.5)} tickLine={{stroke:axisStroke}} axisLine={{stroke:axisStroke}}/>
+                        <YAxis width={isMobile?42:40} reversed domain={[1,"dataMax"]} tick={axisTick(isMobile?10.5:10)} tickFormatter={v=>"#"+v} axisLine={{stroke:axisStroke}} tickLine={{stroke:axisStroke}}/>
+                        <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} cursor={{stroke:gridStroke}} formatter={(v,n)=>["#"+v,n==="A"?sp1.title:sp2.title]}/>
+                        <Line dataKey="A" stroke={GOLD} strokeWidth={2} dot={{r:4,fill:GOLD,stroke:isDark?"#0F120F":"#FFFFFF",strokeWidth:2}} activeDot={{r:6}} connectNulls/>
+                        <Line dataKey="B" stroke="#1565C0" strokeWidth={2} dot={{r:4,fill:"#1565C0",stroke:isDark?"#0F120F":"#FFFFFF",strokeWidth:2}} activeDot={{r:6}} connectNulls/>
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
               {/* Metric comparison table */}
               <div style={{width:"100%",maxWidth:isMobile?"360px":"none",margin:"0 auto 16px",border:"1px solid "+(isDark?"#2F352F":"#E4E1D8"),borderRadius:"12px",overflow:"hidden",background:isDark?"#0F120F":"#FFF",boxShadow:isDark?"none":"0 8px 24px rgba(31,36,31,0.05)"}}>
                 <div style={{display:"grid",gridTemplateColumns:isMobile?"minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)":"minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)",gap:"8px",alignItems:"center",padding:isMobile?"10px 9px":"12px 16px",background:"#1F241F",color:"#FFF"}}>
@@ -208,24 +217,6 @@ export default function HeadToHeadPage({ ctx }) {
                     );
                   });
                 })()}
-              </div>
-              {/* Rank trajectory chart */}
-              <div style={{marginTop:isMobile?"14px":"0"}}>
-                <div style={chartPanel}>
-                  <div style={{fontFamily:F,fontSize:isMobile?"10px":"9.5px",fontWeight:800,letterSpacing:"1.4px",textTransform:"uppercase",textAlign:isMobile?"center":"left",color:isDark?"#FFFFFF":"#000000",marginBottom:"8px",display:"flex",alignItems:"center",gap:"6px",justifyContent:isMobile?"center":"flex-start"}}>Rank Trajectory (lower = better){info("Rank Trajectory", "Plots each selected entry's rank over time. The y-axis is reversed because #1 is best, so higher points on the line represent better ranks.", [], 14)}</div>
-                  <div style={{width:"100%",maxWidth:isMobile?"340px":"none",margin:"0 auto"}}>
-                    <ResponsiveContainer width="100%" height={isMobile?190:180}>
-                      <LineChart data={songRankData} margin={{top:14,right:isMobile?20:14,left:isMobile?8:4,bottom:4}}>
-                        <CartesianGrid stroke={gridStroke} vertical={false}/>
-                        <XAxis dataKey="month" tick={axisTick(isMobile?11:10.5)} tickLine={{stroke:axisStroke}} axisLine={{stroke:axisStroke}}/>
-                        <YAxis width={isMobile?42:40} reversed domain={[1,"dataMax"]} tick={axisTick(isMobile?10.5:10)} tickFormatter={v=>"#"+v} axisLine={{stroke:axisStroke}} tickLine={{stroke:axisStroke}}/>
-                        <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} cursor={{stroke:gridStroke}} formatter={(v,n)=>["#"+v,n==="A"?sp1.title:sp2.title]}/>
-                        <Line dataKey="A" stroke={GOLD} strokeWidth={2} dot={{r:4,fill:GOLD,stroke:isDark?"#0F120F":"#FFFFFF",strokeWidth:2}} activeDot={{r:6}} connectNulls/>
-                        <Line dataKey="B" stroke="#1565C0" strokeWidth={2} dot={{r:4,fill:"#1565C0",stroke:isDark?"#0F120F":"#FFFFFF",strokeWidth:2}} activeDot={{r:6}} connectNulls/>
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
               </div>
               {/* Platform-by-platform peak ranks */}
               <div style={{marginTop:isMobile?"14px":"16px"}}>

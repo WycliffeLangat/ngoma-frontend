@@ -1,4 +1,5 @@
-import { PUBLIC_CHART_TYPES, isPeopleChart } from "../utils/contributorCharts.js";
+import RankingSpotlight from "./RankingSpotlight.jsx";
+import { PUBLIC_CHART_TYPES, isPeopleChart, formatContributorNames } from "../utils/contributorCharts.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getArtistImageUrl } from "../utils/artistImages.js";
 import { enrichBiographyForArtist, fallbackCountryForArtist } from "../utils/artistMetadataFallbacks.js";
@@ -741,19 +742,19 @@ export default function PremiumChartsPage({
   }
 
   function getProducerDetails(item) {
-    return firstDetailValue(
+    return formatContributorNames(firstDetailValue(
       item,
       ["producers", "producer", "produced_by", "production", "producer_names"],
       "—"
-    );
+    ), "producers") || "—";
   }
 
   function getSongwriterDetails(item) {
-    return firstDetailValue(
+    return formatContributorNames(firstDetailValue(
       item,
       ["songwriters", "songwriter", "writers", "writer", "written_by", "composers", "composer"],
       "—"
-    );
+    )) || "—";
   }
 
   function getReleaseDate(item) {
@@ -980,26 +981,32 @@ export default function PremiumChartsPage({
   // Hero carousel — cycles through the full Top 50, not just a top-5 slice ──
   const [slideIdx, setSlideIdx] = useState(0);
   const slideTimerRef = useRef(null);
+  const [heroPaused, setHeroPaused] = useState(false);
   const heroItems = useMemo(
     () => [...data].sort((a, b) => Number(a.rank) - Number(b.rank)),
     [data]
   );
-  // Mobile hero is text-only — no cover-art slideshow.
-  const showHeroArt = !mobile && heroItems.length > 0;
+  // Hero artwork is available on desktop and mobile; previously text-only — no cover-art slideshow.
+  const showHeroArt = heroItems.length > 0;
 
+  useEffect(() => { setSlideIdx(0); }, [data]);
   useEffect(() => {
-    setSlideIdx(0);
-    clearInterval(slideTimerRef.current);
-    // The hero image/slideshow is hidden entirely on mobile (text-only hero),
-    // so there's nothing to animate — skip the interval there.
-    if (!mobile && heroItems.length > 1) {
-      slideTimerRef.current = setInterval(
-        () => setSlideIdx(i => (i + 1) % heroItems.length),
-        3800
-      );
-    }
-    return () => clearInterval(slideTimerRef.current);
-  }, [data, mobile]); // eslint-disable-line react-hooks/exhaustive-deps
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () => {
+      clearInterval(slideTimerRef.current);
+      if (!heroPaused && !media.matches && !document.hidden && heroItems.length > 1) {
+        slideTimerRef.current = setInterval(() => setSlideIdx(i => (i + 1) % heroItems.length), 3800);
+      }
+    };
+    update();
+    media.addEventListener('change', update);
+    document.addEventListener('visibilitychange', update);
+    return () => {
+      clearInterval(slideTimerRef.current);
+      media.removeEventListener('change', update);
+      document.removeEventListener('visibilitychange', update);
+    };
+  }, [heroPaused, heroItems.length]);
 
   function sortValue(item, key) {
     const profile = getReleaseProfile(item);
@@ -1470,16 +1477,8 @@ export default function PremiumChartsPage({
             const img         = isArtist
               ? (artistImageOverrides[String(item?.title || "").trim().toLowerCase()] || artProfile?.image || getArtworkUrl(item) || "")
               : getArtworkUrl(item);
-            const pauseTimer  = () => clearInterval(slideTimerRef.current);
-            const resumeTimer = () => {
-              clearInterval(slideTimerRef.current);
-              if (heroItems.length > 1) {
-                slideTimerRef.current = setInterval(
-                  () => setSlideIdx(i => (i + 1) % heroItems.length),
-                  3800
-                );
-              }
-            };
+            const pauseTimer = () => setHeroPaused(true);
+            const resumeTimer = () => setHeroPaused(false);
 
             const cardBorder = "rgba(255,255,255,0.34)";
             const cardShadow  = `0 0 0 1px ${cardBorder}, 0 28px 90px ${chartAccentShadow}, 0 24px 70px rgba(0,0,0,0.36)`;
@@ -1502,6 +1501,8 @@ export default function PremiumChartsPage({
                 }}
                 onMouseEnter={pauseTimer}
                 onMouseLeave={resumeTimer}
+                onFocus={pauseTimer}
+                onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) resumeTimer(); }}
                 onClick={() => openRelease(item)}
                 aria-label={`Open ${mastheadImageLabel || mastheadTitle}`}
                 role="button"
@@ -1615,9 +1616,9 @@ export default function PremiumChartsPage({
             {InfoButton && (
               <InfoButton
                 title="Chart Controls"
-                body="Use these controls to switch the public chart between singles, albums, artists, songwriters, producers, Combined ranking, country scope, and available source platforms."
+                body="Use these controls to switch the public chart between singles, albums, artists, producers, Combined ranking, country scope, and available source platforms."
                 items={[
-                  "Chart type changes whether the list is songs, albums, artists, songwriters, or producers.",
+                  "Chart type changes whether the list is songs, albums, artists, or producers.",
                   "Platform changes whether you see the Combined chart, a country chart, or a specific source platform.",
                   "Share downloads the current chart artwork.",
                 ]}
@@ -1643,7 +1644,7 @@ export default function PremiumChartsPage({
               {InfoButton && (
                 <InfoButton
                   title="Chart Type"
-                  body="Switch between singles, albums, artists, songwriters, and producers. People charts aggregate Top 50 release performance using the corresponding metadata credits."
+                  body="Switch between singles, albums, artists, and producers. People charts aggregate Top 50 release performance using the corresponding metadata credits."
                   size={18}
                 />
               )}
@@ -1727,7 +1728,9 @@ export default function PremiumChartsPage({
 
       </section>
 
+      <RankingSpotlight entries={data} onOpen={openRelease} />
       <section
+        className="v2-chart-table"
         style={{
           ...styles.tableShell,
           borderTop: mobile ? "none" : `3px solid ${chartAccent}`,

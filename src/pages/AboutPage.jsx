@@ -1,3 +1,4 @@
+import EditorialHero from "../components/EditorialHero.jsx";
 import { useMemo } from "react";
 import { getPublicArtists, getArtistImageUrl } from "../utils/artistImages.js";
 import NgomaMark from "../components/NgomaMark.jsx";
@@ -113,11 +114,8 @@ export default function AboutPage({ ctx }) {
   );
 
   return (
-    <div style={{padding:PAD,background:isDark?"#050505":"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
-      <h2 style={{fontSize:TXT.pageTitle,fontWeight:800,margin:"0 0 4px",color:textPrimary,display:"inline-flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}>About {SITE_NAME}{info(`About ${SITE_NAME}`, `${SITE_NAME} explains how the public charts are calculated, which platforms are tracked, and how rankings, records, and awards connect to the same monthly dataset.`, ["Use this page when you want the plain-language methodology behind the public app.", "Each info sign opens extra context without changing the chart view."])}</h2>
-      <p style={{fontFamily:F,fontSize:isMobile?"14px":"15px",color:textPrimary,margin:"0 0 18px",lineHeight:1.7}}>
-        {SITE_NAME} tracks the music performing strongly in Kenya by comparing songs and albums across major digital platforms, then turning that activity into simple monthly Top 50 charts, artist rankings, analytics, records and certifications.
-      </p>
+    <div className="v2-secondary-page v2-about-page" style={{padding:PAD,background:isDark?"#050505":"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
+      <EditorialHero eyebrow={'About ' + SITE_NAME} title="Transparent music rankings" description={SITE_NAME + ' tracks the music performing strongly in Kenya. Monthly platform rankings become one connected view of releases, artists, records and lifetime achievements.'} pool={featuredPortraits.map(image => ({image, title: "Artist spotlight", is_artist_entry: true}))} metric={howItWorksSteps.length} metricLabel="Steps from monthly source charts to public rankings, analytics and certifications." actions={<button type="button" className="v2-primary-action" onClick={() => navTo('charts')}>Explore current charts</button>} />
 
       {featuredPortraits.length>0 && (
         <div style={{display:"flex",alignItems:"center",marginBottom:"26px"}}>
@@ -147,9 +145,10 @@ export default function AboutPage({ ctx }) {
             <span>Combined points decide the Top 50</span>
           </div>
         </div>
+        <div className="v2-method-formula"><span>Higher rank = more points</span><span>Combined points decide the Top 50</span></div>
         <div className="ngoma-about-process">
           {howItWorksSteps.map((step, index) => (
-            <div key={step.title} className="ngoma-about-process-row" style={{borderColor:panelBorder}}>
+            <div key={step.title.replace(/^\d+\.\s*/, "")} className="ngoma-about-process-row" style={{borderColor:panelBorder}}>
               <span className="ngoma-about-step-number" style={{background:panelBg,borderColor:panelBorder,color:textPrimary,fontFamily:F}}>{String(index + 1).padStart(2, "0")}</span>
               <div style={{minWidth:0}}>
                 <h3 style={{fontFamily:F,fontSize:isMobile?"15px":"16px",lineHeight:1.3,fontWeight:850,color:textPrimary,margin:"0 0 5px",display:"inline-flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>{step.title.replace(/^\d+\.\s*/, "")}{info(step.title.replace(/^\d+\.\s*/, ""), step.body, [], 13)}</h3>

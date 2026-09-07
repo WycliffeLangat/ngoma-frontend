@@ -1,3 +1,5 @@
+import EditorialHero from "../components/EditorialHero.jsx";
+import { getArtistImageUrl } from "../utils/artistImages.js";
 import PlatformPerformance from "../components/PlatformPerformance.jsx";
 import ArtistCredit from "../components/ArtistCredit.jsx";
 import ShareButton from "../components/ShareButton.jsx";
@@ -294,7 +296,7 @@ export default function ReleaseDetailPage({ ctx }) {
         ];
 
         return (
-        <div style={{padding:PAD,background:isDark?"#050505":"#ffffff",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
+        <div className="v2-detail-page v2-release-detail" style={{padding:PAD,background:isDark?"#050505":"#ffffff",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"12px",flexWrap:"wrap"}}>
             <span onClick={closeDetails} style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#FFFFFF":"#000000",cursor:"pointer",letterSpacing:"1px",textTransform:"uppercase",fontWeight:600}}>← Back</span>
             <ShareButton
@@ -308,21 +310,13 @@ export default function ReleaseDetailPage({ ctx }) {
           </div>
 
           {/* Hero — cover art beside identity, matching the artist detail page's layout */}
-          <div style={{marginTop:"20px",display:"flex",gap:isMobile?"16px":"24px",alignItems:"flex-start",flexDirection:isMobile?"column":"row",minWidth:0}}>
-            {releaseDetails.cover_image && (
-              <img src={releaseDetails.cover_image} alt={`${selR.title} cover`} style={{width:isMobile?"120px":"156px",height:isMobile?"120px":"156px",aspectRatio:"1",objectFit:"cover",borderRadius:"20px",boxShadow:isDark?"0 12px 30px rgba(0,0,0,0.4)":"0 12px 30px rgba(0,0,0,0.14)",flexShrink:0}} />
-            )}
-            <div style={{flex:1,minWidth:0}}>
-              <h1 style={{display:"flex",alignItems:"center",flexWrap:"wrap",gap:"8px",fontSize:isMobile?"24px":"32px",fontWeight:850,margin:"0 0 10px",lineHeight:1.1,fontFamily:SF,letterSpacing:"-0.5px",color:isDark?"#FFFFFF":"#000000"}}>
+          <EditorialHero eyebrow={selR.type === 'album' ? 'Album story' : 'Release story'} title={<>
                 {selR.title}{selectedCertification&&<span aria-label={`${selectedCertification.label} certified`} title={`${selectedCertification.label} certified · ${Number(selectedCertification.totalPts||0).toLocaleString()} points`} style={{fontSize:isMobile?"14px":"20px",opacity:0.9,lineHeight:1}}><span style={selectedCertification.iconFilter?{filter:selectedCertification.iconFilter}:undefined}>{selectedCertification.icon}</span></span>}
                 {info("Release Detail", "This page brings together the release identity, metadata, Combined chart history, platform performance, and monthly platform journey for the selected song or album.", ["The top cards summarize the release's current chart status and lifetime public chart activity.", "The metadata table shows artist credits, identifiers, links, country, genre, label, and other public fields when available.", "The charts and tables below explain where the release peaked, how it moved over time, and which platforms contributed to its chart presence."])}
-              </h1>
-              <div style={{display:"flex",alignItems:"center",gap:"9px",flexWrap:"wrap"}}>
+              </>} description="The complete chart story: lifetime points, monthly movement and performance across platforms." metric={totalPoints.toLocaleString()} metricLabel="Lifetime Combined chart points for this release." entry={{...releaseDetails, title:selR.title}} pool={[{...releaseDetails, title:selR.title}, {title:selR.primary_artist || selR.artist, artist:selR.primary_artist || selR.artist, image:getArtistImageUrl({name:selR.primary_artist || selR.artist}, {name:selR.primary_artist || selR.artist, isArtist:true}), is_artist_entry:true}].filter(item => item.cover_image || item.image)} actions={<div style={{display:"flex",alignItems:"center",gap:"9px",flexWrap:"wrap"}}>
                 <button type="button" onClick={()=>openArtistDetails(selR.primary_artist||selR.artist)} style={{fontSize:isMobile?"15px":"18px",color:isDark?"#FFFFFF":"#000000",margin:0,padding:0,border:0,background:"transparent",fontFamily:F,cursor:"pointer",fontWeight:800}}>{selR.artist}</button>
                 <CountryBadge artist={selR.primary_artist||selR.artist} item={releaseDetails} showName />
-              </div>
-            </div>
-          </div>
+              </div>} />
 
           <div style={{marginTop:"22px"}}>
             <div className="ngoma-detail-stat-grid" style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(4,minmax(0,1fr))",gap:"10px",marginBottom:"18px"}}>
@@ -337,7 +331,7 @@ export default function ReleaseDetailPage({ ctx }) {
                 {label:"Release Year",value:selR.release_year||releaseMetadata.release_year||"—"},
               ].map((stat)=><div key={stat.label} style={{padding:"14px 15px",border:"1px solid "+(isDark?"#2B302B":"#ECE9E1"),borderRadius:"10px",background:isDark?"#151815":"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",display:"inline-flex",alignItems:"center",gap:"6px"}}>{stat.label}{info(stat.label, statInfo(stat.label), [], 14)}</div><div style={{fontFamily:F,fontSize:"22px",fontWeight:900,color:isDark?"#FFFFFF":"#000000",marginTop:"5px"}}>{stat.value}</div></div>)}
             </div>
-            <div style={{marginBottom:"18px",border:`1px solid ${isDark?"#2B302B":"#ECE9E1"}`,borderRadius:"12px",overflow:"hidden"}}>
+            <div className="v2-detail-metadata" style={{marginBottom:"18px",border:`1px solid ${isDark?"#2B302B":"#ECE9E1"}`,borderRadius:"12px",overflow:"hidden"}}>
               {infoRows.map(([label, value], idx) => (
                 <div key={label} style={{display:"grid",gridTemplateColumns:isMobile?"110px 1fr":"170px 1fr",gap:"14px",padding:"12px 16px",background:isDark?(idx%2===0?"#121612":"#0F1110"):(idx%2===0?"#FAFAF8":"#FFFFFF"),borderTop:idx===0?"none":`1px solid ${isDark?"#2B302B":"#F0EDE6"}`,alignItems:"center"}}>
                   <span style={{fontFamily:F,fontSize:"11px",fontWeight:750,letterSpacing:"0.4px",color:isDark?"#FFFFFF":"#000000",textTransform:"uppercase",display:"inline-flex",alignItems:"center",gap:"6px"}}>{label}{info(label, statInfo(label), [], 14)}</span>

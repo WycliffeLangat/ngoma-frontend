@@ -90,6 +90,7 @@ export default function PillDropdown({
     fontWeight: active ? 800 : 650,
     cursor: "pointer",
     marginBottom: "1px",
+    transition: "background-color 120ms ease-out, color 120ms ease-out",
   });
 
   return (
@@ -114,7 +115,7 @@ export default function PillDropdown({
       >
         <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{currentLabel}</span>
         {icon && (
-          <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.8, transform: open ? "rotate(180deg)" : "none", transition: "transform .15s" }}>
+          <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.8, transform: open ? "rotate(180deg)" : "none", transition: "transform 120ms ease-out" }}>
             <path d="m6 9 6 6 6-6" />
           </svg>
         )}
@@ -123,6 +124,7 @@ export default function PillDropdown({
       {open && menuPos && typeof document !== "undefined" && createPortal(
         <div
           ref={menuRef}
+          className="ngoma-pill-dropdown-menu"
           role="listbox"
           aria-label={ariaLabel}
           style={{
@@ -137,6 +139,7 @@ export default function PillDropdown({
             border: `1px solid ${isDark ? "#2B302B" : "#E5E0D4"}`,
             boxShadow: isDark ? "0 18px 35px rgba(0,0,0,0.4)" : "0 18px 35px rgba(31,36,31,0.14)",
             zIndex: 1000,
+            animation: "ngoma-dropdown-in 120ms ease-out both",
           }}
         >
           {groups

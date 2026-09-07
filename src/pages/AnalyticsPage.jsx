@@ -1,3 +1,4 @@
+import EditorialHero from "../components/EditorialHero.jsx";
 import EntryThumb from "../components/EntryThumb.jsx";
 import ArtistCredit from "../components/ArtistCredit.jsx";
 import AnalyticsSlideshowFrame from "../components/AnalyticsSlideshowFrame.jsx";
@@ -322,24 +323,8 @@ export default function AnalyticsPage({ ctx }) {
   ];
 
   return (
-<div className="ngoma-analytics-page" style={{padding:PAD,background:"transparent",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:isMobile?"stretch":"center",marginBottom:"28px",gap:isMobile?"14px":"24px",flexDirection:isMobile?"column":"row",paddingBottom:"20px",borderBottom:"1px solid "+(isDark?"#2F352F":"#EFEDE7")}}>
-            <div>
-              <div style={{display:"inline-block",width:"28px",height:"3px",background:isDark?"#FFFFFF":"#000000",borderRadius:"2px",marginBottom:"10px"}}/>
-              {/* h2 is inline (not the default block) so the info button flows
-                  right after the heading text instead of dropping below it
-                  when the heading itself wraps onto multiple lines. */}
-              <div style={{display:"block",marginBottom:"4px"}}>
-                <h2 style={{display:"inline",fontSize:isMobile?"22px":"28px",fontWeight:900,margin:0,letterSpacing:"-0.5px",color:isDark?"#FFFFFF":"#000000"}}>{isArtists?`${ctx.chartTypeLabel} Analytics`:isSingles?"Singles Analytics":"Albums Analytics"}</h2>
-                {" "}
-                {compactInfo(
-                  isArtists ? `${ctx.chartTypeLabel} Analytics` : (isSingles ? "Singles Analytics" : "Albums Analytics"),
-                  "Analytics summarizes movement, countries, records, milestones, and Hall of Fame results from the published public Top 50 data."
-                )}
-              </div>
-              <p style={{fontFamily:F,fontSize:"14px",color:isDark?"#FFFFFF":"#000000",margin:0,lineHeight:1.6}}>Full Top 50 data across all platforms and months.</p>
-            </div>
-            <div style={{display:"flex",gap:"10px",flexDirection:isMobile?"column":"row",alignItems:isMobile?"stretch":"center",flexShrink:0,width:isMobile?"100%":"auto"}}>
+<div className="ngoma-analytics-page v2-analytics-page" style={{padding:PAD,background:"transparent",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
+          <EditorialHero eyebrow={chartTypeLabel + ' analytics - ' + anMonth} title="Monthly intelligence" description="Follow the music moving the charts. Explore monthly climbers, biggest drops and new arrivals, then discover the records behind them." metric={getCombined(ct, anMonth).length} metricLabel={'Entries in the Combined chart for ' + anMonth + '.'} entry={getCombined(ct, anMonth)[0]} pool={getCombined(ct, anMonth)} isArtist={isArtists} onOpen={openMoverDetails} actions={<div style={{display:"flex",gap:"10px",flexDirection:isMobile?"column":"row",alignItems:isMobile?"stretch":"center",flexShrink:0,width:isMobile?"100%":"auto"}}>
               {/* Month select + Share are grouped on their own row (space-
                   between on mobile) so Share always lands on the right edge
                   instead of wrapping onto a second line behind the wide
@@ -360,61 +345,10 @@ export default function AnalyticsPage({ ctx }) {
                 />
               </div>
               <Tog sm/>
-            </div>
-          </div>
+            </div>} />
 
           {/* Climbers, Drops & New Entries — what moved this month */}
-          <AnalyticsDeepSection label="Biggest Climbers & Drops" isMobile={isMobile}>
-          <div className="anl-split-row" style={splitRowStyle}>
-            {!isMobile && (
-              <div style={{order:1}}>
-                <AnalyticsSlideshowFrame pool={risersPool} isArtist={isArtists} accent="#2DB04A" onOpen={openMoverDetails} label={`Biggest ${releaseLabel} Climbers`} />
-              </div>
-            )}
-            <div style={{...card(),order:2}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:"10px",marginBottom:"14px",flexWrap:"nowrap"}}>
-                {sectionTitle(
-                  `Biggest ${releaseLabel} Climbers - ${anMonth}`,
-                  `Biggest ${releaseLabel} Climbers`,
-                  "Shows entries with the largest upward rank movement compared with the previous published month.",
-                  ["The change is measured in chart places gained.", "Higher positive movement means a stronger climb.", "Debut-month charts may have no movement because there is no previous month to compare."]
-                )}
-                <ShareButton
-                  compact
-                  isDark={isDark}
-                  F={F}
-                  GOLD={GOLD}
-                  shareUrl={buildAnalyticsShareUrl({ chartType: chartTypeKey, month: anMonth })}
-                  fileName={`ngoma-climbers-${chartTypeKey}.png`}
-                  posterContent={<MoversSharePoster chartType={chartTypeKey} move="risers" month={anMonth} theme={isDark ? "dark" : "light"} />}
-                  style={{ flexShrink: 0 }}
-                />
-              </div>
-              {mvData.risers.map((s,i)=>{
-                return (
-                <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:isMobile?"8px 0":"6px 0",borderBottom:"1px solid #F0F0EC"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:"10px",minWidth:0}}>
-                    <EntryThumb item={s} name={isArtists?s.t:s.a} isArtist={isArtists} size={46} accent={isDark?"#F6F3EA":"#1A1A1A"} />
-                    <div style={{minWidth:0}}>
-                      <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
-                        <button type="button" onClick={()=>openReleaseDetails(s,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15,cursor:"pointer",textAlign:"left"}}>{s.t}</button>
-                      </div>
-                      {!isArtists && <div style={{fontSize:TXT.cardMeta,marginTop:"3px"}}><ArtistCredit credit={s.a} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize={TXT.cardMeta} fontWeight={400} color="#000000" darkColor="#FFFFFF" separatorColor="#000000" darkSeparatorColor="#FFFFFF" /></div>}
-                    </div>
-                  </div>
-                  <div style={{textAlign:"right",fontFamily:F,whiteSpace:"nowrap",flexShrink:0}}>
-                    <div style={{display:"inline-flex",alignItems:"center",gap:"4px",background:"rgba(45,176,74,0.10)",borderRadius:"6px",padding:"3px 8px",color:"#2DB04A",fontSize:"12px",fontWeight:900}}>▲ {s.from-s.to}</div>
-                    <div style={{fontSize:TXT.micro,color:isDark?"#FFFFFF":"#000000",marginTop:"3px"}}>#{s.from} → #{s.to}</div>
-                  </div>
-                </div>
-                );
-              })}
-              {!mvData.risers.length&&<div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#FFFFFF":"#000000",padding:"20px 0",textAlign:"center"}}>No movement data (debut month)</div>}
-            </div>
-          </div>
-
-          <div className="anl-split-row" style={splitRowStyle}>
-            <div style={{...card(),order:1}}>
+          <div className="v2-analytics-masonry"><div className="v2-analytics-column"><AnalyticsSlideshowFrame pool={risersPool} isArtist={isArtists} accent="#2DB04A" onOpen={openMoverDetails} label={`Biggest ${releaseLabel} Climbers`} /><div className="v2-movement-list" style={{...card(),order:1}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:"10px",marginBottom:"14px",flexWrap:"nowrap"}}>
                 {sectionTitle(
                   `Biggest ${releaseLabel} Drops - ${anMonth}`,
@@ -453,21 +387,46 @@ export default function AnalyticsPage({ ctx }) {
                 );
               })}
               {!mvData.fallers.length&&<div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#FFFFFF":"#000000",padding:"20px 0",textAlign:"center"}}>No drops (debut month)</div>}
-            </div>
-            {!isMobile && (
-              <div style={{order:2}}>
-                <AnalyticsSlideshowFrame pool={fallersPool} isArtist={isArtists} accent="#E53935" onOpen={openMoverDetails} label={`Biggest ${releaseLabel} Drops`} />
+            </div></div><div className="v2-analytics-column"><div className="v2-movement-list" style={{...card(),order:2}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:"10px",marginBottom:"14px",flexWrap:"nowrap"}}>
+                {sectionTitle(
+                  `Biggest ${releaseLabel} Climbers - ${anMonth}`,
+                  `Biggest ${releaseLabel} Climbers`,
+                  "Shows entries with the largest upward rank movement compared with the previous published month.",
+                  ["The change is measured in chart places gained.", "Higher positive movement means a stronger climb.", "Debut-month charts may have no movement because there is no previous month to compare."]
+                )}
+                <ShareButton
+                  compact
+                  isDark={isDark}
+                  F={F}
+                  GOLD={GOLD}
+                  shareUrl={buildAnalyticsShareUrl({ chartType: chartTypeKey, month: anMonth })}
+                  fileName={`ngoma-climbers-${chartTypeKey}.png`}
+                  posterContent={<MoversSharePoster chartType={chartTypeKey} move="risers" month={anMonth} theme={isDark ? "dark" : "light"} />}
+                  style={{ flexShrink: 0 }}
+                />
               </div>
-            )}
-          </div>
-
-          <div className="anl-split-row" style={splitRowStyle}>
-            {!isMobile && (
-              <div style={{order:1}}>
-                <AnalyticsSlideshowFrame pool={newEntriesPool} isArtist={isArtists} accent={GOLD} onOpen={openMoverDetails} label="New Entries" />
-              </div>
-            )}
-            <div style={{...card(),order:2}}>
+              {mvData.risers.map((s,i)=>{
+                return (
+                <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:"12px",padding:isMobile?"8px 0":"6px 0",borderBottom:"1px solid #F0F0EC"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:"10px",minWidth:0}}>
+                    <EntryThumb item={s} name={isArtists?s.t:s.a} isArtist={isArtists} size={46} accent={isDark?"#F6F3EA":"#1A1A1A"} />
+                    <div style={{minWidth:0}}>
+                      <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
+                        <button type="button" onClick={()=>openReleaseDetails(s,isArtists ? "artist" : (isSingles?"single":"album"))} style={{border:0,background:"transparent",padding:0,fontFamily:SF,fontSize:TXT.cardTitle,fontWeight:800,lineHeight:1.15,cursor:"pointer",textAlign:"left"}}>{s.t}</button>
+                      </div>
+                      {!isArtists && <div style={{fontSize:TXT.cardMeta,marginTop:"3px"}}><ArtistCredit credit={s.a} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize={TXT.cardMeta} fontWeight={400} color="#000000" darkColor="#FFFFFF" separatorColor="#000000" darkSeparatorColor="#FFFFFF" /></div>}
+                    </div>
+                  </div>
+                  <div style={{textAlign:"right",fontFamily:F,whiteSpace:"nowrap",flexShrink:0}}>
+                    <div style={{display:"inline-flex",alignItems:"center",gap:"4px",background:"rgba(45,176,74,0.10)",borderRadius:"6px",padding:"3px 8px",color:"#2DB04A",fontSize:"12px",fontWeight:900}}>▲ {s.from-s.to}</div>
+                    <div style={{fontSize:TXT.micro,color:isDark?"#FFFFFF":"#000000",marginTop:"3px"}}>#{s.from} → #{s.to}</div>
+                  </div>
+                </div>
+                );
+              })}
+              {!mvData.risers.length&&<div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#FFFFFF":"#000000",padding:"20px 0",textAlign:"center"}}>No movement data (debut month)</div>}
+            </div><AnalyticsSlideshowFrame pool={fallersPool} isArtist={isArtists} accent="#E53935" onOpen={openMoverDetails} label={`Biggest ${releaseLabel} Drops`} /><div className="v2-movement-list" style={{...card(),order:2}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:"10px",marginBottom:"14px",flexWrap:"nowrap"}}>
                 {sectionTitle(
                   `New Entries - ${anMonth}`,
@@ -506,9 +465,7 @@ export default function AnalyticsPage({ ctx }) {
                 );
               })}
               {!mvData.newEntries.length&&<div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#FFFFFF":"#000000",padding:"20px 0",textAlign:"center"}}>No new entries (debut month)</div>}
-            </div>
-          </div>
-          </AnalyticsDeepSection>
+            </div></div></div>
 
           {/* Country analytics */}
           <AnalyticsDeepSection label="Country Stats" isMobile={isMobile}>
