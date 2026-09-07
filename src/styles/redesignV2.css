@@ -34,12 +34,14 @@
 .ngoma-redesign-v2[data-theme="dark"] .ngoma-pill-option[data-selected="true"] { background: #f1cc5d !important; color: #171b14 !important; }
 .ngoma-redesign-v2 > main { max-width: 1240px !important; margin-inline: auto !important; background: transparent !important; }
 .ngoma-redesign-v2 .ngoma-premium-charts { width: 100% !important; max-width: 100% !important; margin: 0 !important; background: transparent !important; padding: 0 28px 48px !important; }
-.ngoma-redesign-v2 .ytc-masthead { background: transparent !important; padding: 52px 0 40px !important; border: 0 !important; box-shadow: none !important; }
-.ngoma-redesign-v2 .ytc-masthead::before { inset: 20px 0 !important; border-radius: 28px !important; }
+.ngoma-redesign-v2 .ytc-masthead { background: #fffdf8 !important; padding: 52px 0 40px !important; border: 0 !important; box-shadow: none !important; }
+.ngoma-redesign-v2[data-theme="dark"] .ytc-masthead { background: #0b0e0b !important; }
+.ngoma-redesign-v2 .ytc-masthead::before { display: none !important; }
 .ngoma-redesign-v2 .ytc-masthead { padding: 52px 28px 48px !important; }
 .ngoma-redesign-v2 .ngoma-hero-main { gap: 40px !important; }
 .ngoma-redesign-v2 .ngoma-chart-hero-title { font-size: clamp(52px, 6.3vw, 92px) !important; letter-spacing: -.075em !important; line-height: .94 !important; font-weight: 900 !important; }
-.ngoma-redesign-v2 .ngoma-hero-showcase { border-radius: 32px !important; box-shadow: 0 22px 65px #15120926 !important; overflow: hidden; }
+.ngoma-redesign-v2 .ngoma-hero-showcase { border-radius: 24px !important; box-shadow: 0 12px 32px #15120926 !important; overflow: hidden; align-self: center; }
+.ngoma-redesign-v2[data-theme="dark"] .ngoma-hero-showcase { box-shadow: 0 12px 32px #00000066 !important; }
 .ngoma-redesign-v2 .ngoma-hero-showcase.ytc-masthead-art { width: 100% !important; max-width: 352px; justify-self: stretch !important; }
 .ngoma-redesign-v2 .ngoma-hero-showcase.ytc-masthead-art { max-width: none; margin: 0 !important; }
 .ngoma-redesign-v2 .v2-chart-table { width: 100% !important; border: 1px solid var(--v2-line) !important; border-radius: 26px !important; margin: 24px 0 !important; overflow: hidden; background: var(--v2-surface); }

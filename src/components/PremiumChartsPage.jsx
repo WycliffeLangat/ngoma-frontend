@@ -1,4 +1,3 @@
-import RankingSpotlight from "./RankingSpotlight.jsx";
 import { PUBLIC_CHART_TYPES, isPeopleChart, formatContributorNames } from "../utils/contributorCharts.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getArtistImageUrl } from "../utils/artistImages.js";
@@ -1728,7 +1727,6 @@ export default function PremiumChartsPage({
 
       </section>
 
-      <RankingSpotlight entries={data} onOpen={openRelease} />
       <section
         className="v2-chart-table"
         style={{
