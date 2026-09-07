@@ -183,6 +183,11 @@
 }
 @media (max-width: 768px) {
   .ngoma-redesign-v2 .v2-detail-page { padding: 24px 16px 44px !important; }
+  .ngoma-redesign-v2 .v2-editorial-hero { width: 100%; min-width: 0; overflow: hidden; }
+  .ngoma-redesign-v2 .v2-editorial-copy { width: 100%; min-width: 0; }
+  .ngoma-redesign-v2 .v2-editorial-visual { width: 100%; min-height: 220px; padding: 22px; gap: 18px; }
+  .ngoma-redesign-v2 .v2-editorial-visual > p { max-width: 100%; padding: 0; }
+  .ngoma-redesign-v2 .v2-hero-cover { position: relative; right: auto; bottom: auto; transform: none; align-self: flex-end; margin-top: 4px; }
   .ngoma-redesign-v2 .v2-detail-page .ngoma-detail-stat-grid { gap: 10px !important; }
   .ngoma-redesign-v2 .v2-detail-page .ngoma-detail-stat-grid > div { padding: 16px !important; }
   .ngoma-redesign-v2 .v2-detail-page .ngoma-detail-stat-grid > div > div:last-child { font-size: 28px !important; }
@@ -192,7 +197,8 @@
   .ngoma-redesign-v2 .v2-detail-metadata > div { grid-template-columns: minmax(0, 1fr) !important; gap: 8px !important; padding: 16px !important; }
   .ngoma-redesign-v2 .v2-detail-biography { padding: 22px; }
   .ngoma-redesign-v2 .v2-hero-actions { width: 100%; }
-  .ngoma-redesign-v2 .v2-hero-actions > div, .ngoma-redesign-v2 .v2-hero-actions > div > div { max-width: 100%; min-width: 0; flex-wrap: wrap; }
+  .ngoma-redesign-v2 .v2-hero-actions > div, .ngoma-redesign-v2 .v2-hero-actions > div > div { width: 100%; max-width: 100%; min-width: 0; flex-wrap: wrap; }
+  .ngoma-redesign-v2 .v2-hero-actions button, .ngoma-redesign-v2 .v2-hero-actions .ngoma-pill-dropdown { min-height: 44px; }
   .ngoma-redesign-v2 .v2-hero-actions select { min-height: 44px; font-size: 16px !important; max-width: 100%; }
   .ngoma-redesign-v2 .v2-nav-link { text-align: left; font-size: 16px !important; }
   .ngoma-redesign-v2 .ngoma-hero-showcase.ytc-masthead-art { max-width: 400px; justify-self: center !important; }
@@ -224,6 +230,8 @@
   .v2-podium-card.place-1, .v2-podium-card.place-2, .v2-podium-card.place-3 { order: initial; padding: 24px; }
   .ngoma-redesign-v2 .ngoma-cert-dashboard, .ngoma-redesign-v2 .cert-wall, .ngoma-redesign-v2 .ngoma-about-process { grid-template-columns: 1fr; }
   .ngoma-redesign-v2 .ngoma-cert-hero { padding: 22px !important; }
+  .ngoma-redesign-v2 .v2-about-page .anl-grid-2 { grid-template-columns: 1fr !important; gap: 14px !important; }
+  .ngoma-redesign-v2 .v2-about-page .ngoma-about-process-row { padding: 14px !important; }
   .ngoma-redesign-v2 .ngoma-analytics-page > div:first-child > div:first-child,
   .ngoma-redesign-v2 .v2-lifetime-page > div:first-child > div:first-child { flex-basis: auto; }
 }
