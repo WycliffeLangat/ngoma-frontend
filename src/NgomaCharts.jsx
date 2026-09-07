@@ -1,3 +1,5 @@
+import CertificationIcon from "./components/CertificationIcon.jsx";
+import { CERTIFICATION_BRANDING } from "./utils/certificationBranding.js";
 import { contributorNames, PUBLIC_CHART_TYPES, isPeopleChart, chartTypeName } from "./utils/contributorCharts.js";
 import { useState, useEffect, useMemo, useRef, useCallback, useTransition } from "react";
 import { API_BASE, resolveMediaUrl } from "./api/config.js";
@@ -347,9 +349,6 @@ const normalizeCountryScope = (scope = "") => isCountryScope(scope) ? scope : de
 // the visitor last browsed to.
 const readStoredCountryScope = () => defaultCountryScope;
 const GOLD=THEME_SETTING.primary || "#C97A12"; const GOLD_BRIGHT="#F2981A"; const GOLD_TEXTURE_URL="/textures/gold-texture.png"; const SILVER="#8C8C8C"; const BRONZE="#CD7F32";
-// Distinct from SILVER (used for #2 rank medals elsewhere) so the Platinum
-// certification badge can read as a brighter silver-white on its own.
-const PLATINUM_SILVER="#868C97";
 const MEDALS=[GOLD,SILVER,BRONZE];
 // Picks black or white text for legibility against an arbitrary accent color —
 // matters because THEME_SETTING.primary is CMS-configurable, not always this
@@ -374,11 +373,12 @@ const CC = [GOLD,"#E53935","#2DB04A","#1565C0","#7B1FA2","#E65100","#00897B","#3
 const VO = [{l:"Top 10",c:10},{l:"Top 20",c:20},{l:"Top 50",c:50}];
 const CERTIFICATION_DEFAULT_THRESHOLDS = { diamond: 600, platinum: 400, gold: 200 };
 const certificationThresholds = Object.fromEntries((PUBLIC_DATA.certification_rules || []).map((item) => [item.level, Number(item.threshold)]));
-const CERTIFICATION_LEVELS = [
-  { level: "diamond", label: "Diamond", icon: "💎", pts: certificationThresholds.diamond || CERTIFICATION_DEFAULT_THRESHOLDS.diamond, color: "#7B1FA2" },
-  { level: "platinum", label: "Platinum", icon: "🎵", pts: certificationThresholds.platinum || CERTIFICATION_DEFAULT_THRESHOLDS.platinum, color: PLATINUM_SILVER, iconFilter: "grayscale(1) brightness(1.7)" },
-  { level: "gold", label: "Gold", icon: "📀", pts: certificationThresholds.gold || CERTIFICATION_DEFAULT_THRESHOLDS.gold, color: GOLD },
-];
+const CERTIFICATION_LEVELS = ["diamond", "platinum", "gold"].map((level) => ({
+  level,
+  ...CERTIFICATION_BRANDING[level],
+  icon: <CertificationIcon level={level} />,
+  pts: certificationThresholds[level] || CERTIFICATION_DEFAULT_THRESHOLDS[level],
+}));
 function refreshCertificationThresholds() {
   replaceObject(
     certificationThresholds,
@@ -2599,7 +2599,7 @@ const top = data[0];
       .map(x=>x.a)
       .slice(0,6);
     // A release can have one raw cert row per threshold it has ever crossed
-    // (Gold, then later Platinum) — keep only the highest-ranked row per
+    // (Pulse, then later Wave) — keep only the highest-ranked row per
     // release so search never lists the same song twice at two levels.
     const matchedCerts=(dedupedLiveCerts||[])
       .map(c=>({c,score:fuzzyMatchScore([c.t,c.a,c.level].filter(Boolean).map(String).join(" ").toLowerCase(),q)}))

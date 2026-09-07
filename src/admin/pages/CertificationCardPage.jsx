@@ -1,3 +1,5 @@
+import CertificationIcon from "../../components/CertificationIcon.jsx";
+import { CERTIFICATION_BRANDING } from "../../utils/certificationBranding.js";
 import { useEffect, useRef, useState } from "react";
 import { cmsApi, getResults, qs } from "../api.js";
 import {
@@ -20,11 +22,7 @@ import {
 
 // Matches the public site's certification convention (NgomaCharts.jsx
 // CERTIFICATION_LEVELS) rather than reinventing a palette for this card.
-const CERT_META = {
-  diamond: { emoji: "\u{1F48E}", color: "#7B1FA2", label: "Diamond" },
-  platinum: { emoji: "\u{1F3B5}", color: "#868C97", label: "Platinum" },
-  gold: { emoji: "\u{1F4C0}", color: "#C97A12", label: "Gold" },
-};
+const CERT_META = CERTIFICATION_BRANDING;
 
 const CERT_ORDER = ["diamond", "platinum", "gold"];
 
@@ -173,14 +171,14 @@ function CertificationCardContent({ item, theme = "dark" }) {
         <div style={{ borderTop: `2px solid ${t.dividerColor}`, marginBottom: 30 }} />
         <div style={{ display: "grid", gridTemplateColumns: item.certifiedDate ? "repeat(2, 1fr)" : "1fr", gap: 14 }}>
           <div style={{ background: tileBg, border: `1px solid ${tileBorder}`, borderRadius: 16, padding: "22px 8px", textAlign: "center" }}>
-            <span style={{ fontSize: 92, lineHeight: 1, display: "block" }}>{meta.emoji}</span>
-            <div style={{ fontSize: 30, fontWeight: 900, letterSpacing: "0.5px", textTransform: "uppercase", color: meta.color, marginTop: 14 }}>
+            <CertificationIcon level={item.level || "gold"} size={112} />
+            <div style={{ fontSize: 30, fontWeight: 900, letterSpacing: "0.5px", textTransform: "uppercase", color: theme === "light" ? meta.textColor : meta.color, marginTop: 14 }}>
               {meta.label} Certified
             </div>
           </div>
           {item.certifiedDate && (
             <div style={{ background: tileBg, border: `1px solid ${tileBorder}`, borderRadius: 16, padding: "24px 8px", textAlign: "center", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-              <div style={{ fontSize: 44, fontWeight: 900, color: meta.color }}>{item.certifiedDate}</div>
+              <div style={{ fontSize: 44, fontWeight: 900, color: theme === "light" ? meta.textColor : meta.color }}>{item.certifiedDate}</div>
               <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "0.5px", textTransform: "uppercase", color: t.metaColor, marginTop: 10 }}>
                 Certified
               </div>
@@ -253,7 +251,7 @@ export default function CertificationCardPage() {
       <div className="cms-page-head">
         <div>
           <h1>Certification Card Generator</h1>
-          <p>Search a certified song or album and turn it into a 4:5 share card celebrating the Gold, Platinum, or Diamond award.</p>
+          <p>Search a certified song or album and turn it into a 4:5 share card celebrating the Pulse, Wave, or Legacy award.</p>
         </div>
       </div>
 

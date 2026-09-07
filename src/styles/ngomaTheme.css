@@ -3259,9 +3259,9 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell select optgroup {
   display: flex;
   justify-content: flex-end;
 }
-.cert-wall-card.diamond { border-left-color: #7b1fa2; }
-.cert-wall-card.platinum { border-left-color: #868C97; }
-.cert-wall-card.gold     { border-left-color: var(--ngoma-gold); }
+.cert-wall-card.diamond { border-left-color: #E5B744; }
+.cert-wall-card.platinum { border-left-color: #AFC6DA; }
+.cert-wall-card.gold     { border-left-color: #C98545; }
 
 /* --- About methodology flow ---------------------------- */
 .ngoma-about-process {

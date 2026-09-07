@@ -386,7 +386,7 @@ const ERROR_GUIDES = [
     id: "certification-below-threshold",
     title: "Certification is below threshold.",
     summary: "The selected certification level does not match the release's point total.",
-    meaning: "The CMS expects certification levels to follow the active certification rules. In the current CMS logic, Gold starts at 200 points, Platinum at 400, and Diamond at 600.",
+    meaning: "The CMS expects certification levels to follow the active certification rules. In the current CMS logic, Pulse starts at 200 points, Wave at 400, and Legacy at 600.",
     commonCauses: [
       "The level was selected manually before points were updated.",
       "Certification rules changed.",
@@ -402,7 +402,7 @@ const ERROR_GUIDES = [
       "Review Data quality alerts for certifications.",
       "Keep Certification rules active and current.",
     ],
-    keywords: ["certification", "gold", "platinum", "diamond", "threshold", "points"],
+    keywords: ["certification", "pulse", "wave", "legacy", "gold", "platinum", "diamond", "threshold", "points"],
   },
   {
     id: "country-code-questionable",
@@ -878,7 +878,7 @@ const GLOSSARY_TERMS = [
     title: "Certification",
     summary: "A milestone award based on chart points.",
     meaning: "Certifications are generated from cumulative points and can be hidden if a record should not appear publicly. Optional dates and notes can add editorial context, but public visibility is driven by points and the hidden flag.",
-    related: ["Gold", "Platinum", "Diamond"],
+    related: ["Pulse", "Wave", "Legacy"],
     keywords: ["certification", "points", "award"],
   },
   {
@@ -1115,7 +1115,7 @@ const WORKFLOWS = [
   {
     id: "certify-release",
     title: "Add or review a certification",
-    summary: "Use this when a release qualifies for Gold, Platinum, or Diamond.",
+    summary: "Use this when a release qualifies for Pulse, Wave, or Legacy.",
     steps: [
       "Open Certifications.",
       "Select the release ID.",
@@ -1125,12 +1125,12 @@ const WORKFLOWS = [
       "Save and review Data quality alerts.",
     ],
     checks: [
-      "Gold is at least 200 points.",
-      "Platinum is at least 400 points.",
-      "Diamond is at least 600 points.",
+      "Pulse is at least 200 points.",
+      "Wave is at least 400 points.",
+      "Legacy is at least 600 points.",
       "Visible certifications match the active point thresholds.",
     ],
-    keywords: ["certification", "gold", "platinum", "diamond", "points"],
+    keywords: ["certification", "pulse", "wave", "legacy", "gold", "platinum", "diamond", "points"],
   },
   {
     id: "methodology-update",
@@ -1211,13 +1211,13 @@ const METHODOLOGY_NOTES = [
     id: "certification-methodology",
     title: "Certification methodology",
     summary: "Certifications are tied to point thresholds and update automatically.",
-    meaning: "The CMS currently checks Gold at 200 points, Platinum at 400, and Diamond at 600. Rules can be managed in Certification rules.",
+    meaning: "The CMS currently checks Pulse at 200 points, Wave at 400, and Legacy at 600. Rules can be managed in Certification rules.",
     principles: [
       "Let the certification engine create awards from points; only hide records that should not appear publicly.",
       "Hide certifications that are being prepared but should not appear publicly.",
       "Keep Certification rules aligned with editorial policy.",
     ],
-    keywords: ["certification", "gold", "platinum", "diamond"],
+    keywords: ["certification", "pulse", "wave", "legacy", "gold", "platinum", "diamond"],
   },
   {
     id: "duplicate-methodology",

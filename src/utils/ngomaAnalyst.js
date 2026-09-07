@@ -23,9 +23,9 @@ const PLATFORM_ALIASES = {
   shazam: "SHAZAM",
 };
 const CERTIFICATIONS = [
-  { label: "Diamond", points: 600 },
-  { label: "Platinum", points: 400 },
-  { label: "Gold", points: 200 },
+  { label: "Legacy", points: 600 },
+  { label: "Wave", points: 400 },
+  { label: "Pulse", points: 200 },
 ];
 
 const clean = (value = "") => String(value).trim();
@@ -273,7 +273,7 @@ function certificationBreakdown(context) {
   const certified = [...groups.values()].map((item) => ({ ...item, level: certification(item.points) })).filter((item) => item.level !== "Not certified");
   const counts = CERTIFICATIONS.map((level) => `${level.label}: ${certified.filter((item) => item.level === level.label).length}`).join(", ");
   const leaders = certified.sort((a, b) => b.points - a.points).slice(0, 5);
-  return `Certification breakdown through ${context.month} (${context.type}): ${counts}.\nHighest totals:\n${leaders.map((item) => `${item.entry.t} - ${item.points.toLocaleString()} points (${item.level})`).join("\n") || "No certified releases yet."}\n\nThresholds: Gold 200, Platinum 400, Diamond 600 Display Points. Source: Combined charts, ${MONTHS[0]} to ${context.month}.`;
+  return `Certification breakdown through ${context.month} (${context.type}): ${counts}.\nHighest totals:\n${leaders.map((item) => `${item.entry.t} - ${item.points.toLocaleString()} points (${item.level})`).join("\n") || "No certified releases yet."}\n\nThresholds: Pulse 200, Wave 400, Legacy 600 Display Points. Source: Combined charts, ${MONTHS[0]} to ${context.month}.`;
 }
 
 function localInternational(context) {
@@ -328,7 +328,7 @@ export function answerNgomaQuestion(question) {
   if (/biggest rise|rose fastest|fastest ris|highest climb|biggest climb/.test(context.q)) return movement(context, "rise");
   if (/biggest fall|fell fastest|fastest fall|largest drop|biggest drop/.test(context.q)) return movement(context, "fall");
   if (/coverage|all platforms|cross.platform/.test(context.q)) return coverage(context);
-  if (/certif|diamond|platinum|gold/.test(context.q) && !releaseMentions.length) return certificationBreakdown(context);
+  if (/certif|legacy|wave|pulse|diamond|platinum|gold/.test(context.q) && !releaseMentions.length) return certificationBreakdown(context);
   if (/local.*international|international.*local|kenyan.*international/.test(context.q)) return localInternational(context);
   if (/highest points|most points|highest score|best release/.test(context.q) && !releaseMentions.length) return highestPoints(context);
   if (artistMentions.length) return artistAnswer(artistMentions[0], context);

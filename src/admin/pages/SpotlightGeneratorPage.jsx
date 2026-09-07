@@ -1,3 +1,5 @@
+import CertificationIcon from "../../components/CertificationIcon.jsx";
+import { CERTIFICATION_BRANDING, certificationLabel } from "../../utils/certificationBranding.js";
 import { useEffect, useRef, useState } from "react";
 import { cmsApi, getResults, qs } from "../api.js";
 import {
@@ -24,7 +26,7 @@ const TYPES = [
   ["artists", "Artist"],
 ];
 
-const CERT_COLORS = { gold: "#C97A12", platinum: "#8C97A8", diamond: "#4FC3F7" };
+const CERT_COLORS = Object.fromEntries(Object.entries(CERTIFICATION_BRANDING).map(([level, meta]) => [level, meta.color]));
 const CERT_ORDER = ["diamond", "platinum", "gold"];
 
 function currentRankFromRow(row = {}) {
@@ -197,7 +199,7 @@ function SpotlightContent({ item, type, theme = "dark" }) {
                 whiteSpace: "nowrap",
               }}
             >
-              {topCert} Certified
+              <CertificationIcon level={topCert} size={32} /> {certificationLabel(topCert)} Certified
             </div>
           )}
         </div>

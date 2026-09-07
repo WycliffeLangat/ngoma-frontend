@@ -1,3 +1,4 @@
+import { certificationLabel } from "../utils/certificationBranding.js";
 import { cmsApi, clearCmsCache, getResults } from "./api.js";
 import { getAffectedChartScopes, rerankAffectedChartScopes } from "./chartRankMaintenance.js";
 import { syncChartEntryCredits } from "./chartEntryCreditSync.js";
@@ -565,7 +566,7 @@ async function buildCertificationSolutions(alert, detail, page, record) {
   if (eligible?.level && String(eligible.level).toLowerCase() !== String(record.level || "").toLowerCase()) {
     return [mutationSolution({
       id: "certification-lower-level",
-      label: `Set level to ${eligible.level}`,
+      label: `Set level to ${certificationLabel(eligible.level)}`,
       description: "Move this certification to the highest active level its points currently satisfy.",
       run: () => patchRecord(page, record.id, { level: String(eligible.level).toLowerCase() }),
     })];
@@ -666,7 +667,7 @@ function buildGuidedFallbackSolution({ alert, detail, page, recordError }) {
     return guidanceSolution({
       id: "guided-certification-rule-fix",
       label: "Correct the certification rule",
-      description: "Keep one active rule for each level and set thresholds in ascending order: gold below platinum below diamond. Save the rule, then run Correct certifications.",
+      description: "Keep one active rule for each level and set thresholds in ascending order: Pulse below Wave below Legacy. Save the rule, then run Correct certifications.",
       fields: fields.length ? fields : ["level", "threshold", "active"],
     });
   }
