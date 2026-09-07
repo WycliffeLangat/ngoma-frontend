@@ -196,7 +196,7 @@ export default function YearEndPage({ ctx }) {
                 color:isDark?"#FFFFFF":"#000000",
               }}>
                 <span style={{textAlign:"center"}}>#{info("Year-End Rank", "The entry's position in this aggregated Year End table.", [], 14)}</span>
-                <span style={{display:"inline-flex",alignItems:"center",gap:"5px"}}>{isArtists?"ARTIST":"TITLE"}{info(isArtists ? "Artist" : "Title", `The ${isArtists ? "artist" : "release"} being ranked by aggregated display points.`, [], 14)}</span>
+                <span style={{display:"inline-flex",alignItems:"center",gap:"5px"}}>{isArtists?ctx.chartTypeLabel.slice(0, -1).toUpperCase():"TITLE"}{info(isArtists ? ctx.chartTypeLabel.slice(0, -1) : "Title", `The ${isArtists ? ctx.ct.slice(0, -1) : "release"} being ranked by aggregated display points.`, [], 14)}</span>
                 <span style={{textAlign:"center"}}>INFO{info("Info", "Tap the plus button to see total points, months, peak, certification, and other available row details.", [], 14)}</span>
               </div>
 
@@ -384,7 +384,7 @@ export default function YearEndPage({ ctx }) {
                   alignItems:"end"
                 }}>
                   <span style={{textAlign:"center"}}>#{info("Year-End Rank", "The entry's position in this aggregated Year End table.", [], 14)}</span>
-                  <span style={{display:"inline-flex",alignItems:"center",gap:"5px"}}>{isArtists ? "ARTIST" : "TITLE"}{info(isArtists ? "Artist" : "Title", `The ${isArtists ? "artist" : "release"} being ranked by aggregated display points.`, [], 14)}</span>
+                  <span style={{display:"inline-flex",alignItems:"center",gap:"5px"}}>{isArtists ? ctx.chartTypeLabel.slice(0, -1).toUpperCase() : "TITLE"}{info(isArtists ? ctx.chartTypeLabel.slice(0, -1) : "Title", `The ${isArtists ? ctx.ct.slice(0, -1) : "release"} being ranked by aggregated display points.`, [], 14)}</span>
                   <span style={{textAlign:"center",justifySelf:"stretch",whiteSpace:"nowrap"}}>TOTAL PTS{info("Total Points", "The sum of public display points earned across the selected Year End period and source.", [], 14)}</span>
                   <span style={{textAlign:"center",justifySelf:"stretch",whiteSpace:"nowrap"}}>MONTHS{info("Months", "How many published months this entry appeared in the selected Year End period.", [], 14)}</span>
                 </div>

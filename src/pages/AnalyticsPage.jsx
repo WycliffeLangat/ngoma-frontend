@@ -25,7 +25,7 @@ function RecordRow({ r, pool, ctx, theme, rowStyle, cols }) {
     anMonth, openArtistDetails, openReleaseDetails,
   } = ctx;
   const { isDark } = theme;
-  const chartTypeKey = isArtists ? "artists" : (isSingles ? "singles" : "albums");
+  const chartTypeKey = ctx.ct;
   const recordInfoFor = (label = "") => {
     const normalized = String(label).toLowerCase();
     if (normalized.includes("total charted")) {
@@ -184,7 +184,7 @@ export default function AnalyticsPage({ ctx }) {
     viewMode
   } = ctx;
 
-  const chartTypeKey = isArtists ? "artists" : (isSingles ? "singles" : "albums");
+  const chartTypeKey = ctx.ct;
   const hofType = isArtists ? "artist" : (isSingles ? "single" : "album");
   const hofMonthIndex = new Map(MONTHS.map((monthLabel, index) => [monthLabel, index]));
   const hofEntryKey = (entry = {}) => {
@@ -221,7 +221,7 @@ export default function AnalyticsPage({ ctx }) {
       b.latestHofMonthRank - a.latestHofMonthRank ||
       String(a.title || "").localeCompare(String(b.title || ""))
     );
-  const hofLabel = isArtists ? "Artists" : (isSingles ? "Singles / Songs" : "Albums");
+  const hofLabel = isArtists ? ctx.chartTypeLabel : (isSingles ? "Singles / Songs" : "Albums");
 
   const recordsTheme = { isDark, isMobile };
 
@@ -330,10 +330,10 @@ export default function AnalyticsPage({ ctx }) {
                   right after the heading text instead of dropping below it
                   when the heading itself wraps onto multiple lines. */}
               <div style={{display:"block",marginBottom:"4px"}}>
-                <h2 style={{display:"inline",fontSize:isMobile?"22px":"28px",fontWeight:900,margin:0,letterSpacing:"-0.5px",color:isDark?"#FFFFFF":"#000000"}}>{isArtists?"Artist Analytics":isSingles?"Singles Analytics":"Albums Analytics"}</h2>
+                <h2 style={{display:"inline",fontSize:isMobile?"22px":"28px",fontWeight:900,margin:0,letterSpacing:"-0.5px",color:isDark?"#FFFFFF":"#000000"}}>{isArtists?`${ctx.chartTypeLabel} Analytics`:isSingles?"Singles Analytics":"Albums Analytics"}</h2>
                 {" "}
                 {compactInfo(
-                  isArtists ? "Artist Analytics" : (isSingles ? "Singles Analytics" : "Albums Analytics"),
+                  isArtists ? `${ctx.chartTypeLabel} Analytics` : (isSingles ? "Singles Analytics" : "Albums Analytics"),
                   "Analytics summarizes movement, countries, records, milestones, and Hall of Fame results from the published public Top 50 data."
                 )}
               </div>
@@ -606,7 +606,7 @@ export default function AnalyticsPage({ ctx }) {
             <div style={{border:"1px solid "+(isDark?"#242923":"#EFEDE7"),borderRadius:"12px",overflow:"hidden"}}>
               <div style={{display:isMobile?"none":"grid",gridTemplateColumns:hofCols,gap:gridRowGap,padding:isMobile?"10px 10px":"12px 16px",...gridHeaderStyle}}>
                 <div style={{fontFamily:F,fontSize:isMobile?"9px":"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF",textAlign:"center"}}>#{InfoButton && <InfoButton title="Hall of Fame Rank" body="Rows are ordered by time spent at #1, then by recency and title when needed." size={14} style={{marginLeft:"5px",background:"rgba(255,255,255,0.10)",color:"#FFFFFF",borderColor:"rgba(255,255,255,0.32)"}} />}</div>
-                <div style={{fontFamily:F,fontSize:isMobile?"9px":"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF",display:"inline-flex",alignItems:"center",gap:"5px"}}>{isArtists?"Artist":"Title"}{InfoButton && <InfoButton title={isArtists ? "Artist" : "Title"} body={`The ${isArtists ? "artist" : "release"} that reached #1 on a published monthly Combined chart.`} size={14} style={{background:"rgba(255,255,255,0.10)",color:"#FFFFFF",borderColor:"rgba(255,255,255,0.32)"}} />}</div>
+                <div style={{fontFamily:F,fontSize:isMobile?"9px":"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF",display:"inline-flex",alignItems:"center",gap:"5px"}}>{isArtists?ctx.chartTypeLabel.slice(0, -1):"Title"}{InfoButton && <InfoButton title={isArtists ? ctx.chartTypeLabel.slice(0, -1) : "Title"} body={`The ${isArtists ? ctx.ct.slice(0, -1) : "release"} that reached #1 on a published monthly Combined chart.`} size={14} style={{background:"rgba(255,255,255,0.10)",color:"#FFFFFF",borderColor:"rgba(255,255,255,0.32)"}} />}</div>
                 {!isMobile && !isArtists && <div style={{fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF",display:"inline-flex",alignItems:"center",gap:"5px"}}>Artist{InfoButton && <InfoButton title="Artist" body="The primary artist credit attached to the Hall of Fame release." size={14} style={{background:"rgba(255,255,255,0.10)",color:"#FFFFFF",borderColor:"rgba(255,255,255,0.32)"}} />}</div>}
                 <div style={{fontFamily:F,fontSize:isMobile?"9px":"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF",textAlign:"center"}}>{isMobile?"Time":"Time at #1"}{InfoButton && <InfoButton title="Time at #1" body="Counts how many published months this entry finished at rank #1." size={14} style={{marginLeft:"5px",background:"rgba(255,255,255,0.10)",color:"#FFFFFF",borderColor:"rgba(255,255,255,0.32)"}} />}</div>
                 {!isMobile && <div style={{fontFamily:F,fontSize:"10px",fontWeight:900,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF",display:"inline-flex",alignItems:"center",gap:"5px"}}>Months{InfoButton && <InfoButton title="Hall of Fame Months" body="The specific published months where the entry held #1." size={14} style={{background:"rgba(255,255,255,0.10)",color:"#FFFFFF",borderColor:"rgba(255,255,255,0.32)"}} />}</div>}

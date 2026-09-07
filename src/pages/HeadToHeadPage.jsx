@@ -97,9 +97,9 @@ export default function HeadToHeadPage({ ctx }) {
               <div style={{display:"inline-block",width:"28px",height:"3px",background:isDark?"#FFFFFF":"#000000",borderRadius:"2px",marginBottom:"10px"}}/>
               <div style={{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}>
                 <h2 style={{fontSize:isMobile?"22px":"28px",fontWeight:900,margin:"0 0 4px",letterSpacing:"-0.5px",color:isDark?"#FFFFFF":"#000000"}}>Head-to-Head</h2>
-                {info("Head-to-Head", `Compare two ${isArtists ? "artists" : (isSingles ? "songs" : "albums")} using points, ranks, platform coverage, and chart history from the public dataset.`)}
+                {info("Head-to-Head", `Compare two ${isArtists ? ctx.ct : (isSingles ? "songs" : "albums")} using points, ranks, platform coverage, and chart history from the public dataset.`)}
               </div>
-              <p style={{fontFamily:F,fontSize:"14px",color:isDark?"#FFFFFF":"#000000",margin:0,lineHeight:1.6}}>Compare two {isArtists ? "artists" : (isSingles?"songs":"albums")} across points, rank, platforms, and chart history.</p>
+              <p style={{fontFamily:F,fontSize:"14px",color:isDark?"#FFFFFF":"#000000",margin:0,lineHeight:1.6}}>Compare two {isArtists ? ctx.ct : (isSingles?"songs":"albums")} across points, rank, platforms, and chart history.</p>
             </div>
             <div style={{display:"flex",gap:"10px",flexDirection:"row",alignItems:"center",flexShrink:0,flexWrap:"wrap"}}>
               <ShareButton
@@ -107,19 +107,19 @@ export default function HeadToHeadPage({ ctx }) {
                 F={F}
                 GOLD={GOLD}
                 shareUrl={buildHeadToHeadShareUrl({
-                  chartType: isArtists ? "artists" : (isSingles ? "singles" : "albums"),
+                  chartType: ctx.ct,
                   title1: sp1?.title || "",
                   artist1: sp1?.artist || "",
                   title2: sp2?.title || "",
                   artist2: sp2?.artist || "",
                 })}
-                fileName={`ngoma-head-to-head-${isArtists ? "artists" : (isSingles ? "singles" : "albums")}.png`}
+                fileName={`ngoma-head-to-head-${ctx.ct}.png`}
                 posterContent={sp1 && sp2 ? (
                   <HeadToHeadSharePoster
                     profile1={sp1}
                     profile2={sp2}
                     months={MONTHS}
-                    chartType={isArtists ? "artists" : (isSingles ? "singles" : "albums")}
+                    chartType={ctx.ct}
                     theme={isDark ? "dark" : "light"}
                   />
                 ) : null}
@@ -129,13 +129,13 @@ export default function HeadToHeadPage({ ctx }) {
           </div>
 
           <div style={{...card(),padding:isMobile?"16px":"18px",background:isDark?"#0F120F":"linear-gradient(135deg,#FAFAF8,#FFFFFF)",borderColor:isDark?"#2F352F":"#EFEDE7"}}>
-            <div style={{...secLbl(isDark?"#FFFFFF":"#000000"), fontSize:"20px",display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}><span><SecMark c={isDark?"#FFFFFF":"#000000"}/>{isArtists ? "Artist" : (isSingles?"Song":"Album")} Head-to-Head</span>{info(`${isArtists ? "Artist" : (isSingles?"Song":"Album")} Head-to-Head`, "Choose two entries and compare their public chart performance side by side.")}</div>
-            <p style={{fontFamily:F,fontSize:"13px",color:isDark?"#FFFFFF":"#000000",margin:"-8px 0 14px",lineHeight:1.45}}>Compare two {isArtists ? "artists" : (isSingles?"songs":"albums")} across points, rank, platforms, and chart history.</p>
+            <div style={{...secLbl(isDark?"#FFFFFF":"#000000"), fontSize:"20px",display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}><span><SecMark c={isDark?"#FFFFFF":"#000000"}/>{isArtists ? ctx.chartTypeLabel.slice(0, -1) : (isSingles?"Song":"Album")} Head-to-Head</span>{info(`${isArtists ? ctx.chartTypeLabel.slice(0, -1) : (isSingles?"Song":"Album")} Head-to-Head`, "Choose two entries and compare their public chart performance side by side.")}</div>
+            <p style={{fontFamily:F,fontSize:"13px",color:isDark?"#FFFFFF":"#000000",margin:"-8px 0 14px",lineHeight:1.45}}>Compare two {isArtists ? ctx.ct : (isSingles?"songs":"albums")} across points, rank, platforms, and chart history.</p>
             <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"minmax(0,1fr) auto minmax(0,1fr)",gap:isMobile?"10px":"12px",alignItems:"center",marginBottom:isMobile?"14px":"14px"}}>
               <div style={{minWidth:0}}>
                 <div style={{display:"flex",alignItems:"center",gap:"5px",fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",marginBottom:"6px"}}>
                   <span style={{width:"6px",height:"6px",borderRadius:"50%",background:GOLD,flexShrink:0}}/>
-                  {isArtists ? "Artist" : (isSingles?"Song":"Album")} One
+                  {isArtists ? ctx.chartTypeLabel.slice(0, -1) : (isSingles?"Song":"Album")} One
                   {info("Comparison One", "The first entry in the comparison. Its values appear on the left side of the metric table and charts.", [], 14)}
                 </div>
                 <select value={cmpS1} onChange={e=>setCmpS1(e.target.value)} title={sp1?(isArtists?sp1.title:`${sp1.title} — ${sp1.artist}`):""} style={{width:"100%",minWidth:0,padding:isMobile?"11px 12px":"8px 10px",border:"1.5px solid "+(isDark?"#3A3F3A":"#DEDAD2"),borderRadius:"8px",background:"#FFF",fontSize:isMobile?"12px":"11px",fontFamily:F,fontWeight:700,cursor:"pointer",outline:"none",color:"#1F241F"}}>
@@ -147,7 +147,7 @@ export default function HeadToHeadPage({ ctx }) {
               <div style={{minWidth:0}}>
                 <div style={{display:"flex",alignItems:"center",gap:"5px",fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",marginBottom:"6px"}}>
                   <span style={{width:"6px",height:"6px",borderRadius:"50%",background:"#1565C0",flexShrink:0}}/>
-                  {isArtists ? "Artist" : (isSingles?"Song":"Album")} Two
+                  {isArtists ? ctx.chartTypeLabel.slice(0, -1) : (isSingles?"Song":"Album")} Two
                   {info("Comparison Two", "The second entry in the comparison. Its values appear on the right side of the metric table and charts.", [], 14)}
                 </div>
                 <select value={cmpS2} onChange={e=>setCmpS2(e.target.value)} title={sp2?(isArtists?sp2.title:`${sp2.title} — ${sp2.artist}`):""} style={{width:"100%",minWidth:0,padding:isMobile?"11px 12px":"8px 10px",border:"1.5px solid "+(isDark?"#3A3F3A":"#DEDAD2"),borderRadius:"8px",background:"#FFF",fontSize:isMobile?"12px":"11px",fontFamily:F,fontWeight:700,cursor:"pointer",outline:"none",color:"#1F241F"}}>

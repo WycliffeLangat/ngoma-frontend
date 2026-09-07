@@ -1,3 +1,4 @@
+import { contributorNames, PUBLIC_CHART_TYPES, isPeopleChart, chartTypeName } from "./utils/contributorCharts.js";
 import { useState, useEffect, useMemo, useRef, useCallback, useTransition } from "react";
 import { API_BASE, resolveMediaUrl } from "./api/config.js";
 import { startPageAnalytics, trackEvent } from "./utils/track.js";
@@ -868,7 +869,7 @@ const artistTop50Points = (entry = {}) => {
 };
 
 const getArtistSourceCombined = (chartType, monthLabel) => {
-  if (chartType === "artists") {
+  if (isPeopleChart(chartType)) {
     return getArtistPlatformSource("Combined", monthLabel);
   }
   return getCombined(chartType, monthLabel);
@@ -896,7 +897,7 @@ const comparisonDefaultKeys = (chartType, throughMonth = latestPublishedMonthLab
         peak: Number.POSITIVE_INFINITY,
       };
       current.months.add(monthLabel);
-      current.totalPts += chartType === "artists" ? artistTop50Points(entry) : Number(entry.pts) || 0;
+      current.totalPts += isPeopleChart(chartType) ? artistTop50Points(entry) : Number(entry.pts) || 0;
       current.peak = Math.min(current.peak, Number(entry.rank) || Number.POSITIVE_INFINITY);
       groups.set(key, current);
     });
@@ -928,7 +929,7 @@ const buildCombinedYearEnd = (chartType) => {
       };
 
       if (!current.cover_image && entry.cover_image) current.cover_image = entry.cover_image;
-      current.totalPts += chartType === "artists" ? artistTop50Points(entry) : Number(entry.pts) || 0;
+      current.totalPts += isPeopleChart(chartType) ? artistTop50Points(entry) : Number(entry.pts) || 0;
       current.months += 1;
       current.best = Math.min(current.best, Number(entry.rank) || Number.POSITIVE_INFINITY);
       releases.set(key, current);
@@ -984,12 +985,12 @@ const buildYearEndReleaseRows = (chartType, months, platform = "Combined") => {
 
 // Artists counterpart to buildYearEndReleaseRows — platform- and
 // window-aware, aggregating credited artist names across the given months.
-const buildYearEndArtistRows = (months, platform = "Combined") => {
+const buildYearEndArtistRows = (months, platform = "Combined", role = "artists") => {
   const artistMap = new Map();
 
   months.forEach((monthLabel) => {
     getArtistPlatformSource(platform, monthLabel).forEach((entry) => {
-      publicArtistChartCreditMembers(entry).forEach((artistName) => {
+      chartCreditMembers(entry, role).forEach((artistName) => {
         const key = artistName.toLowerCase();
         const current = artistMap.get(key) || {
           t: artistName,
@@ -1043,7 +1044,7 @@ const buildCombinedArtists = (chartType, throughMonth = latestPublishedMonthLabe
 
   includedMonths.forEach((monthLabel, monthOffset) => {
     getArtistSourceCombined(chartType, monthLabel).forEach((entry) => {
-      publicArtistChartCreditMembers(entry).forEach((artistName) => {
+      chartCreditMembers(entry, isPeopleChart(chartType) ? chartType : "artists").forEach((artistName) => {
         const key = artistName.toLowerCase();
         const current = artistMap.get(key) || {
           n: artistName,
@@ -1060,7 +1061,7 @@ const buildCombinedArtists = (chartType, throughMonth = latestPublishedMonthLabe
           titles: new Set(),
         };
 
-        const points = chartType === "artists" ? artistTop50Points(entry) : Number(entry.pts) || 0;
+        const points = isPeopleChart(chartType) ? artistTop50Points(entry) : Number(entry.pts) || 0;
         current.p += points;
         current.placements += 1;
         current.mp[monthLabel] = (current.mp[monthLabel] || 0) + points;
@@ -1140,12 +1141,14 @@ const getArtistPlatformSource = (platform = "Combined", monthLabel = latestPubli
   return rows;
 };
 
-const getArtistPlatformHits = (artistName = "", monthLabel = latestPublishedMonthLabel()) => {
+const chartCreditMembers = (entry, role = "artists") => role === "artists" ? publicArtistChartCreditMembers(entry) : contributorNames({ ...entry, ...(lookupReleaseForEntry(entry) || {}) }, role);
+
+const getArtistPlatformHits = (artistName = "", monthLabel = latestPublishedMonthLabel(), role = "artists") => {
   const normalized = String(artistName || "").trim().toLowerCase();
   if (!normalized) return [];
   return ARTIST_PLATS.filter((platform) =>
     getArtistPlatformSource(platform, monthLabel).some((entry) =>
-      publicArtistChartCreditMembers(entry).some((member) => member.toLowerCase() === normalized)
+      chartCreditMembers(entry, role).some((member) => member.toLowerCase() === normalized)
     )
   );
 };
@@ -1173,7 +1176,7 @@ const embeddedArtistProfileForName = (artistName = "", entries = []) => {
   return fallback;
 };
 
-const aggregateArtistsForMonth = (monthLabel = latestPublishedMonthLabel(), platform = "Combined") => {
+const aggregateArtistsForMonth = (monthLabel = latestPublishedMonthLabel(), platform = "Combined", role = "artists") => {
   const artistMap = new Map();
   const scopedCountryCode = countryCodeForRegionalScope(platform);
   const scopedRegionCodes = isAfricaRegionChart(platform)
@@ -1191,7 +1194,7 @@ const aggregateArtistsForMonth = (monthLabel = latestPublishedMonthLabel(), plat
   };
 
   getArtistPlatformSource(platform, monthLabel).forEach((entry) => {
-    publicArtistChartCreditMembers(entry).forEach((artistName) => {
+    chartCreditMembers(entry, role).forEach((artistName) => {
       const key = artistName.toLowerCase();
       const country = getArtistCountry({ artist: artistName });
       if (!countryMatchesScope(country)) return;
@@ -1220,11 +1223,11 @@ const aggregateArtistsForMonth = (monthLabel = latestPublishedMonthLabel(), plat
     .sort((a, b) => b.p - a.p || b.entryCount - a.entryCount || a.n.localeCompare(b.n));
 };
 
-const buildArtistChart = (monthLabel = latestPublishedMonthLabel(), platform = "Combined") => {
-  const cacheKey = `${platform}|${monthLabel}`;
+const buildArtistChart = (monthLabel = latestPublishedMonthLabel(), platform = "Combined", role = "artists") => {
+  const cacheKey = `${role}|${platform}|${monthLabel}`;
   if (artistChartCache.has(cacheKey)) return artistChartCache.get(cacheKey);
 
-  if (isRegionalChartScope(platform)) {
+  if (role === "artists" && isRegionalChartScope(platform)) {
     const backendRows = rawAfricaArtists(platform, monthLabel);
     if (backendRows.length) {
       const result = backendRows.slice(0, 50).map((entry) => {
@@ -1292,14 +1295,14 @@ const buildArtistChart = (monthLabel = latestPublishedMonthLabel(), platform = "
 
   const currentIndex = monthIndex(monthLabel);
   const historyMonths = currentIndex >= 0 ? MONTHS.slice(0, currentIndex + 1) : [];
-  const currentRows = aggregateArtistsForMonth(monthLabel, platform);
+  const currentRows = aggregateArtistsForMonth(monthLabel, platform, role);
   const previousMonth = currentIndex > 0 ? MONTHS[currentIndex - 1] : null;
-  const previousRows = previousMonth ? aggregateArtistsForMonth(previousMonth, platform) : [];
+  const previousRows = previousMonth ? aggregateArtistsForMonth(previousMonth, platform, role) : [];
   const previousRankByKey = new Map(previousRows.map((artist, index) => [artist.key, index + 1]));
 
   const history = new Map();
   historyMonths.forEach((historyMonth) => {
-    aggregateArtistsForMonth(historyMonth, platform).forEach((artist, index) => {
+    aggregateArtistsForMonth(historyMonth, platform, role).forEach((artist, index) => {
       const stats = history.get(artist.key) || {
         peak: Number.POSITIVE_INFINITY,
         months: 0,
@@ -1315,7 +1318,7 @@ const buildArtistChart = (monthLabel = latestPublishedMonthLabel(), platform = "
 
   const earlierKeys = new Set();
   historyMonths.slice(0, -1).forEach((historyMonth) => {
-    aggregateArtistsForMonth(historyMonth, platform).forEach((artist) => earlierKeys.add(artist.key));
+    aggregateArtistsForMonth(historyMonth, platform, role).forEach((artist) => earlierKeys.add(artist.key));
   });
 
   const result = currentRows.slice(0, 50).map((artist, index) => {
@@ -1323,7 +1326,7 @@ const buildArtistChart = (monthLabel = latestPublishedMonthLabel(), platform = "
     const previousRank = previousRankByKey.get(artist.key) || null;
     const appearedBefore = earlierKeys.has(artist.key);
     const stats = history.get(artist.key) || {};
-    const platformHits = platform === "Combined" ? getArtistPlatformHits(artist.n, monthLabel) : [platform];
+    const platformHits = platform === "Combined" ? getArtistPlatformHits(artist.n, monthLabel, role) : [platform];
     const country = artist.country || getArtistCountry({ artist: artist.n });
     // Live app-data is authoritative. When it is temporarily unavailable, use
     // the same CMS artist profiles embedded in the API chart entries rather
@@ -1382,7 +1385,7 @@ const buildArtistChart = (monthLabel = latestPublishedMonthLabel(), platform = "
   return result;
 };
 
-const buildArtistYearEndRows = () => buildCombinedArtists("artists", CURRENT_MONTH).slice(0, 50).map((artist) => {
+const buildArtistYearEndRows = (role = "artists") => buildCombinedArtists(role, CURRENT_MONTH).slice(0, 50).map((artist) => {
   const country = getArtistCountry({ artist: artist.n });
   const artistProfile = publicArtistForName(artist.n) || {};
   const artistImage = getArtistImageUrl(
@@ -1996,7 +1999,7 @@ export default function NgomaCharts(){
     }));
   };
 
-  const isArtists = ct === "artists";
+  const isArtists = isPeopleChart(ct);
   const isSingles = ct === "singles";
   const isAlbums = ct === "albums";
   const releaseCt = isAlbums ? "albums" : "singles";
@@ -2428,7 +2431,7 @@ const getData = () => {
 
   const combinedScope = plat === "Combined" && nonKenyaCountrySelected ? selectedCountryScope : null;
 
-  if (isArtists) return buildArtistChart(month, combinedScope || plat);
+  if (isArtists) return buildArtistChart(month, combinedScope || plat, ct);
   if (isRegionalChartScope(plat)) return withCoverImageFallback(getRegionalCombined(releaseCt, plat, month));
   if (combinedScope) return withCoverImageFallback(getRegionalCombined(releaseCt, combinedScope, month));
 
@@ -2655,7 +2658,8 @@ const top = data[0];
   };
   const openArtistDetails = (name) => {
     const requestedName = String(name || "").trim();
-    const allCurrentArtists = buildCombinedArtists("artists", CURRENT_MONTH);
+    const detailRole = isArtists ? ct : "artists";
+    const allCurrentArtists = buildCombinedArtists(detailRole, CURRENT_MONTH);
     const resolvedName = allCurrentArtists.find((item) => item.n.toLowerCase() === requestedName.toLowerCase())?.n
       || publicArtistCreditMembers({ artist: requestedName })[0]
       || requestedName;
@@ -2678,7 +2682,7 @@ const top = data[0];
     }
     const monthlyRanks = {};
     MONTHS.forEach((monthLabel) => {
-      const index = aggregateArtistsForMonth(monthLabel, "Combined")
+      const index = aggregateArtistsForMonth(monthLabel, "Combined", detailRole)
         .findIndex((artist) => normArtistKey(artist.n) === normArtistKey(resolvedName));
       if (index >= 0 && index < 50) monthlyRanks[monthLabel] = index + 1;
     });
@@ -2792,11 +2796,11 @@ const top = data[0];
     return {symbol:"–",color:"#9AA19A",label:"No change",shortLabel:"No change"};
   };
 
-  const chartTypeLabel = isArtists ? "Artists" : (isSingles ? "Singles" : "Albums");
-  const releaseLabel = isArtists ? "Artists" : (isSingles ? "Songs" : "Albums");
-  const releaseLabelLower = isArtists ? "artists" : (isSingles ? "songs" : "albums");
-  const releaseSingularLower = isArtists ? "artist" : (isSingles ? "song" : "album");
-  const platformKeysFor = (chartType = releaseCt) => chartType === "artists" ? ARTIST_PLATS : (chartType === "singles" ? S_PLATS : A_PLATS).filter((platform) => platform !== "Combined");
+  const chartTypeLabel = chartTypeName(ct);
+  const releaseLabel = isArtists ? chartTypeName(ct) : (isSingles ? "Songs" : "Albums");
+  const releaseLabelLower = isArtists ? ct : (isSingles ? "songs" : "albums");
+  const releaseSingularLower = isArtists ? ct.slice(0, -1) : (isSingles ? "song" : "album");
+  const platformKeysFor = (chartType = releaseCt) => isPeopleChart(chartType) ? ARTIST_PLATS : (chartType === "singles" ? S_PLATS : A_PLATS).filter((platform) => platform !== "Combined");
   const currentPlatformKeys = platformKeysFor(ct);
   // Analytics/Records/etc. (everything outside the Charts page itself) always reads the
   // Combined chart — never a single platform's Top 50, regardless of which platform pill
@@ -2806,8 +2810,8 @@ const top = data[0];
   // treating the default Kenya scope as regional here would silently shrink the dataset to
   // just Kenya-tagged entries and starve things like Top 5 Countries of any diversity.
   const analyticsDefaultPlatform = isNonKenyaCountryScope(selectedCountryScope) ? selectedCountryScope : "Combined";
-  const analyticsRowsForType = (chartType, targetMonth, targetPlatform = analyticsDefaultPlatform) => chartType === "artists"
-    ? buildArtistChart(targetMonth, targetPlatform)
+  const analyticsRowsForType = (chartType, targetMonth, targetPlatform = analyticsDefaultPlatform) => isPeopleChart(chartType)
+    ? buildArtistChart(targetMonth, targetPlatform, chartType)
     : (isRegionalChartScope(targetPlatform)
         ? getRegionalCombined(chartType, targetPlatform, targetMonth)
         : (targetPlatform === "Combined" ? getCombined(chartType, targetMonth) : getPlatform(chartType, targetPlatform, targetMonth)));
@@ -2818,8 +2822,8 @@ const top = data[0];
   // rather than its own route, so it shares the Analytics page's active flag.
   const recordsActive = page === "analytics";
   const recordsTop50RowsForSource = (chartType, targetMonth) => (
-    chartType === "artists"
-      ? buildArtistChart(targetMonth, analyticsDefaultPlatform)
+    isPeopleChart(chartType)
+      ? buildArtistChart(targetMonth, analyticsDefaultPlatform, chartType)
       : (isRegionalChartScope(analyticsDefaultPlatform)
           ? getRegionalCombined(chartType, analyticsDefaultPlatform, targetMonth)
           : getCombined(chartType, targetMonth))
@@ -2848,11 +2852,11 @@ const top = data[0];
     if (!recordsActive) return null;
     const byPlatformMonth = new Map();
 
-    if (ct === "artists") {
+    if (isPeopleChart(ct)) {
       platformKeysFor("artists").forEach((platform) => {
         MONTHS.forEach((monthLabel) => {
           const names = new Set(
-            buildArtistChart(monthLabel, platform)
+            buildArtistChart(monthLabel, platform, ct)
               .slice(0, 50)
               .map((entry) => normArtistKey(entry.title || entry.primary_artist || entry.artist))
               .filter(Boolean)
@@ -2886,7 +2890,7 @@ const top = data[0];
   const recordsPlatformHitsFor = (chartType, targetMonth, title, artist, releaseId) => {
     const lookupMatchesCurrentType = recordsPlatformLookup?.chartType === chartType;
 
-    if (chartType === "artists") {
+    if (isPeopleChart(chartType)) {
       const artistName = title || artist;
       if (lookupMatchesCurrentType) {
         const wantedName = normArtistKey(artistName);
@@ -2895,7 +2899,7 @@ const top = data[0];
         );
       }
       return ARTIST_PLATS.filter((platform) =>
-        buildArtistChart(targetMonth, platform)
+        buildArtistChart(targetMonth, platform, chartType)
           .some((entry) => normArtistKey(entry.title) === normArtistKey(artistName))
       );
     }
@@ -2922,10 +2926,10 @@ const top = data[0];
   };
 
   const platformHitsFor = (chartType, targetMonth, title, artist) => {
-    if (chartType === "artists") {
+    if (isPeopleChart(chartType)) {
       const artistName = title || artist;
       return platformKeysFor("artists").filter((platform) =>
-        buildArtistChart(targetMonth, platform).some((entry) => String(entry.title || "").toLowerCase() === String(artistName || "").toLowerCase())
+        buildArtistChart(targetMonth, platform, chartType).some((entry) => String(entry.title || "").toLowerCase() === String(artistName || "").toLowerCase())
       );
     }
     return platformKeysFor(chartType).filter((platform) =>
@@ -2965,7 +2969,7 @@ const top = data[0];
       currentPlatformKeys.map((platform) => [
         platform,
         isArtists
-          ? buildArtistChart(anMonth, platform).slice(0, 50).map((entry) => ({ ...entry, t: entry.title, a: entry.primary_artist || entry.title, p: entry.pts, r: entry.rank }))
+          ? buildArtistChart(anMonth, platform, ct).slice(0, 50).map((entry) => ({ ...entry, t: entry.title, a: entry.primary_artist || entry.title, p: entry.pts, r: entry.rank }))
           : rawPlatform(releaseCt, platform, anMonth)
               .filter((entry) => Number(entry.r) <= 50)
               .slice(0, 50),
@@ -3040,8 +3044,8 @@ const top = data[0];
 
   const buildMovementData = (chartType, targetMonth) => {
     const currentIndex = monthIndex(targetMonth);
-    const movementRowsFor = (monthLabel) => chartType === "artists"
-      ? buildArtistChart(monthLabel, analyticsDefaultPlatform)
+    const movementRowsFor = (monthLabel) => isPeopleChart(chartType)
+      ? buildArtistChart(monthLabel, analyticsDefaultPlatform, chartType)
       : (isRegionalChartScope(analyticsDefaultPlatform)
           ? getRegionalCombined(chartType, analyticsDefaultPlatform, monthLabel)
           : getCombined(chartType, monthLabel));
@@ -3158,7 +3162,7 @@ const top = data[0];
   let currentRecordsPool = [];
   const currentRecords = recordsActive ? (() => {
     if (isArtists) {
-      const artistGroups = releaseGroupsFor("artists").map((group) => ({
+      const artistGroups = releaseGroupsFor(ct).map((group) => ({
         ...group,
         entryCount: group.rows.reduce(
           (sum, row) => sum + (num(row.entries_count) || 1),
@@ -3174,14 +3178,14 @@ const top = data[0];
       const mostMonths = [...artistGroups].sort((a, b) => b.months.size - a.months.size || b.totalPoints - a.totalPoints)[0];
       const mostEntries = [...artistGroups].sort((a, b) => b.entryCount - a.entryCount || b.totalPoints - a.totalPoints)[0];
       const bestPeak = [...artistGroups].sort((a, b) => a.peak - b.peak || b.totalPoints - a.totalPoints)[0];
-      const biggestClimb = biggestClimbFor("artists");
+      const biggestClimb = biggestClimbFor(ct);
       return [
-        { label: "Highest Artist Points", displayLabel: "Highest Artist Points", value: highestPoints?.title || "—", displaySub: highestPoints ? `${highestPoints.totalPoints.toLocaleString()} pts from public Top 50s` : "No artist data found", certificationEntry: highestPoints ? { title: highestPoints.title, is_artist_entry: true } : null },
-        { label: "Most Months Active", displayLabel: "Most Months Active", value: mostMonths?.title || "—", displaySub: mostMonths ? `${mostMonths.months.size} ${mostMonths.months.size === 1 ? "month" : "months"} in the Top 50` : "No artist data found", certificationEntry: mostMonths ? { title: mostMonths.title, is_artist_entry: true } : null },
-        { label: "Most Chart Entries", displayLabel: "Most Chart Entries", value: mostEntries?.title || "—", displaySub: mostEntries ? `${mostEntries.entryCount} credited Top-50 release placements` : "No artist data found", certificationEntry: mostEntries ? { title: mostEntries.title, is_artist_entry: true } : null },
-        { label: "Best Artist Rank", displayLabel: "Best Artist Rank", value: bestPeak?.title || "—", displaySub: bestPeak ? `Peak public artist rank #${bestPeak.peak}` : "No artist data found", certificationEntry: bestPeak ? { title: bestPeak.title, is_artist_entry: true } : null },
-        { label: "Biggest Artist Climb", displayLabel: "Biggest Artist Climb", value: biggestClimb?.title || "—", displaySub: biggestClimb ? `#${biggestClimb.from} → #${biggestClimb.to}` : "No monthly Top-50 climb found", climbDelta: biggestClimb?.delta || null, certificationEntry: biggestClimb ? { title: biggestClimb.title, is_artist_entry: true, cover_image: biggestClimb.cover_image || biggestClimb.image || "" } : null },
-        { label: "Total Charted Artists", displayLabel: "Total Charted Artists", value: artistGroups.length, displaySub: `artists appearing in a public Top 50`, isTotalCount: true },
+        { label: `Highest ${chartTypeLabel.slice(0, -1)} Points`, displayLabel: `Highest ${chartTypeLabel.slice(0, -1)} Points`, value: highestPoints?.title || "—", displaySub: highestPoints ? `${highestPoints.totalPoints.toLocaleString()} pts from public Top 50s` : `No ${ct} data found`, certificationEntry: highestPoints ? { title: highestPoints.title, is_artist_entry: true } : null },
+        { label: "Most Months Active", displayLabel: "Most Months Active", value: mostMonths?.title || "—", displaySub: mostMonths ? `${mostMonths.months.size} ${mostMonths.months.size === 1 ? "month" : "months"} in the Top 50` : `No ${ct} data found`, certificationEntry: mostMonths ? { title: mostMonths.title, is_artist_entry: true } : null },
+        { label: "Most Chart Entries", displayLabel: "Most Chart Entries", value: mostEntries?.title || "—", displaySub: mostEntries ? `${mostEntries.entryCount} credited Top-50 release placements` : `No ${ct} data found`, certificationEntry: mostEntries ? { title: mostEntries.title, is_artist_entry: true } : null },
+        { label: `Best ${chartTypeLabel.slice(0, -1)} Rank`, displayLabel: `Best ${chartTypeLabel.slice(0, -1)} Rank`, value: bestPeak?.title || "—", displaySub: bestPeak ? `Peak public artist rank #${bestPeak.peak}` : `No ${ct} data found`, certificationEntry: bestPeak ? { title: bestPeak.title, is_artist_entry: true } : null },
+        { label: `Biggest ${chartTypeLabel.slice(0, -1)} Climb`, displayLabel: `Biggest ${chartTypeLabel.slice(0, -1)} Climb`, value: biggestClimb?.title || "—", displaySub: biggestClimb ? `#${biggestClimb.from} → #${biggestClimb.to}` : "No monthly Top-50 climb found", climbDelta: biggestClimb?.delta || null, certificationEntry: biggestClimb ? { title: biggestClimb.title, is_artist_entry: true, cover_image: biggestClimb.cover_image || biggestClimb.image || "" } : null },
+        { label: `Total Charted ${chartTypeLabel}`, displayLabel: `Total Charted ${chartTypeLabel}`, value: artistGroups.length, displaySub: `${ct} appearing in a public Top 50`, isTotalCount: true },
       ];
     }
     const groups = releaseGroupsFor(releaseCt);
@@ -3388,7 +3392,7 @@ const top = data[0];
     entry?.title ? `${entry.title} — ${entry.artist || ""}` : ""
   );
   const switchChartType = (nextType) => {
-    const normalizedType = ["singles", "albums", "artists"].includes(nextType) ? nextType : "singles";
+    const normalizedType = PUBLIC_CHART_TYPES.includes(nextType) ? nextType : "singles";
     setChartTypePreview(normalizedType);
     if (normalizedType === ct) return;
 
@@ -3400,7 +3404,7 @@ const top = data[0];
           .slice(0, 2)
           .map(comparisonKeyForEntry)
           .filter(Boolean);
-        const cumulativeDefaults = normalizedType !== "artists" && analyticsDefaultPlatform === "Combined"
+        const cumulativeDefaults = !isPeopleChart(normalizedType) && analyticsDefaultPlatform === "Combined"
           ? comparisonDefaultKeys(normalizedType, anMonth).slice(0, 2)
           : [];
         const defaults = cumulativeDefaults.length ? cumulativeDefaults : visibleDefaults;
@@ -3417,6 +3421,7 @@ const top = data[0];
     <div
       style={{
         display:"flex",
+        flexWrap:"wrap",
         gap:sm?"5px":"6px",
         padding:sm?"3px":"4px",
         borderRadius:"999px",
@@ -3427,7 +3432,7 @@ const top = data[0];
         maxWidth:"100%",
       }}
     >
-      {["singles","albums","artists"].map(t=>{
+      {PUBLIC_CHART_TYPES.map(t=>{
         const tActive=chartTypePreview===t;
         const tBg=GOLD;
         return <button
@@ -3523,13 +3528,13 @@ const top = data[0];
     prof.avgRank=rankCount?Math.round(rankSum/rankCount):0;
     PLATS_FOR.forEach(pl=>{
       let best=null;
-      analysisMonths.forEach(m=>{const pe=isArtists ? buildArtistChart(m,pl).find(x=>entryKey(x)===releaseKey) : getRawPlatformIndex(releaseCt,pl,m).get(releaseKey);if(pe&&((pe.r||pe.rank)&&(best===null||Number(pe.r||pe.rank)<best)))best=Number(pe.r||pe.rank);});
+      analysisMonths.forEach(m=>{const pe=isArtists ? buildArtistChart(m,pl,ct).find(x=>entryKey(x)===releaseKey) : getRawPlatformIndex(releaseCt,pl,m).get(releaseKey);if(pe&&((pe.r||pe.rank)&&(best===null||Number(pe.r||pe.rank)<best)))best=Number(pe.r||pe.rank);});
       if(best!==null)prof.platforms[pl]=best;
     });
     prof.platformCount=Object.keys(prof.platforms).length;
     // weeks-equivalent: number of (platform×month) chart appearances
     let appearances=0;
-    PLATS_FOR.forEach(pl=>analysisMonths.forEach(m=>{if(isArtists ? buildArtistChart(m,pl).some(x=>entryKey(x)===releaseKey) : getRawPlatformIndex(releaseCt,pl,m).has(releaseKey))appearances+=1;}));
+    PLATS_FOR.forEach(pl=>analysisMonths.forEach(m=>{if(isArtists ? buildArtistChart(m,pl,ct).some(x=>entryKey(x)===releaseKey) : getRawPlatformIndex(releaseCt,pl,m).has(releaseKey))appearances+=1;}));
     prof.appearances=appearances;
     // #1 count on combined
     prof.numberOnes=Object.values(prof.monthly).filter(x=>x.rank===1).length;
@@ -3545,7 +3550,7 @@ const top = data[0];
   useEffect(()=>{
     if(!analyticsActive||!allTitles.length)return;
     const available = new Set(allTitles.map((item) => item.key));
-    const defaults = comparisonDefaultKeys(ct, anMonth).filter((key) => available.has(key));
+    const defaults = (isArtists ? analyticsRowsFor(anMonth).map(comparisonKeyForEntry) : comparisonDefaultKeys(ct, anMonth)).filter((key) => available.has(key));
     if(defaults[0])setCmpS1(defaults[0]);
     if(defaults[1]||defaults[0])setCmpS2(defaults[1]||defaults[0]);
   },[analyticsActive,ct,anMonth,allTitles,dataRevision]);
@@ -3561,7 +3566,7 @@ const top = data[0];
 
   // All-time totals used for certification math (never affected by the
   // Year-End page's All Time / Best of Year toggle below).
-  const yearEndRaw=isArtists?buildArtistYearEndRows():(isSingles?COMBINED_YEAR_END.singles:COMBINED_YEAR_END.albums);
+  const yearEndRaw=isArtists?buildArtistYearEndRows(ct):(isSingles?COMBINED_YEAR_END.singles:COMBINED_YEAR_END.albums);
   const yearEnd=coverImageCache.size?yearEndRaw.map(e=>{if(e.cover_image)return e;const img=coverImageCache.get(entryKey(e));return img?{...e,cover_image:img}:e;}):yearEndRaw;
 
   // Year-End page's own display list — switches between the full published
@@ -3579,7 +3584,7 @@ const top = data[0];
   const yearEndEffectivePlat = yearEndCombinedScope || yearEndPlat;
   const yearEndDisplayRaw = yearEndActive && !yearEndPlatformUnavailableForCountry
     ? (isArtists
-        ? buildYearEndArtistRows(yearEndMonths, yearEndEffectivePlat)
+        ? buildYearEndArtistRows(yearEndMonths, yearEndEffectivePlat, ct)
         : buildYearEndReleaseRows(releaseCt, yearEndMonths, yearEndEffectivePlat))
     : [];
   const yearEndDisplay = coverImageCache.size
@@ -3635,7 +3640,7 @@ const top = data[0];
   const hof=MONTHS.flatMap(m=>{
     const s=(hofScope==="Combined"?getCombined("singles",m):getRegionalCombined("singles",hofScope,m))[0];
     const a=(hofScope==="Combined"?getCombined("albums",m):getRegionalCombined("albums",hofScope,m))[0];
-    const artist=buildArtistChart(m,hofScope)[0];
+    const artist=buildArtistChart(m,hofScope,isArtists ? ct : "artists")[0];
     return [
       s?{...s,month:m,type:"single"}:null,
       a?{...a,month:m,type:"album"}:null,

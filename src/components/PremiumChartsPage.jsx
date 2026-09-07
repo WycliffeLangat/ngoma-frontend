@@ -1,3 +1,4 @@
+import { PUBLIC_CHART_TYPES, isPeopleChart } from "../utils/contributorCharts.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getArtistImageUrl } from "../utils/artistImages.js";
 import { enrichBiographyForArtist, fallbackCountryForArtist } from "../utils/artistMetadataFallbacks.js";
@@ -317,7 +318,8 @@ export default function PremiumChartsPage({
     month,
     theme: darkMode ? "dark" : "light",
   }), [ct, plat, month, darkMode]);
-  const isArtistsChart = ct === "artists";
+  const isArtistsChart = isPeopleChart(ct);
+  const personLabel = ct === "songwriters" ? "Songwriter" : ct === "producers" ? "Producer" : "Artist";
   const publicArtists = useMemo(() => {
     const publicData = typeof window !== "undefined" ? (window.__NGOMA_PUBLIC_DATA__ || {}) : {};
     return Array.isArray(publicData.artists) ? publicData.artists : [];
@@ -395,8 +397,8 @@ export default function PremiumChartsPage({
   const headerCountryCode = isAfricaScope ? selectedAfricaCountryCode : selectedScopeCountryCode;
   const africaScopeLabel = headerIsAfricaScope ? africaChartLabel(headerScopeSource).replace(/\s+Top 50$/i, "") : "";
 
-  const chartLabel = isArtistsChart ? "Artists" : (isSingles ? "Singles" : "Albums");
-  const mastheadSubject = isArtistsChart ? "Artists" : (isSingles ? "Songs" : "Albums");
+  const chartLabel = isArtistsChart ? `${personLabel}s` : (isSingles ? "Singles" : "Albums");
+  const mastheadSubject = isArtistsChart ? `${personLabel}s` : (isSingles ? "Songs" : "Albums");
   const mastheadSubjectLower = mastheadSubject.toLowerCase();
   const regionalScopeLabel = headerIsAfricaScope
     ? (headerCountryCode === KENYA_COUNTRY_CODE ? "Kenyan" : africaScopeLabel)
@@ -1087,8 +1089,8 @@ export default function PremiumChartsPage({
 
   function ChartToggle() {
     return (
-      <div style={{...styles.toggleWrap, background: darkMode ? "#181C18" : "#f2f2f2", border: `1px solid ${darkMode ? "#2F352F" : "rgba(0,0,0,0.08)"}`}}>
-        {["singles", "albums", "artists"].map((item) => {
+      <div style={{...styles.toggleWrap, flexWrap: "wrap", background: darkMode ? "#181C18" : "#f2f2f2", border: `1px solid ${darkMode ? "#2F352F" : "rgba(0,0,0,0.08)"}`}}>
+        {PUBLIC_CHART_TYPES.map((item) => {
           const active = ct === item;
           const activeBg = GOLD;
           const activeText = readableInk(GOLD);
@@ -1584,7 +1586,7 @@ export default function PremiumChartsPage({
                 border: `1px solid ${darkMode ? "#2F352F" : "rgba(0,0,0,0.14)"}`,
               }}
             >
-              {["singles", "albums", "artists"].map((item) => (
+              {PUBLIC_CHART_TYPES.map((item) => (
                 <option key={item} value={item}>{item.charAt(0).toUpperCase() + item.slice(1)}</option>
               ))}
             </select>
@@ -1613,9 +1615,9 @@ export default function PremiumChartsPage({
             {InfoButton && (
               <InfoButton
                 title="Chart Controls"
-                body="Use these controls to switch the public chart between singles, albums, artists, Combined ranking, country scope, and available source platforms."
+                body="Use these controls to switch the public chart between singles, albums, artists, songwriters, producers, Combined ranking, country scope, and available source platforms."
                 items={[
-                  "Chart type changes whether the list is songs, albums, or artists.",
+                  "Chart type changes whether the list is songs, albums, artists, songwriters, or producers.",
                   "Platform changes whether you see the Combined chart, a country chart, or a specific source platform.",
                   "Share downloads the current chart artwork.",
                 ]}
@@ -1641,7 +1643,7 @@ export default function PremiumChartsPage({
               {InfoButton && (
                 <InfoButton
                   title="Chart Type"
-                  body="Switch between the public singles, albums, and artists charts. Singles and albums rank releases; artists rank credited artist performance."
+                  body="Switch between singles, albums, artists, songwriters, and producers. People charts aggregate Top 50 release performance using the corresponding metadata credits."
                   size={18}
                 />
               )}
@@ -1747,7 +1749,7 @@ export default function PremiumChartsPage({
               <HeaderInfo title="Rank" body="Rank is the entry's current position in the selected Top 50. Lower numbers are better." iconSize={11}>#</HeaderInfo>
             </span>
             <span style={{...styles.mobileTableHeaderCell, textAlign: "left"}}>
-              <HeaderInfo title={isArtistsChart ? "Artist" : (isSingles ? "Song" : "Album")} body={`This column names the charted ${isArtistsChart ? "artist" : (isSingles ? "song" : "album")} and opens the public detail view.`} iconSize={11}>{isArtistsChart ? "Artist" : (isSingles ? "Song" : "Album")}</HeaderInfo>
+              <HeaderInfo title={isArtistsChart ? personLabel : (isSingles ? "Song" : "Album")} body={`This column names the charted ${isArtistsChart ? personLabel.toLowerCase() : (isSingles ? "song" : "album")} and opens the public detail view.`} iconSize={11}>{isArtistsChart ? personLabel : (isSingles ? "Song" : "Album")}</HeaderInfo>
             </span>
             <span style={styles.mobileTableHeaderCell}>
               <HeaderInfo title="Info" body="Tap the plus button on a row to expand its movement, metadata, points, platform coverage, credits, and links when available." iconSize={11}>Info</HeaderInfo>
@@ -1766,7 +1768,7 @@ export default function PremiumChartsPage({
               <HeaderInfo title="Move" body="Move compares this entry's rank with the previous month. Up means it climbed, down means it fell, NEW means first appearance, and RE means re-entry.">Move</HeaderInfo>
             </span>
             <span style={{ ...styles.headerEntryCell, ...(tablet ? { paddingLeft: "52px" } : null) }}>
-              <HeaderInfo title={isArtistsChart ? "Artist" : (isSingles ? "Song" : "Album")} body={`This column shows the charted ${isArtistsChart ? "artist" : (isSingles ? "song" : "album")} and its main public credit. Click the name to open the detail page.`}>{isArtistsChart ? "Artist" : (isSingles ? "Song" : "Album")}</HeaderInfo>
+              <HeaderInfo title={isArtistsChart ? personLabel : (isSingles ? "Song" : "Album")} body={`This column shows the charted ${isArtistsChart ? personLabel.toLowerCase() : (isSingles ? "song" : "album")} and its main public credit. Click the name to open the detail page.`}>{isArtistsChart ? personLabel : (isSingles ? "Song" : "Album")}</HeaderInfo>
             </span>
             <span
               style={{ ...styles.headerCell, cursor: "pointer" }}
