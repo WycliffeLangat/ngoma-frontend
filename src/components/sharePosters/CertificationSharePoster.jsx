@@ -53,7 +53,7 @@ export default function CertificationSharePoster({ item, theme = "dark" }) {
       <div style={{ position: "absolute", top: HEADER_ZONE_H, left: padX, right: padX, bottom: 150, display: "flex", flexDirection: "column", justifyContent: "center", gap: 36 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 44, padding: "36px 24px", background: t.rowBg, border: "1px solid " + t.dividerColor, borderRadius: 32 }}>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 22, flexShrink: 0 }}>
-            <CertificationIcon level={item.level || "gold"} size={280} />
+            <CertificationIcon level={item.level || "gold"} size={200} />
             <span style={{ fontSize: 22, fontWeight: 850, letterSpacing: "3px", textTransform: "uppercase", color: awardColor }}>Official certification</span>
           </div>
           {item.image ? (
