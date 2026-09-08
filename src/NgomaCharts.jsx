@@ -3256,7 +3256,7 @@ const top = data[0];
   const moreNavItems=[];
   const navLabel=(t)=>({
     charts:"CHARTS",
-    analytics:"ANALYSIS",
+    analytics:"ANALYTICS",
     "head-to-head":"HEAD TO HEAD",
     "year-end":"ALL TIME",
     certifications:"CERTIFICATION",
