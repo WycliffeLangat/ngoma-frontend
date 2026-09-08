@@ -79,7 +79,7 @@ export default function PlatformBreakdownSharePoster({ chartType = "singles", me
         >
           {headerTitle}
         </div>
-        <div style={{ marginTop: 10, fontSize: 20, fontWeight: 700, color: "#C97A12", textTransform: "uppercase", letterSpacing: "0.6px" }}>
+        <div style={{ marginTop: 10, fontSize: 20, fontWeight: 700, color: "#BF870E", textTransform: "uppercase", letterSpacing: "0.6px" }}>
           {month}
         </div>
       </div>

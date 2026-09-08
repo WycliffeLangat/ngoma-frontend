@@ -25,7 +25,7 @@ const CHART_TYPES = [
   ["artists", "Artists"],
 ];
 
-const GOLD = "#C97A12";
+const GOLD = "#BF870E";
 
 function itemTitle(chartType, item) {
   return chartType === "artists" ? (item.name || "") : (item.t || item.title || "");

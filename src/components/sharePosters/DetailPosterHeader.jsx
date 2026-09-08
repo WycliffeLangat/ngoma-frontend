@@ -19,7 +19,7 @@ export function detailHeaderHeight(hasImage) {
   return hasImage ? DETAIL_HEADER_H_WITH_IMAGE : DETAIL_HEADER_H_NO_IMAGE;
 }
 
-export default function DetailPosterHeader({ title = "", subtitle = "", sectionLabel = "", image = "", accentColor = "#C97A12", theme = "dark" }) {
+export default function DetailPosterHeader({ title = "", subtitle = "", sectionLabel = "", image = "", accentColor = "#BF870E", theme = "dark" }) {
   const t = usePosterTheme(theme);
   const padX = 60;
 

@@ -28,7 +28,7 @@ export default function DetailListPoster({
   columns = [],
   hideColumnHeader = false,
   rows = [],
-  accentColor = "#C97A12",
+  accentColor = "#BF870E",
   theme = "dark",
 }) {
   const t = usePosterTheme(theme);

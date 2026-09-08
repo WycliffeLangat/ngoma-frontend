@@ -30,7 +30,7 @@ import {
   videoExportOptions,
 } from "../utils/exportPoster.jsx";
 
-const GOLD = "#C97A12";
+const GOLD = "#BF870E";
 
 const MODE_OPTIONS = [
   ["news", "News post"],

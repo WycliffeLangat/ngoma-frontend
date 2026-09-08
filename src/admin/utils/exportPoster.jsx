@@ -229,28 +229,28 @@ export const POSTER_FONT_FAMILY = "Inter, -apple-system, BlinkMacSystemFont, 'Se
 // everywhere instead of each card type drifting its own colors.
 export const POSTER_THEMES = {
   dark: {
-    pageBg: "#050505",
-    wordmarkBarColor: "#F6F3EA",
-    titleColor: "#FFFFFF",
-    metaColor: "#AEB6AE",
-    dividerColor: "rgba(255,255,255,0.24)",
-    rowBg: "#151815",
-    sameColor: "#5A625A",
-    footerBorder: "rgba(255,255,255,0.18)",
-    footerPrimary: "#8F968F",
-    emptyColor: "#5A625A",
+    pageBg: "#10130f",
+    wordmarkBarColor: "#fffdf8",
+    titleColor: "#fffdf8",
+    metaColor: "#b6bcae",
+    dividerColor: "#383f33",
+    rowBg: "#20251e",
+    sameColor: "#b6bcae",
+    footerBorder: "#383f33",
+    footerPrimary: "#b6bcae",
+    emptyColor: "#b6bcae",
   },
   light: {
-    pageBg: "#FFFFFF",
-    wordmarkBarColor: "#1A1A1A",
-    titleColor: "#0C0C0C",
-    metaColor: "#69716B",
-    dividerColor: "rgba(0,0,0,0.18)",
-    rowBg: "#EFECE3",
-    sameColor: "#8A928B",
-    footerBorder: "rgba(0,0,0,0.16)",
-    footerPrimary: "#4E5851",
-    emptyColor: "#8A928B",
+    pageBg: "#fffdf8",
+    wordmarkBarColor: "#0e100d",
+    titleColor: "#0e100d",
+    metaColor: "#696f67",
+    dividerColor: "#e5dece",
+    rowBg: "#ffffff",
+    sameColor: "#696f67",
+    footerBorder: "#e5dece",
+    footerPrimary: "#696f67",
+    emptyColor: "#696f67",
   },
 };
 
@@ -656,7 +656,7 @@ export function PosterSettingsPanel({ settings, onChange, onReset, theme = "dark
 // Fallback artwork tile used whenever a record has no cover/hero image — a
 // card should never show a blank gap where art belongs, so this renders the
 // same brand mark used in the header instead of a plain color block.
-export function ArtPlaceholder({ width, height, radius = 0, theme, accentColor = "#C97A12", markSize }) {
+export function ArtPlaceholder({ width, height, radius = 0, theme, accentColor = "#BF870E", markSize }) {
   const t = usePosterTheme(theme);
   const size = markSize || Math.round(Math.min(
     typeof width === "number" ? width : 200,

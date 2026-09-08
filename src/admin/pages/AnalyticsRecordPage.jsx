@@ -40,11 +40,11 @@ const CHART_TYPES = [
 const RECORD_TYPES = [
   ["biggest-climber", "Biggest Climber", "monthly", "#2DB04A"],
   ["biggest-drop", "Biggest Drop", "monthly", "#E5484D"],
-  ["strongest-debut", "Strongest Debut", "monthly", "#C97A12"],
-  ["most-points", "Most Points (All-Time)", "all-time", "#C97A12"],
+  ["strongest-debut", "Strongest Debut", "monthly", "#BF870E"],
+  ["most-points", "Most Points (All-Time)", "all-time", "#BF870E"],
   ["most-consistent", "Most Consistent (All-Time)", "all-time", "#0088FF"],
-  ["peak-performer", "Peak Performer (All-Time)", "all-time", "#C97A12"],
-  ["most-number-ones", "Most #1s (All-Time)", "all-time", "#C97A12"],
+  ["peak-performer", "Peak Performer (All-Time)", "all-time", "#BF870E"],
+  ["most-number-ones", "Most #1s (All-Time)", "all-time", "#BF870E"],
   ["chart-longevity", "Chart Longevity (All-Time)", "all-time", "#0088FF"],
   ["biggest-monthly-climb", "Biggest Monthly Climb (All-Time)", "all-time", "#2DB04A"],
 ];

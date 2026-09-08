@@ -97,7 +97,7 @@ function SpotlightContent({ item, type, theme = "dark" }) {
   }
 
   const topCert = CERT_ORDER.find((level) => item.certifications.includes(level)) || null;
-  const certColor = topCert ? CERT_COLORS[topCert] : "#C97A12";
+  const certColor = topCert ? CERT_COLORS[topCert] : "#BF870E";
   const tileBg = theme === "light" ? "rgba(0,0,0,0.045)" : "rgba(255,255,255,0.055)";
   const tileBorder = theme === "light" ? "rgba(0,0,0,0.14)" : "rgba(255,255,255,0.16)";
   const formatRank = (value) => Number.isFinite(Number(value)) && Number(value) > 0 ? `#${Number(value)}` : "—";
@@ -253,7 +253,7 @@ function SpotlightContent({ item, type, theme = "dark" }) {
                 justifyContent: "center",
               }}
             >
-              <div style={{ fontSize: compactStats ? 34 : 50, fontWeight: 900, color: "#C97A12" }}>{value}</div>
+              <div style={{ fontSize: compactStats ? 34 : 50, fontWeight: 900, color: "#BF870E" }}>{value}</div>
               <div style={{ fontSize: compactStats ? 12 : 17, fontWeight: 800, letterSpacing: "0.5px", textTransform: "uppercase", color: t.metaColor, marginTop: 8 }}>
                 {label}
               </div>

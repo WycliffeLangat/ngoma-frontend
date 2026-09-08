@@ -88,7 +88,7 @@ function MovementChip({ movement, sameColor, scale }) {
   const fontSize = Math.round(28 * scale);
   if (movement === "new") {
     return (
-      <span style={{ padding: pad, borderRadius: 999, background: "#C97A1222", color: "#C97A12", fontSize, fontWeight: 900, letterSpacing: "0.4px" }}>
+      <span style={{ padding: pad, borderRadius: 999, background: "#BF870E22", color: "#BF870E", fontSize, fontWeight: 900, letterSpacing: "0.4px" }}>
         NEW
       </span>
     );
@@ -142,7 +142,7 @@ export default function ChartListSharePoster({
     return normalizeMonthlyRows(chartType, rawRows.slice(startIndex, startIndex + rowCount), historyMap);
   }, [payload, chartType, period, platform, month, startIndex, rowCount]);
 
-  const accentColor = period === "all-time" ? "#C97A12" : platformColorFor(platform);
+  const accentColor = period === "all-time" ? "#BF870E" : platformColorFor(platform);
   const countryLabel = "Kenya";
   const padX = 56;
   const isArtists = chartType === "artists";
@@ -248,7 +248,7 @@ export default function ChartListSharePoster({
                     flexShrink: 0,
                     fontSize: Math.round(36 * scale),
                     fontWeight: 900,
-                    color: row.rank <= 3 ? "#C97A12" : t.metaColor,
+                    color: row.rank <= 3 ? "#BF870E" : t.metaColor,
                   }}
                 >
                   {row.rank}

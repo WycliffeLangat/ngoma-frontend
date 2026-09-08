@@ -108,7 +108,7 @@ function PosterContent({ rows, chartType, move, month, theme = "dark" }) {
                 borderBottom: i === rows.length - 1 ? "none" : `1px solid ${t.dividerColor}`,
               }}
             >
-              <span style={{ width: Math.round(42 * scale), flexShrink: 0, fontSize: Math.round(30 * scale), fontWeight: 900, color: rowRank(chartType, row) <= 3 ? "#C97A12" : t.metaColor }}>
+              <span style={{ width: Math.round(42 * scale), flexShrink: 0, fontSize: Math.round(30 * scale), fontWeight: 900, color: rowRank(chartType, row) <= 3 ? "#BF870E" : t.metaColor }}>
                 #{rowRank(chartType, row)}
               </span>
               {rowImage(chartType, row) ? (

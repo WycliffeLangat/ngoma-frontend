@@ -23,7 +23,7 @@ export default function DetailChartPoster({
   sectionLabel = "",
   image = "",
   charts = [],
-  accentColor = "#C97A12",
+  accentColor = "#BF870E",
   theme = "dark",
 }) {
   const t = usePosterTheme(theme);

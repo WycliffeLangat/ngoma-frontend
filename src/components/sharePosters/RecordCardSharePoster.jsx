@@ -21,7 +21,7 @@ export default function RecordCardSharePoster({
   image,
   isArtist = false,
   recordLabel,
-  accentColor = "#C97A12",
+  accentColor = "#BF870E",
   statLabel,
   statValue,
   countryLabel = "Kenya",

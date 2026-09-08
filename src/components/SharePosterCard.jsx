@@ -12,7 +12,7 @@ import {
 // artist — same visual kit the CMS poster generators use, but with no
 // settings panel: readers only ever get the one finished layout to
 // download and share as-is.
-export default function SharePosterCard({ image, title = "", subtitle = "", stats = [], accentColor = "#C97A12", theme = "dark" }) {
+export default function SharePosterCard({ image, title = "", subtitle = "", stats = [], accentColor = "#BF870E", theme = "dark" }) {
   const t = POSTER_THEMES[theme] || POSTER_THEMES.dark;
   const visibleStats = stats.filter((stat) =>
     stat?.label &&

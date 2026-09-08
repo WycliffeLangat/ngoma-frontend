@@ -23,7 +23,7 @@ const RANGE_OPTIONS = [
 
 const AXIS_STROKE = "#D9D5CB";
 const GRID_STROKE = "#EDEAE2";
-const GOLD = "#C97A12";
+const GOLD = "#BF870E";
 const BLUE = "#1565C0";
 const GREEN = "#1B7F3A";
 const BAR_COLORS = [GOLD, BLUE, GREEN, "#7B5BB8", "#D24D57", "#00897B", "#6D4C41", "#455A64"];

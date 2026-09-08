@@ -381,3 +381,56 @@
 @media(max-width:1280px){.cms-analytics-stat-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.cms-analytics-insights{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:820px){.cms-analytics-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.cms-analytics-mini-grid{grid-template-columns:1fr}.cms-analytics-bar-row{grid-template-columns:1fr}.cms-analytics-stamp{margin-left:0;width:100%}}
 @media(max-width:620px){.cms-analytics-stat-grid,.cms-analytics-insights{grid-template-columns:1fr}.cms-analytics-actions{width:100%}.cms-analytics-actions .cms-btn{flex:1}}
+
+/* Public redesign V2. UI selectors keep controls separate from poster artwork. */
+:root {
+  --cms-gold: #bf870e;
+  --cms-gold-soft: #bf870e12;
+  --cms-ink: #0e100d;
+  --cms-muted: #696f67;
+  --cms-line: #e5dece;
+  --cms-bg: #fbf7ef;
+  --cms-card: #fff;
+  --cms-paper: #fffdf8;
+}
+.cms-shell {
+  --cms-gold: #bf870e;
+  --cms-gold-soft: #bf870e12;
+  --cms-ink: #0e100d;
+  --cms-muted: #696f67;
+  --cms-line: #e5dece;
+  --cms-bg: #fbf7ef;
+}
+.cms-shell, .cms-login-page, .cms-boot {
+  background: radial-gradient(ellipse at 10% 0%, #f6ecd2 0, transparent 42%), var(--cms-bg);
+  color: var(--cms-ink);
+}
+.cms-sidebar { background: radial-gradient(circle at 100% 100%, #9b730940 0, transparent 50%), #171b14; }
+.cms-sidebar nav button.active { background: #f1cc5d; color: #171b14; box-shadow: none; border-radius: 12px; }
+.cms-sidebar .cms-nav-label, .cms-sidebar-footer small { color: #b6bcae; }
+.cms-topbar { background: var(--cms-paper); border-bottom: 1px solid var(--cms-line); box-shadow: 0 8px 24px #15120908; }
+.cms-page-head h1 { font-size: clamp(32px, 3.8vw, 52px); font-weight: 900; letter-spacing: -.065em; line-height: 1.05; }
+.cms-login-card h2 { font-weight: 900; letter-spacing: -.05em; }
+.cms-card, .cms-stat-card, .cms-login-card, .cms-modal,
+.cms-help-panel, .cms-help-article, .cms-help-stat, .cms-analytics-insight {
+  border-color: var(--cms-line); border-radius: 24px; box-shadow: 0 12px 34px #15120909;
+}
+.cms-card-heading h2, .cms-card h2 { font-weight: 800; letter-spacing: -.025em; }
+.cms-stat-card strong { font-weight: 900; letter-spacing: -.05em; }
+.cms-stat-card > small { color: var(--cms-muted); }
+.cms-eyebrow, .cms-text-btn { color: #82600a; }
+.cms-table-wrap { border-radius: 24px; border-color: var(--cms-line); }
+.cms-table th { background: var(--cms-paper); color: var(--cms-muted); border-bottom: 2px solid var(--cms-ink); }
+.cms-table td { border-bottom-color: var(--cms-line); }
+.cms-table tr.clickable:hover td { background: var(--cms-paper); }
+.cms-form-section, .cms-upload-summary div, .cms-credit-item,
+.cms-help-callout, .cms-alpha-bar { background: var(--cms-paper); border-color: var(--cms-line); }
+.cms-btn:not(.light):not(.danger):not(.cms-sync-done) { background: #171b14; color: #fffdf8; }
+.cms-btn.light { background: var(--cms-paper); color: var(--cms-ink); }
+.cms-select, .cms-global input, .cms-form-top-title input { border-color: var(--cms-line); }
+.cms-shell :is(button, a, input, select, textarea):focus-visible,
+.cms-login-page :is(button, a, input):focus-visible { outline: 3px solid var(--cms-gold); outline-offset: 3px; }
+@media (max-width: 700px) {
+  .cms-page-head h1 { font-size: 32px; }
+  .cms-table-wrap { border-radius: 18px; }
+}

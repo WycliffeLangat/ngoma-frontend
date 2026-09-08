@@ -262,7 +262,7 @@ export default function QRCodePosterPage() {
   const [subtitle, setSubtitle] = useState(DEFAULT_SUBTITLE);
   const [cta, setCta] = useState(DEFAULT_CTA);
   const [theme, setTheme] = useState("dark");
-  const [accentColor, setAccentColor] = useState("#C97A12");
+  const [accentColor, setAccentColor] = useState("#BF870E");
   const [qrDark, setQrDark] = useState("#050505");
   const [qrLight, setQrLight] = useState("#FFFFFF");
   const [errorCorrectionLevel, setErrorCorrectionLevel] = useState("H");
@@ -310,7 +310,7 @@ export default function QRCodePosterPage() {
     setTitle(DEFAULT_TITLE);
     setSubtitle(DEFAULT_SUBTITLE);
     setCta(DEFAULT_CTA);
-    setAccentColor("#C97A12");
+    setAccentColor("#BF870E");
     setQrDark("#050505");
     setQrLight("#FFFFFF");
   }

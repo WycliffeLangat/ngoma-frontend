@@ -1014,7 +1014,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
   // ──────────────────────────────────────────────────────────────────────────
 
   const activePlatform =
-    platformId === COMBINED ? { name: "Combined", color: "#C97A12" } :
+    platformId === COMBINED ? { name: "Combined", color: "#BF870E" } :
     isCountryChartScope(platformId) ? { name: platformName, color: COUNTRY_ACCENTS[countryCodeForChartScope(platformId)] || "#006600" } :
     platforms.find(p => String(p.id) === String(platformId));
   const isRegionalScope = isCountryChartScope(platformId);
@@ -1128,7 +1128,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
       {/* Platform pills mirror the live public payload. */}
       {(chartType === "artists" || chartId) && (
         <div className="cms-pill-bar" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16, alignItems: "center" }}>
-          {pillBtn(COMBINED, "Combined", "#C97A12")}
+          {pillBtn(COMBINED, "Combined", "#BF870E")}
           {pillBtn("kenyan", chartType === "artists" ? "Kenyan Artists" : (chartType === "albums" ? "Kenyan Albums" : "Kenyan Singles"), "#006600")}
           {visiblePlatforms.map(p =>
             pillBtn(p.id, p.short_name || p.name, p.color || "#555")
@@ -1249,7 +1249,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                   <div>
                     <div style={{ fontSize: 16, fontWeight: 800, lineHeight: 1.2 }}>{selectedArtist.name}</div>
-                    <div style={{ fontSize: 12, color: "#c97a12", fontWeight: 700, marginTop: 2 }}>
+                    <div style={{ fontSize: 12, color: "#bf870e", fontWeight: 700, marginTop: 2 }}>
                       #{selectedArtist.rank} · {selectedArtist.pts.toLocaleString()} pts cumulative
                     </div>
                   </div>
