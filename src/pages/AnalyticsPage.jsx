@@ -1,7 +1,6 @@
 import EditorialHero from "../components/EditorialHero.jsx";
 import EntryThumb from "../components/EntryThumb.jsx";
 import ArtistCredit from "../components/ArtistCredit.jsx";
-import AnalyticsSlideshowFrame from "../components/AnalyticsSlideshowFrame.jsx";
 import { useRotatingArt } from "../hooks/useRotatingArt.js";
 import ShareButton from "../components/ShareButton.jsx";
 import HallOfFameSharePoster from "../components/sharePosters/HallOfFameSharePoster.jsx";
@@ -270,8 +269,6 @@ export default function AnalyticsPage({ ctx }) {
 
   // Normalized pools (title/artist field names) so useRotatingArt's default
   // name lookup works for risers/fallers, which carry t/a instead of title/artist.
-  const risersPool = mvData.risers.map(s => ({ ...s, title: s.t, artist: s.a }));
-  const fallersPool = mvData.fallers.map(s => ({ ...s, title: s.t, artist: s.a }));
   const newEntriesPool = mvData.newEntries.slice(0, 5);
   const openMoverDetails = (entry) => openReleaseDetails(entry, isArtists ? "artist" : (isSingles ? "single" : "album"));
   const splitRowStyle = { display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "20px", alignItems: "center", ...sectionGap };
@@ -325,7 +322,7 @@ export default function AnalyticsPage({ ctx }) {
 
   return (
 <div className="ngoma-analytics-page v2-analytics-page" style={{padding:PAD,background:"transparent",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
-          <EditorialHero eyebrow={chartTypeLabel + ' analytics - ' + anMonth} title="Monthly intelligence" description="Follow the music moving the charts. Explore monthly climbers, biggest drops and new arrivals, then discover the records behind them." metric={getCombined(ct, anMonth).length} metricLabel={'Entries in the Combined chart for ' + anMonth + '.'} entry={getCombined(ct, anMonth)[0]} pool={getCombined(ct, anMonth)} isArtist={isArtists} onOpen={openMoverDetails} actions={<div style={{display:"flex",gap:"10px",flexDirection:isMobile?"column":"row",alignItems:isMobile?"stretch":"center",flexShrink:0,width:isMobile?"100%":"auto"}}>
+          <EditorialHero showVisual={!isMobile} eyebrow={chartTypeLabel + ' analytics - ' + anMonth} title="Monthly intelligence" description="Follow the music moving the charts. Explore monthly climbers, biggest drops and new arrivals, then discover the records behind them." metric={getCombined(ct, anMonth).length} metricLabel={'Entries in the Combined chart for ' + anMonth + '.'} entry={getCombined(ct, anMonth)[0]} isArtist={isArtists} onOpen={openMoverDetails} actions={<div style={{display:"flex",gap:"10px",flexDirection:isMobile?"column":"row",alignItems:isMobile?"stretch":"center",flexShrink:0,width:isMobile?"100%":"auto"}}>
               {/* Month select + Share are grouped on their own row (space-
                   between on mobile) so Share always lands on the right edge
                   instead of wrapping onto a second line behind the wide
@@ -347,7 +344,7 @@ export default function AnalyticsPage({ ctx }) {
             </div>} />
 
           {/* Climbers, Drops & New Entries — what moved this month */}
-          <div className="v2-analytics-masonry"><div className="v2-analytics-column"><AnalyticsSlideshowFrame pool={risersPool} isArtist={isArtists} accent="#2DB04A" onOpen={openMoverDetails} label={`Biggest ${releaseLabel} Climbers`} /><div className="v2-movement-list v2-movement-drops" style={{...card(),order:1}}>
+          <div className="v2-analytics-masonry"><div className="v2-analytics-column"><div className="v2-movement-list v2-movement-drops" style={{...card(),order:1}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:"10px",marginBottom:"14px",flexWrap:"nowrap"}}>
                 {sectionTitle(
                   `Biggest ${releaseLabel} Drops - ${anMonth}`,
@@ -425,7 +422,7 @@ export default function AnalyticsPage({ ctx }) {
                 );
               })}
               {!mvData.risers.length&&<div style={{fontFamily:F,fontSize:isMobile?"12px":"11px",color:isDark?"#FFFFFF":"#000000",padding:"20px 0",textAlign:"center"}}>No movement data (debut month)</div>}
-            </div><AnalyticsSlideshowFrame pool={fallersPool} isArtist={isArtists} accent="#E53935" onOpen={openMoverDetails} label={`Biggest ${releaseLabel} Drops`} /><div className="v2-movement-list v2-movement-new" style={{...card(),order:2}}>
+            </div></div><div className="v2-analytics-column"><div className="v2-movement-list v2-movement-new" style={{...card(),order:2}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:"10px",marginBottom:"14px",flexWrap:"nowrap"}}>
                 {sectionTitle(
                   `New Entries - ${anMonth}`,

@@ -235,3 +235,283 @@
   .ngoma-redesign-v2 .ngoma-analytics-page > div:first-child > div:first-child,
   .ngoma-redesign-v2 .v2-lifetime-page > div:first-child > div:first-child { flex-basis: auto; }
 }
+
+/* Shared selection controls: readable labels and stable touch targets. */
+.ngoma-mobile-select { display: none; }
+.ngoma-filter-field { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.ngoma-redesign-v2 .v2-editorial-hero-copy-only { grid-template-columns: minmax(0, 1fr); }
+.ngoma-redesign-v2 .ngoma-info-button {
+  flex: 0 0 var(--info-size, 18px) !important;
+  width: var(--info-size, 18px) !important;
+  min-width: var(--info-size, 18px) !important;
+  max-width: var(--info-size, 18px) !important;
+  height: var(--info-size, 18px) !important;
+  min-height: var(--info-size, 18px) !important;
+  max-height: var(--info-size, 18px) !important;
+  padding: 0 !important; border-radius: 50% !important;
+  aspect-ratio: 1; align-self: center;
+}
+.ngoma-chart-type-tabs { border-radius: 16px !important; }
+.ngoma-chart-type-tabs > button { flex: 0 0 auto; white-space: nowrap; }
+@media (max-width: 768px) {
+  .ngoma-redesign-v2 .v2-editorial-visual { display: none; }
+  .ngoma-redesign-v2 .ngoma-pill-dropdown { max-width: 100%; min-width: 0; }
+  .ngoma-redesign-v2 .ngoma-dropdown-trigger { display: none !important; }
+  .ngoma-redesign-v2 .ngoma-mobile-select { display: block; width: 100%; }
+  .ngoma-pill-dropdown-menu { display: none !important; }
+  .ngoma-redesign-v2 select {
+    box-sizing: border-box; min-width: 0 !important; max-width: 100%;
+    min-height: 46px !important; padding: 11px 32px 11px 12px !important;
+    border: 1px solid var(--v2-line) !important; border-radius: 12px !important;
+    background-color: var(--v2-paper) !important; color: var(--v2-ink) !important;
+    font-family: inherit; font-size: 16px !important; font-weight: 650 !important;
+    letter-spacing: normal !important; text-transform: none !important;
+    line-height: 1.4; color-scheme: light;
+  }
+  .ngoma-redesign-v2[data-theme="dark"] select { color-scheme: dark; }
+  .ngoma-redesign-v2 select:focus-visible { outline: 2px solid #bf870e !important; outline-offset: 2px; }
+  .ngoma-redesign-v2 .ngoma-mobile-chart-controls {
+    display: grid !important; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center; gap: 12px !important;
+  }
+  .ngoma-mobile-chart-controls > select { width: 100%; }
+  .ngoma-mobile-chart-controls > :last-child { justify-self: end; }
+  .ngoma-redesign-v2 .year-end-actions { display: grid !important; grid-template-columns: minmax(0, 1fr); }
+  .ngoma-redesign-v2 .ngoma-filter-field { width: 100%; flex-wrap: nowrap !important; }
+  .ngoma-filter-field > select { flex: 1; width: 100%; }
+  .ngoma-redesign-v2 .v2-about-page .ngoma-about-process { gap: 14px; }
+  .ngoma-redesign-v2 .v2-about-page .ngoma-about-process-row {
+    grid-template-columns: minmax(0, 1fr); gap: 16px;
+    padding: 20px !important; border-radius: 18px; align-items: start;
+  }
+  .ngoma-redesign-v2 .ngoma-about-step-number {
+    width: 38px; height: 38px; margin: 0; font-size: 12px;
+  }
+}
+@media (max-width: 480px) {
+  .ngoma-redesign-v2 .ngoma-mobile-scope-controls { flex-direction: column; align-items: stretch !important; }
+  .ngoma-mobile-scope-controls > div { width: 100%; }
+}
+@media (max-width: 400px) {
+  .ngoma-redesign-v2 .ngoma-mobile-chart-controls > select { grid-column: 1 / -1; }
+}
+
+.ngoma-header-brand { border: 0; padding: 0; background: transparent; font: inherit; }
+/* Desktop masthead: a separate ink-and-gold navigation surface. */
+@media (min-width: 769px) {
+  .ngoma-redesign-v2 > header {
+    background: var(--header-bg) !important;
+    border-bottom: 2px solid #bf9844 !important;
+    box-shadow: 0 10px 28px #10150e26 !important;
+  }
+  .ngoma-redesign-v2[data-theme="dark"] > header {
+    background: var(--header-bg) !important;
+    box-shadow: 0 10px 30px #0005 !important;
+  }
+  .ngoma-redesign-v2 > header .ngoma-header-status {
+    background: #0f140f !important;
+    border-bottom: 1px solid #fff1cc14;
+  }
+  .ngoma-redesign-v2 .ngoma-public-header-row { padding-block: 22px !important; column-gap: 28px !important; }
+  .ngoma-redesign-v2 .ngoma-header-brand {
+    padding: 0 28px 0 0; border-right: 1px solid var(--header-line);
+    min-height: 76px; border-radius: 0;
+  }
+  .ngoma-redesign-v2 .ngoma-header-brand > span { color: var(--header-ink) !important; letter-spacing: .04em !important; font-size: 15px !important; }
+  .ngoma-redesign-v2 .ngoma-public-nav { gap: 6px !important; }
+  .ngoma-redesign-v2 .ngoma-public-nav > .ngoma-nav-link,
+  .ngoma-redesign-v2 .ngoma-public-nav .v2-nav-more {
+    color: var(--header-muted) !important; background: transparent !important;
+    border: 1px solid transparent !important; border-radius: 10px !important;
+    padding: 12px 11px !important; min-height: 44px;
+    font-size: 13px !important; font-weight: 750 !important;
+    letter-spacing: .015em !important; text-transform: none !important;
+  }
+  .ngoma-redesign-v2 .ngoma-public-nav > .ngoma-nav-link:hover,
+  .ngoma-redesign-v2 .ngoma-public-nav .v2-nav-more:hover { background: var(--header-hover) !important; color: var(--header-ink) !important; }
+  .ngoma-redesign-v2 > header .ngoma-public-nav [data-nav-active="true"] {
+    background: var(--header-active) !important; color: var(--header-active-ink) !important;
+    border: 1px solid var(--header-active) !important; box-shadow: 0 3px 12px #0002 !important;
+  }
+  .ngoma-redesign-v2 .ngoma-public-nav > .ngoma-pill-dropdown { margin-left: auto; flex-shrink: 0; }
+  .ngoma-redesign-v2 .ngoma-public-nav .ngoma-dropdown-trigger {
+    background: var(--header-control) !important; color: var(--header-ink) !important;
+    border: 1px solid var(--header-line) !important; border-radius: 10px !important;
+    min-height: 44px; padding: 10px 12px !important;
+  }
+  .ngoma-redesign-v2 .ngoma-public-nav > button[aria-label="Search"] {
+    background: var(--header-control) !important; border: 1px solid var(--header-line) !important;
+    width: 44px !important; height: 44px !important; border-radius: 10px !important;
+  }
+  .ngoma-redesign-v2 .ngoma-public-nav > button[aria-label="Search"] svg { stroke: var(--header-ink) !important; }
+  .ngoma-redesign-v2 .ngoma-public-nav > span { margin-left: 0 !important; padding: 0 0 0 10px !important; border-left: 1px solid var(--header-line); }
+  .ngoma-redesign-v2 > header button:focus-visible { outline: 2px solid var(--header-active) !important; outline-offset: 4px; }
+}
+@media (min-width: 769px) and (max-width: 1100px) {
+  .ngoma-redesign-v2 .ngoma-public-header-row { column-gap: 16px !important; padding-inline: 20px !important; }
+  .ngoma-redesign-v2 .ngoma-header-brand { padding-right: 16px; }
+  .ngoma-redesign-v2 .ngoma-public-nav { gap: 4px !important; }
+  .ngoma-redesign-v2 .ngoma-public-nav > .ngoma-nav-link,
+  .ngoma-redesign-v2 .ngoma-public-nav .v2-nav-more { padding-inline: 8px !important; font-size: 12px !important; }
+}
+@media (min-width: 769px) and (max-width: 1100px) {
+  .ngoma-redesign-v2 .ngoma-public-header-row { flex-wrap: wrap !important; row-gap: 18px !important; }
+  .ngoma-redesign-v2 .ngoma-header-brand { flex-direction: row !important; gap: 12px !important; min-height: 44px; border-right: 0; }
+  .ngoma-redesign-v2 .ngoma-public-nav { flex-basis: 100% !important; flex-wrap: wrap !important; row-gap: 10px !important; padding-top: 14px; border-top: 1px solid var(--header-line); }
+}
+
+/* Paired surfaces keep the masthead, editorial cards and page frame coherent. */
+.ngoma-redesign-v2 {
+  --header-bg: linear-gradient(115deg, #eee3c9, #faf6eb 65%);
+  --header-ink: #252c20;
+  --header-muted: #48513f;
+  --header-line: #cfc3a5;
+  --header-control: #fffaf0;
+  --header-hover: #e9dec4;
+  --header-active: #283522;
+  --header-active-ink: #fff8e8;
+  --summary-bg: linear-gradient(140deg, #faf2df, #e9d9b3);
+  --summary-ink: #2d3525;
+  --summary-muted: #50553e;
+  --summary-line: #cfbc8e;
+  --frame-shadow: 0 18px 50px #4c391610;
+}
+.ngoma-redesign-v2[data-theme="dark"] {
+  --header-bg: linear-gradient(115deg, #343423, #20271f 65%);
+  --header-ink: #fff8e8;
+  --header-muted: #d8dece;
+  --header-line: #55563e;
+  --header-control: #30372b;
+  --header-hover: #3d4433;
+  --header-active: #efd18b;
+  --header-active-ink: #191e18;
+  --summary-bg: linear-gradient(140deg, #303829, #232a20);
+  --summary-ink: #f3d68c;
+  --summary-muted: #e1e4d8;
+  --summary-line: #636045;
+  --frame-shadow: 0 18px 50px #0003;
+}
+.ngoma-redesign-v2 .v2-editorial-visual {
+  box-sizing: border-box;
+  background: var(--summary-bg) !important;
+  color: var(--summary-ink) !important;
+  border: 1px solid var(--summary-line);
+  box-shadow: 0 12px 30px #161c1112;
+  border-radius: 26px;
+  padding: 28px; gap: 20px;
+}
+.ngoma-redesign-v2 .v2-editorial-visual::before { border-color: var(--summary-line); opacity: .5; }
+.ngoma-redesign-v2 .v2-hero-metric { color: var(--summary-ink) !important; font-size: clamp(58px, 5vw, 80px); line-height: 1; overflow-wrap: anywhere; max-width: 100%; }
+.ngoma-redesign-v2 .v2-editorial-visual > p,
+.ngoma-redesign-v2 .v2-editorial-visual:has(.v2-hero-cover) > p {
+  color: var(--summary-muted) !important; max-width: 100%; padding: 0;
+  font-size: 15px; line-height: 1.65; margin: 0;
+}
+.ngoma-redesign-v2 .v2-editorial-visual .v2-hero-cover {
+  position: relative; inset: auto; transform: none; align-self: flex-end;
+  flex-shrink: 0; margin-top: 4px; border-radius: 16px;
+  border: 1px solid var(--summary-line); box-shadow: 0 8px 20px #0002;
+}
+.ngoma-redesign-v2 .v2-cover-caption { background: var(--summary-ink); color: var(--v2-paper); }
+.ngoma-redesign-v2 .v2-hero-cover:focus-visible { outline: 3px solid var(--summary-ink); outline-offset: 4px; }
+@media (min-width: 769px) {
+  .ngoma-redesign-v2 > main {
+    width: calc(100% - 48px) !important; max-width: 1240px !important;
+    margin: 28px auto 40px !important; padding: 0 !important;
+    box-sizing: border-box; background: var(--v2-paper) !important;
+    border: 1px solid var(--v2-line); border-radius: 28px;
+    box-shadow: var(--frame-shadow);
+  }
+  .ngoma-redesign-v2 .v2-secondary-page,
+  .ngoma-redesign-v2 .ngoma-analytics-page,
+  .ngoma-redesign-v2 .ngoma-certifications-page { background: var(--v2-paper) !important; }
+  .ngoma-redesign-v2 .ngoma-public-header-row { max-width: 1240px !important; width: calc(100% - 48px) !important; }
+  .ngoma-redesign-v2 > header .ngoma-header-status > div { max-width: 1240px !important; width: calc(100% - 48px) !important; }
+  .ngoma-redesign-v2 > header button:focus-visible { outline-color: var(--header-ink) !important; }
+}
+
+/* Inset desktop masthead shares the page frame's outer gutters. */
+@media (min-width: 769px) {
+  .ngoma-redesign-v2 > header {
+    width: calc(100% - 48px);
+    max-width: 1240px;
+    margin: 20px auto 0;
+    top: 12px !important;
+    box-sizing: border-box;
+    border-radius: 24px;
+    border: 1px solid var(--header-line) !important;
+    border-bottom: 2px solid #bf9844 !important;
+  }
+  .ngoma-redesign-v2 > header .ngoma-header-status { border-radius: 23px 23px 0 0; }
+  .ngoma-redesign-v2 > header .ngoma-public-header-row,
+  .ngoma-redesign-v2 > header .ngoma-header-status > div { width: 100% !important; }
+}
+
+/* Editorial labels are static, non-selectable captions. */
+.ngoma-redesign-v2 .ngoma-analytics-page .v2-editorial-copy > .v2-eyebrow {
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: default;
+}
+/* Give each methodology step its own generous number and reading area. */
+.ngoma-redesign-v2 .v2-about-page .ngoma-about-process {
+  gap: 20px;
+}
+.ngoma-redesign-v2 .v2-about-page .ngoma-about-process-row {
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 20px;
+  padding: 28px !important;
+  border: 1px solid var(--v2-line) !important;
+  border-radius: 22px;
+  background: var(--v2-surface);
+}
+.ngoma-redesign-v2 .v2-about-page .ngoma-about-step-number {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 60px;
+  height: 60px;
+  margin: 0;
+  border-radius: 18px;
+  border: 1px solid var(--summary-line) !important;
+  background: var(--summary-bg) !important;
+  color: var(--summary-ink) !important;
+  font-size: 26px;
+  font-weight: 850;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.03em;
+  line-height: 1;
+  box-shadow: 0 4px 12px #00000008;
+}
+@media (max-width: 768px) {
+  .ngoma-redesign-v2 .v2-about-page .ngoma-about-process-row { padding: 22px !important; gap: 18px; }
+  .ngoma-redesign-v2 .v2-about-page .ngoma-about-step-number { width: 54px; height: 54px; font-size: 24px; border-radius: 16px; }
+}
+/* One continuous outline follows the desktop masthead's rounded silhouette. */
+@media (min-width: 769px) {
+  .ngoma-redesign-v2 > header {
+    border: 1px solid var(--header-line) !important;
+    border-radius: 24px;
+    background-clip: padding-box !important;
+    box-shadow: 0 8px 28px #18201514 !important;
+  }
+  .ngoma-redesign-v2[data-theme="dark"] > header { box-shadow: 0 8px 28px #0004 !important; }
+  .ngoma-redesign-v2 > header::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    pointer-events: none;
+    border: 1px solid var(--header-line);
+    border-radius: inherit;
+    z-index: 1;
+  }
+  .ngoma-redesign-v2 > header .ngoma-header-status {
+    border-radius: 23px 23px 0 0;
+    background: var(--header-control) !important;
+    color: var(--header-muted) !important;
+    border-bottom: 1px solid var(--header-line);
+  }
+  .ngoma-redesign-v2 > header .ngoma-header-status > div > span:first-child { color: var(--header-muted) !important; }
+  .ngoma-redesign-v2 > header .ngoma-public-header-row { border-radius: 0 0 23px 23px; }
+}

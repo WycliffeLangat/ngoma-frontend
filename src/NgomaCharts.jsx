@@ -1857,6 +1857,7 @@ export default function NgomaCharts(){
           });
         }}
         style={{
+          "--info-size": `${size}px`,
           width: `${size}px`,
           height: `${size}px`,
           minWidth: `${size}px`,
@@ -3425,7 +3426,8 @@ const top = data[0];
   };
 
   const Tog=({sm})=>(
-    <div
+    isMobile ? <PillDropdown ariaLabel="Chart type" value={chartTypePreview} onChange={switchChartType} options={PUBLIC_CHART_TYPES.map(value => ({value, label: value.charAt(0).toUpperCase() + value.slice(1)}))} isDark={isDark} F={F} GOLD={GOLD} width="100%" /> : <div
+      className="ngoma-chart-type-tabs"
       style={{
         display:"flex",
         flexWrap:"wrap",
@@ -4038,7 +4040,7 @@ const top = data[0];
 
       {/* HEADER */}
       <header ref={publicHeaderRef} style={{background:themeColors.surface,borderBottom:"none",position:"sticky",top:0,zIndex:90,boxShadow:isDark?"0 8px 24px rgba(0,0,0,0.34)":"0 8px 24px rgba(31,36,31,0.10)"}}>
-        <div style={{background:"#1A1A1A",color:"#FFF"}}>
+        <div className="ngoma-header-status" style={{background:"#1A1A1A",color:"#FFF"}}>
           <div style={{...pageFrame({display:"flex",justifyContent:"flex-end",alignItems:"center",gap:"10px",padding:isMobile?"6px 16px":"5px 28px"}),fontFamily:F,fontSize:isMobile?"8px":"9.5px",letterSpacing:isMobile?"1px":"2px",textTransform:"uppercase"}}>
             <span style={{color:"rgba(255,255,255,0.68)",fontSize:isMobile?"8px":"9.5px",letterSpacing:isMobile?"0.5px":"1px",fontFamily:"inherit",whiteSpace:"nowrap"}}>
               {new Date().toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short",year:"numeric"})}
@@ -4047,13 +4049,13 @@ const top = data[0];
           </div>
         </div>
           <div className="ngoma-public-header-row" style={{...pageFrame({display:"flex",justifyContent:"space-between",alignItems:"center",padding:isMobile?"14px 16px":(isTablet?"16px 22px 18px":"18px 28px 22px")}),columnGap:isMobile?"16px":(isTablet?"24px":"42px"),rowGap:"16px",flexWrap:isMobile?"wrap":"nowrap"}}>
-          <div
+          <button type="button" className="ngoma-header-brand" aria-label={`${SITE_NAME} home`}
             onClick={()=>navTo("charts")}
             style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:isMobile?"4px":"5px",cursor:"pointer",flexShrink:0}}
           >
-            <NgomaMark size={isMobile?34:(isTablet?42:48)} inkColor={themeColors.text} />
+            <NgomaMark size={isMobile?34:(isTablet?42:48)} inkColor={isMobile?themeColors.text:"var(--header-ink)"} />
             <span style={{fontFamily:F,fontSize:isMobile?"13px":(isTablet?"15px":"17px"),fontWeight:950,letterSpacing:"-0.4px",color:themeColors.text,textTransform:"uppercase",whiteSpace:"nowrap",lineHeight:1}}>{SITE_NAME}</span>
-          </div>
+          </button>
           {isMobile ? (
             <>
               <button
@@ -4066,7 +4068,7 @@ const top = data[0];
                   <span className="ngoma-hamburger-bar" style={{display:"block",height:"2px",background:themeColors.text,borderRadius:"2px",opacity:mNav?0:1,transition:"opacity .2s"}}/>
                   <span className="ngoma-hamburger-bar" style={{display:"block",height:"2px",background:themeColors.text,borderRadius:"2px",transition:"all .2s",transform:mNav?"translateY(-6px) rotate(-45deg)":"none"}}/>
               </button>
-              <div style={{width:"100%",display:"flex",alignItems:"center",gap:"10px",marginTop:"-4px"}}>
+              <div className="ngoma-mobile-scope-controls" style={{width:"100%",display:"flex",alignItems:"center",gap:"10px",marginTop:"-4px"}}>
                 <div style={{flex:1,minWidth:0}}><CountryScopeSelect compact fullWidth /></div>
                 {page==="charts"&&<div style={{flex:1,minWidth:0}}><MonthScopeSelect compact fullWidth /></div>}
               </div>
@@ -4096,7 +4098,7 @@ const top = data[0];
                 <button
                   type="button"
                   onClick={()=>setMoreOpen((open)=>!open)}
-                  className="v2-nav-more" aria-haspopup="menu"
+                  className="v2-nav-more" data-nav-active={moreNavItems.includes(page)} aria-haspopup="menu"
                   aria-expanded={moreOpen}
                   style={{
                     cursor:"pointer",

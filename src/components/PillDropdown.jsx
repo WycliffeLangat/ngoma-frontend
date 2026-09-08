@@ -41,9 +41,10 @@ export default function PillDropdown({
       if (!rect) return;
       const estimatedHeight = 340;
       const openUpward = window.innerHeight - rect.bottom < estimatedHeight && rect.top > estimatedHeight;
+      const panelWidth = Math.min(parseFloat(menuWidth) || 220, window.innerWidth - 16);
       const horizontal = align === "right"
         ? { right: Math.max(8, window.innerWidth - rect.right) }
-        : { left: Math.max(8, rect.left) };
+        : { left: Math.max(8, Math.min(rect.left, window.innerWidth - panelWidth - 8)) };
       setMenuPos(openUpward
         ? { ...horizontal, bottom: window.innerHeight - rect.top + 6 }
         : { ...horizontal, top: rect.bottom + 6 });
@@ -68,7 +69,7 @@ export default function PillDropdown({
       window.removeEventListener("scroll", updatePosition, true);
       window.removeEventListener("resize", updatePosition);
     };
-  }, [open, align]);
+  }, [open, align, menuWidth]);
 
   const selectValue = (nextValue) => {
     onChange(nextValue);
@@ -94,8 +95,11 @@ export default function PillDropdown({
   });
 
   return (
-    <div ref={containerRef} style={{ position: "relative", display: "inline-block", width }}>
-      <button
+    <div className="ngoma-pill-dropdown" ref={containerRef} style={{ position: "relative", display: "inline-block", width }}>
+      <select className="ngoma-mobile-select" aria-label={ariaLabel} value={value} onChange={event => onChange(flatOptions.find(option => String(option.value) === event.target.value)?.value ?? event.target.value)}>
+        {groups ? groups.map(group => <optgroup key={group.label} label={group.label}>{group.options.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</optgroup>) : flatOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+      </select>
+      <button className="ngoma-dropdown-trigger"
         ref={buttonRef}
         type="button"
         aria-haspopup="listbox"
@@ -131,6 +135,8 @@ export default function PillDropdown({
             position: "fixed",
             ...menuPos,
             width: menuWidth || "220px",
+            maxWidth: "calc(100vw - 16px)",
+            boxSizing: "border-box",
             maxHeight: "min(360px, 60vh)",
             overflowY: "auto",
             padding: "8px",

@@ -1572,7 +1572,7 @@ export default function PremiumChartsPage({
         }}
       >
         {mobile ? (
-          <div style={{ display: "flex", gap: "10px", width: "100%" }}>
+          <div className="ngoma-mobile-chart-controls" style={{ display: "flex", gap: "10px", width: "100%" }}>
             <select
               aria-label="Chart type"
               value={ct}

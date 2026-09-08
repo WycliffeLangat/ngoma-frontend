@@ -136,15 +136,15 @@ export default function YearEndPage({ ctx }) {
   return (
 <div className="v2-secondary-page v2-lifetime-page" style={{padding:PAD,background:isDark?"#050805":"#FFF",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
           <EditorialHero eyebrow={yearEndMode === 'bestofyear' ? 'Best of the year' : 'All time'} title={yearEndMode === 'bestofyear' ? 'The defining music of the year' : 'Legacy leaderboard'} description={'The music with staying power. Explore accumulated chart points across ' + yearEndPeriodLabel + '.'} metric={yearEnd[0] ? Number(yearEnd[0].totalPts).toLocaleString() : '0'} metricLabel={yearEnd[0] ? (yearEnd[0].t + ' leads the selected ranking by total points.') : 'No entries are available for this selection.'} entry={yearEnd[0]} pool={yearEnd} isArtist={isArtists} onOpen={item => isArtists ? openArtistDetails(item.t) : openReleaseDetails(item, isSingles ? 'single' : 'album')} actions={<div className="year-end-actions" data-share-action-area="true" style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap",position:isMobile?"sticky":"static",top:isMobile?"0":"auto",zIndex:isMobile?5:"auto",background:isMobile?(isDark?"#050805":"#FFF"):"transparent",padding:isMobile?"8px 0 4px":"0"}}>
-              <select value={yearEndMode} onChange={e=>setYearEndMode(e.target.value)} style={{...selectStyle,minWidth:isMobile?"120px":"150px"}}>
+              <div className="ngoma-filter-field"><select aria-label="Ranking period" value={yearEndMode} onChange={e=>setYearEndMode(e.target.value)} style={{...selectStyle,minWidth:isMobile?"120px":"150px"}}>
                 <option value="alltime">All Time</option>
                 <option value="bestofyear">Best of Year</option>
               </select>
-              {info("Year End Mode", "Switch between lifetime all-time totals and a single-year best-of-year table.", [], 14)}
-              <select value={yearEndPlat} onChange={e=>setYearEndPlat(e.target.value)} style={{...selectStyle,minWidth:isMobile?"110px":"140px"}}>
+              {info("Year End Mode", "Switch between lifetime all-time totals and a single-year best-of-year table.", [], 14)}</div>
+              <div className="ngoma-filter-field"><select aria-label="Ranking source" value={yearEndPlat} onChange={e=>setYearEndPlat(e.target.value)} style={{...selectStyle,minWidth:isMobile?"110px":"140px"}}>
                 {yearEndPlatOptions.map(p=><option key={p} value={p}>{platformLabelForScope ? platformLabelForScope(p) : (p==="Combined"?"Combined":(PLAT_LABEL[p]||p))}</option>)}
               </select>
-              {info("Year End Source", "Choose whether the aggregation reads from the Combined chart, a platform chart, or an available country scope.", [], 14)}
+              {info("Year End Source", "Choose whether the aggregation reads from the Combined chart, a platform chart, or an available country scope.", [], 14)}</div>
               <ShareButton
                 isDark={isDark}
                 F={F}

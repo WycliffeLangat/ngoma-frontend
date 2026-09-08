@@ -1,0 +1,11 @@
+﻿const fs=require('fs'), parser=require('@babel/parser');
+let p='src/pages/AnalyticsPage.jsx',s=fs.readFileSync(p,'utf8');s=s.replace('analytics \ufffd','analytics -').replace('month\ufffds','monthly');
+function walk(n, pred){if(!n||typeof n!=='object')return null;if(pred(n))return n;for(const v of Object.values(n)){if(Array.isArray(v)){for(const c of v){const f=walk(c,pred);if(f)return f;}}else if(v&&typeof v==='object'){const f=walk(v,pred);if(f)return f;}}return null;}
+const ast=parser.parse(s,{sourceType:'module',plugins:['jsx']});const section=walk(ast,n=>n.type==='JSXElement'&&n.openingElement.name.name==='AnalyticsDeepSection'&&n.openingElement.attributes.some(a=>a.name?.name==='label'&&a.value?.value==='Biggest Climbers & Drops'));
+const rows=section.children.filter(n=>n.type==='JSXElement');const cards=rows.map(row=>row.children.find(n=>n.type==='JSXElement'&&s.slice(n.openingElement.start,n.openingElement.end).includes('card()'))).map(n=>s.slice(n.start,n.end).replace('<div style=', '<div className="v2-movement-list" style='));
+if(cards.length!==3)throw Error('Expected three movement lists');
+const body=`<div className="v2-analytics-masonry"><div className="v2-analytics-column"><AnalyticsSlideshowFrame pool={risersPool} isArtist={isArtists} accent="#2DB04A" onOpen={openMoverDetails} label={\`Biggest \${releaseLabel} Climbers\`} />${cards[1]}</div><div className="v2-analytics-column">${cards[0]}<AnalyticsSlideshowFrame pool={fallersPool} isArtist={isArtists} accent="#E53935" onOpen={openMoverDetails} label={\`Biggest \${releaseLabel} Drops\`} />${cards[2]}</div></div>`;
+s=s.slice(0,section.start)+body+s.slice(section.end);fs.writeFileSync(p,s);
+p='src/pages/YearEndPage.jsx';s=fs.readFileSync(p,'utf8').replace('The year\ufffds defining music','The defining music of the year').replace(" : '\ufffd'"," : '0'");fs.writeFileSync(p,s);
+p='src/pages/AboutPage.jsx';s=fs.readFileSync(p,'utf8').replace('Explore current charts ?','Explore current charts');fs.writeFileSync(p,s);
+p='src/NgomaCharts.jsx';s=fs.readFileSync(p,'utf8').replace('const primaryNavItems=vw<1400?navItems.slice(0,3):navItems;','const primaryNavItems=vw<1000?navItems.slice(0,2):vw<1280?navItems.slice(0,3):navItems;');fs.writeFileSync(p,s);
