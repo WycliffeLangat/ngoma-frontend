@@ -58,7 +58,8 @@ export default function CertificationsPage({ ctx }) {
   const activeLabel = isSingles ? "songs" : "albums";
   const activeSingular = isSingles ? "song" : "album";
   const totalCertified = deduplicatedCerts.length;
-  const displayCertificationLevels = [...CERTIFICATION_LEVELS].reverse();
+  // Keep award tiles and release groups highest first: Legacy, Wave, Pulse.
+  const displayCertificationLevels = CERTIFICATION_LEVELS;
   const levelStats = displayCertificationLevels.map((level) => ({
     ...level,
     count: deduplicatedCerts.filter((cert) => cert.level === level.level).length,
