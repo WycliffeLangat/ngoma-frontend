@@ -1,0 +1,34 @@
+{
+  "generated_at": "2026-09-08T21:18:28.937363+00:00",
+  "local_database": "C:\\Users\\HP\\Desktop\\Ngoma Charts Folder\\files\\ngoma_charts_backend\\backend\\ngoma_charts.db",
+  "live_generated_at": "2026-09-08T21:11:49.661781Z",
+  "live_revision": "log:10218|a:2026-09-06T14:05:06.699270+00:00|r:2026-09-06T14:00:14.420255+00:00|c:2026-09-06T11:44:59.699904+00:00|n:2026-09-06T14:00:19.023594+00:00|cert:2026-09-06T11:51:39.143248+00:00|s:2026-06-19T11:26:51.895749+00:00|x:2026-09-06T14:05:06.712333+00:00",
+  "months": [
+    "September 2025",
+    "October 2025",
+    "November 2025",
+    "December 2025",
+    "January 2026",
+    "February 2026",
+    "March 2026",
+    "April 2026",
+    "May 2026",
+    "June 2026",
+    "July 2026",
+    "August 2026",
+    "September 2026"
+  ],
+  "catalog_counts": {
+    "albums": 2238,
+    "singles": 2316
+  },
+  "live_public_releases": 1101,
+  "outside_live_public_top50": 3453,
+  "existing_songwriters_unverified": 403,
+  "existing_producers_unverified": 439,
+  "limitations": [
+    "Local catalog is not proof of current live unpublished inventory.",
+    "Albums have no stored individual tracklist; expansion is required.",
+    "Existing credits are not independently verified."
+  ]
+}
