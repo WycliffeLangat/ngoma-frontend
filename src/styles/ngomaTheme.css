@@ -3176,7 +3176,7 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell select optgroup {
 .ngoma-cert-actions {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 12px;
   flex-wrap: wrap;
   flex-shrink: 0;
