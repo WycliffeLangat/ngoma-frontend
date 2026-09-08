@@ -199,7 +199,7 @@ function SpotlightContent({ item, type, theme = "dark" }) {
                 whiteSpace: "nowrap",
               }}
             >
-              <CertificationIcon level={topCert} size={32} /> {certificationLabel(topCert)} Certified
+              <CertificationIcon level={topCert} size={64} /> {certificationLabel(topCert)} Certified
             </div>
           )}
         </div>

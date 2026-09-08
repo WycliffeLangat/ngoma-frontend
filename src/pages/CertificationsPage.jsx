@@ -205,7 +205,7 @@ export default function CertificationsPage({ ctx }) {
           {levelStats.map((level)=>(
             <div key={level.level} className="ngoma-cert-tile" style={{...tileCard({borderRadius:"14px",borderTop:`3px solid ${level.color}`})}}>
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px"}}>
-                <span style={{fontSize:"28px",lineHeight:1,filter:level.iconFilter||undefined}}>{level.icon}</span>
+                <span style={{fontSize:"48px",lineHeight:1,filter:level.iconFilter||undefined}}>{level.icon}</span>
                 <span style={{fontFamily:F,fontSize:"12px",fontWeight:850,color:textMuted,display:"inline-flex",alignItems:"center",gap:"5px"}}>{level.count.toLocaleString()} current{info(`${level.label} Count`, `The number of certified ${activeLabel} currently shown at ${level.label}.`, [], 14)}</span>
               </div>
               <div style={{fontFamily:SF,fontWeight:850,fontSize:TXT.metric,margin:"12px 0 0",color:isDark ? level.color : level.textColor,display:"flex",alignItems:"center",gap:"9px",lineHeight:1.15}}>{level.label}{info(level.label, `${level.label} starts at ${level.pts.toLocaleString()} lifetime Combined chart points.`, [], 14)}</div>

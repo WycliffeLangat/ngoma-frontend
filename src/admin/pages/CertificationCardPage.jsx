@@ -1,4 +1,4 @@
-import CertificationIcon from "../../components/CertificationIcon.jsx";
+import CertificationSharePoster from "../../components/sharePosters/CertificationSharePoster.jsx";
 import { CERTIFICATION_BRANDING } from "../../utils/certificationBranding.js";
 import { useEffect, useRef, useState } from "react";
 import { cmsApi, getResults, qs } from "../api.js";
@@ -8,11 +8,6 @@ import {
   PREVIEW_W,
   PREVIEW_SCALE,
   POSTER_FONT_FAMILY,
-  HEADER_ZONE_H,
-  PosterBrandRow,
-  PosterFooter,
-  ArtPlaceholder,
-  readableInk,
   PosterCanvas,
   PosterSettingsPanel,
   defaultPosterSettings,
@@ -81,115 +76,7 @@ function CertificationCardContent({ item, theme = "dark" }) {
     );
   }
 
-  const meta = CERT_META[item.level] || CERT_META.gold;
-  const artSize = 460;
-  const tileBg = theme === "light" ? "rgba(0,0,0,0.045)" : "rgba(255,255,255,0.055)";
-  const tileBorder = theme === "light" ? "rgba(0,0,0,0.14)" : "rgba(255,255,255,0.16)";
-  const headerH = HEADER_ZONE_H;
-  const footerH = 74;
-
-  return (
-    <div
-      style={{
-        width: POSTER_W,
-        height: POSTER_H,
-        boxSizing: "border-box",
-        background: t.pageBg,
-        fontFamily: POSTER_FONT_FAMILY,
-        color: t.titleColor,
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      <div style={{ padding: `72px ${padX}px 0`, position: "relative", zIndex: 1 }}>
-        <PosterBrandRow theme={theme} />
-      </div>
-
-      {/* Artwork + title/subtitle are vertically centered in their own
-          zone, independent of the stat tiles pinned near the bottom — same
-          pattern as the Spotlight card, so artwork never crowds the logo. */}
-      <div
-        style={{
-          position: "absolute",
-          top: headerH,
-          bottom: 360,
-          left: 0,
-          right: 0,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          padding: `0 ${padX}px`,
-          zIndex: 1,
-        }}
-      >
-        <div style={{ position: "relative", flexShrink: 0 }}>
-          {item.image ? (
-            <img
-              src={item.image}
-              alt=""
-              style={{ width: artSize, height: artSize, borderRadius: 26, objectFit: "cover", boxShadow: "0 24px 60px rgba(0,0,0,0.4)" }}
-            />
-          ) : (
-            <div style={{ boxShadow: "0 24px 60px rgba(0,0,0,0.4)", borderRadius: 26 }}>
-              <ArtPlaceholder width={artSize} height={artSize} radius={26} theme={theme} accentColor={meta.color} markSize={116} />
-            </div>
-          )}
-        </div>
-
-        <div
-          style={{
-            marginTop: 48,
-            fontSize: item.title.length > 22 ? 44 : item.title.length > 14 ? 52 : 60,
-            fontWeight: 900,
-            lineHeight: 1.12,
-            letterSpacing: "-0.5px",
-            color: t.titleColor,
-            textAlign: "center",
-            textTransform: "uppercase",
-            maxWidth: 920,
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-          }}
-        >
-          {item.title}
-        </div>
-        {item.subtitle && (
-          <div style={{ marginTop: 10, fontSize: 26, fontWeight: 700, color: t.metaColor, textAlign: "center" }}>
-            {item.subtitle}
-          </div>
-        )}
-      </div>
-
-      {/* Stat tiles anchored a fixed distance above the footer. The left
-          tile pairs the symbol with the "Level Certified" wording — the
-          badge itself fills the slot a raw points count would otherwise
-          take, since the badge is the thing worth celebrating. */}
-      <div style={{ position: "absolute", bottom: 150, left: 0, right: 0, padding: `0 ${padX}px`, zIndex: 1 }}>
-        <div style={{ borderTop: `2px solid ${t.dividerColor}`, marginBottom: 30 }} />
-        <div style={{ display: "grid", gridTemplateColumns: item.certifiedDate ? "repeat(2, 1fr)" : "1fr", gap: 14 }}>
-          <div style={{ background: tileBg, border: `1px solid ${tileBorder}`, borderRadius: 16, padding: "22px 8px", textAlign: "center" }}>
-            <CertificationIcon level={item.level || "gold"} size={112} />
-            <div style={{ fontSize: 30, fontWeight: 900, letterSpacing: "0.5px", textTransform: "uppercase", color: theme === "light" ? meta.textColor : meta.color, marginTop: 14 }}>
-              {meta.label} Certified
-            </div>
-          </div>
-          {item.certifiedDate && (
-            <div style={{ background: tileBg, border: `1px solid ${tileBorder}`, borderRadius: 16, padding: "24px 8px", textAlign: "center", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-              <div style={{ fontSize: 44, fontWeight: 900, color: theme === "light" ? meta.textColor : meta.color }}>{item.certifiedDate}</div>
-              <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "0.5px", textTransform: "uppercase", color: t.metaColor, marginTop: 10 }}>
-                Certified
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <PosterFooter theme={theme} padX={padX} />
-    </div>
-  );
+  return <CertificationSharePoster item={item} theme={theme} />;
 }
 
 export default function CertificationCardPage() {

@@ -515,3 +515,19 @@
   .ngoma-redesign-v2 > header .ngoma-header-status > div > span:first-child { color: var(--header-muted) !important; }
   .ngoma-redesign-v2 > header .ngoma-public-header-row { border-radius: 0 0 23px 23px; }
 }
+
+/* Give certification artwork its own readable space in every award card. */
+.ngoma-redesign-v2 .cert-wall-card {
+  grid-template-columns: 80px minmax(0, 1fr) 34px;
+}
+.ngoma-redesign-v2 .cert-wall-card .cert-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  min-height: 80px;
+}
+.ngoma-redesign-v2 .ngoma-cert-tile { padding: 24px; }
+@media (max-width: 380px) {
+  .ngoma-redesign-v2 .cert-wall-card { padding: 14px; gap: 14px 8px; }
+}

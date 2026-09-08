@@ -434,3 +434,5 @@
   .cms-page-head h1 { font-size: 32px; }
   .cms-table-wrap { border-radius: 18px; }
 }
+
+.cms-status:has(.ngoma-certification-icon) { display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; }
