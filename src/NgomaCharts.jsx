@@ -1,7 +1,9 @@
+import { fuzzyMatchScore } from "./utils/search.js";
+import SearchDialog from "./components/SearchDialog.jsx";
 import "./styles/redesignV2.css";
 import CertificationIcon from "./components/CertificationIcon.jsx";
 import { CERTIFICATION_BRANDING } from "./utils/certificationBranding.js";
-import { contributorNames, PUBLIC_CHART_TYPES, isPeopleChart, chartTypeName } from "./utils/contributorCharts.js";
+import { contributorIdentityKey, contributorNames, PUBLIC_CHART_TYPES, isPeopleChart, chartTypeName } from "./utils/contributorCharts.js";
 import { useState, useEffect, useMemo, useRef, useCallback, useTransition } from "react";
 import { API_BASE, resolveMediaUrl } from "./api/config.js";
 import { startPageAnalytics, trackEvent } from "./utils/track.js";
@@ -172,66 +174,6 @@ const releaseMatchesEntryCredit = (release, entry) => {
   const key = entryKey(entry);
   const fallbackKey = entryPrimaryFallbackKey(entry);
   return releaseKey === key || (fallbackKey && releaseKey === fallbackKey);
-};
-// Bounded edit distance — walks off early past `max` so a long mismatched
-// pair (e.g. a query word against an unrelated field) doesn't cost a full O(n*m) pass.
-const boundedLevenshtein = (a, b, max) => {
-  if (a === b) return 0;
-  const al = a.length, bl = b.length;
-  if (Math.abs(al - bl) > max) return max + 1;
-  if (!al) return bl;
-  if (!bl) return al;
-  let prev = new Array(bl + 1);
-  for (let j = 0; j <= bl; j++) prev[j] = j;
-  for (let i = 1; i <= al; i++) {
-    const cur = [i];
-    let rowMin = i;
-    for (let j = 1; j <= bl; j++) {
-      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-      const v = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost);
-      cur[j] = v;
-      if (v < rowMin) rowMin = v;
-    }
-    if (rowMin > max) return max + 1;
-    prev = cur;
-  }
-  return prev[bl];
-};
-// Score one query token against one text token: exact/prefix/substring first,
-// falling back to typo-tolerant edit distance scaled to the token's length.
-const fuzzyTokenScore = (word, q) => {
-  if (!word || !q) return 0;
-  if (word === q) return 100;
-  if (word.startsWith(q)) return 88;
-  if (word.includes(q)) return 74;
-  // Typo tolerance only kicks in past 3 characters — below that, a single
-  // edit distance is too large a fraction of the token and just adds noise.
-  if (q.length <= 3) return 0;
-  const maxDist = q.length <= 6 ? 1 : q.length <= 9 ? 2 : 3;
-  const dist = boundedLevenshtein(word, q, maxDist);
-  if (dist > maxDist) return 0;
-  return 60 - dist * 14;
-};
-// Explorative + typo-tolerant match: query tokens each need a decent match
-// against some word in the (already-lowercased) search text; score sums the
-// best per-token matches so closer/more-complete matches rank higher.
-const fuzzyMatchScore = (searchText, query) => {
-  if (!searchText || !query) return 0;
-  if (searchText.includes(query)) return 100 + query.length;
-  const words = searchText.split(/\s+/).filter(Boolean);
-  const qTokens = query.split(/\s+/).filter(Boolean);
-  let total = 0;
-  for (const qt of qTokens) {
-    let best = 0;
-    for (const w of words) {
-      const s = fuzzyTokenScore(w, qt);
-      if (s > best) best = s;
-      if (best === 100) break;
-    }
-    if (best === 0) return 0;
-    total += best;
-  }
-  return total / qTokens.length;
 };
 const lookupReleaseForEntry = (entry = {}) => {
   const id = Number(entry.release_id || entry.releaseId || entry.release || entry.release_pk);
@@ -2398,7 +2340,7 @@ export default function NgomaCharts(){
   const PAGE_MAX="1240px";
   const pageFrame=(extra={})=>({maxWidth:PAGE_MAX,width:"100%",margin:"0 auto",boxSizing:"border-box",minWidth:0,...extra});
   const responsiveStack=(desktop="row")=>({flexDirection:isMobile?"column":desktop,alignItems:isMobile?"stretch":"center"});
-  useEffect(()=>{const h=e=>{if(e.key==="Escape"){setSOpen(false);setSrch("");setSActiveIdx(-1);}};window.addEventListener("keydown",h);return()=>window.removeEventListener("keydown",h);},[]);
+  useEffect(()=>{const h=e=>{if(e.key==="Escape"){setSOpen(false);setSrch("");}};window.addEventListener("keydown",h);return()=>window.removeEventListener("keydown",h);},[]);
   useEffect(() => {
     detailOpenRef.current = Boolean(selA || selR);
   }, [selA, selR]);
@@ -2544,12 +2486,30 @@ const top = data[0];
       const k=`${String(r.title||"").trim().toLowerCase()}|||${String(r.primary_artist||r.artist||"").trim().toLowerCase()}`;
       if(!map.has(k)){
         const merged={...r,title:r.title,artist:r.primary_artist||r.artist||"",_type:"album",_months:0,_bestRank:999,_bestMonth:latestPublishedMonthLabel()};
-        merged._searchText=[r.title,r.primary_artist,r.artist,r.featured_artists,r.label,r.canonical_title].filter(Boolean).join(" ").toLowerCase();
+        merged._searchText=[r.title,r.primary_artist,r.artist,r.featured_artists,r.label,r.canonical_title,r.songwriters,r.producers].filter(Boolean).join(" ").toLowerCase();
         map.set(k,merged);
       }
     });
     return [...map.values()].sort((a,b)=>a._bestRank-b._bestRank);
   },[dataRevision]);
+  const producerSearchIndex=useMemo(()=>{
+    const producers=new Map();
+    [...songSearchIndex,...albumSearchIndex].forEach(release=>{
+      contributorNames(release,"producers").forEach(name=>{
+        const profile=publicArtistForName(name);
+        const key=contributorIdentityKey(profile?.name||name);
+        if(!producers.has(key)){
+          producers.set(key,{
+            ...(profile||{}),name:profile?.name||name,
+            _searchText:[name,...artistNameVariants(profile||{})].filter(Boolean).join(" ").toLowerCase(),
+          });
+        } else {
+          producers.get(key)._searchText+=" "+name.toLowerCase();
+        }
+      });
+    });
+    return [...producers.values()];
+  },[songSearchIndex,albumSearchIndex]);
   const automaticCerts = useMemo(() => buildAutomaticCertifications({
     singles: COMBINED_YEAR_END.singles,
     albums: COMBINED_YEAR_END.albums,
@@ -2584,22 +2544,23 @@ const top = data[0];
     const q=srch.trim().toLowerCase();
     if(q.length<2) return null;
     const scoreRank=(list,minScore=1)=>list
-      .map(e=>({e,score:fuzzyMatchScore(e._searchText||"",q)}))
+      .map(e=>({e,score:Math.max(fuzzyMatchScore(e._searchText||"",q),fuzzyMatchScore(e.title||e.display_name||e.name||"",q)*1.5)}))
       .filter(x=>x.score>=minScore)
       .sort((a,b)=>b.score-a.score||(a.e._bestRank||999)-(b.e._bestRank||999))
-      .map(x=>x.e);
-    const songs=scoreRank(songSearchIndex).slice(0,8);
-    const albums=scoreRank(albumSearchIndex).slice(0,6);
+      .map(x=>({...x.e,_score:x.score}));
+    const songs=scoreRank(songSearchIndex);
+    const albums=scoreRank(albumSearchIndex);
+    const producers=scoreRank(producerSearchIndex);
     const artists=(PUBLIC_DATA.artists||[])
       .map(a=>{
         const text=[...artistNameVariants(a),a.genre,a.city_region,a.country].filter(Boolean).join(" ").toLowerCase();
         const exactCode=(a.country_code||"").toLowerCase()===q?100:0;
-        return {a,score:Math.max(fuzzyMatchScore(text,q),exactCode)};
+        return {a,score:Math.max(fuzzyMatchScore(text,q),...artistNameVariants(a).map(name=>fuzzyMatchScore(name,q)*1.5),exactCode)};
       })
       .filter(x=>x.score>=1)
       .sort((x,y)=>y.score-x.score)
-      .map(x=>x.a)
-      .slice(0,6);
+      .map(x=>({...x.a,_score:x.score}))
+      ;
     // A release can have one raw cert row per threshold it has ever crossed
     // (Pulse, then later Wave) — keep only the highest-ranked row per
     // release so search never lists the same song twice at two levels.
@@ -2607,7 +2568,7 @@ const top = data[0];
       .map(c=>({c,score:fuzzyMatchScore([c.t,c.a,c.level].filter(Boolean).map(String).join(" ").toLowerCase(),q)}))
       .filter(x=>x.score>=1)
       .sort((x,y)=>y.score-x.score)
-      .map(x=>x.c);
+      .map(x=>({...x.c,_score:x.score}));
     const certsByKey=new Map();
     matchedCerts.forEach(c=>{
       const key=`${c.chart_type==="albums"?"albums":"singles"}|||${certificationKey(c.t,c.a)}`;
@@ -2616,15 +2577,16 @@ const top = data[0];
         certsByKey.set(key,c);
       }
     });
-    const certs=Array.from(certsByKey.values()).slice(0,4);
-    return {songs,albums,artists,certs};
-  },[srch,songSearchIndex,albumSearchIndex,dedupedLiveCerts,dataRevision]);
+    const certs=Array.from(certsByKey.values());
+    return {songs,albums,artists,producers,certs};
+  },[srch,songSearchIndex,albumSearchIndex,producerSearchIndex,dedupedLiveCerts,dataRevision]);
   const sFlatResults=useMemo(()=>{
     if(!sResults) return [];
     return [
       ...sResults.songs.map(e=>({...e,_kind:"song"})),
       ...sResults.albums.map(e=>({...e,_kind:"album"})),
       ...sResults.artists.map(a=>({...a,_kind:"artist"})),
+      ...sResults.producers.map(a=>({...a,_kind:"producer"})),
       ...sResults.certs.map(c=>({...c,_kind:"cert"})),
     ];
   },[sResults]);
@@ -2658,9 +2620,9 @@ const top = data[0];
     setSelR(null);
     requestAnimationFrame(() => window.scrollTo({ top: detailReturnScrollRef.current, behavior: "auto" }));
   };
-  const openArtistDetails = (name) => {
+  const openArtistDetails = (name, role = isArtists ? ct : "artists") => {
     const requestedName = String(name || "").trim();
-    const detailRole = isArtists ? ct : "artists";
+    const detailRole = role;
     const allCurrentArtists = buildCombinedArtists(detailRole, CURRENT_MONTH);
     const resolvedName = allCurrentArtists.find((item) => item.n.toLowerCase() === requestedName.toLowerCase())?.n
       || publicArtistCreditMembers({ artist: requestedName })[0]
@@ -2702,7 +2664,16 @@ const top = data[0];
     setSelA(profile);
     prepareDetailNavigation();
   };
-  const closeSearch=()=>{setSOpen(false);setSrch("");setSActiveIdx(-1);};
+  useEffect(()=>{
+    const shortcut=event=>{
+      if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="k"){
+        event.preventDefault();setSOpen(true);
+      }
+    };
+    window.addEventListener("keydown",shortcut);
+    return()=>window.removeEventListener("keydown",shortcut);
+  },[]);
+  const closeSearch=()=>{setSOpen(false);setSrch("");};
   const selectSearchResult=(item)=>{
     closeSearch();
     if(item._kind==="song"){
@@ -2715,12 +2686,14 @@ const top = data[0];
       // Try chart-based artist detail; fall back to profile-only panel for non-chart artists
       const chartEntry=buildCombinedArtists("artists",CURRENT_MONTH).find(a=>a.n.toLowerCase()===String(item.name||"").toLowerCase());
       if(chartEntry){
-        openArtistDetails(item.name);
+        openArtistDetails(item.name,"artists");
       } else {
         setSelR(null);
         setSelA({n:item.name||item.display_name||"",rh:{},mp:{},pk:"—",rank:"—",p:0,m:0,t:0,prevRank:null});
         prepareDetailNavigation();
       }
+    } else if(item._kind==="producer"){
+      openArtistDetails(item.name,"producers");
     } else if(item._kind==="cert"){
       // Open the song's release detail if it's in chart history; otherwise go to certifications page
       const entry=songSearchIndex.find(e=>String(e.title||"").toLowerCase()===String(item.t||"").toLowerCase()&&String(e.artist||"").toLowerCase()===String(item.a||"").toLowerCase())
@@ -4155,146 +4128,7 @@ const top = data[0];
         </div>
       </header>
 
-      {/* SEARCH */}
-      {sOpen&&(
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.52)",zIndex:100,display:"flex",justifyContent:"center",paddingTop:isMobile?"12px":"70px"}} onClick={closeSearch}>
-          <div onClick={e=>e.stopPropagation()} style={{background:isDark?"#1a1e1a":"#FFF",borderRadius:"16px",width:isMobile?"calc(100vw - 20px)":"600px",maxWidth:"100%",maxHeight:"80vh",overflow:"hidden",boxShadow:"0 24px 64px rgba(0,0,0,0.28)",boxSizing:"border-box",display:"flex",flexDirection:"column"}}>
-            {/* Input row */}
-            <div style={{padding:"14px 18px",borderBottom:`1px solid ${isDark?"#2b302b":"#EBEBEB"}`,display:"flex",alignItems:"center",gap:"10px",flexShrink:0}}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={isDark?"#888":"#AAA"} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <input
-                value={srch}
-                onChange={e=>{setSrch(e.target.value);setSActiveIdx(-1);}}
-                onKeyDown={e=>{
-                  if(e.key==="ArrowDown"){e.preventDefault();setSActiveIdx(i=>Math.min(i+1,sFlatResults.length-1));}
-                  else if(e.key==="ArrowUp"){e.preventDefault();setSActiveIdx(i=>Math.max(i-1,0));}
-                  else if(e.key==="Enter"&&sActiveIdx>=0){e.preventDefault();selectSearchResult(sFlatResults[sActiveIdx]);}
-                }}
-                placeholder="Search songs, albums, artists…"
-                autoFocus
-                style={{flex:1,border:"none",outline:"none",fontSize:"16px",fontFamily:SF,background:"transparent",color:isDark?"#FFFFFF":"#000000"}}
-              />
-              {srch&&<button type="button" onClick={()=>{setSrch("");setSActiveIdx(-1);}} style={{border:"none",background:"none",cursor:"pointer",color:isDark?"#666":"#CCC",fontSize:"18px",lineHeight:1,padding:"0 2px"}}>×</button>}
-              <button type="button" onClick={closeSearch} style={{border:`1px solid ${isDark?"#333":"#E0E0E0"}`,borderRadius:"7px",background:"none",cursor:"pointer",color:isDark?"#888":"#999",fontFamily:F,fontSize:"10px",fontWeight:700,letterSpacing:"1px",padding:"4px 8px",whiteSpace:"nowrap"}}>ESC</button>
-            </div>
-            {/* Results */}
-            <div style={{overflowY:"auto",flex:1}}>
-              {/* Empty / hint states */}
-              {!sResults&&<div style={{padding:"28px 20px",textAlign:"center",color:isDark?"#555":"#CCC",fontFamily:F,fontSize:"13px"}}>Search songs, albums and artists</div>}
-              {sResults&&sFlatResults.length===0&&<div style={{padding:"28px 20px",textAlign:"center",color:isDark?"#666":"#BBB",fontFamily:F,fontSize:"13px"}}>No results for "{srch}"</div>}
-              {/* Songs */}
-              {sResults&&sResults.songs.length>0&&(
-                <>
-                  <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>Songs</div>
-                  {sResults.songs.map((e,i)=>{
-                    const flatIdx=i;
-                    const cert=dedupedLiveCerts?dedupedLiveCerts.find(c=>String(c.t||"").toLowerCase()===String(e.title||"").toLowerCase()&&String(c.a||"").toLowerCase()===String(e.artist||"").toLowerCase()):null;
-                    const certMeta=cert?certificationMetaForLevel(cert.level):null;
-                    return(
-                      <button key={`s-${i}`} type="button"
-                        onMouseEnter={()=>setSActiveIdx(flatIdx)}
-                        onClick={()=>selectSearchResult(e)}
-                        style={{display:"flex",alignItems:"center",gap:"12px",width:"100%",textAlign:"left",padding:"10px 18px",border:"none",borderBottom:`1px solid ${isDark?"#1c2320":"#F8F8F5"}`,cursor:"pointer",background:flatIdx===sActiveIdx?(isDark?"#1a2518":"#F0F7FF"):(isDark?"transparent":"transparent")}}>
-                        <EntryThumb item={e} name={e.artist} size={34} radius="8px" accent={GOLD} />
-                        <div style={{flex:1,minWidth:0}}>
-                          <div style={{fontSize:"13px",fontWeight:700,color:isDark?"#FFFFFF":"#000000",display:"flex",alignItems:"center",gap:"5px",overflow:"hidden"}}>
-                            <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.title}</span>
-                            {certMeta&&<span title={`${certMeta.label} certified`} style={{fontSize:"12px",flexShrink:0}}><span style={certMeta.iconFilter?{filter:certMeta.iconFilter}:{}}>{certMeta.icon}</span></span>}
-                          </div>
-                          <div style={{fontSize:"11px",color:isDark?"#7a8a7a":"#888",marginTop:"1px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.artist}</div>
-                        </div>
-                        <div style={{textAlign:"right",flexShrink:0,fontFamily:F}}>
-                          <div style={{fontSize:"11px",fontWeight:700,color:GOLD}}>#{e._bestRank}</div>
-                          <div style={{fontSize:"10px",color:isDark?"#666":"#BBB"}}>{e._months} mo</div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </>
-              )}
-              {/* Albums */}
-              {sResults&&sResults.albums.length>0&&(
-                <>
-                  <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>Albums</div>
-                  {sResults.albums.map((e,i)=>{
-                    const flatIdx=sResults.songs.length+i;
-                    return(
-                      <button key={`a-${i}`} type="button"
-                        onMouseEnter={()=>setSActiveIdx(flatIdx)}
-                        onClick={()=>selectSearchResult(e)}
-                        style={{display:"flex",alignItems:"center",gap:"12px",width:"100%",textAlign:"left",padding:"10px 18px",border:"none",borderBottom:`1px solid ${isDark?"#1c2320":"#F8F8F5"}`,cursor:"pointer",background:flatIdx===sActiveIdx?(isDark?"#1a2518":"#F0F7FF"):"transparent"}}>
-                        <EntryThumb item={e} name={e.artist} size={34} radius="8px" accent="#1a8a5a" />
-                        <div style={{flex:1,minWidth:0}}>
-                          <div style={{fontSize:"13px",fontWeight:700,color:isDark?"#FFFFFF":"#000000",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.title}</div>
-                          <div style={{fontSize:"11px",color:isDark?"#7a8a7a":"#888",marginTop:"1px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.artist}</div>
-                        </div>
-                        <div style={{textAlign:"right",flexShrink:0,fontFamily:F}}>
-                          <div style={{fontSize:"11px",fontWeight:700,color:GOLD}}>#{e._bestRank}</div>
-                          <div style={{fontSize:"10px",color:isDark?"#666":"#BBB"}}>{e._months} mo</div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </>
-              )}
-              {/* Artists */}
-              {sResults&&sResults.artists.length>0&&(
-                <>
-                  <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>Artists</div>
-                  {sResults.artists.map((a,i)=>{
-                    const flatIdx=sResults.songs.length+sResults.albums.length+i;
-                    const accent="#69716B";
-                    return(
-                      <button key={`ar-${i}`} type="button"
-                        onMouseEnter={()=>setSActiveIdx(flatIdx)}
-                        onClick={()=>selectSearchResult({...a,_kind:"artist"})}
-                        style={{display:"flex",alignItems:"center",gap:"12px",width:"100%",textAlign:"left",padding:"10px 18px",border:"none",borderBottom:`1px solid ${isDark?"#1c2320":"#F8F8F5"}`,cursor:"pointer",background:flatIdx===sActiveIdx?(isDark?"#1a2518":"#F0F7FF"):"transparent"}}>
-                        {a.image?<img src={a.image} alt={a.name} style={{width:34,height:34,borderRadius:"50%",objectFit:"cover",flexShrink:0,border:`1px solid ${isDark?"#333":"#EEE"}`}}/>:<div style={{width:34,height:34,borderRadius:"50%",background:isDark?"#222":"#F0EDE7",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"14px",fontWeight:800,color:isDark?"#666":"#CCC"}}>{String(a.name||"").charAt(0)}</div>}
-                        <div style={{flex:1,minWidth:0}}>
-                          <div style={{fontSize:"13px",fontWeight:700,color:isDark?"#FFFFFF":"#000000",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{a.display_name||a.name}</div>
-                          <div style={{fontSize:"11px",color:isDark?"#7a8a7a":"#888",marginTop:"1px"}}>{a.genre||""}{a.genre&&a.country?" · ":""}{a.country||""}</div>
-                        </div>
-                        {a.country_code&&<span style={{fontSize:"9px",fontWeight:800,letterSpacing:"0.8px",color:accent,border:`1px solid ${accent}55`,borderRadius:"6px",padding:"2px 6px",flexShrink:0,background:`${accent}12`}}>{a.country_code}</span>}
-                      </button>
-                    );
-                  })}
-                </>
-              )}
-              {/* Certifications */}
-              {sResults&&sResults.certs.length>0&&(
-                <>
-                  <div style={{padding:"8px 18px 4px",fontSize:"9px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",background:isDark?"#0e1115":"#F8F9FC",borderBottom:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`}}>Certifications</div>
-                  {sResults.certs.map((c,i)=>{
-                    const flatIdx=sResults.songs.length+sResults.albums.length+sResults.artists.length+i;
-                    const certMeta=certificationMetaForLevel(c.level);
-                    return(
-                      <button key={`c-${i}`} type="button"
-                        onMouseEnter={()=>setSActiveIdx(flatIdx)}
-                        onClick={()=>selectSearchResult({...c,_kind:"cert"})}
-                        style={{display:"flex",alignItems:"center",gap:"12px",width:"100%",textAlign:"left",padding:"10px 18px",border:"none",borderBottom:`1px solid ${isDark?"#1c2320":"#F8F8F5"}`,cursor:"pointer",background:flatIdx===sActiveIdx?(isDark?"#1a2518":"#F0F7FF"):"transparent"}}>
-                        <div style={{flex:1,minWidth:0}}>
-                          <div style={{fontSize:"13px",fontWeight:700,color:isDark?"#FFFFFF":"#000000",display:"flex",alignItems:"center",gap:"6px",overflow:"hidden"}}>
-                            {certMeta&&<span style={certMeta.iconFilter?{filter:certMeta.iconFilter,fontSize:"12px"}:{fontSize:"12px"}}>{certMeta.icon}</span>}
-                            <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.t}</span>
-                          </div>
-                          <div style={{fontSize:"11px",color:isDark?"#7a8a7a":"#888",marginTop:"1px"}}>{c.a}{certMeta?" · "+certMeta.label+" Certified":""}</div>
-                        </div>
-                        <div style={{fontSize:"11px",fontWeight:700,color:GOLD,flexShrink:0,fontFamily:F}}>{Number(c.totalPts||0).toLocaleString()} pts</div>
-                      </button>
-                    );
-                  })}
-                </>
-              )}
-              {/* Footer keyboard hint */}
-              {sResults&&sFlatResults.length>0&&(
-                <div style={{padding:"8px 18px",fontSize:"10px",color:isDark?"#444":"#CCC",fontFamily:F,borderTop:`1px solid ${isDark?"#1c2320":"#F0F0F0"}`,textAlign:"right"}}>
-                  ↑↓ navigate &nbsp;·&nbsp; Enter select &nbsp;·&nbsp; Esc close
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {sOpen&&<SearchDialog query={srch} onQuery={setSrch} results={sFlatResults} onClose={closeSearch} onSelect={selectSearchResult} isDark={isDark} renderThumb={(item)=><EntryThumb item={item} name={item.name||item.artist||item.a} size={44} radius={item._kind==="artist"||item._kind==="producer"?"50%":"10px"} accent={GOLD} />} />}
 
       <main style={pageFrame({padding:isMobile?"0 4px":0,overflow:"hidden"})}>
       {managedSections.map((section)=><section key={section.id || section.section} style={{margin:isMobile?"14px 18px":"18px 28px",padding:isMobile?"16px":"20px",border:`1px solid ${GOLD}33`,borderRadius:"14px",background:themeColors.elevated}}>
