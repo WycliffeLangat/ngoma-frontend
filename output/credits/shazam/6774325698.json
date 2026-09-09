@@ -2,10 +2,11 @@
   "apple_song_id": "6774325698",
   "requested_title": "Como Cava",
   "requested_artist": "4Mr Frank White",
-  "source_url": "https://www.shazam.com/song/6774325698/como-cava",
-  "checked_at": "2026-09-08T21:24:04.055237+00:00",
+  "source_url": "https://www.shazam.com/track/6774325698",
+  "checked_at": "2026-09-08T22:18:51.013295+00:00",
   "credits": [],
-  "resolved_url": "https://www.shazam.com/song/6774325698/como-cava",
-  "page_title": "FREAKED OUT - Fat Papi & prodshushy: Song Lyrics, Music Videos & Concerts",
-  "status": "page_identity_mismatch"
+  "resolved_url": "https://www.shazam.com/track/6774325698",
+  "page_title": "DtMF - Bad Bunny: Song Lyrics, Music Videos & Concerts",
+  "status": "page_identity_mismatch",
+  "identity_note": "Resolved page title does not contain the requested track title."
 }

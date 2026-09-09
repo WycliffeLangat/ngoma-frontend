@@ -2,10 +2,11 @@
   "apple_song_id": "1862935165",
   "requested_title": "STFU (feat. Slay Squad)",
   "requested_artist": "A$AP Rocky",
-  "source_url": "https://www.shazam.com/song/1862935165/stfu-feat-slay-squad",
-  "checked_at": "2026-09-08T21:24:11.752326+00:00",
+  "source_url": "https://www.shazam.com/track/1862935165",
+  "checked_at": "2026-09-08T22:19:01.530853+00:00",
   "credits": [],
-  "resolved_url": "https://www.shazam.com/song/1862935165/stfu-feat-slay-squad",
-  "page_title": "Jamaican (Bam Bam) - HUGEL & SOLTO (FR): Song Lyrics, Music Videos & Concerts",
-  "status": "page_identity_mismatch"
+  "resolved_url": "https://www.shazam.com/track/1862935165",
+  "page_title": "DtMF - Bad Bunny: Song Lyrics, Music Videos & Concerts",
+  "status": "page_identity_mismatch",
+  "identity_note": "Resolved page title does not contain the requested track title."
 }

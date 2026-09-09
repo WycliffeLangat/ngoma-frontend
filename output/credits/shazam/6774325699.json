@@ -2,10 +2,11 @@
   "apple_song_id": "6774325699",
   "requested_title": "Rusha",
   "requested_artist": "4Mr Frank White",
-  "source_url": "https://www.shazam.com/song/6774325699/rusha",
-  "checked_at": "2026-09-08T21:24:04.818518+00:00",
+  "source_url": "https://www.shazam.com/track/6774325699",
+  "checked_at": "2026-09-08T22:18:51.451628+00:00",
   "credits": [],
-  "resolved_url": "https://www.shazam.com/song/6774325699/rusha",
-  "page_title": "the feeling - Steve Lacy: Song Lyrics, Music Videos & Concerts",
-  "status": "page_identity_mismatch"
+  "resolved_url": "https://www.shazam.com/track/6774325699",
+  "page_title": "DtMF - Bad Bunny: Song Lyrics, Music Videos & Concerts",
+  "status": "page_identity_mismatch",
+  "identity_note": "Resolved page title does not contain the requested track title."
 }

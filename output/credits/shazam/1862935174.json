@@ -2,10 +2,11 @@
   "apple_song_id": "1862935174",
   "requested_title": "DON'T BE DUMB / TRIP BABY",
   "requested_artist": "A$AP Rocky",
-  "source_url": "https://www.shazam.com/song/1862935174/don-t-be-dumb-trip-baby",
-  "checked_at": "2026-09-08T21:24:16.126702+00:00",
+  "source_url": "https://www.shazam.com/track/1862935174",
+  "checked_at": "2026-09-08T22:19:04.123492+00:00",
   "credits": [],
-  "resolved_url": "https://www.shazam.com/song/1862935174/don-t-be-dumb-trip-baby",
-  "page_title": "Loser - Tame Impala: Song Lyrics, Music Videos & Concerts",
-  "status": "page_identity_mismatch"
+  "resolved_url": "https://www.shazam.com/track/1862935174",
+  "page_title": "DtMF - Bad Bunny: Song Lyrics, Music Videos & Concerts",
+  "status": "page_identity_mismatch",
+  "identity_note": "Resolved page title does not contain the requested track title."
 }
