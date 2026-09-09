@@ -985,15 +985,15 @@ export default function PremiumChartsPage({
     () => [...data].sort((a, b) => Number(a.rank) - Number(b.rank)),
     [data]
   );
-  // Hero artwork is available on desktop and mobile; previously text-only — no cover-art slideshow.
-  const showHeroArt = heroItems.length > 0;
+  // Mobile uses a text-only hero; show the artwork carousel on larger screens.
+  const showHeroArt = !mobile && heroItems.length > 0;
 
   useEffect(() => { setSlideIdx(0); }, [data]);
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
     const update = () => {
       clearInterval(slideTimerRef.current);
-      if (!heroPaused && !media.matches && !document.hidden && heroItems.length > 1) {
+      if (showHeroArt && !heroPaused && !media.matches && !document.hidden && heroItems.length > 1) {
         slideTimerRef.current = setInterval(() => setSlideIdx(i => (i + 1) % heroItems.length), 3800);
       }
     };
@@ -1005,7 +1005,7 @@ export default function PremiumChartsPage({
       media.removeEventListener('change', update);
       document.removeEventListener('visibilitychange', update);
     };
-  }, [heroPaused, heroItems.length]);
+  }, [showHeroArt, heroPaused, heroItems.length]);
 
   function sortValue(item, key) {
     const profile = getReleaseProfile(item);
