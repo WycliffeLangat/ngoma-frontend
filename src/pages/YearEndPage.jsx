@@ -1,3 +1,4 @@
+import { splitArtistTokens } from "../utils/artistCredit.js";
 import EditorialHero from "../components/EditorialHero.jsx";
 import RankingSpotlight from "../components/RankingSpotlight.jsx";
 import ShareButton from "../components/ShareButton.jsx";
@@ -37,6 +38,22 @@ export default function YearEndPage({ ctx }) {
     yearEndPlat,
     yearEndPlatOptions,
   } = ctx;
+  const artistLinks = (item) => (
+    <span style={{display:"block",marginTop:isMobile?"4px":"2px",fontFamily:F,fontSize:isMobile?"12.5px":"13px",fontWeight:400,lineHeight:1.5,color:isDark?"#FFFFFF":"#000000",overflowWrap:"anywhere"}}>
+      {splitArtistTokens(item.a).map((token,index)=>token.type==="separator" ? (
+        <span key={index}>{token.value}</span>
+      ) : (
+        <button
+          key={index}
+          type="button"
+          className="year-end-artist-link"
+          title={`Open ${token.value}`}
+          onClick={event=>{event.stopPropagation();openArtistDetails(token.value,"artists");}}
+          style={{border:0,background:"transparent",padding:0,font:"inherit",color:"inherit",textAlign:"left",cursor:"pointer"}}
+        >{token.value}</button>
+      ))}
+    </span>
+  );
   const yearEnd = yearEndDisplay;
   const info = (title, body, items = [], size = 16) => InfoButton ? (
     <InfoButton title={title} body={body} items={items} size={size} />
@@ -275,30 +292,7 @@ export default function YearEndPage({ ctx }) {
                               {item.entries || 0} {item.entries===1?"entry":"entries"} · {item.months} {item.months===1?"month":"months"}
                             </div>
                           ) : (
-                            <button
-                              type="button"
-                              onClick={(event)=>{event.stopPropagation();openArtistDetails(item.a);}}
-                              style={{
-                                display:"block",
-                                width:"100%",
-                                border:0,
-                                background:"transparent",
-                                padding:0,
-                                margin:"4px 0 0",
-                                textAlign:"left",
-                                fontFamily:F,
-                                fontSize:"12.5px",
-                                fontWeight:400,
-                                lineHeight:1.35,
-                                color:isDark?"#FFFFFF":"#000000",
-                                whiteSpace:"nowrap",
-                                overflow:"hidden",
-                                textOverflow:"ellipsis",
-                                cursor:"pointer",
-                              }}
-                            >
-                              {item.a}
-                            </button>
+                            artistLinks(item)
                           )}
                         </div>
                       </div>
@@ -426,19 +420,7 @@ export default function YearEndPage({ ctx }) {
                               {item.entries || 0} {item.entries===1?"entry":"entries"} · {item.months} {item.months===1?"month":"months"}
                             </div>
                           ) : (
-                            <button type="button" onClick={(event)=>{event.stopPropagation();openArtistDetails(item.a);}} style={{
-                              fontSize:"13px",
-                              color:isDark?"#FFFFFF":"#000000",
-                              fontFamily:F,
-                              border:0,
-                              background:"transparent",
-                              padding:0,
-                              textAlign:"left",
-                              cursor:"pointer",
-                              marginTop:"2px",
-                            }}>
-                              {item.a}
-                            </button>
+                            artistLinks(item)
                           )}
                         </div>
                       </div>

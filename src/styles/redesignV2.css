@@ -531,3 +531,6 @@
 @media (max-width: 380px) {
   .ngoma-redesign-v2 .cert-wall-card { padding: 14px; gap: 14px 8px; }
 }
+
+.year-end-artist-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.year-end-artist-link:focus-visible { outline: 2px solid #b89542; outline-offset: 3px; border-radius: 2px; }
