@@ -211,7 +211,7 @@ export async function exportNodeAsPng(node, filename, options = {}) {
   stampPosterDownloadDates(node);
   await waitForPosterFonts();
   await waitForPosterImages(node);
-  const backgroundColor = options.backgroundColor || "#050505";
+  const backgroundColor = options.backgroundColor || "#000000";
   let dataUrl;
   try {
     dataUrl = await nodeToPng(node, { skipFonts: false, pixelRatio: options.pixelRatio, backgroundColor });
@@ -229,7 +229,7 @@ export const POSTER_FONT_FAMILY = "Inter, -apple-system, BlinkMacSystemFont, 'Se
 // everywhere instead of each card type drifting its own colors.
 export const POSTER_THEMES = {
   dark: {
-    pageBg: "#10130f",
+    pageBg: "#000000",
     wordmarkBarColor: "#fffdf8",
     titleColor: "#fffdf8",
     metaColor: "#b6bcae",
@@ -241,7 +241,7 @@ export const POSTER_THEMES = {
     emptyColor: "#b6bcae",
   },
   light: {
-    pageBg: "#fffdf8",
+    pageBg: "#FFFFFF",
     wordmarkBarColor: "#0e100d",
     titleColor: "#0e100d",
     metaColor: "#696f67",
