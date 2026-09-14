@@ -1,7 +1,7 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
 import "../styles/search.css";
 
-const categories = [["all", "All"], ["song", "Songs"], ["album", "Albums"], ["artist", "Artists"], ["producer", "Producers"], ["cert", "Certifications"]];
+const categories = [["all", "All"], ["song", "Songs"], ["album", "Albums"], ["artist", "Artists"], ["producer", "Producers (Beta)"], ["cert", "Certifications"]];
 const labels = { song: "Song", album: "Album", artist: "Artist", producer: "Producer", cert: "Certification" };
 const title = item => item.display_name || item.name || item.title || item.t || "Untitled";
 const recentKey = "ngoma.recent-searches";

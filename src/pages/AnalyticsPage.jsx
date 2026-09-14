@@ -322,14 +322,14 @@ export default function AnalyticsPage({ ctx }) {
 
   return (
 <div className="ngoma-analytics-page v2-analytics-page" style={{padding:PAD,background:"transparent",minHeight:"60vh",boxSizing:"border-box",overflow:"hidden"}}>
-          <EditorialHero showVisual={!isMobile} eyebrow={chartTypeLabel + ' analytics - ' + anMonth} title="Monthly intelligence" description="Follow the music moving the charts. Explore monthly climbers, biggest drops and new arrivals, then discover the records behind them." metric={getCombined(ct, anMonth).length} metricLabel={'Entries in the Combined chart for ' + anMonth + '.'} entry={getCombined(ct, anMonth)[0]} isArtist={isArtists} onOpen={openMoverDetails} actions={<div style={{display:"flex",gap:"10px",flexDirection:isMobile?"column":"row",alignItems:isMobile?"stretch":"center",flexShrink:0,width:isMobile?"100%":"auto"}}>
+          <EditorialHero showVisual={!isMobile} eyebrow={chartTypeLabel + ' analytics - ' + anMonth} title="Monthly intelligence" description="Follow the music moving the charts. Explore monthly climbers, biggest drops and new arrivals, then discover the records behind them." metric={analyticsRowsFor(anMonth).length} metricLabel={'Entries in the Combined chart for ' + anMonth + '.'} entry={analyticsRowsFor(anMonth)[0]} isArtist={isArtists} onOpen={openMoverDetails} actions={<div style={{display:"flex",gap:"10px",flexDirection:isMobile?"column":"row",alignItems:isMobile?"stretch":"center",flexShrink:0,width:isMobile?"100%":"auto"}}>
               {/* Month select + Share are grouped on their own row (space-
                   between on mobile) so Share always lands on the right edge
                   instead of wrapping onto a second line behind the wide
                   chart-type switcher below it — three wide controls crammed
                   into one row was what pushed Share out of position. */}
               <div style={{display:"flex",gap:"10px",alignItems:"center",justifyContent:isMobile?"space-between":"flex-start"}}>
-                <MonthScopeSelect wide />
+                <MonthScopeSelect wide selectedMonth={anMonth} onMonthChange={setAnMonth} />
                 {compactInfo("Analytics Month", "Choose which published month powers the movement, platform, country, and monthly analytics panels. All-time records still use the full tracked history.")}
                 <ShareButton
                   isDark={isDark}

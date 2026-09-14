@@ -1065,10 +1065,9 @@ export default function PremiumChartsPage({
     return `${ct}-${month}-${plat}-${item.title}-${item.primary_artist || item.artist}-${item.rank}-${index}`;
   }
 
-  function yearEndTitleStyle(item) {
-    const topThree = Number(item?.rank) <= 3;
+  function chartEntryTitleStyle() {
     return {
-      fontSize: mobile ? (topThree ? "14.5px" : "13.25px") : (tablet ? (topThree ? "16px" : "14.25px") : (topThree ? "17px" : "15px")),
+      fontSize: mobile ? "14.5px" : (tablet ? "16px" : "17px"),
       fontWeight: 850,
       ...(mobile
         ? { whiteSpace: "normal", overflow: "visible", textOverflow: "clip", overflowWrap: "anywhere" }
@@ -1117,7 +1116,7 @@ export default function PremiumChartsPage({
                 minHeight: mobile ? "38px" : (tablet ? "36px" : undefined),
               }}
             >
-              {item}
+              {item === "producers" ? "Producers (Beta)" : item}
             </button>
           );
         })}
@@ -1587,7 +1586,7 @@ export default function PremiumChartsPage({
               }}
             >
               {PUBLIC_CHART_TYPES.map((item) => (
-                <option key={item} value={item}>{item.charAt(0).toUpperCase() + item.slice(1)}</option>
+                <option key={item} value={item}>{item === "producers" ? "Producers (Beta)" : item.charAt(0).toUpperCase() + item.slice(1)}</option>
               ))}
             </select>
             <select
@@ -1849,7 +1848,7 @@ export default function PremiumChartsPage({
                             openRelease(item);
                           }}
                           className="ngoma-title-link"
-                          style={{ ...styles.titleButton, ...yearEndTitleStyle(item), fontFamily: SF, ...(darkMode ? styles.titleButtonDark : null), color: darkMode ? "#FFFFFF" : "#000000" }}
+                          style={{ ...styles.titleButton, ...chartEntryTitleStyle(), fontFamily: SF, ...(darkMode ? styles.titleButtonDark : null), color: darkMode ? "#FFFFFF" : "#000000" }}
                           title={`Open ${item.title}`}
                         >
                           {item.title}
@@ -1913,7 +1912,7 @@ export default function PremiumChartsPage({
                       color: medalColor,
                       justifySelf: "center",
                       textAlign: "center",
-                      fontSize: tablet ? (item.rank === 1 ? "24px" : item.rank <= 3 ? "20px" : "28px") : (item.rank === 1 ? "26px" : item.rank <= 3 ? "22px" : undefined),
+                      fontSize: tablet ? "20px" : "22px",
                       fontWeight: item.rank <= 3 ? 950 : 900,
                     }}
                   >
@@ -1939,7 +1938,7 @@ export default function PremiumChartsPage({
                         <button
                           onClick={() => openRelease(item)}
                           className="ngoma-title-link"
-                          style={{ ...styles.titleButton, ...yearEndTitleStyle(item), fontFamily: SF, ...(darkMode ? styles.titleButtonDark : null), color: darkMode ? "#FFFFFF" : "#000000" }}
+                          style={{ ...styles.titleButton, ...chartEntryTitleStyle(), fontFamily: SF, ...(darkMode ? styles.titleButtonDark : null), color: darkMode ? "#FFFFFF" : "#000000" }}
                           title={`Open ${item.title}`}
                         >
                           {item.title}
