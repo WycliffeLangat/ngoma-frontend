@@ -68,6 +68,6 @@ export function contributorNames(entry, role) {
     .filter((name) => !(role === "producers" && EXECUTIVE_PRODUCER.test(name)));
 }
 
-export const PUBLIC_CHART_TYPES = ["singles", "albums", "artists", "producers"];
+export const PUBLIC_CHART_TYPES = ["singles", "albums", "artists"];
 export const isPeopleChart = (type) => ["artists", "songwriters", "producers"].includes(type);
 export const chartTypeName = (type) => String(type || "singles").replace(/^./, (letter) => letter.toUpperCase());

@@ -1116,7 +1116,7 @@ export default function PremiumChartsPage({
                 minHeight: mobile ? "38px" : (tablet ? "36px" : undefined),
               }}
             >
-              {item === "producers" ? "Producers (Beta)" : item}
+              {item}
             </button>
           );
         })}
@@ -1586,7 +1586,7 @@ export default function PremiumChartsPage({
               }}
             >
               {PUBLIC_CHART_TYPES.map((item) => (
-                <option key={item} value={item}>{item === "producers" ? "Producers (Beta)" : item.charAt(0).toUpperCase() + item.slice(1)}</option>
+                <option key={item} value={item}>{item.charAt(0).toUpperCase() + item.slice(1)}</option>
               ))}
             </select>
             <select
@@ -1614,9 +1614,9 @@ export default function PremiumChartsPage({
             {InfoButton && (
               <InfoButton
                 title="Chart Controls"
-                body="Use these controls to switch the public chart between singles, albums, artists, producers, Combined ranking, country scope, and available source platforms."
+                body="Use these controls to switch the public chart between singles, albums, artists, Combined ranking, country scope, and available source platforms."
                 items={[
-                  "Chart type changes whether the list is songs, albums, artists, or producers.",
+                  "Chart type changes whether the list is songs, albums, or artists.",
                   "Platform changes whether you see the Combined chart, a country chart, or a specific source platform.",
                   "Share downloads the current chart artwork.",
                 ]}
@@ -1642,7 +1642,7 @@ export default function PremiumChartsPage({
               {InfoButton && (
                 <InfoButton
                   title="Chart Type"
-                  body="Switch between singles, albums, artists, and producers. People charts aggregate Top 50 release performance using the corresponding metadata credits."
+                  body="Switch between singles, albums, and artists. People charts aggregate Top 50 release performance using the corresponding metadata credits."
                   size={18}
                 />
               )}

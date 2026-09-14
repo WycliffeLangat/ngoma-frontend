@@ -3399,7 +3399,7 @@ const top = data[0];
   };
 
   const Tog=({sm})=>(
-    isMobile ? <PillDropdown ariaLabel="Chart type" value={chartTypePreview} onChange={switchChartType} options={PUBLIC_CHART_TYPES.map(value => ({value, label: value === "producers" ? "Producers (Beta)" : chartTypeName(value)}))} isDark={isDark} F={F} GOLD={GOLD} width="100%" /> : <div
+    isMobile ? <PillDropdown ariaLabel="Chart type" value={chartTypePreview} onChange={switchChartType} options={PUBLIC_CHART_TYPES.map(value => ({value, label: chartTypeName(value)}))} isDark={isDark} F={F} GOLD={GOLD} width="100%" /> : <div
       className="ngoma-chart-type-tabs"
       style={{
         display:"flex",
@@ -3438,7 +3438,7 @@ const top = data[0];
           boxShadow:"none",
           transition:"background-color .12s ease-out, border-color .12s ease-out, color .12s ease-out, box-shadow .12s ease-out, opacity .12s ease-out",
         }}
-      >{t === "producers" ? "Producers (Beta)" : t}</button>;})}
+      >{t}</button>;})}
     </div>
   );
 
