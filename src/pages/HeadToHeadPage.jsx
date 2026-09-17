@@ -178,7 +178,7 @@ export default function HeadToHeadPage({ ctx }) {
                     <ResponsiveContainer width="100%" height={isMobile?190:180}>
                       <LineChart data={songRankData} margin={{top:14,right:isMobile?20:14,left:isMobile?8:4,bottom:4}}>
                         <CartesianGrid stroke={gridStroke} vertical={false}/>
-                        <XAxis dataKey="month" tick={axisTick(isMobile?11:10.5)} tickLine={{stroke:axisStroke}} axisLine={{stroke:axisStroke}}/>
+                        <XAxis minTickGap={isMobile ? 32 : 12} interval="preserveStartEnd" dataKey="month" tick={axisTick(isMobile?11:10.5)} tickLine={{stroke:axisStroke}} axisLine={{stroke:axisStroke}}/>
                         <YAxis width={isMobile?42:40} reversed domain={[1,"dataMax"]} tick={axisTick(isMobile?10.5:10)} tickFormatter={v=>"#"+v} axisLine={{stroke:axisStroke}} tickLine={{stroke:axisStroke}}/>
                         <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} cursor={{stroke:gridStroke}} formatter={(v,n)=>["#"+v,n==="A"?sp1.title:sp2.title]}/>
                         <Line dataKey="A" stroke={GOLD} strokeWidth={2} dot={{r:4,fill:GOLD,stroke:isDark?"#0F120F":"#FFFFFF",strokeWidth:2}} activeDot={{r:6}} connectNulls/>
@@ -190,7 +190,7 @@ export default function HeadToHeadPage({ ctx }) {
               </div>
               {/* Metric comparison table */}
               <div style={{width:"100%",maxWidth:isMobile?"360px":"none",margin:"0 auto 16px",border:"1px solid "+(isDark?"#2F352F":"#E4E1D8"),borderRadius:"12px",overflow:"hidden",background:isDark?"#0F120F":"#FFF",boxShadow:isDark?"none":"0 8px 24px rgba(31,36,31,0.05)"}}>
-                <div style={{display:"grid",gridTemplateColumns:isMobile?"minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)":"minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)",gap:"8px",alignItems:"center",padding:isMobile?"10px 9px":"12px 16px",background:"#1F241F",color:"#FFF"}}>
+                <div className="ngoma-comparison-row" style={{display:"grid",gridTemplateColumns:isMobile?"minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)":"minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)",gap:"8px",alignItems:"center",padding:isMobile?"10px 9px":"12px 16px",background:"#1F241F",color:"#FFF"}}>
                   <div style={{fontFamily:F,fontSize:"13px",fontWeight:850,textAlign:"center",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",color:"#FFF"}}>{sp1.title}</div>
                   <div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1.2px",textAlign:"center",textTransform:"uppercase",color:"#FFFFFF",display:"inline-flex",alignItems:"center",justifyContent:"center",gap:"5px"}}>Metric{info("Metric", "The comparison category being measured for both selected entries.", [], 14)}</div>
                   <div style={{fontFamily:F,fontSize:"13px",fontWeight:850,textAlign:"center",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",color:"#FFF"}}>{sp2.title}</div>
@@ -209,7 +209,7 @@ export default function HeadToHeadPage({ ctx }) {
                     const aWins=r.hi==="max"?r.a>r.b:r.a<r.b;
                     const bWins=r.hi==="max"?r.b>r.a:r.b<r.a;
                     return(
-                      <div key={i} style={{display:"grid",gridTemplateColumns:isMobile?"minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)":"minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)",alignItems:"stretch",background:isDark?(i%2?"#121612":"#0F120F"):(i%2?"#FBFAF7":"#FFF"),borderBottom:i===rows.length-1?"none":"1px solid "+(isDark?"#2F352F":"#EEEAE1"),gap:0}}>
+                      <div key={i} className="ngoma-comparison-row" style={{display:"grid",gridTemplateColumns:isMobile?"minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)":"minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)",alignItems:"stretch",background:isDark?(i%2?"#121612":"#0F120F"):(i%2?"#FBFAF7":"#FFF"),borderBottom:i===rows.length-1?"none":"1px solid "+(isDark?"#2F352F":"#EEEAE1"),gap:0}}>
                         <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"12px 6px":"16px 14px",fontFamily:F,fontSize:"16px",fontWeight:aWins?900:800,color:isDark?"#FFFFFF":"#000000",background:"transparent"}}>{r.fmt(r.a)}</div>
                         <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"12px 5px":"16px 10px",borderLeft:"1px solid "+(isDark?"#2F352F":"#EEEAE1"),borderRight:"1px solid "+(isDark?"#2F352F":"#EEEAE1"),fontFamily:F,fontSize:"11px",letterSpacing:"0.8px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",fontWeight:850,lineHeight:1.25,gap:"5px"}}>{r.label}{info(r.label, metricInfo(r.label), [], 14)}</div>
                         <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"12px 6px":"16px 14px",fontFamily:F,fontSize:"16px",fontWeight:bWins?900:800,color:isDark?"#FFFFFF":"#000000",background:"transparent"}}>{r.fmt(r.b)}</div>
@@ -235,7 +235,7 @@ export default function HeadToHeadPage({ ctx }) {
                 </div>
                 {platCompareView==="table" ? (
                 <div style={{border:"1px solid "+(isDark?"#2F352F":"#E4E1D8"),borderRadius:"12px",overflow:"hidden",background:isDark?"#0F120F":"#FFF"}}>
-                  <div style={{display:"grid",gridTemplateColumns:isMobile?"minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)":"minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)",gap:"8px",padding:isMobile?"10px 9px":"12px 16px",background:"#1F241F",fontFamily:F,fontSize:"11px",fontWeight:850,letterSpacing:"1px",textTransform:"uppercase",color:"#FFFFFF"}}>
+                  <div className="ngoma-comparison-row" style={{display:"grid",gridTemplateColumns:isMobile?"minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)":"minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)",gap:"8px",padding:isMobile?"10px 9px":"12px 16px",background:"#1F241F",fontFamily:F,fontSize:"11px",fontWeight:850,letterSpacing:"1px",textTransform:"uppercase",color:"#FFFFFF"}}>
                     <div style={{textAlign:"center",color:"#FFF",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{sp1.title.length>16?sp1.title.slice(0,14)+"…":sp1.title}</div>
                     <div style={{textAlign:"center",display:"inline-flex",alignItems:"center",justifyContent:"center",gap:"5px"}}>Platform{info("Platform", "The source platform being compared for peak rank performance.", [], 14)}</div>
                     <div style={{textAlign:"center",color:"#FFF",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{sp2.title.length>16?sp2.title.slice(0,14)+"…":sp2.title}</div>
@@ -244,7 +244,7 @@ export default function HeadToHeadPage({ ctx }) {
                     const a=sp1.platforms[pl],b=sp2.platforms[pl];
                     const lbl=PLAT_LABEL[pl]||pl;
                     return(
-                      <div key={pl} style={{display:"grid",gridTemplateColumns:isMobile?"minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)":"minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)",alignItems:"stretch",gap:0,background:isDark?(i%2?"#121612":"#0F120F"):(i%2?"#FBFAF7":"#FFF"),borderBottom:i===PLATS_FOR.length-1?"none":"1px solid "+(isDark?"#2F352F":"#EEEAE1")}}>
+                      <div key={pl} className="ngoma-comparison-row" style={{display:"grid",gridTemplateColumns:isMobile?"minmax(76px,1fr) minmax(100px,0.9fr) minmax(76px,1fr)":"minmax(130px,1fr) minmax(150px,0.8fr) minmax(130px,1fr)",alignItems:"stretch",gap:0,background:isDark?(i%2?"#121612":"#0F120F"):(i%2?"#FBFAF7":"#FFF"),borderBottom:i===PLATS_FOR.length-1?"none":"1px solid "+(isDark?"#2F352F":"#EEEAE1")}}>
                         <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:isMobile?"9px 6px":"11px 12px",fontFamily:F,fontSize:"15px",fontWeight:900,color:a?(isDark?"#FFFFFF":"#000000"):(isDark?"#68716B":"#B8BDB8")}}>{a?"#"+a:"—"}</div>
                         <div style={{display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:isMobile?"9px 5px":"11px 10px",borderLeft:"1px solid "+(isDark?"#2F352F":"#EEEAE1"),borderRight:"1px solid "+(isDark?"#2F352F":"#EEEAE1"),fontFamily:F,fontSize:"11px",fontWeight:850,color:PC[pl]||GOLD,letterSpacing:"0.6px",textTransform:"uppercase",lineHeight:1.25}}>{lbl}</div>
                         <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:isMobile?"9px 6px":"11px 12px",fontFamily:F,fontSize:"15px",fontWeight:900,color:b?(isDark?"#FFFFFF":"#000000"):(isDark?"#68716B":"#B8BDB8")}}>{b?"#"+b:"—"}</div>

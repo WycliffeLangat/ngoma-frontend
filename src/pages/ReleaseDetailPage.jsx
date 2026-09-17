@@ -352,7 +352,7 @@ export default function ReleaseDetailPage({ ctx }) {
                 <ResponsiveContainer width="100%" height={220}>
                   <LineChart data={releaseRankData} margin={{top:8,right:18,left:0,bottom:0}}>
                     <CartesianGrid stroke={gridStroke} vertical={false}/>
-                    <XAxis dataKey="month" tick={axisTick(10)} tickLine={false} axisLine={false}/>
+                    <XAxis minTickGap={isMobile ? 32 : 12} interval="preserveStartEnd" dataKey="month" tick={axisTick(10)} tickLine={false} axisLine={false}/>
                     <YAxis reversed domain={[1,50]} tick={axisTick(10)} tickFormatter={v=>`#${v}`} axisLine={false} tickLine={false}/>
                     <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} cursor={{stroke:gridStroke}} formatter={(v)=>[`#${v}`,"Rank"]}/>
                     <Line type="monotone" dataKey="rank" stroke={GOLD} strokeWidth={2} dot={{r:4,fill:GOLD,stroke:isDark?"#0F120F":"#FFFFFF",strokeWidth:2}} activeDot={{r:6}}/>
@@ -380,26 +380,26 @@ export default function ReleaseDetailPage({ ctx }) {
             <div style={darkCard({marginBottom:0})}>
               <div style={secLbl(isDark?"#FFFFFF":"#000000")}><SecMark c={isDark?"#FFFFFF":"#000000"}/>Cross-Platform Journey{info("Cross-Platform Journey", "This table follows the release month by month, showing its Combined rank, platform coverage, and the source-platform placements behind that month.", ["Use it to see whether the release was driven by one platform, broad platform coverage, or both.", "The platform chips show each source platform and its rank for that month."])}</div>
               <div style={{border:`1px solid ${isDark?"#2B302B":"#E4E1D8"}`,borderRadius:"12px",overflow:"hidden"}}>
-                <div style={{display:"grid",gridTemplateColumns:isMobile?"58px 84px 46px minmax(0,1fr)":"74px 140px 60px minmax(0,1fr)",gap:"8px",padding:isMobile?"9px":"11px 14px",background:"#1F241F",fontFamily:F,fontSize:"10.5px",fontWeight:850,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF"}}>
+                <div className="ngoma-journey-header" style={{display:"grid",gridTemplateColumns:isMobile?"58px 84px 46px minmax(0,1fr)":"74px 140px 60px minmax(0,1fr)",gap:"8px",padding:isMobile?"9px":"11px 14px",background:"#1F241F",fontFamily:F,fontSize:"10.5px",fontWeight:850,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF"}}>
                   <div style={{display:"inline-flex",alignItems:"center",gap:"5px"}}>Month{InfoButton && <InfoButton title="Journey Month" body={statInfo("Month")} size={14} style={{background:"rgba(255,255,255,0.10)",color:"#FFFFFF",borderColor:"rgba(255,255,255,0.32)"}} />}</div><div style={{display:"inline-flex",alignItems:"center",gap:"5px"}}>Combined{InfoButton && <InfoButton title="Combined Journey Value" body={statInfo("Combined")} size={14} style={{background:"rgba(255,255,255,0.10)",color:"#FFFFFF",borderColor:"rgba(255,255,255,0.32)"}} />}</div><div style={{display:"inline-flex",alignItems:"center",gap:"5px"}}>Cover{InfoButton && <InfoButton title="Platform Coverage" body={statInfo("Cover")} size={14} style={{background:"rgba(255,255,255,0.10)",color:"#FFFFFF",borderColor:"rgba(255,255,255,0.32)"}} />}</div><div style={{display:"inline-flex",alignItems:"center",gap:"5px"}}>Platforms{InfoButton && <InfoButton title="Journey Platforms" body="The source platforms where this release appeared in the selected month, with each chip showing that platform's rank." size={14} style={{background:"rgba(255,255,255,0.10)",color:"#FFFFFF",borderColor:"rgba(255,255,255,0.32)"}} />}</div>
                 </div>
                 {chartedJourney.map(({month:m,combined,platforms},idx)=>{
                   const isPeak = combined && Number(combined.rank) === 1;
                   return (
-                  <div key={m} style={{display:"grid",gridTemplateColumns:isMobile?"58px 84px 46px minmax(0,1fr)":"74px 140px 60px minmax(0,1fr)",gap:"8px",alignItems:"center",padding:isMobile?"9px":"10px 14px",background:isDark?(idx%2?"#121612":"#0F120F"):(idx%2?"#FBFAF7":"#FFFFFF"),borderTop:idx===0?"none":`1px solid ${dividerColor}`,borderLeft:isPeak?`3px solid ${isDark?"#FFFFFF":"#000000"}`:"3px solid transparent"}}>
+                  <div key={m} className="ngoma-journey-row" style={{display:"grid",gridTemplateColumns:isMobile?"58px 84px 46px minmax(0,1fr)":"74px 140px 60px minmax(0,1fr)",gap:"8px",alignItems:"center",padding:isMobile?"9px":"10px 14px",background:isDark?(idx%2?"#121612":"#0F120F"):(idx%2?"#FBFAF7":"#FFFFFF"),borderTop:idx===0?"none":`1px solid ${dividerColor}`,borderLeft:isPeak?`3px solid ${isDark?"#FFFFFF":"#000000"}`:"3px solid transparent"}}>
                     <span style={{fontFamily:SF,fontSize:"12px",fontWeight:800,color:isDark?"#FFFFFF":"#000000"}}>{m}</span>
                     {combined
                       ? <span style={{fontFamily:F,fontSize:"11.5px",fontWeight:800,color:isDark?"#FFFFFF":"#000000"}}>#{combined.rank} · {combined.pts.toLocaleString()} pts</span>
                       : <span style={{fontFamily:F,fontSize:"11px",color:isDark?"#FFFFFF":"#000000"}}>—</span>}
                     <span style={{fontFamily:F,fontSize:"11px",fontWeight:800,color:isDark?"#FFFFFF":"#000000"}}>{platforms.length}/{tp}</span>
-                    <div style={{display:"flex",gap:"5px",flexWrap:"wrap"}}>
+                    <details className="ngoma-journey-platforms" open={isMobile ? undefined : true}><summary>Platforms ({platforms.length})</summary><div style={{display:"flex",gap:"8px",flexWrap:"wrap"}}>
                       {platforms.map(p=>(
                         <span key={p.platform} title={`${p.platform} #${p.rank}`} style={{padding:"2px 8px",background:(PC[p.platform]||"#888")+"18",borderRadius:"999px",fontSize:"9.5px",fontFamily:F,fontWeight:700,color:PC[p.platform]||"#888"}}>
                           {p.platform} #{p.rank}
                         </span>
                       ))}
                       {!platforms.length && <span style={{fontSize:"11px",color:isDark?"#68716B":"#B8BDB8"}}>—</span>}
-                    </div>
+                    </div></details>
                   </div>
                   );
                 })}

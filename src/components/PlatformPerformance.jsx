@@ -106,7 +106,7 @@ export default function PlatformPerformance({
             Points by Platform
             {info("Points by Platform", "This chart summarizes how much each tracked source platform contributes to the selected song, album, or artist.", ["Graph view makes the strongest platforms easy to scan.", "Table view exposes the underlying totals, placements, peaks, months, and release counts when available."], 16)}
           </div>
-          <p style={{ margin: "-4px 0 0", fontFamily: F, fontSize: "12px", lineHeight: 1.5, color: isDark ? "#FFFFFF" : "#000000" }}>
+          <p className="ngoma-mobile-secondary-copy" style={{ margin: "8px 0 0", fontFamily: F, fontSize: "12px", lineHeight: 1.5, color: isDark ? "#FFFFFF" : "#000000" }}>
             Monthly platform placements are aggregated here for quick cross-platform comparison.
           </p>
         </div>
@@ -140,10 +140,10 @@ export default function PlatformPerformance({
       </div>
 
       {view === "graph" && (
-        <ResponsiveContainer width="100%" height={Math.max(160, ranked.length * 34)}>
+        <ResponsiveContainer width="100%" height={Math.max(160, ranked.length * (isMobile ? 42 : 34))}>
           <BarChart data={ranked} layout="vertical" margin={{ top: 4, right: 24, left: 4, bottom: 4 }} barCategoryGap="22%">
             <CartesianGrid stroke={gridStroke} horizontal={false} />
-            <XAxis type="number" allowDecimals={false} tick={axisTick(10)} axisLine={false} tickLine={false} />
+            <XAxis tickCount={isMobile ? 3 : 5} minTickGap={24} type="number" allowDecimals={false} tick={axisTick(10)} axisLine={false} tickLine={false} />
             <YAxis type="category" dataKey="platform" width={isMobile ? 82 : 104} tick={axisTick(11, { fontWeight: 800 })} axisLine={false} tickLine={false} />
             <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} cursor={{ fill: barCursorFill }} formatter={(v) => [Number(v).toLocaleString() + " pts", "Points"]} />
             <Bar dataKey="points" radius={[0, 6, 6, 0]} maxBarSize={30}>
@@ -164,11 +164,11 @@ export default function PlatformPerformance({
                 </div>
                 <span style={{ fontFamily: F, fontSize: "14px", fontWeight: 900, color: isDark ? "#FFFFFF" : "#000000", flexShrink: 0 }}>{Number(row.points).toLocaleString()} pts</span>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: showReleases ? "repeat(4, 1fr)" : "repeat(3, 1fr)", gap: "6px", fontFamily: F, fontSize: "11px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "14px", fontFamily: F, fontSize: "11px" }}>
                 {[["Placements", row.placements], ["Peak", row.peakRank === "—" ? "—" : `#${row.peakRank}`], ["Months", row.months], ...(showReleases ? [["Releases", row.releases]] : [])].map(([label, value]) => (
                   <div key={label} style={{ textAlign: "center" }}>
                     <div style={{ color: isDark ? "#FFFFFF" : "#000000", fontWeight: 800 }}>{value}</div>
-                    <div style={{ color: isDark ? "#FFFFFF" : "#000000", fontSize: "9px", textTransform: "uppercase", letterSpacing: ".6px", marginTop: "2px", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>{label}{info(label, infoCopy[label] || `${label} summarizes platform performance for the selected item.`, [], 13)}</div>
+                    <div style={{ color: isDark ? "#FFFFFF" : "#000000", fontSize: "11px", textTransform: "uppercase", letterSpacing: ".6px", marginTop: "2px", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>{label}{info(label, infoCopy[label] || `${label} summarizes platform performance for the selected item.`, [], 13)}</div>
                   </div>
                 ))}
               </div>

@@ -350,7 +350,7 @@ export default function ArtistDetailPage({ ctx }) {
                     </pattern>
                   </defs>
                   <CartesianGrid stroke={gridStroke} vertical={false}/>
-                  <XAxis dataKey="month" tick={axisTick(10.5)} tickLine={false} axisLine={false}/>
+                  <XAxis minTickGap={isMobile ? 32 : 12} interval="preserveStartEnd" dataKey="month" tick={axisTick(10.5)} tickLine={false} axisLine={false}/>
                   <YAxis tick={axisTick(10)} axisLine={false} tickLine={false}/>
                   <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} cursor={{fill:barCursorFill}} formatter={v=>[v.toLocaleString()+" pts","Points"]}/>
                   <Bar dataKey="points" fill="url(#artistGoldTexture)" stroke={GOLD} strokeWidth={1} radius={[5,5,0,0]} maxBarSize={48}/>
@@ -362,7 +362,7 @@ export default function ArtistDetailPage({ ctx }) {
               <ResponsiveContainer width="100%" height={190}>
                 <LineChart data={selectedArtistRankData} margin={{top:8,right:12,left:0,bottom:0}}>
                   <CartesianGrid stroke={gridStroke} vertical={false}/>
-                  <XAxis dataKey="month" tick={axisTick(10.5)} tickLine={false} axisLine={false}/>
+                  <XAxis minTickGap={isMobile ? 32 : 12} interval="preserveStartEnd" dataKey="month" tick={axisTick(10.5)} tickLine={false} axisLine={false}/>
                   <YAxis reversed domain={[1,"dataMax"]} allowDecimals={false} tickCount={8} tick={axisTick(10)} tickFormatter={v=>`#${v}`} axisLine={false} tickLine={false}/>
                   <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} cursor={{stroke:gridStroke}} formatter={v=>[`#${v}`,`${personLabel} Rank`]}/>
                   <Line type="monotone" dataKey="rank" stroke="#1565C0" strokeWidth={2} connectNulls dot={{r:4,fill:"#1565C0",stroke:isDark?"#0F120F":"#FFFFFF",strokeWidth:2}} activeDot={{r:6}}/>
