@@ -223,7 +223,7 @@ export default function HeadToHeadPage({ ctx }) {
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"10px",gap:"10px",flexWrap:"wrap"}}>
                   <div style={{fontFamily:F,fontSize:isMobile?"10px":"9.5px",fontWeight:800,letterSpacing:"1.4px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",display:"inline-flex",alignItems:"center",gap:"6px"}}>Peak Rank by Platform{info("Peak Rank by Platform", "Compares each entry's best rank on every tracked source platform. Lower ranks are better; blank values mean no platform rank in the data.", [], 14)}</div>
                   <div style={{display:"flex",gap:"6px"}}>
-                    {["table","graph"].map(v=>(
+                    {isMobile ? <label className="ngoma-mobile-dropdown-field">View<select value={platCompareView} onChange={event => setPlatCompareView(event.target.value)}><option value="table">Comparison table</option><option value="graph">Comparison chart</option></select></label> : ["table","graph"].map(v=>(
                       <span key={v} style={{display:"inline-flex",alignItems:"center",gap:"4px"}}>
                         <button type="button" onClick={()=>setPlatCompareView(v)} style={{padding:"5px 12px",borderRadius:"999px",border:"1.5px solid "+(platCompareView===v?(isDark?"#363C33":"#1A1A1A"):(isDark?"#2F352F":"#DEDAD2")),background:platCompareView===v?(isDark?"#363C33":"#1A1A1A"):"transparent",color:platCompareView===v?"#FFF":isDark?"#FFFFFF":"#000000",fontFamily:F,fontSize:"10px",fontWeight:800,cursor:"pointer",textTransform:"uppercase",letterSpacing:"0.8px"}}>
                           {v==="table"?"Table":"Chart"}

@@ -1,3 +1,5 @@
+import { useState } from "react";
+import MobileDisclosure from "../components/MobileDisclosure.jsx";
 import EditorialHero from "../components/EditorialHero.jsx";
 import EntryThumb from "../components/EntryThumb.jsx";
 import ArtistCredit from "../components/ArtistCredit.jsx";
@@ -6,6 +8,7 @@ import CertificationSharePoster, { certificationToPosterItem } from "../componen
 import { buildCertificationsShareUrl, buildReleaseShareUrl } from "../utils/shareLinks.js";
 
 export default function CertificationsPage({ ctx }) {
+  const [mobileAward, setMobileAward] = useState("all");
   const {
     CERTIFICATION_LEVELS,
     CountryBadge,
@@ -189,7 +192,7 @@ export default function CertificationsPage({ ctx }) {
           )}
         </div>
 
-        <div className="ngoma-cert-rules" style={{borderColor:cardBorder,background:softBg}}>
+        <MobileDisclosure label="How awards are decided" isMobile={isMobile}><div className="ngoma-cert-rules" style={{borderColor:cardBorder,background:softBg}}>
           <div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:textMuted,display:"inline-flex",alignItems:"center",gap:"6px"}}>How awards are decided{info("How Awards Are Decided", "These rules summarize the certification engine used for public song and album awards.", [], 14)}</div>
           {awardRules.map(([label, detail]) => (
             <div key={label} className="ngoma-cert-rule">
@@ -197,12 +200,12 @@ export default function CertificationsPage({ ctx }) {
               <p style={{fontFamily:F,fontSize:"13px",lineHeight:1.5,color:textMuted,margin:0}}>{detail}</p>
             </div>
           ))}
-        </div>
+        </div></MobileDisclosure>
       </div>
 
       <section style={{marginTop:"26px"}}>
         {sectionLabel("Award Levels", "Award Levels", "Shows the active certification tiers, their point thresholds, and how many releases currently sit at each tier.")}
-        <div className="anl-grid-3 ngoma-cert-level-grid" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"12px"}}>
+        <MobileDisclosure label="Award levels and thresholds" isMobile={isMobile}><div className="anl-grid-3 ngoma-cert-level-grid" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"12px"}}>
           {levelStats.map((level)=>(
             <div key={level.level} className="ngoma-cert-tile" style={{...tileCard({borderRadius:"14px",borderTop:`3px solid ${level.color}`})}}>
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px"}}>
@@ -213,12 +216,14 @@ export default function CertificationsPage({ ctx }) {
               <div className="ngoma-cert-threshold" style={{fontFamily:F,fontSize:TXT.cardMeta,color:textMuted,display:"flex",alignItems:"center",gap:"7px",marginTop:"8px",lineHeight:1.4,flexWrap:"wrap"}}>{level.pts.toLocaleString()}+ lifetime points{info(`${level.label} Threshold`, `A release reaches ${level.label} when its lifetime Combined chart points are at least ${level.pts.toLocaleString()}.`, [], 14)}</div>
             </div>
           ))}
-        </div>
+        </div></MobileDisclosure>
       </section>
 
       <section style={{marginTop:"30px"}}>
         {sectionLabel(`Certified ${isSingles ? "Songs" : "Albums"} (${totalCertified.toLocaleString()})`, "Certified Releases", `All ${activeLabel} that currently meet at least one active certification threshold.`, ["Releases are grouped by highest certification tier.", "Within a tier, higher lifetime points appear first."])}
+        {isMobile && <label className="ngoma-mobile-dropdown-field">Award tier<select value={mobileAward} onChange={event => setMobileAward(event.target.value)}><option value="all">All awards</option>{displayCertificationLevels.map(({level}) => <option key={level} value={level}>{certMetaByLevel[level]?.label || level}</option>)}</select></label>}
         {displayCertificationLevels.map(({ level })=>{
+          if (isMobile && mobileAward !== "all" && mobileAward !== level) return null;
           const filtered=deduplicatedCerts.filter(c=>c.level===level).sort((a,b)=>(b.totalPts||0)-(a.totalPts||0));
           const meta = certMetaByLevel[level] || {};
           if(!filtered.length)return null;

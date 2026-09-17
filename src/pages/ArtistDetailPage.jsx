@@ -1,3 +1,4 @@
+import MobileDisclosure from "../components/MobileDisclosure.jsx";
 import EditorialHero from "../components/EditorialHero.jsx";
 import { useState, useEffect } from "react";
 import { findArtistProfileInPublicData, getArtistImageUrl } from "../utils/artistImages.js";
@@ -324,19 +325,19 @@ export default function ArtistDetailPage({ ctx }) {
                   </div>
                 ))}
               </div>
-{profileBiography && <section className="v2-detail-biography"><h2>Behind the music</h2><p>{profileBiography}</p></section>}
+{profileBiography && <MobileDisclosure label="Behind the music" isMobile={isMobile}><section className="v2-detail-biography"><h2>Behind the music</h2><p>{profileBiography}</p></section></MobileDisclosure>}
 
 
           {/* Meta table — exclude social links (shown as pill buttons above) */}
           {metaRows.length > 0 && (
-          <div className="v2-detail-metadata" style={{margin:"22px 0 18px",border:`1px solid ${isDark?"#2B302B":"#E8E5DC"}`,borderRadius:"14px",overflow:"hidden",background:isDark?"#0F1110":"#fff"}}>
+          <MobileDisclosure label="Artist information" isMobile={isMobile}><div className="v2-detail-metadata" style={{margin:"22px 0 18px",border:`1px solid ${isDark?"#2B302B":"#E8E5DC"}`,borderRadius:"14px",overflow:"hidden",background:isDark?"#0F1110":"#fff"}}>
             {metaRows.map(([label, value], idx) => (
               <div key={label} style={{display:"grid",gridTemplateColumns:isMobile?"110px 1fr":"170px 1fr",gap:"14px",padding:"12px 16px",background:isDark?(idx%2===0?"#121612":"#0F1110"):(idx%2===0?"#FAFAF8":"#FFFFFF"),borderTop:idx===0?"none":`1px solid ${isDark?"#2B302B":"#F0EDE6"}`,alignItems:"center"}}>
                 <span style={{fontFamily:F,fontSize:"11px",fontWeight:800,letterSpacing:"0.5px",color:isDark?"#FFFFFF":"#000000",textTransform:"uppercase",display:"inline-flex",alignItems:"center",gap:"5px"}}>{label}{info(label, statInfo(label), [], 14)}</span>
                 <span style={{fontFamily:F,fontSize:"14px",fontWeight:650,color:isDark?"#FFFFFF":"#000000",wordBreak:"break-word"}}>{value}</span>
               </div>
             ))}
-          </div>
+          </div></MobileDisclosure>
           )}
 
           <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:"14px",marginBottom:"20px"}}>

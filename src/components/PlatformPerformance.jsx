@@ -111,7 +111,7 @@ export default function PlatformPerformance({
           </p>
         </div>
         <div style={{ display: "inline-flex", padding: "3px", borderRadius: "999px", background: isDark ? "#181C18" : "#F0EEE8", border: "1px solid " + (isDark ? "#2F352F" : "#E3E0D8") }}>
-          {["graph", "table"].map((option) => (
+          {isMobile ? <label className="ngoma-mobile-dropdown-field">View<select value={view} onChange={event => setView(event.target.value)}><option value="graph">Platform chart</option><option value="table">Platform table</option></select></label> : ["graph", "table"].map((option) => (
             <span key={option} style={{ display: "inline-flex", alignItems: "center", gap: "2px" }}>
               <button
                 type="button"

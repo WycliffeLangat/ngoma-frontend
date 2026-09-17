@@ -598,3 +598,42 @@
   .ngoma-redesign-v2 .ngoma-platform-performance button { min-height: 44px; }
   .ngoma-redesign-v2 .recharts-wrapper { font-variant-numeric: tabular-nums; }
 }
+
+@media (max-width: 768px) {
+  .ngoma-redesign-v2 .ngoma-mobile-dropdown-field {
+    display: grid;
+    gap: 7px;
+    min-width: 0;
+    margin-bottom: 16px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--v2-ink);
+  }
+  .ngoma-redesign-v2 .ngoma-mobile-dropdown-field select { width: 100%; }
+  .ngoma-redesign-v2 .v2-analytics-masonry[data-mobile-movement="climbers"] > .v2-analytics-column:not(:has(.v2-movement-climbers)),
+  .ngoma-redesign-v2 .v2-analytics-masonry[data-mobile-movement="drops"] > .v2-analytics-column:not(:has(.v2-movement-drops)),
+  .ngoma-redesign-v2 .v2-analytics-masonry[data-mobile-movement="new"] > .v2-analytics-column:not(:has(.v2-movement-new)) { display: none !important; }
+  .ngoma-redesign-v2 .ngoma-mobile-disclosure {
+    min-width: 0;
+    margin-bottom: 18px;
+    border: 1px solid var(--v2-line);
+    border-radius: 12px;
+    background: var(--v2-paper);
+    color: var(--v2-ink);
+  }
+  .ngoma-redesign-v2 .ngoma-mobile-disclosure > summary {
+    padding: 16px;
+    min-height: 48px;
+    box-sizing: border-box;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+  .ngoma-redesign-v2 .ngoma-mobile-disclosure > summary:focus-visible { outline: 2px solid #bf870e; outline-offset: 2px; }
+  .ngoma-redesign-v2 .ngoma-mobile-disclosure[open] > summary { border-bottom: 1px solid var(--v2-line); }
+  .ngoma-redesign-v2 .ngoma-mobile-disclosure-content { padding: 12px; min-width: 0; }
+  .ngoma-redesign-v2 .ngoma-mobile-disclosure-content > .v2-detail-metadata { margin: 0 !important; border: 0 !important; }
+  .ngoma-redesign-v2 .ngoma-mobile-disclosure-content > .v2-detail-biography { padding: 4px; }
+}
