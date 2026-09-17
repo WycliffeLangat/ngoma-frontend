@@ -1,4 +1,3 @@
-import MobileDisclosure from "../components/MobileDisclosure.jsx";
 import EditorialHero from "../components/EditorialHero.jsx";
 import { getArtistImageUrl } from "../utils/artistImages.js";
 import PlatformPerformance from "../components/PlatformPerformance.jsx";
@@ -332,7 +331,7 @@ export default function ReleaseDetailPage({ ctx }) {
                 {label:"Release Year",value:selR.release_year||releaseMetadata.release_year||"—"},
               ].map((stat)=><div key={stat.label} style={{padding:"14px 15px",border:"1px solid "+(isDark?"#2B302B":"#ECE9E1"),borderRadius:"10px",background:isDark?"#151815":"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",display:"inline-flex",alignItems:"center",gap:"6px"}}>{stat.label}{info(stat.label, statInfo(stat.label), [], 14)}</div><div style={{fontFamily:F,fontSize:"22px",fontWeight:900,color:isDark?"#FFFFFF":"#000000",marginTop:"5px"}}>{stat.value}</div></div>)}
             </div>
-            <MobileDisclosure label="Release information and links" isMobile={isMobile}><div className="v2-detail-metadata" style={{marginBottom:"18px",border:`1px solid ${isDark?"#2B302B":"#ECE9E1"}`,borderRadius:"12px",overflow:"hidden"}}>
+            <div className="v2-detail-metadata" style={{marginBottom:"18px",border:`1px solid ${isDark?"#2B302B":"#ECE9E1"}`,borderRadius:"12px",overflow:"hidden"}}>
               {infoRows.map(([label, value], idx) => (
                 <div key={label} style={{display:"grid",gridTemplateColumns:isMobile?"110px 1fr":"170px 1fr",gap:"14px",padding:"12px 16px",background:isDark?(idx%2===0?"#121612":"#0F1110"):(idx%2===0?"#FAFAF8":"#FFFFFF"),borderTop:idx===0?"none":`1px solid ${isDark?"#2B302B":"#F0EDE6"}`,alignItems:"center"}}>
                   <span style={{fontFamily:F,fontSize:"11px",fontWeight:750,letterSpacing:"0.4px",color:isDark?"#FFFFFF":"#000000",textTransform:"uppercase",display:"inline-flex",alignItems:"center",gap:"6px"}}>{label}{info(label, statInfo(label), [], 14)}</span>
@@ -345,7 +344,7 @@ export default function ReleaseDetailPage({ ctx }) {
                   )}
                 </div>
               ))}
-            </div></MobileDisclosure>
+            </div>
             <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1.4fr 0.8fr",gap:"14px",marginBottom:"20px"}}>
               <div style={darkCard()}>
                 <div style={secLbl(isDark?"#FFFFFF":"#000000")}><SecMark c={isDark?"#FFFFFF":"#000000"}/>Combined Rank Journey{info("Combined Rank Journey", "This line chart shows the release's Combined chart rank across its charted months. The y-axis is reversed because a lower rank number is better.", ["A point at #1 marks a month where the release led the Combined chart.", "Gaps are excluded so the line focuses on months where Combined history exists."])}</div>

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import EditorialHero from "../components/EditorialHero.jsx";
 import EntryThumb from "../components/EntryThumb.jsx";
 import ArtistCredit from "../components/ArtistCredit.jsx";
@@ -135,7 +134,6 @@ function RecordRow({ r, pool, ctx, theme, rowStyle, cols }) {
 }
 
 export default function AnalyticsPage({ ctx }) {
-  const [mobileMovement, setMobileMovement] = useState("climbers");
   const {
     AnalyticsDeepSection,
     Bar,
@@ -346,8 +344,7 @@ export default function AnalyticsPage({ ctx }) {
             </div>} />
 
           {/* Climbers, Drops & New Entries — what moved this month */}
-          {isMobile && <label className="ngoma-mobile-dropdown-field">Movement<select value={mobileMovement} onChange={event => setMobileMovement(event.target.value)}><option value="climbers">Biggest climbers</option><option value="drops">Biggest drops</option><option value="new">New entries</option></select></label>}
-          <div className="v2-analytics-masonry" data-mobile-movement={mobileMovement}><div className="v2-analytics-column"><div className="v2-movement-list v2-movement-drops" style={{...card(),order:1}}>
+          <div className="v2-analytics-masonry"><div className="v2-analytics-column"><div className="v2-movement-list v2-movement-drops" style={{...card(),order:1}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:"10px",marginBottom:"14px",flexWrap:"nowrap"}}>
                 {sectionTitle(
                   `Biggest ${releaseLabel} Drops - ${anMonth}`,
@@ -514,7 +511,7 @@ export default function AnalyticsPage({ ctx }) {
           </AnalyticsDeepSection>
 
           {/* Records & Milestones — all-time achievements for the selected chart type. */}
-          <AnalyticsDeepSection label="Records & Milestones" isMobile={isMobile}>
+          <AnalyticsDeepSection label="Records & Milestones" isMobile={isMobile} defaultOpen>
           <div style={{...card(),...sectionGap}}>
             {sectionTitle(
               isMobile ? "Records & Milestones" : "Records & Milestones - All Time",
@@ -549,7 +546,7 @@ export default function AnalyticsPage({ ctx }) {
           </AnalyticsDeepSection>
 
           {hofItems.length > 0 && (
-          <AnalyticsDeepSection label={isMobile ? "Monthly #1s" : "Hall of Fame"} isMobile={isMobile}>
+          <AnalyticsDeepSection label={isMobile ? "Monthly #1s" : "Hall of Fame"} isMobile={isMobile} defaultOpen>
           <div style={card({marginBottom:isMobile?"20px":"26px"})}>
             {sectionTitle(
               isMobile ? "Monthly #1s" : "Hall of Fame - Monthly #1s",
