@@ -1,3 +1,4 @@
+import MobileDetails, { MobileStatSummary } from "../components/MobileDetails.jsx";
 import EditorialHero from "../components/EditorialHero.jsx";
 import { getArtistImageUrl } from "../utils/artistImages.js";
 import PlatformPerformance from "../components/PlatformPerformance.jsx";
@@ -319,7 +320,7 @@ export default function ReleaseDetailPage({ ctx }) {
               </div>} />
 
           <div style={{marginTop:"22px"}}>
-            <div className="ngoma-detail-stat-grid" style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(4,minmax(0,1fr))",gap:"10px",marginBottom:"18px"}}>
+            <MobileStatSummary isMobile={isMobile} className="ngoma-detail-stat-grid" style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(4,minmax(0,1fr))",gap:"10px",marginBottom:"18px"}}>
               {[
                 {label:"Total Points",value:totalPoints.toLocaleString()},
                 {label:"Combined Peak Rank",value:peakRank<999?`#${peakRank}`:"—"},
@@ -330,8 +331,8 @@ export default function ReleaseDetailPage({ ctx }) {
                 {label:"Best Coverage",value:`${bestCoverage}/${tp}`},
                 {label:"Release Year",value:selR.release_year||releaseMetadata.release_year||"—"},
               ].map((stat)=><div key={stat.label} style={{padding:"14px 15px",border:"1px solid "+(isDark?"#2B302B":"#ECE9E1"),borderRadius:"10px",background:isDark?"#151815":"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",display:"inline-flex",alignItems:"center",gap:"6px"}}>{stat.label}{info(stat.label, statInfo(stat.label), [], 14)}</div><div style={{fontFamily:F,fontSize:"22px",fontWeight:900,color:isDark?"#FFFFFF":"#000000",marginTop:"5px"}}>{stat.value}</div></div>)}
-            </div>
-            <div className="v2-detail-metadata" style={{marginBottom:"18px",border:`1px solid ${isDark?"#2B302B":"#ECE9E1"}`,borderRadius:"12px",overflow:"hidden"}}>
+            </MobileStatSummary>
+            <MobileDetails label="Release information, credits and links" isMobile={isMobile}><div className="v2-detail-metadata" style={{marginBottom:"18px",border:`1px solid ${isDark?"#2B302B":"#ECE9E1"}`,borderRadius:"12px",overflow:"hidden"}}>
               {infoRows.map(([label, value], idx) => (
                 <div key={label} style={{display:"grid",gridTemplateColumns:isMobile?"110px 1fr":"170px 1fr",gap:"14px",padding:"12px 16px",background:isDark?(idx%2===0?"#121612":"#0F1110"):(idx%2===0?"#FAFAF8":"#FFFFFF"),borderTop:idx===0?"none":`1px solid ${isDark?"#2B302B":"#F0EDE6"}`,alignItems:"center"}}>
                   <span style={{fontFamily:F,fontSize:"11px",fontWeight:750,letterSpacing:"0.4px",color:isDark?"#FFFFFF":"#000000",textTransform:"uppercase",display:"inline-flex",alignItems:"center",gap:"6px"}}>{label}{info(label, statInfo(label), [], 14)}</span>
@@ -344,8 +345,8 @@ export default function ReleaseDetailPage({ ctx }) {
                   )}
                 </div>
               ))}
-            </div>
-            <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1.4fr 0.8fr",gap:"14px",marginBottom:"20px"}}>
+            </div></MobileDetails>
+            <MobileDetails label="Rank history and monthly performance" isMobile={isMobile}><div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1.4fr 0.8fr",gap:"14px",marginBottom:"20px"}}>
               <div style={darkCard()}>
                 <div style={secLbl(isDark?"#FFFFFF":"#000000")}><SecMark c={isDark?"#FFFFFF":"#000000"}/>Combined Rank Journey{info("Combined Rank Journey", "This line chart shows the release's Combined chart rank across its charted months. The y-axis is reversed because a lower rank number is better.", ["A point at #1 marks a month where the release led the Combined chart.", "Gaps are excluded so the line focuses on months where Combined history exists."])}</div>
                 <div style={{fontFamily:F,fontSize:"9.5px",fontWeight:800,letterSpacing:"1.2px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",margin:"-6px 0 6px"}}>Lower = better</div>
@@ -363,8 +364,8 @@ export default function ReleaseDetailPage({ ctx }) {
                 <div style={secLbl(isDark?"#FFFFFF":"#000000")}><SecMark c={isDark?"#FFFFFF":"#000000"}/>Platform Peak Ranks{info("Platform Peak Ranks", "This list shows the best rank the release reached on each tracked source platform during its public chart history.", ["Lower numbers are stronger.", "Only platforms with at least one placement for this release appear here."])}</div>
                 {platformPeaks.map((item)=><div key={item.platform} style={{display:"flex",justifyContent:"space-between",gap:"12px",padding:"8px 0",borderBottom:`1px solid ${dividerColor}`,fontFamily:F,fontSize:"12px"}}><span style={{color:PC[item.platform]||(isDark?"#93A093":"#59645D"),fontWeight:800,display:"inline-flex",alignItems:"center",gap:"6px"}}>{item.platform}{info(`${item.platform} Peak Rank`, `${item.platform}'s best observed rank for this release across the available monthly source-platform data.`, [], 14)}</span><strong style={{color:isDark?"#FFFFFF":"#000000"}}>#{item.rank}</strong></div>)}
               </div>
-            </div>
-            <PlatformPerformance
+            </div></MobileDetails>
+            <MobileDetails label="Points by platform" isMobile={isMobile}><PlatformPerformance
               rows={platformPerformance}
               isDark={isDark}
               isMobile={isMobile}
@@ -376,8 +377,8 @@ export default function ReleaseDetailPage({ ctx }) {
               expectedPlatforms={(isAlbum ? A_PLATS : S_PLATS)
                 .filter((platform) => platform !== "Combined" && platform !== "Kenyan")
                 .map((platform) => PLAT_LABEL[platform] || platform)}
-            />
-            <div style={darkCard({marginBottom:0})}>
+            /></MobileDetails>
+            <MobileDetails label="Monthly platform breakdown" isMobile={isMobile}><div style={darkCard({marginBottom:0})}>
               <div style={secLbl(isDark?"#FFFFFF":"#000000")}><SecMark c={isDark?"#FFFFFF":"#000000"}/>Cross-Platform Journey{info("Cross-Platform Journey", "This table follows the release month by month, showing its Combined rank, platform coverage, and the source-platform placements behind that month.", ["Use it to see whether the release was driven by one platform, broad platform coverage, or both.", "The platform chips show each source platform and its rank for that month."])}</div>
               <div style={{border:`1px solid ${isDark?"#2B302B":"#E4E1D8"}`,borderRadius:"12px",overflow:"hidden"}}>
                 <div className="ngoma-journey-header" style={{display:"grid",gridTemplateColumns:isMobile?"58px 84px 46px minmax(0,1fr)":"74px 140px 60px minmax(0,1fr)",gap:"8px",padding:isMobile?"9px":"11px 14px",background:"#1F241F",fontFamily:F,fontSize:"10.5px",fontWeight:850,letterSpacing:"0.8px",textTransform:"uppercase",color:"#FFFFFF"}}>
@@ -404,7 +405,7 @@ export default function ReleaseDetailPage({ ctx }) {
                   );
                 })}
               </div>
-            </div>
+            </div></MobileDetails>
           </div>
         </div>
         );

@@ -511,7 +511,7 @@ export default function AnalyticsPage({ ctx }) {
           </AnalyticsDeepSection>
 
           {/* Records & Milestones — all-time achievements for the selected chart type. */}
-          <AnalyticsDeepSection label="Records & Milestones" isMobile={isMobile} defaultOpen>
+          <AnalyticsDeepSection label="Records & Milestones" isMobile={isMobile}>
           <div style={{...card(),...sectionGap}}>
             {sectionTitle(
               isMobile ? "Records & Milestones" : "Records & Milestones - All Time",
@@ -546,7 +546,7 @@ export default function AnalyticsPage({ ctx }) {
           </AnalyticsDeepSection>
 
           {hofItems.length > 0 && (
-          <AnalyticsDeepSection label={isMobile ? "Monthly #1s" : "Hall of Fame"} isMobile={isMobile} defaultOpen>
+          <AnalyticsDeepSection label={isMobile ? "Monthly #1s" : "Hall of Fame"} isMobile={isMobile}>
           <div style={card({marginBottom:isMobile?"20px":"26px"})}>
             {sectionTitle(
               isMobile ? "Monthly #1s" : "Hall of Fame - Monthly #1s",

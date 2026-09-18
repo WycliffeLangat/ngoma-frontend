@@ -1,3 +1,4 @@
+import MobileDetails from "../components/MobileDetails.jsx";
 import EditorialHero from "../components/EditorialHero.jsx";
 import EntryThumb from "../components/EntryThumb.jsx";
 import ArtistCredit from "../components/ArtistCredit.jsx";
@@ -189,7 +190,7 @@ export default function CertificationsPage({ ctx }) {
           )}
         </div>
 
-        <div className="ngoma-cert-rules" style={{borderColor:cardBorder,background:softBg}}>
+        <MobileDetails label="How awards are decided" isMobile={isMobile}><div className="ngoma-cert-rules" style={{borderColor:cardBorder,background:softBg}}>
           <div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:textMuted,display:"inline-flex",alignItems:"center",gap:"6px"}}>How awards are decided{info("How Awards Are Decided", "These rules summarize the certification engine used for public song and album awards.", [], 14)}</div>
           {awardRules.map(([label, detail]) => (
             <div key={label} className="ngoma-cert-rule">
@@ -197,12 +198,12 @@ export default function CertificationsPage({ ctx }) {
               <p style={{fontFamily:F,fontSize:"13px",lineHeight:1.5,color:textMuted,margin:0}}>{detail}</p>
             </div>
           ))}
-        </div>
+        </div></MobileDetails>
       </div>
 
       <section style={{marginTop:"26px"}}>
         {sectionLabel("Award Levels", "Award Levels", "Shows the active certification tiers, their point thresholds, and how many releases currently sit at each tier.")}
-        <div className="anl-grid-3 ngoma-cert-level-grid" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"12px"}}>
+        <MobileDetails label="Award levels and thresholds" isMobile={isMobile}><div className="anl-grid-3 ngoma-cert-level-grid" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"12px"}}>
           {levelStats.map((level)=>(
             <div key={level.level} className="ngoma-cert-tile" style={{...tileCard({borderRadius:"14px",borderTop:`3px solid ${level.color}`})}}>
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px"}}>
@@ -213,7 +214,7 @@ export default function CertificationsPage({ ctx }) {
               <div className="ngoma-cert-threshold" style={{fontFamily:F,fontSize:TXT.cardMeta,color:textMuted,display:"flex",alignItems:"center",gap:"7px",marginTop:"8px",lineHeight:1.4,flexWrap:"wrap"}}>{level.pts.toLocaleString()}+ lifetime points{info(`${level.label} Threshold`, `A release reaches ${level.label} when its lifetime Combined chart points are at least ${level.pts.toLocaleString()}.`, [], 14)}</div>
             </div>
           ))}
-        </div>
+        </div></MobileDetails>
       </section>
 
       <section style={{marginTop:"30px"}}>

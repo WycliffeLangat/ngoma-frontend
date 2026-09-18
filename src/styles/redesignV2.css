@@ -598,3 +598,46 @@
   .ngoma-redesign-v2 .ngoma-platform-performance button { min-height: 44px; }
   .ngoma-redesign-v2 .recharts-wrapper { font-variant-numeric: tabular-nums; }
 }
+
+/* Mobile secondary details stay closed until requested. */
+@media (max-width: 768px) {
+  .ngoma-redesign-v2 .ngoma-more-details {
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0 0 18px;
+    border: 1px solid var(--v2-line);
+    border-radius: 14px;
+    background: var(--v2-paper);
+    color: var(--v2-ink);
+  }
+  .ngoma-redesign-v2 .ngoma-more-details > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 18px 16px;
+    min-height: 56px;
+    box-sizing: border-box;
+    cursor: pointer;
+    list-style: none;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+  .ngoma-redesign-v2 .ngoma-more-details > summary::-webkit-details-marker { display: none; }
+  .ngoma-redesign-v2 .ngoma-more-details > summary:focus-visible { outline: 2px solid #bf870e; outline-offset: 2px; border-radius: 14px; }
+  .ngoma-redesign-v2 .ngoma-details-chevron {
+    width: 8px; height: 8px; flex-shrink: 0;
+    border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+    transform: rotate(45deg);
+  }
+  .ngoma-redesign-v2 .ngoma-more-details[open] > summary { border-bottom: 1px solid var(--v2-line); }
+  .ngoma-redesign-v2 .ngoma-more-details[open] > summary .ngoma-details-chevron { transform: rotate(225deg); }
+  .ngoma-redesign-v2 .ngoma-more-details-body { min-width: 0; padding: 16px 12px; }
+  .ngoma-redesign-v2 .ngoma-more-details-body > :last-child { margin-bottom: 0 !important; }
+  .ngoma-redesign-v2 .ngoma-more-details-body > .v2-detail-metadata { margin: 0 !important; border: 0 !important; }
+  .ngoma-redesign-v2 .ngoma-more-details-body > .v2-detail-biography { padding: 4px; }
+  .ngoma-redesign-v2 .ngoma-more-details-body > .ngoma-platform-performance { border: 0 !important; padding: 0 !important; }
+}

@@ -1,3 +1,4 @@
+import MobileDetails from "../components/MobileDetails.jsx";
 import EditorialHero from "../components/EditorialHero.jsx";
 import { useState, useEffect } from "react";
 import { findArtistProfileInPublicData, getArtistImageUrl } from "../utils/artistImages.js";
@@ -324,22 +325,22 @@ export default function ArtistDetailPage({ ctx }) {
                   </div>
                 ))}
               </div>
-{profileBiography && <section className="v2-detail-biography"><h2>Behind the music</h2><p>{profileBiography}</p></section>}
+{profileBiography && <MobileDetails label="Behind the music" isMobile={isMobile}><section className="v2-detail-biography"><h2>Behind the music</h2><p>{profileBiography}</p></section></MobileDetails>}
 
 
           {/* Meta table — exclude social links (shown as pill buttons above) */}
           {metaRows.length > 0 && (
-          <div className="v2-detail-metadata" style={{margin:"22px 0 18px",border:`1px solid ${isDark?"#2B302B":"#E8E5DC"}`,borderRadius:"14px",overflow:"hidden",background:isDark?"#0F1110":"#fff"}}>
+          <MobileDetails label="Artist information and credits" isMobile={isMobile}><div className="v2-detail-metadata" style={{margin:"22px 0 18px",border:`1px solid ${isDark?"#2B302B":"#E8E5DC"}`,borderRadius:"14px",overflow:"hidden",background:isDark?"#0F1110":"#fff"}}>
             {metaRows.map(([label, value], idx) => (
               <div key={label} style={{display:"grid",gridTemplateColumns:isMobile?"110px 1fr":"170px 1fr",gap:"14px",padding:"12px 16px",background:isDark?(idx%2===0?"#121612":"#0F1110"):(idx%2===0?"#FAFAF8":"#FFFFFF"),borderTop:idx===0?"none":`1px solid ${isDark?"#2B302B":"#F0EDE6"}`,alignItems:"center"}}>
                 <span style={{fontFamily:F,fontSize:"11px",fontWeight:800,letterSpacing:"0.5px",color:isDark?"#FFFFFF":"#000000",textTransform:"uppercase",display:"inline-flex",alignItems:"center",gap:"5px"}}>{label}{info(label, statInfo(label), [], 14)}</span>
                 <span style={{fontFamily:F,fontSize:"14px",fontWeight:650,color:isDark?"#FFFFFF":"#000000",wordBreak:"break-word"}}>{value}</span>
               </div>
             ))}
-          </div>
+          </div></MobileDetails>
           )}
 
-          <div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:"14px",marginBottom:"20px"}}>
+          <MobileDetails label="Monthly points and rank history" isMobile={isMobile}><div className="anl-grid-2" style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:"14px",marginBottom:"20px"}}>
             <div style={darkCard()}>
               <div style={{...secLbl(isDark?"#FFFFFF":"#000000"),display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}><span><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Monthly {personLabel} Credited Points</span>{info(`Monthly ${personLabel} Credited Points`, `Bars show the public display points this ${personLabelLower} earned from credited chart activity in each month.`)}</div>
               <ResponsiveContainer width="100%" height={190}>
@@ -369,15 +370,15 @@ export default function ArtistDetailPage({ ctx }) {
                 </LineChart>
               </ResponsiveContainer>
             </div>
-          </div>
-          <div className="ngoma-detail-stat-grid" style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(4,minmax(0,1fr))",gap:"10px",marginBottom:"22px"}}>
+          </div></MobileDetails>
+          <MobileDetails label="More chart statistics" isMobile={isMobile}><div className="ngoma-detail-stat-grid" style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(4,minmax(0,1fr))",gap:"10px",marginBottom:"22px"}}>
             {[
               {label:"Unique Releases",value:selectedArtistReleases.length},
               {label:"Top 10 Placements",value:topTenPlacements},
               {label:"#1 Placements",value:numberOnePlacements},
               {label:"Best Release Rank",value:bestReleaseRank?`#${bestReleaseRank}`:"—"},
             ].map((stat)=><div key={stat.label} style={{padding:"14px 15px",border:"1px solid "+(isDark?"#2B302B":"#ECE9E1"),borderRadius:"10px",background:isDark?"#151815":"#FAFAF8"}}><div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:isDark?"#FFFFFF":"#000000",display:"inline-flex",alignItems:"center",gap:"5px"}}>{stat.label}{info(stat.label, statInfo(stat.label), [], 14)}</div><div style={{fontFamily:F,fontSize:"22px",fontWeight:900,color:isDark?"#FFFFFF":"#000000",marginTop:"5px"}}>{stat.value}</div></div>)}
-          </div>
+          </div></MobileDetails>
           <div style={{...secLbl(isDark?"#FFFFFF":"#000000"),display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}><span><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>{personLabel} Releases Across Months</span>{info(`${personLabel} Releases Across Months`, `Lists the songs and albums credited to this ${personLabelLower}, then expands each release into its monthly chart appearances, ranks, platforms, and points.`)}</div>
           {selectedArtistEntryGroups.map((group)=>{
             const releaseType = group.chart_type === "albums" || group.chart_type === "album" ? "album" : "single";
