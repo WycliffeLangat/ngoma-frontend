@@ -33378,7 +33378,7 @@
     }
     downloadDataUrl(dataUrl, filename);
   }
-  var POSTER_FONT_FAMILY = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+  var POSTER_FONT_FAMILY = "'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
   var POSTER_THEMES = {
     dark: {
       pageBg: "#000000",
@@ -54704,6 +54704,8 @@
                 position: "absolute",
                 left: padX,
                 right: padX,
+                maxHeight: design.textPosition === "center" ? 720 : 820,
+                overflow: "hidden",
                 zIndex: 1,
                 textAlign: design.textAlign,
                 ...textBoxPosition(design.textPosition, design.textOffsetY)
@@ -54741,6 +54743,7 @@
                       textTransform: "none",
                       color: textColor,
                       textShadow,
+                      overflowWrap: "anywhere",
                       display: "-webkit-box",
                       WebkitLineClamp: 4,
                       WebkitBoxOrient: "vertical",
@@ -54759,6 +54762,7 @@
                       fontWeight: 750,
                       lineHeight: 1.34,
                       textShadow,
+                      overflowWrap: "anywhere",
                       display: "-webkit-box",
                       WebkitLineClamp: 3,
                       WebkitBoxOrient: "vertical",
@@ -54849,6 +54853,8 @@
                 position: "absolute",
                 left: padX,
                 right: padX,
+                maxHeight: design.textPosition === "center" ? 620 : 720,
+                overflow: "hidden",
                 zIndex: 2,
                 textAlign: design.textAlign,
                 pointerEvents: "none",
@@ -54886,6 +54892,7 @@
                       textTransform: "none",
                       color: textColor,
                       textShadow: titleShadow,
+                      overflowWrap: "anywhere",
                       display: "-webkit-box",
                       WebkitLineClamp: 3,
                       WebkitBoxOrient: "vertical",
