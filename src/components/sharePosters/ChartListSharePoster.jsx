@@ -169,6 +169,8 @@ export default function ChartListSharePoster({
   const slotH = rowH + gap;
   const scale = Math.min(1.55, Math.max(0.7, rowH / 96));
   const artSize = Math.round(Math.min(112, Math.max(36, rowH - 12)));
+  const showArtwork = rows.length <= 10;
+  const allowTitleWrap = rows.length <= 5;
 
   return (
     <div
@@ -201,12 +203,12 @@ export default function ChartListSharePoster({
         >
           {headerTitle}
         </div>
-        <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
-          <span style={{ fontSize: posterFontSize(23), fontWeight: 700, color: t.metaColor }}>
+        <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, flexWrap: "nowrap", whiteSpace: "nowrap" }}>
+          <span style={{ fontSize: posterFontSize(23), fontWeight: 700, color: t.metaColor, whiteSpace: "nowrap" }}>
             {period === "all-time" ? "All Time" : month}
           </span>
           <span style={{ width: 5, height: 5, borderRadius: "50%", background: t.metaColor, opacity: 0.6 }} />
-          <span style={{ fontSize: posterFontSize(17), fontWeight: 900, letterSpacing: "0.6px", textTransform: "uppercase", color: accentColor }}>
+          <span style={{ fontSize: posterFontSize(17), fontWeight: 900, letterSpacing: "0.6px", textTransform: "uppercase", color: accentColor, whiteSpace: "nowrap" }}>
             {period === "all-time" ? "Kenyan" : platformLabel(platform)}
           </span>
           {effectiveRangeLabel && (
@@ -237,7 +239,7 @@ export default function ChartListSharePoster({
                   boxSizing: "border-box",
                   display: "flex",
                   alignItems: "center",
-                  gap: Math.round(20 * scale),
+                  gap: Math.round((showArtwork ? 20 : 14) * scale),
                   paddingTop: rowPadY,
                   paddingLeft: 16,
                   paddingRight: 16,
@@ -257,7 +259,7 @@ export default function ChartListSharePoster({
                 >
                   {row.rank}
                 </span>
-                {row.image ? (
+                {showArtwork && row.image ? (
                   <img
                     src={row.image}
                     alt=""
@@ -270,7 +272,7 @@ export default function ChartListSharePoster({
                       background: t.rowBg,
                     }}
                   />
-                ) : (
+                ) : showArtwork ? (
                   <ArtPlaceholder
                     width={artSize}
                     height={artSize}
@@ -278,7 +280,7 @@ export default function ChartListSharePoster({
                     theme={theme}
                     accentColor={accentColor}
                   />
-                )}
+                ) : null}
                 <div style={{ minWidth: 0, flex: 1 }}>
                   {oneLine ? (
                     <div style={{ fontSize: posterFontSize(Math.round(30 * scale)), fontWeight: 800, color: t.titleColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -287,11 +289,11 @@ export default function ChartListSharePoster({
                     </div>
                   ) : (
                     <>
-                      <div style={{ fontSize: posterFontSize(Math.round(32 * scale)), fontWeight: 800, color: t.titleColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      <div style={{ fontSize: posterFontSize(Math.round((allowTitleWrap ? 27 : 32) * scale)), fontWeight: 800, color: t.titleColor, lineHeight: allowTitleWrap ? 1.02 : undefined, whiteSpace: allowTitleWrap ? "normal" : "nowrap", overflowWrap: allowTitleWrap ? "anywhere" : undefined, display: allowTitleWrap ? "-webkit-box" : undefined, WebkitLineClamp: allowTitleWrap ? 3 : undefined, WebkitBoxOrient: allowTitleWrap ? "vertical" : undefined, overflow: "hidden", textOverflow: "ellipsis" }}>
                         {row.title}
                       </div>
                       {row.subtitle && (
-                        <div style={{ fontSize: posterFontSize(Math.round(21 * scale)), fontWeight: 600, color: t.metaColor, marginTop: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        <div style={{ fontSize: posterFontSize(Math.round((allowTitleWrap ? 17 : 21) * scale)), fontWeight: 600, color: t.metaColor, marginTop: allowTitleWrap ? 2 : 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                           {row.subtitle}
                         </div>
                       )}

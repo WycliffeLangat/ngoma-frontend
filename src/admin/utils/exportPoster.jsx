@@ -234,7 +234,7 @@ export const POSTER_FONT_FAMILY = "'Inter',-apple-system,BlinkMacSystemFont,'Seg
 export const POSTER_THEMES = {
   dark: {
     pageBg: "#000000",
-    posterBackground: "linear-gradient(90deg, #BF870E, #EBCB78) top / 100% 6px no-repeat, radial-gradient(ellipse at top left, #20252D 0%, #101318 42%, #080A0D 100%)",
+    posterBackground: "radial-gradient(ellipse at top left, #20252D 0%, #101318 42%, #080A0D 100%)",
     wordmarkBarColor: "#fffdf8",
     titleColor: "#fffdf8",
     metaColor: "#C2CAD5",
@@ -247,7 +247,7 @@ export const POSTER_THEMES = {
   },
   light: {
     pageBg: "#FFFFFF",
-    posterBackground: "linear-gradient(90deg, #BF870E, #EBCB78) top / 100% 6px no-repeat, linear-gradient(145deg, #FFFFFF, #F1F4F8)",
+    posterBackground: "linear-gradient(145deg, #FFFFFF, #F1F4F8)",
     wordmarkBarColor: "#0e100d",
     titleColor: "#0e100d",
     metaColor: "#4B5868",

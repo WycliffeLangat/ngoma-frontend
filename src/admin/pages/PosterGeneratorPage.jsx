@@ -169,6 +169,8 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
   // comically large. 96px is roughly a Top-10 row's natural height.
   const scale = Math.min(1.55, Math.max(0.7, rowH / 96));
   const isArtists = chartType === "artists";
+  const showArtwork = rows.length <= 10;
+  const allowTitleWrap = rows.length <= 5;
   const typeLabel = CHART_TYPES.find(([key]) => key === chartType)?.[1] || "Chart";
   const headerTitle = `Top ${rows.length || 0} ${typeLabel} in ${countryLabel}`;
   const artSize = Math.round(Math.min(112, Math.max(36, rowH - 12)));
@@ -236,7 +238,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
                   boxSizing: "border-box",
                   display: "flex",
                   alignItems: "center",
-                  gap: Math.round(20 * scale),
+                  gap: Math.round((showArtwork ? 20 : 14) * scale),
                   paddingTop: rowPadY,
                   paddingLeft: 16,
                   paddingRight: 16,
@@ -256,7 +258,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
                 >
                   {row.rank}
                 </span>
-                {row.image ? (
+                {showArtwork && row.image ? (
                   <img
                     src={row.image}
                     alt=""
@@ -269,7 +271,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
                       background: t.rowBg,
                     }}
                   />
-                ) : (
+                ) : showArtwork ? (
                   <ArtPlaceholder
                     width={artSize}
                     height={artSize}
@@ -277,7 +279,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
                     theme={theme}
                     accentColor={accentColor}
                   />
-                )}
+                ) : null}
                 <div style={{ minWidth: 0, flex: 1 }}>
                   {oneLine ? (
                     <div
@@ -285,7 +287,11 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
                         fontSize: posterFontSize(Math.round(30 * scale)),
                         fontWeight: 800,
                         color: t.titleColor,
-                        whiteSpace: "nowrap",
+                        whiteSpace: allowTitleWrap ? "normal" : "nowrap",
+                        overflowWrap: allowTitleWrap ? "anywhere" : undefined,
+                        display: allowTitleWrap ? "-webkit-box" : undefined,
+                        WebkitLineClamp: allowTitleWrap ? 3 : undefined,
+                        WebkitBoxOrient: allowTitleWrap ? "vertical" : undefined,
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                       }}
@@ -299,10 +305,15 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
                     <>
                       <div
                         style={{
-                          fontSize: posterFontSize(Math.round(32 * scale)),
+                          fontSize: posterFontSize(Math.round((allowTitleWrap ? 27 : 32) * scale)),
                           fontWeight: 800,
                           color: t.titleColor,
-                          whiteSpace: "nowrap",
+                          lineHeight: allowTitleWrap ? 1.02 : undefined,
+                          whiteSpace: allowTitleWrap ? "normal" : "nowrap",
+                          overflowWrap: allowTitleWrap ? "anywhere" : undefined,
+                          display: allowTitleWrap ? "-webkit-box" : undefined,
+                          WebkitLineClamp: allowTitleWrap ? 3 : undefined,
+                          WebkitBoxOrient: allowTitleWrap ? "vertical" : undefined,
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                         }}
@@ -312,10 +323,10 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
                       {row.subtitle && (
                         <div
                           style={{
-                            fontSize: posterFontSize(Math.round(21 * scale)),
+                            fontSize: posterFontSize(Math.round((allowTitleWrap ? 17 : 21) * scale)),
                             fontWeight: 600,
                             color: t.metaColor,
-                            marginTop: 4,
+                            marginTop: allowTitleWrap ? 2 : 4,
                             whiteSpace: "nowrap",
                             overflow: "hidden",
                             textOverflow: "ellipsis",

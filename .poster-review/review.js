@@ -33382,7 +33382,7 @@
   var POSTER_THEMES = {
     dark: {
       pageBg: "#000000",
-      posterBackground: "linear-gradient(90deg, #BF870E, #EBCB78) top / 100% 6px no-repeat, radial-gradient(ellipse at top left, #20252D 0%, #101318 42%, #080A0D 100%)",
+      posterBackground: "radial-gradient(ellipse at top left, #20252D 0%, #101318 42%, #080A0D 100%)",
       wordmarkBarColor: "#fffdf8",
       titleColor: "#fffdf8",
       metaColor: "#C2CAD5",
@@ -33395,7 +33395,7 @@
     },
     light: {
       pageBg: "#FFFFFF",
-      posterBackground: "linear-gradient(90deg, #BF870E, #EBCB78) top / 100% 6px no-repeat, linear-gradient(145deg, #FFFFFF, #F1F4F8)",
+      posterBackground: "linear-gradient(145deg, #FFFFFF, #F1F4F8)",
       wordmarkBarColor: "#0e100d",
       titleColor: "#0e100d",
       metaColor: "#4B5868",
@@ -33668,6 +33668,8 @@
     const slotH = rowH + gap;
     const scale = Math.min(1.55, Math.max(0.7, rowH / 96));
     const isArtists = chartType === "artists";
+    const showArtwork = rows2.length <= 10;
+    const allowTitleWrap = rows2.length <= 5;
     const typeLabel = CHART_TYPES.find(([key]) => key === chartType)?.[1] || "Chart";
     const headerTitle = `Top ${rows2.length || 0} ${typeLabel} in ${countryLabel}`;
     const artSize = Math.round(Math.min(112, Math.max(36, rowH - 12)));
@@ -33719,7 +33721,7 @@
                   boxSizing: "border-box",
                   display: "flex",
                   alignItems: "center",
-                  gap: Math.round(20 * scale),
+                  gap: Math.round((showArtwork ? 20 : 14) * scale),
                   paddingTop: rowPadY,
                   paddingLeft: 16,
                   paddingRight: 16,
@@ -33741,7 +33743,7 @@
                       children: row.rank
                     }
                   ),
-                  row.image ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+                  showArtwork && row.image ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
                     "img",
                     {
                       src: row.image,
@@ -33755,7 +33757,7 @@
                         background: t.rowBg
                       }
                     }
-                  ) : /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+                  ) : showArtwork ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
                     ArtPlaceholder,
                     {
                       width: artSize,
@@ -33764,7 +33766,7 @@
                       theme: theme2,
                       accentColor
                     }
-                  ),
+                  ) : null,
                   /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { style: { minWidth: 0, flex: 1 }, children: oneLine ? /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
                     "div",
                     {
@@ -33772,7 +33774,11 @@
                         fontSize: posterFontSize(Math.round(30 * scale)),
                         fontWeight: 800,
                         color: t.titleColor,
-                        whiteSpace: "nowrap",
+                        whiteSpace: allowTitleWrap ? "normal" : "nowrap",
+                        overflowWrap: allowTitleWrap ? "anywhere" : void 0,
+                        display: allowTitleWrap ? "-webkit-box" : void 0,
+                        WebkitLineClamp: allowTitleWrap ? 3 : void 0,
+                        WebkitBoxOrient: allowTitleWrap ? "vertical" : void 0,
                         overflow: "hidden",
                         textOverflow: "ellipsis"
                       },
@@ -33789,10 +33795,15 @@
                       "div",
                       {
                         style: {
-                          fontSize: posterFontSize(Math.round(32 * scale)),
+                          fontSize: posterFontSize(Math.round((allowTitleWrap ? 27 : 32) * scale)),
                           fontWeight: 800,
                           color: t.titleColor,
-                          whiteSpace: "nowrap",
+                          lineHeight: allowTitleWrap ? 1.02 : void 0,
+                          whiteSpace: allowTitleWrap ? "normal" : "nowrap",
+                          overflowWrap: allowTitleWrap ? "anywhere" : void 0,
+                          display: allowTitleWrap ? "-webkit-box" : void 0,
+                          WebkitLineClamp: allowTitleWrap ? 3 : void 0,
+                          WebkitBoxOrient: allowTitleWrap ? "vertical" : void 0,
                           overflow: "hidden",
                           textOverflow: "ellipsis"
                         },
@@ -33803,10 +33814,10 @@
                       "div",
                       {
                         style: {
-                          fontSize: posterFontSize(Math.round(21 * scale)),
+                          fontSize: posterFontSize(Math.round((allowTitleWrap ? 17 : 21) * scale)),
                           fontWeight: 600,
                           color: t.metaColor,
-                          marginTop: 4,
+                          marginTop: allowTitleWrap ? 2 : 4,
                           whiteSpace: "nowrap",
                           overflow: "hidden",
                           textOverflow: "ellipsis"
