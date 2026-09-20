@@ -33723,8 +33723,7 @@
                   paddingTop: rowPadY,
                   paddingLeft: 16,
                   paddingRight: 16,
-                  background: i % 2 === 0 ? t.rowBg : "transparent",
-                  borderRadius: 16,
+                  background: "transparent",
                   paddingBottom: rowPadY,
                   borderBottom: i === rows2.length - 1 ? "none" : `1px solid ${t.dividerColor}`
                 },
