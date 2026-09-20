@@ -54981,12 +54981,12 @@
     return /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { style: { width: POSTER_W, height: POSTER_H, background: t.posterBackground, fontFamily: POSTER_FONT_FAMILY, color: t.titleColor, position: "relative", overflow: "hidden" }, children: [
       /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("div", { style: { padding: "72px 64px 0" }, children: /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(PosterBrandRow, { theme: theme2 }) }),
       /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { style: { position: "absolute", top: HEADER_ZONE_H, left: padX, right: padX, bottom: 150, display: "flex", flexDirection: "column", justifyContent: "center", gap: 36 }, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { style: { display: "flex", alignItems: "center", justifyContent: "center", gap: 44, padding: "36px 24px", background: t.rowBg, border: "1px solid " + t.dividerColor, borderRadius: 32 }, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 22, flexShrink: 0 }, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { style: { display: "grid", gridTemplateColumns: "360px minmax(0, 1fr)", alignItems: "center", gap: 44, padding: "36px 24px", background: t.rowBg, border: "1px solid " + t.dividerColor, borderRadius: 32 }, children: [
+          item2.image ? /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("img", { src: item2.image, alt: "", style: { display: "block", width: 360, height: 360, objectFit: "cover", borderRadius: 24, boxShadow: "0 16px 40px #00000026" } }) : /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(ArtPlaceholder, { width: 360, height: 360, radius: 24, theme: theme2, accentColor: meta.color, markSize: 100 }),
+          /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 22, minWidth: 0, textAlign: "center" }, children: [
             /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(CertificationIcon, { level: item2.level || "gold", size: 200 }),
             /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("span", { style: { fontSize: posterFontSize(22), fontWeight: 850, letterSpacing: "3px", textTransform: "uppercase", color: awardColor }, children: "Official certification" })
-          ] }),
-          item2.image ? /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("img", { src: item2.image, alt: "", style: { width: 360, height: 360, objectFit: "cover", borderRadius: 24, boxShadow: "0 16px 40px #00000026" } }) : /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(ArtPlaceholder, { width: 360, height: 360, radius: 24, theme: theme2, accentColor: meta.color, markSize: 100 })
+          ] })
         ] }),
         /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { style: { textAlign: "center" }, children: [
           /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { style: { fontSize: posterFontSize(68), fontWeight: 900, letterSpacing: "-2px", lineHeight: 1.05, color: awardColor }, children: [
