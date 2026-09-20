@@ -33702,10 +33702,10 @@
                 children: headerTitle
               }
             ),
-            /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { style: { marginTop: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, flexWrap: "wrap" }, children: [
-              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { style: { fontSize: posterFontSize(23), fontWeight: 700, color: t.metaColor }, children: period === "all-time" ? "All Time" : month }),
+            /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { style: { marginTop: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, flexWrap: "nowrap", whiteSpace: "nowrap" }, children: [
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { style: { fontSize: posterFontSize(23), fontWeight: 700, color: t.metaColor, whiteSpace: "nowrap" }, children: period === "all-time" ? "All Time" : month }),
               /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { style: { width: 5, height: 5, borderRadius: "50%", background: t.metaColor, opacity: 0.6 } }),
-              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { style: { fontSize: posterFontSize(17), fontWeight: 900, letterSpacing: "0.6px", textTransform: "uppercase", color: accentColor }, children: period === "all-time" ? "All Time" : platformLabel(platform) })
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { style: { fontSize: posterFontSize(17), fontWeight: 900, letterSpacing: "0.6px", textTransform: "uppercase", color: accentColor, whiteSpace: "nowrap" }, children: period === "all-time" ? "All Time" : platformLabel(platform) })
             ] })
           ] }),
           /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { style: { position: "absolute", top: headerH, left: padX, right: padX, zIndex: 1, borderTop: rows2.length ? `1px solid ${t.dividerColor}` : "none" }, children: rows2.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { style: { padding: "40px 0", textAlign: "center", color: t.emptyColor, fontSize: posterFontSize(18), fontWeight: 700 }, children: "No chart data for this selection" }) : rows2.map((row, i) => {

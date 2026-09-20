@@ -204,12 +204,12 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
         >
           {headerTitle}
         </div>
-        <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
-          <span style={{ fontSize: posterFontSize(23), fontWeight: 700, color: t.metaColor }}>
+        <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, flexWrap: "nowrap", whiteSpace: "nowrap" }}>
+          <span style={{ fontSize: posterFontSize(23), fontWeight: 700, color: t.metaColor, whiteSpace: "nowrap" }}>
             {period === "all-time" ? "All Time" : month}
           </span>
           <span style={{ width: 5, height: 5, borderRadius: "50%", background: t.metaColor, opacity: 0.6 }} />
-          <span style={{ fontSize: posterFontSize(17), fontWeight: 900, letterSpacing: "0.6px", textTransform: "uppercase", color: accentColor }}>
+          <span style={{ fontSize: posterFontSize(17), fontWeight: 900, letterSpacing: "0.6px", textTransform: "uppercase", color: accentColor, whiteSpace: "nowrap" }}>
             {period === "all-time" ? "All Time" : platformLabel(platform)}
           </span>
         </div>
