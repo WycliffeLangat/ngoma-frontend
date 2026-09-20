@@ -52,11 +52,11 @@ export default function CertificationSharePoster({ item, theme = "dark" }) {
     <div style={{ width: POSTER_W, height: POSTER_H, background: t.posterBackground, fontFamily: POSTER_FONT_FAMILY, color: t.titleColor, position: "relative", overflow: "hidden" }}>
       <div style={{ padding: "72px 64px 0" }}><PosterBrandRow theme={theme} /></div>
       <div style={{ position: "absolute", top: HEADER_ZONE_H, left: padX, right: padX, bottom: 150, display: "flex", flexDirection: "column", justifyContent: "center", gap: 36 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "360px minmax(0, 1fr)", alignItems: "center", gap: 44, padding: "36px 24px", background: t.rowBg, border: "1px solid " + t.dividerColor, borderRadius: 32 }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 28, padding: "36px 24px", background: t.rowBg, border: "1px solid " + t.dividerColor, borderRadius: 32 }}>
           {item.image ? (
             <img src={item.image} alt="" style={{ display: "block", width: 360, height: 360, objectFit: "cover", borderRadius: 24, boxShadow: "0 16px 40px #00000026" }} />
           ) : <ArtPlaceholder width={360} height={360} radius={24} theme={theme} accentColor={meta.color} markSize={100} />}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 22, minWidth: 0, textAlign: "center" }}>
+          <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 18, paddingTop: 26, borderTop: `1px solid ${t.dividerColor}`, minWidth: 0, textAlign: "center" }}>
             <CertificationIcon level={item.level || "gold"} size={200} />
             <span style={{ fontSize: posterFontSize(22), fontWeight: 850, letterSpacing: "3px", textTransform: "uppercase", color: awardColor }}>Official certification</span>
           </div>
