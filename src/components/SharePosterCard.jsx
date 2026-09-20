@@ -1,4 +1,5 @@
 import {
+  posterFontSize,
   POSTER_W,
   POSTER_H,
   POSTER_FONT_FAMILY,
@@ -41,7 +42,7 @@ export default function SharePosterCard({ image, title = "", subtitle = "", stat
         height: POSTER_H,
         position: "relative",
         overflow: "hidden",
-        background: t.pageBg,
+        background: t.posterBackground,
         fontFamily: POSTER_FONT_FAMILY,
       }}
     >
@@ -78,7 +79,7 @@ export default function SharePosterCard({ image, title = "", subtitle = "", stat
         <div
           style={{
             marginTop: 44,
-            fontSize: titleFontSize,
+            fontSize: posterFontSize(titleFontSize),
             fontWeight: 900,
             lineHeight: 1.14,
             letterSpacing: "-0.5px",
@@ -98,7 +99,7 @@ export default function SharePosterCard({ image, title = "", subtitle = "", stat
           <div
             style={{
               marginTop: 14,
-              fontSize: compactStats ? 24 : 28,
+              fontSize: posterFontSize(compactStats ? 24 : 28),
               fontWeight: 700,
               lineHeight: 1.25,
               color: t.metaColor,
@@ -135,8 +136,8 @@ export default function SharePosterCard({ image, title = "", subtitle = "", stat
                   justifyContent: "center",
                 }}
               >
-                <div style={{ fontSize: compactStats ? 30 : 32, fontWeight: 900, color: t.titleColor }}>{stat.value}</div>
-                <div style={{ fontSize: compactStats ? 12 : 13, fontWeight: 800, letterSpacing: "0.6px", textTransform: "uppercase", color: t.metaColor, marginTop: 8 }}>
+                <div style={{ fontSize: posterFontSize(compactStats ? 30 : 32), fontWeight: 900, color: t.titleColor }}>{stat.value}</div>
+                <div style={{ fontSize: posterFontSize(compactStats ? 12 : 13), fontWeight: 800, letterSpacing: "0.6px", textTransform: "uppercase", color: t.metaColor, marginTop: 8 }}>
                   {stat.label}
                 </div>
               </div>

@@ -1,4 +1,5 @@
 import {
+  posterFontSize,
   POSTER_FONT_FAMILY,
   TITLE_GAP_FROM_LOGO,
   PosterBrandRow,
@@ -46,7 +47,7 @@ export default function DetailPosterHeader({ title = "", subtitle = "", sectionL
         )}
         <div
           style={{
-            fontSize: title.length > 26 ? 44 : title.length > 18 ? 50 : 58,
+            fontSize: posterFontSize(title.length > 26 ? 44 : title.length > 18 ? 50 : 58),
             fontWeight: 900,
             lineHeight: 1.1,
             letterSpacing: "-0.5px",
@@ -65,7 +66,7 @@ export default function DetailPosterHeader({ title = "", subtitle = "", sectionL
           <div
             style={{
               marginTop: 14,
-              fontSize: 23,
+              fontSize: posterFontSize(23),
               fontWeight: 700,
               fontFamily: POSTER_FONT_FAMILY,
               color: t.metaColor,
@@ -86,7 +87,7 @@ export default function DetailPosterHeader({ title = "", subtitle = "", sectionL
               borderRadius: 999,
               background: `${accentColor}1F`,
               color: accentColor,
-              fontSize: 17,
+              fontSize: posterFontSize(17),
               fontWeight: 900,
               fontFamily: POSTER_FONT_FAMILY,
               letterSpacing: "0.7px",

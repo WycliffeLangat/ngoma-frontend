@@ -1,4 +1,5 @@
 import {
+  posterFontSize,
   POSTER_W,
   POSTER_H,
   POSTER_FONT_FAMILY,
@@ -45,7 +46,7 @@ export default function DetailListPoster({
   // list an exact fit within the fixed poster canvas (no scrolling exists
   // to rescue an overflow) instead of forcing a minimum that could push
   // content past the footer on a fuller page.
-  const rowH = Math.min(MAX_ROW_H, (rowAreaH - gap * n) / n);
+  const rowH = Math.min(MAX_ROW_H, rowAreaH / n);
   const stripeColor = theme === "light" ? "rgba(0,0,0,0.028)" : "rgba(255,255,255,0.035)";
 
   return (
@@ -54,7 +55,7 @@ export default function DetailListPoster({
         width: POSTER_W,
         height: POSTER_H,
         boxSizing: "border-box",
-        background: t.pageBg,
+        background: t.posterBackground,
         fontFamily: POSTER_FONT_FAMILY,
         color: t.titleColor,
         position: "relative",
@@ -69,7 +70,7 @@ export default function DetailListPoster({
             {columns.map((col, i) => (
               <span
                 key={col.label || i}
-                style={{ flex: col.width ? `0 0 ${col.width}` : 1, fontSize: 15, fontWeight: 900, letterSpacing: "0.6px", textTransform: "uppercase", color: t.metaColor, textAlign: col.align || "left" }}
+                style={{ flex: col.width ? `0 0 ${col.width}` : 1, fontSize: posterFontSize(15), fontWeight: 900, letterSpacing: "0.6px", textTransform: "uppercase", color: t.metaColor, textAlign: col.align || "left" }}
               >
                 {col.label}
               </span>
@@ -77,7 +78,7 @@ export default function DetailListPoster({
           </div>
         )}
         {rows.length === 0 ? (
-          <div style={{ padding: "40px 0", textAlign: "center", color: t.emptyColor, fontSize: 20, fontWeight: 700 }}>
+          <div style={{ padding: "40px 0", textAlign: "center", color: t.emptyColor, fontSize: posterFontSize(20), fontWeight: 700 }}>
             No data available
           </div>
         ) : (
@@ -86,12 +87,12 @@ export default function DetailListPoster({
               <div
                 key={rowIndex}
                 style={{
-                  minHeight: rowH,
+                  height: rowH,
                   boxSizing: "border-box",
                   display: "flex",
                   alignItems: "center",
                   gap: 16,
-                  padding: `${gap}px 18px`,
+                  padding: `${Math.min(gap, rowH * 0.1)}px 18px`,
                   background: rowIndex % 2 === 1 ? stripeColor : "transparent",
                   borderBottom: rowIndex === rows.length - 1 ? "none" : `1px solid ${t.dividerColor}`,
                 }}
@@ -103,12 +104,14 @@ export default function DetailListPoster({
                       key={cellIndex}
                       style={{
                         flex: col.width ? `0 0 ${col.width}` : 1,
-                        fontSize: cellIndex === 0 ? 21 : 20,
+                        minWidth: 0,
+                        fontSize: posterFontSize(cellIndex === 0 ? 21 : 20),
+                        lineHeight: 1.2,
                         fontWeight: cellIndex === 0 ? 800 : 650,
                         color: cellIndex === 0 ? t.titleColor : t.metaColor,
                         textAlign: col.align || "left",
                         display: "-webkit-box",
-                        WebkitLineClamp: col.lines || 2,
+                        WebkitLineClamp: Math.max(1, Math.min(col.lines || 2, Math.floor((rowH - 2 * Math.min(gap, rowH * 0.1)) / (posterFontSize(cellIndex === 0 ? 21 : 20) * 1.2)))),
                         WebkitBoxOrient: "vertical",
                         overflow: "hidden",
                         wordBreak: "break-word",

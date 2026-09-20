@@ -87,7 +87,6 @@ const DEFAULT_NEWS_DESIGN = {
   brandTextColor: "",
   footerTextColor: "",
   headlineScale: 100,
-  headlineBackground: "black",
   subheadlineScale: 100,
   categoryScale: 100,
   brandScale: 100,
@@ -310,17 +309,17 @@ function textBoxPosition(position, offsetY = 0) {
 
 function headlineSize(text) {
   const len = String(text || "").trim().length;
-  if (len > 92) return 56;
-  if (len > 68) return 66;
-  if (len > 46) return 78;
-  return 90;
+  if (len > 92) return 62;
+  if (len > 68) return 72;
+  if (len > 46) return 86;
+  return 100;
 }
 
 function titleSize(text) {
   const len = String(text || "").trim().length;
-  if (len > 42) return 62;
-  if (len > 28) return 76;
-  return 90;
+  if (len > 42) return 68;
+  if (len > 28) return 84;
+  return 100;
 }
 
 function textShadowStyle(theme, strength = 100) {
@@ -608,11 +607,11 @@ function drawBrandCanvas(ctx, design, scale) {
   const brandColor = design.brandTextColor || t.wordmarkBarColor;
   const brandScale = (Number(design.brandScale) || 100) / 100;
   const markTop = 58 * scale;
-  const markSize = 54 * scale * brandScale;
+  const markSize = 64 * scale * brandScale;
   drawNgomaMarkCanvas(ctx, VIDEO_EXPORT_W / 2, markTop, markSize, brandColor);
   ctx.save();
   ctx.fillStyle = brandColor;
-  ctx.font = canvasFont(900, 25 * scale * brandScale);
+  ctx.font = canvasFont(900, 30 * scale * brandScale);
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
   ctx.fillText("Ngoma Charts", VIDEO_EXPORT_W / 2, markTop + markSize + 14 * scale * brandScale);
@@ -668,9 +667,9 @@ function drawVideoTextBlockCanvas(ctx, design, scale) {
   const metaColor = designSecondaryTextColor(design);
   const titleFontSize = scaleValue(titleSize(design.title), design.titleScale) * scale;
   const titleLineH = titleFontSize * 1.02;
-  const artistFontSize = scaleValue(34, design.artistScale) * scale;
+  const artistFontSize = scaleValue(40, design.artistScale) * scale;
   const artistLineH = artistFontSize * 1.2;
-  const pillFontSize = scaleValue(17, design.labelScale) * scale;
+  const pillFontSize = scaleValue(22, design.labelScale) * scale;
   const pillPadX = 18 * scale;
   const pillPadY = 8 * scale;
   const showBadge = design.showBadge !== false;
@@ -745,7 +744,7 @@ function drawFooterCanvas(ctx, design, scale) {
   ctx.textBaseline = "middle";
   ctx.textAlign = "left";
   ctx.fillStyle = footerColor;
-  ctx.font = canvasFont(700, 14 * scale);
+  ctx.font = canvasFont(700, 20 * scale);
   ctx.fillText("© 2026 Ngoma Media Ltd.", padX, y + height / 2);
   ctx.restore();
 }
@@ -1071,9 +1070,7 @@ function MediaPlaceholder({ label, theme, accent, blank = false }) {
 
 function NewsPostContent({ design }) {
   const padX = 62;
-  const headlineBackground = design.headlineBackground === "white" ? "#FFFFFF" : "#000000";
-  const textColor = design.textColor || readableInk(headlineBackground);
-  const bleedInk = design.theme === "light" ? "255,255,255" : "0,0,0";
+  const textColor = designTextColor(design);
   const metaColor = designSecondaryTextColor(design);
   const brandTextColor = designBrandTextColor(design);
   const footerTextColor = designFooterTextColor(design);
@@ -1128,14 +1125,14 @@ function NewsPostContent({ design }) {
             position: "absolute",
             inset: 0,
             pointerEvents: "none",
-            background: `linear-gradient(180deg, rgba(${bleedInk},0) 35%, rgba(${bleedInk},0.55) 60%, rgba(${bleedInk},0.94) 78%, rgba(${bleedInk},0.99) 90%, rgb(${bleedInk}) 100%)`,
+            background: "linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.7) 55%, rgba(0,0,0,0.97) 72%, #000 88%, #000 100%)",
           }}
         />
       )}
 
       {design.showBrand !== false && (
         <div style={{ position: "relative", zIndex: 1, padding: `58px ${padX}px 0` }}>
-          <PosterBrandRow theme={design.theme} size={54 * brandScale} fontSize={25 * brandScale} gap={14 * brandScale} color={brandTextColor} />
+          <PosterBrandRow theme={design.theme} size={64 * brandScale} fontSize={30 * brandScale} gap={14 * brandScale} color={brandTextColor} />
         </div>
       )}
 
@@ -1160,7 +1157,7 @@ function NewsPostContent({ design }) {
                 borderRadius: 999,
                 background: design.accent,
                 color: readableInk(design.accent),
-                fontSize: scaleValue(17, design.categoryScale),
+                fontSize: scaleValue(22, design.categoryScale),
                 fontWeight: 950,
                 letterSpacing: "1.2px",
                 textTransform: "uppercase",
@@ -1176,25 +1173,18 @@ function NewsPostContent({ design }) {
               marginTop: showCategory ? 20 : 0,
               fontSize: scaleValue(headlineSize(design.headline), design.headlineScale),
               fontWeight: 950,
-              lineHeight: 1.22,
+              lineHeight: 1.04,
               letterSpacing: 0,
               textTransform: "none",
               color: textColor,
-              textShadow: "none",
+              textShadow,
               display: "-webkit-box",
               WebkitLineClamp: 4,
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
             }}
           >
-            {displayText(design.headline || "Write headline", design.textCase).trim().split(/\s+/).map((word, index) => (
-              <span key={index}>
-                {index > 0 ? " " : ""}
-                <span style={{ display: "inline-block", maxWidth: "100%", overflowWrap: "anywhere", padding: "0.03em 0.1em", lineHeight: 1.08, background: headlineBackground }}>
-                  {word}
-                </span>
-              </span>
-            ))}
+            {displayText(design.headline || "Write headline", design.textCase)}
           </div>
 
           {showSubheadline && (
@@ -1202,7 +1192,7 @@ function NewsPostContent({ design }) {
               style={{
                 marginTop: 18,
                 color: metaColor,
-                fontSize: scaleValue(30, design.subheadlineScale),
+                fontSize: scaleValue(36, design.subheadlineScale),
                 fontWeight: 750,
                 lineHeight: 1.34,
                 textShadow,
@@ -1295,7 +1285,7 @@ function VideoPostContent({ design, exportMode = false, videoRef = null, onVideo
 
       {design.showBrand !== false && (
         <div style={{ position: "relative", zIndex: 2, padding: `58px ${padX}px 0`, pointerEvents: "none" }}>
-          <PosterBrandRow theme={design.theme} size={54 * brandScale} fontSize={25 * brandScale} gap={14 * brandScale} color={brandTextColor} />
+          <PosterBrandRow theme={design.theme} size={64 * brandScale} fontSize={30 * brandScale} gap={14 * brandScale} color={brandTextColor} />
         </div>
       )}
 
@@ -1321,7 +1311,7 @@ function VideoPostContent({ design, exportMode = false, videoRef = null, onVideo
                 borderRadius: 999,
                 background: design.accent,
                 color: readableInk(design.accent),
-                fontSize: scaleValue(17, design.labelScale),
+                fontSize: scaleValue(22, design.labelScale),
                 fontWeight: 950,
                 letterSpacing: "1.2px",
                 textTransform: "uppercase",
@@ -1354,7 +1344,7 @@ function VideoPostContent({ design, exportMode = false, videoRef = null, onVideo
             style={{
               marginTop: 18,
               color: metaColor,
-              fontSize: scaleValue(34, design.artistScale),
+              fontSize: scaleValue(40, design.artistScale),
               fontWeight: 850,
               lineHeight: 1.2,
               textShadow: titleShadow,
@@ -1865,7 +1855,6 @@ export default function NewsCardPage() {
 
                 <SegmentedControl label="Theme" value={newsDesign.theme} options={THEME_OPTIONS} onChange={(value) => updateNews({ theme: value })} />
                 <SegmentedControl label="Headline position" value={newsDesign.textPosition} options={TEXT_POSITIONS} onChange={(value) => updateNews({ textPosition: value })} />
-                <SegmentedControl label="Headline background" value={newsDesign.headlineBackground || "black"} options={[["black", "Black"], ["white", "White"]]} onChange={(value) => updateNews({ headlineBackground: value, textColor: "" })} />
                 <SegmentedControl label="Text align" value={newsDesign.textAlign} options={TEXT_ALIGNMENTS} onChange={(value) => updateNews({ textAlign: value })} />
                 <SegmentedControl label="Text case" value={newsDesign.textCase} options={TEXT_CASE_OPTIONS} onChange={(value) => updateNews({ textCase: value })} />
                 <SegmentedControl label="Finish" value={newsDesign.finish} options={POSTER_FINISH_OPTIONS} onChange={(value) => updateNews({ finish: value })} />
@@ -1873,7 +1862,7 @@ export default function NewsCardPage() {
                 <SegmentedControl label="Tone" value={newsDesign.tone} options={POSTER_TONE_OPTIONS} onChange={(value) => updateNews({ tone: value })} />
 
                 <div style={CONTROL_GRID}>
-                  <ColorControl label="Headline color" value={newsDesign.textColor} fallback={readableInk(newsDesign.headlineBackground === "white" ? "#FFFFFF" : "#000000")} onChange={(value) => updateNews({ textColor: value })} />
+                  <ColorControl label="Headline color" value={newsDesign.textColor} fallback={defaultTextColor(newsDesign.theme)} onChange={(value) => updateNews({ textColor: value })} />
                   <ColorControl label="Secondary color" value={newsDesign.secondaryTextColor} fallback={defaultSecondaryTextColor(newsDesign.theme)} onChange={(value) => updateNews({ secondaryTextColor: value })} />
                   <ColorControl label="Brand color" value={newsDesign.brandTextColor} fallback={defaultBrandTextColor(newsDesign.theme)} onChange={(value) => updateNews({ brandTextColor: value })} />
                   <ColorControl label="Footer color" value={newsDesign.footerTextColor} fallback={defaultFooterTextColor(newsDesign.theme)} onChange={(value) => updateNews({ footerTextColor: value })} />

@@ -3,6 +3,7 @@ import { CERTIFICATION_BRANDING, certificationLabel } from "../../utils/certific
 import { useEffect, useRef, useState } from "react";
 import { cmsApi, getResults, qs } from "../api.js";
 import {
+  posterFontSize,
   POSTER_W,
   POSTER_H,
   PREVIEW_W,
@@ -79,13 +80,13 @@ function SpotlightContent({ item, type, theme = "dark" }) {
         style={{
           width: POSTER_W,
           height: POSTER_H,
-          background: t.pageBg,
+          background: t.posterBackground,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           color: t.emptyColor,
           fontFamily: POSTER_FONT_FAMILY,
-          fontSize: 22,
+          fontSize: posterFontSize(22),
           fontWeight: 700,
           textAlign: "center",
           padding: 64,
@@ -124,7 +125,7 @@ function SpotlightContent({ item, type, theme = "dark" }) {
         width: POSTER_W,
         height: POSTER_H,
         boxSizing: "border-box",
-        background: t.pageBg,
+        background: t.posterBackground,
         fontFamily: POSTER_FONT_FAMILY,
         color: t.titleColor,
         position: "relative",
@@ -191,7 +192,7 @@ function SpotlightContent({ item, type, theme = "dark" }) {
                 borderRadius: 999,
                 background: certColor,
                 color: readableInk(certColor),
-                fontSize: 20,
+                fontSize: posterFontSize(20),
                 fontWeight: 900,
                 letterSpacing: "2px",
                 textTransform: "uppercase",
@@ -207,7 +208,7 @@ function SpotlightContent({ item, type, theme = "dark" }) {
         <div
           style={{
             marginTop: topCert ? 48 : 32,
-            fontSize: item.title.length > 22 ? (compactStats ? 40 : 44) : item.title.length > 14 ? (compactStats ? 46 : 52) : (compactStats ? 52 : 60),
+            fontSize: posterFontSize(item.title.length > 22 ? (compactStats ? 40 : 44) : item.title.length > 14 ? (compactStats ? 46 : 52) : (compactStats ? 52 : 60)),
             fontWeight: 900,
             lineHeight: 1.12,
             letterSpacing: "-1px",
@@ -224,7 +225,7 @@ function SpotlightContent({ item, type, theme = "dark" }) {
           {item.title}
         </div>
         {item.subtitle && (
-          <div style={{ marginTop: 14, fontSize: compactStats ? 26 : 30, fontWeight: 700, color: t.metaColor, textAlign: "center" }}>
+          <div style={{ marginTop: 14, fontSize: posterFontSize(compactStats ? 26 : 30), fontWeight: 700, color: t.metaColor, textAlign: "center" }}>
             {item.subtitle}
           </div>
         )}
@@ -253,8 +254,8 @@ function SpotlightContent({ item, type, theme = "dark" }) {
                 justifyContent: "center",
               }}
             >
-              <div style={{ fontSize: compactStats ? 34 : 50, fontWeight: 900, color: "#BF870E" }}>{value}</div>
-              <div style={{ fontSize: compactStats ? 12 : 17, fontWeight: 800, letterSpacing: "0.5px", textTransform: "uppercase", color: t.metaColor, marginTop: 8 }}>
+              <div style={{ fontSize: posterFontSize(compactStats ? 34 : 50), fontWeight: 900, color: "#BF870E" }}>{value}</div>
+              <div style={{ fontSize: posterFontSize(compactStats ? 12 : 17), fontWeight: 800, letterSpacing: "0.5px", textTransform: "uppercase", color: t.metaColor, marginTop: 8 }}>
                 {label}
               </div>
             </div>

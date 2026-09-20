@@ -3,6 +3,7 @@ import { fetchAppData } from "../../api/public";
 import { buildCrossPlatformRows } from "../../utils/publicChartMirror.js";
 import { resolveMediaUrl } from "../../api/config.js";
 import {
+  posterFontSize,
   POSTER_W,
   POSTER_H,
   PREVIEW_W,
@@ -48,7 +49,7 @@ function PosterContent({ rows, chartType, mode, month, theme = "dark" }) {
     <div
       style={{
         width: POSTER_W, height: POSTER_H, boxSizing: "border-box",
-        background: t.pageBg, fontFamily: POSTER_FONT_FAMILY, color: t.titleColor,
+        background: t.posterBackground, fontFamily: POSTER_FONT_FAMILY, color: t.titleColor,
         position: "relative", overflow: "hidden",
       }}
     >
@@ -57,17 +58,17 @@ function PosterContent({ rows, chartType, mode, month, theme = "dark" }) {
       </div>
 
       <div style={{ padding: `${TITLE_GAP_FROM_LOGO}px ${padX}px 0`, position: "relative", zIndex: 1, textAlign: "center" }}>
-        <div style={{ fontSize: headerTitle.length > 26 ? 40 : 48, fontWeight: 900, lineHeight: 1.1, letterSpacing: "-0.5px", color: t.titleColor, textTransform: "uppercase" }}>
+        <div style={{ fontSize: posterFontSize(headerTitle.length > 26 ? 40 : 48), fontWeight: 900, lineHeight: 1.1, letterSpacing: "-0.5px", color: t.titleColor, textTransform: "uppercase" }}>
           {headerTitle}
         </div>
-        <div style={{ marginTop: 10, fontSize: 20, fontWeight: 700, color: "#00897B", textTransform: "uppercase", letterSpacing: "0.6px" }}>
+        <div style={{ marginTop: 10, fontSize: posterFontSize(20), fontWeight: 700, color: "#00897B", textTransform: "uppercase", letterSpacing: "0.6px" }}>
           {month}
         </div>
       </div>
 
       <div style={{ position: "absolute", top: listTop, left: padX, right: padX, bottom: footerH, zIndex: 1 }}>
         {rows.length === 0 ? (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: t.emptyColor, fontSize: 22, fontWeight: 700, textAlign: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: t.emptyColor, fontSize: posterFontSize(22), fontWeight: 700, textAlign: "center" }}>
             No qualifying entries for this selection
           </div>
         ) : (
@@ -79,11 +80,15 @@ function PosterContent({ rows, chartType, mode, month, theme = "dark" }) {
                 boxSizing: "border-box", display: "flex", alignItems: "center",
                 gap: Math.round(16 * scale),
                 paddingTop: i > 0 ? gap / 2 : 0,
+                paddingLeft: 16,
+                paddingRight: 16,
+                background: i % 2 === 0 ? t.rowBg : "transparent",
+                borderRadius: 16,
                 paddingBottom: i < rows.length - 1 ? gap / 2 : 0,
                 borderBottom: i === rows.length - 1 ? "none" : `1px solid ${t.dividerColor}`,
               }}
             >
-              <span style={{ width: Math.round(42 * scale), flexShrink: 0, fontSize: Math.round(30 * scale), fontWeight: 900, color: i < 3 ? "#00897B" : t.metaColor }}>
+              <span style={{ width: Math.round(42 * scale), flexShrink: 0, fontSize: posterFontSize(Math.round(30 * scale)), fontWeight: 900, color: i < 3 ? "#00897B" : t.metaColor }}>
                 {i + 1}
               </span>
               {row.cover_image ? (
@@ -92,17 +97,17 @@ function PosterContent({ rows, chartType, mode, month, theme = "dark" }) {
                 <ArtPlaceholder width={artSize} height={artSize} radius={10} theme={theme} accentColor="#00897B" />
               )}
               <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontSize: Math.round(26 * scale), fontWeight: 800, color: t.titleColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                <div style={{ fontSize: posterFontSize(Math.round(26 * scale)), fontWeight: 800, color: t.titleColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {row.t || row.title}
                 </div>
-                <div style={{ fontSize: Math.round(17 * scale), fontWeight: 600, color: t.metaColor, marginTop: 3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                <div style={{ fontSize: posterFontSize(Math.round(17 * scale)), fontWeight: 600, color: t.metaColor, marginTop: 3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {row.artist_credit || row.a || row.artist || ""}
                 </div>
               </div>
               <div
                 style={{
                   flexShrink: 0, whiteSpace: "nowrap", padding: `${Math.round(6 * scale)}px ${Math.round(14 * scale)}px`, borderRadius: 999,
-                  background: "#00897B22", color: "#00897B", fontWeight: 900, fontSize: Math.round(18 * scale),
+                  background: "#00897B22", color: "#00897B", fontWeight: 900, fontSize: posterFontSize(Math.round(18 * scale)),
                 }}
               >
                 {row.count}/{row.platformTotal}

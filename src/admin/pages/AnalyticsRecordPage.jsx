@@ -11,6 +11,7 @@ import {
   buildMovementLists,
 } from "../../utils/publicChartMirror.js";
 import {
+  posterFontSize,
   POSTER_W,
   POSTER_H,
   PREVIEW_W,
@@ -174,13 +175,13 @@ function RecordCardContent({ item, chartType, recordType, recordLabel, accentCol
         style={{
           width: POSTER_W,
           height: POSTER_H,
-          background: t.pageBg,
+          background: t.posterBackground,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           color: t.emptyColor,
           fontFamily: POSTER_FONT_FAMILY,
-          fontSize: 22,
+          fontSize: posterFontSize(22),
           fontWeight: 700,
           textAlign: "center",
           padding: 64,
@@ -203,7 +204,7 @@ function RecordCardContent({ item, chartType, recordType, recordLabel, accentCol
         width: POSTER_W,
         height: POSTER_H,
         boxSizing: "border-box",
-        background: t.pageBg,
+        background: t.posterBackground,
         fontFamily: POSTER_FONT_FAMILY,
         color: t.titleColor,
         position: "relative",
@@ -235,7 +236,7 @@ function RecordCardContent({ item, chartType, recordType, recordLabel, accentCol
       >
         <div
           style={{
-            fontSize: `${recordLabel} · ${countryLabel}`.length > 22 ? 44 : `${recordLabel} · ${countryLabel}`.length > 14 ? 52 : 60,
+            fontSize: posterFontSize(`${recordLabel} · ${countryLabel}`.length > 22 ? 44 : `${recordLabel} · ${countryLabel}`.length > 14 ? 52 : 60),
             fontWeight: 900,
             lineHeight: 1.12,
             letterSpacing: "-0.5px",
@@ -270,7 +271,7 @@ function RecordCardContent({ item, chartType, recordType, recordLabel, accentCol
           <div
             style={{
               marginTop: 30,
-              fontSize: item.title.length > 22 ? 44 : item.title.length > 14 ? 52 : 60,
+              fontSize: posterFontSize(item.title.length > 22 ? 44 : item.title.length > 14 ? 52 : 60),
               fontWeight: 900,
               lineHeight: 1.12,
               letterSpacing: "-0.5px",
@@ -287,7 +288,7 @@ function RecordCardContent({ item, chartType, recordType, recordLabel, accentCol
             {item.title}
           </div>
           {item.subtitle && (
-            <div style={{ marginTop: 12, fontSize: 30, fontWeight: 700, color: t.metaColor, textAlign: "center" }}>
+            <div style={{ marginTop: 12, fontSize: posterFontSize(30), fontWeight: 700, color: t.metaColor, textAlign: "center" }}>
               {item.subtitle}
             </div>
           )}
@@ -296,8 +297,8 @@ function RecordCardContent({ item, chartType, recordType, recordLabel, accentCol
         <div style={{ width: "100%" }}>
           <div style={{ borderTop: `2px solid ${t.dividerColor}`, marginBottom: 26 }} />
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 92, fontWeight: 900, color: accentColor, letterSpacing: "-1px" }}>{statValue}</div>
-            <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: "1px", textTransform: "uppercase", color: t.metaColor, marginTop: 4 }}>
+            <div style={{ fontSize: posterFontSize(92), fontWeight: 900, color: accentColor, letterSpacing: "-1px" }}>{statValue}</div>
+            <div style={{ fontSize: posterFontSize(18), fontWeight: 800, letterSpacing: "1px", textTransform: "uppercase", color: t.metaColor, marginTop: 4 }}>
               {statLabel}
             </div>
           </div>

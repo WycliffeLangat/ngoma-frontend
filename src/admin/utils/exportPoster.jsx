@@ -19,11 +19,8 @@ export const VIDEO_EXPORT_SCALE = 1;
 export const VIDEO_EXPORT_W = POSTER_W * VIDEO_EXPORT_SCALE;
 export const VIDEO_EXPORT_H = POSTER_H * VIDEO_EXPORT_SCALE;
 
-// Fixed gap between the bottom of <PosterBrandRow /> and the top of a card's
-// title text — 2cm at 96 DPI (the standard CSS reference pixel), applied the
-// same way on every card type so the logo-to-title spacing always reads as
-// one consistent layout instead of each poster having hand-tuned padding.
-export const TITLE_GAP_FROM_LOGO = 76;
+// A compact masthead leaves more room for readable titles and chart content.
+export const TITLE_GAP_FROM_LOGO = 40;
 
 // For card types that position their post-logo content with an absolute
 // `top: <px>` offset (rather than flowing it after the brand row in normal
@@ -32,6 +29,13 @@ export const TITLE_GAP_FROM_LOGO = 76;
 // TITLE_GAP_FROM_LOGO gap via a single reusable offset instead of each card
 // guessing its own number.
 export const HEADER_ZONE_H = 72 + 108 + TITLE_GAP_FROM_LOGO;
+
+// Increase supporting copy most; large display numbers need less enlargement.
+// Apply before rendering so the preview and exported image use identical sizes.
+export function posterFontSize(size) {
+  const value = Number(size) || 20;
+  return Math.round(Math.max(20, value * (value < 32 ? 1.25 : value < 64 ? 1.15 : 1.08)));
+}
 
 const TRANSPARENT_PIXEL =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
@@ -230,11 +234,12 @@ export const POSTER_FONT_FAMILY = "Inter, -apple-system, BlinkMacSystemFont, 'Se
 export const POSTER_THEMES = {
   dark: {
     pageBg: "#000000",
+    posterBackground: "linear-gradient(90deg, #BF870E, #EBCB78) top / 100% 6px no-repeat, radial-gradient(ellipse at top left, #20252D 0%, #101318 42%, #080A0D 100%)",
     wordmarkBarColor: "#fffdf8",
     titleColor: "#fffdf8",
-    metaColor: "#b6bcae",
-    dividerColor: "#383f33",
-    rowBg: "#20251e",
+    metaColor: "#C2CAD5",
+    dividerColor: "#343D49",
+    rowBg: "#191F28",
     sameColor: "#b6bcae",
     footerBorder: "#383f33",
     footerPrimary: "#b6bcae",
@@ -242,11 +247,12 @@ export const POSTER_THEMES = {
   },
   light: {
     pageBg: "#FFFFFF",
+    posterBackground: "linear-gradient(90deg, #BF870E, #EBCB78) top / 100% 6px no-repeat, linear-gradient(145deg, #FFFFFF, #F1F4F8)",
     wordmarkBarColor: "#0e100d",
     titleColor: "#0e100d",
-    metaColor: "#696f67",
-    dividerColor: "#e5dece",
-    rowBg: "#ffffff",
+    metaColor: "#4B5868",
+    dividerColor: "#D4DCE6",
+    rowBg: "#E8EDF3",
     sameColor: "#696f67",
     footerBorder: "#e5dece",
     footerPrimary: "#696f67",
@@ -684,7 +690,7 @@ export function ArtPlaceholder({ width, height, radius = 0, theme, accentColor =
 // rendered as its own standalone line at the top of a card — never squeezed
 // inline next to other header content — so the brand reads clearly at a
 // glance even in a fast social-media scroll.
-export function PosterBrandRow({ theme, size = 56, fontSize = 26, gap = 14, color }) {
+export function PosterBrandRow({ theme, size = 64, fontSize = 30, gap = 14, color }) {
   const settings = usePosterSettings();
   if (!settings.showBrand) return null;
   const t = usePosterTheme(theme);
@@ -731,12 +737,12 @@ export function PosterFooter({ theme, height = 74, padX = 56, primaryColor, poin
         pointerEvents,
       }}
     >
-      <span style={{ fontSize: 14 * scale, fontWeight: 700, color: primary }}>© 2026 Ngoma Media Ltd.</span>
+      <span style={{ fontSize: 20 * scale, fontWeight: 700, color: primary }}>© 2026 Ngoma Media Ltd.</span>
       {downloadDate && (
         <span
           {...(customText ? {} : { "data-poster-download-date-auto": "1" })}
           style={{
-            fontSize: 14 * scale,
+            fontSize: 20 * scale,
             fontWeight: 700,
             color: primary,
             textAlign: "right",

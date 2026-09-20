@@ -9,6 +9,7 @@ import {
 } from "../../utils/publicChartMirror.js";
 import { resolveMediaUrl } from "../../api/config.js";
 import {
+  posterFontSize,
   POSTER_W,
   POSTER_H,
   PREVIEW_W,
@@ -110,18 +111,18 @@ function normalizeYearEndRows(chartType, rawRows) {
 }
 
 function MovementChip({ movement, sameColor, scale }) {
-  const pad = `${Math.round(10 * scale)}px ${Math.round(20 * scale)}px`;
+  const pad = `${Math.round(6 * scale)}px ${Math.round(18 * scale)}px`;
   const fontSize = Math.round(28 * scale);
   if (movement === "new") {
     return (
-      <span style={{ padding: pad, borderRadius: 999, background: "#BF870E22", color: "#BF870E", fontSize, fontWeight: 900, letterSpacing: "0.4px" }}>
+      <span style={{ padding: pad, borderRadius: 999, background: "#BF870E22", color: "#BF870E", fontSize: posterFontSize(fontSize), fontWeight: 900, letterSpacing: "0.4px" }}>
         NEW
       </span>
     );
   }
   if (movement === "re") {
     return (
-      <span style={{ padding: pad, borderRadius: 999, background: "#0088FF22", color: "#0088FF", fontSize, fontWeight: 900, letterSpacing: "0.4px" }}>
+      <span style={{ padding: pad, borderRadius: 999, background: "#0088FF22", color: "#0088FF", fontSize: posterFontSize(fontSize), fontWeight: 900, letterSpacing: "0.4px" }}>
         RE
       </span>
     );
@@ -129,13 +130,13 @@ function MovementChip({ movement, sameColor, scale }) {
   if (movement === "up" || movement === "down") {
     const color = movement === "up" ? "#2DB04A" : "#E5484D";
     return (
-      <span style={{ padding: pad, borderRadius: 999, background: `${color}1F`, color, fontSize, fontWeight: 900, display: "inline-flex", alignItems: "center", gap: 3 }}>
+      <span style={{ padding: pad, borderRadius: 999, background: `${color}1F`, color, fontSize: posterFontSize(fontSize), fontWeight: 900, display: "inline-flex", alignItems: "center", gap: 3 }}>
         {movement === "up" ? "▲" : "▼"}
       </span>
     );
   }
   if (movement === "same") {
-    return <span style={{ padding: pad, borderRadius: 999, background: `${sameColor}22`, color: sameColor, fontSize, fontWeight: 900 }}>–</span>;
+    return <span style={{ padding: pad, borderRadius: 999, background: `${sameColor}22`, color: sameColor, fontSize: posterFontSize(fontSize), fontWeight: 900 }}>–</span>;
   }
   return null;
 }
@@ -148,7 +149,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
   // +37px vs. the original 39px title padding, to keep the same breathing
   // room below the (now taller) title zone after widening its top gap to
   // TITLE_GAP_FROM_LOGO.
-  const headerH = 365;
+  const headerH = 340;
   const footerH = 74;
   const padX = 56;
   const listH = POSTER_H - headerH - footerH;
@@ -170,7 +171,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
   const isArtists = chartType === "artists";
   const typeLabel = CHART_TYPES.find(([key]) => key === chartType)?.[1] || "Chart";
   const headerTitle = `Top ${rows.length || 0} ${typeLabel} in ${countryLabel}`;
-  const artSize = Math.round(Math.min(88, Math.max(40, rowH - 18)));
+  const artSize = Math.round(Math.min(112, Math.max(36, rowH - 12)));
 
   return (
     <div
@@ -178,7 +179,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
         width: POSTER_W,
         height: POSTER_H,
         boxSizing: "border-box",
-        background: t.pageBg,
+        background: t.posterBackground,
         fontFamily: POSTER_FONT_FAMILY,
         color: t.titleColor,
         position: "relative",
@@ -192,7 +193,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
       <div style={{ padding: `${TITLE_GAP_FROM_LOGO}px ${padX}px 0`, position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
         <div
           style={{
-            fontSize: headerTitle.length > 26 ? 44 : headerTitle.length > 18 ? 52 : 60,
+            fontSize: posterFontSize(headerTitle.length > 26 ? 44 : headerTitle.length > 18 ? 52 : 60),
             fontWeight: 900,
             lineHeight: 1.08,
             letterSpacing: "-0.5px",
@@ -204,11 +205,11 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
           {headerTitle}
         </div>
         <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 23, fontWeight: 700, color: t.metaColor }}>
+          <span style={{ fontSize: posterFontSize(23), fontWeight: 700, color: t.metaColor }}>
             {period === "all-time" ? "All Time" : month}
           </span>
           <span style={{ width: 5, height: 5, borderRadius: "50%", background: t.metaColor, opacity: 0.6 }} />
-          <span style={{ fontSize: 17, fontWeight: 900, letterSpacing: "0.6px", textTransform: "uppercase", color: accentColor }}>
+          <span style={{ fontSize: posterFontSize(17), fontWeight: 900, letterSpacing: "0.6px", textTransform: "uppercase", color: accentColor }}>
             {period === "all-time" ? "All Time" : platformLabel(platform)}
           </span>
         </div>
@@ -216,7 +217,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
 
       <div style={{ position: "absolute", top: headerH, left: padX, right: padX, zIndex: 1, borderTop: rows.length ? `1px solid ${t.dividerColor}` : "none" }}>
         {rows.length === 0 ? (
-          <div style={{ padding: "40px 0", textAlign: "center", color: t.emptyColor, fontSize: 18, fontWeight: 700 }}>
+          <div style={{ padding: "40px 0", textAlign: "center", color: t.emptyColor, fontSize: posterFontSize(18), fontWeight: 700 }}>
             No chart data for this selection
           </div>
         ) : (
@@ -235,8 +236,12 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
                   boxSizing: "border-box",
                   display: "flex",
                   alignItems: "center",
-                  gap: Math.round(28 * scale),
+                  gap: Math.round(20 * scale),
                   paddingTop: rowPadY,
+                  paddingLeft: 16,
+                  paddingRight: 16,
+                  background: i % 2 === 0 ? t.rowBg : "transparent",
+                  borderRadius: 16,
                   paddingBottom: rowPadY,
                   borderBottom: i === rows.length - 1 ? "none" : `1px solid ${t.dividerColor}`,
                 }}
@@ -245,7 +250,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
                   style={{
                     width: Math.round(58 * scale),
                     flexShrink: 0,
-                    fontSize: Math.round(36 * scale),
+                    fontSize: posterFontSize(Math.round(36 * scale)),
                     fontWeight: 900,
                     color: row.rank <= 3 ? "#BF870E" : t.metaColor,
                   }}
@@ -278,7 +283,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
                   {oneLine ? (
                     <div
                       style={{
-                        fontSize: Math.round(30 * scale),
+                        fontSize: posterFontSize(Math.round(30 * scale)),
                         fontWeight: 800,
                         color: t.titleColor,
                         whiteSpace: "nowrap",
@@ -295,7 +300,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
                     <>
                       <div
                         style={{
-                          fontSize: Math.round(32 * scale),
+                          fontSize: posterFontSize(Math.round(32 * scale)),
                           fontWeight: 800,
                           color: t.titleColor,
                           whiteSpace: "nowrap",
@@ -308,7 +313,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
                       {row.subtitle && (
                         <div
                           style={{
-                            fontSize: Math.round(21 * scale),
+                            fontSize: posterFontSize(Math.round(21 * scale)),
                             fontWeight: 600,
                             color: t.metaColor,
                             marginTop: 4,

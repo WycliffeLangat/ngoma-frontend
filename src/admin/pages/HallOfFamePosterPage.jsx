@@ -3,6 +3,7 @@ import { fetchAppData } from "../../api/public";
 import { buildHallOfFameItems } from "../../utils/publicChartMirror.js";
 import { resolveMediaUrl } from "../../api/config.js";
 import {
+  posterFontSize,
   POSTER_W,
   POSTER_H,
   PREVIEW_W,
@@ -57,7 +58,7 @@ function PosterContent({ items, chartType, theme = "dark" }) {
   // capped so a sparse month (few Hall of Fame entries) doesn't blow the
   // cover art up to absurd size — the leftover room goes to text scale
   // instead (cardScale below), not the image.
-  const artSize = Math.max(60, Math.min(cardH - 150, cardW - 32, 220));
+  const artSize = Math.max(60, Math.min(cardH - 166, cardW - 32, 220));
   // When a card gets taller than the ~260px baseline (few entries that
   // month, more room per card), scale its text up to use the space instead
   // of leaving it blank under a fixed-size title/artist/month block.
@@ -67,7 +68,7 @@ function PosterContent({ items, chartType, theme = "dark" }) {
     <div
       style={{
         width: POSTER_W, height: POSTER_H, boxSizing: "border-box",
-        background: t.pageBg, fontFamily: POSTER_FONT_FAMILY, color: t.titleColor,
+        background: t.posterBackground, fontFamily: POSTER_FONT_FAMILY, color: t.titleColor,
         position: "relative", overflow: "hidden",
       }}
     >
@@ -76,17 +77,17 @@ function PosterContent({ items, chartType, theme = "dark" }) {
       </div>
 
       <div style={{ padding: `${TITLE_GAP_FROM_LOGO}px ${padX}px 0`, position: "relative", zIndex: 1, textAlign: "center" }}>
-        <div style={{ fontSize: headerTitle.length > 22 ? 40 : 48, fontWeight: 900, lineHeight: 1.1, letterSpacing: "-0.5px", color: t.titleColor, textTransform: "uppercase" }}>
+        <div style={{ fontSize: posterFontSize(headerTitle.length > 22 ? 40 : 48), fontWeight: 900, lineHeight: 1.1, letterSpacing: "-0.5px", color: t.titleColor, textTransform: "uppercase" }}>
           {headerTitle}
         </div>
-        <div style={{ marginTop: 10, fontSize: 18, fontWeight: 700, color: GOLD, textTransform: "uppercase", letterSpacing: "0.6px" }}>
+        <div style={{ marginTop: 10, fontSize: posterFontSize(18), fontWeight: 700, color: GOLD, textTransform: "uppercase", letterSpacing: "0.6px" }}>
           Monthly #1s
         </div>
       </div>
 
       <div style={{ position: "absolute", top: gridTop, left: padX, right: padX, bottom: footerH, zIndex: 1, display: "flex", flexWrap: "wrap", gap, alignContent: "flex-start" }}>
         {items.length === 0 ? (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%", height: "100%", color: t.emptyColor, fontSize: 22, fontWeight: 700, textAlign: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%", height: "100%", color: t.emptyColor, fontSize: posterFontSize(22), fontWeight: 700, textAlign: "center" }}>
             No #1s recorded yet
           </div>
         ) : (
@@ -111,15 +112,15 @@ function PosterContent({ items, chartType, theme = "dark" }) {
                 ) : (
                   <ArtPlaceholder width={artSize} height={artSize} radius={chartType === "artists" ? artSize / 2 : 10} theme={theme} accentColor={GOLD} />
                 )}
-                <div style={{ fontSize: Math.round(20 * cardScale), fontWeight: 800, color: t.titleColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>
+                <div style={{ fontSize: posterFontSize(Math.round(20 * cardScale)), fontWeight: 800, color: t.titleColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>
                   {itemTitle(chartType, item)}
                 </div>
                 {itemArtist(chartType, item) && (
-                  <div style={{ fontSize: Math.round(14 * cardScale), fontWeight: 600, color: t.metaColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>
+                  <div style={{ fontSize: posterFontSize(Math.round(14 * cardScale)), fontWeight: 600, color: t.metaColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>
                     {itemArtist(chartType, item)}
                   </div>
                 )}
-                <div style={{ fontSize: Math.round(12 * cardScale), fontWeight: 900, letterSpacing: "0.6px", textTransform: "uppercase", color: GOLD }}>
+                <div style={{ fontSize: posterFontSize(Math.round(12 * cardScale)), fontWeight: 900, letterSpacing: "0.6px", textTransform: "uppercase", color: GOLD }}>
                   {monthLabel}
                 </div>
               </div>

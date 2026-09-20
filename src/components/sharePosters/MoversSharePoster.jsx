@@ -3,6 +3,7 @@ import { runtimePublicData } from "../../utils/publicDataRuntime.js";
 import { buildMovementLists } from "../../utils/publicChartMirror.js";
 import { resolveMediaUrl } from "../../api/config.js";
 import {
+  posterFontSize,
   POSTER_W,
   POSTER_H,
   POSTER_FONT_FAMILY,
@@ -68,7 +69,7 @@ export default function MoversSharePoster({ chartType = "singles", move = "riser
   // same header offset, row gap, and scale curve — so Climbers/Drops/New
   // Entries read as the same family of poster instead of a cramped variant.
   const n = Math.max(rows.length, 1);
-  const listTop = 365;
+  const listTop = 340;
   const footerH = 74;
   const listH = POSTER_H - listTop - footerH;
   const gap = 18;
@@ -81,13 +82,13 @@ export default function MoversSharePoster({ chartType = "singles", move = "riser
   const rowPadY = gap / 2;
   const slotH = rowH + gap;
   const scale = Math.min(1.55, Math.max(0.7, rowH / 96));
-  const artSize = Math.round(Math.min(88, Math.max(40, rowH - 18)));
+  const artSize = Math.round(Math.min(112, Math.max(36, rowH - 12)));
 
   return (
     <div
       style={{
         width: POSTER_W, height: POSTER_H, boxSizing: "border-box",
-        background: t.pageBg, fontFamily: POSTER_FONT_FAMILY, color: t.titleColor,
+        background: t.posterBackground, fontFamily: POSTER_FONT_FAMILY, color: t.titleColor,
         position: "relative", overflow: "hidden",
       }}
     >
@@ -96,17 +97,17 @@ export default function MoversSharePoster({ chartType = "singles", move = "riser
       </div>
 
       <div style={{ padding: `${TITLE_GAP_FROM_LOGO}px ${padX}px 0`, position: "relative", zIndex: 1, textAlign: "center" }}>
-        <div style={{ fontSize: headerTitle.length > 22 ? 40 : 48, fontWeight: 900, lineHeight: 1.1, letterSpacing: "-0.5px", color: t.titleColor, textTransform: "uppercase" }}>
+        <div style={{ fontSize: posterFontSize(headerTitle.length > 22 ? 40 : 48), fontWeight: 900, lineHeight: 1.1, letterSpacing: "-0.5px", color: t.titleColor, textTransform: "uppercase" }}>
           {headerTitle}
         </div>
-        <div style={{ marginTop: 10, fontSize: 20, fontWeight: 700, color: accentColor, textTransform: "uppercase", letterSpacing: "0.6px" }}>
+        <div style={{ marginTop: 10, fontSize: posterFontSize(20), fontWeight: 700, color: accentColor, textTransform: "uppercase", letterSpacing: "0.6px" }}>
           {month}
         </div>
       </div>
 
       <div style={{ position: "absolute", top: listTop, left: padX, right: padX, bottom: footerH, zIndex: 1, borderTop: rows.length ? `1px solid ${t.dividerColor}` : "none" }}>
         {rows.length === 0 ? (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: t.emptyColor, fontSize: 22, fontWeight: 700, textAlign: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: t.emptyColor, fontSize: posterFontSize(22), fontWeight: 700, textAlign: "center" }}>
             No qualifying entries for this selection
           </div>
         ) : (
@@ -116,13 +117,17 @@ export default function MoversSharePoster({ chartType = "singles", move = "riser
               style={{
                 height: slotH,
                 boxSizing: "border-box", display: "flex", alignItems: "center",
-                gap: Math.round(28 * scale),
+                gap: Math.round(20 * scale),
                 paddingTop: rowPadY,
+                  paddingLeft: 16,
+                  paddingRight: 16,
+                  background: i % 2 === 0 ? t.rowBg : "transparent",
+                  borderRadius: 16,
                 paddingBottom: rowPadY,
                 borderBottom: i === rows.length - 1 ? "none" : `1px solid ${t.dividerColor}`,
               }}
             >
-              <span style={{ width: Math.round(56 * scale), flexShrink: 0, fontSize: Math.round(30 * scale), fontWeight: 900, color: rowRank(chartType, row) <= 3 ? "#BF870E" : t.metaColor }}>
+              <span style={{ width: Math.round(56 * scale), flexShrink: 0, fontSize: posterFontSize(Math.round(30 * scale)), fontWeight: 900, color: rowRank(chartType, row) <= 3 ? "#BF870E" : t.metaColor }}>
                 #{rowRank(chartType, row)}
               </span>
               {rowImage(chartType, row) ? (
@@ -139,11 +144,11 @@ export default function MoversSharePoster({ chartType = "singles", move = "riser
                 <ArtPlaceholder width={artSize} height={artSize} radius={chartType === "artists" ? artSize / 2 : 10} theme={theme} accentColor={accentColor} />
               )}
               <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontSize: Math.round(26 * scale), fontWeight: 800, color: t.titleColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                <div style={{ fontSize: posterFontSize(Math.round(26 * scale)), fontWeight: 800, color: t.titleColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {rowTitle(chartType, row)}
                 </div>
                 {rowArtist(chartType, row) && (
-                  <div style={{ fontSize: Math.round(17 * scale), fontWeight: 600, color: t.metaColor, marginTop: 3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  <div style={{ fontSize: posterFontSize(Math.round(17 * scale)), fontWeight: 600, color: t.metaColor, marginTop: 3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {rowArtist(chartType, row)}
                   </div>
                 )}
@@ -152,7 +157,7 @@ export default function MoversSharePoster({ chartType = "singles", move = "riser
                 style={{
                   flexShrink: 0, marginRight: Math.round(38 * Math.min(scale, 1.2)), whiteSpace: "nowrap", textAlign: "center",
                   padding: `${Math.round(6 * scale)}px ${Math.round(14 * scale)}px`, borderRadius: 999,
-                  background: `${accentColor}22`, color: accentColor, fontWeight: 900, fontSize: Math.round(18 * scale),
+                  background: `${accentColor}22`, color: accentColor, fontWeight: 900, fontSize: posterFontSize(Math.round(18 * scale)),
                 }}
               >
                 {rowBadge(move, row)}

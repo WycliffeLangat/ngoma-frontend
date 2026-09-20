@@ -6,6 +6,7 @@ import {
   buildTopCountryStats,
 } from "../../utils/publicChartMirror.js";
 import {
+  posterFontSize,
   POSTER_W,
   POSTER_H,
   POSTER_FONT_FAMILY,
@@ -58,7 +59,7 @@ export default function PlatformBreakdownSharePoster({ chartType = "singles", me
         width: POSTER_W,
         height: POSTER_H,
         boxSizing: "border-box",
-        background: t.pageBg,
+        background: t.posterBackground,
         fontFamily: POSTER_FONT_FAMILY,
         color: t.titleColor,
         position: "relative",
@@ -72,21 +73,21 @@ export default function PlatformBreakdownSharePoster({ chartType = "singles", me
       <div style={{ padding: `${TITLE_GAP_FROM_LOGO}px ${padX}px 0`, position: "relative", zIndex: 1, textAlign: "center" }}>
         <div
           style={{
-            fontSize: headerTitle.length > 26 ? 44 : 52,
+            fontSize: posterFontSize(headerTitle.length > 26 ? 44 : 52),
             fontWeight: 900, lineHeight: 1.1, letterSpacing: "-0.5px",
             color: t.titleColor, textTransform: "uppercase",
           }}
         >
           {headerTitle}
         </div>
-        <div style={{ marginTop: 10, fontSize: 20, fontWeight: 700, color: "#BF870E", textTransform: "uppercase", letterSpacing: "0.6px" }}>
+        <div style={{ marginTop: 10, fontSize: posterFontSize(20), fontWeight: 700, color: "#BF870E", textTransform: "uppercase", letterSpacing: "0.6px" }}>
           {month}
         </div>
       </div>
 
       <div style={{ position: "absolute", top: 340, left: padX, right: padX, bottom: 74, zIndex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
         {rows.length === 0 ? (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: t.emptyColor, fontSize: 22, fontWeight: 700, textAlign: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: t.emptyColor, fontSize: posterFontSize(22), fontWeight: 700, textAlign: "center" }}>
             No data for this selection
           </div>
         ) : viewMode === "graph" ? (
@@ -95,7 +96,7 @@ export default function PlatformBreakdownSharePoster({ chartType = "singles", me
               <CartesianGrid stroke={t.dividerColor} vertical={false} />
               <XAxis
                 dataKey="label"
-                tick={{ fontSize: 16, fontFamily: POSTER_FONT_FAMILY, fill: t.metaColor, fontWeight: 700 }}
+                tick={{ fontSize: posterFontSize(16), fontFamily: POSTER_FONT_FAMILY, fill: t.metaColor, fontWeight: 700 }}
                 tickLine={false}
                 axisLine={false}
                 angle={-30}
@@ -104,7 +105,7 @@ export default function PlatformBreakdownSharePoster({ chartType = "singles", me
               />
               <YAxis
                 allowDecimals={false}
-                tick={{ fontSize: 16, fontFamily: POSTER_FONT_FAMILY, fill: t.metaColor, fontWeight: 700 }}
+                tick={{ fontSize: posterFontSize(16), fontFamily: POSTER_FONT_FAMILY, fill: t.metaColor, fontWeight: 700 }}
                 axisLine={false}
                 tickLine={false}
               />
@@ -138,15 +139,15 @@ export default function PlatformBreakdownSharePoster({ chartType = "singles", me
                   borderBottom: i === tableRows.length - 1 ? "none" : `1px solid ${t.dividerColor}`,
                 }}
               >
-                <span style={{ width: Math.round(46 * tableScale), flexShrink: 0, fontSize: Math.round(26 * tableScale), fontWeight: 900, color: i < 3 ? row.color : t.metaColor }}>
+                <span style={{ width: Math.round(46 * tableScale), flexShrink: 0, fontSize: posterFontSize(Math.round(26 * tableScale)), fontWeight: 900, color: i < 3 ? row.color : t.metaColor }}>
                   {i + 1}
                 </span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, marginBottom: Math.round(8 * tableScale) }}>
-                    <span style={{ fontSize: Math.round(24 * tableScale), fontWeight: 800, color: t.titleColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <span style={{ fontSize: posterFontSize(Math.round(24 * tableScale)), fontWeight: 800, color: t.titleColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                       {row.label}
                     </span>
-                    <span style={{ fontSize: Math.round(24 * tableScale), fontWeight: 900, color: row.color, flexShrink: 0 }}>
+                    <span style={{ fontSize: posterFontSize(Math.round(24 * tableScale)), fontWeight: 900, color: row.color, flexShrink: 0 }}>
                       {row.value}
                     </span>
                   </div>

@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "qrcode";
 import {
+  posterFontSize,
   POSTER_W,
   POSTER_H,
+  POSTER_FONT_FAMILY,
   PREVIEW_W,
   PREVIEW_SCALE,
   exportNodeAsPng,
@@ -29,7 +31,7 @@ const ERROR_LEVELS = [
 const labelStyle = {
   display: "grid",
   gap: 6,
-  fontSize: 12,
+  fontSize: posterFontSize(12),
   fontWeight: 800,
   textTransform: "uppercase",
   letterSpacing: ".06em",
@@ -109,10 +111,10 @@ function QRPosterContent({
   const padX = 74;
   const footerH = 74;
   const titleSize = displayTitle.length > 54 ? 48 : displayTitle.length > 34 ? 56 : 66;
-  const qrSize = 520;
+  const qrSize = 460;
 
   return (
-    <div style={{ position: "relative", width: POSTER_W, height: POSTER_H, background: t.pageBg, color: t.titleColor }}>
+    <div style={{ position: "relative", width: POSTER_W, height: POSTER_H, fontFamily: POSTER_FONT_FAMILY, background: t.posterBackground, color: t.titleColor }}>
       <div style={{ padding: "70px 70px 0" }}>
         <PosterBrandRow theme={theme} />
       </div>
@@ -120,7 +122,7 @@ function QRPosterContent({
       <div
         style={{
           position: "absolute",
-          top: 246,
+          top: 220,
           left: padX,
           right: padX,
           bottom: footerH + 34,
@@ -140,7 +142,7 @@ function QRPosterContent({
             borderRadius: 999,
             background: `${accentColor}22`,
             color: accentColor,
-            fontSize: 17,
+            fontSize: posterFontSize(17),
             fontWeight: 900,
             letterSpacing: "2.2px",
             textTransform: "uppercase",
@@ -153,8 +155,9 @@ function QRPosterContent({
           style={{
             width: "100%",
             margin: "25px 0 0",
+            fontFamily: POSTER_FONT_FAMILY,
             color: t.titleColor,
-            fontSize: titleSize,
+            fontSize: posterFontSize(titleSize),
             lineHeight: 1.02,
             fontWeight: 950,
             letterSpacing: 0,
@@ -169,8 +172,9 @@ function QRPosterContent({
           style={{
             maxWidth: 760,
             margin: "22px 0 0",
+            fontFamily: POSTER_FONT_FAMILY,
             color: t.metaColor,
-            fontSize: displaySubtitle.length > 100 ? 25 : 28,
+            fontSize: posterFontSize(displaySubtitle.length > 100 ? 25 : 28),
             lineHeight: 1.38,
             fontWeight: 650,
             overflowWrap: "anywhere",
@@ -182,8 +186,10 @@ function QRPosterContent({
         <div
           style={{
             marginTop: 42,
-            width: qrSize + 72,
-            height: qrSize + 72,
+            width: qrSize,
+            flexShrink: 0,
+            boxSizing: "content-box",
+            height: qrSize,
             borderRadius: 48,
             padding: 36,
             background: qrBackground,
@@ -204,12 +210,21 @@ function QRPosterContent({
                 height: qrSize,
                 display: "grid",
                 placeItems: "center",
+                alignContent: "center",
+                gap: 14,
+                padding: 30,
+                boxSizing: "border-box",
+                border: "2px dashed #C9CDD2",
+                borderRadius: 24,
+                background: "linear-gradient(135deg, #FFFFFF 25%, #F4F6F8 25%, #F4F6F8 50%, #FFFFFF 50%, #FFFFFF 75%, #F4F6F8 75%)",
+                backgroundSize: "28px 28px",
                 color: "#6B7169",
-                fontSize: 24,
-                fontWeight: 800,
+                fontFamily: POSTER_FONT_FAMILY,
+                textAlign: "center",
               }}
             >
-              Enter destination
+              <strong style={{ fontSize: posterFontSize(22), letterSpacing: "1.8px", textTransform: "uppercase" }}>QR preview</strong>
+              <span style={{ maxWidth: 300, fontSize: posterFontSize(18), lineHeight: 1.35, fontWeight: 700 }}>Enter a destination to generate the code</span>
             </div>
           )}
         </div>
@@ -226,7 +241,7 @@ function QRPosterContent({
             borderRadius: 999,
             background: accentColor,
             color: accentInk,
-            fontSize: 24,
+            fontSize: posterFontSize(24),
             fontWeight: 900,
             letterSpacing: "1.3px",
             textTransform: "uppercase",
@@ -241,7 +256,7 @@ function QRPosterContent({
             marginTop: 18,
             maxWidth: 820,
             color: t.metaColor,
-            fontSize: 20,
+            fontSize: posterFontSize(20),
             lineHeight: 1.25,
             fontWeight: 750,
             overflowWrap: "anywhere",
