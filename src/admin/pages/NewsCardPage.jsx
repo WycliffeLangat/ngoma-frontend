@@ -87,6 +87,7 @@ const DEFAULT_NEWS_DESIGN = {
   brandTextColor: "",
   footerTextColor: "",
   headlineScale: 100,
+  headlineBackground: "black",
   subheadlineScale: 100,
   categoryScale: 100,
   brandScale: 100,
@@ -1070,7 +1071,9 @@ function MediaPlaceholder({ label, theme, accent, blank = false }) {
 
 function NewsPostContent({ design }) {
   const padX = 62;
-  const textColor = designTextColor(design);
+  const headlineBackground = design.headlineBackground === "white" ? "#FFFFFF" : "#000000";
+  const textColor = design.textColor || readableInk(headlineBackground);
+  const bleedInk = design.theme === "light" ? "255,255,255" : "0,0,0";
   const metaColor = designSecondaryTextColor(design);
   const brandTextColor = designBrandTextColor(design);
   const footerTextColor = designFooterTextColor(design);
@@ -1119,6 +1122,16 @@ function NewsPostContent({ design }) {
 
       {design.image && newsOverlay && <div style={{ position: "absolute", inset: 0, ...newsOverlay }} />}
       {design.image && finishOverlay && <div style={{ position: "absolute", inset: 0, pointerEvents: "none", ...finishOverlay }} />}
+      {design.image && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            pointerEvents: "none",
+            background: `linear-gradient(180deg, rgba(${bleedInk},0) 35%, rgba(${bleedInk},0.55) 60%, rgba(${bleedInk},0.94) 78%, rgba(${bleedInk},0.99) 90%, rgb(${bleedInk}) 100%)`,
+          }}
+        />
+      )}
 
       {design.showBrand !== false && (
         <div style={{ position: "relative", zIndex: 1, padding: `58px ${padX}px 0` }}>
@@ -1163,18 +1176,25 @@ function NewsPostContent({ design }) {
               marginTop: showCategory ? 20 : 0,
               fontSize: scaleValue(headlineSize(design.headline), design.headlineScale),
               fontWeight: 950,
-              lineHeight: 1.04,
+              lineHeight: 1.22,
               letterSpacing: 0,
               textTransform: "none",
               color: textColor,
-              textShadow,
+              textShadow: "none",
               display: "-webkit-box",
               WebkitLineClamp: 4,
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
             }}
           >
-            {displayText(design.headline || "Write headline", design.textCase)}
+            {displayText(design.headline || "Write headline", design.textCase).trim().split(/\s+/).map((word, index) => (
+              <span key={index}>
+                {index > 0 ? " " : ""}
+                <span style={{ display: "inline-block", maxWidth: "100%", overflowWrap: "anywhere", padding: "0.03em 0.1em", lineHeight: 1.08, background: headlineBackground }}>
+                  {word}
+                </span>
+              </span>
+            ))}
           </div>
 
           {showSubheadline && (
@@ -1845,6 +1865,7 @@ export default function NewsCardPage() {
 
                 <SegmentedControl label="Theme" value={newsDesign.theme} options={THEME_OPTIONS} onChange={(value) => updateNews({ theme: value })} />
                 <SegmentedControl label="Headline position" value={newsDesign.textPosition} options={TEXT_POSITIONS} onChange={(value) => updateNews({ textPosition: value })} />
+                <SegmentedControl label="Headline background" value={newsDesign.headlineBackground || "black"} options={[["black", "Black"], ["white", "White"]]} onChange={(value) => updateNews({ headlineBackground: value, textColor: "" })} />
                 <SegmentedControl label="Text align" value={newsDesign.textAlign} options={TEXT_ALIGNMENTS} onChange={(value) => updateNews({ textAlign: value })} />
                 <SegmentedControl label="Text case" value={newsDesign.textCase} options={TEXT_CASE_OPTIONS} onChange={(value) => updateNews({ textCase: value })} />
                 <SegmentedControl label="Finish" value={newsDesign.finish} options={POSTER_FINISH_OPTIONS} onChange={(value) => updateNews({ finish: value })} />
@@ -1852,7 +1873,7 @@ export default function NewsCardPage() {
                 <SegmentedControl label="Tone" value={newsDesign.tone} options={POSTER_TONE_OPTIONS} onChange={(value) => updateNews({ tone: value })} />
 
                 <div style={CONTROL_GRID}>
-                  <ColorControl label="Headline color" value={newsDesign.textColor} fallback={defaultTextColor(newsDesign.theme)} onChange={(value) => updateNews({ textColor: value })} />
+                  <ColorControl label="Headline color" value={newsDesign.textColor} fallback={readableInk(newsDesign.headlineBackground === "white" ? "#FFFFFF" : "#000000")} onChange={(value) => updateNews({ textColor: value })} />
                   <ColorControl label="Secondary color" value={newsDesign.secondaryTextColor} fallback={defaultSecondaryTextColor(newsDesign.theme)} onChange={(value) => updateNews({ secondaryTextColor: value })} />
                   <ColorControl label="Brand color" value={newsDesign.brandTextColor} fallback={defaultBrandTextColor(newsDesign.theme)} onChange={(value) => updateNews({ brandTextColor: value })} />
                   <ColorControl label="Footer color" value={newsDesign.footerTextColor} fallback={defaultFooterTextColor(newsDesign.theme)} onChange={(value) => updateNews({ footerTextColor: value })} />
