@@ -122,6 +122,13 @@ async function nodeToPng(node, { skipFonts, pixelRatio, backgroundColor }) {
   });
 }
 
+function posterNodeBackground(node) {
+  if (typeof window === "undefined" || !node) return "#000000";
+  const poster = node.querySelector?.('[style*="width: 1080px"]') || node.firstElementChild || node;
+  const background = window.getComputedStyle(poster).backgroundColor;
+  return background && background !== "rgba(0, 0, 0, 0)" ? background : "#000000";
+}
+
 export function downloadBlob(blob, filename) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
@@ -212,10 +219,11 @@ export function videoExportFrameRate() {
 }
 
 export async function exportNodeAsPng(node, filename, options = {}) {
+  if (!node) throw new Error("Poster render target missing");
   stampPosterDownloadDates(node);
   await waitForPosterFonts();
   await waitForPosterImages(node);
-  const backgroundColor = options.backgroundColor || "#000000";
+  const backgroundColor = options.backgroundColor || posterNodeBackground(node);
   let dataUrl;
   try {
     dataUrl = await nodeToPng(node, { skipFonts: false, pixelRatio: options.pixelRatio, backgroundColor });
