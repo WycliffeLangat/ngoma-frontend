@@ -1648,13 +1648,15 @@ export default function PremiumChartsPage({
               )}
             </div>
 
-            <div style={{ display: "contents" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: "1 1 100%", minWidth: 0 }}>
               <div
                 style={{
                   ...styles.platforms,
                   gap: tablet ? "7px" : "6px",
-                  flexWrap: "wrap",
-                  overflowX: "visible",
+                  flex: "1 1 auto",
+                  minWidth: 0,
+                  flexWrap: "nowrap",
+                  overflowX: "auto",
                 }}
               >
                 {platList.map((item) => {
@@ -1718,7 +1720,7 @@ export default function PremiumChartsPage({
                 shareUrl={buildChartsShareUrl({ chartType: ct, platform: plat, month })}
                 fileName={`ngoma-top-${ct}-${String(plat).toLowerCase().replace(/\s+/g,"-")}-${String(month).toLowerCase().replace(/\s+/g,"-")}.png`}
                 posterDownloadOptions={chartPosterDownloadOptions}
-                style={{ marginLeft: "auto" }}
+                style={{ marginLeft: "auto", flexShrink: 0 }}
               />
             </div>
           </>

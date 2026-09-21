@@ -5,6 +5,7 @@ import { buildHeadToHeadCandidates, buildHeadToHeadProfile } from "../../utils/p
 import { resolveMediaUrl } from "../../api/config.js";
 import {
   posterFontSize,
+  POSTER_FONT_SCALE,
   POSTER_W,
   POSTER_H,
   PREVIEW_W,
@@ -85,7 +86,7 @@ function PosterContent({ profile1, profile2, months, chartType, theme = "dark" }
                 ) : (
                   <ArtPlaceholder width={128} height={128} radius={chartType === "artists" ? 50 : 10} theme={theme} accentColor={color} />
                 )}
-                <div style={{ fontSize: 30, fontWeight: 800, color: t.titleColor, textAlign: "center", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>
+                <div style={{ fontSize: 30 * POSTER_FONT_SCALE, fontWeight: 800, color: t.titleColor, textAlign: "center", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>
                   {p.title}
                 </div>
                 {p.artist && (

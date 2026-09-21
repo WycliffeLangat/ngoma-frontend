@@ -31,10 +31,11 @@ export const TITLE_GAP_FROM_LOGO = 40;
 export const HEADER_ZONE_H = 72 + 108 + TITLE_GAP_FROM_LOGO;
 
 // Increase supporting copy most; large display numbers need less enlargement.
-// Apply before rendering so the preview and exported image use identical sizes.
+// Reduce all poster typography by one eighth in both previews and exports.
+export const POSTER_FONT_SCALE = 7 / 8;
 export function posterFontSize(size) {
   const value = Number(size) || 20;
-  return Math.round(Math.max(20, value * (value < 32 ? 1.25 : value < 64 ? 1.15 : 1.08)));
+  return Math.round(Math.max(20, value * (value < 32 ? 1.25 : value < 64 ? 1.15 : 1.08))) * POSTER_FONT_SCALE;
 }
 
 const TRANSPARENT_PIXEL =
@@ -707,7 +708,7 @@ export function PosterBrandRow({ theme, size = 64, fontSize = 30, gap = 14, colo
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: gap * scale }}>
       <NgomaMark size={size * scale} inkColor={brandColor} />
-      <span style={{ fontSize: fontSize * scale, fontWeight: 950, letterSpacing: "-0.8px", textTransform: "uppercase", color: brandColor, lineHeight: 1 }}>
+      <span style={{ fontSize: fontSize * scale * POSTER_FONT_SCALE, fontWeight: 950, letterSpacing: "-0.8px", textTransform: "uppercase", color: brandColor, lineHeight: 1 }}>
         Ngoma Charts
       </span>
     </div>
@@ -745,12 +746,12 @@ export function PosterFooter({ theme, height = 74, padX = 56, primaryColor, poin
         pointerEvents,
       }}
     >
-      <span style={{ fontSize: 20 * scale, fontWeight: 700, color: primary }}>© 2026 Ngoma Media Ltd.</span>
+      <span style={{ fontSize: 20 * scale * POSTER_FONT_SCALE, fontWeight: 700, color: primary }}>© 2026 Ngoma Media Ltd.</span>
       {downloadDate && (
         <span
           {...(customText ? {} : { "data-poster-download-date-auto": "1" })}
           style={{
-            fontSize: 20 * scale,
+            fontSize: 20 * scale * POSTER_FONT_SCALE,
             fontWeight: 700,
             color: primary,
             textAlign: "right",
