@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CMS_BASE, cmsApi, getResults } from "../api";
 import DataTable from "../components/DataTable";
 import UploadPreviewTable from "../components/UploadPreviewTable";
 import StatusBadge from "../components/StatusBadge";
 import ConfirmDialog from "../components/ConfirmDialog";
+import { latestWeeklyJob, weeklyNeedsRefresh, weeklyStatus } from "../weeklyUploadStatus.js";
 import ErrorHelpLink from "../components/ErrorHelpLink";
 import { KENYA_COUNTRY_CODE, KENYA_ONLY_COUNTRY_GROUPS, africaCountryForCode } from "../../utils/africaRegions";
 
@@ -25,6 +26,8 @@ export default function UploadsPage({ user, searchJump }) {
   const [workbookModal, setWorkbookModal] = useState(null);
   const [workbookBusy, setWorkbookBusy] = useState("");
   const [jobs, setJobs] = useState([]);
+  const jobsRef = useRef(jobs);
+  jobsRef.current = jobs;
   const [form, setForm] = useState({
     chart_type: "singles",
     year: new Date().getFullYear(),
@@ -64,6 +67,17 @@ export default function UploadsPage({ user, searchJump }) {
     setSelected(null);
     setError("");
     load(uploadKind);
+  }, [uploadKind]);
+
+  // Refresh the weekly list even when no upload is selected or its job has
+  // fallen outside the recent-jobs page. Upload state is the source of truth.
+  useEffect(() => {
+    if (uploadKind !== RAW_WEEKLY) return undefined;
+    const timer = window.setInterval(() => {
+      load(RAW_WEEKLY);
+      loadJobs();
+    }, 5000);
+    return () => window.clearInterval(timer);
   }, [uploadKind]);
 
   // Jump straight to the specific upload a dashboard alert flagged, so
@@ -151,6 +165,7 @@ export default function UploadsPage({ user, searchJump }) {
     try {
       const data = getResults(await cmsApi.get("/chart-jobs/?page_size=8", { skipCache: true }));
       setJobs(data);
+      jobsRef.current = data;
       return data;
     } catch {
       // Job status is helpful, not required for the upload workflow.
@@ -160,7 +175,7 @@ export default function UploadsPage({ user, searchJump }) {
 
   function decorateUpload(upload, kind = uploadKind, meta = {}) {
     if (!upload) return upload;
-    const matchingJob = kind === FINAL_CHART ? latestUploadJob(upload, jobs) : null;
+    const matchingJob = kind === FINAL_CHART ? latestUploadJob(upload, jobsRef.current) : latestWeeklyJob(upload, jobsRef.current);
     const job = meta.job || matchingJob || upload._processingJob || upload.job || null;
     return {
       ...upload,
@@ -695,8 +710,9 @@ function WeeklySummary({
   onDelete,
 }) {
   const notes = String(selected.processing_notes || "");
-  const queued = !selected.processed && /queued|background|processing/i.test(notes);
-  const failed = !selected.processed && !queued || notes.startsWith("Error:");
+  const status = weeklyStatus(selected);
+  const queued = ["queued", "processing"].includes(status);
+  const failed = status === "error";
   return (
     <div>
       <div className="cms-upload-summary">
@@ -707,10 +723,11 @@ function WeeklySummary({
         <div><span>Duplicates removed</span><strong>{selected.duplicates_dropped || 0}</strong></div>
       </div>
       <div className={`cms-alert ${failed ? "error" : "info"}`}>
-        <strong>{failed ? "Processing failed" : queued ? "Calculation queued" : "Week processed successfully"}</strong><br />
-        {failed || queued
-          ? selected.processing_notes
-          : "Platform entries were normalized and the month-to-date chart was rebuilt automatically."}
+        <strong>{failed ? "Processing failed" : status === "processing" ? "Processing workbook" : queued ? "Calculation queued" : status === "published" ? "Week processed successfully" : "Awaiting processing"}</strong><br />
+        {status === "published"
+          ? "Platform entries were normalized and the month-to-date chart was rebuilt automatically."
+          : failed ? (selected._processingJob?.error || notes || "The calculation job failed.")
+          : "Weekly imports process automatically; no review or approval is required. If this does not progress, check the calculation worker."}
       </div>
       <div className="cms-actions wrap">
         <button className="cms-btn light" onClick={onViewWorkbook} disabled={!!workbookBusy || !selected.workbook_available}>
@@ -964,12 +981,6 @@ function countryName(code) {
   return africaCountryForCode(code)?.name || code;
 }
 
-function weeklyStatus(row) {
-  if (row.processed) return "published";
-  if (String(row.processing_notes || "").startsWith("Error:")) return "error";
-  return "pending_review";
-}
-
 function jobIsPending(job) {
   return ["queued", "running"].includes(String(job?.status || ""));
 }
@@ -1004,9 +1015,8 @@ function jobStatus(job) {
 }
 
 function uploadNeedsRefresh(upload) {
-  const notes = String(upload?.processing_notes || "");
   if (upload?._uploadKind === RAW_WEEKLY) {
-    return !upload.processed && /queued|background|processing/i.test(notes);
+    return weeklyNeedsRefresh(upload);
   }
   return Boolean(upload?.queued) || jobIsPending(upload?._processingJob || upload?.job);
 }
