@@ -3901,7 +3901,8 @@ const top = data[0];
                   onClick={()=>setMNav(o=>!o)}
                   aria-label="Toggle menu"
                   aria-expanded={mNav}
-                  style={{display:"flex",flexDirection:"column",justifyContent:"center",gap:"4px",width:"42px",height:"38px",border:`1px solid ${themeColors.border}`,borderRadius:"11px",background:themeColors.elevated,cursor:"pointer",padding:"0 10px",flexShrink:0}}
+                  aria-controls="ngoma-mobile-nav"
+                  style={{display:"flex",flexDirection:"column",justifyContent:"center",gap:"4px",width:"44px",height:"44px",border:`1px solid ${themeColors.border}`,borderRadius:"11px",background:themeColors.elevated,cursor:"pointer",padding:"0 10px",flexShrink:0}}
                 >
                   <span className="ngoma-hamburger-bar" style={{display:"block",height:"2px",background:themeColors.text,borderRadius:"2px",transition:"all .2s",transform:mNav?"translateY(6px) rotate(45deg)":"none"}}/>
                   <span className="ngoma-hamburger-bar" style={{display:"block",height:"2px",background:themeColors.text,borderRadius:"2px",opacity:mNav?0:1,transition:"opacity .2s"}}/>
@@ -3912,7 +3913,7 @@ const top = data[0];
                 {page==="charts"&&<div style={{flex:1,minWidth:0}}><MonthScopeSelect compact fullWidth /></div>}
               </div>
               {mNav&&(
-                <div style={{width:"100%",display:"flex",flexDirection:"column",gap:"2px",marginTop:"8px",borderTop:`1px solid ${themeColors.border}`,paddingTop:"10px"}}>
+                <div id="ngoma-mobile-nav" className="ngoma-mobile-nav" role="navigation" aria-label="Main navigation" onKeyDown={event=>{if(event.key==="Escape"){setMNav(false);document.querySelector('[aria-controls="ngoma-mobile-nav"]')?.focus();}}} style={{width:"100%",display:"flex",flexDirection:"column",gap:"2px",marginTop:"8px",borderTop:`1px solid ${themeColors.border}`,paddingTop:"10px"}}>
                   {navItems.map(t=>(
                     <button type="button" key={t} className="ngoma-nav-link" aria-current={page===t?"page":undefined} data-nav-active={page===t} onClick={()=>navTo(t)} style={{cursor:"pointer",padding:"13px 14px",borderRadius:"12px",fontFamily:F,fontSize:"15px",fontWeight:page===t?900:850,letterSpacing:"1.8px",textTransform:"uppercase",color:page===t?themeColors.text:themeColors.muted,background:page===t?themeColors.active:"transparent",border:page===t?"1px solid #D4B65E":"1px solid transparent"}}>{navLabel(t)}</button>
                   ))}

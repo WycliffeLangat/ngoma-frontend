@@ -436,3 +436,17 @@
 }
 
 .cms-status:has(.ngoma-certification-icon) { display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; }
+
+/* Constrain UI content, leaving fixed-resolution poster artwork untouched. */
+.cms-global, .cms-form-grid > *, .cms-upload-form > *, .cms-card-grid > * { min-width: 0; }
+.cms-modal :is(input, select, textarea), .cms-upload-form :is(input, select) { min-width: 0; max-width: 100%; }
+.cms-modal { max-height: calc(100dvh - 36px); overscroll-behavior: contain; }
+.cms-modal-head { gap: 12px; }
+.cms-modal-head h3, .cms-page-head p, .cms-alert { overflow-wrap: anywhere; }
+.cms-modal-head button { flex-shrink: 0; }
+.cms-actions { flex-wrap: wrap; }
+@media (max-width: 700px) {
+  .cms-login-card input, .cms-modal :is(input, select, textarea), .cms-upload-form :is(input, select), .cms-global input { font-size: 16px; }
+  .cms-menu, .cms-sidebar-close, .cms-modal-head button, .cms-btn { min-height: 44px; min-width: 44px; }
+  .cms-sidebar-close { width: 44px !important; height: 44px !important; }
+}

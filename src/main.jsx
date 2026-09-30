@@ -5,7 +5,6 @@ import { fetchAppDataWithFallback, readCachedAppDataAsync } from "./api/public.j
 import { normalizePublicPayload } from "./utils/publicDataRuntime.js";
 import StartupSplash from "./components/StartupSplash.jsx";
 import "./index.css";
-import "./styles/mobilePremiumFixes.css";
 
 function isPublicAppPath() {
   const path = window.location.pathname.toLowerCase();

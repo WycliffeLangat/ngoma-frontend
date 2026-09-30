@@ -1,6 +1,7 @@
 /* Redesign V2: scoped to the public app; existing font families and brand assets remain authoritative. */
 .ngoma-redesign-v2 {
   --v2-paper: #fffdf8;
+  --page-gutter: clamp(16px, 2.4vw, 28px);
   --v2-surface: #fff;
   --v2-line: #e5dece;
   --v2-ink: #0e100d;
@@ -37,13 +38,13 @@
 .ngoma-redesign-v2 .ytc-masthead { background: #fffdf8 !important; padding: 52px 0 40px !important; border: 0 !important; box-shadow: none !important; }
 .ngoma-redesign-v2[data-theme="dark"] .ytc-masthead { background: #0b0e0b !important; }
 .ngoma-redesign-v2 .ytc-masthead::before { display: none !important; }
-.ngoma-redesign-v2 .ytc-masthead { padding: 52px 28px 48px !important; }
+.ngoma-redesign-v2 .ytc-masthead { padding: 52px 0 48px !important; }
 .ngoma-redesign-v2 .ngoma-hero-main { gap: 40px !important; }
 .ngoma-redesign-v2 .ngoma-chart-hero-title { font-size: clamp(52px, 6.3vw, 92px) !important; letter-spacing: -.075em !important; line-height: .94 !important; font-weight: 900 !important; }
 .ngoma-redesign-v2 .ngoma-hero-showcase { border-radius: 24px !important; box-shadow: 0 12px 32px #15120926 !important; overflow: hidden; align-self: center; }
 .ngoma-redesign-v2[data-theme="dark"] .ngoma-hero-showcase { box-shadow: 0 12px 32px #00000066 !important; }
 .ngoma-redesign-v2 .ngoma-hero-showcase.ytc-masthead-art { width: 100% !important; max-width: 352px; justify-self: stretch !important; }
-.ngoma-redesign-v2 .ngoma-hero-showcase.ytc-masthead-art { max-width: none; margin: 0 !important; }
+.ngoma-redesign-v2 .ngoma-hero-showcase.ytc-masthead-art { margin: 0 !important; }
 .ngoma-redesign-v2 .v2-chart-table { width: 100% !important; border: 1px solid var(--v2-line) !important; border-radius: 26px !important; margin: 24px 0 !important; overflow: hidden; background: var(--v2-surface); }
 .ngoma-redesign-v2 .ngoma-table-header,
 .ngoma-redesign-v2 .ngoma-mobile-table-header { background: var(--v2-paper) !important; border-bottom: 2px solid var(--v2-ink) !important; color: var(--v2-muted) !important; }
@@ -121,7 +122,7 @@
 .ngoma-redesign-v2 .v2-about-page > p { max-width: 850px; font-size: 18px !important; margin-top: 20px !important; color: var(--v2-muted) !important; }
 .ngoma-redesign-v2 .anl-split-row { gap: 28px !important; margin-bottom: 28px !important; }
 .ngoma-redesign-v2 .anl-grid-2, .ngoma-redesign-v2 .anl-grid-3 { gap: 24px !important; }
-.ngoma-redesign-v2 button:focus-visible, .ngoma-redesign-v2 select:focus-visible { outline: none; outline-offset: 0; }
+.ngoma-redesign-v2 :is(button, a, select, input, textarea, summary):focus-visible { outline: 2px solid var(--v2-gold); outline-offset: 3px; }
 .v2-mini-rank:hover, .v2-podium-card:hover { border-color: var(--v2-gold); box-shadow: 0 8px 24px #15120910; }
 .ngoma-redesign-v2 .v2-editorial-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 390px); align-items: center; gap: 44px; margin-bottom: 42px; }
 .ngoma-redesign-v2 .v2-editorial-copy { min-width: 0; }
@@ -183,7 +184,7 @@
 }
 @media (max-width: 768px) {
   .ngoma-redesign-v2 .v2-detail-page { padding: 24px 16px 44px !important; }
-  .ngoma-redesign-v2 .v2-editorial-hero { width: 100%; min-width: 0; overflow: hidden; }
+  .ngoma-redesign-v2 .v2-editorial-hero { width: 100%; min-width: 0; }
   .ngoma-redesign-v2 .v2-editorial-copy { width: 100%; min-width: 0; }
   .ngoma-redesign-v2 .v2-editorial-visual { width: 100%; min-height: 220px; padding: 22px; gap: 18px; }
   .ngoma-redesign-v2 .v2-editorial-visual > p { max-width: 100%; padding: 0; }
@@ -194,7 +195,7 @@
   .ngoma-redesign-v2 .v2-detail-page .artist-stat-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 20px; }
   .ngoma-redesign-v2 .v2-detail-page .anl-grid-2 { grid-template-columns: minmax(0, 1fr) !important; }
   .ngoma-redesign-v2 .v2-detail-page .anl-grid-2 > div { padding: 20px 12px !important; }
-  .ngoma-redesign-v2 .v2-detail-metadata > div { grid-template-columns: minmax(0, 1fr) !important; gap: 8px !important; padding: 16px !important; }
+  .ngoma-redesign-v2 .v2-detail-metadata > div { padding: 16px !important; }
   .ngoma-redesign-v2 .v2-detail-biography { padding: 22px; }
   .ngoma-redesign-v2 .v2-hero-actions { width: 100%; }
   .ngoma-redesign-v2 .v2-hero-actions > div, .ngoma-redesign-v2 .v2-hero-actions > div > div { width: 100%; max-width: 100%; min-width: 0; flex-wrap: wrap; }
@@ -207,16 +208,14 @@
   .ngoma-redesign-v2 .v2-analytics-masonry .v2-movement-drops,
   .ngoma-redesign-v2 .v2-analytics-masonry .v2-movement-climbers,
   .ngoma-redesign-v2 .v2-analytics-masonry .v2-movement-new { grid-column: auto; grid-row: auto; }
-  .ngoma-redesign-v2 .v2-editorial-copy h1 { font-size: clamp(42px, 11vw, 64px) !important; }
   .ngoma-redesign-v2 .v2-editorial-visual { min-height: 270px; padding: 26px; }
   .ngoma-redesign-v2 .v2-compare-cards { grid-template-columns: minmax(0, 1fr) !important; }
   .ngoma-redesign-v2 .v2-compare-cards::after { top: 50%; }
   .ngoma-redesign-v2 .ngoma-public-header-row { flex-wrap: wrap !important; }
   .ngoma-redesign-v2 .ngoma-public-nav { flex: 0 0 auto; }
   .ngoma-redesign-v2 .ngoma-premium-charts { padding: 0 16px 32px !important; }
-  .ngoma-redesign-v2 .ytc-masthead { padding: 36px 18px 32px !important; }
+  .ngoma-redesign-v2 .ytc-masthead { padding: 32px 0 !important; }
   .ngoma-redesign-v2 .ytc-masthead::before { inset: 12px 0 !important; }
-  .ngoma-redesign-v2 .ngoma-chart-hero-title { font-size: clamp(44px, 11vw, 64px) !important; }
   .ngoma-redesign-v2 .v2-secondary-page, .ngoma-redesign-v2 .ngoma-analytics-page, .ngoma-redesign-v2 .ngoma-certifications-page { padding: 32px 16px 48px !important; }
   .v2-ranking-surface { padding: 18px; border-radius: 24px; }
   .v2-section-heading { align-items: start; flex-direction: column; gap: 8px; }
@@ -536,7 +535,43 @@
 .year-end-artist-link:focus-visible { outline: 2px solid #b89542; outline-offset: 3px; border-radius: 2px; }
 /* Mobile reading layout: shared column geometry and progressive detail. */
 .ngoma-journey-platforms > summary { display: none; }
+/* Shared intrinsic sizing: long content must not widen a grid track. */
+.ngoma-redesign-v2 :is(.v2-editorial-hero, .anl-grid-2, .anl-grid-3, .anl-split-row, .ngoma-cert-dashboard, .ngoma-detail-stat-grid) > * {
+  min-width: 0;
+}
+.ngoma-redesign-v2 :is(.v2-editorial-copy, .v2-detail-biography, .v2-detail-metadata, .v2-leader-stats) { overflow-wrap: anywhere; }
+.ngoma-redesign-v2 .v2-editorial-copy > p,
+.ngoma-redesign-v2 .v2-detail-biography p,
+.ngoma-redesign-v2 .v2-about-page > p { max-width: 68ch; }
+.ngoma-redesign-v2 .ngoma-pill-dropdown { min-width: 0; max-width: 100%; }
+.ngoma-redesign-v2 > footer > div { max-width: 1240px !important; }
+.ngoma-redesign-v2 .ngoma-chart-type-tabs { max-width: 100%; overflow-x: auto; }
+
+@media (min-width: 769px) {
+  .ngoma-redesign-v2 :is(.ngoma-premium-charts, .v2-secondary-page, .ngoma-analytics-page, .ngoma-certifications-page, .v2-detail-page) {
+    padding-inline: var(--page-gutter) !important;
+  }
+}
+@media (min-width: 769px) and (max-width: 1100px) {
+  .ngoma-redesign-v2 .ngoma-hero-main:has(.ngoma-hero-showcase) { grid-template-columns: minmax(0, 1fr) minmax(220px, 300px) !important; gap: 24px !important; }
+  .ngoma-redesign-v2 .ngoma-chart-hero-title { font-size: clamp(42px, 5.8vw, 64px) !important; overflow-wrap: anywhere; }
+  .ngoma-redesign-v2 .anl-grid-2,
+  .ngoma-redesign-v2 .anl-split-row { grid-template-columns: minmax(0, 1fr) !important; }
+  .ngoma-redesign-v2 .ngoma-table-header,
+  .ngoma-redesign-v2 .ngoma-table-row {
+    grid-template-columns: 36px 56px minmax(0, 1fr) 68px 54px 48px 44px !important;
+    gap: 10px !important;
+    padding-inline: 12px !important;
+  }
+  .ngoma-redesign-v2 .ngoma-table-row > * { min-width: 0; }
+  .ngoma-redesign-v2 .ngoma-cert-dashboard { grid-template-columns: minmax(0, 1fr); }
+}
 @media (max-width: 768px) {
+  .ngoma-redesign-v2 .ngoma-hero-main { grid-template-columns: minmax(0, 1fr) !important; gap: 24px !important; }
+  .ngoma-redesign-v2 .ngoma-hero-showcase.ytc-masthead-art { width: min(100%, 278px) !important; }
+  .ngoma-redesign-v2 .ngoma-carousel-arrow { min-width: 44px; min-height: 44px; }
+  .ngoma-redesign-v2 .anl-split-row { grid-template-columns: minmax(0, 1fr) !important; }
+  .ngoma-redesign-v2 .ngoma-mobile-nav { max-height: 60dvh; overflow-y: auto; overscroll-behavior: contain; }
   .ngoma-redesign-v2 .v2-editorial-copy > p,
   .ngoma-redesign-v2 .ngoma-mobile-secondary-copy { display: none; }
 
