@@ -2095,7 +2095,8 @@ ranking-item *,
   color: inherit;
 }
 
-/* Song titles and artist names.
+/* Song titles and artist names use the theme token so wildcard matches
+   (including brand names and detail headings) stay readable in both modes.
    [class*="title"]/[class*="Title"] excludes the chart hero <h1> — it's the
    only real match in the app, it already switches color for dark mode
    inline (PremiumChartsPage.jsx), and this unscoped !important was forcing
@@ -2111,7 +2112,7 @@ ranking-item *,
 [class*="Title"]:not(.ngoma-chart-hero-title),
 [class*="name"],
 [class*="Name"] {
-  color: #050505 !important;
+  color: var(--ngoma-text) !important;
 }
 
 /* Artist/subtitle/meta text */
@@ -2127,7 +2128,7 @@ ranking-item *,
 [class*="Meta"],
 [class*="subtitle"],
 [class*="Subtitle"] {
-  color: #050505 !important;
+  color: var(--ngoma-text) !important;
 }
 
 /* Rank numbers */
@@ -2138,7 +2139,7 @@ ranking-item *,
 [class*="Rank"],
 [class*="position"],
 [class*="Position"] {
-  color: #050505 !important;
+  color: var(--ngoma-text) !important;
 }
 
 /* Gold points / highlights */
