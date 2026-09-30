@@ -121,8 +121,8 @@ export default function ArtistsPage({ ctx }) {
               </div>
               <p style={{fontFamily:F,fontSize:isMobile?"12.5px":"11.5px",color:isDark?"#FFFFFF":"#000000",margin:"5px 0 0",lineHeight:1.6}}>Cumulative credited performance from {MONTHS[0]} through {artistMonth}</p>
             </div>
-            <div style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap"}}>
-              <select value={artistMonth} onChange={e=>setArtistMonth(e.target.value)} style={{width:isMobile?"100%":"auto",padding:isMobile?"11px 12px":"8px 12px",border:"1.5px solid "+(isDark?"#3A3F3A":"#DDD"),borderRadius:"9px",background:isDark?"#1A1E1A":"#FFF",color:isDark?"#FFFFFF":"inherit",fontSize:isMobile?"12.5px":"10.5px",fontFamily:F,fontWeight:750,cursor:"pointer",outline:"none"}}>
+            <div className="ngoma-artist-filters" style={{display:"flex",alignItems:"center",gap:isMobile?"10px":"12px",flexWrap:"wrap"}}>
+              <select aria-label="Artist ranking period" value={artistMonth} onChange={e=>setArtistMonth(e.target.value)} style={{width:isMobile?"100%":"auto",padding:isMobile?"11px 12px":"8px 12px",border:"1.5px solid "+(isDark?"#3A3F3A":"#DDD"),borderRadius:"9px",background:isDark?"#1A1E1A":"#FFF",color:isDark?"#FFFFFF":"inherit",fontSize:isMobile?"12.5px":"10.5px",fontFamily:F,fontWeight:750,cursor:"pointer",outline:"none"}}>
                 {MONTHS.map(m=><option key={m} value={m}>{m}</option>)}
               </select>
               {info("Artist Month", "Choose the endpoint month for cumulative artist rankings and comparisons.", [], 14)}
@@ -132,12 +132,12 @@ export default function ArtistsPage({ ctx }) {
           {/* Comparison */}
           <div style={{...card(),padding:isMobile?"18px":"22px",marginBottom:"22px",background:isDark?"#111411":"#FAFAF8"}}>
             <div style={{...secLbl(isDark?"#FFFFFF":"#000000"),marginBottom:isMobile?"14px":"16px",display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}><span><SecMark c={isDark?"#F6F3EA":"#1A1A1A"}/>Artist Comparison</span>{info("Artist Comparison", "Compare two artists side by side using the same chart metrics that power the artist ranking.")}</div>
-            <div style={{display:"flex",gap:isMobile?"9px":"12px",alignItems:"center",flexDirection:isMobile?"column":"row",marginBottom:"16px",flexWrap:"wrap"}}>
-              <select value={cmpA1} onChange={e=>setCmpA1(e.target.value)} style={{flex:isMobile?"none":1,width:isMobile?"100%":"auto",minWidth:0,padding:isMobile?"11px 12px":"9px 12px",border:"1.5px solid "+(isDark?"#3A3F3A":"#D6D1C7"),borderRadius:"8px",background:isDark?"#1A1E1A":"#FFF",fontSize:isMobile?"12px":"11.5px",fontFamily:F,fontWeight:700,cursor:"pointer",outline:"none",color:isDark?"#FFFFFF":"#000000"}}>
+            <div className="ngoma-comparison-selectors" style={{display:"flex",gap:isMobile?"9px":"12px",alignItems:"center",flexDirection:isMobile?"column":"row",marginBottom:"16px",flexWrap:"wrap"}}>
+              <select aria-label="First artist" value={cmpA1} onChange={e=>setCmpA1(e.target.value)} style={{flex:isMobile?"none":1,width:isMobile?"100%":"auto",minWidth:0,padding:isMobile?"11px 12px":"9px 12px",border:"1.5px solid "+(isDark?"#3A3F3A":"#D6D1C7"),borderRadius:"8px",background:isDark?"#1A1E1A":"#FFF",fontSize:isMobile?"12px":"11.5px",fontFamily:F,fontWeight:700,cursor:"pointer",outline:"none",color:isDark?"#FFFFFF":"#000000"}}>
                 {allArtistNames.map(n=><option key={n} value={n}>{n}</option>)}
               </select>
               <span style={{fontFamily:F,fontSize:isMobile?"11px":"12px",color:isDark?"#FFFFFF":"#000000",fontWeight:800,flexShrink:0}}>vs</span>
-              <select value={cmpA2} onChange={e=>setCmpA2(e.target.value)} style={{flex:isMobile?"none":1,width:isMobile?"100%":"auto",minWidth:0,padding:isMobile?"11px 12px":"9px 12px",border:"1.5px solid "+(isDark?"#3A3F3A":"#D6D1C7"),borderRadius:"8px",background:isDark?"#1A1E1A":"#FFF",fontSize:isMobile?"12px":"11.5px",fontFamily:F,fontWeight:700,cursor:"pointer",outline:"none",color:isDark?"#FFFFFF":"#000000"}}>
+              <select aria-label="Second artist" value={cmpA2} onChange={e=>setCmpA2(e.target.value)} style={{flex:isMobile?"none":1,width:isMobile?"100%":"auto",minWidth:0,padding:isMobile?"11px 12px":"9px 12px",border:"1.5px solid "+(isDark?"#3A3F3A":"#D6D1C7"),borderRadius:"8px",background:isDark?"#1A1E1A":"#FFF",fontSize:isMobile?"12px":"11.5px",fontFamily:F,fontWeight:700,cursor:"pointer",outline:"none",color:isDark?"#FFFFFF":"#000000"}}>
                 {allArtistNames.map(n=><option key={n} value={n}>{n}</option>)}
               </select>
             </div>

@@ -3228,7 +3228,7 @@ const top = data[0];
       GOLD={GOLD}
       value={selectedMonth}
       onChange={onMonthChange}
-      options={[...MONTHS].reverse().map((item) => ({ value: item, label: item }))}
+      options={[...MONTHS].reverse().map((item) => ({ value: item, label: isMobile ? item.replace(/^([A-Za-z]{3})[A-Za-z]+/, "$1") : item }))}
       align="right"
       width={fullWidth ? "100%" : (wide ? (isMobile ? "100%" : "210px") : (compact ? "108px" : (isTablet ? "110px" : "122px")))}
       menuWidth="200px"

@@ -1558,6 +1558,7 @@ export default function PremiumChartsPage({
 
 
       <section
+        className="ngoma-chart-control-bar"
         style={{
           ...styles.controls,
           background: darkMode ? "#0b0e0b" : "#ffffff",

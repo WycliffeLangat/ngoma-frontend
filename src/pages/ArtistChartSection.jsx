@@ -131,8 +131,8 @@ export default function ArtistChartSection({ ctx, title = "Top Artists", descrip
           </div>
           <p style={{ fontFamily: F, fontSize: TXT.lead, color: muted, margin: "4px 0 0", lineHeight: 1.55 }}>{description}</p>
         </div>
-        <div style={{ display: "flex", gap: isMobile ? "10px" : "10px", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", width: isMobile ? "100%" : "auto" }}>
-          <select value={artistMonth} onChange={(event) => setArtistMonth(event.target.value)} style={{ width: isMobile ? "100%" : "auto", padding: isMobile ? "11px 12px" : "8px 12px", border: `1.5px solid ${cardBorder}`, borderRadius: "9px", background: surface, color: text, fontSize: isMobile ? "12.5px" : "10.5px", fontFamily: F, fontWeight: 750, cursor: "pointer", outline: "none" }}>
+        <div className="ngoma-artist-filters" style={{ display: "flex", gap: isMobile ? "10px" : "10px", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", width: isMobile ? "100%" : "auto" }}>
+          <select aria-label="Artist ranking period" value={artistMonth} onChange={(event) => setArtistMonth(event.target.value)} style={{ width: isMobile ? "100%" : "auto", padding: isMobile ? "11px 12px" : "8px 12px", border: `1.5px solid ${cardBorder}`, borderRadius: "9px", background: surface, color: text, fontSize: isMobile ? "12.5px" : "10.5px", fontFamily: F, fontWeight: 750, cursor: "pointer", outline: "none" }}>
             {MONTHS.map((month) => <option key={month} value={month}>{month}</option>)}
           </select>
           {info("Artist Month", "Choose the endpoint month for cumulative artist rankings and comparisons.", [], 14)}
@@ -142,12 +142,12 @@ export default function ArtistChartSection({ ctx, title = "Top Artists", descrip
 
       <section style={{ background: surface, border: `1px solid ${cardBorder}`, borderRadius: "16px", padding: isMobile ? "16px" : "20px", marginBottom: isMobile ? "18px" : "22px", boxShadow: isDark ? "none" : "0 8px 24px rgba(31,36,31,0.04)" }}>
         <div style={{ fontFamily: F, fontSize: isMobile ? "10px" : "10.5px", fontWeight: 900, letterSpacing: "2px", textTransform: "uppercase", color: GOLD, marginBottom: "12px", display:"inline-flex", alignItems:"center", gap:"6px" }}>Artist comparison{info("Artist Comparison", "Compare two artists side by side using the same chart metrics that power the artist ranking.", [], 14)}</div>
-        <div style={{ display: "flex", gap: isMobile ? "9px" : "12px", alignItems: "center", flexDirection: isMobile ? "column" : "row", marginBottom: "16px", flexWrap: "wrap" }}>
-          <select value={cmpA1} onChange={(event) => setCmpA1(event.target.value)} style={{ flex: isMobile ? "none" : 1, width: isMobile ? "100%" : "auto", minWidth: 0, padding: isMobile ? "11px 12px" : "9px 12px", border: `1.5px solid ${cardBorder}`, borderRadius: "8px", background: surface, color: text, fontSize: isMobile ? "12px" : "11.5px", fontFamily: F, fontWeight: 700, cursor: "pointer", outline: "none" }}>
+        <div className="ngoma-comparison-selectors" style={{ display: "flex", gap: isMobile ? "9px" : "12px", alignItems: "center", flexDirection: isMobile ? "column" : "row", marginBottom: "16px", flexWrap: "wrap" }}>
+          <select aria-label="First artist" value={cmpA1} onChange={(event) => setCmpA1(event.target.value)} style={{ flex: isMobile ? "none" : 1, width: isMobile ? "100%" : "auto", minWidth: 0, padding: isMobile ? "11px 12px" : "9px 12px", border: `1.5px solid ${cardBorder}`, borderRadius: "8px", background: surface, color: text, fontSize: isMobile ? "12px" : "11.5px", fontFamily: F, fontWeight: 700, cursor: "pointer", outline: "none" }}>
             {artists.map((artist) => <option key={artist.n} value={artist.n}>{artist.n}</option>)}
           </select>
           <span style={{ fontFamily: F, fontSize: isMobile ? "10px" : "11px", color: muted, fontWeight: 900, letterSpacing: "1px" }}>vs</span>
-          <select value={cmpA2} onChange={(event) => setCmpA2(event.target.value)} style={{ flex: isMobile ? "none" : 1, width: isMobile ? "100%" : "auto", minWidth: 0, padding: isMobile ? "11px 12px" : "9px 12px", border: `1.5px solid ${cardBorder}`, borderRadius: "8px", background: surface, color: text, fontSize: isMobile ? "12px" : "11.5px", fontFamily: F, fontWeight: 700, cursor: "pointer", outline: "none" }}>
+          <select aria-label="Second artist" value={cmpA2} onChange={(event) => setCmpA2(event.target.value)} style={{ flex: isMobile ? "none" : 1, width: isMobile ? "100%" : "auto", minWidth: 0, padding: isMobile ? "11px 12px" : "9px 12px", border: `1.5px solid ${cardBorder}`, borderRadius: "8px", background: surface, color: text, fontSize: isMobile ? "12px" : "11.5px", fontFamily: F, fontWeight: 700, cursor: "pointer", outline: "none" }}>
             {artists.map((artist) => <option key={artist.n} value={artist.n}>{artist.n}</option>)}
           </select>
         </div>
