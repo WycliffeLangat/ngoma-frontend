@@ -1839,7 +1839,7 @@ main,
 [class*="Premium"],
 [class*="charts"],
 [class*="Charts"] {
-  color: #050505;
+  color: var(--ngoma-text);
 }
 
 /* Force premium page wrappers white/light */
@@ -2017,13 +2017,13 @@ th {
 }
 
 th {
-  color: #050505 !important;
+  color: var(--ngoma-text) !important;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
   text-align: center !important;
 }
 
 td {
-  color: #050505 !important;
+  color: var(--ngoma-text) !important;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
   text-align: center !important;
 }
@@ -2174,7 +2174,7 @@ ranking-item *,
 .badge,
 .tag,
 .label {
-  color: #050505 !important;
+  color: var(--ngoma-text) !important;
 }
 
 /* Footer remains dark like Trending page */
@@ -3662,4 +3662,38 @@ html[data-ngoma-theme="dark"] .ngoma-app-shell .ngoma-hamburger-bar {
 }
 html[data-ngoma-theme="light"] .ngoma-app-shell .ngoma-hamburger-bar {
   background: #000000 !important;
+}
+
+/* Legacy wildcard typography must follow the app's actual theme as well as
+   the document theme. Keep this scoped to public content, excluding posters
+   and CMS screens, and do not repaint backgrounds or platform brand colors. */
+.ngoma-app-shell.ngoma-redesign-v2[data-theme="dark"] {
+  --ngoma-text: #ffffff;
+  --ngoma-text-soft: #ffffff;
+  --ngoma-muted: #ffffff;
+  --ngoma-muted-light: #ffffff;
+}
+.ngoma-app-shell.ngoma-redesign-v2[data-theme="light"] {
+  --ngoma-text: #000000;
+  --ngoma-text-soft: #000000;
+  --ngoma-muted: #000000;
+  --ngoma-muted-light: #000000;
+}
+
+/* Native menus and controls use paired surfaces in either theme. These
+   selectors supersede the legacy dark-mode rules that forced white selects. */
+html[data-ngoma-theme] .ngoma-app-shell.ngoma-redesign-v2 :is(select, select:focus, select option, select optgroup) {
+  color: var(--ngoma-text) !important;
+  background: var(--ngoma-card-bg) !important;
+  background-color: var(--ngoma-card-bg) !important;
+}
+.ngoma-app-shell.ngoma-redesign-v2[data-theme="dark"] {
+  --ngoma-card-bg: #111411;
+  --ngoma-soft-bg: #1a1e1a;
+  color-scheme: dark;
+}
+.ngoma-app-shell.ngoma-redesign-v2[data-theme="light"] {
+  --ngoma-card-bg: #ffffff;
+  --ngoma-soft-bg: #f3f1ec;
+  color-scheme: light;
 }

@@ -2012,7 +2012,7 @@ function MiniBars({ GOLD }) {
 const styles = {
   page: {
     background: "#ffffff",
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
     minHeight: "60vh",
     width: "100%",
     maxWidth: "100%",
@@ -2038,7 +2038,7 @@ const styles = {
     fontWeight: 800,
     letterSpacing: "1.1px",
     textTransform: "uppercase",
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
   },
 
   eyebrowDivider: {
@@ -2066,7 +2066,7 @@ const styles = {
 
   logoText: {
     fontWeight: 900,
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
   },
 
   logoSub: {
@@ -2074,7 +2074,7 @@ const styles = {
     fontSize: "11px",
     letterSpacing: "2px",
     textTransform: "uppercase",
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
   },
 
   heroTitle: {
@@ -2083,7 +2083,7 @@ const styles = {
     fontWeight: 900,
     fontFamily: "'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",
     textTransform: "uppercase",
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
     maxWidth: "100%",
     overflowWrap: "break-word",
   },
@@ -2091,12 +2091,12 @@ const styles = {
   heroMeta: {
     display: "flex",
     flexWrap: "wrap",
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
   },
 
   heroMetaSmall: {
     fontSize: "12px",
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
     letterSpacing: "1.5px",
     textTransform: "uppercase",
   },
@@ -2110,7 +2110,7 @@ const styles = {
     borderRadius: "999px",
     border: "1px solid rgba(255,255,255,0.28)",
     background: "transparent",
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
     fontSize: "15px",
     fontWeight: 800,
     lineHeight: 1,
@@ -2152,7 +2152,7 @@ const styles = {
     fontWeight: 900,
     letterSpacing: "2.5px",
     textTransform: "uppercase",
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
   },
 
   numberOneRank: {
@@ -2169,7 +2169,7 @@ const styles = {
     padding: 0,
     marginTop: "18px",
     textAlign: "left",
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
     fontWeight: 900,
     lineHeight: 1.05,
     cursor: "pointer",
@@ -2182,7 +2182,7 @@ const styles = {
     background: "transparent",
     padding: 0,
     marginTop: "8px",
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
     fontSize: "15px",
     fontWeight: 700,
     cursor: "pointer",
@@ -2205,7 +2205,7 @@ const styles = {
     rowGap: "12px",
     flexWrap: "wrap",
     background: "#ffffff",
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
     borderBottom: "1px solid #EAEAE6",
     width: "100%",
     maxWidth: "100%",
@@ -2239,7 +2239,7 @@ const styles = {
     borderRadius: "12px",
     border: "1px solid #d1d5db",
     background: "#ffffff",
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
     fontSize: "13px",
     fontWeight: 700,
     outline: "none",
@@ -2278,7 +2278,7 @@ const styles = {
   },
 
   tableShell: {
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
     overflow: "hidden",
     maxWidth: "100%",
   },
@@ -2288,19 +2288,19 @@ const styles = {
     justifyContent: "space-between",
     gap: "20px",
     borderBottom: "1px solid rgba(0,0,0,0.08)",
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
   },
 
   tableTitle: {
     fontWeight: 950,
     letterSpacing: "-0.5px",
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
   },
 
   tableSub: {
     marginTop: "6px",
     fontSize: "12px",
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
     fontWeight: 800,
     letterSpacing: "1.2px",
     textTransform: "uppercase",
@@ -2325,7 +2325,7 @@ const styles = {
     justifyItems: "center",
     padding: "12px 24px",
     background: "#f0ede6",
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
     fontSize: "10px",
     fontWeight: 900,
     letterSpacing: "0.9px",
@@ -2403,7 +2403,7 @@ const styles = {
     padding: "12px 10px 12px 8px",
     borderLeft: "3px solid transparent",
     background: "#ffffff",
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
     cursor: "pointer",
     boxSizing: "border-box",
   },
@@ -2463,7 +2463,7 @@ const styles = {
     border: "1px solid rgba(0,0,0,0.08)",
     borderRadius: "10px",
     background: "#fbfaf7",
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
     fontSize: "20px",
     fontWeight: 900,
     lineHeight: 1,
@@ -2504,7 +2504,7 @@ const styles = {
     alignItems: "center",
     padding: "20px 24px",
     borderBottom: "1px solid rgba(0,0,0,0.08)",
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
     animation: "fadeUp 0.35s ease both",
     transition: "background 180ms ease, box-shadow 180ms ease",
   },
@@ -2543,7 +2543,7 @@ const styles = {
     border: "1px solid rgba(0,0,0,0.08)",
     borderRadius: "14px",
     background: "#fbfaf7",
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
     fontSize: "22px",
     fontWeight: 900,
     lineHeight: 1,
@@ -2617,7 +2617,7 @@ const styles = {
   detailCardLabel: {
     display: "block",
     fontSize: "10px",
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
     fontWeight: 900,
     letterSpacing: "0.8px",
     textTransform: "uppercase",
@@ -2631,7 +2631,7 @@ const styles = {
   detailCardValue: {
     display: "block",
     marginTop: "5px",
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
     fontSize: "13px",
     fontWeight: 500,
     lineHeight: 1.25,
@@ -2665,7 +2665,7 @@ const styles = {
     fontSize: "34px",
     fontWeight: 950,
     lineHeight: 1,
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
   },
 
   moveBadge: {
@@ -2725,7 +2725,7 @@ const styles = {
   },
 
   artistSeparator: {
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
     fontSize: "13px",
     fontWeight: 400,
     margin: "0 4px",
@@ -2743,7 +2743,7 @@ const styles = {
     background: "transparent",
     WebkitAppearance: "none",
     appearance: "none",
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
     padding: 0,
     textAlign: "left",
     fontSize: "16px",
@@ -2765,7 +2765,7 @@ const styles = {
     maxWidth: "100%",
     border: "none",
     background: "transparent",
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
     padding: 0,
     marginTop: 0,
     textAlign: "left",
@@ -2782,7 +2782,7 @@ const styles = {
   },
 
   metaNumber: {
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
     fontSize: "15px",
     fontWeight: 900,
     textAlign: "center",
@@ -2797,7 +2797,7 @@ const styles = {
     padding: "6px 9px",
     borderRadius: "999px",
     background: "#f2f2f2",
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
     fontSize: "12px",
     fontWeight: 900,
   },
@@ -2805,7 +2805,7 @@ const styles = {
   tableFooter: {
     padding: "16px 22px",
     textAlign: "center",
-    color: "#000000",
+    color: "var(--ngoma-text, #000000)",
     fontSize: "12px",
     fontWeight: 700,
     background: "#ffffff",

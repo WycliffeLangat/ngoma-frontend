@@ -793,6 +793,14 @@
 
 /* Keep the wordmark bold alongside the logo on every screen size. */
 .ngoma-app-shell.ngoma-redesign-v2 .ngoma-brand-name {
-  color: var(--v2-ink) !important;
   font-weight: 700 !important;
+}
+
+/* Bind wordmarks directly to the React theme, independent of legacy name
+   selectors, inherited palette tokens, and desktop masthead overrides. */
+.ngoma-app-shell.ngoma-redesign-v2[data-theme="dark"] .ngoma-brand-name {
+  color: #ffffff !important;
+}
+.ngoma-app-shell.ngoma-redesign-v2[data-theme="light"] .ngoma-brand-name {
+  color: #000000 !important;
 }
