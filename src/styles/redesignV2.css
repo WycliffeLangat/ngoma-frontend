@@ -724,6 +724,32 @@
 
 /* Neutral mobile surfaces, including navigation and selection controls. */
 @media (max-width: 768px) {
+  .ngoma-redesign-v2 .ngoma-release-title-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 20px;
+  }
+  .ngoma-redesign-v2 .ngoma-release-title-text {
+    min-width: 0;
+    flex: 0 1 auto;
+    overflow-wrap: anywhere;
+  }
+  .ngoma-redesign-v2 .ngoma-release-title-certification {
+    flex: 0 0 28px;
+    width: 28px;
+    height: 28px;
+    margin-inline: 0 !important;
+  }
+  .ngoma-redesign-v2 .ngoma-release-title-certification > span {
+    display: flex;
+    flex: none;
+  }
+  .ngoma-redesign-v2 .ngoma-release-title-certification .ngoma-certification-icon {
+    width: 28px !important;
+    height: 28px !important;
+    flex: none;
+  }
   .ngoma-app-shell.ngoma-redesign-v2 {
     --v2-paper: #fff;
     --v2-line: #e5e5e5;
@@ -742,6 +768,14 @@
   .ngoma-app-shell.ngoma-redesign-v2 .ngoma-dropdown-trigger {
     background: var(--v2-paper) !important;
     box-shadow: none !important;
+  }
+  /* Separate the persistent mobile navigation from every page's content. */
+  .ngoma-app-shell.ngoma-redesign-v2 > header {
+    border-bottom: 2px solid var(--v2-line) !important;
+    box-shadow: 0 5px 14px rgba(0, 0, 0, 0.08) !important;
+  }
+  .ngoma-app-shell.ngoma-redesign-v2[data-theme="dark"] > header {
+    box-shadow: 0 5px 14px rgba(0, 0, 0, 0.3) !important;
   }
   .ngoma-app-shell.ngoma-redesign-v2 > header [data-nav-active="true"],
   .ngoma-app-shell.ngoma-redesign-v2 .ngoma-pill-option[data-selected="true"],
