@@ -118,7 +118,7 @@ export default function CertificationsPage({ ctx }) {
         "--cert-muted": textMuted,
       }}
     >
-      <EditorialHero eyebrow="Point-based awards" title="Certifications" description={'Recognising the ' + activeLabel + ' that keep making an impact. Explore lifetime achievements, the current leader and every award tier.'} metric={totalCertified.toLocaleString()} metricLabel={'Certified ' + activeLabel + ', each shown at its highest earned award level.'} entry={topCert} pool={sortedCerts} onOpen={item => openReleaseDetails(item, isSingles ? 'single' : 'album')} actions={<div className="ngoma-cert-actions">
+      <EditorialHero eyebrow="Point-based awards" title="Certifications" description={'Recognising the ' + activeLabel + ' that keep making an impact. Explore lifetime achievements and certified releases.'} metric={totalCertified.toLocaleString()} metricLabel={'Certified ' + activeLabel + ', each shown at its highest earned award level.'} entry={topCert} pool={sortedCerts} onOpen={item => openReleaseDetails(item, isSingles ? 'single' : 'album')} actions={<div className="ngoma-cert-actions">
           <ShareButton
             isDark={isDark}
             F={F}
@@ -130,6 +130,7 @@ export default function CertificationsPage({ ctx }) {
           <Tog sm/>
         </div>} />
 
+      {!isMobile && <>
       <div className="ngoma-cert-dashboard">
         <div className="ngoma-cert-feature" style={tileCard({borderRadius:"14px"})}>
           <div style={{fontFamily:F,fontSize:"11px",fontWeight:900,letterSpacing:"1px",textTransform:"uppercase",color:textMuted,display:"inline-flex",alignItems:"center",gap:"6px"}}>Current leader{info("Current Leader", "The certified release with the highest lifetime Combined chart points on this page.", [], 14)}</div>
@@ -216,6 +217,8 @@ export default function CertificationsPage({ ctx }) {
           ))}
         </div></MobileDetails>
       </section>
+
+      </>}
 
       <section style={{marginTop:"30px"}}>
         {sectionLabel(`Certified ${isSingles ? "Songs" : "Albums"} (${totalCertified.toLocaleString()})`, "Certified Releases", `All ${activeLabel} that currently meet at least one active certification threshold.`, ["Releases are grouped by highest certification tier.", "Within a tier, higher lifetime points appear first."])}

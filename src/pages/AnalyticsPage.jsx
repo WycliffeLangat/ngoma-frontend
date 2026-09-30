@@ -112,10 +112,6 @@ function RecordRow({ r, pool, ctx, theme, rowStyle, cols }) {
           <div style={{ flexShrink: 0 }}>{shareButton}</div>
         </div>
         <div style={{ marginTop: "10px", minWidth: 0 }}>{leaderNode}</div>
-        <div style={{ marginTop: "8px", display: "grid", gap: "3px", minWidth: 0 }}>
-          <span style={{ fontFamily: F, fontSize: "9px", fontWeight: 900, letterSpacing: "0.8px", textTransform: "uppercase", color: isDark ? "rgba(255,255,255,0.68)" : "rgba(0,0,0,0.58)" }}>Detail</span>
-          <div style={{ minWidth: 0, fontFamily: F, fontSize: "12px", color: isDark ? "#FFFFFF" : "#000000", lineHeight: 1.45, overflowWrap: "anywhere" }}>{detailNode}</div>
-        </div>
       </div>
     );
   }
@@ -577,7 +573,6 @@ export default function AnalyticsPage({ ctx }) {
                     <div style={{minWidth:0,flex:1}}>
                       <button type="button" onClick={()=>openReleaseDetails(e,e.type)} style={{display:"block",border:0,background:"transparent",padding:0,fontFamily:SF,fontWeight:800,fontSize:isMobile?"13px":"14px",cursor:"pointer",textAlign:"left",color:isDark?"#FFFFFF":"inherit",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",maxWidth:"100%"}}>{e.title}</button>
                       {isMobile && !isArtists && <div style={{fontFamily:F,fontSize:"11px",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}><ArtistCredit credit={e.artist} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="11px" fontWeight={400} color="#000000" darkColor="#FFFFFF" separatorColor="#000000" darkSeparatorColor="#FFFFFF" /></div>}
-                      {isMobile && <div title={monthsLabel} style={{fontFamily:F,fontSize:"10px",color:isDark?"#FFFFFF":"#000000",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",marginTop:"2px"}}>{monthsLabel}</div>}
                     </div>
                   </div>
                 );
@@ -585,7 +580,7 @@ export default function AnalyticsPage({ ctx }) {
                   return (
                     <div key={`${e.type}-${e.month}-${i}`} style={{padding:"13px 10px",...rowStyle}}>
                       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px",marginBottom:"10px"}}>
-                        <span style={{fontFamily:F,fontSize:"11px",fontWeight:950,color:GOLD,background:isDark?"rgba(201,122,18,0.16)":"rgba(201,122,18,0.12)",borderRadius:"999px",padding:"4px 9px",whiteSpace:"nowrap"}}>#{i+1}</span>
+                        <span className="ngoma-monthly-rank" style={{fontFamily:F,fontSize:"11px",fontWeight:950,color:GOLD,background:isDark?"rgba(201,122,18,0.16)":"rgba(201,122,18,0.12)",borderRadius:"999px",padding:"4px 9px",whiteSpace:"nowrap"}}>#{i+1}</span>
                         <span style={{fontFamily:F,fontSize:"9px",fontWeight:900,letterSpacing:0,textTransform:"uppercase",color:isDark?"rgba(255,255,255,0.68)":"rgba(0,0,0,0.56)",whiteSpace:"nowrap"}}>{hofLabel}</span>
                       </div>
                       <div style={{display:"flex",alignItems:"flex-start",gap:"11px",minWidth:0}}>
@@ -595,14 +590,10 @@ export default function AnalyticsPage({ ctx }) {
                           {!isArtists && <div style={{fontFamily:F,fontSize:"11.5px",lineHeight:1.35,marginTop:"3px",color:isDark?"#FFFFFF":"#000000",overflowWrap:"anywhere"}}><ArtistCredit credit={e.artist} onOpenArtist={openArtistDetails} isDark={isDark} fontFamily={F} fontSize="11.5px" fontWeight={400} color="#000000" darkColor="#FFFFFF" separatorColor="#000000" darkSeparatorColor="#FFFFFF" style={{lineHeight:1.35}} /></div>}
                         </div>
                       </div>
-                      <div style={{display:"grid",gridTemplateColumns:"minmax(0,0.72fr) minmax(0,1.28fr)",gap:"8px",marginTop:"11px"}}>
+                      <div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr)",gap:"8px",marginTop:"11px"}}>
                         <div style={mobileFieldBox}>
                           <span style={mobileFieldLabel}>Time at #1</span>
                           <span style={mobileFieldValue}>{timeLabel}</span>
-                        </div>
-                        <div style={mobileFieldBox}>
-                          <span style={mobileFieldLabel}>Months</span>
-                          <span title={monthsLabel} style={mobileFieldValue}>{monthsLabel}</span>
                         </div>
                       </div>
                     </div>

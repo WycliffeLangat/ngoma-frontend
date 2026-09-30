@@ -711,3 +711,46 @@
   .ngoma-redesign-v2 .ngoma-more-details-body > .v2-detail-biography { padding: 4px; }
   .ngoma-redesign-v2 .ngoma-more-details-body > .ngoma-platform-performance { border: 0 !important; padding: 0 !important; }
 }
+
+/* Public reading typography: reserve emphasis for headings, not data or controls.
+   The app scope excludes CMS screens and exported share posters. */
+.ngoma-app-shell.ngoma-redesign-v2 :is(div, span, p, a, button, select, input, label, li, td, strong, b, small, text, summary) {
+  font-weight: 400 !important;
+}
+.ngoma-app-shell.ngoma-redesign-v2 :is(h1, h2, h3, h4, h5, h6, th, [role="columnheader"]),
+.ngoma-app-shell.ngoma-redesign-v2 :is(h1, h2, h3, h4, h5, h6, th, [role="columnheader"]) * {
+  font-weight: 700 !important;
+}
+
+/* Neutral mobile surfaces, including navigation and selection controls. */
+@media (max-width: 768px) {
+  .ngoma-app-shell.ngoma-redesign-v2 {
+    --v2-paper: #fff;
+    --v2-line: #e5e5e5;
+    background: #fff !important;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .ngoma-app-shell.ngoma-redesign-v2[data-theme="dark"] {
+    --v2-paper: #171917;
+    --v2-surface: #202220;
+    --v2-line: #383b38;
+    background: #101210 !important;
+  }
+  .ngoma-app-shell.ngoma-redesign-v2 > header,
+  .ngoma-app-shell.ngoma-redesign-v2 .ngoma-mobile-nav,
+  .ngoma-app-shell.ngoma-redesign-v2 button[aria-controls="ngoma-mobile-nav"],
+  .ngoma-app-shell.ngoma-redesign-v2 .ngoma-dropdown-trigger {
+    background: var(--v2-paper) !important;
+    box-shadow: none !important;
+  }
+  .ngoma-app-shell.ngoma-redesign-v2 > header [data-nav-active="true"],
+  .ngoma-app-shell.ngoma-redesign-v2 .ngoma-pill-option[data-selected="true"],
+  .ngoma-app-shell.ngoma-redesign-v2 .ngoma-monthly-rank,
+  .ngoma-app-shell.ngoma-redesign-v2 .v2-rank {
+    background: var(--v2-line) !important;
+    color: var(--v2-ink) !important;
+  }
+  .ngoma-app-shell.ngoma-redesign-v2 .ngoma-chart-row-stripe:first-child {
+    background: var(--v2-surface) !important;
+  }
+}

@@ -8,7 +8,6 @@ import { buildHeadToHeadShareUrl } from "../utils/shareLinks.js";
 
 export default function HeadToHeadPage({ ctx }) {
   const {
-    AnalyticsDeepSection,
     Bar,
     BarChart,
     CartesianGrid,
@@ -149,7 +148,7 @@ export default function HeadToHeadPage({ ctx }) {
             </div>
             {sp1&&sp2&&(<>
               {/* Title cards */}
-              <div className="anl-grid-2 v2-compare-cards" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:isMobile?"14px":"20px",marginBottom:isMobile?"16px":"22px"}}>
+              {!isMobile && <div className="anl-grid-2 v2-compare-cards" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:isMobile?"14px":"20px",marginBottom:isMobile?"16px":"22px"}}>
                 {[{d:sp1,c:isDark?"#FFFFFF":"#000000",accent:GOLD},{d:sp2,c:isDark?"#FFFFFF":"#000000",accent:"#1565C0"}].map(({d,c,accent},i)=>(
                   <div key={i} style={{padding:isMobile?"18px 16px":"24px 22px",background:isDark?"#12150F":"#FFFFFF",borderRadius:"14px",border:"1px solid "+(isDark?"#2F352F":"#E9E5DC"),borderLeft:"4px solid "+accent,minWidth:0,boxShadow:isDark?"none":"0 6px 20px rgba(31,36,31,0.05)"}}>
                     <div style={{display:"flex",alignItems:"flex-start",gap:"14px",minWidth:0}}>
@@ -168,8 +167,8 @@ export default function HeadToHeadPage({ ctx }) {
                     </div>
                   </div>
                 ))}
-              </div>
-              <AnalyticsDeepSection label="Detailed Comparison" isMobile={isMobile}>
+              </div>}
+              <section aria-label="Detailed Comparison">
               {/* Rank trajectory chart */}
               <div style={{marginTop:isMobile?"14px":"0"}}>
                 <div style={chartPanel}>
@@ -280,7 +279,7 @@ export default function HeadToHeadPage({ ctx }) {
                 </div>
                 )}
               </div>
-              </AnalyticsDeepSection>
+              </section>
             </>)}
           </div>
         </div>

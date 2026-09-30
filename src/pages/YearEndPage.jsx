@@ -177,7 +177,7 @@ export default function YearEndPage({ ctx }) {
               <Tog sm/>
             </div>} />
 
-          <RankingSpotlight entries={yearEnd} lifetime onOpen={item => isArtists ? openArtistDetails(item.t) : openReleaseDetails(item,isSingles?"single":"album")} />
+          {!isMobile && <RankingSpotlight entries={yearEnd} lifetime onOpen={item => isArtists ? openArtistDetails(item.t) : openReleaseDetails(item,isSingles?"single":"album")} />}
           {/* Full list */}
           {isMobile ? (
             <div style={{
