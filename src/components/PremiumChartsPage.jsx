@@ -1321,7 +1321,7 @@ export default function PremiumChartsPage({
           margin: 0,
           boxSizing: "border-box",
           padding: mobile
-            ? `40px ${safeGutter}`
+            ? `24px ${safeGutter} 28px`
             : `${tablet ? "62px" : "80px"} ${heroSidePadding}`,
           opacity: loaded ? 1 : 0,
           transform: loaded ? "none" : "translateY(8px)",
@@ -1360,7 +1360,7 @@ export default function PremiumChartsPage({
                 fontWeight: 650,
                 letterSpacing: 0,
                 textTransform: "none",
-                marginBottom: mobile ? "20px" : (tablet ? "22px" : "28px"),
+                marginBottom: mobile ? "6px" : (tablet ? "22px" : "28px"),
                 zIndex: 2,
               }}
             >
@@ -1387,7 +1387,7 @@ export default function PremiumChartsPage({
                   margin: 0,
                   textTransform: "none",
                   maxWidth: mobile ? "100%" : "760px",
-                  whiteSpace: mobile ? "nowrap" : "normal",
+                  whiteSpace: "normal",
                 }}
               >
                 {mastheadTitle}
@@ -1408,18 +1408,19 @@ export default function PremiumChartsPage({
                 ...styles.heroMeta,
                 flexDirection: "column",
                 alignItems: "flex-start",
-                gap: mobile ? "20px" : (tablet ? "34px" : "72px"),
-                marginTop: mobile ? "18px" : (tablet ? "30px" : "42px"),
+                gap: mobile ? "12px" : (tablet ? "34px" : "72px"),
+                marginTop: mobile ? "8px" : (tablet ? "30px" : "42px"),
               }}
             >
               <p
                 style={{
                   margin: 0,
-                  fontSize: mobile ? "16px" : (tablet ? "20px" : "24px"),
+                  fontSize: mobile ? "14px" : (tablet ? "20px" : "24px"),
                   fontWeight: 650,
                   lineHeight: 1.42,
                   color: mastheadMuted,
                   maxWidth: "620px",
+                  display: mobile ? "none" : "block",
                 }}
               >
                 {mastheadSubtitle}
