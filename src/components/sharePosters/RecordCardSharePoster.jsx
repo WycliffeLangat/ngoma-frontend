@@ -75,7 +75,7 @@ export default function RecordCardSharePoster({
         <div
           style={{
             fontSize: posterFontSize(headerText.length > 22 ? 44 : headerText.length > 14 ? 52 : 60),
-            fontWeight: 900,
+            fontWeight: 700,
             lineHeight: 1.12,
             letterSpacing: "-0.5px",
             color: accentColor,
@@ -110,7 +110,7 @@ export default function RecordCardSharePoster({
             style={{
               marginTop: 30,
               fontSize: posterFontSize(title.length > 22 ? 44 : title.length > 14 ? 52 : 60),
-              fontWeight: 900,
+              fontWeight: 700,
               lineHeight: 1.12,
               letterSpacing: "-0.5px",
               color: t.titleColor,
@@ -126,7 +126,7 @@ export default function RecordCardSharePoster({
             {title}
           </div>
           {subtitle && (
-            <div style={{ marginTop: 12, fontSize: posterFontSize(30), fontWeight: 700, color: t.metaColor, textAlign: "center" }}>
+            <div style={{ marginTop: 12, fontSize: posterFontSize(30), fontWeight: 400, color: t.metaColor, textAlign: "center" }}>
               {subtitle}
             </div>
           )}
@@ -136,9 +136,9 @@ export default function RecordCardSharePoster({
           <div style={{ borderTop: `2px solid ${t.dividerColor}`, marginBottom: 26 }} />
           {isShortStat ? (
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: posterFontSize(92), fontWeight: 900, color: accentColor, letterSpacing: "-1px" }}>{statValue}</div>
+              <div style={{ fontSize: posterFontSize(92), fontWeight: 400, color: accentColor, letterSpacing: "-1px" }}>{statValue}</div>
               {statLabel && (
-                <div style={{ fontSize: posterFontSize(18), fontWeight: 800, letterSpacing: "1px", textTransform: "uppercase", color: t.metaColor, marginTop: 4 }}>
+                <div style={{ fontSize: posterFontSize(18), fontWeight: 400, letterSpacing: "1px", textTransform: "uppercase", color: t.metaColor, marginTop: 4 }}>
                   {statLabel}
                 </div>
               )}
@@ -147,7 +147,7 @@ export default function RecordCardSharePoster({
             <div
               style={{
                 fontSize: posterFontSize(36),
-                fontWeight: 800,
+                fontWeight: 400,
                 color: accentColor,
                 textAlign: "center",
                 lineHeight: 1.3,

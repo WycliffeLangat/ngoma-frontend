@@ -115,14 +115,14 @@ function MovementChip({ movement, sameColor, scale }) {
   const fontSize = Math.round(28 * scale);
   if (movement === "new") {
     return (
-      <span style={{ padding: pad, borderRadius: 999, background: "#BF870E22", color: "#BF870E", fontSize: posterFontSize(fontSize), fontWeight: 900, letterSpacing: "0.4px" }}>
+      <span style={{ padding: pad, borderRadius: 999, background: "#BF870E22", color: "#BF870E", fontSize: posterFontSize(fontSize), fontWeight: 400, letterSpacing: "0.4px" }}>
         NEW
       </span>
     );
   }
   if (movement === "re") {
     return (
-      <span style={{ padding: pad, borderRadius: 999, background: "#0088FF22", color: "#0088FF", fontSize: posterFontSize(fontSize), fontWeight: 900, letterSpacing: "0.4px" }}>
+      <span style={{ padding: pad, borderRadius: 999, background: "#0088FF22", color: "#0088FF", fontSize: posterFontSize(fontSize), fontWeight: 400, letterSpacing: "0.4px" }}>
         RE
       </span>
     );
@@ -130,13 +130,13 @@ function MovementChip({ movement, sameColor, scale }) {
   if (movement === "up" || movement === "down") {
     const color = movement === "up" ? "#2DB04A" : "#E5484D";
     return (
-      <span style={{ padding: pad, borderRadius: 999, background: `${color}1F`, color, fontSize: posterFontSize(fontSize), fontWeight: 900, display: "inline-flex", alignItems: "center", gap: 3 }}>
+      <span style={{ padding: pad, borderRadius: 999, background: `${color}1F`, color, fontSize: posterFontSize(fontSize), fontWeight: 400, display: "inline-flex", alignItems: "center", gap: 3 }}>
         {movement === "up" ? "▲" : "▼"}
       </span>
     );
   }
   if (movement === "same") {
-    return <span style={{ padding: pad, borderRadius: 999, background: `${sameColor}22`, color: sameColor, fontSize: posterFontSize(fontSize), fontWeight: 900 }}>–</span>;
+    return <span style={{ padding: pad, borderRadius: 999, background: `${sameColor}22`, color: sameColor, fontSize: posterFontSize(fontSize), fontWeight: 400 }}>–</span>;
   }
   return null;
 }
@@ -196,7 +196,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
         <div
           style={{
             fontSize: posterFontSize(headerTitle.length > 26 ? 44 : headerTitle.length > 18 ? 52 : 60),
-            fontWeight: 900,
+            fontWeight: 700,
             lineHeight: 1.08,
             letterSpacing: "-0.5px",
             color: t.titleColor,
@@ -207,11 +207,11 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
           {headerTitle}
         </div>
         <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, flexWrap: "nowrap", whiteSpace: "nowrap" }}>
-          <span style={{ fontSize: posterFontSize(23), fontWeight: 700, color: t.metaColor, whiteSpace: "nowrap" }}>
+          <span style={{ fontSize: posterFontSize(23), fontWeight: 400, color: t.metaColor, whiteSpace: "nowrap" }}>
             {period === "all-time" ? "All Time" : month}
           </span>
           <span style={{ width: 5, height: 5, borderRadius: "50%", background: t.metaColor, opacity: 0.6 }} />
-          <span style={{ fontSize: posterFontSize(17), fontWeight: 900, letterSpacing: "0.6px", textTransform: "uppercase", color: accentColor, whiteSpace: "nowrap" }}>
+          <span style={{ fontSize: posterFontSize(17), fontWeight: 400, letterSpacing: "0.6px", textTransform: "uppercase", color: accentColor, whiteSpace: "nowrap" }}>
             {period === "all-time" ? "All Time" : platformLabel(platform)}
           </span>
         </div>
@@ -219,7 +219,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
 
       <div style={{ position: "absolute", top: headerH, left: padX, right: padX, zIndex: 1, borderTop: rows.length ? `1px solid ${t.dividerColor}` : "none" }}>
         {rows.length === 0 ? (
-          <div style={{ padding: "40px 0", textAlign: "center", color: t.emptyColor, fontSize: posterFontSize(18), fontWeight: 700 }}>
+          <div style={{ padding: "40px 0", textAlign: "center", color: t.emptyColor, fontSize: posterFontSize(18), fontWeight: 400 }}>
             No chart data for this selection
           </div>
         ) : (
@@ -252,7 +252,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
                     width: Math.round(58 * scale),
                     flexShrink: 0,
                     fontSize: posterFontSize(Math.round(36 * scale)),
-                    fontWeight: 900,
+                    fontWeight: 400,
                     color: row.rank <= 3 ? "#BF870E" : t.metaColor,
                   }}
                 >
@@ -285,7 +285,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
                     <div
                       style={{
                         fontSize: posterFontSize(Math.round(30 * scale)),
-                        fontWeight: 800,
+                        fontWeight: 400,
                         color: t.titleColor,
                         whiteSpace: allowTitleWrap ? "normal" : "nowrap",
                         overflowWrap: allowTitleWrap ? "anywhere" : undefined,
@@ -298,7 +298,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
                     >
                       {row.title}
                       {row.subtitle && (
-                        <span style={{ fontWeight: 600, color: t.metaColor }}> — {row.subtitle}</span>
+                        <span style={{ fontWeight: 400, color: t.metaColor }}> — {row.subtitle}</span>
                       )}
                     </div>
                   ) : (
@@ -306,7 +306,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
                       <div
                         style={{
                           fontSize: posterFontSize(Math.round((allowTitleWrap ? 27 : 32) * scale)),
-                          fontWeight: 800,
+                          fontWeight: 400,
                           color: t.titleColor,
                           lineHeight: allowTitleWrap ? 1.02 : undefined,
                           whiteSpace: allowTitleWrap ? "normal" : "nowrap",
@@ -324,7 +324,7 @@ function PosterContent({ chartType, period, platform, month, rows, accentColor, 
                         <div
                           style={{
                             fontSize: posterFontSize(Math.round((allowTitleWrap ? 17 : 21) * scale)),
-                            fontWeight: 600,
+                            fontWeight: 400,
                             color: t.metaColor,
                             marginTop: allowTitleWrap ? 2 : 4,
                             whiteSpace: "nowrap",

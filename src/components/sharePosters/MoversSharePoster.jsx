@@ -97,17 +97,17 @@ export default function MoversSharePoster({ chartType = "singles", move = "riser
       </div>
 
       <div style={{ padding: `${TITLE_GAP_FROM_LOGO}px ${padX}px 0`, position: "relative", zIndex: 1, textAlign: "center" }}>
-        <div style={{ fontSize: posterFontSize(headerTitle.length > 22 ? 40 : 48), fontWeight: 900, lineHeight: 1.1, letterSpacing: "-0.5px", color: t.titleColor, textTransform: "uppercase" }}>
+        <div style={{ fontSize: posterFontSize(headerTitle.length > 22 ? 40 : 48), fontWeight: 700, lineHeight: 1.1, letterSpacing: "-0.5px", color: t.titleColor, textTransform: "uppercase" }}>
           {headerTitle}
         </div>
-        <div style={{ marginTop: 10, fontSize: posterFontSize(20), fontWeight: 700, color: accentColor, textTransform: "uppercase", letterSpacing: "0.6px" }}>
+        <div style={{ marginTop: 10, fontSize: posterFontSize(20), fontWeight: 400, color: accentColor, textTransform: "uppercase", letterSpacing: "0.6px" }}>
           {month}
         </div>
       </div>
 
       <div style={{ position: "absolute", top: listTop, left: padX, right: padX, bottom: footerH, zIndex: 1, borderTop: rows.length ? `1px solid ${t.dividerColor}` : "none" }}>
         {rows.length === 0 ? (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: t.emptyColor, fontSize: posterFontSize(22), fontWeight: 700, textAlign: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: t.emptyColor, fontSize: posterFontSize(22), fontWeight: 400, textAlign: "center" }}>
             No qualifying entries for this selection
           </div>
         ) : (
@@ -127,7 +127,7 @@ export default function MoversSharePoster({ chartType = "singles", move = "riser
                 borderBottom: i === rows.length - 1 ? "none" : `1px solid ${t.dividerColor}`,
               }}
             >
-              <span style={{ width: Math.round(56 * scale), flexShrink: 0, fontSize: posterFontSize(Math.round(30 * scale)), fontWeight: 900, color: rowRank(chartType, row) <= 3 ? "#BF870E" : t.metaColor }}>
+              <span style={{ width: Math.round(56 * scale), flexShrink: 0, fontSize: posterFontSize(Math.round(30 * scale)), fontWeight: 400, color: rowRank(chartType, row) <= 3 ? "#BF870E" : t.metaColor }}>
                 #{rowRank(chartType, row)}
               </span>
               {rowImage(chartType, row) ? (
@@ -144,11 +144,11 @@ export default function MoversSharePoster({ chartType = "singles", move = "riser
                 <ArtPlaceholder width={artSize} height={artSize} radius={chartType === "artists" ? artSize / 2 : 10} theme={theme} accentColor={accentColor} />
               )}
               <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontSize: posterFontSize(Math.round(26 * scale)), fontWeight: 800, color: t.titleColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                <div style={{ fontSize: posterFontSize(Math.round(26 * scale)), fontWeight: 400, color: t.titleColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {rowTitle(chartType, row)}
                 </div>
                 {rowArtist(chartType, row) && (
-                  <div style={{ fontSize: posterFontSize(Math.round(17 * scale)), fontWeight: 600, color: t.metaColor, marginTop: 3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  <div style={{ fontSize: posterFontSize(Math.round(17 * scale)), fontWeight: 400, color: t.metaColor, marginTop: 3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {rowArtist(chartType, row)}
                   </div>
                 )}
@@ -157,7 +157,7 @@ export default function MoversSharePoster({ chartType = "singles", move = "riser
                 style={{
                   flexShrink: 0, marginRight: Math.round(38 * Math.min(scale, 1.2)), whiteSpace: "nowrap", textAlign: "center",
                   padding: `${Math.round(6 * scale)}px ${Math.round(14 * scale)}px`, borderRadius: 999,
-                  background: `${accentColor}22`, color: accentColor, fontWeight: 900, fontSize: posterFontSize(Math.round(18 * scale)),
+                  background: `${accentColor}22`, color: accentColor, fontWeight: 400, fontSize: posterFontSize(Math.round(18 * scale)),
                 }}
               >
                 {rowBadge(move, row)}

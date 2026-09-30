@@ -58,12 +58,12 @@ export default function CertificationSharePoster({ item, theme = "dark" }) {
           ) : <ArtPlaceholder width={360} height={360} radius={24} theme={theme} accentColor={meta.color} markSize={100} />}
           <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 18, paddingTop: 26, borderTop: `1px solid ${t.dividerColor}`, minWidth: 0, textAlign: "center" }}>
             <CertificationIcon level={item.level || "gold"} size={200} />
-            <span style={{ fontSize: posterFontSize(22), fontWeight: 850, letterSpacing: "3px", textTransform: "uppercase", color: awardColor }}>Official certification</span>
+            <span style={{ fontSize: posterFontSize(22), fontWeight: 400, letterSpacing: "3px", textTransform: "uppercase", color: awardColor }}>Official certification</span>
           </div>
         </div>
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: posterFontSize(68), fontWeight: 900, letterSpacing: "-2px", lineHeight: 1.05, color: awardColor }}>{meta.label} Certified</div>
-          <div style={{ marginTop: 26, fontSize: posterFontSize(item.title.length > 22 ? 44 : 54), fontWeight: 900, lineHeight: 1.12, overflowWrap: "anywhere", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{item.title}</div>
+          <div style={{ fontSize: posterFontSize(68), fontWeight: 700, letterSpacing: "-2px", lineHeight: 1.05, color: awardColor }}>{meta.label} Certified</div>
+          <div style={{ marginTop: 26, fontSize: posterFontSize(item.title.length > 22 ? 44 : 54), fontWeight: 400, lineHeight: 1.12, overflowWrap: "anywhere", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{item.title}</div>
           {item.subtitle && <div style={{ marginTop: 14, fontSize: posterFontSize(28), lineHeight: 1.3, color: t.metaColor, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{item.subtitle}</div>}
           {item.certifiedDate && <div style={{ marginTop: 28, fontSize: posterFontSize(22), color: t.metaColor }}>Certified {item.certifiedDate}</div>}
         </div>

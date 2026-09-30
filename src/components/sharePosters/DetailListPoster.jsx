@@ -70,7 +70,7 @@ export default function DetailListPoster({
             {columns.map((col, i) => (
               <span
                 key={col.label || i}
-                style={{ flex: col.width ? `0 0 ${col.width}` : 1, fontSize: posterFontSize(15), fontWeight: 900, letterSpacing: "0.6px", textTransform: "uppercase", color: t.metaColor, textAlign: col.align || "left" }}
+                style={{ flex: col.width ? `0 0 ${col.width}` : 1, fontSize: posterFontSize(15), fontWeight: 700, letterSpacing: "0.6px", textTransform: "uppercase", color: t.metaColor, textAlign: col.align || "left" }}
               >
                 {col.label}
               </span>
@@ -78,7 +78,7 @@ export default function DetailListPoster({
           </div>
         )}
         {rows.length === 0 ? (
-          <div style={{ padding: "40px 0", textAlign: "center", color: t.emptyColor, fontSize: posterFontSize(20), fontWeight: 700 }}>
+          <div style={{ padding: "40px 0", textAlign: "center", color: t.emptyColor, fontSize: posterFontSize(20), fontWeight: 400 }}>
             No data available
           </div>
         ) : (
@@ -107,7 +107,7 @@ export default function DetailListPoster({
                         minWidth: 0,
                         fontSize: posterFontSize(cellIndex === 0 ? 21 : 20),
                         lineHeight: 1.2,
-                        fontWeight: cellIndex === 0 ? 800 : 650,
+                        fontWeight: 400,
                         color: cellIndex === 0 ? t.titleColor : t.metaColor,
                         textAlign: col.align || "left",
                         display: "-webkit-box",

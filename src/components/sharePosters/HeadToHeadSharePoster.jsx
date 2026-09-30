@@ -60,13 +60,13 @@ export default function HeadToHeadSharePoster({ profile1, profile2, months = [],
       </div>
 
       <div style={{ padding: `${TITLE_GAP_FROM_LOGO}px ${padX}px 0`, position: "relative", zIndex: 1, textAlign: "center" }}>
-        <div style={{ fontSize: posterFontSize(40), fontWeight: 900, lineHeight: 1.1, letterSpacing: "-0.5px", color: t.titleColor, textTransform: "uppercase" }}>
+        <div style={{ fontSize: posterFontSize(40), fontWeight: 700, lineHeight: 1.1, letterSpacing: "-0.5px", color: t.titleColor, textTransform: "uppercase" }}>
           {headerTitle}
         </div>
       </div>
 
       {!profile1 || !profile2 ? (
-        <div style={{ position: "absolute", top: 340, left: padX, right: padX, bottom: 74, display: "flex", alignItems: "center", justifyContent: "center", color: t.emptyColor, fontSize: posterFontSize(22), fontWeight: 700, textAlign: "center" }}>
+        <div style={{ position: "absolute", top: 340, left: padX, right: padX, bottom: 74, display: "flex", alignItems: "center", justifyContent: "center", color: t.emptyColor, fontSize: posterFontSize(22), fontWeight: 400, textAlign: "center" }}>
           Select two entries to compare
         </div>
       ) : (
@@ -79,11 +79,11 @@ export default function HeadToHeadSharePoster({ profile1, profile2, months = [],
                 ) : (
                   <ArtPlaceholder width={128} height={128} radius={chartType === "artists" ? 50 : 10} theme={theme} accentColor={color} />
                 )}
-                <div style={{ fontSize: 30 * POSTER_FONT_SCALE, fontWeight: 800, color: t.titleColor, textAlign: "center", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>
+                <div style={{ fontSize: 30 * POSTER_FONT_SCALE, fontWeight: 400, color: t.titleColor, textAlign: "center", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>
                   {p.title}
                 </div>
                 {p.artist && (
-                  <div style={{ fontSize: posterFontSize(13), fontWeight: 600, color: t.metaColor, textAlign: "center", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>
+                  <div style={{ fontSize: posterFontSize(13), fontWeight: 400, color: t.metaColor, textAlign: "center", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>
                     {p.artist}
                   </div>
                 )}
@@ -94,21 +94,21 @@ export default function HeadToHeadSharePoster({ profile1, profile2, months = [],
           <div style={{ position: "absolute", top: 570, left: padX, right: padX, borderRadius: 12, overflow: "hidden", border: `1px solid ${t.dividerColor}`, zIndex: 1 }}>
             {METRIC_ROWS.map(([label, fmt], i) => (
               <div key={label} style={{ display: "grid", gridTemplateColumns: "1fr 1.1fr 1fr", background: i % 2 ? t.rowBg : "transparent" }}>
-                <div style={{ padding: "14px 16px", textAlign: "center", fontSize: posterFontSize(20), fontWeight: 900, color: GOLD }}>{fmt(profile1)}</div>
-                <div style={{ padding: "14px 16px", textAlign: "center", fontSize: posterFontSize(12), fontWeight: 800, letterSpacing: "0.6px", textTransform: "uppercase", color: t.metaColor, display: "flex", alignItems: "center", justifyContent: "center" }}>{label}</div>
-                <div style={{ padding: "14px 16px", textAlign: "center", fontSize: posterFontSize(20), fontWeight: 900, color: BLUE }}>{fmt(profile2)}</div>
+                <div style={{ padding: "14px 16px", textAlign: "center", fontSize: posterFontSize(20), fontWeight: 400, color: GOLD }}>{fmt(profile1)}</div>
+                <div style={{ padding: "14px 16px", textAlign: "center", fontSize: posterFontSize(12), fontWeight: 400, letterSpacing: "0.6px", textTransform: "uppercase", color: t.metaColor, display: "flex", alignItems: "center", justifyContent: "center" }}>{label}</div>
+                <div style={{ padding: "14px 16px", textAlign: "center", fontSize: posterFontSize(20), fontWeight: 400, color: BLUE }}>{fmt(profile2)}</div>
               </div>
             ))}
           </div>
 
           <div style={{ position: "absolute", top: 960, left: padX, right: padX, zIndex: 1 }}>
-            <div style={{ fontSize: posterFontSize(13), fontWeight: 800, letterSpacing: "0.6px", textTransform: "uppercase", color: t.metaColor, marginBottom: 8, textAlign: "center" }}>
+            <div style={{ fontSize: posterFontSize(13), fontWeight: 400, letterSpacing: "0.6px", textTransform: "uppercase", color: t.metaColor, marginBottom: 8, textAlign: "center" }}>
               Rank Trajectory (lower = better)
             </div>
             <LineChart width={chartW} height={280} data={trajectoryData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
               <CartesianGrid stroke={t.dividerColor} vertical={false} />
-              <XAxis dataKey="month" tick={{ fontSize: posterFontSize(14), fontFamily: POSTER_FONT_FAMILY, fill: t.metaColor, fontWeight: 700 }} tickLine={false} axisLine={false} />
-              <YAxis reversed domain={[1, "dataMax"]} tick={{ fontSize: posterFontSize(14), fontFamily: POSTER_FONT_FAMILY, fill: t.metaColor, fontWeight: 700 }} tickFormatter={(v) => `#${v}`} axisLine={false} tickLine={false} width={64} />
+              <XAxis dataKey="month" tick={{ fontSize: posterFontSize(14), fontFamily: POSTER_FONT_FAMILY, fill: t.metaColor, fontWeight: 400 }} tickLine={false} axisLine={false} />
+              <YAxis reversed domain={[1, "dataMax"]} tick={{ fontSize: posterFontSize(14), fontFamily: POSTER_FONT_FAMILY, fill: t.metaColor, fontWeight: 400 }} tickFormatter={(v) => `#${v}`} axisLine={false} tickLine={false} width={64} />
               <Line dataKey="A" stroke={GOLD} strokeWidth={4} dot={{ r: 5, fill: GOLD }} connectNulls />
               <Line dataKey="B" stroke={BLUE} strokeWidth={4} dot={{ r: 5, fill: BLUE }} connectNulls />
             </LineChart>

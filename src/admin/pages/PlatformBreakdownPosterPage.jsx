@@ -75,20 +75,20 @@ function PosterContent({ rows, chartType, metric, month, viewMode, theme = "dark
         <div
           style={{
             fontSize: posterFontSize(headerTitle.length > 26 ? 44 : 52),
-            fontWeight: 900, lineHeight: 1.1, letterSpacing: "-0.5px",
+            fontWeight: 700, lineHeight: 1.1, letterSpacing: "-0.5px",
             color: t.titleColor, textTransform: "uppercase",
           }}
         >
           {headerTitle}
         </div>
-        <div style={{ marginTop: 10, fontSize: posterFontSize(20), fontWeight: 700, color: "#BF870E", textTransform: "uppercase", letterSpacing: "0.6px" }}>
+        <div style={{ marginTop: 10, fontSize: posterFontSize(20), fontWeight: 400, color: "#BF870E", textTransform: "uppercase", letterSpacing: "0.6px" }}>
           {month}
         </div>
       </div>
 
       <div style={{ position: "absolute", top: 340, left: padX, right: padX, bottom: 74, zIndex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
         {rows.length === 0 ? (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: t.emptyColor, fontSize: posterFontSize(22), fontWeight: 700, textAlign: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: t.emptyColor, fontSize: posterFontSize(22), fontWeight: 400, textAlign: "center" }}>
             No data for this selection
           </div>
         ) : viewMode === "graph" ? (
@@ -105,7 +105,7 @@ function PosterContent({ rows, chartType, metric, month, viewMode, theme = "dark
               <CartesianGrid stroke={t.dividerColor} vertical={false} />
               <XAxis
                 dataKey="label"
-                tick={{ fontSize: posterFontSize(16), fontFamily: POSTER_FONT_FAMILY, fill: t.metaColor, fontWeight: 700 }}
+                tick={{ fontSize: posterFontSize(16), fontFamily: POSTER_FONT_FAMILY, fill: t.metaColor, fontWeight: 400 }}
                 tickLine={false}
                 axisLine={false}
                 angle={-30}
@@ -114,7 +114,7 @@ function PosterContent({ rows, chartType, metric, month, viewMode, theme = "dark
               />
               <YAxis
                 allowDecimals={false}
-                tick={{ fontSize: posterFontSize(16), fontFamily: POSTER_FONT_FAMILY, fill: t.metaColor, fontWeight: 700 }}
+                tick={{ fontSize: posterFontSize(16), fontFamily: POSTER_FONT_FAMILY, fill: t.metaColor, fontWeight: 400 }}
                 axisLine={false}
                 tickLine={false}
               />
@@ -139,9 +139,9 @@ function PosterContent({ rows, chartType, metric, month, viewMode, theme = "dark
               <div key={row.label} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: Math.round(16 * tableScale), alignItems: "center", padding: `${Math.round(12 * tableScale)}px 0`, borderBottom: `1px solid ${t.dividerColor}` }}>
                 <div style={{ display: "flex", alignItems: "center", gap: Math.round(12 * tableScale), minWidth: 0 }}>
                   <span style={{ width: Math.round(16 * tableScale), height: Math.round(16 * tableScale), borderRadius: 4, background: row.color, flexShrink: 0 }} />
-                  <span style={{ fontSize: posterFontSize(Math.round(26 * tableScale)), fontWeight: 800, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{row.label}</span>
+                  <span style={{ fontSize: posterFontSize(Math.round(26 * tableScale)), fontWeight: 400, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{row.label}</span>
                 </div>
-                <span style={{ fontSize: posterFontSize(Math.round(30 * tableScale)), fontWeight: 900, color: "#BF870E", flexShrink: 0 }}>{row.value}</span>
+                <span style={{ fontSize: posterFontSize(Math.round(30 * tableScale)), fontWeight: 400, color: "#BF870E", flexShrink: 0 }}>{row.value}</span>
               </div>
             ))}
           </div>

@@ -68,17 +68,17 @@ export default function HallOfFameSharePoster({ chartType = "singles", theme = "
       </div>
 
       <div style={{ padding: `${TITLE_GAP_FROM_LOGO}px ${padX}px 0`, position: "relative", zIndex: 1, textAlign: "center" }}>
-        <div style={{ fontSize: posterFontSize(headerTitle.length > 22 ? 40 : 48), fontWeight: 900, lineHeight: 1.1, letterSpacing: "-0.5px", color: t.titleColor, textTransform: "uppercase" }}>
+        <div style={{ fontSize: posterFontSize(headerTitle.length > 22 ? 40 : 48), fontWeight: 700, lineHeight: 1.1, letterSpacing: "-0.5px", color: t.titleColor, textTransform: "uppercase" }}>
           {headerTitle}
         </div>
-        <div style={{ marginTop: 10, fontSize: posterFontSize(18), fontWeight: 700, color: GOLD, textTransform: "uppercase", letterSpacing: "0.6px" }}>
+        <div style={{ marginTop: 10, fontSize: posterFontSize(18), fontWeight: 400, color: GOLD, textTransform: "uppercase", letterSpacing: "0.6px" }}>
           Monthly #1s
         </div>
       </div>
 
       <div style={{ position: "absolute", top: gridTop, left: padX, right: padX, bottom: footerH, zIndex: 1, display: "flex", flexWrap: "wrap", gap, alignContent: "flex-start" }}>
         {items.length === 0 ? (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%", height: "100%", color: t.emptyColor, fontSize: posterFontSize(22), fontWeight: 700, textAlign: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%", height: "100%", color: t.emptyColor, fontSize: posterFontSize(22), fontWeight: 400, textAlign: "center" }}>
             No #1s recorded yet
           </div>
         ) : (
@@ -99,7 +99,7 @@ export default function HallOfFameSharePoster({ chartType = "singles", theme = "
                   style={{
                     position: "absolute", top: 12, left: 12, display: "flex", alignItems: "center", gap: 5,
                     padding: "4px 10px 4px 8px", borderRadius: 999, background: `${GOLD}22`, color: GOLD,
-                    fontSize: posterFontSize(Math.round(11 * Math.min(cardScale, 1.1))), fontWeight: 900, letterSpacing: "0.4px",
+                    fontSize: posterFontSize(Math.round(11 * Math.min(cardScale, 1.1))), fontWeight: 400, letterSpacing: "0.4px",
                   }}
                 >
                   ★ #1
@@ -113,18 +113,18 @@ export default function HallOfFameSharePoster({ chartType = "singles", theme = "
                 ) : (
                   <ArtPlaceholder width={artSize} height={artSize} radius={chartType === "artists" ? artSize / 2 : 12} theme={theme} accentColor={GOLD} />
                 )}
-                <div style={{ fontSize: posterFontSize(Math.round(21 * cardScale)), fontWeight: 850, color: t.titleColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%", marginTop: 4 }}>
+                <div style={{ fontSize: posterFontSize(Math.round(21 * cardScale)), fontWeight: 400, color: t.titleColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%", marginTop: 4 }}>
                   {itemTitle(chartType, item)}
                 </div>
                 {itemArtist(chartType, item) && (
-                  <div style={{ fontSize: posterFontSize(Math.round(14 * cardScale)), fontWeight: 600, color: t.metaColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>
+                  <div style={{ fontSize: posterFontSize(Math.round(14 * cardScale)), fontWeight: 400, color: t.metaColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>
                     {itemArtist(chartType, item)}
                   </div>
                 )}
                 <div
                   style={{
                     marginTop: 4, padding: "4px 12px", borderRadius: 999, background: t.posterBackground,
-                    fontSize: posterFontSize(Math.round(12 * cardScale)), fontWeight: 900, letterSpacing: "0.6px", textTransform: "uppercase", color: GOLD,
+                    fontSize: posterFontSize(Math.round(12 * cardScale)), fontWeight: 400, letterSpacing: "0.6px", textTransform: "uppercase", color: GOLD,
                   }}
                 >
                   {monthLabel}

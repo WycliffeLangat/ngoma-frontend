@@ -790,3 +790,8 @@
     background: var(--v2-surface) !important;
   }
 }
+
+/* Keep the wordmark bold alongside the logo on every screen size. */
+.ngoma-app-shell.ngoma-redesign-v2 .ngoma-brand-name {
+  font-weight: 700 !important;
+}

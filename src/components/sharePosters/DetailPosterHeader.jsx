@@ -48,7 +48,7 @@ export default function DetailPosterHeader({ title = "", subtitle = "", sectionL
         <div
           style={{
             fontSize: posterFontSize(title.length > 26 ? 44 : title.length > 18 ? 50 : 58),
-            fontWeight: 900,
+            fontWeight: 700,
             lineHeight: 1.1,
             letterSpacing: "-0.5px",
             color: t.titleColor,
@@ -67,7 +67,7 @@ export default function DetailPosterHeader({ title = "", subtitle = "", sectionL
             style={{
               marginTop: 14,
               fontSize: posterFontSize(23),
-              fontWeight: 700,
+              fontWeight: 400,
               fontFamily: POSTER_FONT_FAMILY,
               color: t.metaColor,
               maxWidth: 860,
@@ -88,7 +88,7 @@ export default function DetailPosterHeader({ title = "", subtitle = "", sectionL
               background: `${accentColor}1F`,
               color: accentColor,
               fontSize: posterFontSize(17),
-              fontWeight: 900,
+              fontWeight: 400,
               fontFamily: POSTER_FONT_FAMILY,
               letterSpacing: "0.7px",
               textTransform: "uppercase",

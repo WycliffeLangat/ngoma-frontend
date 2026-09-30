@@ -63,7 +63,7 @@ async function waitForPosterFonts() {
   try {
     await Promise.all([
       document.fonts.load(`700 24px ${POSTER_FONT_FAMILY}`),
-      document.fonts.load(`900 72px ${POSTER_FONT_FAMILY}`),
+      document.fonts.load(`400 24px ${POSTER_FONT_FAMILY}`),
     ]);
     await document.fonts.ready;
   } catch {}
@@ -708,7 +708,7 @@ export function PosterBrandRow({ theme, size = 64, fontSize = 30, gap = 14, colo
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: gap * scale }}>
       <NgomaMark size={size * scale} inkColor={brandColor} />
-      <span style={{ fontSize: fontSize * scale * POSTER_FONT_SCALE, fontWeight: 950, letterSpacing: "-0.8px", textTransform: "uppercase", color: brandColor, lineHeight: 1 }}>
+      <span style={{ fontSize: fontSize * scale * POSTER_FONT_SCALE, fontWeight: 700, letterSpacing: "-0.8px", textTransform: "uppercase", color: brandColor, lineHeight: 1 }}>
         Ngoma Charts
       </span>
     </div>
@@ -746,13 +746,13 @@ export function PosterFooter({ theme, height = 74, padX = 56, primaryColor, poin
         pointerEvents,
       }}
     >
-      <span style={{ fontSize: 20 * scale * POSTER_FONT_SCALE, fontWeight: 700, color: primary }}>© 2026 Ngoma Media Ltd.</span>
+      <span style={{ fontSize: 20 * scale * POSTER_FONT_SCALE, fontWeight: 400, color: primary }}>© 2026 Ngoma Media Ltd.</span>
       {downloadDate && (
         <span
           {...(customText ? {} : { "data-poster-download-date-auto": "1" })}
           style={{
             fontSize: 20 * scale * POSTER_FONT_SCALE,
-            fontWeight: 700,
+            fontWeight: 400,
             color: primary,
             textAlign: "right",
           }}

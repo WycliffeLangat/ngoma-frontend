@@ -3893,7 +3893,7 @@ const top = data[0];
             style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:isMobile?"4px":"5px",cursor:"pointer",flexShrink:0}}
           >
             <NgomaMark size={isMobile?34:(isTablet?42:48)} inkColor={isMobile?themeColors.text:"var(--header-ink)"} />
-            <span style={{fontFamily:F,fontSize:isMobile?"13px":(isTablet?"15px":"17px"),fontWeight:950,letterSpacing:"-0.4px",color:themeColors.text,textTransform:"uppercase",whiteSpace:"nowrap",lineHeight:1}}>{SITE_NAME}</span>
+            <span className="ngoma-brand-name" style={{fontFamily:F,fontSize:isMobile?"13px":(isTablet?"15px":"17px"),fontWeight:950,letterSpacing:"-0.4px",color:themeColors.text,textTransform:"uppercase",whiteSpace:"nowrap",lineHeight:1}}>{SITE_NAME}</span>
           </button>
           {isMobile ? (
             <>
@@ -4084,7 +4084,7 @@ const top = data[0];
           <div onClick={()=>navTo("charts")} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"8px",cursor:"pointer",minWidth:isMobile?"auto":"250px"}}>
             <NgomaMark size={30} inkColor={isDark?"#FFF":"#1A1A1A"} />
             <span style={{display:"grid",gap:"3px",justifyItems:"center",textAlign:"center"}}>
-              <span style={{fontFamily:F,fontSize:isMobile?"16px":"15px",fontWeight:950,letterSpacing:"-0.4px",color:isDark?"#FFF":"#1A1A1A",textTransform:"uppercase"}}>{SITE_NAME}</span>
+              <span className="ngoma-brand-name" style={{fontFamily:F,fontSize:isMobile?"16px":"15px",fontWeight:950,letterSpacing:"-0.4px",color:isDark?"#FFF":"#1A1A1A",textTransform:"uppercase"}}>{SITE_NAME}</span>
             </span>
           </div>
           <div style={{display:"flex",gap:isMobile?"8px":"10px",alignItems:"center",justifyContent:"center",flexWrap:"wrap",maxWidth:isMobile?"100%":"520px"}}>

@@ -35,7 +35,7 @@ export default function DetailChartPoster({
   const cardCount = Math.max(charts.length, 1);
   const cardH = (areaH - gap * (cardCount - 1)) / cardCount;
   const gridStroke = theme === "light" ? "#EDEAE2" : "#242923";
-  const axisTick = { fontSize: posterFontSize(17), fontFamily: POSTER_FONT_FAMILY, fill: t.metaColor, fontWeight: 700 };
+  const axisTick = { fontSize: posterFontSize(17), fontFamily: POSTER_FONT_FAMILY, fill: t.metaColor, fontWeight: 400 };
 
   return (
     <div
@@ -66,11 +66,11 @@ export default function DetailChartPoster({
               flexDirection: "column",
             }}
           >
-            <div style={{ fontSize: posterFontSize(21), fontWeight: 900, letterSpacing: "0.4px", color: t.titleColor, marginBottom: 4 }}>
+            <div style={{ fontSize: posterFontSize(21), fontWeight: 400, letterSpacing: "0.4px", color: t.titleColor, marginBottom: 4 }}>
               {chart.label}
             </div>
             {chart.hint && (
-              <div style={{ fontSize: posterFontSize(14), fontWeight: 800, letterSpacing: "0.6px", textTransform: "uppercase", color: t.metaColor, marginBottom: 10 }}>
+              <div style={{ fontSize: posterFontSize(14), fontWeight: 400, letterSpacing: "0.6px", textTransform: "uppercase", color: t.metaColor, marginBottom: 10 }}>
                 {chart.hint}
               </div>
             )}
@@ -111,7 +111,7 @@ export default function DetailChartPoster({
                   )}
                 </ResponsiveContainer>
               ) : (
-                <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: t.emptyColor, fontSize: posterFontSize(18), fontWeight: 700 }}>
+                <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: t.emptyColor, fontSize: posterFontSize(18), fontWeight: 400 }}>
                   No data available
                 </div>
               )}
