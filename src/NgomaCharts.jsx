@@ -1288,8 +1288,8 @@ const buildArtistChart = (monthLabel = latestPublishedMonthLabel(), platform = "
       pts: artist.p,
       rawPts: null,
       points_source: platform === "Combined"
-        ? "Combined Singles Top 50 + Combined Albums Top 50"
-        : `${platformLabelForScope(platform)} Top 50 Singles + supported Albums`,
+        ? "Combined Songs Top 50 + Combined Albums Top 50"
+        : `${platformLabelForScope(platform)} Top 50 Songs + supported Albums`,
       plat: platform === "Combined" ? `${platformHits.length}/${ARTIST_PLATS.length}` : "",
       prev: previousRank,
       last_month: previousRank || "—",

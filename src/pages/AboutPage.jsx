@@ -103,7 +103,7 @@ export default function AboutPage({ ctx }) {
   const aboutCopy = {
     "How It Works": "A step-by-step overview of how public chart data moves from source-platform ranks into monthly Combined charts, artist rankings, analytics, and certifications.",
     "Platforms Tracked": `The public source platforms included in the dataset: ${platformList}.`,
-    "Singles Chart": "The singles chart scores songs across the tracked song platforms, then combines those platform points into one monthly Top 50.",
+    "Songs Chart": "The songs chart scores songs across the tracked song platforms, then combines those platform points into one monthly Top 50.",
     "Albums Chart": "The albums chart applies the same Top 50 idea to album source charts available in the dataset.",
     "Artist Rankings": "Artist rankings aggregate credited chart impact so a performer can be measured across lead releases, collaborations, and multiple titles.",
     Certifications: "Certifications are lifetime point awards based on accumulated Combined chart points.",
@@ -171,9 +171,9 @@ export default function AboutPage({ ctx }) {
           <div style={{display:"flex",flexWrap:"wrap",gap:"7px"}}>{trackedPlatforms.map((platform)=>{const p=platform.name,c=platform.brand_color||platform.color||"#69716B";return <span key={p} style={{display:"inline-flex",alignItems:"center",gap:"6px",minHeight:"28px",padding:"5px 10px",background:c+"18",borderRadius:"999px",fontSize:"13px",fontFamily:F,fontWeight:750,color:p==="Boomplay"?"#007C7C":c,border:`1px solid ${c}35`}}>{p}{info(p, `${p} is one of the tracked source platforms used to build public chart rankings when data is available for the selected chart type.`, [], 13)}</span>;})}</div>
         </div>
         <div style={card()}>
-          {aboutSectionTitle("Singles Chart")}
+          {aboutSectionTitle("Songs Chart")}
           <p style={{fontSize:"14px",color:textPrimary,lineHeight:1.65,margin:"0 0 13px",fontFamily:F}}>The singles chart combines song performance across the tracked song platforms. Each platform rank becomes points, then the song's points are added into one Combined monthly score.</p>
-          <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>{["Apple Music","Audiomack","Boomplay","Spotify","YouTube","Shazam"].map(p=><span key={p} style={{padding:"5px 9px",borderRadius:"9px",background:isDark?"#1A1E1A":"#F7F6F2",border:"1px solid "+(isDark?"#2F352F":"#E9E6DE"),fontFamily:F,fontSize:"12px",fontWeight:800,color:textPrimary,display:"inline-flex",alignItems:"center",gap:"6px"}}>{p}{info(`${p} Singles Source`, `${p} is included as a singles source platform when the public dataset has monthly chart rows for it.`, [], 13)}</span>)}</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>{["Apple Music","Audiomack","Boomplay","Spotify","YouTube","Shazam"].map(p=><span key={p} style={{padding:"5px 9px",borderRadius:"9px",background:isDark?"#1A1E1A":"#F7F6F2",border:"1px solid "+(isDark?"#2F352F":"#E9E6DE"),fontFamily:F,fontSize:"12px",fontWeight:800,color:textPrimary,display:"inline-flex",alignItems:"center",gap:"6px"}}>{p}{info(`${p} Songs Source`, `${p} is included as a songs source platform when the public dataset has monthly chart rows for it.`, [], 13)}</span>)}</div>
         </div>
         <div style={card()}>
           {aboutSectionTitle("Albums Chart")}

@@ -49,7 +49,7 @@ function formatMembers(members = []) {
 const credit = (entry = {}) => formatMembers(creditMembers(entry));
 const releaseKey = (entry = {}) => `${key(entry.t)}|||${key(entry.a)}`;
 const sourceLine = (type, month, platform = "Combined") =>
-  `Source: ${platform} ${type === "albums" ? "Albums" : "Singles"}, ${month}.`;
+  `Source: ${platform} ${type === "albums" ? "Albums" : "Songs"}, ${month}.`;
 
 function parseContext(question) {
   const q = key(question);
@@ -204,7 +204,7 @@ function artistAnswer(name, context) {
   const profile = artistTable(context.type, context.month).find((row) => key(row.name) === key(name));
   if (!profile) return `${name} has no ${context.type} Combined Top 50 record through ${context.month}.`;
   const best = profile.bestRelease;
-  return `${profile.name} ranks #${profile.rank} on the cumulative ${context.type === "albums" ? "albums" : "singles"} artist table through ${context.month}. They have ${profile.points.toLocaleString()} credited Display Points across ${profile.entries.size} ${profile.entries.size === 1 ? "entry" : "entries"} and ${profile.months.size} ${profile.months.size === 1 ? "month" : "months"}. Their best release placement is #${profile.bestRank}: ${best.t}. Featured and joint credits are included.\n\nSource: Combined ${context.type === "albums" ? "Albums" : "Singles"}, ${MONTHS[0]} to ${context.month}.`;
+  return `${profile.name} ranks #${profile.rank} on the cumulative ${context.type === "albums" ? "albums" : "songs"} artist table through ${context.month}. They have ${profile.points.toLocaleString()} credited Display Points across ${profile.entries.size} ${profile.entries.size === 1 ? "entry" : "entries"} and ${profile.months.size} ${profile.months.size === 1 ? "month" : "months"}. Their best release placement is #${profile.bestRank}: ${best.t}. Featured and joint credits are included.\n\nSource: Combined ${context.type === "albums" ? "Albums" : "Songs"}, ${MONTHS[0]} to ${context.month}.`;
 }
 
 function compareArtists(names, context) {
@@ -213,13 +213,13 @@ function compareArtists(names, context) {
   if (profiles.length < 2) return null;
   const lines = profiles.map((row) => `${row.name}: #${row.rank}, ${row.points.toLocaleString()} points, ${row.entries.size} entries, best release rank #${row.bestRank}`);
   const winner = [...profiles].sort((a, b) => b.points - a.points)[0];
-  return `${lines.join("\n")}\n\n${winner.name} leads this comparison by cumulative credited Display Points through ${context.month}. Featured and joint credits are included.\n\nSource: Combined ${context.type === "albums" ? "Albums" : "Singles"}, ${MONTHS[0]} to ${context.month}.`;
+  return `${lines.join("\n")}\n\n${winner.name} leads this comparison by cumulative credited Display Points through ${context.month}. Featured and joint credits are included.\n\nSource: Combined ${context.type === "albums" ? "Albums" : "Songs"}, ${MONTHS[0]} to ${context.month}.`;
 }
 
 function releaseAnswer(title, context) {
   const profile = releaseProfile(title, context.type, context.month);
   if (!profile) return `${title} has no ${context.type} Combined Top 50 record through ${context.month}.`;
-  return `${profile.title} by ${profile.artist} has ${profile.points.toLocaleString()} cumulative Display Points through ${context.month}. It charted in ${profile.months} ${profile.months === 1 ? "month" : "months"}, peaked at #${profile.peak}, and was #${profile.latestRank} in its latest appearance (${profile.latestMonth}). Certification level: ${certification(profile.points)}.\nRank journey: ${profile.journey}.\n\nSource: Combined ${context.type === "albums" ? "Albums" : "Singles"}, ${MONTHS[0]} to ${context.month}.`;
+  return `${profile.title} by ${profile.artist} has ${profile.points.toLocaleString()} cumulative Display Points through ${context.month}. It charted in ${profile.months} ${profile.months === 1 ? "month" : "months"}, peaked at #${profile.peak}, and was #${profile.latestRank} in its latest appearance (${profile.latestMonth}). Certification level: ${certification(profile.points)}.\nRank journey: ${profile.journey}.\n\nSource: Combined ${context.type === "albums" ? "Albums" : "Songs"}, ${MONTHS[0]} to ${context.month}.`;
 }
 
 function compareReleases(titles, context) {
@@ -227,7 +227,7 @@ function compareReleases(titles, context) {
   if (profiles.length < 2) return null;
   const lines = profiles.map((row) => `${row.title}: ${row.points.toLocaleString()} points, peak #${row.peak}, ${row.months} chart months`);
   const winner = [...profiles].sort((a, b) => b.points - a.points)[0];
-  return `${lines.join("\n")}\n\n${winner.title} leads by cumulative Display Points through ${context.month}.\n\nSource: Combined ${context.type === "albums" ? "Albums" : "Singles"}, ${MONTHS[0]} to ${context.month}.`;
+  return `${lines.join("\n")}\n\n${winner.title} leads by cumulative Display Points through ${context.month}.\n\nSource: Combined ${context.type === "albums" ? "Albums" : "Songs"}, ${MONTHS[0]} to ${context.month}.`;
 }
 
 function topArtists(context) {

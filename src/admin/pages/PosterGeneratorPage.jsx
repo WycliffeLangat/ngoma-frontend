@@ -27,7 +27,7 @@ import {
 } from "../utils/exportPoster.jsx";
 
 const CHART_TYPES = [
-  ["singles", "Singles"],
+  ["singles", "Songs"],
   ["albums", "Albums"],
   ["artists", "Artists"],
 ];

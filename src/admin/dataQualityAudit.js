@@ -1281,7 +1281,7 @@ function auditCharts(charts, uploads, ctx) {
     const missingTypes = RELEASE_TYPES.filter((type) => !periodsByType.get(type)?.has(key));
     if (missingTypes.length && !isFuturePeriodKey(key, ctx.now)) {
       pushIssue(ctx, "audit-chart-type-pair-missing", {
-        title: "Singles/albums chart coverage is uneven",
+        title: "Songs/albums chart coverage is uneven",
         module: "charts",
         page: "charts",
         category: "Chart periods",

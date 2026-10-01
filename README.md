@@ -1,6 +1,6 @@
 # Ngoma Charts
 
-Kenya's official multi-platform music charts. Singles and albums ranked across Apple Music, Audiomack, Boomplay, Spotify, YouTube and Shazam.
+Kenya's official multi-platform music charts. Songs and albums ranked across Apple Music, Audiomack, Boomplay, Spotify, YouTube and Shazam.
 
 Ngoma Charts is backend-powered. All current, historical, and future chart data is stored in the Django backend/database and served through the public API. The React frontend does not bundle chart data; it only fetches and displays data from the configured backend API.
 

@@ -93,7 +93,7 @@ export default function TrendingPage({ ctx }) {
             </div>
 
             <div style={card({padding:isMobile?"18px":"22px"})}>
-              {sectionTitle(`Rising Fast - Most Places Gained (${isSingles?"Singles":"Albums"})`, "Rising Fast", "Ranks entries by how many positions they gained on the Combined chart compared with the previous month.", ["The list is deduplicated so the same release is not repeated under slightly different credits.", "Bars show recent rank strength; shorter/lower rank numbers are better."])}
+              {sectionTitle(`Rising Fast - Most Places Gained (${isSingles?"Songs":"Albums"})`, "Rising Fast", "Ranks entries by how many positions they gained on the Combined chart compared with the previous month.", ["The list is deduplicated so the same release is not repeated under slightly different credits.", "Bars show recent rank strength; shorter/lower rank numbers are better."])}
               {uniqueByMomentumIdentity(currentTrending.rising).map((p,i)=>{
                 const rowKey=`rising-${p.t}-${p.a}-${p.decRank}`;
                 const expanded=Boolean(expandedTrendingRows[rowKey]);

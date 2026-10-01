@@ -521,7 +521,7 @@ export default function UploadsPage({ user, searchJump }) {
             <label>
               <span>Chart type</span>
               <select value={form.chart_type} onChange={(event) => set("chart_type", event.target.value)}>
-                <option value="singles">Singles</option>
+                <option value="singles">Songs</option>
                 <option value="albums">Albums</option>
               </select>
             </label>

@@ -1070,7 +1070,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
       {/* ── Toolbar ── */}
       <div className="cms-toolbar" style={{ flexWrap: "wrap" }}>
         <div style={{ display: "flex", gap: 6, background: "#f0ece5", borderRadius: 12, padding: 4 }}>
-          {[["singles","Singles"],["albums","Albums"],["artists","Artists"]].map(([t, label]) => (
+          {[["singles","Songs"],["albums","Albums"],["artists","Artists"]].map(([t, label]) => (
             <button
               key={t}
               type="button"
@@ -1129,7 +1129,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
       {(chartType === "artists" || chartId) && (
         <div className="cms-pill-bar" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16, alignItems: "center" }}>
           {pillBtn(COMBINED, "Combined", "#BF870E")}
-          {pillBtn("kenyan", chartType === "artists" ? "Kenyan Artists" : (chartType === "albums" ? "Kenyan Albums" : "Kenyan Singles"), "#006600")}
+            {pillBtn("kenyan", chartType === "artists" ? "Kenyan Artists" : (chartType === "albums" ? "Kenyan Albums" : "Kenyan Songs"), "#006600")}
           {visiblePlatforms.map(p =>
             pillBtn(p.id, p.short_name || p.name, p.color || "#555")
           )}
@@ -1313,7 +1313,7 @@ export default function ChartEntriesPage({ user, searchJump }) {
         )
 
       ) : (
-        /* ── Singles / Albums / Kenya chart entries ───────────────────────── */
+        /* ── Songs / Albums / Kenya chart entries ───────────────────────── */
         !chartId ? (
           <div className="cms-empty">
             {selectedYM

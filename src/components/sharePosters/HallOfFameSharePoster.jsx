@@ -18,7 +18,7 @@ import {
 // (admin/pages/HallOfFamePosterPage.jsx) — this is what backs the public
 // Analytics page's Records & Milestones / Hall of Fame section.
 const CHART_TYPES = [
-  ["singles", "Singles"],
+  ["singles", "Songs"],
   ["albums", "Albums"],
   ["artists", "Artists"],
 ];

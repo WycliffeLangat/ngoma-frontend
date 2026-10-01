@@ -218,7 +218,7 @@ export default function AnalyticsPage({ ctx }) {
       b.latestHofMonthRank - a.latestHofMonthRank ||
       String(a.title || "").localeCompare(String(b.title || ""))
     );
-  const hofLabel = isArtists ? ctx.chartTypeLabel : (isSingles ? "Singles / Songs" : "Albums");
+  const hofLabel = isArtists ? ctx.chartTypeLabel : (isSingles ? "Songs" : "Albums");
 
   const recordsTheme = { isDark, isMobile };
 

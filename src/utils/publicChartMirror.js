@@ -553,7 +553,7 @@ export function buildTopCountryStats(payload, chartType, month, platform = "Comb
 
 // ── Climbers / Drops / New Entries / Re-Entries ─────────────────────────────
 
-// Singles/albums rows already carry the backend's own `movement`/`prev_rank`
+// Songs/albums rows already carry the backend's own `movement`/`prev_rank`
 // fields ("=", "new", "re-entry", "+N", "-N") — trust those directly rather
 // than re-deriving movement from scratch. Artists have no such fields
 // (buildArtistMonthMirror is a CMS-side aggregate, not a backend chart), so

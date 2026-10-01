@@ -342,7 +342,7 @@ const ERROR_GUIDES = [
     id: "chart-period-duplicate",
     title: "Chart period already exists.",
     summary: "A chart period for that year, month, and chart type already exists.",
-    meaning: "There should only be one Singles chart period and one Albums chart period per month. Duplicate periods would split entries and confuse publishing state.",
+    meaning: "There should only be one Songs chart period and one Albums chart period per month. Duplicate periods would split entries and confuse publishing state.",
     commonCauses: [
       "A chart period was already created from an upload.",
       "The same month was entered twice.",
@@ -804,7 +804,7 @@ const GLOSSARY_TERMS = [
   {
     id: "chart-period",
     title: "Chart period",
-    summary: "A specific chart month and chart type, such as Singles for July 2026.",
+    summary: "A specific chart month and chart type, such as Songs for July 2026.",
     meaning: "Chart periods group chart entries, upload state, approval state, and publishing state for a month.",
     related: ["chart entries", "final chart", "publish"],
     keywords: ["chart", "period", "month", "year"],

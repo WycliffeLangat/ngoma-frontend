@@ -29,7 +29,7 @@ test("Africa country catalog covers 55 countries with Kenya in Eastern Africa", 
   assert.equal(kenya?.region, "eastern-africa");
 });
 
-test("Combined Artist Chart uses only Combined Singles and Albums Top 50", () => {
+test("Combined Artist Chart uses only Combined Songs and Albums Top 50", () => {
   const data = payload({
     singles: {
       combined: {

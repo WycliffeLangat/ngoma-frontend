@@ -498,7 +498,7 @@ export default function DuplicateReviewPage() {
             style={{ fontSize: 13, padding: "4px 10px" }}
           >
             <option value="all">All types ({(groups || []).length})</option>
-            <option value="singles">Singles ({counts.singles})</option>
+            <option value="singles">Songs ({counts.singles})</option>
             <option value="albums">Albums ({counts.albums})</option>
             <option value="artists">Artists ({counts.artists})</option>
           </select>
