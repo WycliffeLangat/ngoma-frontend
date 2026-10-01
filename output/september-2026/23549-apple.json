@@ -1,0 +1,36 @@
+{
+  "id": 23549,
+  "requested_title": "Oh No",
+  "requested_artist": "Rema",
+  "url": "https://music.apple.com/us/album/oh-no/6805176799?i=6805176803&uo=4",
+  "resolved_url": "https://music.apple.com/us/album/oh-no/6805176799?i=6805176803&uo=4",
+  "page_title": "‎Oh No - Song with Lyrics by Rema - Apple Music",
+  "title": "Oh No - Single",
+  "artists": [
+    "Rema"
+  ],
+  "genre": "Afrobeats · 2026",
+  "track_count": 1,
+  "artwork": {
+    "bgColor": "1f2020",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "ecd463",
+    "textColor2": "e3d385",
+    "textColor3": "c3b056",
+    "textColor4": "bcaf71",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/7a/70/db/7a70dba9-1df6-e379-e6fa-19feda48d7a1/26UM1IM04727.rgb.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "September 11, 2026\n1 song, 3 minutes\n℗ 2026 Mavin Global Holdings Ltd / Jonzing World Entertainment, distributed by Interscope Records and UMG Commercial Services",
+  "tracks": [
+    {
+      "title": "Oh No",
+      "artist": "Rema",
+      "composer": "Michael Ovie Hunter & Tarik Johnston",
+      "url": "https://music.apple.com/us/album/oh-no/6805176799?i=6805176803",
+      "id": "6805176803"
+    }
+  ],
+  "checked_at": "2026-10-01T08:24:46.302Z"
+}

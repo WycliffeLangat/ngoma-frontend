@@ -1,0 +1,43 @@
+{
+  "id": 23281,
+  "requested_title": "Henessy",
+  "requested_artist": "MICKY BLAISE",
+  "url": "https://music.apple.com/us/album/henessy/6797800833?i=6797800837&uo=4",
+  "resolved_url": "https://music.apple.com/us/album/henessy/6797800833?i=6797800837&uo=4",
+  "page_title": "‎Henessy - Song with Lyrics by MICKY BLAISE - Apple Music",
+  "title": "This One - Single",
+  "artists": [
+    "MICKY BLAISE"
+  ],
+  "genre": "Dance · 2026",
+  "track_count": 2,
+  "artwork": {
+    "bgColor": "080808",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "f1f1f1",
+    "textColor2": "ededed",
+    "textColor3": "c3c3c3",
+    "textColor4": "bfbfbf",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/21/e8/ce/21e8ce75-228d-d837-8101-14cd843211a1/885975026718_cover.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "August 4, 2026\n2 songs, 1 minute\n℗ 2026 Phantom music",
+  "tracks": [
+    {
+      "title": "Iby'umuntu atakora warabikoreye",
+      "artist": "MICKY BLAISE",
+      "composer": "MICKY BLAISE",
+      "url": "https://music.apple.com/us/album/ibyumuntu-atakora-warabikoreye/6797800833?i=6797800835",
+      "id": "6797800835"
+    },
+    {
+      "title": "Henessy",
+      "artist": "MICKY BLAISE",
+      "composer": "MICKY BLAISE",
+      "url": "https://music.apple.com/us/album/henessy/6797800833?i=6797800837",
+      "id": "6797800837"
+    }
+  ],
+  "checked_at": "2026-10-01T01:55:17.919Z"
+}

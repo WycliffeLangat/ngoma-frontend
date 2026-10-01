@@ -1,0 +1,50 @@
+{
+  "id": 23477,
+  "requested_title": "Tap Am",
+  "requested_artist": "Famous Pluto",
+  "url": "https://music.apple.com/us/album/on-my-birthday-single/6796388556?uo=4",
+  "resolved_url": "https://music.apple.com/us/album/on-my-birthday-single/6796388556?uo=4",
+  "page_title": "‎ON MY BIRTHDAY - Single - Album by Famous Pluto - Apple Music",
+  "title": "ON MY BIRTHDAY - Single",
+  "artists": [
+    "Famous Pluto"
+  ],
+  "genre": "Afrobeats · 2026",
+  "track_count": 3,
+  "artwork": {
+    "bgColor": "5d5a59",
+    "hasP3": true,
+    "height": 3000,
+    "textColor1": "fecf96",
+    "textColor2": "fca972",
+    "textColor3": "ddb78a",
+    "textColor4": "dc996d",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/29/84/a6/2984a6e3-725e-7cb8-8ee4-d266e07cdc95/0.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "August 14, 2026\n3 songs, 7 minutes\n℗ 2026 Plutomania Records, under exclusive license to ONErpm",
+  "tracks": [
+    {
+      "title": "Tap Am",
+      "artist": "Famous Pluto",
+      "composer": "UZAMA OSAHON",
+      "url": "https://music.apple.com/us/album/tap-am/6796388556?i=6796388560",
+      "id": "6796388560"
+    },
+    {
+      "title": "Fast and Furious",
+      "artist": "Famous Pluto",
+      "composer": "UZAMA OSAHON",
+      "url": "https://music.apple.com/us/album/fast-and-furious/6796388556?i=6796388561",
+      "id": "6796388561"
+    },
+    {
+      "title": "Ganja (feat. Corizo)",
+      "artist": "Famous Pluto",
+      "composer": "UZAMA OSAHON",
+      "url": "https://music.apple.com/us/album/ganja-feat-corizo/6796388556?i=6796388562",
+      "id": "6796388562"
+    }
+  ],
+  "checked_at": "2026-10-01T08:30:29.771Z"
+}

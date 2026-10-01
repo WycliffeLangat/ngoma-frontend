@@ -1,0 +1,36 @@
+{
+  "id": 17384,
+  "requested_title": "MAYDAY RACHAEL",
+  "requested_artist": "Gradine Toto",
+  "url": "https://music.apple.com/us/album/mayday-rachael/1877081735?i=1877081737&uo=4",
+  "resolved_url": "https://music.apple.com/us/album/mayday-rachael/1877081735?i=1877081737&uo=4",
+  "page_title": "‎MAYDAY RACHAEL - Song with Lyrics by Gradine Toto - Apple Music",
+  "title": "MAYDAY RACHAEL - Single",
+  "artists": [
+    "Gradine Toto"
+  ],
+  "genre": "Blues · 2026",
+  "track_count": 1,
+  "artwork": {
+    "bgColor": "040d08",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "d49f81",
+    "textColor2": "dd916a",
+    "textColor3": "aa8269",
+    "textColor4": "b27756",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/93/d4/df/93d4df7d-1b7b-dfd8-6c32-d8d53852750b/199890042945_cover.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "February 13, 2026\n1 song, 6 minutes\n℗ 2026 Gradine Toto - Dapstrem Entertainment",
+  "tracks": [
+    {
+      "title": "MAYDAY RACHAEL",
+      "artist": "Gradine Toto",
+      "composer": "Gradine Toto",
+      "url": "https://music.apple.com/us/album/mayday-rachael/1877081735?i=1877081737",
+      "id": "1877081737"
+    }
+  ],
+  "checked_at": "2026-10-01T01:55:14.229Z"
+}

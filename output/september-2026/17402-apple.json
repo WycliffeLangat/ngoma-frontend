@@ -1,0 +1,36 @@
+{
+  "id": 17402,
+  "requested_title": "Natafuta Doo",
+  "requested_artist": "ELISHA TOTO",
+  "url": "https://music.apple.com/us/album/natafuta-doo/1886925050?i=1886925051&uo=4",
+  "resolved_url": "https://music.apple.com/us/album/natafuta-doo/1886925050?i=1886925051&uo=4",
+  "page_title": "‎Natafuta Doo - Song with Lyrics by ELISHA TOTO - Apple Music",
+  "title": "Natafuta Doo - Single",
+  "artists": [
+    "ELISHA TOTO"
+  ],
+  "genre": "Worldwide · 2026",
+  "track_count": 1,
+  "artwork": {
+    "bgColor": "261f1d",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "ebeeef",
+    "textColor2": "d2cfcd",
+    "textColor3": "c4c4c5",
+    "textColor4": "afacaa",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/24/d7/b3/24d7b32e-e2e9-ac49-38a9-51b3b0d15986/artwork.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "March 21, 2026\n1 song, 6 minutes\n℗ 2026 SUBA KINGS MUSICALS",
+  "tracks": [
+    {
+      "title": "Natafuta Doo",
+      "artist": "ELISHA TOTO",
+      "composer": "ELISHA OKUKU OUTA",
+      "url": "https://music.apple.com/us/album/natafuta-doo/1886925050?i=1886925051",
+      "id": "1886925051"
+    }
+  ],
+  "checked_at": "2026-10-01T08:24:50.980Z"
+}

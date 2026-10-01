@@ -1,0 +1,85 @@
+{
+  "id": 23514,
+  "requested_title": "Huyo Ndo Mimi (feat. Kapitani)",
+  "requested_artist": "Naishift",
+  "url": "https://music.apple.com/us/album/huyo-ndo-mimi-feat-kapitani/6792643364?i=6792643365&uo=4",
+  "resolved_url": "https://music.apple.com/us/album/huyo-ndo-mimi-feat-kapitani/6792643364?i=6792643365&uo=4",
+  "page_title": "‎Huyo Ndo Mimi (feat. Kapitani) - Song with Lyrics by Naishift - Apple Music",
+  "title": "The Shift -, Vol. 2",
+  "artists": [
+    "Naishift"
+  ],
+  "genre": "Hip-Hop/Rap · 2026",
+  "track_count": 8,
+  "artwork": {
+    "bgColor": "0b0c0d",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "cdcdc6",
+    "textColor2": "d5c7a5",
+    "textColor3": "a6a6a1",
+    "textColor4": "ada186",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/57/62/65/576265e1-3855-9335-ead1-7ee6edb38058/artwork.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "August 13, 2026\n8 songs, 22 minutes\n℗ 2026 NAISHIFT",
+  "tracks": [
+    {
+      "title": "Huyo Ndo Mimi (feat. Kapitani)",
+      "artist": "Naishift",
+      "composer": "Mark Chacha & Martin Nduati",
+      "url": "https://music.apple.com/us/album/huyo-ndo-mimi-feat-kapitani/6792643364?i=6792643365",
+      "id": "6792643365"
+    },
+    {
+      "title": "Long Chemin (feat. TBOY KM & Lafayette.da1)",
+      "artist": "Naishift",
+      "composer": "Brian Kiarie, Dennis Kimani, Edward Wachira & Thierry Ramazani",
+      "url": "https://music.apple.com/us/album/long-chemin-feat-tboy-km-lafayette-da1/6792643364?i=6792643366",
+      "id": "6792643366"
+    },
+    {
+      "title": "Morning Light (feat. Imani, Lafayette.da1 & TBOY KM)",
+      "artist": "Naishift",
+      "composer": "Dennis Kimani, Brian Kiarie, Edward Wachira, Thierry Ramazani & Imanuel Askeland Andersen",
+      "url": "https://music.apple.com/us/album/morning-light-feat-imani-lafayette-da1-tboy-km/6792643364?i=6792643368",
+      "id": "6792643368"
+    },
+    {
+      "title": "Arriver (feat. TBOY KM, Katapilla & KimaniSunz)",
+      "artist": "Naishift",
+      "composer": "Thierry Ramazani, Felix Opar & Dennis Kimani",
+      "url": "https://music.apple.com/us/album/arriver-feat-tboy-km-katapilla-kimanisunz/6792643364?i=6792643369",
+      "id": "6792643369"
+    },
+    {
+      "title": "Dangereux (feat. TBOY KM)",
+      "artist": "Naishift",
+      "composer": "Dennis Kimani, Douglas Kangethe & Thierry Ramazani",
+      "url": "https://music.apple.com/us/album/dangereux-feat-tboy-km/6792643364?i=6792643370",
+      "id": "6792643370"
+    },
+    {
+      "title": "Blessings (feat. Fabreazy)",
+      "artist": "Naishift",
+      "composer": "Dennis Kimani & Fabrice Nshuti",
+      "url": "https://music.apple.com/us/album/blessings-feat-fabreazy/6792643364?i=6792643371",
+      "id": "6792643371"
+    },
+    {
+      "title": "Nasalaye Mama Ya Bana (feat. Didace Ndege & TBOY KM)",
+      "artist": "Naishift",
+      "composer": "Thierry Ramazani, Douglas Kangethe, Didace Mugaruka & Dennis Kimani",
+      "url": "https://music.apple.com/us/album/nasalaye-mama-ya-bana-feat-didace-ndege-tboy-km/6792643364?i=6792643372",
+      "id": "6792643372"
+    },
+    {
+      "title": "Another League (feat. Katapilla & KimaniSunz)",
+      "artist": "Naishift",
+      "composer": "Felix Opar & Dennis Kimani",
+      "url": "https://music.apple.com/us/album/another-league-feat-katapilla-kimanisunz/6792643364?i=6792643375",
+      "id": "6792643375"
+    }
+  ],
+  "checked_at": "2026-10-01T01:55:14.794Z"
+}

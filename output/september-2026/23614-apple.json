@@ -1,0 +1,134 @@
+{
+  "id": 23614,
+  "requested_title": "Make It Rain",
+  "requested_artist": "Fat Joe",
+  "url": "https://music.apple.com/us/album/me-myself-i/1839313076?uo=4",
+  "resolved_url": "https://music.apple.com/us/album/me-myself-i/1839313076?uo=4",
+  "page_title": "‎Me, Myself & I - Album by Fat Joe - Apple Music",
+  "title": "Me, Myself & I",
+  "artists": [
+    "Fat Joe"
+  ],
+  "genre": "Hip-Hop/Rap · 2006",
+  "track_count": 15,
+  "artwork": {
+    "bgColor": "101314",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "d6c71b",
+    "textColor2": "b8c2b6",
+    "textColor3": "afa319",
+    "textColor4": "969f96",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/b5/c5/d2/b5c5d237-2450-74f5-b253-cc207b4fcd12/191018288754.png/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "November 14, 2006\n15 songs, 1 hour 2 minutes\n℗ 2006 R4 So Valid, LLC",
+  "tracks": [
+    {
+      "title": "Pendemic / Intro",
+      "artist": "Fat Joe",
+      "composer": "Joseph Cartagena",
+      "url": "https://music.apple.com/us/album/pendemic-intro/1839313076?i=1839313077",
+      "id": "1839313077"
+    },
+    {
+      "title": "Damn",
+      "artist": "Fat Joe",
+      "composer": "Joseph Cartagena",
+      "url": "https://music.apple.com/us/album/damn/1839313076?i=1839313078",
+      "id": "1839313078"
+    },
+    {
+      "title": "The Profit",
+      "artist": "Fat Joe & Lil Wayne",
+      "composer": "Joseph Cartagena, D. Carter & K. Khaled",
+      "url": "https://music.apple.com/us/album/the-profit/1839313076?i=1839313079",
+      "id": "1839313079"
+    },
+    {
+      "title": "No Drama",
+      "artist": "Fat Joe",
+      "composer": "Joseph Cartagena, A. Harr & J. Jackson",
+      "url": "https://music.apple.com/us/album/no-drama/1839313076?i=1839313080",
+      "id": "1839313080"
+    },
+    {
+      "title": "Breathe and Stop (feat. The Game)",
+      "artist": "Fat Joe",
+      "composer": "Joseph Cartagena, A. Torres & J. Taylor",
+      "url": "https://music.apple.com/us/album/breathe-and-stop-feat-the-game/1839313076?i=1839313081",
+      "id": "1839313081"
+    },
+    {
+      "title": "She's My Mama (feat. H-Mob)",
+      "artist": "Fat Joe",
+      "composer": "Joseph Cartagena",
+      "url": "https://music.apple.com/us/album/shes-my-mama-feat-h-mob/1839313076?i=1839313082",
+      "id": "1839313082"
+    },
+    {
+      "title": "Make It Rain",
+      "artist": "Fat Joe & Lil Wayne",
+      "composer": "Joseph Cartagena, D. Carter & S. Storch",
+      "url": "https://music.apple.com/us/album/make-it-rain/1839313076?i=1839313083",
+      "id": "1839313083"
+    },
+    {
+      "title": "Jealousy",
+      "artist": "Fat Joe",
+      "composer": "Joseph Cartagena",
+      "url": "https://music.apple.com/us/album/jealousy/1839313076?i=1839313084",
+      "id": "1839313084"
+    },
+    {
+      "title": "Think About It",
+      "artist": "Fat Joe",
+      "composer": "Joseph Cartagena & S. Storch",
+      "url": "https://music.apple.com/us/album/think-about-it/1839313076?i=1839313085",
+      "id": "1839313085"
+    },
+    {
+      "title": "Hard Not 2 Kill",
+      "artist": "Fat Joe",
+      "composer": "Joseph Cartagena",
+      "url": "https://music.apple.com/us/album/hard-not-2-kill/1839313076?i=1839313086",
+      "id": "1839313086"
+    },
+    {
+      "title": "Bendicion Mami",
+      "artist": "Fat Joe",
+      "composer": "Joseph Cartagena",
+      "url": "https://music.apple.com/us/album/bendicion-mami/1839313076?i=1839313087",
+      "id": "1839313087"
+    },
+    {
+      "title": "Story to Tell",
+      "artist": "Fat Joe",
+      "composer": "Joseph Cartagena & K. Khaled",
+      "url": "https://music.apple.com/us/album/story-to-tell/1839313076?i=1839313088",
+      "id": "1839313088"
+    },
+    {
+      "title": "Make It Rain (Acapella)",
+      "artist": "Fat Joe & Lil Wayne",
+      "composer": "Joseph Cartagena, D. Carter & S. Storch",
+      "url": "https://music.apple.com/us/album/make-it-rain-acapella/1839313076?i=1839313089",
+      "id": "1839313089"
+    },
+    {
+      "title": "Make It Rain (Instrumental)",
+      "artist": "Fat Joe & Lil Wayne",
+      "composer": "Joseph Cartagena",
+      "url": "https://music.apple.com/us/album/make-it-rain-instrumental/1839313076?i=1839313090",
+      "id": "1839313090"
+    },
+    {
+      "title": "Make It Rain (Art & Life Remix)",
+      "artist": "Fat Joe & Lil Wayne",
+      "composer": "Joseph Cartagena, D. Carter & S. Storch",
+      "url": "https://music.apple.com/us/album/make-it-rain-art-life-remix/1839313076?i=1839313091",
+      "id": "1839313091"
+    }
+  ],
+  "checked_at": "2026-10-01T08:30:30.237Z"
+}

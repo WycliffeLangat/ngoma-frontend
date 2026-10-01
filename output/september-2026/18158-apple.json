@@ -1,0 +1,141 @@
+{
+  "id": 18158,
+  "requested_title": "Ngimana",
+  "requested_artist": "Prince Indah",
+  "url": "https://music.apple.com/us/album/ngimana/1850927723?i=1850928545&uo=4",
+  "resolved_url": "https://music.apple.com/us/album/ngimana/1850927723?i=1850928545&uo=4",
+  "page_title": "‎Ngimana - Song with Lyrics by Prince Indah - Apple Music",
+  "title": "Timeless Anthems",
+  "artists": [
+    "Prince Indah"
+  ],
+  "genre": "Pop · 2025",
+  "track_count": 16,
+  "artwork": {
+    "bgColor": "0a0302",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "e49a5a",
+    "textColor2": "ea852d",
+    "textColor3": "b87c48",
+    "textColor4": "bd6b25",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/71/65/f3/7165f346-6ec0-1a4d-bf08-0d1f46243898/199806280164.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "November 8, 2025\n16 songs, 1 hour 44 minutes\n℗ 2025 EMC",
+  "tracks": [
+    {
+      "title": "Ngima Dhano",
+      "artist": "Prince Indah",
+      "composer": "Evance Ochieng",
+      "url": "https://music.apple.com/us/album/ngima-dhano/1850927723?i=1850927724",
+      "id": "1850927724"
+    },
+    {
+      "title": "Pedeshe (Ajawa Marwa)",
+      "artist": "Prince Indah",
+      "composer": "Evance Ochieng",
+      "url": "https://music.apple.com/us/album/pedeshe-ajawa-marwa/1850927723?i=1850927725",
+      "id": "1850927725"
+    },
+    {
+      "title": "Believe Me",
+      "artist": "Prince Indah",
+      "composer": "Evance Ochieng",
+      "url": "https://music.apple.com/us/album/believe-me/1850927723?i=1850927726",
+      "id": "1850927726"
+    },
+    {
+      "title": "Berna",
+      "artist": "Prince Indah",
+      "composer": "Evance Ochieng",
+      "url": "https://music.apple.com/us/album/berna/1850927723?i=1850927728",
+      "id": "1850927728"
+    },
+    {
+      "title": "Jo Fitina",
+      "artist": "Prince Indah",
+      "composer": "Evance Ochieng",
+      "url": "https://music.apple.com/us/album/jo-fitina/1850927723?i=1850927731",
+      "id": "1850927731"
+    },
+    {
+      "title": "Mirima",
+      "artist": "Prince Indah",
+      "composer": "Evance Ochieng",
+      "url": "https://music.apple.com/us/album/mirima/1850927723?i=1850928364",
+      "id": "1850928364"
+    },
+    {
+      "title": "Nyasuba",
+      "artist": "Prince Indah",
+      "composer": "Evance Ochieng",
+      "url": "https://music.apple.com/us/album/nyasuba/1850927723?i=1850928367",
+      "id": "1850928367"
+    },
+    {
+      "title": "Nyi Luo",
+      "artist": "Prince Indah",
+      "composer": "Evance Ochieng",
+      "url": "https://music.apple.com/us/album/nyi-luo/1850927723?i=1850928377",
+      "id": "1850928377"
+    },
+    {
+      "title": "Atieno Nyar Chula",
+      "artist": "Prince Indah",
+      "composer": "Evance Ochieng",
+      "url": "https://music.apple.com/us/album/atieno-nyar-chula/1850927723?i=1850928380",
+      "id": "1850928380"
+    },
+    {
+      "title": "Mama Love",
+      "artist": "Prince Indah",
+      "composer": "Evance Ochieng",
+      "url": "https://music.apple.com/us/album/mama-love/1850927723?i=1850928383",
+      "id": "1850928383"
+    },
+    {
+      "title": "Rapudo",
+      "artist": "Prince Indah",
+      "composer": "Evance Ochieng",
+      "url": "https://music.apple.com/us/album/rapudo/1850927723?i=1850928384",
+      "id": "1850928384"
+    },
+    {
+      "title": "Above & Beyond",
+      "artist": "Prince Indah",
+      "composer": "Evance Ochieng",
+      "url": "https://music.apple.com/us/album/above-beyond/1850927723?i=1850928392",
+      "id": "1850928392"
+    },
+    {
+      "title": "Ngimana",
+      "artist": "Prince Indah",
+      "composer": "Evance Ochieng",
+      "url": "https://music.apple.com/us/album/ngimana/1850927723?i=1850928545",
+      "id": "1850928545"
+    },
+    {
+      "title": "Jaherana (feat. Zeget Delongeur)",
+      "artist": "Prince Indah",
+      "composer": "Evance Ochieng",
+      "url": "https://music.apple.com/us/album/jaherana-feat-zeget-delongeur/1850927723?i=1850928559",
+      "id": "1850928559"
+    },
+    {
+      "title": "Jambaka",
+      "artist": "Prince Indah",
+      "composer": "Evance Ochieng",
+      "url": "https://music.apple.com/us/album/jambaka/1850927723?i=1850928562",
+      "id": "1850928562"
+    },
+    {
+      "title": "I Love You",
+      "artist": "Prince Indah",
+      "composer": "Evance Ochieng",
+      "url": "https://music.apple.com/us/album/i-love-you/1850927723?i=1850928566",
+      "id": "1850928566"
+    }
+  ],
+  "checked_at": "2026-10-01T08:24:50.197Z"
+}

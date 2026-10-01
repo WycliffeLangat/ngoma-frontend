@@ -1,0 +1,73 @@
+{
+  "id": 23541,
+  "title": "31",
+  "artist": "Harmonize",
+  "url": "https://itunes.apple.com/search?term=Harmonize+31&entity=album&limit=30&country=US",
+  "candidates": [
+    {
+      "wrapperType": "collection",
+      "collectionType": "Album",
+      "artistId": 81714549,
+      "collectionId": 6811929684,
+      "artistName": "Harmonize & Mohamed Ramadan",
+      "collectionName": "31 - Single",
+      "collectionCensoredName": "31 - Single",
+      "artistViewUrl": "https://music.apple.com/us/artist/harmonize/81714549?uo=4",
+      "collectionViewUrl": "https://music.apple.com/us/album/31-single/6811929684?uo=4",
+      "artworkUrl60": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/6f/7f/56/6f7f568e-1b02-ca5c-50c5-ff676f1f433d/823375442080_Cover.jpg/60x60bb.jpg",
+      "artworkUrl100": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/6f/7f/56/6f7f568e-1b02-ca5c-50c5-ff676f1f433d/823375442080_Cover.jpg/100x100bb.jpg",
+      "collectionPrice": 1.29,
+      "collectionExplicitness": "notExplicit",
+      "trackCount": 1,
+      "copyright": "℗ 2026 Ziiki Media",
+      "country": "USA",
+      "currency": "USD",
+      "releaseDate": "2026-09-19T07:00:00Z",
+      "primaryGenreName": "Afrobeats"
+    }
+  ],
+  "results": [
+    {
+      "wrapperType": "collection",
+      "collectionType": "Album",
+      "artistId": 1474194821,
+      "collectionId": 1797538347,
+      "artistName": "Abigail Chams & Harmonize",
+      "collectionName": "Me too - Single",
+      "collectionCensoredName": "Me too - Single",
+      "artistViewUrl": "https://music.apple.com/us/artist/abigail-chams/1474194821?uo=4",
+      "collectionViewUrl": "https://music.apple.com/us/album/me-too-single/1797538347?uo=4",
+      "artworkUrl60": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/15/6f/a0/156fa05e-c920-2ddf-7b3d-e61004b15e8c/196872897197.jpg/60x60bb.jpg",
+      "artworkUrl100": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/15/6f/a0/156fa05e-c920-2ddf-7b3d-e61004b15e8c/196872897197.jpg/100x100bb.jpg",
+      "collectionPrice": 1.29,
+      "collectionExplicitness": "notExplicit",
+      "trackCount": 1,
+      "copyright": "℗ 2025 Kenya - Sony Music Entertainment East Africa Limited",
+      "country": "USA",
+      "currency": "USD",
+      "releaseDate": "2025-02-27T08:00:00Z",
+      "primaryGenreName": "Afro-Pop"
+    },
+    {
+      "wrapperType": "collection",
+      "collectionType": "Album",
+      "artistId": 81714549,
+      "collectionId": 6811929684,
+      "artistName": "Harmonize & Mohamed Ramadan",
+      "collectionName": "31 - Single",
+      "collectionCensoredName": "31 - Single",
+      "artistViewUrl": "https://music.apple.com/us/artist/harmonize/81714549?uo=4",
+      "collectionViewUrl": "https://music.apple.com/us/album/31-single/6811929684?uo=4",
+      "artworkUrl60": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/6f/7f/56/6f7f568e-1b02-ca5c-50c5-ff676f1f433d/823375442080_Cover.jpg/60x60bb.jpg",
+      "artworkUrl100": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/6f/7f/56/6f7f568e-1b02-ca5c-50c5-ff676f1f433d/823375442080_Cover.jpg/100x100bb.jpg",
+      "collectionPrice": 1.29,
+      "collectionExplicitness": "notExplicit",
+      "trackCount": 1,
+      "copyright": "℗ 2026 Ziiki Media",
+      "country": "USA",
+      "currency": "USD",
+      "releaseDate": "2026-09-19T07:00:00Z",
+      "primaryGenreName": "Afrobeats"
+    }
+  ]
+}

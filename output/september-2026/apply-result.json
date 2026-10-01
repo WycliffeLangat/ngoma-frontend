@@ -1,0 +1,1253 @@
+{
+  "changed": [
+    {
+      "type": "artists",
+      "id": 1858,
+      "fields": [
+        "country",
+        "country_code",
+        "city_region",
+        "genre",
+        "biography"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 3334,
+      "fields": [
+        "country",
+        "country_code",
+        "city_region",
+        "genre",
+        "biography"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 1597,
+      "fields": [
+        "country",
+        "country_code",
+        "city_region",
+        "genre",
+        "biography"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 3292,
+      "fields": [
+        "country",
+        "country_code",
+        "city_region",
+        "genre",
+        "biography"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 334,
+      "fields": [
+        "country",
+        "country_code",
+        "city_region",
+        "genre",
+        "biography"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 1775,
+      "fields": [
+        "country",
+        "country_code",
+        "city_region",
+        "genre",
+        "biography"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 3406,
+      "fields": [
+        "country",
+        "country_code",
+        "city_region",
+        "genre",
+        "biography"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 2456,
+      "fields": [
+        "country",
+        "country_code",
+        "city_region",
+        "genre",
+        "biography"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 858,
+      "fields": [
+        "city_region",
+        "genre",
+        "biography"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 3425,
+      "fields": [
+        "country",
+        "country_code",
+        "genre",
+        "biography"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 166,
+      "fields": [
+        "city_region",
+        "genre",
+        "biography"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 204,
+      "fields": [
+        "city_region",
+        "genre",
+        "biography"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 187,
+      "fields": [
+        "city_region",
+        "genre"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 23,
+      "fields": [
+        "city_region",
+        "genre"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 331,
+      "fields": [
+        "city_region",
+        "genre"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 478,
+      "fields": [
+        "city_region",
+        "genre"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 495,
+      "fields": [
+        "genre"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23541,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "number_of_tracks",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "upc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23254,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "label",
+        "songwriters",
+        "isrc",
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23317,
+      "fields": [
+        "isrc",
+        "upc",
+        "release_date",
+        "release_year",
+        "label",
+        "genre"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23540,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "number_of_tracks",
+        "release_date",
+        "release_year"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 18154,
+      "fields": [
+        "producers"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 19739,
+      "fields": [
+        "songwriters"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23217,
+      "fields": [
+        "apple_music_url",
+        "featured_artists",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "producers",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 22907,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "producers",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23452,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "number_of_tracks",
+        "label",
+        "songwriters"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23476,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "producers",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 19506,
+      "fields": [
+        "songwriters"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23494,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "producers",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 17997,
+      "fields": [
+        "songwriters",
+        "producers"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23212,
+      "fields": [
+        "apple_music_url",
+        "featured_artists",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "producers",
+        "isrc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23281,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23391,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23514,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "label",
+        "songwriters",
+        "producers",
+        "isrc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23633,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "number_of_tracks",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "upc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23520,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "producers",
+        "isrc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23611,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "label",
+        "songwriters",
+        "producers",
+        "isrc",
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23682,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "producers",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 21374,
+      "fields": [
+        "songwriters"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 18823,
+      "fields": [
+        "release_date",
+        "release_year",
+        "producers",
+        "genre",
+        "audiomack_url"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 22240,
+      "fields": [
+        "release_date",
+        "release_year",
+        "producers",
+        "genre",
+        "audiomack_url",
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23538,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "number_of_tracks",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "upc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 19362,
+      "fields": [
+        "songwriters"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23011,
+      "fields": [
+        "apple_music_url",
+        "songwriters"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 19616,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "number_of_tracks",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "upc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23614,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "producers",
+        "isrc",
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23364,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "producers",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23325,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23545,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "number_of_tracks",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "upc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 17384,
+      "fields": [
+        "songwriters"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 18363,
+      "fields": [
+        "songwriters"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23681,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "label",
+        "songwriters",
+        "isrc",
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23425,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 18158,
+      "fields": [
+        "producers"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23431,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "producers",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 19528,
+      "fields": [
+        "songwriters"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23549,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "distributor",
+        "songwriters",
+        "producers",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 17469,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "producers",
+        "isrc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 18357,
+      "fields": [
+        "songwriters"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23666,
+      "fields": [
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23375,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "number_of_tracks",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "upc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23372,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "producers",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 18155,
+      "fields": [
+        "producers"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23685,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "producers",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23091,
+      "fields": [
+        "apple_music_url",
+        "songwriters",
+        "producers",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 21564,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "number_of_tracks",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "upc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 19495,
+      "fields": [
+        "songwriters"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23543,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "number_of_tracks",
+        "label",
+        "songwriters",
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 21372,
+      "fields": [
+        "songwriters"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 17732,
+      "fields": [
+        "songwriters",
+        "producers"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23561,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "producers",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 21706,
+      "fields": [
+        "songwriters"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23613,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23562,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "producers",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23548,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "producers",
+        "isrc",
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23374,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "number_of_tracks",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "upc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23712,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "number_of_tracks",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "upc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23477,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "producers",
+        "isrc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23137,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "distributor",
+        "songwriters",
+        "producers",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23100,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "producers",
+        "youtube_url"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23326,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "producers",
+        "isrc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23625,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "producers",
+        "spotify_url",
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23617,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "producers"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 18038,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "songwriters",
+        "producers"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23196,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23448,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 19489,
+      "fields": [
+        "songwriters"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 18521,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23632,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "number_of_tracks",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "upc",
+        "spotify_url",
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 23610,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 19446,
+      "fields": [
+        "songwriters"
+      ]
+    },
+    {
+      "type": "releases",
+      "id": 21489,
+      "fields": [
+        "apple_music_url",
+        "genre",
+        "number_of_tracks",
+        "release_date",
+        "release_year",
+        "label",
+        "songwriters",
+        "upc"
+      ]
+    }
+  ],
+  "cascaded": [
+    {
+      "id": 21127,
+      "fields": [
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "id": 19827,
+      "fields": [
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "id": 23641,
+      "fields": [
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "id": 23462,
+      "fields": [
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "id": 23553,
+      "fields": [
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "id": 23552,
+      "fields": [
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "id": 23560,
+      "fields": [
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "id": 23550,
+      "fields": [
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "id": 23554,
+      "fields": [
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "id": 23557,
+      "fields": [
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "id": 23555,
+      "fields": [
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "id": 23556,
+      "fields": [
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "id": 21508,
+      "fields": [
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "id": 20592,
+      "fields": [
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "id": 20998,
+      "fields": [
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "id": 23551,
+      "fields": [
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "id": 23558,
+      "fields": [
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "id": 17588,
+      "fields": [
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "id": 18668,
+      "fields": [
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "id": 20948,
+      "fields": [
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "id": 21191,
+      "fields": [
+        "country",
+        "country_code"
+      ]
+    },
+    {
+      "id": 20975,
+      "fields": [
+        "country",
+        "country_code"
+      ]
+    }
+  ],
+  "snapshot_updates": 788,
+  "harmonization": {
+    "chart_types": [
+      "albums",
+      "singles"
+    ],
+    "charts": 15,
+    "history_charts": 26,
+    "rank_changes": 0,
+    "scoring_changes": 0,
+    "history_changes": 0,
+    "certifications_changed": 0,
+    "automatic_news_changed": 0,
+    "combined_restored": 0,
+    "regional_sync": {
+      "created": 9,
+      "updated": 0,
+      "removed": 0
+    },
+    "regional_rank_changes": 303,
+    "entries_removed": 0
+  },
+  "verified_fields": 517,
+  "status": "committed"
+}

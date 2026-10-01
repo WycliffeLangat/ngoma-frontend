@@ -1,0 +1,36 @@
+{
+  "id": 23325,
+  "requested_title": "Mamdihe",
+  "requested_artist": "Kapitani",
+  "url": "https://music.apple.com/us/album/mamdihe/1866547238?i=1866547239&uo=4",
+  "resolved_url": "https://music.apple.com/us/album/mamdihe/1866547238?i=1866547239&uo=4",
+  "page_title": "‎Mamdihe - Song with Lyrics by Kapitani - Apple Music",
+  "title": "Mamdihe - Single",
+  "artists": [
+    "Kapitani"
+  ],
+  "genre": "Dance · 2026",
+  "track_count": 1,
+  "artwork": {
+    "bgColor": "070704",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "edd009",
+    "textColor2": "d8b307",
+    "textColor3": "bfa808",
+    "textColor4": "ae9006",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/6f/d2/9b/6fd29b08-84a4-094b-94f5-af2b82364c82/artwork.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "January 5, 2026\n1 song, 2 minutes\n℗ 2026 10312829 Records DK",
+  "tracks": [
+    {
+      "title": "Mamdihe",
+      "artist": "Kapitani",
+      "composer": "Martin Nduati",
+      "url": "https://music.apple.com/us/album/mamdihe/1866547238?i=1866547239",
+      "id": "1866547239"
+    }
+  ],
+  "checked_at": "2026-10-01T08:24:47.225Z"
+}

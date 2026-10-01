@@ -1,0 +1,36 @@
+{
+  "id": 18038,
+  "requested_title": "Ukimuona",
+  "requested_artist": "Diamond Platnumz",
+  "url": "https://music.apple.com/us/album/ukimuona/1576507384?i=1576507385&uo=4",
+  "resolved_url": "https://music.apple.com/us/album/ukimuona/1576507384?i=1576507385&uo=4",
+  "page_title": "‎Ukimuona - Song with Lyrics by Diamond Platnumz - Apple Music",
+  "title": "Ukimuona - Single",
+  "artists": [
+    "Diamond Platnumz"
+  ],
+  "genre": "Afro-Pop · 2014",
+  "track_count": 1,
+  "artwork": {
+    "bgColor": "010102",
+    "hasP3": false,
+    "height": 4000,
+    "textColor1": "ccba8a",
+    "textColor2": "d0b57a",
+    "textColor3": "a3956e",
+    "textColor4": "a79162",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/8a/8a/81/8a8a8127-f1c2-9af8-34bf-4ebbcef5a503/190296531422.jpg/{w}x{h}bb.{f}",
+    "width": 4000
+  },
+  "footer": "November 21, 2014\n1 song, 3 minutes\n℗ 2014 Tanzania",
+  "tracks": [
+    {
+      "title": "Ukimuona",
+      "artist": "Diamond Platnumz",
+      "composer": "Diamond Platnumz",
+      "url": "https://music.apple.com/us/album/ukimuona/1576507384?i=1576507385",
+      "id": "1576507385"
+    }
+  ],
+  "checked_at": "2026-10-01T01:55:22.049Z"
+}

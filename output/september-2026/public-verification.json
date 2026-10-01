@@ -1,0 +1,627 @@
+{
+  "checked_at": "2026-10-01T14:02:33.493Z",
+  "revision": {
+    "revision": "log:10589|a:2026-10-01T14:02:04.702234+00:00|r:2026-10-01T13:48:58.308505+00:00|c:2026-09-06T11:44:59.699904+00:00|n:2026-09-27T06:57:11.546201+00:00|cert:2026-09-27T06:35:11.686528+00:00|s:2026-06-19T11:26:51.895749+00:00|x:2026-10-01T14:02:06.178576+00:00"
+  },
+  "checks": [
+    {
+      "type": "releases",
+      "id": 23541,
+      "checked_fields": 8,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23540,
+      "checked_fields": 5,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23254,
+      "checked_fields": 7,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23317,
+      "checked_fields": 6,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23217,
+      "checked_fields": 10,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 19739,
+      "checked_fields": 1,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 18154,
+      "checked_fields": 1,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 22907,
+      "checked_fields": 9,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23476,
+      "checked_fields": 9,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 19506,
+      "checked_fields": 1,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23494,
+      "checked_fields": 9,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23452,
+      "checked_fields": 5,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23281,
+      "checked_fields": 6,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 17997,
+      "checked_fields": 2,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23391,
+      "checked_fields": 6,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23212,
+      "checked_fields": 9,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23611,
+      "checked_fields": 8,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23520,
+      "checked_fields": 8,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23514,
+      "checked_fields": 6,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23633,
+      "checked_fields": 8,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23682,
+      "checked_fields": 9,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 18823,
+      "checked_fields": 5,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 22240,
+      "checked_fields": 7,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 21374,
+      "checked_fields": 1,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23011,
+      "checked_fields": 2,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23538,
+      "checked_fields": 8,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 19362,
+      "checked_fields": 1,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 19616,
+      "checked_fields": 8,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23614,
+      "checked_fields": 10,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23364,
+      "checked_fields": 9,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23545,
+      "checked_fields": 8,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23325,
+      "checked_fields": 8,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 17384,
+      "checked_fields": 1,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 18363,
+      "checked_fields": 1,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23425,
+      "checked_fields": 6,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23681,
+      "checked_fields": 7,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 18158,
+      "checked_fields": 1,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23431,
+      "checked_fields": 9,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23549,
+      "checked_fields": 10,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 19528,
+      "checked_fields": 1,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23666,
+      "checked_fields": 2,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 17469,
+      "checked_fields": 8,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23375,
+      "checked_fields": 8,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 18357,
+      "checked_fields": 1,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23372,
+      "checked_fields": 9,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 18155,
+      "checked_fields": 1,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23685,
+      "checked_fields": 9,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23091,
+      "checked_fields": 5,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 21372,
+      "checked_fields": 1,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23543,
+      "checked_fields": 7,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 21564,
+      "checked_fields": 8,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 19495,
+      "checked_fields": 1,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 17732,
+      "checked_fields": 2,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 21706,
+      "checked_fields": 1,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23613,
+      "checked_fields": 8,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23561,
+      "checked_fields": 9,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23712,
+      "checked_fields": 8,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23548,
+      "checked_fields": 10,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23562,
+      "checked_fields": 9,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23374,
+      "checked_fields": 8,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23326,
+      "checked_fields": 8,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23477,
+      "checked_fields": 8,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23137,
+      "checked_fields": 10,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23100,
+      "checked_fields": 8,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23625,
+      "checked_fields": 10,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23196,
+      "checked_fields": 6,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 18038,
+      "checked_fields": 6,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23617,
+      "checked_fields": 7,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23632,
+      "checked_fields": 11,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 18521,
+      "checked_fields": 6,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23448,
+      "checked_fields": 8,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 19489,
+      "checked_fields": 1,
+      "mismatches": []
+    },
+    {
+      "type": "artists",
+      "id": 1858,
+      "checked_fields": 5,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 19446,
+      "checked_fields": 1,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 23610,
+      "checked_fields": 6,
+      "mismatches": []
+    },
+    {
+      "type": "releases",
+      "id": 21489,
+      "checked_fields": 8,
+      "mismatches": []
+    },
+    {
+      "type": "artists",
+      "id": 334,
+      "checked_fields": 6,
+      "mismatches": []
+    },
+    {
+      "type": "artists",
+      "id": 1597,
+      "checked_fields": 6,
+      "mismatches": []
+    },
+    {
+      "type": "artists",
+      "id": 3334,
+      "checked_fields": 5,
+      "mismatches": []
+    },
+    {
+      "type": "artists",
+      "id": 3292,
+      "checked_fields": 5,
+      "mismatches": []
+    },
+    {
+      "type": "artists",
+      "id": 858,
+      "checked_fields": 4,
+      "mismatches": []
+    },
+    {
+      "type": "artists",
+      "id": 1775,
+      "checked_fields": 6,
+      "mismatches": []
+    },
+    {
+      "type": "artists",
+      "id": 3406,
+      "checked_fields": 7,
+      "mismatches": []
+    },
+    {
+      "type": "artists",
+      "id": 2456,
+      "checked_fields": 6,
+      "mismatches": []
+    },
+    {
+      "type": "artists",
+      "id": 3425,
+      "checked_fields": 4,
+      "mismatches": []
+    },
+    {
+      "type": "artists",
+      "id": 166,
+      "checked_fields": 3,
+      "mismatches": []
+    },
+    {
+      "type": "artists",
+      "id": 187,
+      "checked_fields": 3,
+      "mismatches": []
+    },
+    {
+      "type": "artists",
+      "id": 204,
+      "checked_fields": 4,
+      "mismatches": []
+    },
+    {
+      "type": "artists",
+      "id": 478,
+      "checked_fields": 2,
+      "mismatches": []
+    },
+    {
+      "type": "artists",
+      "id": 23,
+      "checked_fields": 2,
+      "mismatches": []
+    },
+    {
+      "type": "artists",
+      "id": 331,
+      "checked_fields": 4,
+      "mismatches": []
+    },
+    {
+      "type": "artists",
+      "id": 495,
+      "checked_fields": 2,
+      "mismatches": []
+    },
+    {
+      "type": "artists",
+      "id": 265,
+      "checked_fields": 1,
+      "mismatches": []
+    },
+    {
+      "type": "artists",
+      "id": 283,
+      "checked_fields": 1,
+      "mismatches": []
+    },
+    {
+      "type": "artists",
+      "id": 3267,
+      "checked_fields": 1,
+      "mismatches": []
+    },
+    {
+      "type": "artists",
+      "id": 583,
+      "checked_fields": 1,
+      "mismatches": []
+    },
+    {
+      "type": "artists",
+      "id": 955,
+      "checked_fields": 1,
+      "mismatches": []
+    },
+    {
+      "type": "artists",
+      "id": 3313,
+      "checked_fields": 1,
+      "mismatches": []
+    },
+    {
+      "type": "artists",
+      "id": 3212,
+      "checked_fields": 1,
+      "mismatches": []
+    },
+    {
+      "type": "artists",
+      "id": 184,
+      "checked_fields": 1,
+      "mismatches": []
+    },
+    {
+      "type": "artists",
+      "id": 53,
+      "checked_fields": 1,
+      "mismatches": []
+    },
+    {
+      "type": "artists",
+      "id": 289,
+      "checked_fields": 1,
+      "mismatches": []
+    },
+    {
+      "type": "artists",
+      "id": 3429,
+      "checked_fields": 1,
+      "mismatches": []
+    }
+  ],
+  "errors": []
+}

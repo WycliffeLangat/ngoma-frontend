@@ -1,0 +1,148 @@
+{
+  "id": 23538,
+  "requested_title": "LOCKED IN",
+  "requested_artist": "Nemzzz",
+  "url": "https://music.apple.com/us/album/locked-in/6796029883",
+  "resolved_url": "https://music.apple.com/us/album/locked-in/6796029883",
+  "page_title": "‎LOCKED IN - Album by Nemzzz - Apple Music",
+  "title": "LOCKED IN",
+  "artists": [
+    "Nemzzz"
+  ],
+  "genre": "Hip-Hop/Rap · 2026",
+  "track_count": 17,
+  "artwork": {
+    "bgColor": "0e0101",
+    "hasP3": false,
+    "height": 4000,
+    "textColor1": "efe8e8",
+    "textColor2": "c4cac5",
+    "textColor3": "c2bab9",
+    "textColor4": "9fa29e",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/e2/4e/3d/e24e3de9-36cf-5dfe-e17b-ff7f03b687c8/1200214689186.jpg/{w}x{h}bb.{f}",
+    "width": 4000
+  },
+  "footer": "September 4, 2026\n17 songs, 35 minutes\n℗ 2026 Nemzzz",
+  "tracks": [
+    {
+      "title": "4AM",
+      "artist": "Nemzzz",
+      "composer": "Denzel Ugoji & Nemzzz",
+      "url": "https://music.apple.com/us/album/4am/6796029883?i=6796029893",
+      "id": "6796029893"
+    },
+    {
+      "title": "TODAY",
+      "artist": "Nemzzz",
+      "composer": "Nemzzz",
+      "url": "https://music.apple.com/us/album/today/6796029883?i=6796029929",
+      "id": "6796029929"
+    },
+    {
+      "title": "GEEKIN",
+      "artist": "Nemzzz & Lil Yachty",
+      "composer": "Miles Parks McCollum & Nemzzz",
+      "url": "https://music.apple.com/us/album/geekin/6796029883?i=6796029931",
+      "id": "6796029931"
+    },
+    {
+      "title": "PRINCE OF THE SCENE",
+      "artist": "Nemzzz",
+      "composer": "Denzel Ugoji & Nemzzz",
+      "url": "https://music.apple.com/us/album/prince-of-the-scene/6796029883?i=6796029933",
+      "id": "6796029933"
+    },
+    {
+      "title": "EXPANSION",
+      "artist": "Nemzzz",
+      "composer": "Denzel Ugoji & Nemzzz",
+      "url": "https://music.apple.com/us/album/expansion/6796029883?i=6796029935",
+      "id": "6796029935"
+    },
+    {
+      "title": "BRB",
+      "artist": "Nemzzz",
+      "composer": "Denzel Ugoji & Nemzzz",
+      "url": "https://music.apple.com/us/album/brb/6796029883?i=6796029936",
+      "id": "6796029936"
+    },
+    {
+      "title": "TRICK (feat. Cash Cobain)",
+      "artist": "Nemzzz",
+      "composer": "Cash Cobain & Nemzzz",
+      "url": "https://music.apple.com/us/album/trick-feat-cash-cobain/6796029883?i=6796029937",
+      "id": "6796029937"
+    },
+    {
+      "title": "HATE ME LOVE ME",
+      "artist": "Nemzzz",
+      "composer": "Mikel Storleer Eriksen, Nemzzz, Shaffer Smith & Tor Erik Hermansen",
+      "url": "https://music.apple.com/us/album/hate-me-love-me/6796029883?i=6796029940",
+      "id": "6796029940"
+    },
+    {
+      "title": "OK (feat. Latto)",
+      "artist": "Nemzzz",
+      "composer": "Alyssa Stephens, Brian Alexander Morgan, Denzel Ugoji, Kurtis Mckenzie, Nemzzz, Patrick O'Halloran & Rogét Chahayed",
+      "url": "https://music.apple.com/us/album/ok-feat-latto/6796029883?i=6796029941",
+      "id": "6796029941"
+    },
+    {
+      "title": "GET READY",
+      "artist": "Nemzzz",
+      "composer": "Denzel Ugoji & Nemzzz",
+      "url": "https://music.apple.com/us/album/get-ready/6796029883?i=6796029942",
+      "id": "6796029942"
+    },
+    {
+      "title": "GASS (feat. Travis Scott)",
+      "artist": "Nemzzz",
+      "composer": "Denzel Ugoji, Jacques Bermon Webster II & Nemzzz",
+      "url": "https://music.apple.com/us/album/gass-feat-travis-scott/6796029883?i=6796029943",
+      "id": "6796029943"
+    },
+    {
+      "title": "KILLIN EM",
+      "artist": "Nemzzz",
+      "composer": "Nemzzz",
+      "url": "https://music.apple.com/us/album/killin-em/6796029883?i=6796029945",
+      "id": "6796029945"
+    },
+    {
+      "title": "CLIENTELE (feat. Tunde)",
+      "artist": "Nemzzz",
+      "composer": "Nemzzz & Olu Tunde Fini",
+      "url": "https://music.apple.com/us/album/clientele-feat-tunde/6796029883?i=6796029947",
+      "id": "6796029947"
+    },
+    {
+      "title": "CAPTAIN HOOK",
+      "artist": "Nemzzz",
+      "composer": "Denzel Ugoji & Nemzzz",
+      "url": "https://music.apple.com/us/album/captain-hook/6796029883?i=6796029948",
+      "id": "6796029948"
+    },
+    {
+      "title": "TOKYO DRIFT",
+      "artist": "Nemzzz",
+      "composer": "Denzel Ugoji & Nemzzz",
+      "url": "https://music.apple.com/us/album/tokyo-drift/6796029883?i=6796029953",
+      "id": "6796029953"
+    },
+    {
+      "title": "WHERE YA GOIN",
+      "artist": "Nemzzz",
+      "composer": "Denzel Ugoji & Nemzzz",
+      "url": "https://music.apple.com/us/album/where-ya-goin/6796029883?i=6796029954",
+      "id": "6796029954"
+    },
+    {
+      "title": "101",
+      "artist": "Nemzzz",
+      "composer": "Denzel Ugoji & Nemzzz",
+      "url": "https://music.apple.com/us/album/101/6796029883?i=6796029956",
+      "id": "6796029956"
+    }
+  ],
+  "checked_at": "2026-10-01T08:24:57.922Z"
+}

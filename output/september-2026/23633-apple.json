@@ -1,0 +1,127 @@
+{
+  "id": 23633,
+  "requested_title": "IBRAHYMN",
+  "requested_artist": "Octopizzo",
+  "url": "https://music.apple.com/us/album/ibrahymn/6802321192?uo=4",
+  "resolved_url": "https://music.apple.com/us/album/ibrahymn/6802321192?uo=4",
+  "page_title": "‎IBRAHYMN - Album by Octopizzo - Apple Music",
+  "title": "IBRAHYMN",
+  "artists": [
+    "Octopizzo"
+  ],
+  "genre": "Hip-Hop/Rap · 2026",
+  "track_count": 14,
+  "artwork": {
+    "bgColor": "5b5353",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "fbe2e1",
+    "textColor2": "fcd1a9",
+    "textColor3": "dbc5c4",
+    "textColor4": "dcb898",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/20/0d/ef/200def6e-4703-8c76-c437-6d49f0d78652/artwork.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "September 9, 2026\n14 songs, 41 minutes\n℗ 2026 Octopizzo Music",
+  "tracks": [
+    {
+      "title": "IMF",
+      "artist": "Octopizzo",
+      "composer": "Henry Ohanga",
+      "url": "https://music.apple.com/us/album/imf/6802321192?i=6802321193",
+      "id": "6802321193"
+    },
+    {
+      "title": "Masti",
+      "artist": "Octopizzo",
+      "composer": "Henry Ohanga",
+      "url": "https://music.apple.com/us/album/masti/6802321192?i=6802321194",
+      "id": "6802321194"
+    },
+    {
+      "title": "Ohanga (feat. Coster Ojwang)",
+      "artist": "Octopizzo",
+      "composer": "Henry Ohanga",
+      "url": "https://music.apple.com/us/album/ohanga-feat-coster-ojwang/6802321192?i=6802321195",
+      "id": "6802321195"
+    },
+    {
+      "title": "Nipewe (feat. Young Lunya)",
+      "artist": "Octopizzo",
+      "composer": "Henry Ohanga",
+      "url": "https://music.apple.com/us/album/nipewe-feat-young-lunya/6802321192?i=6802321196",
+      "id": "6802321196"
+    },
+    {
+      "title": "Ibra",
+      "artist": "Octopizzo",
+      "composer": "Henry Ohanga",
+      "url": "https://music.apple.com/us/album/ibra/6802321192?i=6802321197",
+      "id": "6802321197"
+    },
+    {
+      "title": "Godskin (feat. AratheJay)",
+      "artist": "Octopizzo",
+      "composer": "Henry Ohanga & Ara theJay",
+      "url": "https://music.apple.com/us/album/godskin-feat-arathejay/6802321192?i=6802321198",
+      "id": "6802321198"
+    },
+    {
+      "title": "777",
+      "artist": "Octopizzo",
+      "composer": "Henry Ohanga",
+      "url": "https://music.apple.com/us/album/777/6802321192?i=6802321200",
+      "id": "6802321200"
+    },
+    {
+      "title": "Grit",
+      "artist": "Octopizzo",
+      "composer": "Henry Ohanga",
+      "url": "https://music.apple.com/us/album/grit/6802321192?i=6802321201",
+      "id": "6802321201"
+    },
+    {
+      "title": "Memoir (feat. Nneka)",
+      "artist": "Octopizzo",
+      "composer": "Henry Ohanga & Nneka Julia",
+      "url": "https://music.apple.com/us/album/memoir-feat-nneka/6802321192?i=6802321202",
+      "id": "6802321202"
+    },
+    {
+      "title": "Shida (feat. Shari Afrika)",
+      "artist": "Octopizzo",
+      "composer": "Shari Afrika & Henry Ohanga",
+      "url": "https://music.apple.com/us/album/shida-feat-shari-afrika/6802321192?i=6802321204",
+      "id": "6802321204"
+    },
+    {
+      "title": "Nindo Tere",
+      "artist": "Octopizzo",
+      "composer": "Henry Ohanga",
+      "url": "https://music.apple.com/us/album/nindo-tere/6802321192?i=6802321386",
+      "id": "6802321386"
+    },
+    {
+      "title": "Horn Section (feat. Juma)",
+      "artist": "Octopizzo",
+      "composer": "Henry Ohanga",
+      "url": "https://music.apple.com/us/album/horn-section-feat-juma/6802321192?i=6802321387",
+      "id": "6802321387"
+    },
+    {
+      "title": "Amka",
+      "artist": "Octopizzo",
+      "composer": "Henry Ohanga",
+      "url": "https://music.apple.com/us/album/amka/6802321192?i=6802321388",
+      "id": "6802321388"
+    },
+    {
+      "title": "Poise",
+      "artist": "Octopizzo",
+      "composer": "Henry Ohanga",
+      "url": "https://music.apple.com/us/album/poise/6802321192?i=6802321390",
+      "id": "6802321390"
+    }
+  ],
+  "checked_at": "2026-10-01T08:30:37.077Z"
+}

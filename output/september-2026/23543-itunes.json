@@ -1,0 +1,54 @@
+{
+  "id": 23543,
+  "title": "PRIMA",
+  "artist": "ADELA",
+  "url": "https://itunes.apple.com/search?term=ADELA+PRIMA&entity=album&limit=30&country=US",
+  "candidates": [
+    {
+      "wrapperType": "collection",
+      "collectionType": "Album",
+      "artistId": 1765924916,
+      "collectionId": 6807192580,
+      "artistName": "ADÉLA",
+      "collectionName": "PRIMA",
+      "collectionCensoredName": "PRIMA",
+      "artistViewUrl": "https://music.apple.com/us/artist/ad%C3%A9la/1765924916?uo=4",
+      "collectionViewUrl": "https://music.apple.com/us/album/prima/6807192580?uo=4",
+      "artworkUrl60": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/53/c6/9a/53c69a6a-d1c4-0983-a20c-a67dceae554f/26UMGIM82372.rgb.jpg/60x60bb.jpg",
+      "artworkUrl100": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/53/c6/9a/53c69a6a-d1c4-0983-a20c-a67dceae554f/26UMGIM82372.rgb.jpg/100x100bb.jpg",
+      "collectionPrice": 9.99,
+      "collectionExplicitness": "cleaned",
+      "contentAdvisoryRating": "Clean",
+      "trackCount": 11,
+      "copyright": "Capitol Records; ℗ 2026 UMG Recordings, Inc.",
+      "country": "USA",
+      "currency": "USD",
+      "releaseDate": "2026-09-03T07:00:00Z",
+      "primaryGenreName": "Pop"
+    }
+  ],
+  "results": [
+    {
+      "wrapperType": "collection",
+      "collectionType": "Album",
+      "artistId": 1765924916,
+      "collectionId": 6807192580,
+      "artistName": "ADÉLA",
+      "collectionName": "PRIMA",
+      "collectionCensoredName": "PRIMA",
+      "artistViewUrl": "https://music.apple.com/us/artist/ad%C3%A9la/1765924916?uo=4",
+      "collectionViewUrl": "https://music.apple.com/us/album/prima/6807192580?uo=4",
+      "artworkUrl60": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/53/c6/9a/53c69a6a-d1c4-0983-a20c-a67dceae554f/26UMGIM82372.rgb.jpg/60x60bb.jpg",
+      "artworkUrl100": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/53/c6/9a/53c69a6a-d1c4-0983-a20c-a67dceae554f/26UMGIM82372.rgb.jpg/100x100bb.jpg",
+      "collectionPrice": 9.99,
+      "collectionExplicitness": "cleaned",
+      "contentAdvisoryRating": "Clean",
+      "trackCount": 11,
+      "copyright": "Capitol Records; ℗ 2026 UMG Recordings, Inc.",
+      "country": "USA",
+      "currency": "USD",
+      "releaseDate": "2026-09-03T07:00:00Z",
+      "primaryGenreName": "Pop"
+    }
+  ]
+}

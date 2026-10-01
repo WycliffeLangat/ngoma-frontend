@@ -1,0 +1,64 @@
+{
+  "id": 19495,
+  "requested_title": "PM",
+  "requested_artist": "Ibraah",
+  "url": "https://music.apple.com/ke/album/pm-ep/1890348465",
+  "resolved_url": "https://music.apple.com/ke/album/pm-ep/1890348465",
+  "page_title": "‎PM - EP - Album by Ibraah - Apple Music",
+  "title": "PM - EP",
+  "artists": [
+    "Ibraah"
+  ],
+  "genre": "Afro-Beat · 2026",
+  "track_count": 5,
+  "artwork": {
+    "bgColor": "ddc1be",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "241212",
+    "textColor2": "281b1c",
+    "textColor3": "493535",
+    "textColor4": "4c3c3c",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/1a/e0/b9/1ae0b928-6e86-5d18-0ef0-3752d8da327b/0.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "10 April 2026\n5 songs, 17 minutes\n℗ 2026 Ibraah Under Exclusive License To ONErpm",
+  "tracks": [
+    {
+      "title": "Story",
+      "artist": "Ibraah",
+      "composer": "Ibrahim Abdallah Nampunga",
+      "url": "https://music.apple.com/ke/album/story/1890348465?i=1890348466",
+      "id": "1890348466"
+    },
+    {
+      "title": "Nitafanyaje",
+      "artist": "Ibraah",
+      "composer": "Ibrahim Abdallah Nampunga",
+      "url": "https://music.apple.com/ke/album/nitafanyaje/1890348465?i=1890348467",
+      "id": "1890348467"
+    },
+    {
+      "title": "Uhakika",
+      "artist": "Ibraah",
+      "composer": "Ibrahim Abdallah Nampunga",
+      "url": "https://music.apple.com/ke/album/uhakika/1890348465?i=1890348469",
+      "id": "1890348469"
+    },
+    {
+      "title": "Ameniacha",
+      "artist": "Ibraah",
+      "composer": "Ibrahim Abdallah Nampunga",
+      "url": "https://music.apple.com/ke/album/ameniacha/1890348465?i=1890348470",
+      "id": "1890348470"
+    },
+    {
+      "title": "Amebadilika",
+      "artist": "Ibraah",
+      "composer": "Ibrahim Abdallah Nampunga",
+      "url": "https://music.apple.com/ke/album/amebadilika/1890348465?i=1890348471",
+      "id": "1890348471"
+    }
+  ],
+  "checked_at": "2026-10-01T01:55:27.327Z"
+}

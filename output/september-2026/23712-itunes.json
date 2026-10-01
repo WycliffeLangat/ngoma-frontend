@@ -1,0 +1,51 @@
+{
+  "id": 23712,
+  "title": "SWAGUU",
+  "artist": "Seyi Vibez",
+  "url": "https://itunes.apple.com/search?term=Seyi+Vibez+SWAGUU&entity=album&limit=30&country=US",
+  "candidates": [],
+  "results": [
+    {
+      "wrapperType": "collection",
+      "collectionType": "Album",
+      "artistId": 1466080951,
+      "collectionId": 1818005561,
+      "artistName": "Seyi Vibez",
+      "collectionName": "Billion Dollar Baby 2.0",
+      "collectionCensoredName": "Billion Dollar Baby 2.0",
+      "artistViewUrl": "https://music.apple.com/us/artist/seyi-vibez/1466080951?uo=4",
+      "collectionViewUrl": "https://music.apple.com/us/album/billion-dollar-baby-2-0/1818005561?uo=4",
+      "artworkUrl60": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/d8/10/cf/d810cf70-735a-e232-411b-d2586ba83fa4/766214738152.jpg/60x60bb.jpg",
+      "artworkUrl100": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/d8/10/cf/d810cf70-735a-e232-411b-d2586ba83fa4/766214738152.jpg/100x100bb.jpg",
+      "collectionPrice": 10.99,
+      "collectionExplicitness": "notExplicit",
+      "trackCount": 16,
+      "copyright": "℗ 2022 Vibez Inc / Dvpper Music",
+      "country": "USA",
+      "currency": "USD",
+      "releaseDate": "2022-12-09T08:00:00Z",
+      "primaryGenreName": "Worldwide"
+    },
+    {
+      "wrapperType": "collection",
+      "collectionType": "Album",
+      "artistId": 1347142581,
+      "collectionId": 1669351463,
+      "artistName": "BNXN, Kizz Daniel & Seyi Vibez",
+      "collectionName": "GWAGWALADA - Single",
+      "collectionCensoredName": "GWAGWALADA - Single",
+      "artistViewUrl": "https://music.apple.com/us/artist/bnxn/1347142581?uo=4",
+      "collectionViewUrl": "https://music.apple.com/us/album/gwagwalada-single/1669351463?uo=4",
+      "artworkUrl60": "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/d4/ed/45/d4ed4580-c2d5-a500-2f7e-ca92a962e978/197342077347_cover.jpg/60x60bb.jpg",
+      "artworkUrl100": "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/d4/ed/45/d4ed4580-c2d5-a500-2f7e-ca92a962e978/197342077347_cover.jpg/100x100bb.jpg",
+      "collectionPrice": 1.29,
+      "collectionExplicitness": "notExplicit",
+      "trackCount": 1,
+      "copyright": "℗ 2023 T.Y.E. / EMPIRE",
+      "country": "USA",
+      "currency": "USD",
+      "releaseDate": "2023-02-16T08:00:00Z",
+      "primaryGenreName": "Afrobeats"
+    }
+  ]
+}

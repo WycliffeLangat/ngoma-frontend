@@ -1,0 +1,36 @@
+{
+  "id": 23137,
+  "requested_title": "TEA",
+  "requested_artist": "Rema",
+  "url": "https://music.apple.com/us/album/tea/6791794028?i=6791794029&uo=4",
+  "resolved_url": "https://music.apple.com/us/album/tea/6791794028?i=6791794029&uo=4",
+  "page_title": "‎TEA - Song with Lyrics by Rema - Apple Music",
+  "title": "TEA - Single",
+  "artists": [
+    "Rema"
+  ],
+  "genre": "Afrobeats · 2026",
+  "track_count": 1,
+  "artwork": {
+    "bgColor": "ffc500",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "040335",
+    "textColor2": "352a25",
+    "textColor3": "36292a",
+    "textColor4": "5e491d",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/db/df/88/dbdf8801-76bd-0180-4f03-3018bd6edd63/26UMGIM79884.rgb.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "August 7, 2026\n1 song, 3 minutes\n℗ 2026 Mavin Global Holdings Ltd / Jonzing World Entertainment, distributed by Interscope Records and UMG Commercial Services",
+  "tracks": [
+    {
+      "title": "TEA",
+      "artist": "Rema",
+      "composer": "Michael Ovie Hunter, Sean Momberger & Dijon McFarlane",
+      "url": "https://music.apple.com/us/album/tea/6791794028?i=6791794029",
+      "id": "6791794029"
+    }
+  ],
+  "checked_at": "2026-10-01T01:55:17.043Z"
+}

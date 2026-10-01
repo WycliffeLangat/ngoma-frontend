@@ -1,0 +1,1087 @@
+{
+  "note": "Blank fields are unverified or not applicable. No assumption that every release has an ISRC, UPC, distributor, or producer credit.",
+  "releases": [
+    {
+      "id": 23541,
+      "title": "31",
+      "artist": "Harmonize",
+      "fields": [
+        "producers",
+        "distributor",
+        "isrc"
+      ]
+    },
+    {
+      "id": 23254,
+      "title": "Badda Dan",
+      "artist": "6uff",
+      "fields": [
+        "release_date",
+        "release_year",
+        "producers",
+        "distributor",
+        "upc"
+      ]
+    },
+    {
+      "id": 17479,
+      "title": "Bandana",
+      "artist": "Fireboy DML",
+      "fields": [
+        "distributor"
+      ]
+    },
+    {
+      "id": 23317,
+      "title": "BB Lifestyle",
+      "artist": "Mavo",
+      "fields": [
+        "songwriters",
+        "producers",
+        "distributor"
+      ]
+    },
+    {
+      "id": 23540,
+      "title": "Beats In Space 219: DJ Maphorisa (DJ Mix)",
+      "artist": "DJ Maphorisa",
+      "fields": [
+        "songwriters",
+        "producers",
+        "label",
+        "distributor",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "id": 18154,
+      "title": "Believe Me",
+      "artist": "Prince Indah",
+      "fields": [
+        "distributor"
+      ]
+    },
+    {
+      "id": 17350,
+      "title": "Berna",
+      "artist": "Prince Indah",
+      "fields": [
+        "distributor"
+      ]
+    },
+    {
+      "id": 19739,
+      "title": "Bhad Boi (Deluxe)",
+      "artist": "Bhadboi OML",
+      "fields": [
+        "producers",
+        "distributor",
+        "isrc"
+      ]
+    },
+    {
+      "id": 23217,
+      "title": "BLOW (feat. Scar Mkadinali)",
+      "artist": "Sparker Domani Mkadinali",
+      "fields": [
+        "distributor"
+      ]
+    },
+    {
+      "id": 17398,
+      "title": "Chai ya saa kumi",
+      "artist": "Ywaya Tajiri",
+      "fields": [
+        "distributor"
+      ]
+    },
+    {
+      "id": 22907,
+      "title": "Control",
+      "artist": "Kapitani",
+      "fields": [
+        "distributor"
+      ]
+    },
+    {
+      "id": 23452,
+      "title": "Don't Look Down",
+      "artist": "Rod Wave",
+      "fields": [
+        "release_date",
+        "release_year",
+        "producers",
+        "distributor",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "id": 23657,
+      "title": "Dopamine (Live) Greasy Tunes Nairobi",
+      "artist": "Nyashinski",
+      "fields": [
+        "release_date",
+        "release_year",
+        "songwriters",
+        "producers",
+        "genre",
+        "label",
+        "distributor",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "id": 23476,
+      "title": "Find My Babe",
+      "artist": "Mavo",
+      "fields": [
+        "distributor"
+      ]
+    },
+    {
+      "id": 19506,
+      "title": "Formule 7",
+      "artist": "Fally Ipupa",
+      "fields": [
+        "producers",
+        "distributor",
+        "isrc"
+      ]
+    },
+    {
+      "id": 23494,
+      "title": "Happy Song",
+      "artist": "Bella Shmurda",
+      "fields": [
+        "distributor"
+      ]
+    },
+    {
+      "id": 17997,
+      "title": "HATUA ZANGU",
+      "artist": "VICTOR MUTHENYA",
+      "fields": [
+        "distributor"
+      ]
+    },
+    {
+      "id": 23212,
+      "title": "Heaven Baby (feat. ZAYN)",
+      "artist": "Ayra Starr",
+      "fields": [
+        "distributor",
+        "upc"
+      ]
+    },
+    {
+      "id": 23281,
+      "title": "Henessy",
+      "artist": "MICKY BLAISE",
+      "fields": [
+        "producers",
+        "distributor",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "id": 23391,
+      "title": "Hongo Ya Karao (feat. Mauru Gwash & Kapitani) [Vol. 2]",
+      "artist": "Toxic Lyrikali",
+      "fields": [
+        "producers",
+        "distributor",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "id": 23514,
+      "title": "Huyo Ndo Mimi (feat. Kapitani)",
+      "artist": "Naishift",
+      "fields": [
+        "release_date",
+        "release_year",
+        "distributor",
+        "upc"
+      ]
+    },
+    {
+      "id": 23633,
+      "title": "IBRAHYMN",
+      "artist": "Octopizzo",
+      "fields": [
+        "producers",
+        "distributor",
+        "isrc"
+      ]
+    },
+    {
+      "id": 23520,
+      "title": "Imeshindikana",
+      "artist": "Harmonize",
+      "fields": [
+        "distributor",
+        "upc"
+      ]
+    },
+    {
+      "id": 23611,
+      "title": "Ipepete",
+      "artist": "Masauti",
+      "fields": [
+        "release_date",
+        "release_year",
+        "distributor",
+        "upc"
+      ]
+    },
+    {
+      "id": 23682,
+      "title": "Kiwembe",
+      "artist": "Lava Lava",
+      "fields": [
+        "distributor"
+      ]
+    },
+    {
+      "id": 21374,
+      "title": "Kweku Jesus",
+      "artist": "Kweku Smoke",
+      "fields": [
+        "producers",
+        "distributor",
+        "isrc"
+      ]
+    },
+    {
+      "id": 18823,
+      "title": "LATEST 2026 SONGS MIX BEST OF AFROBEAT , BONGO DANCEHALL HIPHOP RNB",
+      "artist": "DJ EXRAY",
+      "fields": [
+        "songwriters",
+        "label",
+        "distributor",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "id": 22240,
+      "title": "LATEST BONGO MIX 2026",
+      "artist": "DJGIDS254",
+      "fields": [
+        "songwriters",
+        "label",
+        "distributor",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "id": 23538,
+      "title": "LOCKED IN",
+      "artist": "Nemzzz",
+      "fields": [
+        "producers",
+        "distributor",
+        "isrc"
+      ]
+    },
+    {
+      "id": 19362,
+      "title": "Lungu Boy",
+      "artist": "Asake",
+      "fields": [
+        "producers",
+        "distributor",
+        "isrc"
+      ]
+    },
+    {
+      "id": 23011,
+      "title": "M$NEY Live in London (Spotify Live)",
+      "artist": "Asake",
+      "fields": [
+        "producers",
+        "isrc"
+      ]
+    },
+    {
+      "id": 19616,
+      "title": "Made In Lagos: Deluxe Edition",
+      "artist": "Wizkid",
+      "fields": [
+        "producers",
+        "distributor",
+        "isrc"
+      ]
+    },
+    {
+      "id": 23614,
+      "title": "Make It Rain",
+      "artist": "Fat Joe",
+      "fields": [
+        "distributor",
+        "upc"
+      ]
+    },
+    {
+      "id": 23364,
+      "title": "Malaika",
+      "artist": "Mbosso",
+      "fields": [
+        "distributor"
+      ]
+    },
+    {
+      "id": 23325,
+      "title": "Mamdihe",
+      "artist": "Kapitani",
+      "fields": [
+        "producers",
+        "distributor"
+      ]
+    },
+    {
+      "id": 23545,
+      "title": "Matenjagwo",
+      "artist": "Virusi Mbaya",
+      "fields": [
+        "producers",
+        "distributor",
+        "isrc"
+      ]
+    },
+    {
+      "id": 17655,
+      "title": "Mayday",
+      "artist": "Fally Ipupa",
+      "fields": [
+        "producers",
+        "distributor"
+      ]
+    },
+    {
+      "id": 17384,
+      "title": "MAYDAY RACHAEL",
+      "artist": "Gradine Toto",
+      "fields": [
+        "producers",
+        "distributor"
+      ]
+    },
+    {
+      "id": 23623,
+      "title": "Melô De Cinderella (Special Version)",
+      "artist": "Reggae Dataflow",
+      "fields": [
+        "release_date",
+        "release_year",
+        "songwriters",
+        "producers",
+        "genre",
+        "label",
+        "distributor",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "id": 17519,
+      "title": "MMS",
+      "artist": "Asake",
+      "fields": [
+        "distributor"
+      ]
+    },
+    {
+      "id": 18095,
+      "title": "MONEY CONSTANT",
+      "artist": "DJ Maphorisa",
+      "fields": [
+        "distributor"
+      ]
+    },
+    {
+      "id": 18363,
+      "title": "Mummy Chulo",
+      "artist": "Prince Indah",
+      "fields": [
+        "producers",
+        "distributor"
+      ]
+    },
+    {
+      "id": 23681,
+      "title": "Nakei Nairobi",
+      "artist": "Mbilia Bel",
+      "fields": [
+        "release_date",
+        "release_year",
+        "producers",
+        "distributor",
+        "upc"
+      ]
+    },
+    {
+      "id": 23425,
+      "title": "Nampea head (feat. Thug dejan & Producer hybrid)",
+      "artist": "Energetic newton",
+      "fields": [
+        "producers",
+        "distributor",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "id": 17402,
+      "title": "Natafuta Doo",
+      "artist": "ELISHA TOTO",
+      "fields": [
+        "distributor"
+      ]
+    },
+    {
+      "id": 18158,
+      "title": "Ngimana",
+      "artist": "Prince Indah",
+      "fields": [
+        "distributor"
+      ]
+    },
+    {
+      "id": 23431,
+      "title": "Nipishe",
+      "artist": "Phany Love",
+      "fields": [
+        "distributor"
+      ]
+    },
+    {
+      "id": 19528,
+      "title": "Nothing Was the Same (Deluxe)",
+      "artist": "Drake",
+      "fields": [
+        "producers",
+        "distributor",
+        "isrc"
+      ]
+    },
+    {
+      "id": 17469,
+      "title": "Okay",
+      "artist": "Adekunle Gold",
+      "fields": [
+        "distributor",
+        "upc"
+      ]
+    },
+    {
+      "id": 18357,
+      "title": "Osiepe",
+      "artist": "Prince Indah",
+      "fields": [
+        "producers",
+        "distributor"
+      ]
+    },
+    {
+      "id": 23666,
+      "title": "Otero",
+      "artist": "Zzero Sufuri",
+      "fields": [
+        "release_date",
+        "release_year",
+        "songwriters",
+        "producers",
+        "genre",
+        "label",
+        "distributor",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "id": 23375,
+      "title": "PARTYNEXTDOOR 3 (P3) [10-YEAR EDITION]",
+      "artist": "PARTYNEXTDOOR",
+      "fields": [
+        "producers",
+        "distributor",
+        "isrc"
+      ]
+    },
+    {
+      "id": 23372,
+      "title": "Paulina",
+      "artist": "Abongo Jakabwana",
+      "fields": [
+        "distributor"
+      ]
+    },
+    {
+      "id": 18155,
+      "title": "Pedeshe (Ajawa Marwa)",
+      "artist": "Prince Indah",
+      "fields": [
+        "distributor"
+      ]
+    },
+    {
+      "id": 23685,
+      "title": "PERFECT MATCH",
+      "artist": "NOISY NEIGHBOR",
+      "fields": [
+        "distributor"
+      ]
+    },
+    {
+      "id": 23091,
+      "title": "Pink Blush",
+      "artist": "dolly babe",
+      "fields": [
+        "distributor"
+      ]
+    },
+    {
+      "id": 21564,
+      "title": "Pink Friday (Complete Edition)",
+      "artist": "Nicki Minaj",
+      "fields": [
+        "producers",
+        "distributor",
+        "isrc"
+      ]
+    },
+    {
+      "id": 19495,
+      "title": "PM",
+      "artist": "Ibraah",
+      "fields": [
+        "producers",
+        "isrc"
+      ]
+    },
+    {
+      "id": 23543,
+      "title": "PRIMA",
+      "artist": "ADELA",
+      "fields": [
+        "release_date",
+        "release_year",
+        "producers",
+        "distributor",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "id": 21372,
+      "title": "Rave & Roses (Ultra)",
+      "artist": "Rema",
+      "fields": [
+        "producers",
+        "distributor",
+        "isrc"
+      ]
+    },
+    {
+      "id": 17732,
+      "title": "Rembo",
+      "artist": "Prince Indah",
+      "fields": [
+        "distributor"
+      ]
+    },
+    {
+      "id": 17503,
+      "title": "Remember",
+      "artist": "Asake",
+      "fields": [
+        "distributor"
+      ]
+    },
+    {
+      "id": 23561,
+      "title": "Sanam",
+      "artist": "Kondela",
+      "fields": [
+        "distributor"
+      ]
+    },
+    {
+      "id": 23686,
+      "title": "Sharp Boy",
+      "artist": "Vospa",
+      "fields": [
+        "release_date",
+        "release_year",
+        "songwriters",
+        "producers",
+        "genre",
+        "label",
+        "distributor",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "id": 21706,
+      "title": "Single",
+      "artist": "Kapitani",
+      "fields": [
+        "producers",
+        "distributor"
+      ]
+    },
+    {
+      "id": 23613,
+      "title": "Single",
+      "artist": "Mavoicetz",
+      "fields": [
+        "producers",
+        "distributor"
+      ]
+    },
+    {
+      "id": 23562,
+      "title": "Siwezi",
+      "artist": "Harmonize",
+      "fields": [
+        "distributor"
+      ]
+    },
+    {
+      "id": 23548,
+      "title": "So Good (feat. Kendrick Lamar)",
+      "artist": "Jhené Aiko",
+      "fields": [
+        "distributor",
+        "upc"
+      ]
+    },
+    {
+      "id": 23374,
+      "title": "STARLIFE",
+      "artist": "Victony",
+      "fields": [
+        "producers",
+        "distributor",
+        "isrc"
+      ]
+    },
+    {
+      "id": 23712,
+      "title": "SWAGUU",
+      "artist": "Seyi Vibez",
+      "fields": [
+        "producers",
+        "distributor",
+        "isrc"
+      ]
+    },
+    {
+      "id": 23477,
+      "title": "Tap Am",
+      "artist": "Famous Pluto",
+      "fields": [
+        "distributor",
+        "upc"
+      ]
+    },
+    {
+      "id": 23100,
+      "title": "Tegemeo Letu",
+      "artist": "KMK MAKUBURI",
+      "fields": [
+        "distributor",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "id": 19799,
+      "title": "Timileyin 2.0",
+      "artist": "Tml Vibez",
+      "fields": [
+        "songwriters",
+        "producers",
+        "genre",
+        "distributor",
+        "isrc"
+      ]
+    },
+    {
+      "id": 23326,
+      "title": "Touch",
+      "artist": "Rayvanny",
+      "fields": [
+        "distributor",
+        "upc"
+      ]
+    },
+    {
+      "id": 23625,
+      "title": "Type Yake",
+      "artist": "Fari Athman",
+      "fields": [
+        "distributor",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "id": 23617,
+      "title": "Ubaya",
+      "artist": "Chege",
+      "fields": [
+        "distributor",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "id": 18038,
+      "title": "Ukimuona",
+      "artist": "Diamond Platnumz",
+      "fields": [
+        "label",
+        "distributor",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "id": 23196,
+      "title": "Ukining'inia",
+      "artist": "Collo Blue",
+      "fields": [
+        "producers",
+        "distributor",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "id": 23448,
+      "title": "Upweke",
+      "artist": "Jay Melody",
+      "fields": [
+        "producers",
+        "distributor"
+      ]
+    },
+    {
+      "id": 19489,
+      "title": "Views",
+      "artist": "Drake",
+      "fields": [
+        "producers",
+        "isrc"
+      ]
+    },
+    {
+      "id": 18521,
+      "title": "Waache Waoane",
+      "artist": "Chege",
+      "fields": [
+        "producers",
+        "distributor",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "id": 17447,
+      "title": "WAIT FOR U",
+      "artist": "Future",
+      "fields": [
+        "distributor"
+      ]
+    },
+    {
+      "id": 23632,
+      "title": "Westside Whimsy",
+      "artist": "Jhené Aiko",
+      "fields": [
+        "producers",
+        "distributor",
+        "isrc"
+      ]
+    },
+    {
+      "id": 23610,
+      "title": "What is Money",
+      "artist": "Dickens Derick",
+      "fields": [
+        "producers",
+        "distributor",
+        "isrc",
+        "upc"
+      ]
+    },
+    {
+      "id": 19308,
+      "title": "Woii",
+      "artist": "Valiant",
+      "fields": [
+        "distributor"
+      ]
+    },
+    {
+      "id": 19446,
+      "title": "Work Of Art",
+      "artist": "Asake",
+      "fields": [
+        "producers",
+        "distributor",
+        "isrc"
+      ]
+    },
+    {
+      "id": 21489,
+      "title": "XX : Délirium",
+      "artist": "Fally Ipupa",
+      "fields": [
+        "producers",
+        "distributor",
+        "isrc"
+      ]
+    }
+  ],
+  "artists": [
+    {
+      "id": 89,
+      "name": "Chege",
+      "fields": [
+        "city_region"
+      ]
+    },
+    {
+      "id": 583,
+      "name": "Dickens Derick",
+      "fields": [
+        "country",
+        "city_region",
+        "genre",
+        "biography"
+      ]
+    },
+    {
+      "id": 858,
+      "name": "DJ EXRAY",
+      "fields": [
+        "country",
+        "image"
+      ]
+    },
+    {
+      "id": 2456,
+      "name": "DJGIDS254",
+      "fields": [
+        "image"
+      ]
+    },
+    {
+      "id": 3131,
+      "name": "dolly babe",
+      "fields": [
+        "country",
+        "city_region",
+        "biography"
+      ]
+    },
+    {
+      "id": 3267,
+      "name": "Energetic newton",
+      "fields": [
+        "country",
+        "city_region",
+        "genre",
+        "biography"
+      ]
+    },
+    {
+      "id": 41,
+      "name": "Fally Ipupa",
+      "fields": [
+        "genre"
+      ]
+    },
+    {
+      "id": 3406,
+      "name": "Fari Athman",
+      "fields": [
+        "image"
+      ]
+    },
+    {
+      "id": 283,
+      "name": "Gradine Toto",
+      "fields": [
+        "city_region",
+        "genre"
+      ]
+    },
+    {
+      "id": 804,
+      "name": "KMK MAKUBURI",
+      "fields": [
+        "city_region"
+      ]
+    },
+    {
+      "id": 1956,
+      "name": "Kweku Smoke",
+      "fields": [
+        "image"
+      ]
+    },
+    {
+      "id": 1775,
+      "name": "Mbilia Bel",
+      "fields": [
+        "image"
+      ]
+    },
+    {
+      "id": 3212,
+      "name": "MICKY BLAISE",
+      "fields": [
+        "country",
+        "city_region",
+        "genre",
+        "biography"
+      ]
+    },
+    {
+      "id": 3313,
+      "name": "Naishift",
+      "fields": [
+        "country",
+        "city_region",
+        "genre",
+        "biography"
+      ]
+    },
+    {
+      "id": 3428,
+      "name": "NOISY NEIGHBOR",
+      "fields": [
+        "country",
+        "city_region",
+        "genre",
+        "biography",
+        "image"
+      ]
+    },
+    {
+      "id": 3405,
+      "name": "Reggae Dataflow",
+      "fields": [
+        "country",
+        "city_region",
+        "genre",
+        "biography",
+        "image"
+      ]
+    },
+    {
+      "id": 3186,
+      "name": "Sparker Domani Mkadinali",
+      "fields": [
+        "country",
+        "city_region",
+        "genre",
+        "biography"
+      ]
+    },
+    {
+      "id": 495,
+      "name": "VICTOR MUTHENYA",
+      "fields": [
+        "city_region"
+      ]
+    },
+    {
+      "id": 3429,
+      "name": "Vospa",
+      "fields": [
+        "country",
+        "city_region",
+        "genre",
+        "biography",
+        "image"
+      ]
+    },
+    {
+      "id": 3425,
+      "name": "Zzero Sufuri",
+      "fields": [
+        "city_region"
+      ]
+    }
+  ],
+  "source_conflicts": [
+    {
+      "id": 23254,
+      "title": "Badda Dan",
+      "note": "Release date withheld because sources describe conflicting dates or editions."
+    },
+    {
+      "id": 23452,
+      "title": "Don't Look Down",
+      "note": "Release date withheld because sources describe conflicting dates or editions."
+    },
+    {
+      "id": 23657,
+      "title": "Dopamine (Live) Greasy Tunes Nairobi",
+      "note": "No sufficiently verified catalogue match; unavailable fields left empty."
+    },
+    {
+      "id": 23514,
+      "title": "Huyo Ndo Mimi (feat. Kapitani)",
+      "note": "Release date withheld because sources describe conflicting dates or editions."
+    },
+    {
+      "id": 23611,
+      "title": "Ipepete",
+      "note": "Release date withheld because sources describe conflicting dates or editions."
+    },
+    {
+      "id": 23623,
+      "title": "Melô De Cinderella (Special Version)",
+      "note": "No sufficiently verified catalogue match; unavailable fields left empty."
+    },
+    {
+      "id": 23681,
+      "title": "Nakei Nairobi",
+      "note": "Release date withheld because sources describe conflicting dates or editions."
+    },
+    {
+      "id": 23666,
+      "title": "Otero",
+      "note": "No sufficiently verified catalogue match; unavailable fields left empty."
+    },
+    {
+      "id": 23543,
+      "title": "PRIMA",
+      "note": "Release date withheld because sources describe conflicting dates or editions."
+    },
+    {
+      "id": 23686,
+      "title": "Sharp Boy",
+      "note": "Release date withheld because sources describe conflicting dates or editions."
+    },
+    {
+      "id": 23686,
+      "title": "Sharp Boy",
+      "note": "No sufficiently verified catalogue match; unavailable fields left empty."
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "id": 17398,
+  "requested_title": "Chai ya saa kumi",
+  "requested_artist": "Ywaya Tajiri",
+  "url": "https://music.apple.com/us/album/chai-ya-saa-kumi/6796900579?i=6796900642&uo=4",
+  "resolved_url": "https://music.apple.com/us/album/chai-ya-saa-kumi/6796900579?i=6796900642&uo=4",
+  "page_title": "‎Chai ya saa kumi - Song with Lyrics by Ywaya Tajiri - Apple Music",
+  "title": "Chai ya saa kumi - Single",
+  "artists": [
+    "Ywaya Tajiri"
+  ],
+  "genre": "R&B/Soul · 2026",
+  "track_count": 1,
+  "artwork": {
+    "bgColor": "0b0404",
+    "hasP3": false,
+    "height": 1500,
+    "textColor1": "d5c4a7",
+    "textColor2": "dcb174",
+    "textColor3": "ac9d86",
+    "textColor4": "b28e5d",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/8b/b3/08/8bb308f0-1cf2-125c-736e-3ebb8d3f17db/821300693811.jpg/{w}x{h}bb.{f}",
+    "width": 1500
+  },
+  "footer": "February 24, 2026\n1 song, 3 minutes\n℗ 2026 Ywaya Tajiri Entertainment",
+  "tracks": [
+    {
+      "title": "Chai ya saa kumi",
+      "artist": "Ywaya Tajiri",
+      "composer": "Hendrick Sam",
+      "url": "https://music.apple.com/us/album/chai-ya-saa-kumi/6796900579?i=6796900642",
+      "id": "6796900642"
+    }
+  ],
+  "checked_at": "2026-10-01T01:55:24.758Z"
+}

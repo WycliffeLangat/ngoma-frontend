@@ -1,0 +1,36 @@
+{
+  "id": 23611,
+  "requested_title": "Ipepete",
+  "requested_artist": "Masauti",
+  "url": "https://music.apple.com/us/album/ipepete/1835635589?i=1835635592&uo=4",
+  "resolved_url": "https://music.apple.com/us/album/ipepete/1835635589?i=1835635592&uo=4",
+  "page_title": "‎Ipepete - Song with Lyrics by Masauti - Apple Music",
+  "title": "Ipepete - Single",
+  "artists": [
+    "Masauti"
+  ],
+  "genre": "Pop · 2019",
+  "track_count": 1,
+  "artwork": {
+    "bgColor": "030301",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "e1c859",
+    "textColor2": "d4bb53",
+    "textColor3": "b4a047",
+    "textColor4": "aa9643",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/64/25/91/64259126-f1b8-00a1-e614-1cd7da3abbd3/195334277737.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "May 10, 2019\n1 song, 3 minutes\n℗ 2019 EMC",
+  "tracks": [
+    {
+      "title": "Ipepete",
+      "artist": "Masauti",
+      "composer": "Ali Mohamed Said",
+      "url": "https://music.apple.com/us/album/ipepete/1835635589?i=1835635592",
+      "id": "1835635592"
+    }
+  ],
+  "checked_at": "2026-10-01T01:55:16.226Z"
+}

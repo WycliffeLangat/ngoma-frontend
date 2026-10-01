@@ -1,0 +1,538 @@
+{
+  "id": 19799,
+  "url": "https://api.deezer.com/search/album?q=Tml%20Vibez%20Timileyin%202.0&limit=25",
+  "details": [
+    {
+      "item": {
+        "id": 608252842,
+        "title": "Timileyin 2.0",
+        "upc": "198704044205",
+        "link": "https://www.deezer.com/album/608252842",
+        "share": "https://www.deezer.com/album/608252842?utm_source=deezer&utm_content=album-608252842&utm_term=0_1790843183&utm_medium=web",
+        "cover": "https://api.deezer.com/album/608252842/image",
+        "cover_small": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/56x56-000000-80-0-0.jpg",
+        "cover_medium": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/250x250-000000-80-0-0.jpg",
+        "cover_big": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/500x500-000000-80-0-0.jpg",
+        "cover_xl": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/1000x1000-000000-80-0-0.jpg",
+        "md5_image": "b4fe00e347d44e64c014306d1f5f778b",
+        "genre_id": -1,
+        "genres": {
+          "data": []
+        },
+        "label": "Dapper Music & Entertainment",
+        "nb_tracks": 6,
+        "duration": 867,
+        "fans": 419,
+        "release_date": "2024-06-28",
+        "record_type": "ep",
+        "available": true,
+        "tracklist": "https://api.deezer.com/album/608252842/tracks",
+        "explicit_lyrics": true,
+        "explicit_content_lyrics": 4,
+        "explicit_content_cover": 1,
+        "contributors": [
+          {
+            "id": 196611897,
+            "name": "Tml Vibez",
+            "link": "https://www.deezer.com/artist/196611897",
+            "share": "https://www.deezer.com/artist/196611897?utm_source=deezer&utm_content=artist-196611897&utm_term=0_1790843183&utm_medium=web",
+            "picture": "https://api.deezer.com/artist/196611897/image",
+            "picture_small": "https://cdn-images.dzcdn.net/images/artist/72516a086727fd9557257bcbefb4b818/56x56-000000-80-0-0.jpg",
+            "picture_medium": "https://cdn-images.dzcdn.net/images/artist/72516a086727fd9557257bcbefb4b818/250x250-000000-80-0-0.jpg",
+            "picture_big": "https://cdn-images.dzcdn.net/images/artist/72516a086727fd9557257bcbefb4b818/500x500-000000-80-0-0.jpg",
+            "picture_xl": "https://cdn-images.dzcdn.net/images/artist/72516a086727fd9557257bcbefb4b818/1000x1000-000000-80-0-0.jpg",
+            "radio": true,
+            "tracklist": "https://api.deezer.com/artist/196611897/top?limit=50",
+            "type": "artist",
+            "role": "Main"
+          }
+        ],
+        "artist": {
+          "id": 196611897,
+          "name": "Tml Vibez",
+          "picture": "https://api.deezer.com/artist/196611897/image",
+          "picture_small": "https://cdn-images.dzcdn.net/images/artist/72516a086727fd9557257bcbefb4b818/56x56-000000-80-0-0.jpg",
+          "picture_medium": "https://cdn-images.dzcdn.net/images/artist/72516a086727fd9557257bcbefb4b818/250x250-000000-80-0-0.jpg",
+          "picture_big": "https://cdn-images.dzcdn.net/images/artist/72516a086727fd9557257bcbefb4b818/500x500-000000-80-0-0.jpg",
+          "picture_xl": "https://cdn-images.dzcdn.net/images/artist/72516a086727fd9557257bcbefb4b818/1000x1000-000000-80-0-0.jpg",
+          "tracklist": "https://api.deezer.com/artist/196611897/top?limit=50",
+          "type": "artist"
+        },
+        "type": "album",
+        "tracks": {
+          "data": [
+            {
+              "id": 2868345422,
+              "readable": true,
+              "title": "Intro",
+              "title_short": "Intro",
+              "title_version": "",
+              "link": "https://www.deezer.com/track/2868345422",
+              "duration": 97,
+              "rank": 3863,
+              "explicit_lyrics": false,
+              "explicit_content_lyrics": 0,
+              "explicit_content_cover": 1,
+              "preview": "https://cdnt-preview.dzcdn.net/api/1/1/a/5/2/0/a5252356d861d98f9b8ea8413fad415d.mp3?hdnea=exp=1790844083~acl=/api/1/1/a/5/2/0/a5252356d861d98f9b8ea8413fad415d.mp3*~data=user_id=0,application_id=42~hmac=1701c1021e3888cd0008dca4e9c88a20e2153669359f028c2a7e92ae32eef543",
+              "md5_image": "b4fe00e347d44e64c014306d1f5f778b",
+              "artist": {
+                "id": 196611897,
+                "name": "Tml Vibez",
+                "tracklist": "https://api.deezer.com/artist/196611897/top?limit=50",
+                "type": "artist"
+              },
+              "album": {
+                "id": 608252842,
+                "title": "Timileyin 2.0",
+                "cover": "https://api.deezer.com/album/608252842/image",
+                "cover_small": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/56x56-000000-80-0-0.jpg",
+                "cover_medium": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/250x250-000000-80-0-0.jpg",
+                "cover_big": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/500x500-000000-80-0-0.jpg",
+                "cover_xl": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/1000x1000-000000-80-0-0.jpg",
+                "md5_image": "b4fe00e347d44e64c014306d1f5f778b",
+                "tracklist": "https://api.deezer.com/album/608252842/tracks",
+                "type": "album"
+              },
+              "type": "track"
+            },
+            {
+              "id": 2868345432,
+              "readable": true,
+              "title": "Wells Fargo",
+              "title_short": "Wells Fargo",
+              "title_version": "",
+              "link": "https://www.deezer.com/track/2868345432",
+              "duration": 126,
+              "rank": 115604,
+              "explicit_lyrics": true,
+              "explicit_content_lyrics": 1,
+              "explicit_content_cover": 1,
+              "preview": "https://cdnt-preview.dzcdn.net/api/1/1/2/b/1/0/2b1046cbe3aa82138cb65f18ee6c0a36.mp3?hdnea=exp=1790844083~acl=/api/1/1/2/b/1/0/2b1046cbe3aa82138cb65f18ee6c0a36.mp3*~data=user_id=0,application_id=42~hmac=4384704bf99feeb3218b82ebda015fa21463fe7fb4f4ad2b315816684670247c",
+              "md5_image": "b4fe00e347d44e64c014306d1f5f778b",
+              "artist": {
+                "id": 196611897,
+                "name": "Tml Vibez",
+                "tracklist": "https://api.deezer.com/artist/196611897/top?limit=50",
+                "type": "artist"
+              },
+              "album": {
+                "id": 608252842,
+                "title": "Timileyin 2.0",
+                "cover": "https://api.deezer.com/album/608252842/image",
+                "cover_small": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/56x56-000000-80-0-0.jpg",
+                "cover_medium": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/250x250-000000-80-0-0.jpg",
+                "cover_big": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/500x500-000000-80-0-0.jpg",
+                "cover_xl": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/1000x1000-000000-80-0-0.jpg",
+                "md5_image": "b4fe00e347d44e64c014306d1f5f778b",
+                "tracklist": "https://api.deezer.com/album/608252842/tracks",
+                "type": "album"
+              },
+              "type": "track"
+            },
+            {
+              "id": 2868345442,
+              "readable": true,
+              "title": "Where I’m from",
+              "title_short": "Where I’m from",
+              "title_version": "",
+              "link": "https://www.deezer.com/track/2868345442",
+              "duration": 159,
+              "rank": 190273,
+              "explicit_lyrics": false,
+              "explicit_content_lyrics": 0,
+              "explicit_content_cover": 1,
+              "preview": "https://cdnt-preview.dzcdn.net/api/1/1/7/9/1/0/791f74fbafa11ac444201d0cf5936100.mp3?hdnea=exp=1790844083~acl=/api/1/1/7/9/1/0/791f74fbafa11ac444201d0cf5936100.mp3*~data=user_id=0,application_id=42~hmac=f715ee975697bf9231313ec19c0d9111b9181da61bed29c08ea45ca94e421baa",
+              "md5_image": "b4fe00e347d44e64c014306d1f5f778b",
+              "artist": {
+                "id": 196611897,
+                "name": "Tml Vibez",
+                "tracklist": "https://api.deezer.com/artist/196611897/top?limit=50",
+                "type": "artist"
+              },
+              "album": {
+                "id": 608252842,
+                "title": "Timileyin 2.0",
+                "cover": "https://api.deezer.com/album/608252842/image",
+                "cover_small": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/56x56-000000-80-0-0.jpg",
+                "cover_medium": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/250x250-000000-80-0-0.jpg",
+                "cover_big": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/500x500-000000-80-0-0.jpg",
+                "cover_xl": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/1000x1000-000000-80-0-0.jpg",
+                "md5_image": "b4fe00e347d44e64c014306d1f5f778b",
+                "tracklist": "https://api.deezer.com/album/608252842/tracks",
+                "type": "album"
+              },
+              "type": "track"
+            },
+            {
+              "id": 2868345452,
+              "readable": true,
+              "title": "Colors",
+              "title_short": "Colors",
+              "title_version": "",
+              "link": "https://www.deezer.com/track/2868345452",
+              "duration": 173,
+              "rank": 35403,
+              "explicit_lyrics": false,
+              "explicit_content_lyrics": 0,
+              "explicit_content_cover": 1,
+              "preview": "https://cdnt-preview.dzcdn.net/api/1/1/c/3/5/0/c3500568d07ceba68fe048c8d9961fdf.mp3?hdnea=exp=1790844083~acl=/api/1/1/c/3/5/0/c3500568d07ceba68fe048c8d9961fdf.mp3*~data=user_id=0,application_id=42~hmac=7a5d4a070dd14e72286d7477aa6542a171925e5a96003989a089d0ef0fddc98b",
+              "md5_image": "b4fe00e347d44e64c014306d1f5f778b",
+              "artist": {
+                "id": 196611897,
+                "name": "Tml Vibez",
+                "tracklist": "https://api.deezer.com/artist/196611897/top?limit=50",
+                "type": "artist"
+              },
+              "album": {
+                "id": 608252842,
+                "title": "Timileyin 2.0",
+                "cover": "https://api.deezer.com/album/608252842/image",
+                "cover_small": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/56x56-000000-80-0-0.jpg",
+                "cover_medium": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/250x250-000000-80-0-0.jpg",
+                "cover_big": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/500x500-000000-80-0-0.jpg",
+                "cover_xl": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/1000x1000-000000-80-0-0.jpg",
+                "md5_image": "b4fe00e347d44e64c014306d1f5f778b",
+                "tracklist": "https://api.deezer.com/album/608252842/tracks",
+                "type": "album"
+              },
+              "type": "track"
+            },
+            {
+              "id": 2868345462,
+              "readable": true,
+              "title": "Jumbo",
+              "title_short": "Jumbo",
+              "title_version": "",
+              "link": "https://www.deezer.com/track/2868345462",
+              "duration": 176,
+              "rank": 33127,
+              "explicit_lyrics": false,
+              "explicit_content_lyrics": 0,
+              "explicit_content_cover": 1,
+              "preview": "https://cdnt-preview.dzcdn.net/api/1/1/f/9/0/0/f90cdc45a5da1cde5ec76273dd2fae6e.mp3?hdnea=exp=1790844083~acl=/api/1/1/f/9/0/0/f90cdc45a5da1cde5ec76273dd2fae6e.mp3*~data=user_id=0,application_id=42~hmac=b27ec8b35c70bb2d65e8d99802a47dac56a057420279943d10c7ffb759da8c87",
+              "md5_image": "b4fe00e347d44e64c014306d1f5f778b",
+              "artist": {
+                "id": 196611897,
+                "name": "Tml Vibez",
+                "tracklist": "https://api.deezer.com/artist/196611897/top?limit=50",
+                "type": "artist"
+              },
+              "album": {
+                "id": 608252842,
+                "title": "Timileyin 2.0",
+                "cover": "https://api.deezer.com/album/608252842/image",
+                "cover_small": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/56x56-000000-80-0-0.jpg",
+                "cover_medium": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/250x250-000000-80-0-0.jpg",
+                "cover_big": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/500x500-000000-80-0-0.jpg",
+                "cover_xl": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/1000x1000-000000-80-0-0.jpg",
+                "md5_image": "b4fe00e347d44e64c014306d1f5f778b",
+                "tracklist": "https://api.deezer.com/album/608252842/tracks",
+                "type": "album"
+              },
+              "type": "track"
+            },
+            {
+              "id": 2868345472,
+              "readable": true,
+              "title": "My Padi",
+              "title_short": "My Padi",
+              "title_version": "",
+              "link": "https://www.deezer.com/track/2868345472",
+              "duration": 136,
+              "rank": 90248,
+              "explicit_lyrics": true,
+              "explicit_content_lyrics": 1,
+              "explicit_content_cover": 1,
+              "preview": "https://cdnt-preview.dzcdn.net/api/1/1/5/1/8/0/5187b9dcc73b2f329436f582110e4109.mp3?hdnea=exp=1790844083~acl=/api/1/1/5/1/8/0/5187b9dcc73b2f329436f582110e4109.mp3*~data=user_id=0,application_id=42~hmac=42a62831a17e73018d1117b0c48323e4faf449f8a06e0e1e98d898488b8f205e",
+              "md5_image": "b4fe00e347d44e64c014306d1f5f778b",
+              "artist": {
+                "id": 196611897,
+                "name": "Tml Vibez",
+                "tracklist": "https://api.deezer.com/artist/196611897/top?limit=50",
+                "type": "artist"
+              },
+              "album": {
+                "id": 608252842,
+                "title": "Timileyin 2.0",
+                "cover": "https://api.deezer.com/album/608252842/image",
+                "cover_small": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/56x56-000000-80-0-0.jpg",
+                "cover_medium": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/250x250-000000-80-0-0.jpg",
+                "cover_big": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/500x500-000000-80-0-0.jpg",
+                "cover_xl": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/1000x1000-000000-80-0-0.jpg",
+                "md5_image": "b4fe00e347d44e64c014306d1f5f778b",
+                "tracklist": "https://api.deezer.com/album/608252842/tracks",
+                "type": "album"
+              },
+              "type": "track"
+            }
+          ]
+        }
+      },
+      "album": {
+        "id": 608252842,
+        "title": "Timileyin 2.0",
+        "upc": "198704044205",
+        "link": "https://www.deezer.com/album/608252842",
+        "share": "https://www.deezer.com/album/608252842?utm_source=deezer&utm_content=album-608252842&utm_term=0_1790843183&utm_medium=web",
+        "cover": "https://api.deezer.com/album/608252842/image",
+        "cover_small": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/56x56-000000-80-0-0.jpg",
+        "cover_medium": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/250x250-000000-80-0-0.jpg",
+        "cover_big": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/500x500-000000-80-0-0.jpg",
+        "cover_xl": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/1000x1000-000000-80-0-0.jpg",
+        "md5_image": "b4fe00e347d44e64c014306d1f5f778b",
+        "genre_id": -1,
+        "genres": {
+          "data": []
+        },
+        "label": "Dapper Music & Entertainment",
+        "nb_tracks": 6,
+        "duration": 867,
+        "fans": 419,
+        "release_date": "2024-06-28",
+        "record_type": "ep",
+        "available": true,
+        "tracklist": "https://api.deezer.com/album/608252842/tracks",
+        "explicit_lyrics": true,
+        "explicit_content_lyrics": 4,
+        "explicit_content_cover": 1,
+        "contributors": [
+          {
+            "id": 196611897,
+            "name": "Tml Vibez",
+            "link": "https://www.deezer.com/artist/196611897",
+            "share": "https://www.deezer.com/artist/196611897?utm_source=deezer&utm_content=artist-196611897&utm_term=0_1790843183&utm_medium=web",
+            "picture": "https://api.deezer.com/artist/196611897/image",
+            "picture_small": "https://cdn-images.dzcdn.net/images/artist/72516a086727fd9557257bcbefb4b818/56x56-000000-80-0-0.jpg",
+            "picture_medium": "https://cdn-images.dzcdn.net/images/artist/72516a086727fd9557257bcbefb4b818/250x250-000000-80-0-0.jpg",
+            "picture_big": "https://cdn-images.dzcdn.net/images/artist/72516a086727fd9557257bcbefb4b818/500x500-000000-80-0-0.jpg",
+            "picture_xl": "https://cdn-images.dzcdn.net/images/artist/72516a086727fd9557257bcbefb4b818/1000x1000-000000-80-0-0.jpg",
+            "radio": true,
+            "tracklist": "https://api.deezer.com/artist/196611897/top?limit=50",
+            "type": "artist",
+            "role": "Main"
+          }
+        ],
+        "artist": {
+          "id": 196611897,
+          "name": "Tml Vibez",
+          "picture": "https://api.deezer.com/artist/196611897/image",
+          "picture_small": "https://cdn-images.dzcdn.net/images/artist/72516a086727fd9557257bcbefb4b818/56x56-000000-80-0-0.jpg",
+          "picture_medium": "https://cdn-images.dzcdn.net/images/artist/72516a086727fd9557257bcbefb4b818/250x250-000000-80-0-0.jpg",
+          "picture_big": "https://cdn-images.dzcdn.net/images/artist/72516a086727fd9557257bcbefb4b818/500x500-000000-80-0-0.jpg",
+          "picture_xl": "https://cdn-images.dzcdn.net/images/artist/72516a086727fd9557257bcbefb4b818/1000x1000-000000-80-0-0.jpg",
+          "tracklist": "https://api.deezer.com/artist/196611897/top?limit=50",
+          "type": "artist"
+        },
+        "type": "album",
+        "tracks": {
+          "data": [
+            {
+              "id": 2868345422,
+              "readable": true,
+              "title": "Intro",
+              "title_short": "Intro",
+              "title_version": "",
+              "link": "https://www.deezer.com/track/2868345422",
+              "duration": 97,
+              "rank": 3863,
+              "explicit_lyrics": false,
+              "explicit_content_lyrics": 0,
+              "explicit_content_cover": 1,
+              "preview": "https://cdnt-preview.dzcdn.net/api/1/1/a/5/2/0/a5252356d861d98f9b8ea8413fad415d.mp3?hdnea=exp=1790844083~acl=/api/1/1/a/5/2/0/a5252356d861d98f9b8ea8413fad415d.mp3*~data=user_id=0,application_id=42~hmac=1701c1021e3888cd0008dca4e9c88a20e2153669359f028c2a7e92ae32eef543",
+              "md5_image": "b4fe00e347d44e64c014306d1f5f778b",
+              "artist": {
+                "id": 196611897,
+                "name": "Tml Vibez",
+                "tracklist": "https://api.deezer.com/artist/196611897/top?limit=50",
+                "type": "artist"
+              },
+              "album": {
+                "id": 608252842,
+                "title": "Timileyin 2.0",
+                "cover": "https://api.deezer.com/album/608252842/image",
+                "cover_small": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/56x56-000000-80-0-0.jpg",
+                "cover_medium": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/250x250-000000-80-0-0.jpg",
+                "cover_big": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/500x500-000000-80-0-0.jpg",
+                "cover_xl": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/1000x1000-000000-80-0-0.jpg",
+                "md5_image": "b4fe00e347d44e64c014306d1f5f778b",
+                "tracklist": "https://api.deezer.com/album/608252842/tracks",
+                "type": "album"
+              },
+              "type": "track"
+            },
+            {
+              "id": 2868345432,
+              "readable": true,
+              "title": "Wells Fargo",
+              "title_short": "Wells Fargo",
+              "title_version": "",
+              "link": "https://www.deezer.com/track/2868345432",
+              "duration": 126,
+              "rank": 115604,
+              "explicit_lyrics": true,
+              "explicit_content_lyrics": 1,
+              "explicit_content_cover": 1,
+              "preview": "https://cdnt-preview.dzcdn.net/api/1/1/2/b/1/0/2b1046cbe3aa82138cb65f18ee6c0a36.mp3?hdnea=exp=1790844083~acl=/api/1/1/2/b/1/0/2b1046cbe3aa82138cb65f18ee6c0a36.mp3*~data=user_id=0,application_id=42~hmac=4384704bf99feeb3218b82ebda015fa21463fe7fb4f4ad2b315816684670247c",
+              "md5_image": "b4fe00e347d44e64c014306d1f5f778b",
+              "artist": {
+                "id": 196611897,
+                "name": "Tml Vibez",
+                "tracklist": "https://api.deezer.com/artist/196611897/top?limit=50",
+                "type": "artist"
+              },
+              "album": {
+                "id": 608252842,
+                "title": "Timileyin 2.0",
+                "cover": "https://api.deezer.com/album/608252842/image",
+                "cover_small": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/56x56-000000-80-0-0.jpg",
+                "cover_medium": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/250x250-000000-80-0-0.jpg",
+                "cover_big": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/500x500-000000-80-0-0.jpg",
+                "cover_xl": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/1000x1000-000000-80-0-0.jpg",
+                "md5_image": "b4fe00e347d44e64c014306d1f5f778b",
+                "tracklist": "https://api.deezer.com/album/608252842/tracks",
+                "type": "album"
+              },
+              "type": "track"
+            },
+            {
+              "id": 2868345442,
+              "readable": true,
+              "title": "Where I’m from",
+              "title_short": "Where I’m from",
+              "title_version": "",
+              "link": "https://www.deezer.com/track/2868345442",
+              "duration": 159,
+              "rank": 190273,
+              "explicit_lyrics": false,
+              "explicit_content_lyrics": 0,
+              "explicit_content_cover": 1,
+              "preview": "https://cdnt-preview.dzcdn.net/api/1/1/7/9/1/0/791f74fbafa11ac444201d0cf5936100.mp3?hdnea=exp=1790844083~acl=/api/1/1/7/9/1/0/791f74fbafa11ac444201d0cf5936100.mp3*~data=user_id=0,application_id=42~hmac=f715ee975697bf9231313ec19c0d9111b9181da61bed29c08ea45ca94e421baa",
+              "md5_image": "b4fe00e347d44e64c014306d1f5f778b",
+              "artist": {
+                "id": 196611897,
+                "name": "Tml Vibez",
+                "tracklist": "https://api.deezer.com/artist/196611897/top?limit=50",
+                "type": "artist"
+              },
+              "album": {
+                "id": 608252842,
+                "title": "Timileyin 2.0",
+                "cover": "https://api.deezer.com/album/608252842/image",
+                "cover_small": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/56x56-000000-80-0-0.jpg",
+                "cover_medium": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/250x250-000000-80-0-0.jpg",
+                "cover_big": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/500x500-000000-80-0-0.jpg",
+                "cover_xl": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/1000x1000-000000-80-0-0.jpg",
+                "md5_image": "b4fe00e347d44e64c014306d1f5f778b",
+                "tracklist": "https://api.deezer.com/album/608252842/tracks",
+                "type": "album"
+              },
+              "type": "track"
+            },
+            {
+              "id": 2868345452,
+              "readable": true,
+              "title": "Colors",
+              "title_short": "Colors",
+              "title_version": "",
+              "link": "https://www.deezer.com/track/2868345452",
+              "duration": 173,
+              "rank": 35403,
+              "explicit_lyrics": false,
+              "explicit_content_lyrics": 0,
+              "explicit_content_cover": 1,
+              "preview": "https://cdnt-preview.dzcdn.net/api/1/1/c/3/5/0/c3500568d07ceba68fe048c8d9961fdf.mp3?hdnea=exp=1790844083~acl=/api/1/1/c/3/5/0/c3500568d07ceba68fe048c8d9961fdf.mp3*~data=user_id=0,application_id=42~hmac=7a5d4a070dd14e72286d7477aa6542a171925e5a96003989a089d0ef0fddc98b",
+              "md5_image": "b4fe00e347d44e64c014306d1f5f778b",
+              "artist": {
+                "id": 196611897,
+                "name": "Tml Vibez",
+                "tracklist": "https://api.deezer.com/artist/196611897/top?limit=50",
+                "type": "artist"
+              },
+              "album": {
+                "id": 608252842,
+                "title": "Timileyin 2.0",
+                "cover": "https://api.deezer.com/album/608252842/image",
+                "cover_small": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/56x56-000000-80-0-0.jpg",
+                "cover_medium": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/250x250-000000-80-0-0.jpg",
+                "cover_big": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/500x500-000000-80-0-0.jpg",
+                "cover_xl": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/1000x1000-000000-80-0-0.jpg",
+                "md5_image": "b4fe00e347d44e64c014306d1f5f778b",
+                "tracklist": "https://api.deezer.com/album/608252842/tracks",
+                "type": "album"
+              },
+              "type": "track"
+            },
+            {
+              "id": 2868345462,
+              "readable": true,
+              "title": "Jumbo",
+              "title_short": "Jumbo",
+              "title_version": "",
+              "link": "https://www.deezer.com/track/2868345462",
+              "duration": 176,
+              "rank": 33127,
+              "explicit_lyrics": false,
+              "explicit_content_lyrics": 0,
+              "explicit_content_cover": 1,
+              "preview": "https://cdnt-preview.dzcdn.net/api/1/1/f/9/0/0/f90cdc45a5da1cde5ec76273dd2fae6e.mp3?hdnea=exp=1790844083~acl=/api/1/1/f/9/0/0/f90cdc45a5da1cde5ec76273dd2fae6e.mp3*~data=user_id=0,application_id=42~hmac=b27ec8b35c70bb2d65e8d99802a47dac56a057420279943d10c7ffb759da8c87",
+              "md5_image": "b4fe00e347d44e64c014306d1f5f778b",
+              "artist": {
+                "id": 196611897,
+                "name": "Tml Vibez",
+                "tracklist": "https://api.deezer.com/artist/196611897/top?limit=50",
+                "type": "artist"
+              },
+              "album": {
+                "id": 608252842,
+                "title": "Timileyin 2.0",
+                "cover": "https://api.deezer.com/album/608252842/image",
+                "cover_small": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/56x56-000000-80-0-0.jpg",
+                "cover_medium": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/250x250-000000-80-0-0.jpg",
+                "cover_big": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/500x500-000000-80-0-0.jpg",
+                "cover_xl": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/1000x1000-000000-80-0-0.jpg",
+                "md5_image": "b4fe00e347d44e64c014306d1f5f778b",
+                "tracklist": "https://api.deezer.com/album/608252842/tracks",
+                "type": "album"
+              },
+              "type": "track"
+            },
+            {
+              "id": 2868345472,
+              "readable": true,
+              "title": "My Padi",
+              "title_short": "My Padi",
+              "title_version": "",
+              "link": "https://www.deezer.com/track/2868345472",
+              "duration": 136,
+              "rank": 90248,
+              "explicit_lyrics": true,
+              "explicit_content_lyrics": 1,
+              "explicit_content_cover": 1,
+              "preview": "https://cdnt-preview.dzcdn.net/api/1/1/5/1/8/0/5187b9dcc73b2f329436f582110e4109.mp3?hdnea=exp=1790844083~acl=/api/1/1/5/1/8/0/5187b9dcc73b2f329436f582110e4109.mp3*~data=user_id=0,application_id=42~hmac=42a62831a17e73018d1117b0c48323e4faf449f8a06e0e1e98d898488b8f205e",
+              "md5_image": "b4fe00e347d44e64c014306d1f5f778b",
+              "artist": {
+                "id": 196611897,
+                "name": "Tml Vibez",
+                "tracklist": "https://api.deezer.com/artist/196611897/top?limit=50",
+                "type": "artist"
+              },
+              "album": {
+                "id": 608252842,
+                "title": "Timileyin 2.0",
+                "cover": "https://api.deezer.com/album/608252842/image",
+                "cover_small": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/56x56-000000-80-0-0.jpg",
+                "cover_medium": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/250x250-000000-80-0-0.jpg",
+                "cover_big": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/500x500-000000-80-0-0.jpg",
+                "cover_xl": "https://cdn-images.dzcdn.net/images/cover/b4fe00e347d44e64c014306d1f5f778b/1000x1000-000000-80-0-0.jpg",
+                "md5_image": "b4fe00e347d44e64c014306d1f5f778b",
+                "tracklist": "https://api.deezer.com/album/608252842/tracks",
+                "type": "album"
+              },
+              "type": "track"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

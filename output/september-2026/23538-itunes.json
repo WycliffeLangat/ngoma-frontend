@@ -1,0 +1,30 @@
+{
+  "id": 23538,
+  "title": "LOCKED IN",
+  "artist": "Nemzzz",
+  "url": "https://itunes.apple.com/search?term=Nemzzz+LOCKED+IN&entity=album&limit=30&country=US",
+  "candidates": [],
+  "results": [
+    {
+      "wrapperType": "collection",
+      "collectionType": "Album",
+      "artistId": 1434427948,
+      "collectionId": 6772125574,
+      "artistName": "Nemzzz",
+      "collectionName": "LOCKED IN FREESTYLE - Single",
+      "collectionCensoredName": "LOCKED IN FREESTYLE - Single",
+      "artistViewUrl": "https://music.apple.com/us/artist/nemzzz/1434427948?uo=4",
+      "collectionViewUrl": "https://music.apple.com/us/album/locked-in-freestyle-single/6772125574?uo=4",
+      "artworkUrl60": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/60/6e/14/606e1469-0629-2b7a-c7c3-026ff24bf041/1200214109486.jpg/60x60bb.jpg",
+      "artworkUrl100": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/60/6e/14/606e1469-0629-2b7a-c7c3-026ff24bf041/1200214109486.jpg/100x100bb.jpg",
+      "collectionPrice": 1.29,
+      "collectionExplicitness": "notExplicit",
+      "trackCount": 1,
+      "copyright": "℗ 2026 Nemzzz",
+      "country": "USA",
+      "currency": "USD",
+      "releaseDate": "2026-05-27T07:00:00Z",
+      "primaryGenreName": "Hip-Hop/Rap"
+    }
+  ]
+}

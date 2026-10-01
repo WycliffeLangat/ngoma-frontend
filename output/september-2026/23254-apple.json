@@ -1,0 +1,37 @@
+{
+  "id": 23254,
+  "requested_title": "Badda Dan",
+  "requested_artist": "6uff",
+  "url": "https://music.apple.com/us/album/badda-dan/1817501247?i=1817501250&uo=4",
+  "resolved_url": "https://music.apple.com/us/album/badda-dan/1817501247?i=1817501250&uo=4",
+  "page_title": "‎Badda Dan - Song with Lyrics by 6uff & Rezman - Apple Music",
+  "title": "Badda Dan - Single",
+  "artists": [
+    "6uff",
+    "Rezman"
+  ],
+  "genre": "Afrobeats · 2023",
+  "track_count": 1,
+  "artwork": {
+    "bgColor": "5e26b5",
+    "hasP3": false,
+    "height": 1400,
+    "textColor1": "5cf8e7",
+    "textColor2": "edc4fa",
+    "textColor3": "5dcedd",
+    "textColor4": "d0a4ec",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/92/6c/4d/926c4d74-874e-9b8c-0280-9d0d6f674730/713312408944.jpg/{w}x{h}bb.{f}",
+    "width": 1400
+  },
+  "footer": "February 10, 2023\n1 song, 2 minutes\n℗ 2023 6uff & Rezman / Azuri 6uff & Rezman / Azuri",
+  "tracks": [
+    {
+      "title": "Badda Dan",
+      "artist": "6uff & Rezman",
+      "composer": "6uff, Daniel Diribe & Okwudili Okoli",
+      "url": "https://music.apple.com/us/album/badda-dan/1817501247?i=1817501250",
+      "id": "1817501250"
+    }
+  ],
+  "checked_at": "2026-10-01T01:55:22.018Z"
+}

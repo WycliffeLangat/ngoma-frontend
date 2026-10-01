@@ -1,0 +1,36 @@
+{
+  "id": 23682,
+  "requested_title": "Kiwembe",
+  "requested_artist": "Lava Lava",
+  "url": "https://music.apple.com/us/album/kiwembe/6805878863?i=6805879359&uo=4",
+  "resolved_url": "https://music.apple.com/us/album/kiwembe/6805878863?i=6805879359&uo=4",
+  "page_title": "‎Kiwembe - Song with Lyrics by Lava Lava - Apple Music",
+  "title": "Kiwembe - Single",
+  "artists": [
+    "Lava Lava"
+  ],
+  "genre": "Pop · 2026",
+  "track_count": 1,
+  "artwork": {
+    "bgColor": "212623",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "ffffff",
+    "textColor2": "d8dce0",
+    "textColor3": "d2d3d2",
+    "textColor4": "b3b8ba",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/36/8a/49/368a49fd-7c03-fdbf-af06-a736d4278360/766214704775.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "September 16, 2026\n1 song, 3 minutes\n℗ 2026 Bite Gang",
+  "tracks": [
+    {
+      "title": "Kiwembe",
+      "artist": "Lava Lava",
+      "composer": "Abdull Idd",
+      "url": "https://music.apple.com/us/album/kiwembe/6805878863?i=6805879359",
+      "id": "6805879359"
+    }
+  ],
+  "checked_at": "2026-10-01T01:55:17.817Z"
+}

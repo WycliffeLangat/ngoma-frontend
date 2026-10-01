@@ -1,0 +1,36 @@
+{
+  "id": 21706,
+  "requested_title": "Single",
+  "requested_artist": "Kapitani",
+  "url": "https://music.apple.com/us/album/single/6770293464?i=6770293465&uo=4",
+  "resolved_url": "https://music.apple.com/us/album/single/6770293464?i=6770293465&uo=4",
+  "page_title": "‎Single - Song with Lyrics by Kapitani - Apple Music",
+  "title": "Single - Single",
+  "artists": [
+    "Kapitani"
+  ],
+  "genre": "R&B/Soul · 2026",
+  "track_count": 1,
+  "artwork": {
+    "bgColor": "1a1a24",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "d9d8db",
+    "textColor2": "cdb6b3",
+    "textColor3": "b3b2b6",
+    "textColor4": "a99797",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/6e/49/83/6e498336-6508-dc0e-e79a-6d8b180206de/artwork.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "May 17, 2026\n1 song, 2 minutes\n℗ 2026 10312829 Records DK",
+  "tracks": [
+    {
+      "title": "Single",
+      "artist": "Kapitani",
+      "composer": "Martin Nduati",
+      "url": "https://music.apple.com/us/album/single/6770293464?i=6770293465",
+      "id": "6770293465"
+    }
+  ],
+  "checked_at": "2026-10-01T01:55:21.147Z"
+}

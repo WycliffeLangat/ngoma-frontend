@@ -1,0 +1,36 @@
+{
+  "id": 17732,
+  "requested_title": "Rembo",
+  "requested_artist": "Prince Indah",
+  "url": "https://music.apple.com/us/album/rembo/1783179457?i=1783179461&uo=4",
+  "resolved_url": "https://music.apple.com/us/album/rembo/1783179457?i=1783179461&uo=4",
+  "page_title": "‎Rembo - Song with Lyrics by Prince Indah - Apple Music",
+  "title": "Rembo - Single",
+  "artists": [
+    "Prince Indah"
+  ],
+  "genre": "Pop · 2024",
+  "track_count": 1,
+  "artwork": {
+    "bgColor": "f5f5ff",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "2a2a36",
+    "textColor2": "383135",
+    "textColor3": "52535e",
+    "textColor4": "5d585d",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/c4/d5/23/c4d523b6-f1c2-1a58-b121-40524370f59f/199066125625.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "December 10, 2024\n1 song, 8 minutes\n℗ 2024 EMC",
+  "tracks": [
+    {
+      "title": "Rembo",
+      "artist": "Prince Indah",
+      "composer": "EVANCE OCHIENG OWINO",
+      "url": "https://music.apple.com/us/album/rembo/1783179457?i=1783179461",
+      "id": "1783179461"
+    }
+  ],
+  "checked_at": "2026-10-01T01:55:19.589Z"
+}

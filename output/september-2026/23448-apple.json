@@ -1,0 +1,36 @@
+{
+  "id": 23448,
+  "requested_title": "Upweke",
+  "requested_artist": "Jay Melody",
+  "url": "https://music.apple.com/us/album/upweke/6804729908?i=6804729909&uo=4",
+  "resolved_url": "https://music.apple.com/us/album/upweke/6804729908?i=6804729909&uo=4",
+  "page_title": "‎Upweke - Song with Lyrics by Jay Melody - Apple Music",
+  "title": "Upweke - Single",
+  "artists": [
+    "Jay Melody"
+  ],
+  "genre": "Afro-Beat · 2026",
+  "track_count": 1,
+  "artwork": {
+    "bgColor": "f8e9d6",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "131110",
+    "textColor2": "1d1b19",
+    "textColor3": "413c37",
+    "textColor4": "49443f",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/85/44/57/85445742-5feb-5367-d200-94d0c4d61aa8/712132140850_cover.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "August 26, 2026\n1 song, 3 minutes\n℗ 2026 Sharif Saidi Juma",
+  "tracks": [
+    {
+      "title": "Upweke",
+      "artist": "Jay Melody",
+      "composer": "Sharif Saidi Juma",
+      "url": "https://music.apple.com/us/album/upweke/6804729908?i=6804729909",
+      "id": "6804729909"
+    }
+  ],
+  "checked_at": "2026-10-01T01:55:13.355Z"
+}

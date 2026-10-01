@@ -1,0 +1,106 @@
+{
+  "id": 23543,
+  "requested_title": "PRIMA",
+  "requested_artist": "ADELA",
+  "url": "https://music.apple.com/us/album/prima/6807192580?uo=4",
+  "resolved_url": "https://music.apple.com/us/album/prima/6807192580?uo=4",
+  "page_title": "‎PRIMA - Album by ADÉLA - Apple Music",
+  "title": "PRIMA",
+  "artists": [
+    "ADÉLA"
+  ],
+  "genre": "Pop · 2026",
+  "track_count": 11,
+  "artwork": {
+    "bgColor": "f3f3f1",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "2a060f",
+    "textColor2": "38101d",
+    "textColor3": "52363c",
+    "textColor4": "5d3d47",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/53/c6/9a/53c69a6a-d1c4-0983-a20c-a67dceae554f/26UMGIM82372.rgb.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "September 3, 2026\n11 songs, 31 minutes\nCapitol Records; ℗ 2026 UMG Recordings, Inc.",
+  "tracks": [
+    {
+      "title": "KGB",
+      "artist": "ADÉLA",
+      "composer": "ADÉLA, Ali Tamposi, Blake Slatkin, Billy Walsh, Dylan Brady & Harrison Patrick Smith",
+      "url": "https://music.apple.com/us/album/kgb/6807192580?i=6807192581",
+      "id": "6807192581"
+    },
+    {
+      "title": "Nicole Kidman",
+      "artist": "ADÉLA",
+      "composer": "Adéla Jergova, Blake Slatkin, Billy Walsh, Julia Michaels, Uffie & Dylan Brady",
+      "url": "https://music.apple.com/us/album/nicole-kidman/6807192580?i=6807192825",
+      "id": "6807192825"
+    },
+    {
+      "title": "I'm The Man",
+      "artist": "ADÉLA",
+      "composer": "Adéla Jergova, Blake Slatkin, Billy Walsh, Magnus August Høiberg & Caroline Ailin",
+      "url": "https://music.apple.com/us/album/im-the-man/6807192580?i=6807192827",
+      "id": "6807192827"
+    },
+    {
+      "title": "Boys",
+      "artist": "ADÉLA",
+      "composer": "Adéla Jergova, Blake Slatkin, Billy Walsh, Julia Michaels & Dylan Brady",
+      "url": "https://music.apple.com/us/album/boys/6807192580?i=6807192828",
+      "id": "6807192828"
+    },
+    {
+      "title": "Red Bottoms",
+      "artist": "ADÉLA",
+      "composer": "Adéla Jergova, Blake Slatkin, Billy Walsh, Dylan Brady & Julia Michaels",
+      "url": "https://music.apple.com/us/album/red-bottoms/6807192580?i=6807192829",
+      "id": "6807192829"
+    },
+    {
+      "title": "Hitachi",
+      "artist": "ADÉLA",
+      "composer": "Adéla Jergova, Blake Slatkin, Billy Walsh, Dylan Brady & Julia Michaels",
+      "url": "https://music.apple.com/us/album/hitachi/6807192580?i=6807192830",
+      "id": "6807192830"
+    },
+    {
+      "title": "Fantasize",
+      "artist": "ADÉLA",
+      "composer": "Adéla Jergova, Blake Slatkin, Julia Michaels, Livvi Franc & Count Baldor",
+      "url": "https://music.apple.com/us/album/fantasize/6807192580?i=6807192832",
+      "id": "6807192832"
+    },
+    {
+      "title": "Starving Artist",
+      "artist": "ADÉLA",
+      "composer": "Adéla Jergova, Blake Slatkin, Julia Michaels, Billy Walsh & Dylan Brady",
+      "url": "https://music.apple.com/us/album/starving-artist/6807192580?i=6807192833",
+      "id": "6807192833"
+    },
+    {
+      "title": "Marijuana",
+      "artist": "ADÉLA",
+      "composer": "Adéla Jergova, Blake Slatkin, atlgrandma, Isaac Eiger & Billy Walsh",
+      "url": "https://music.apple.com/us/album/marijuana/6807192580?i=6807192834",
+      "id": "6807192834"
+    },
+    {
+      "title": "Therapy",
+      "artist": "ADÉLA",
+      "composer": "Adéla Jergova & Dylan Brady",
+      "url": "https://music.apple.com/us/album/therapy/6807192580?i=6807192835",
+      "id": "6807192835"
+    },
+    {
+      "title": "Ain't In LA",
+      "artist": "ADÉLA",
+      "composer": "Adéla Jergova, Blake Slatkin, Billy Walsh, Dylan Brady & Theron Thomas",
+      "url": "https://music.apple.com/us/album/aint-in-la/6807192580?i=6807192838",
+      "id": "6807192838"
+    }
+  ],
+  "checked_at": "2026-10-01T08:24:56.776Z"
+}

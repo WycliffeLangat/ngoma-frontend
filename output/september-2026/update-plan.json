@@ -1,0 +1,2760 @@
+{
+  "scope": "September 2026 new entries",
+  "policy": "Only fill empty fields; retain unresolved conflicts",
+  "releases": [
+    {
+      "id": 23541,
+      "title": "31",
+      "artist_id": 88,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/31/6805629535",
+          "source": "https://music.apple.com/us/album/31/6805629535"
+        },
+        "genre": {
+          "value": "Afrobeats",
+          "source": "https://music.apple.com/us/album/31/6805629535"
+        },
+        "number_of_tracks": {
+          "value": 14,
+          "source": "https://music.apple.com/us/album/31/6805629535"
+        },
+        "release_date": {
+          "value": "2026-09-04",
+          "source": "https://music.apple.com/us/album/31/6805629535"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/31/6805629535"
+        },
+        "label": {
+          "value": "Ziiki Media",
+          "source": "https://music.apple.com/us/album/31/6805629535"
+        },
+        "songwriters": {
+          "value": "Rajabu Abdulkahali Ibrahim & Gustino Luwis; Rajabu Abdulkahali Ibrahim & Mkombozi William Kahula; Rajabu Abdulkahali Ibrahim, Oluwatobi Wande Ojosipe & Salmin Rashid Kassimu; Rajabu Abdulkahali Ibrahim, Omary Ally Mwanga & Mashaka Mussa Kasimka; Rajabu Abdulkahali Ibrahim & John Kimambo; Rajabu Abdulkahali Ibrahim, Mashaka Mussa Kasimka & Prince Nemiala; Rajabu Abdulkahali Ibrahim, Raymond Shaban Mwakyusa & John Kimambo; Rajabu Abdulkahali Ibrahim, Mashaka Mussa Kasimka & Sofiya Wanjiku Nzau; Rajabu Abdulkahali Ibrahim, John Kimambo & Sharif Said Juma; Rajabu Abdulkahali Ibrahim, Adewale Mayowa Emmanuel & Tárico Caifaz Samuel Simbine; Rajabu Abdulkahali Ibrahim, Tárico Caifaz Samuel Simbine & Chimamanda Pearl Chukwuma; Rajabu Abdulkahali Ibrahim, Salmin Rashid Kassimu & Livingstone Etse Satekla; Rajabu Abdulkahali Ibrahim, Oluwafisayo Isa, Yemi Eberechi Alade & Fred Robinson Mugisha; Rajabu Abdulkahali Ibrahim, Yona Kajicho Abdallah & Mohamed Ramadan Mahmoud Hegazy",
+          "source": "https://music.apple.com/us/album/31/6805629535"
+        },
+        "upc": {
+          "value": "823375395928",
+          "source": "https://www.deezer.com/album/1063839571"
+        }
+      }
+    },
+    {
+      "id": 23254,
+      "title": "Badda Dan",
+      "artist_id": 1858,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/badda-dan/1817501247?i=1817501250",
+          "source": "https://music.apple.com/us/album/badda-dan/1817501247?i=1817501250&uo=4"
+        },
+        "genre": {
+          "value": "Afrobeats",
+          "source": "https://music.apple.com/us/album/badda-dan/1817501247?i=1817501250&uo=4"
+        },
+        "label": {
+          "value": "6uff & Rezman / Azuri",
+          "source": "https://music.apple.com/us/album/badda-dan/1817501247?i=1817501250&uo=4"
+        },
+        "songwriters": {
+          "value": "6uff; Okwudili Okoli; Daniel Diribe",
+          "source": "https://music.apple.com/us/song/1817501250"
+        },
+        "isrc": {
+          "value": "QZW9L2292700",
+          "source": "https://www.deezer.com/track/2647219942"
+        },
+        "country": {
+          "value": "Nigeria",
+          "source": "https://musicinafrica.net/directory/6uff/"
+        },
+        "country_code": {
+          "value": "NG",
+          "source": "https://musicinafrica.net/directory/6uff/"
+        }
+      }
+    },
+    {
+      "id": 23317,
+      "title": "BB Lifestyle",
+      "artist_id": 1013,
+      "fields": {
+        "isrc": {
+          "value": "QMBZ92682379",
+          "source": "https://www.deezer.com/track/4135518391"
+        },
+        "upc": {
+          "value": "820233968034",
+          "source": "https://www.deezer.com/album/1022285311"
+        },
+        "release_date": {
+          "value": "2026-07-17",
+          "source": "https://www.deezer.com/track/4135518391"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://www.deezer.com/track/4135518391"
+        },
+        "label": {
+          "value": "Inner Circle Entertainment Ltd.",
+          "source": "https://www.deezer.com/album/1022285311"
+        },
+        "genre": {
+          "value": "Soul & Funk",
+          "source": "https://www.deezer.com/album/1022285311"
+        }
+      }
+    },
+    {
+      "id": 23540,
+      "title": "Beats In Space 219: DJ Maphorisa (DJ Mix)",
+      "artist_id": 262,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/beats-in-space-219-dj-maphorisa-dj-mix/6804893934",
+          "source": "https://music.apple.com/us/album/beats-in-space-219-dj-maphorisa-dj-mix/6804893934"
+        },
+        "genre": {
+          "value": "Amapiano",
+          "source": "https://music.apple.com/us/album/beats-in-space-219-dj-maphorisa-dj-mix/6804893934"
+        },
+        "number_of_tracks": {
+          "value": 17,
+          "source": "https://music.apple.com/us/album/beats-in-space-219-dj-maphorisa-dj-mix/6804893934"
+        },
+        "release_date": {
+          "value": "2026-09-03",
+          "source": "https://music.apple.com/us/album/beats-in-space-219-dj-maphorisa-dj-mix/6804893934"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/beats-in-space-219-dj-maphorisa-dj-mix/6804893934"
+        }
+      }
+    },
+    {
+      "id": 18154,
+      "title": "Believe Me",
+      "artist_id": 35,
+      "fields": {
+        "producers": {
+          "value": "Teddy B",
+          "source": "https://music.apple.com/us/song/1850927726"
+        }
+      }
+    },
+    {
+      "id": 19739,
+      "title": "Bhad Boi (Deluxe)",
+      "artist_id": 1199,
+      "fields": {
+        "songwriters": {
+          "value": "Kuham Oladimeji Akinyinka & Adeyemi Olanrewaju; Kuham Oladimeji Akinyinka; Kuham Oladimeji Akinyinka, Alhassan Gimba Chukwubuikem, David van der Knaap, Michael babatunde Adeyinka & Christopher Chan; Kuham Oladimeji Akinyinka & Ashiru Okekayode; Kuham Oladimeji Akinyinka & Vid Vucenovic; Kuham Oladimeji Akinyinka & Qudus Fakoya Oluwadamilare; BhadBoi OML",
+          "source": "https://music.apple.com/us/album/bhad-boi-deluxe/1799049910"
+        }
+      }
+    },
+    {
+      "id": 23217,
+      "title": "BLOW (feat. Scar Mkadinali)",
+      "artist_id": 3186,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/blow-feat-scar-mkadinali/6799950686?i=6799950687",
+          "source": "https://music.apple.com/us/album/blow-feat-scar-mkadinali-single/6799950686"
+        },
+        "featured_artists": {
+          "value": "Scar Mkadinali",
+          "source": "https://music.apple.com/us/album/blow-feat-scar-mkadinali/6799950686?i=6799950687"
+        },
+        "genre": {
+          "value": "Hip-Hop/Rap",
+          "source": "https://music.apple.com/us/album/blow-feat-scar-mkadinali-single/6799950686"
+        },
+        "release_date": {
+          "value": "2026-08-06",
+          "source": "https://music.apple.com/us/album/blow-feat-scar-mkadinali-single/6799950686"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/blow-feat-scar-mkadinali-single/6799950686"
+        },
+        "label": {
+          "value": "13405878 Records DK",
+          "source": "https://music.apple.com/us/album/blow-feat-scar-mkadinali-single/6799950686"
+        },
+        "songwriters": {
+          "value": "JOHN DAVID MUNGA TANGUT; Churchill Mandela; Teddy omondi obwar",
+          "source": "https://music.apple.com/us/song/6799950687"
+        },
+        "producers": {
+          "value": "Collins Ngunjiri; Obwar Bwana",
+          "source": "https://music.apple.com/us/song/6799950687"
+        },
+        "isrc": {
+          "value": "QT6G72644300",
+          "source": "https://www.deezer.com/track/4214495102"
+        },
+        "upc": {
+          "value": "881839007886",
+          "source": "https://www.deezer.com/album/1050645722"
+        }
+      }
+    },
+    {
+      "id": 22907,
+      "title": "Control",
+      "artist_id": 2158,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/control/1840257777?i=1840258168",
+          "source": "https://music.apple.com/us/album/control-single/1840257777?uo=4"
+        },
+        "genre": {
+          "value": "Hip-Hop/Rap",
+          "source": "https://music.apple.com/us/album/control-single/1840257777?uo=4"
+        },
+        "release_date": {
+          "value": "2025-09-15",
+          "source": "https://music.apple.com/us/album/control-single/1840257777?uo=4"
+        },
+        "release_year": {
+          "value": 2025,
+          "source": "https://music.apple.com/us/album/control-single/1840257777?uo=4"
+        },
+        "label": {
+          "value": "10312829 Records DK",
+          "source": "https://music.apple.com/us/album/control-single/1840257777?uo=4"
+        },
+        "songwriters": {
+          "value": "Martin Nduati",
+          "source": "https://music.apple.com/us/song/1840258168"
+        },
+        "producers": {
+          "value": "Emudio; Beat Kidd",
+          "source": "https://music.apple.com/us/song/1840258168"
+        },
+        "isrc": {
+          "value": "QZZ7W2578567",
+          "source": "https://www.deezer.com/track/3556377271"
+        },
+        "upc": {
+          "value": "199738778227",
+          "source": "https://www.deezer.com/album/821605181"
+        }
+      }
+    },
+    {
+      "id": 23452,
+      "title": "Don't Look Down",
+      "artist_id": 204,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/dont-look-down/6807069399?uo=4",
+          "source": "https://music.apple.com/us/album/dont-look-down/6807069399?uo=4"
+        },
+        "genre": {
+          "value": "Rap",
+          "source": "https://music.apple.com/us/album/dont-look-down/6807069399?uo=4"
+        },
+        "number_of_tracks": {
+          "value": 24,
+          "source": "https://music.apple.com/us/album/dont-look-down/6807069399?uo=4"
+        },
+        "label": {
+          "value": "Alamo Records, LLC/Sony Music Entertainment",
+          "source": "https://music.apple.com/us/album/dont-look-down/6807069399?uo=4"
+        },
+        "songwriters": {
+          "value": "Rodarius Green, Summer Joy Roberts, Merrick Hughes, Roland Orzabal & Ian Stanley; Rodarius Green, Matthew Taylor, Tahj Vaughn, Jaterrian Hudson, Mick Steinbach, Matvey Lokotetskiy & David Manuele; Rodarius Green, Thomas Horton, Monte Moir, Anthony Fields, Earl Simmons, Antonio Ramos, Jeremiah Dickerson & Menariah Andrews; Rodarius Green, Thomas Horton, David McDowell & Cameron Holmes; Rodarius Green, Antonio Ramos, Alex Tanner, Robert Smorra & Ryan Bevolo; Rodarius Green, Matvey Lokotetskiy, Matthew Taylor, Mick Steinbach & Chidi Osondu; Rodarius Green, Lavon Mitchell, Hank Compton, jamie mclaughlin & Will Keating; Rodarius Green, Thomas Horton, Tahj Vaughn, Jarvis Miller, Rashaad Green & Alvaro Goitisolo Garcia; Rodarius Green, Thomas Horton, Matthew Taylor, Tahj Vaughn, Jonah Glass, Travis Harrington & Jomo Jr Blose; Rodarius Green, Tarkan Kozluklu, George Alexandrov, Leonardo Sternieri, Niko Schneider & Toren Spears; Hazlett, Rodarius Green, Cameron Blumberg, Leonardo Sternieri, Toren Spears, Kenneth Whalum, Fred McFarlane, Travis Harrington & Henrik Jonzon; Rodarius Green, Thomas Horton & Kyris Mingo; Rodarius Green, Ricardo Toussaint, Scott Parker, Vanessa Wood, Aleksandr Tabensky, Francine Golde, Tom Snow, Dwayne Carter, Aubrey Drake Graham, Justin Henderson, Carl Lilly, Jarvis Mills, Jermaine Preyan & Christopher Whitacre; Rodarius Green, Trentay Robinson & Kadrian Lewis; Rodarius Green, Cameron Blumberg & Aleksandr Tabensky; Rodarius Green, Trentay Robinson, Kadrian Lewis & Rodney Green; Aimee Carty, Rodarius Green & Lee Allen Speights III; Rodarius Green, Ricardo Toussaint, Jeremy Bradley, Joseph A. King, Isaac Slade, Nasir Jones, Anthony Cruz, Oliver Scott & Ronnie Wilson; Rodarius Green, Lee Allen Speights III, Carlos McKinney & Terius Gesteelde-Diamant; Rodarius Green, Zach Crowell, Amman Nurani, Tahj Vaughn, Justin Franks, Julie Frost, Ed Sheeran & Ernest Wilson; Rodarius Green & Aaron Owuor Tago; Rodarius Green, Trentay Robinson, Kendrell Mattox & Braeden Lessane; Rodarius Green, azean fish & Bob Marley; Rodarius Green, Jahlil Gunter, Malik Sanders, Joshua Ayers, Joshua Ties, Luc Charles André Thévoz, Kenneth Robert Lewis, Michael Perretta, Kanye West, David Sheats, DeVon Harris, Don Black, John Barry, Antwan Patton, André Benjamin & Antony Williams",
+          "source": "https://music.apple.com/us/album/dont-look-down/6807069399?uo=4"
+        }
+      }
+    },
+    {
+      "id": 23476,
+      "title": "Find My Babe",
+      "artist_id": 1013,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/find-my-babe/6807817364?i=6807817641",
+          "source": "https://music.apple.com/us/album/find-my-babe-single/6807817364?uo=4"
+        },
+        "genre": {
+          "value": "Amapiano",
+          "source": "https://music.apple.com/us/album/find-my-babe-single/6807817364?uo=4"
+        },
+        "release_date": {
+          "value": "2026-09-04",
+          "source": "https://music.apple.com/us/album/find-my-babe-single/6807817364?uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/find-my-babe-single/6807817364?uo=4"
+        },
+        "label": {
+          "value": "KILOGBEDE RECORDS LIMITED",
+          "source": "https://music.apple.com/us/album/find-my-babe-single/6807817364?uo=4"
+        },
+        "songwriters": {
+          "value": "OSEREMEN MARVIN",
+          "source": "https://music.apple.com/us/song/6807817641"
+        },
+        "producers": {
+          "value": "Lanokies; D-MINOR",
+          "source": "https://music.apple.com/us/song/6807817641"
+        },
+        "isrc": {
+          "value": "QMDA72671777",
+          "source": "https://www.deezer.com/track/4261207931"
+        },
+        "upc": {
+          "value": "885288471526",
+          "source": "https://www.deezer.com/album/1068941971"
+        }
+      }
+    },
+    {
+      "id": 19506,
+      "title": "Formule 7",
+      "artist_id": 41,
+      "fields": {
+        "songwriters": {
+          "value": "Fally Ipupa; Alex Shua & Fally Ipupa; Franco Loambo Makiadi",
+          "source": "https://music.apple.com/gh/album/formule-7/1657242141"
+        }
+      }
+    },
+    {
+      "id": 23494,
+      "title": "Happy Song",
+      "artist_id": 471,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/happy-song/6791655174?i=6791655178",
+          "source": "https://music.apple.com/us/album/happy-song-single/6791655174?uo=4"
+        },
+        "genre": {
+          "value": "Afrobeats",
+          "source": "https://music.apple.com/us/album/happy-song-single/6791655174?uo=4"
+        },
+        "release_date": {
+          "value": "2026-08-14",
+          "source": "https://music.apple.com/us/album/happy-song-single/6791655174?uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/happy-song-single/6791655174?uo=4"
+        },
+        "label": {
+          "value": "Dangbana Republik",
+          "source": "https://music.apple.com/us/album/happy-song-single/6791655174?uo=4"
+        },
+        "songwriters": {
+          "value": "Akinbiyi Ahmed Abiola; Shefiu Ahmed; Adegeye Clinton",
+          "source": "https://music.apple.com/us/song/6791655178"
+        },
+        "producers": {
+          "value": "larrylanes",
+          "source": "https://music.apple.com/us/song/6791655178"
+        },
+        "isrc": {
+          "value": "QZMZ92677138",
+          "source": "https://www.deezer.com/track/4158857662"
+        },
+        "upc": {
+          "value": "736084813839",
+          "source": "https://www.deezer.com/album/1030993002"
+        }
+      }
+    },
+    {
+      "id": 17997,
+      "title": "HATUA ZANGU",
+      "artist_id": 495,
+      "fields": {
+        "songwriters": {
+          "value": "VICTOR MUTHENYA",
+          "source": "https://music.apple.com/us/song/1842389356"
+        },
+        "producers": {
+          "value": "Kasa",
+          "source": "https://music.apple.com/us/song/1842389356"
+        }
+      }
+    },
+    {
+      "id": 23212,
+      "title": "Heaven Baby (feat. ZAYN)",
+      "artist_id": 8,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/heaven-baby-feat-zayn/6796539188?i=6796539210",
+          "source": "https://music.apple.com/us/album/heaven-baby-feat-zayn/6796539188?i=6796539210&uo=4"
+        },
+        "featured_artists": {
+          "value": "ZAYN",
+          "source": "https://music.apple.com/us/album/heaven-baby-feat-zayn/6796539188?i=6796539210"
+        },
+        "genre": {
+          "value": "Afrobeats",
+          "source": "https://music.apple.com/us/album/heaven-baby-feat-zayn/6796539188?i=6796539210&uo=4"
+        },
+        "release_date": {
+          "value": "2026-08-14",
+          "source": "https://music.apple.com/us/album/heaven-baby-feat-zayn/6796539188?i=6796539210&uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/heaven-baby-feat-zayn/6796539188?i=6796539210&uo=4"
+        },
+        "label": {
+          "value": "Mavin Global Holdings Ltd, under exclusive license to Republic Records, a division of UMG Recordings, Inc.",
+          "source": "https://music.apple.com/us/album/heaven-baby-feat-zayn/6796539188?i=6796539210&uo=4"
+        },
+        "songwriters": {
+          "value": "Isaiah Tejada; Gregory \"Aldae\" Hein; Abby Keen; Stefan Johnson; Jordan Johnson; Oyinkansola Sarah Aderibigbe",
+          "source": "https://music.apple.com/us/song/6796539210"
+        },
+        "producers": {
+          "value": "The Monsters & Strangerz; Isaiah Tejada; Gregory \"Aldae\" Hein; Stefan Johnson; Jordan Johnson",
+          "source": "https://music.apple.com/us/song/6796539210"
+        },
+        "isrc": {
+          "value": "USUG12605163",
+          "source": "https://www.deezer.com/track/4209009742"
+        }
+      }
+    },
+    {
+      "id": 23281,
+      "title": "Henessy",
+      "artist_id": 3212,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/henessy/6797800833?i=6797800837",
+          "source": "https://music.apple.com/us/album/henessy/6797800833?i=6797800837&uo=4"
+        },
+        "genre": {
+          "value": "Dance",
+          "source": "https://music.apple.com/us/album/henessy/6797800833?i=6797800837&uo=4"
+        },
+        "release_date": {
+          "value": "2026-08-04",
+          "source": "https://music.apple.com/us/album/henessy/6797800833?i=6797800837&uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/henessy/6797800833?i=6797800837&uo=4"
+        },
+        "label": {
+          "value": "Phantom music",
+          "source": "https://music.apple.com/us/album/henessy/6797800833?i=6797800837&uo=4"
+        },
+        "songwriters": {
+          "value": "MICKY BLAISE",
+          "source": "https://music.apple.com/us/song/6797800837"
+        }
+      }
+    },
+    {
+      "id": 23391,
+      "title": "Hongo Ya Karao (feat. Mauru Gwash & Kapitani) [Vol. 2]",
+      "artist_id": 2827,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/hongo-ya-karao-feat-mauru-gwash-kapitani-vol-2/6804729976?i=6804729978",
+          "source": "https://music.apple.com/us/album/hongo-ya-karao-feat-mauru-gwash-kapitani-vol-2-single/6804729976?uo=4"
+        },
+        "genre": {
+          "value": "Hip-Hop/Rap",
+          "source": "https://music.apple.com/us/album/hongo-ya-karao-feat-mauru-gwash-kapitani-vol-2-single/6804729976?uo=4"
+        },
+        "release_date": {
+          "value": "2026-08-22",
+          "source": "https://music.apple.com/us/album/hongo-ya-karao-feat-mauru-gwash-kapitani-vol-2-single/6804729976?uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/hongo-ya-karao-feat-mauru-gwash-kapitani-vol-2-single/6804729976?uo=4"
+        },
+        "label": {
+          "value": "Toxic Lyrikali / Mboka Doba Ltd",
+          "source": "https://music.apple.com/us/album/hongo-ya-karao-feat-mauru-gwash-kapitani-vol-2-single/6804729976?uo=4"
+        },
+        "songwriters": {
+          "value": "Toxic Lyrikali, Mauru Gwash & Zien Kapitani",
+          "source": "https://music.apple.com/us/album/hongo-ya-karao-feat-mauru-gwash-kapitani-vol-2/6804729976?i=6804729978"
+        }
+      }
+    },
+    {
+      "id": 23514,
+      "title": "Huyo Ndo Mimi (feat. Kapitani)",
+      "artist_id": 3313,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/huyo-ndo-mimi-feat-kapitani/6792643364?i=6792643365",
+          "source": "https://music.apple.com/us/album/huyo-ndo-mimi-feat-kapitani/6792643364?i=6792643365&uo=4"
+        },
+        "genre": {
+          "value": "Hip-Hop/Rap",
+          "source": "https://music.apple.com/us/album/huyo-ndo-mimi-feat-kapitani/6792643364?i=6792643365&uo=4"
+        },
+        "label": {
+          "value": "NAISHIFT",
+          "source": "https://music.apple.com/us/album/huyo-ndo-mimi-feat-kapitani/6792643364?i=6792643365&uo=4"
+        },
+        "songwriters": {
+          "value": "Mark Chacha; Martin Nduati",
+          "source": "https://music.apple.com/us/song/6792643365"
+        },
+        "producers": {
+          "value": "Mark Chacha",
+          "source": "https://music.apple.com/us/song/6792643365"
+        },
+        "isrc": {
+          "value": "QT6FD2666396",
+          "source": "https://www.deezer.com/track/4164640802"
+        }
+      }
+    },
+    {
+      "id": 23633,
+      "title": "IBRAHYMN",
+      "artist_id": 187,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/ibrahymn/6802321192?uo=4",
+          "source": "https://music.apple.com/us/album/ibrahymn/6802321192?uo=4"
+        },
+        "genre": {
+          "value": "Hip-Hop/Rap",
+          "source": "https://music.apple.com/us/album/ibrahymn/6802321192?uo=4"
+        },
+        "number_of_tracks": {
+          "value": 14,
+          "source": "https://music.apple.com/us/album/ibrahymn/6802321192?uo=4"
+        },
+        "release_date": {
+          "value": "2026-09-09",
+          "source": "https://music.apple.com/us/album/ibrahymn/6802321192?uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/ibrahymn/6802321192?uo=4"
+        },
+        "label": {
+          "value": "Octopizzo Music",
+          "source": "https://music.apple.com/us/album/ibrahymn/6802321192?uo=4"
+        },
+        "songwriters": {
+          "value": "Henry Ohanga; Henry Ohanga & Ara theJay; Henry Ohanga & Nneka Julia; Shari Afrika & Henry Ohanga",
+          "source": "https://music.apple.com/us/album/ibrahymn/6802321192?uo=4"
+        },
+        "upc": {
+          "value": "881900314127",
+          "source": "https://www.deezer.com/album/1056258992"
+        }
+      }
+    },
+    {
+      "id": 23520,
+      "title": "Imeshindikana",
+      "artist_id": 88,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/imeshindikana/6805629535?i=6805629867",
+          "source": "https://music.apple.com/us/album/imeshindikana/6805629535?i=6805629867&uo=4"
+        },
+        "genre": {
+          "value": "Afrobeats",
+          "source": "https://music.apple.com/us/album/imeshindikana/6805629535?i=6805629867&uo=4"
+        },
+        "release_date": {
+          "value": "2026-09-04",
+          "source": "https://music.apple.com/us/album/imeshindikana/6805629535?i=6805629867&uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/imeshindikana/6805629535?i=6805629867&uo=4"
+        },
+        "label": {
+          "value": "Ziiki Media",
+          "source": "https://music.apple.com/us/album/imeshindikana/6805629535?i=6805629867&uo=4"
+        },
+        "songwriters": {
+          "value": "Rajabu Abdulkahali Ibrahim; John Kimambo; Sharif Said Juma",
+          "source": "https://music.apple.com/us/song/6805629867"
+        },
+        "producers": {
+          "value": "John Kimambo; Kimambo Beats",
+          "source": "https://music.apple.com/us/song/6805629867"
+        },
+        "isrc": {
+          "value": "ZA40S2601041",
+          "source": "https://www.deezer.com/track/4247987381"
+        }
+      }
+    },
+    {
+      "id": 23611,
+      "title": "Ipepete",
+      "artist_id": 334,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/ipepete/1835635589?i=1835635592",
+          "source": "https://music.apple.com/us/album/ipepete/1835635589?i=1835635592&uo=4"
+        },
+        "genre": {
+          "value": "Pop",
+          "source": "https://music.apple.com/us/album/ipepete/1835635589?i=1835635592&uo=4"
+        },
+        "label": {
+          "value": "EMC",
+          "source": "https://music.apple.com/us/album/ipepete/1835635589?i=1835635592&uo=4"
+        },
+        "songwriters": {
+          "value": "Ali Mohamed Said",
+          "source": "https://music.apple.com/us/song/1835635592"
+        },
+        "producers": {
+          "value": "motif di don",
+          "source": "https://music.apple.com/us/song/1835635592"
+        },
+        "isrc": {
+          "value": "QZES82053295",
+          "source": "https://www.deezer.com/track/1959153977"
+        },
+        "country": {
+          "value": "Kenya",
+          "source": "https://www.womex.com/virtual/georg_leitner_gmbh/mswazzi_masauti"
+        },
+        "country_code": {
+          "value": "KE",
+          "source": "https://www.womex.com/virtual/georg_leitner_gmbh/mswazzi_masauti"
+        }
+      }
+    },
+    {
+      "id": 23682,
+      "title": "Kiwembe",
+      "artist_id": 329,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/kiwembe/6805878863?i=6805879359",
+          "source": "https://music.apple.com/us/album/kiwembe/6805878863?i=6805879359&uo=4"
+        },
+        "genre": {
+          "value": "Pop",
+          "source": "https://music.apple.com/us/album/kiwembe/6805878863?i=6805879359&uo=4"
+        },
+        "release_date": {
+          "value": "2026-09-16",
+          "source": "https://music.apple.com/us/album/kiwembe/6805878863?i=6805879359&uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/kiwembe/6805878863?i=6805879359&uo=4"
+        },
+        "label": {
+          "value": "Bite Gang",
+          "source": "https://music.apple.com/us/album/kiwembe/6805878863?i=6805879359&uo=4"
+        },
+        "songwriters": {
+          "value": "Abdull Idd",
+          "source": "https://music.apple.com/us/song/6805879359"
+        },
+        "producers": {
+          "value": "S2Kizzy",
+          "source": "https://music.apple.com/us/song/6805879359"
+        },
+        "isrc": {
+          "value": "ZA56E2640146",
+          "source": "https://www.deezer.com/track/4249349491"
+        },
+        "upc": {
+          "value": "766214704775",
+          "source": "https://www.deezer.com/album/1064377591"
+        }
+      }
+    },
+    {
+      "id": 21374,
+      "title": "Kweku Jesus",
+      "artist_id": 1956,
+      "fields": {
+        "songwriters": {
+          "value": "Kweku Smoke",
+          "source": "https://music.apple.com/us/album/kweku-jesus/1817719294"
+        }
+      }
+    },
+    {
+      "id": 18823,
+      "title": "LATEST 2026 SONGS MIX BEST OF AFROBEAT , BONGO DANCEHALL HIPHOP RNB",
+      "artist_id": 858,
+      "fields": {
+        "release_date": {
+          "value": "2026-03-13",
+          "source": "https://audiomack.com/djexray/song/69aa2e90e7baa"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://audiomack.com/djexray/song/69aa2e90e7baa"
+        },
+        "producers": {
+          "value": "DJ EXRAY",
+          "source": "https://audiomack.com/djexray/song/69aa2e90e7baa"
+        },
+        "genre": {
+          "value": "Afrosounds",
+          "source": "https://audiomack.com/djexray/song/69aa2e90e7baa"
+        },
+        "audiomack_url": {
+          "value": "https://audiomack.com/djexray/song/69aa2e90e7baa",
+          "source": "https://audiomack.com/djexray/song/69aa2e90e7baa"
+        }
+      }
+    },
+    {
+      "id": 22240,
+      "title": "LATEST BONGO MIX 2026",
+      "artist_id": 2456,
+      "fields": {
+        "release_date": {
+          "value": "2026-03-19",
+          "source": "https://audiomack.com/thevibezmaster/song/latest-bongo-mix-2026-djgids254-ft-marioodiamond-platnumz-jay-melodyzuchumbosso"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://audiomack.com/thevibezmaster/song/latest-bongo-mix-2026-djgids254-ft-marioodiamond-platnumz-jay-melodyzuchumbosso"
+        },
+        "producers": {
+          "value": "Thevibezmaster",
+          "source": "https://audiomack.com/thevibezmaster/song/latest-bongo-mix-2026-djgids254-ft-marioodiamond-platnumz-jay-melodyzuchumbosso"
+        },
+        "genre": {
+          "value": "Instrumental; Bongo Flava",
+          "source": "https://audiomack.com/thevibezmaster/song/latest-bongo-mix-2026-djgids254-ft-marioodiamond-platnumz-jay-melodyzuchumbosso"
+        },
+        "audiomack_url": {
+          "value": "https://audiomack.com/thevibezmaster/song/latest-bongo-mix-2026-djgids254-ft-marioodiamond-platnumz-jay-melodyzuchumbosso",
+          "source": "https://audiomack.com/thevibezmaster/song/latest-bongo-mix-2026-djgids254-ft-marioodiamond-platnumz-jay-melodyzuchumbosso"
+        },
+        "country": {
+          "value": "Kenya",
+          "source": "https://audiomack.com/thevibezmaster"
+        },
+        "country_code": {
+          "value": "KE",
+          "source": "https://audiomack.com/thevibezmaster"
+        }
+      }
+    },
+    {
+      "id": 23538,
+      "title": "LOCKED IN",
+      "artist_id": 1159,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/locked-in/6796029883",
+          "source": "https://music.apple.com/us/album/locked-in/6796029883"
+        },
+        "genre": {
+          "value": "Hip-Hop/Rap",
+          "source": "https://music.apple.com/us/album/locked-in/6796029883"
+        },
+        "number_of_tracks": {
+          "value": 17,
+          "source": "https://music.apple.com/us/album/locked-in/6796029883"
+        },
+        "release_date": {
+          "value": "2026-09-04",
+          "source": "https://music.apple.com/us/album/locked-in/6796029883"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/locked-in/6796029883"
+        },
+        "label": {
+          "value": "Nemzzz",
+          "source": "https://music.apple.com/us/album/locked-in/6796029883"
+        },
+        "songwriters": {
+          "value": "Denzel Ugoji & Nemzzz; Nemzzz; Miles Parks McCollum & Nemzzz; Cash Cobain & Nemzzz; Mikel Storleer Eriksen, Nemzzz, Shaffer Smith & Tor Erik Hermansen; Alyssa Stephens, Brian Alexander Morgan, Denzel Ugoji, Kurtis Mckenzie, Nemzzz, Patrick O'Halloran & Rogét Chahayed; Denzel Ugoji, Jacques Bermon Webster II & Nemzzz; Nemzzz & Olu Tunde Fini",
+          "source": "https://music.apple.com/us/album/locked-in/6796029883"
+        },
+        "upc": {
+          "value": "1200214689186",
+          "source": "https://www.deezer.com/album/1041434792"
+        }
+      }
+    },
+    {
+      "id": 19362,
+      "title": "Lungu Boy",
+      "artist_id": 33,
+      "fields": {
+        "songwriters": {
+          "value": "Ololade Ahmed & Asa-Eye Adaba; Ololade Ahmed & Ayodeji Ibrahim Balogun; Ololade Ahmed & Anais Cardot; Ololade Ahmed; Ololade Ahmed, Jacques Webster II, Dougie F, Jazzman Olofin & Adewale Ayuba; Ololade Ahmed & Michael Ebenazer Kwadjo Omari Owuo Jr.; Ololade Ahmed & Oakley Neil Caesar-Su; Ololade Ahmed, Carolina Marcilio, Ludmila Oliveira da Silva, Thiago Carneiro De Castro Oliveira, Dayane de Lima Nunes & Bruno Dias Galvão da Silva",
+          "source": "https://music.apple.com/us/album/lungu-boy/1760853689"
+        }
+      }
+    },
+    {
+      "id": 23011,
+      "title": "M$NEY Live in London (Spotify Live)",
+      "artist_id": 33,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/m%24ney-live-in-london-spotify-live/6793294871?uo=4",
+          "source": "https://music.apple.com/us/album/m%24ney-live-in-london-spotify-live/6793294871?uo=4"
+        },
+        "songwriters": {
+          "value": "Ahmed Ololade, VILTAINMENT PTY LTD & Nana Ntorinkansah; Ahmed Ololade & Osayomore Joseph; Ahmed Ololade; Ahmed Ololade, William Grigahcine, Kareem Temitayo Olasunkanmi, VILTAINMENT PTY LTD, Nana Ntorinkansah, Ben Burrell, David Ohene Akrasi & Sven; Ahmed Ololade, Kareem Temitayo Olasunkanmi, Nana Ntorinkansah & Benjamin Burrell; Ahmed Ololade, Kareem Temitayo Olasunkanmi & Nana Ntorinkansah; Ahmed Ololade, Marcel Larry Akunwata, Temitope Salami & Nana Ntorinkansah; Ahmed Ololade & Kareem Temitayo Olasunkanmi; Ahmed Ololade, Kareem Temitayo Olasunkanmi, Alfons Kettner & Bobby Caldwell; Ahmed Ololade, Richard Christopher Harrison, STANLEY EALDEN, Amerie Mi Marie Rogers, Alistair O'Donnell, Peace Emmanuel Oredope & William Mundala; Ahmed Ololade, Kabelo Petrus Motha & Nana Ntorinkansah; Ahmed Ololade, Kareem Temitayo Olasunkanmi & Nana Ntorinkansa",
+          "source": "https://music.apple.com/us/album/m%24ney-live-in-london-spotify-live/6793294871?uo=4"
+        }
+      }
+    },
+    {
+      "id": 19616,
+      "title": "Made In Lagos: Deluxe Edition",
+      "artist_id": 61,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/made-in-lagos-deluxe-edition/1581002994?uo=4",
+          "source": "https://music.apple.com/us/album/made-in-lagos-deluxe-edition/1581002994?uo=4"
+        },
+        "genre": {
+          "value": "Afrobeats",
+          "source": "https://music.apple.com/us/album/made-in-lagos-deluxe-edition/1581002994?uo=4"
+        },
+        "number_of_tracks": {
+          "value": 18,
+          "source": "https://music.apple.com/us/album/made-in-lagos-deluxe-edition/1581002994?uo=4"
+        },
+        "release_date": {
+          "value": "2021-08-27",
+          "source": "https://www.deezer.com/album/254027212"
+        },
+        "release_year": {
+          "value": 2021,
+          "source": "https://www.deezer.com/album/254027212"
+        },
+        "label": {
+          "value": "Starboy Entertainment Ltd., under exclusive license to RCA Records",
+          "source": "https://music.apple.com/us/album/made-in-lagos-deluxe-edition/1581002994?uo=4"
+        },
+        "songwriters": {
+          "value": "Ayodeji Ibrahim Balogun, Richard Isong, Emmanuel Isong, Ariowa Irosogie & Malik Venner; Ayodeji Ibrahim Balogun, Richard Isong, Peter Kelvin Amba Udoma & Damini Ebunoluwa Ogulu; Ayodeji Ibrahim Balogun, Richard Isong, Osabuohien Osaretin & Joseph Junior Adenuga; Ayodeji Ibrahim Balogun & Richard Isong; Damian \"Jr. Gong\" Marley, Ayodeji Ibrahim Balogun & Richard Isong; H.E.R., Ayodeji Ibrahim Balogun, Richard Isong & Emmanuel Isong; Ella Mai, Ayodeji Ibrahim Balogun, Richard Isong, Nija Charles, Kevin Ekofo & Ariowa Irosogie; Ayodeji Ibrahim Balogun, Julian Nicco-Annan, Austin Iornogu Iwar, Ronald Osisanya, Johni Djmali Kevin James & Kwado Asare; Ayodeji Ibrahim Balogun, Marco Bernardis, Richard Isong, Emmanuel Isong, Malik Venner & Samuel Awuku; Ayodeji Ibrahim Balogun, Oniko Eddie Uzezi, Richard Isong, Oniko Evawero Okiemute & Temilade Openiyi; Ayodeji Ibrahim Balogun, Terry Daniel Akewe & Okhuofu Oshoriameh Isaiah; Ayodeji Ibrahim Balogun, Michael Hunter, Tomi Mikael Mannonen, Kevin Ekofo & Mino Drerup; Ayodeji Ibrahim Balogun, Richard Isong, Kevin Ekofo & Samuel Awuku; Ayodeji Ibrahim Balogun, Peace Oredope & Akinbiyi Abiola Ahmed; Ayodeji Ibrahim Balogun, Richard Isong & Daniel Benson; Ayodeji Ibrahim Balogun, Richard Isong, Tay Iwar, Akeel Henry & Andre Pinckney; Justin Bieber, Ayodeji Ibrahim Balogun, Oniko Eddie Uzezi, Richard Isong, Oniko Evawero Okiemute & Temilade Openiyi",
+          "source": "https://music.apple.com/us/album/made-in-lagos-deluxe-edition/1581002994?uo=4"
+        },
+        "upc": {
+          "value": "886449403936",
+          "source": "https://www.deezer.com/album/254027212"
+        }
+      }
+    },
+    {
+      "id": 23614,
+      "title": "Make It Rain",
+      "artist_id": 3292,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/make-it-rain/1839313076?i=1839313083",
+          "source": "https://music.apple.com/us/album/me-myself-i/1839313076?uo=4"
+        },
+        "genre": {
+          "value": "Hip-Hop/Rap",
+          "source": "https://music.apple.com/us/album/me-myself-i/1839313076?uo=4"
+        },
+        "release_date": {
+          "value": "2006-11-14",
+          "source": "https://music.apple.com/us/album/me-myself-i/1839313076?uo=4"
+        },
+        "release_year": {
+          "value": 2006,
+          "source": "https://music.apple.com/us/album/me-myself-i/1839313076?uo=4"
+        },
+        "label": {
+          "value": "R4 So Valid, LLC",
+          "source": "https://music.apple.com/us/album/me-myself-i/1839313076?uo=4"
+        },
+        "songwriters": {
+          "value": "Joseph Cartagena; Scott Storch; Dwayne Michael Carter, Jr.",
+          "source": "https://music.apple.com/us/song/1839313083"
+        },
+        "producers": {
+          "value": "Scott Storch",
+          "source": "https://music.apple.com/us/song/1839313083"
+        },
+        "isrc": {
+          "value": "QM4TW1638240",
+          "source": "https://www.deezer.com/track/890568262"
+        },
+        "country": {
+          "value": "United States",
+          "source": "https://www.bronxwalkoffame.com/inductees/fat-joe"
+        },
+        "country_code": {
+          "value": "US",
+          "source": "https://www.bronxwalkoffame.com/inductees/fat-joe"
+        }
+      }
+    },
+    {
+      "id": 23364,
+      "title": "Malaika",
+      "artist_id": 37,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/malaika/6786543887?i=6786543889",
+          "source": "https://music.apple.com/us/album/malaika/6786543887?i=6786543889&uo=4"
+        },
+        "genre": {
+          "value": "Afro-Pop",
+          "source": "https://music.apple.com/us/album/malaika/6786543887?i=6786543889&uo=4"
+        },
+        "release_date": {
+          "value": "2026-08-21",
+          "source": "https://music.apple.com/us/album/malaika/6786543887?i=6786543889&uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/malaika/6786543887?i=6786543889&uo=4"
+        },
+        "label": {
+          "value": "Ziiki Media",
+          "source": "https://music.apple.com/us/album/malaika/6786543887?i=6786543889&uo=4"
+        },
+        "songwriters": {
+          "value": "Faustina Nandera Charles Mfinanga; Salmini Rashidi Kassimu; Mbwana Yusuph Kilungi",
+          "source": "https://music.apple.com/us/song/6786543889"
+        },
+        "producers": {
+          "value": "S2Kizzy",
+          "source": "https://music.apple.com/us/song/6786543889"
+        },
+        "isrc": {
+          "value": "ZA40S2600670",
+          "source": "https://www.deezer.com/track/4127922811"
+        },
+        "upc": {
+          "value": "823375279129",
+          "source": "https://www.deezer.com/album/1019426581"
+        }
+      }
+    },
+    {
+      "id": 23325,
+      "title": "Mamdihe",
+      "artist_id": 2158,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/mamdihe/1866547238?i=1866547239",
+          "source": "https://music.apple.com/us/album/mamdihe/1866547238?i=1866547239&uo=4"
+        },
+        "genre": {
+          "value": "Dance",
+          "source": "https://music.apple.com/us/album/mamdihe/1866547238?i=1866547239&uo=4"
+        },
+        "release_date": {
+          "value": "2026-01-05",
+          "source": "https://music.apple.com/us/album/mamdihe/1866547238?i=1866547239&uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/mamdihe/1866547238?i=1866547239&uo=4"
+        },
+        "label": {
+          "value": "10312829 Records DK",
+          "source": "https://music.apple.com/us/album/mamdihe/1866547238?i=1866547239&uo=4"
+        },
+        "songwriters": {
+          "value": "Martin Nduati",
+          "source": "https://music.apple.com/us/song/1866547239"
+        },
+        "isrc": {
+          "value": "QZFZ22670854",
+          "source": "https://www.deezer.com/track/3756170762"
+        },
+        "upc": {
+          "value": "199935393377",
+          "source": "https://www.deezer.com/album/891003342"
+        }
+      }
+    },
+    {
+      "id": 23545,
+      "title": "Matenjagwo",
+      "artist_id": 657,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/matenjagwo/6803863907?uo=4",
+          "source": "https://music.apple.com/us/album/matenjagwo/6803863907?uo=4"
+        },
+        "genre": {
+          "value": "Hip-Hop/Rap",
+          "source": "https://music.apple.com/us/album/matenjagwo/6803863907?uo=4"
+        },
+        "number_of_tracks": {
+          "value": 28,
+          "source": "https://music.apple.com/us/album/matenjagwo/6803863907?uo=4"
+        },
+        "release_date": {
+          "value": "2026-08-12",
+          "source": "https://music.apple.com/us/album/matenjagwo/6803863907?uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/matenjagwo/6803863907?uo=4"
+        },
+        "label": {
+          "value": "2109087 Records DK",
+          "source": "https://music.apple.com/us/album/matenjagwo/6803863907?uo=4"
+        },
+        "songwriters": {
+          "value": "PETER WAWERU MATENJAGWO",
+          "source": "https://music.apple.com/us/album/matenjagwo/6803863907?uo=4"
+        },
+        "upc": {
+          "value": "881999609562",
+          "source": "https://www.deezer.com/album/1059453472"
+        }
+      }
+    },
+    {
+      "id": 17384,
+      "title": "MAYDAY RACHAEL",
+      "artist_id": 283,
+      "fields": {
+        "songwriters": {
+          "value": "Gradine Toto",
+          "source": "https://music.apple.com/us/song/1877081737"
+        }
+      }
+    },
+    {
+      "id": 18363,
+      "title": "Mummy Chulo",
+      "artist_id": 35,
+      "fields": {
+        "songwriters": {
+          "value": "EVANCE OCHIENG OWINO",
+          "source": "https://music.apple.com/us/song/1761143331"
+        }
+      }
+    },
+    {
+      "id": 23681,
+      "title": "Nakei Nairobi",
+      "artist_id": 1775,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/nakei-nairobi/1242458906?i=1242459676",
+          "source": "https://music.apple.com/us/album/nakei-nairobi/1242458906?i=1242459676&uo=4"
+        },
+        "genre": {
+          "value": "African",
+          "source": "https://music.apple.com/us/album/nakei-nairobi/1242458906?i=1242459676&uo=4"
+        },
+        "label": {
+          "value": "Syllart Records / Sterns Africa",
+          "source": "https://music.apple.com/us/album/nakei-nairobi/1242458906?i=1242459676&uo=4"
+        },
+        "songwriters": {
+          "value": "Pascal Emmanuel Tabu Ley; Mbilia Marie Claire Mboyo",
+          "source": "https://music.apple.com/us/song/1242459676"
+        },
+        "isrc": {
+          "value": "GBNRN0733707",
+          "source": "https://www.deezer.com/track/367929441"
+        },
+        "country": {
+          "value": "Democratic Republic of the Congo",
+          "source": "https://musicinafrica.net/fr/directory/mbilia-bel/"
+        },
+        "country_code": {
+          "value": "CD",
+          "source": "https://musicinafrica.net/fr/directory/mbilia-bel/"
+        }
+      }
+    },
+    {
+      "id": 23425,
+      "title": "Nampea head (feat. Thug dejan & Producer hybrid)",
+      "artist_id": 3267,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/nampea-head-feat-thug-dejan-producer-hybrid/6804350548?i=6804350551",
+          "source": "https://music.apple.com/us/album/nampea-head-feat-thug-dejan-producer-hybrid/6804350548?i=6804350551&uo=4"
+        },
+        "genre": {
+          "value": "Reggae",
+          "source": "https://music.apple.com/us/album/nampea-head-feat-thug-dejan-producer-hybrid/6804350548?i=6804350551&uo=4"
+        },
+        "release_date": {
+          "value": "2026-07-10",
+          "source": "https://music.apple.com/us/album/nampea-head-feat-thug-dejan-producer-hybrid/6804350548?i=6804350551&uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/nampea-head-feat-thug-dejan-producer-hybrid/6804350548?i=6804350551&uo=4"
+        },
+        "label": {
+          "value": "13413797 Records DK",
+          "source": "https://music.apple.com/us/album/nampea-head-feat-thug-dejan-producer-hybrid/6804350548?i=6804350551&uo=4"
+        },
+        "songwriters": {
+          "value": "Newtone Okoba Onyait",
+          "source": "https://music.apple.com/us/album/nampea-head-feat-thug-dejan-producer-hybrid/6804350548?i=6804350551"
+        }
+      }
+    },
+    {
+      "id": 18158,
+      "title": "Ngimana",
+      "artist_id": 35,
+      "fields": {
+        "producers": {
+          "value": "Teddy B",
+          "source": "https://music.apple.com/us/song/1850928545"
+        }
+      }
+    },
+    {
+      "id": 23431,
+      "title": "Nipishe",
+      "artist_id": 357,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/nipishe/6803484591?i=6803484592",
+          "source": "https://music.apple.com/us/album/nipishe/6803484591?i=6803484592&uo=4"
+        },
+        "genre": {
+          "value": "Afro-Pop",
+          "source": "https://music.apple.com/us/album/nipishe/6803484591?i=6803484592&uo=4"
+        },
+        "release_date": {
+          "value": "2026-08-25",
+          "source": "https://music.apple.com/us/album/nipishe/6803484591?i=6803484592&uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/nipishe/6803484591?i=6803484592&uo=4"
+        },
+        "label": {
+          "value": "Phanyy",
+          "source": "https://music.apple.com/us/album/nipishe/6803484591?i=6803484592&uo=4"
+        },
+        "songwriters": {
+          "value": "Khalfan Hamis",
+          "source": "https://music.apple.com/us/song/6803484592"
+        },
+        "producers": {
+          "value": "Twalibu Awadhi Hassani",
+          "source": "https://music.apple.com/us/song/6803484592"
+        },
+        "isrc": {
+          "value": "QZNJW2645280",
+          "source": "https://www.deezer.com/track/4235390992"
+        },
+        "upc": {
+          "value": "745583885902",
+          "source": "https://www.deezer.com/album/1058828422"
+        }
+      }
+    },
+    {
+      "id": 19528,
+      "title": "Nothing Was the Same (Deluxe)",
+      "artist_id": 81,
+      "fields": {
+        "songwriters": {
+          "value": "Aubrey Drake Graham, Anthony Palman, Noah \"40\" Shebib, D.W. Foster & L. Thompson Jenner; Aubrey Drake Graham, Anthony Palman, Noah \"40\" Shebib, M. Thomas & Adrian Eccleston; Aubrey Drake Graham, W. Coleman & Noah \"40\" Shebib; Aubrey Drake Graham, Anthony Palman, Noah \"40\" Shebib, J Rose, D. Coles, R. Diggs, L. Hawkins, J. Hunter, C. Woods, T. Baldursson, M. Bjoerklyn & J. Koduletsch; Aubrey Drake Graham, Anthony Palman, Noel Fisher, A. Proctor & Noah \"40\" Shebib; Aubrey Drake Graham, Anthony Palman, D. Natche & Noel Fisher; Aubrey Drake Graham, J. Chilombo, N.Shebib & J. Beck; Aubrey Drake Graham, M. Maskati, J. Ullman, P. Jeffries & Noah \"40\" Shebib; Aubrey Drake Graham, Anthony Palman, Noah \"40\" Shebib, R. Brichard & K. Samir; Aubrey Drake Graham, Anthony Palman, Matthew Jehu Samuels, Allen Ritter, A. Hernandez & B. Williams; Aubrey Drake Graham, Noel Fisher & A. Proctor; Aubrey Drake Graham, S. sisay, Paul Jefferies & E. Haynie; Aubrey Drake Graham, S. Carter, Anthony Palman, Matthew Jehu Samuels, Noel Fisher, M. Burnett, J. Evans, A. Proctor, D. Coles, R. Diggs, Gary Grice, L. Hawkins, Hayes, J. Hunter, R. Jones, Porter, C. Smith & C. Woods; Aubrey Drake Graham, Anthony Palman, Noah \"40\" Shebib & N Campbell; Aubrey Drake Graham, Anthony Palman, S. Anderson, T. Epps, D. Weir, L. Willemetz, J. Charles & M. Yvaine",
+          "source": "https://music.apple.com/us/album/nothing-was-the-same-deluxe/1440829462"
+        }
+      }
+    },
+    {
+      "id": 23549,
+      "title": "Oh No",
+      "artist_id": 53,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/oh-no/6805176799?i=6805176803",
+          "source": "https://music.apple.com/us/album/oh-no/6805176799?i=6805176803&uo=4"
+        },
+        "genre": {
+          "value": "Afrobeats",
+          "source": "https://music.apple.com/us/album/oh-no/6805176799?i=6805176803&uo=4"
+        },
+        "release_date": {
+          "value": "2026-09-11",
+          "source": "https://music.apple.com/us/album/oh-no/6805176799?i=6805176803&uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/oh-no/6805176799?i=6805176803&uo=4"
+        },
+        "label": {
+          "value": "Mavin Global Holdings Ltd / Jonzing World Entertainment, distributed by Interscope Records and UMG Commercial Services",
+          "source": "https://music.apple.com/us/album/oh-no/6805176799?i=6805176803&uo=4"
+        },
+        "distributor": {
+          "value": "Interscope Records and UMG Commercial Services",
+          "source": "https://music.apple.com/us/album/oh-no/6805176799?i=6805176803&uo=4"
+        },
+        "songwriters": {
+          "value": "Divine Ikubor; Michael Ovie Hunter; Tarik Johnston",
+          "source": "https://music.apple.com/us/song/6805176803"
+        },
+        "producers": {
+          "value": "Rvssian",
+          "source": "https://music.apple.com/us/song/6805176803"
+        },
+        "isrc": {
+          "value": "NGUM72600095",
+          "source": "https://www.deezer.com/track/4250678831"
+        },
+        "upc": {
+          "value": "881061444770",
+          "source": "https://www.deezer.com/album/1064818891"
+        }
+      }
+    },
+    {
+      "id": 17469,
+      "title": "Okay",
+      "artist_id": 72,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/okay/1522261640?i=1522262056",
+          "source": "https://music.apple.com/us/album/okay/1522261640?i=1522262056&uo=4"
+        },
+        "genre": {
+          "value": "Afro-Pop",
+          "source": "https://music.apple.com/us/album/okay/1522261640?i=1522262056&uo=4"
+        },
+        "release_date": {
+          "value": "2020-08-21",
+          "source": "https://music.apple.com/us/album/okay/1522261640?i=1522262056&uo=4"
+        },
+        "release_year": {
+          "value": 2020,
+          "source": "https://music.apple.com/us/album/okay/1522261640?i=1522262056&uo=4"
+        },
+        "label": {
+          "value": "Universal Music Operations Limited",
+          "source": "https://music.apple.com/us/album/okay/1522261640?i=1522262056&uo=4"
+        },
+        "songwriters": {
+          "value": "Adekunle Gold; BlaiseBeatz",
+          "source": "https://music.apple.com/us/song/1522262056"
+        },
+        "producers": {
+          "value": "BlaiseBeatz",
+          "source": "https://music.apple.com/us/song/1522262056"
+        },
+        "isrc": {
+          "value": "GBUM72003431",
+          "source": "https://www.deezer.com/track/1052614382"
+        }
+      }
+    },
+    {
+      "id": 18357,
+      "title": "Osiepe",
+      "artist_id": 35,
+      "fields": {
+        "songwriters": {
+          "value": "EVANCE OCHIENG OWINO",
+          "source": "https://music.apple.com/us/song/1761143334"
+        }
+      }
+    },
+    {
+      "id": 23666,
+      "title": "Otero",
+      "artist_id": 3425,
+      "fields": {
+        "country": {
+          "value": "Kenya",
+          "source": "https://k24.digital/entertainment/celebrity/kenyan-musician-zzero-sufuri-reveals-story-behind-otero-collaboration/amp"
+        },
+        "country_code": {
+          "value": "KE",
+          "source": "https://k24.digital/entertainment/celebrity/kenyan-musician-zzero-sufuri-reveals-story-behind-otero-collaboration/amp"
+        }
+      }
+    },
+    {
+      "id": 23375,
+      "title": "PARTYNEXTDOOR 3 (P3) [10-YEAR EDITION]",
+      "artist_id": 184,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/partynextdoor-3-p3-10-year-edition/6803235614?uo=4",
+          "source": "https://music.apple.com/us/album/partynextdoor-3-p3-10-year-edition/6803235614?uo=4"
+        },
+        "genre": {
+          "value": "R&B/Soul",
+          "source": "https://music.apple.com/us/album/partynextdoor-3-p3-10-year-edition/6803235614?uo=4"
+        },
+        "number_of_tracks": {
+          "value": 19,
+          "source": "https://music.apple.com/us/album/partynextdoor-3-p3-10-year-edition/6803235614?uo=4"
+        },
+        "release_date": {
+          "value": "2026-08-20",
+          "source": "https://music.apple.com/us/album/partynextdoor-3-p3-10-year-edition/6803235614?uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/partynextdoor-3-p3-10-year-edition/6803235614?uo=4"
+        },
+        "label": {
+          "value": "OVO Sound under exclusive license to Santa Anna Label Group",
+          "source": "https://music.apple.com/us/album/partynextdoor-3-p3-10-year-edition/6803235614?uo=4"
+        },
+        "songwriters": {
+          "value": "Jahron Brathwaite & Lucy Walters; Larry Jay Sanders, Andre Robertson, Christian Patey, Jahron Brathwaite & Rupert Thomas Jr.; Jahron Brathwaite & Olubowale Akintimehin; Andrew Hershey, Dwayne Chin-Quee, Paul Jefferies, Noah \"40\" Shebib, Aubrey Drake Graham, Azim Palmer & Jahron Brathwaite; Jahron Brathwaite & Matthew Jehu Samuels; Andre Robertson & Jahron Brathwaite; Jahron Brathwaite; Devendra Banhart, Noah \"40\" Shebib & J. Brathwaite; Andre Robertson, Jahron Brathwaite, Adeyinka Bankole & Sean Seaton; J. Brathwaite & Noah \"40\" Shebib; Drake, Noah \"40\" Shebib & J. Brathwaite; J.A. Brathwaite, J. Evans, J. Manswell, J. Boyce, J Tatum, R. Dumas & J.J. Debout; J.A. Brathwaite & Edward Murray; J.A. Brathwaite, Jordan Evans, Matthew Burnett & Jordon Manswell",
+          "source": "https://music.apple.com/us/album/partynextdoor-3-p3-10-year-edition/6803235614?uo=4"
+        },
+        "upc": {
+          "value": "808391400245",
+          "source": "https://www.deezer.com/album/1058264112"
+        }
+      }
+    },
+    {
+      "id": 23372,
+      "title": "Paulina",
+      "artist_id": 265,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/paulina/6801111671?i=6801111675",
+          "source": "https://music.apple.com/us/album/paulina/6801111671?i=6801111675&uo=4"
+        },
+        "genre": {
+          "value": "African Music",
+          "source": "https://music.apple.com/us/album/paulina/6801111671?i=6801111675&uo=4"
+        },
+        "release_date": {
+          "value": "2026-08-22",
+          "source": "https://music.apple.com/us/album/paulina/6801111671?i=6801111675&uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/paulina/6801111671?i=6801111675&uo=4"
+        },
+        "label": {
+          "value": "TrackMusic Inc Label",
+          "source": "https://music.apple.com/us/album/paulina/6801111671?i=6801111675&uo=4"
+        },
+        "songwriters": {
+          "value": "Abongo Jakabwana",
+          "source": "https://music.apple.com/us/song/6801111675"
+        },
+        "producers": {
+          "value": "Utawala Studios",
+          "source": "https://music.apple.com/us/song/6801111675"
+        },
+        "isrc": {
+          "value": "GXLF42635025",
+          "source": "https://www.deezer.com/track/4221757122"
+        },
+        "upc": {
+          "value": "5064022373240",
+          "source": "https://www.deezer.com/album/1053385942"
+        }
+      }
+    },
+    {
+      "id": 18155,
+      "title": "Pedeshe (Ajawa Marwa)",
+      "artist_id": 35,
+      "fields": {
+        "producers": {
+          "value": "Teddy B",
+          "source": "https://music.apple.com/us/song/1850927725"
+        }
+      }
+    },
+    {
+      "id": 23685,
+      "title": "PERFECT MATCH",
+      "artist_id": 3428,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/perfect-match/6786103726?i=6786103727",
+          "source": "https://music.apple.com/us/album/perfect-match-single/6786103726?uo=4"
+        },
+        "genre": {
+          "value": "Pop",
+          "source": "https://music.apple.com/us/album/perfect-match-single/6786103726?uo=4"
+        },
+        "release_date": {
+          "value": "2026-07-30",
+          "source": "https://music.apple.com/us/album/perfect-match-single/6786103726?uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/perfect-match-single/6786103726?uo=4"
+        },
+        "label": {
+          "value": "NOISY NEIGHBOR RECORDINGS",
+          "source": "https://music.apple.com/us/album/perfect-match-single/6786103726?uo=4"
+        },
+        "songwriters": {
+          "value": "Ferran Orta Ribas",
+          "source": "https://music.apple.com/us/song/6786103727"
+        },
+        "producers": {
+          "value": "Ferran Orta Ribas",
+          "source": "https://music.apple.com/us/song/6786103727"
+        },
+        "isrc": {
+          "value": "QT6EG2616615",
+          "source": "https://www.deezer.com/track/4123008971"
+        },
+        "upc": {
+          "value": "882638327038",
+          "source": "https://www.deezer.com/album/1017600771"
+        }
+      }
+    },
+    {
+      "id": 23091,
+      "title": "Pink Blush",
+      "artist_id": 3131,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/pink-blush/6813667440?i=6813667649",
+          "source": "https://music.apple.com/us/album/pink-blush-single/6813667440?uo=4"
+        },
+        "songwriters": {
+          "value": "Latiffini Brannon; danielwsp",
+          "source": "https://music.apple.com/us/song/6813667649"
+        },
+        "producers": {
+          "value": "danielwsp",
+          "source": "https://music.apple.com/us/song/6813667649"
+        },
+        "isrc": {
+          "value": "QZHZ62653828",
+          "source": "https://www.deezer.com/track/4111263421"
+        },
+        "upc": {
+          "value": "736084033459",
+          "source": "https://www.deezer.com/album/1013520381"
+        }
+      }
+    },
+    {
+      "id": 21564,
+      "title": "Pink Friday (Complete Edition)",
+      "artist_id": 166,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/pink-friday-complete-edition/1539773868?uo=4",
+          "source": "https://music.apple.com/us/album/pink-friday-complete-edition/1539773868?uo=4"
+        },
+        "genre": {
+          "value": "Hip-Hop/Rap",
+          "source": "https://music.apple.com/us/album/pink-friday-complete-edition/1539773868?uo=4"
+        },
+        "number_of_tracks": {
+          "value": 21,
+          "source": "https://music.apple.com/us/album/pink-friday-complete-edition/1539773868?uo=4"
+        },
+        "release_date": {
+          "value": "2020-11-20",
+          "source": "https://www.deezer.com/album/186080222"
+        },
+        "release_year": {
+          "value": 2020,
+          "source": "https://www.deezer.com/album/186080222"
+        },
+        "label": {
+          "value": "Young Money/Cash Money Records",
+          "source": "https://music.apple.com/us/album/pink-friday-complete-edition/1539773868?uo=4"
+        },
+        "songwriters": {
+          "value": "D. Johnson, Ashanti Floyd & Onika Maraj; Kamaal Fareed, Bryan Higgins, James Jackson, Malik Izaak Taylor, Marshall Mathers, John Davis, Busta Rhymes, Kasseem Dean, Onika Maraj & Ali Shaheed Muhammad; Shondrae Crawford, Justin Ellington, Onika Maraj & Safaree Samuels; Joe Satriani, Andrew Thielk & Onika Maraj; Jonathan Rotem, Onika Maraj, Kevin Hissink, William Charles Jordan & Clemmie Rishad Penton; Andrew \"Papa Justifi\" Wansel, Onika Maraj & Warren Felder; Nikhil Seetharam, Tyler Williams, Aubrey Drake Graham & Onika Maraj; William Adams, Trevor Horn, James Brown, Geoff Downes, Onika Maraj & Bruce Woolley; Kanye West, Keith Forsey, Steve Schiff, Andrew Thielk & Onika Maraj; John B., Robbie Bronnimann, Kasseem Dean & Onika Maraj; D. Johnson & Onika Maraj; Onika Maraj, David Edwards, Andrew \"Papa Justifi\" Wansel & Joseph Hughes; Natasha Bedingfield, Andrew Thielk & Onika Maraj; D. Johnson, Jeremy Coleman, Onika Maraj, ESTHER RENAY DEAN & Roahn Hylton; W. Thomas, Brandon Hollemon, Steven Mitchell, Danny Schofield, Onika Maraj, Lawrence Nacht & Safaree Samuels; Andrew \"Papa Justifi\" Wansel, Onika Maraj, Warren Felder, Joel Matthew Geddis & Makeba Riddick; Wayne Armond, Michael Wallace, Kasseem Dean & Onika Maraj; Kasseem Dean & Onika Maraj; Robertson Furze, Milo Cordell, Cleveland Browne, Greville Gordon, Wycliffe Johnson, Jonathan Rotem & Onika Maraj; D. Carter, Carl Lilly, Aubrey Drake Graham, Nicki Minaj, Jarvis Mills, Michael Ray Stevenson, Timothy Mosley, D. Johnson & Stephen Garrett; Lil Wayne, Bryan Higgins, James Jackson, Malik Izaak Taylor, Kamaal Ibn John Fareed, Marshall Mathers, Busta Rhymes, Kasseem Dean, Onika Maraj & Ali Shaheed Muhammad",
+          "source": "https://music.apple.com/us/album/pink-friday-complete-edition/1539773868?uo=4"
+        },
+        "upc": {
+          "value": "602435507002",
+          "source": "https://www.deezer.com/album/186080222"
+        }
+      }
+    },
+    {
+      "id": 19495,
+      "title": "PM",
+      "artist_id": 92,
+      "fields": {
+        "songwriters": {
+          "value": "Ibrahim Abdallah Nampunga",
+          "source": "https://music.apple.com/ke/album/pm-ep/1890348465"
+        }
+      }
+    },
+    {
+      "id": 23543,
+      "title": "PRIMA",
+      "artist_id": 3334,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/prima/6807192580?uo=4",
+          "source": "https://music.apple.com/us/album/prima/6807192580?uo=4"
+        },
+        "genre": {
+          "value": "Pop",
+          "source": "https://music.apple.com/us/album/prima/6807192580?uo=4"
+        },
+        "number_of_tracks": {
+          "value": 11,
+          "source": "https://music.apple.com/us/album/prima/6807192580?uo=4"
+        },
+        "label": {
+          "value": "UMG Recordings, Inc.",
+          "source": "https://music.apple.com/us/album/prima/6807192580?uo=4"
+        },
+        "songwriters": {
+          "value": "ADÉLA, Ali Tamposi, Blake Slatkin, Billy Walsh, Dylan Brady & Harrison Patrick Smith; Adéla Jergova, Blake Slatkin, Billy Walsh, Julia Michaels, Uffie & Dylan Brady; Adéla Jergova, Blake Slatkin, Billy Walsh, Magnus August Høiberg & Caroline Ailin; Adéla Jergova, Blake Slatkin, Billy Walsh, Julia Michaels & Dylan Brady; Adéla Jergova, Blake Slatkin, Billy Walsh, Dylan Brady & Julia Michaels; Adéla Jergova, Blake Slatkin, Julia Michaels, Livvi Franc & Count Baldor; Adéla Jergova, Blake Slatkin, Julia Michaels, Billy Walsh & Dylan Brady; Adéla Jergova, Blake Slatkin, atlgrandma, Isaac Eiger & Billy Walsh; Adéla Jergova & Dylan Brady; Adéla Jergova, Blake Slatkin, Billy Walsh, Dylan Brady & Theron Thomas",
+          "source": "https://music.apple.com/us/album/prima/6807192580?uo=4"
+        },
+        "country": {
+          "value": "Slovakia",
+          "source": "https://www.enbschool.org.uk/alumni/adela-jergova-music-artist/"
+        },
+        "country_code": {
+          "value": "SK",
+          "source": "https://www.enbschool.org.uk/alumni/adela-jergova-music-artist/"
+        }
+      }
+    },
+    {
+      "id": 21372,
+      "title": "Rave & Roses (Ultra)",
+      "artist_id": 53,
+      "fields": {
+        "songwriters": {
+          "value": "Divine Ikubor; Ricardo Valdez Valentine & Divine Ikubur; Yseult Onguenet & Divine Ikubor; Divine Ikubor & Christopher Maurice Brown; Ché Wolton Grant & Divine Ikubor; Selena Gomez, Divine Ikubor & Amanda Ibanez",
+          "source": "https://music.apple.com/ng/album/rave-roses-ultra/1683596782"
+        }
+      }
+    },
+    {
+      "id": 17732,
+      "title": "Rembo",
+      "artist_id": 35,
+      "fields": {
+        "songwriters": {
+          "value": "EVANCE OCHIENG OWINO",
+          "source": "https://music.apple.com/us/song/1783179461"
+        },
+        "producers": {
+          "value": "Wuod Fibi",
+          "source": "https://music.apple.com/us/song/1783179461"
+        }
+      }
+    },
+    {
+      "id": 23561,
+      "title": "Sanam",
+      "artist_id": 331,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/sanam/6797984855?i=6797984856",
+          "source": "https://music.apple.com/us/album/sanam/6797984855?i=6797984856&uo=4"
+        },
+        "genre": {
+          "value": "Afro-Pop",
+          "source": "https://music.apple.com/us/album/sanam/6797984855?i=6797984856&uo=4"
+        },
+        "release_date": {
+          "value": "2026-09-02",
+          "source": "https://music.apple.com/us/album/sanam/6797984855?i=6797984856&uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/sanam/6797984855?i=6797984856&uo=4"
+        },
+        "label": {
+          "value": "Kondela",
+          "source": "https://music.apple.com/us/album/sanam/6797984855?i=6797984856&uo=4"
+        },
+        "songwriters": {
+          "value": "Siraju Amani; Abdulrahmani Mickidady",
+          "source": "https://music.apple.com/us/song/6797984856"
+        },
+        "producers": {
+          "value": "Lizer Classic",
+          "source": "https://music.apple.com/us/song/6797984856"
+        },
+        "isrc": {
+          "value": "QZTV32611399",
+          "source": "https://www.deezer.com/track/4202395972"
+        },
+        "upc": {
+          "value": "881453515231",
+          "source": "https://www.deezer.com/album/1046202322"
+        }
+      }
+    },
+    {
+      "id": 21706,
+      "title": "Single",
+      "artist_id": 2158,
+      "fields": {
+        "songwriters": {
+          "value": "Martin Nduati",
+          "source": "https://music.apple.com/us/song/6770293465"
+        }
+      }
+    },
+    {
+      "id": 23613,
+      "title": "Single",
+      "artist_id": 955,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/single/6804655006?i=6804655012",
+          "source": "https://music.apple.com/us/album/single/6804655006?i=6804655012&uo=4"
+        },
+        "genre": {
+          "value": "Afrobeats",
+          "source": "https://music.apple.com/us/album/single/6804655006?i=6804655012&uo=4"
+        },
+        "release_date": {
+          "value": "2026-08-23",
+          "source": "https://music.apple.com/us/album/single/6804655006?i=6804655012&uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/single/6804655006?i=6804655012&uo=4"
+        },
+        "label": {
+          "value": "Mavooo",
+          "source": "https://music.apple.com/us/album/single/6804655006?i=6804655012&uo=4"
+        },
+        "songwriters": {
+          "value": "Abdul issa mohamed",
+          "source": "https://music.apple.com/us/album/single/6804655006?i=6804655012"
+        },
+        "isrc": {
+          "value": "QZNJW2658681",
+          "source": "https://www.deezer.com/track/4242164702"
+        },
+        "upc": {
+          "value": "745583981703",
+          "source": "https://www.deezer.com/album/1061589452"
+        }
+      }
+    },
+    {
+      "id": 23562,
+      "title": "Siwezi",
+      "artist_id": 88,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/siwezi/6805629535?i=6805629857",
+          "source": "https://music.apple.com/us/album/siwezi/6805629535?i=6805629857&uo=4"
+        },
+        "genre": {
+          "value": "Afrobeats",
+          "source": "https://music.apple.com/us/album/siwezi/6805629535?i=6805629857&uo=4"
+        },
+        "release_date": {
+          "value": "2026-09-04",
+          "source": "https://music.apple.com/us/album/siwezi/6805629535?i=6805629857&uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/siwezi/6805629535?i=6805629857&uo=4"
+        },
+        "label": {
+          "value": "Ziiki Media",
+          "source": "https://music.apple.com/us/album/siwezi/6805629535?i=6805629857&uo=4"
+        },
+        "songwriters": {
+          "value": "Rajabu Abdulkahali Ibrahim; Raymond Shaban Mwakyusa; John Kimambo",
+          "source": "https://music.apple.com/us/song/6805629857"
+        },
+        "producers": {
+          "value": "John Kimambo; Kimambo Beats",
+          "source": "https://music.apple.com/us/song/6805629857"
+        },
+        "isrc": {
+          "value": "ZA40S2601039",
+          "source": "https://www.deezer.com/track/4285602412"
+        },
+        "upc": {
+          "value": "823375439936",
+          "source": "https://www.deezer.com/album/1078542272"
+        }
+      }
+    },
+    {
+      "id": 23548,
+      "title": "So Good (feat. Kendrick Lamar)",
+      "artist_id": 1597,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/so-good-feat-kendrick-lamar/6810781932?i=6810782057",
+          "source": "https://music.apple.com/us/album/so-good-feat-kendrick-lamar/6810781932?i=6810782057&uo=4"
+        },
+        "genre": {
+          "value": "R&B/Soul",
+          "source": "https://music.apple.com/us/album/so-good-feat-kendrick-lamar/6810781932?i=6810782057&uo=4"
+        },
+        "release_date": {
+          "value": "2026-09-11",
+          "source": "https://music.apple.com/us/album/so-good-feat-kendrick-lamar/6810781932?i=6810782057&uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/so-good-feat-kendrick-lamar/6810781932?i=6810782057&uo=4"
+        },
+        "label": {
+          "value": "Def Jam Recordings, a division of UMG Recordings, Inc.",
+          "source": "https://music.apple.com/us/album/so-good-feat-kendrick-lamar/6810781932?i=6810782057&uo=4"
+        },
+        "songwriters": {
+          "value": "Jhené Aiko; Scott Bridgeway; Jahaan Sweet; Kendrick Duckworth; Mark Spears; Matthew \"MTech\" Bernard",
+          "source": "https://music.apple.com/us/song/6810782057"
+        },
+        "producers": {
+          "value": "Sounwave; M-Tech; Scott Bridgeway; Jahaan Sweet",
+          "source": "https://music.apple.com/us/song/6810782057"
+        },
+        "isrc": {
+          "value": "USUM72608343",
+          "source": "https://www.deezer.com/track/4278790462"
+        },
+        "country": {
+          "value": "United States",
+          "source": "https://www.universalmusic.ca/2026/09/11/jhene-aiko-releases-highly-anticipated-new-album-westside-whimsy/"
+        },
+        "country_code": {
+          "value": "US",
+          "source": "https://www.universalmusic.ca/2026/09/11/jhene-aiko-releases-highly-anticipated-new-album-westside-whimsy/"
+        }
+      }
+    },
+    {
+      "id": 23374,
+      "title": "STARLIFE",
+      "artist_id": 120,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/starlife/6801696576",
+          "source": "https://music.apple.com/us/album/starlife/6801696576"
+        },
+        "genre": {
+          "value": "Afrobeats",
+          "source": "https://music.apple.com/us/album/starlife/6801696576"
+        },
+        "number_of_tracks": {
+          "value": 15,
+          "source": "https://music.apple.com/us/album/starlife/6801696576"
+        },
+        "release_date": {
+          "value": "2026-08-21",
+          "source": "https://music.apple.com/us/album/starlife/6801696576"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/starlife/6801696576"
+        },
+        "label": {
+          "value": "OUTLAWVILLE, under exclusive global license to Encore Recordings",
+          "source": "https://music.apple.com/us/album/starlife/6801696576"
+        },
+        "songwriters": {
+          "value": "Anthony Ebuka Victor & Chidera Ezeani Godfrey; Anthony Ebuka Victor, Daniel Etiese Benson, Abraham Oluwaseun Adekale & Chidera Ezeani Godfrey; Anthony Ebuka Victor, Emeka Akumefule, Yusuf Oluwo Gbolaga & Chidera Ezeani Godfrey; Anthony Ebuka Victor, Adindu Victor, Marcel Akunwata & Temitope Salami; Anthony Ebuka Victor & IGBINOBA OSAZEE FESTUS; Anthony Ebuka Victor, Chidera Ezeani Godfrey, Jassu Mallory, Ayodele Joseph Basil & Esegine Allen; Anthony Ebuka Victor & Ikechukwu Clinton Nnaemeka; Anthony Ebuka Victor, IGBINOBA OSAZEE FESTUS, Chidera Ezeani Godfrey & Banmeke Abraham Olusola; Anthony Ebuka Victor, Benjamin Wilson & Jo Caleb; Anthony Ebuka Victor, JOHN SAVIOURS UDOMBOSO, Peace Emmanuel Aderogba Oredope, Oliver Rodigan & Jonah Christian; Anthony Ebuka Victor & Peace Emmanuel Aderogba Oredope; Anthony Ebuka Victor, Amman Nurani, Chidera Ezeani Godfrey, Matthew & Chuma Hoodini Nwokike; Anthony Ebuka Victor, Folarin Odunlami, Onuoha David Nwachinaemere & Chidera Ezeani Godfrey; Anthony Ebuka Victor, Chidera Ezeani Godfrey & Ryan Jeffrey Ley; Anthony Ebuka Victor, Chidera Ezeani Godfrey & Joseph Olanrewaju Oluwafemi",
+          "source": "https://music.apple.com/us/album/starlife/6801696576"
+        },
+        "upc": {
+          "value": "885288307696",
+          "source": "https://www.deezer.com/album/1057561752"
+        }
+      }
+    },
+    {
+      "id": 23712,
+      "title": "SWAGUU",
+      "artist_id": 230,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/swaguu/6803950183",
+          "source": "https://music.apple.com/us/album/swaguu/6803950183"
+        },
+        "genre": {
+          "value": "African",
+          "source": "https://music.apple.com/us/album/swaguu/6803950183"
+        },
+        "number_of_tracks": {
+          "value": 14,
+          "source": "https://music.apple.com/us/album/swaguu/6803950183"
+        },
+        "release_date": {
+          "value": "2026-09-17",
+          "source": "https://music.apple.com/us/album/swaguu/6803950183"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/swaguu/6803950183"
+        },
+        "label": {
+          "value": "NSNV INC / EMPIRE",
+          "source": "https://music.apple.com/us/album/swaguu/6803950183"
+        },
+        "songwriters": {
+          "value": "Balogun Oluwaloseyi Afolabi & Olanite Olaoluwa Elijah; Balogun Oluwaloseyi Afolabi & ADEYEMI OLANREWAJU ABRAHAM; Balogun Oluwaloseyi Afolabi, Jamal Rashid, Kyle Shelton, Willie Kermit Turrentine III & Ali Shah; Balogun Oluwaloseyi Afolabi, Jamal Rashid & Troy Taylor; Balogun Oluwaloseyi Afolabi & Olawale Adibe; Balogun Oluwaloseyi Afolabi, Jamal Rashid, Roman Olegovich Mironchenko, Krisvin A. Joseph, Viktor Tyo & Christopher Chrishan Dotson; Balogun Oluwaloseyi Afolabi, Jamal Rashid & Roberto Diaz; Balogun Oluwaloseyi Afolabi, ADEYEMI OLANREWAJU ABRAHAM & Olanite Olaoluwa Elijah; Balogun Oluwaloseyi Afolabi & Olayinka Lawal; Balogun Afolabi Oluwaloseyi, Jamal Rashid, Kyle Shelton, Willie Kermit Turrentine III, Christopher Dotson & Quavious Keyate Marshall",
+          "source": "https://music.apple.com/us/album/swaguu/6803950183"
+        },
+        "upc": {
+          "value": "199316742930",
+          "source": "https://www.deezer.com/album/1064786961"
+        }
+      }
+    },
+    {
+      "id": 23477,
+      "title": "Tap Am",
+      "artist_id": 328,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/tap-am/6796388556?i=6796388560",
+          "source": "https://music.apple.com/us/album/on-my-birthday-single/6796388556?uo=4"
+        },
+        "genre": {
+          "value": "Afrobeats",
+          "source": "https://music.apple.com/us/album/on-my-birthday-single/6796388556?uo=4"
+        },
+        "release_date": {
+          "value": "2026-08-14",
+          "source": "https://music.apple.com/us/album/on-my-birthday-single/6796388556?uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/on-my-birthday-single/6796388556?uo=4"
+        },
+        "label": {
+          "value": "Plutomania Records, under exclusive license to ONErpm",
+          "source": "https://music.apple.com/us/album/on-my-birthday-single/6796388556?uo=4"
+        },
+        "songwriters": {
+          "value": "UZAMA OSAHON",
+          "source": "https://music.apple.com/us/song/6796388560"
+        },
+        "producers": {
+          "value": "Citykingrsa; Cooq",
+          "source": "https://music.apple.com/us/song/6796388560"
+        },
+        "isrc": {
+          "value": "QZNJV2644485",
+          "source": "https://www.deezer.com/track/4191920672"
+        }
+      }
+    },
+    {
+      "id": 23137,
+      "title": "TEA",
+      "artist_id": 53,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/tea/6791794028?i=6791794029",
+          "source": "https://music.apple.com/us/album/tea/6791794028?i=6791794029&uo=4"
+        },
+        "genre": {
+          "value": "Afrobeats",
+          "source": "https://music.apple.com/us/album/tea/6791794028?i=6791794029&uo=4"
+        },
+        "release_date": {
+          "value": "2026-08-07",
+          "source": "https://music.apple.com/us/album/tea/6791794028?i=6791794029&uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/tea/6791794028?i=6791794029&uo=4"
+        },
+        "label": {
+          "value": "Mavin Global Holdings Ltd / Jonzing World Entertainment, distributed by Interscope Records and UMG Commercial Services",
+          "source": "https://music.apple.com/us/album/tea/6791794028?i=6791794029&uo=4"
+        },
+        "distributor": {
+          "value": "Interscope Records and UMG Commercial Services",
+          "source": "https://music.apple.com/us/album/tea/6791794028?i=6791794029&uo=4"
+        },
+        "songwriters": {
+          "value": "Sean Momberger; Divine Ikubor; Michael Ovie Hunter; Dijon McFarlane",
+          "source": "https://music.apple.com/us/song/6791794029"
+        },
+        "producers": {
+          "value": "Mustard",
+          "source": "https://music.apple.com/us/song/6791794029"
+        },
+        "isrc": {
+          "value": "NGUM72600086",
+          "source": "https://www.deezer.com/track/4192681612"
+        },
+        "upc": {
+          "value": "881061168478",
+          "source": "https://www.deezer.com/album/1042594692"
+        }
+      }
+    },
+    {
+      "id": 23100,
+      "title": "Tegemeo Letu",
+      "artist_id": 804,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/tegemeo-letu/1823648375?i=1823648377",
+          "source": "https://music.apple.com/us/album/tegemeo-letu/1823648375?i=1823648377&uo=4"
+        },
+        "genre": {
+          "value": "Christian",
+          "source": "https://music.apple.com/us/album/tegemeo-letu/1823648375?i=1823648377&uo=4"
+        },
+        "release_date": {
+          "value": "2025-06-29",
+          "source": "https://music.apple.com/us/album/tegemeo-letu/1823648375?i=1823648377&uo=4"
+        },
+        "release_year": {
+          "value": 2025,
+          "source": "https://music.apple.com/us/album/tegemeo-letu/1823648375?i=1823648377&uo=4"
+        },
+        "label": {
+          "value": "KMK DIGITAL",
+          "source": "https://music.apple.com/us/album/tegemeo-letu/1823648375?i=1823648377&uo=4"
+        },
+        "songwriters": {
+          "value": "Zacharia Gerald",
+          "source": "https://www.youtube.com/watch?v=BM66nlRY4vo"
+        },
+        "producers": {
+          "value": "Mutongore",
+          "source": "https://music.apple.com/us/song/1823648377"
+        },
+        "youtube_url": {
+          "value": "https://www.youtube.com/watch?v=BM66nlRY4vo",
+          "source": "https://www.youtube.com/watch?v=BM66nlRY4vo"
+        }
+      }
+    },
+    {
+      "id": 23326,
+      "title": "Touch",
+      "artist_id": 95,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/touch/6794053953?i=6794053956",
+          "source": "https://music.apple.com/us/album/touch/6794053953?i=6794053956&uo=4"
+        },
+        "genre": {
+          "value": "Afrobeats",
+          "source": "https://music.apple.com/us/album/touch/6794053953?i=6794053956&uo=4"
+        },
+        "release_date": {
+          "value": "2026-08-14",
+          "source": "https://music.apple.com/us/album/touch/6794053953?i=6794053956&uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/touch/6794053953?i=6794053956&uo=4"
+        },
+        "label": {
+          "value": "Ziiki Media",
+          "source": "https://music.apple.com/us/album/touch/6794053953?i=6794053956&uo=4"
+        },
+        "songwriters": {
+          "value": "Raymond Shaban Mwakyusa; Salmin Rashid Kassimu",
+          "source": "https://music.apple.com/us/song/6794053956"
+        },
+        "producers": {
+          "value": "S2Kizzy",
+          "source": "https://music.apple.com/us/song/6794053956"
+        },
+        "isrc": {
+          "value": "ZA40S2600841",
+          "source": "https://www.deezer.com/track/4173043982"
+        }
+      }
+    },
+    {
+      "id": 23625,
+      "title": "Type Yake",
+      "artist_id": 3406,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/type-yake/6800766083?i=6800766085",
+          "source": "https://music.apple.com/us/album/type-yake/6800766083?i=6800766085&uo=4"
+        },
+        "genre": {
+          "value": "Afro-Pop",
+          "source": "https://music.apple.com/us/album/type-yake/6800766083?i=6800766085&uo=4"
+        },
+        "release_date": {
+          "value": "2026-08-12",
+          "source": "https://music.apple.com/us/album/type-yake/6800766083?i=6800766085&uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/type-yake/6800766083?i=6800766085&uo=4"
+        },
+        "label": {
+          "value": "10933850 Records DK",
+          "source": "https://music.apple.com/us/album/type-yake/6800766083?i=6800766085&uo=4"
+        },
+        "songwriters": {
+          "value": "Fari Athman",
+          "source": "https://music.apple.com/us/song/6800766085"
+        },
+        "producers": {
+          "value": "Pro Gerixx",
+          "source": "https://music.apple.com/us/song/6800766085"
+        },
+        "spotify_url": {
+          "value": "https://open.spotify.com/album/4NpFPpGJRXGyrzDDJYtYfk",
+          "source": "https://open.spotify.com/album/4NpFPpGJRXGyrzDDJYtYfk"
+        },
+        "country": {
+          "value": "Kenya",
+          "source": "https://audiomack.com/fari_athman_music"
+        },
+        "country_code": {
+          "value": "KE",
+          "source": "https://audiomack.com/fari_athman_music"
+        }
+      }
+    },
+    {
+      "id": 23617,
+      "title": "Ubaya",
+      "artist_id": 89,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/ubaya/6806402163?i=6806402164",
+          "source": "https://music.apple.com/us/album/ubaya/6806402163?i=6806402164&uo=4"
+        },
+        "genre": {
+          "value": "Afro-Pop",
+          "source": "https://music.apple.com/us/album/ubaya/6806402163?i=6806402164&uo=4"
+        },
+        "release_date": {
+          "value": "2026-09-11",
+          "source": "https://music.apple.com/us/album/ubaya/6806402163?i=6806402164&uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/ubaya/6806402163?i=6806402164&uo=4"
+        },
+        "label": {
+          "value": "Ziiki Media",
+          "source": "https://music.apple.com/us/album/ubaya/6806402163?i=6806402164&uo=4"
+        },
+        "songwriters": {
+          "value": "Mbwana Yusuph Kilungi; Saidi Juma Hassani",
+          "source": "https://music.apple.com/us/song/6806402164"
+        },
+        "producers": {
+          "value": "Lizer Classic",
+          "source": "https://music.apple.com/us/song/6806402164"
+        }
+      }
+    },
+    {
+      "id": 18038,
+      "title": "Ukimuona",
+      "artist_id": 12,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/ukimuona/1576507384?i=1576507385",
+          "source": "https://music.apple.com/us/album/ukimuona/1576507384?i=1576507385&uo=4"
+        },
+        "genre": {
+          "value": "Afro-Pop",
+          "source": "https://music.apple.com/us/album/ukimuona/1576507384?i=1576507385&uo=4"
+        },
+        "release_date": {
+          "value": "2014-11-21",
+          "source": "https://music.apple.com/us/album/ukimuona/1576507384?i=1576507385&uo=4"
+        },
+        "release_year": {
+          "value": 2014,
+          "source": "https://music.apple.com/us/album/ukimuona/1576507384?i=1576507385&uo=4"
+        },
+        "songwriters": {
+          "value": "Diamond Platnumz",
+          "source": "https://music.apple.com/us/song/1576507385"
+        },
+        "producers": {
+          "value": "Bob Manecky",
+          "source": "https://music.apple.com/us/song/1576507385"
+        }
+      }
+    },
+    {
+      "id": 23196,
+      "title": "Ukining'inia",
+      "artist_id": 277,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/ukininginia/6797756770?i=6797756771",
+          "source": "https://music.apple.com/us/album/ukininginia/6797756770?i=6797756771&uo=4"
+        },
+        "genre": {
+          "value": "Afro-Pop",
+          "source": "https://music.apple.com/us/album/ukininginia/6797756770?i=6797756771&uo=4"
+        },
+        "release_date": {
+          "value": "2026-08-03",
+          "source": "https://music.apple.com/us/album/ukininginia/6797756770?i=6797756771&uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/ukininginia/6797756770?i=6797756771&uo=4"
+        },
+        "label": {
+          "value": "Colloblue",
+          "source": "https://music.apple.com/us/album/ukininginia/6797756770?i=6797756771&uo=4"
+        },
+        "songwriters": {
+          "value": "Collo Blue",
+          "source": "https://music.apple.com/us/song/6797756771"
+        }
+      }
+    },
+    {
+      "id": 23448,
+      "title": "Upweke",
+      "artist_id": 25,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/upweke/6804729908?i=6804729909",
+          "source": "https://music.apple.com/us/album/upweke/6804729908?i=6804729909&uo=4"
+        },
+        "genre": {
+          "value": "Afro-Beat",
+          "source": "https://music.apple.com/us/album/upweke/6804729908?i=6804729909&uo=4"
+        },
+        "release_date": {
+          "value": "2026-08-26",
+          "source": "https://music.apple.com/us/album/upweke/6804729908?i=6804729909&uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/upweke/6804729908?i=6804729909&uo=4"
+        },
+        "label": {
+          "value": "Sharif Saidi Juma",
+          "source": "https://music.apple.com/us/album/upweke/6804729908?i=6804729909&uo=4"
+        },
+        "songwriters": {
+          "value": "Sharif Saidi Juma",
+          "source": "https://music.apple.com/us/album/upweke/6804729908?i=6804729909"
+        },
+        "isrc": {
+          "value": "QZQAY2641799",
+          "source": "https://www.deezer.com/track/4242685762"
+        },
+        "upc": {
+          "value": "712132140850",
+          "source": "https://www.deezer.com/album/1061767422"
+        }
+      }
+    },
+    {
+      "id": 19489,
+      "title": "Views",
+      "artist_id": 81,
+      "fields": {
+        "songwriters": {
+          "value": "Aubrey Drake Graham & Maneesh Bidaye; Noah \"40\" Shebib, Craig Harrisingh, David Harrisingh, Brian Morgan, David Brooks, Matthew Jehu Samuels, Aubrey Drake Graham & Craig Marsh; Aubrey Drake Graham, Noah \"40\" Shebib, K. West, D. Natche, R Riera, Axel Morgan, J. Brathwaite, A. Hernandez, Ozan Yildirim, Devin Goode, Mark Andrews, Tamir Ruffin, Earl Simmons, Phillip Weatherspoon & Anthony Fields; J. Ullman, Noah \"40\" Shebib, Nayvadius Wilburn, Anne Dudley, Malcolm McLaren & Aubrey Drake Graham; Aubrey Drake Graham, Matthew Jehu Samuels, Paul Jefferies, A Tucker & Kevin Gomringer; Noah \"40\" Shebib, Sean \"Puffy\" Combs, Mary J. Blige, Carl \"Chucky\" Thompson, Jon Levine, Aubrey Drake Graham, Steven Vidal & David Carty; Noah \"40\" Shebib, Rodney Jerkins, Fred Jerkins III, Ray J, Aubrey Drake Graham, Michael Peter Olsen & Lashawn Daniels; Aubrey Drake Graham, Carl McCormick, Paul Jefferies, Jahron Anthony Brathwaite & Shane Lindstrom; Aubrey Drake Graham, Noah \"40\" Shebib, Matthew Jehu Samuels, D. Daley, C. Butler, Paul Jefferies, Johnta Austin, B. Cox & K. Hicks; Aubrey Drake Graham, D. Carter & Noah \"40\" Shebib; Aubrey Drake Graham, Matthew Jehu Samuels, Dwayne Chin-Quee, Allen Ritter, S. McGregor, Aquaman, Anthony Moses Davis, D. Dennis, G. Jackson, P. Roberts & Andrew Thomas; Aubrey Drake Graham, Paul Jefferies, Ayodeji Balogun, Kyla Smith, Errol Reid, Noah \"40\" Shebib, Luke Patrick Reid & Corey Bruce Johnson; Noah \"40\" Shebib, Nayvadius Wilburn, Aubrey Drake Graham, Joshua \"Southside\" Luellen, Ronald LaTour, Daveon Jackson & Brock Korsan; Noah \"40\" Shebib, D. Wimbley, Aubrey Drake Graham, Leland Wayne, Mark Morales & D. Robinson; Noah \"40\" Shebib, Shawn Carter, Kanye West, Adam Feeney, Matthew Jehu Samuels, Aubrey Drake Graham & Rupert Thomas Jr.; Aubrey Drake Graham, Rihanna, Paul Jefferies, Maneesh Bidaye, Dwayne Chin-Quee, Adam Martin, Andrae Sutherland & Andrew Hershey; Maneesh Bidaye & M. Al-Maskati; Noah \"40\" Shebib, Jeff Young, Curtis Wilson, Rochad Holiday, Brandy Norwood & Aubrey Drake Graham; Matthew Jehu Samuels, Aubrey Drake Graham, Noah \"40\" Shebib, Maneesh Bidaye, Marvin Winans Jr. & Aion Clarke; Aubrey Drake Graham, Paul Jefferies & Timmy Thomas",
+          "source": "https://music.apple.com/dm/album/views/1440841363"
+        }
+      }
+    },
+    {
+      "id": 18521,
+      "title": "Waache Waoane",
+      "artist_id": 89,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/waache-waoane-feat-diamond/1140829794?i=1140829940",
+          "source": "https://music.apple.com/us/album/waache-waoane-feat-diamond/1140829794?i=1140829940&uo=4"
+        },
+        "genre": {
+          "value": "African",
+          "source": "https://music.apple.com/us/album/waache-waoane-feat-diamond/1140829794?i=1140829940&uo=4"
+        },
+        "release_date": {
+          "value": "2016-08-03",
+          "source": "https://music.apple.com/us/album/waache-waoane-feat-diamond/1140829794?i=1140829940&uo=4"
+        },
+        "release_year": {
+          "value": 2016,
+          "source": "https://music.apple.com/us/album/waache-waoane-feat-diamond/1140829794?i=1140829940&uo=4"
+        },
+        "label": {
+          "value": "Chege",
+          "source": "https://music.apple.com/us/album/waache-waoane-feat-diamond/1140829794?i=1140829940&uo=4"
+        },
+        "songwriters": {
+          "value": "Chege",
+          "source": "https://music.apple.com/us/song/1140829940"
+        }
+      }
+    },
+    {
+      "id": 23632,
+      "title": "Westside Whimsy",
+      "artist_id": 1597,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/westside-whimsy/6810781932?uo=4",
+          "source": "https://music.apple.com/us/album/westside-whimsy/6810781932?uo=4"
+        },
+        "genre": {
+          "value": "R&B/Soul",
+          "source": "https://music.apple.com/us/album/westside-whimsy/6810781932?uo=4"
+        },
+        "number_of_tracks": {
+          "value": 20,
+          "source": "https://music.apple.com/us/album/westside-whimsy/6810781932?uo=4"
+        },
+        "release_date": {
+          "value": "2026-09-11",
+          "source": "https://music.apple.com/us/album/westside-whimsy/6810781932?uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/westside-whimsy/6810781932?uo=4"
+        },
+        "label": {
+          "value": "Def Jam Recordings, a division of UMG Recordings, Inc.",
+          "source": "https://music.apple.com/us/album/westside-whimsy/6810781932?uo=4"
+        },
+        "songwriters": {
+          "value": "Jhené Aiko, Brian Warfield, Maclean Robinson & Julian-Quan Viet Le; Julian-Quan Viet Le, Jhené Aiko, Brian Warfield & Maclean Robinson; Ab-Soul, Jhené Aiko, Brian Warfield, Maclean Robinson & Julian-Quan Viet Le; Jhené Aiko, Amaire Johnson & Roman Mironchenko; Maclean Robinson, Julian-Quan Viet Le, Jhené Aiko & Brian Warfield; Jhené Aiko, Brian Warfield, Maclean Robinson, Julian-Quan Viet Le & Michael Ray Stevenson; Jhené Aiko, Dominique Logan, Darius Logan, Corparal & Mike Jiminez; Larry June, Jhené Aiko, Julian-Quan Viet Le & Matthew Dean Burdette; Jhené Aiko, Matthew Jehu Samuels & Jahron Anthony Brathwaite; Jhené Aiko, Kendrick Duckworth, Mark Spears, Matthew \"MTech\" Bernard, Ruchaun “Scott Bridgeway” Akers Jr & Jahaan Sweet; Jhené Aiko, Brian Warfield, Maclean Robinson, Julian-Quan Viet Le, Larry June, Theodore Life & Dexter Wansel; Jhené Aiko & Julian-Quan Viet Le; Jhené Aiko, Brian Warfield, Maclean Robinson, Julian-Quan Viet Le & Luke Kennedy; Jhené Aiko, Brian Warfield, Maclean Robinson, Mia Garcia & Hailey Niswanger",
+          "source": "https://music.apple.com/us/album/westside-whimsy/6810781932?uo=4"
+        },
+        "upc": {
+          "value": "881061550051",
+          "source": "https://www.deezer.com/album/1075809082"
+        },
+        "spotify_url": {
+          "value": "https://open.spotify.com/album/1U5UY674wcDu0FisO7SXXp",
+          "source": "https://open.spotify.com/album/1U5UY674wcDu0FisO7SXXp"
+        },
+        "country": {
+          "value": "United States",
+          "source": "https://www.universalmusic.ca/2026/09/11/jhene-aiko-releases-highly-anticipated-new-album-westside-whimsy/"
+        },
+        "country_code": {
+          "value": "US",
+          "source": "https://www.universalmusic.ca/2026/09/11/jhene-aiko-releases-highly-anticipated-new-album-westside-whimsy/"
+        }
+      }
+    },
+    {
+      "id": 23610,
+      "title": "What is Money",
+      "artist_id": 583,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/what-is-money/6806159956?i=6806159958",
+          "source": "https://music.apple.com/us/album/what-is-money/6806159956?i=6806159958&uo=4"
+        },
+        "genre": {
+          "value": "Afro-Beat",
+          "source": "https://music.apple.com/us/album/what-is-money/6806159956?i=6806159958&uo=4"
+        },
+        "release_date": {
+          "value": "2026-08-27",
+          "source": "https://music.apple.com/us/album/what-is-money/6806159956?i=6806159958&uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/what-is-money/6806159956?i=6806159958&uo=4"
+        },
+        "label": {
+          "value": "Double D Empire",
+          "source": "https://music.apple.com/us/album/what-is-money/6806159956?i=6806159958&uo=4"
+        },
+        "songwriters": {
+          "value": "Dickens Derick Omondi",
+          "source": "https://music.apple.com/us/song/6806159958"
+        }
+      }
+    },
+    {
+      "id": 19446,
+      "title": "Work Of Art",
+      "artist_id": 33,
+      "fields": {
+        "songwriters": {
+          "value": "Ololade Ahmed & Ahmed Olalade; Ololade Ahmed, Ahmed Olalade & Olamide Adedeji; Ololade Ahmed, Ahmed Olalade, Paul Tucker & Olamide Adedeji; Ololade Ahmed, Olamide Adedeji & Ahmed Olalade",
+          "source": "https://music.apple.com/ke/album/work-of-art/1688641478"
+        }
+      }
+    },
+    {
+      "id": 21489,
+      "title": "XX : Délirium",
+      "artist_id": 41,
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/album/xx-d%C3%A9lirium/6778004934?uo=4",
+          "source": "https://music.apple.com/us/album/xx-d%C3%A9lirium/6778004934?uo=4"
+        },
+        "genre": {
+          "value": "Worldwide",
+          "source": "https://music.apple.com/us/album/xx-d%C3%A9lirium/6778004934?uo=4"
+        },
+        "number_of_tracks": {
+          "value": 51,
+          "source": "https://music.apple.com/us/album/xx-d%C3%A9lirium/6778004934?uo=4"
+        },
+        "release_date": {
+          "value": "2026-09-18",
+          "source": "https://music.apple.com/us/album/xx-d%C3%A9lirium/6778004934?uo=4"
+        },
+        "release_year": {
+          "value": 2026,
+          "source": "https://music.apple.com/us/album/xx-d%C3%A9lirium/6778004934?uo=4"
+        },
+        "label": {
+          "value": "FCA",
+          "source": "https://music.apple.com/us/album/xx-d%C3%A9lirium/6778004934?uo=4"
+        },
+        "songwriters": {
+          "value": "Fally Ipupa; Afrik'an Legend & Fally Ipupa; Fally Ipupa & Josky Kiambukuta; Fally Ipupa & Franco Luambo Makiadi; Fally Ipupa & Meiway",
+          "source": "https://music.apple.com/us/album/xx-d%C3%A9lirium/6778004934?uo=4"
+        },
+        "upc": {
+          "value": "1200214313500",
+          "source": "https://www.deezer.com/album/1000395501"
+        }
+      }
+    }
+  ],
+  "artists": [
+    {
+      "id": 1858,
+      "name": "6uff",
+      "fields": {
+        "country": {
+          "value": "Nigeria",
+          "source": "https://musicinafrica.net/directory/6uff/"
+        },
+        "country_code": {
+          "value": "NG",
+          "source": "https://musicinafrica.net/directory/6uff/"
+        },
+        "city_region": {
+          "value": "Anambra State",
+          "source": "https://musicinafrica.net/directory/6uff/"
+        },
+        "genre": {
+          "value": "Afro-fusion; Afrobeats; Hip-hop",
+          "source": "https://musicinafrica.net/directory/6uff/"
+        },
+        "biography": {
+          "value": "6uff is a Nigerian artist and producer from Anambra State whose music blends Afro-fusion and hip-hop.",
+          "source": "https://musicinafrica.net/directory/6uff/"
+        }
+      }
+    },
+    {
+      "id": 3334,
+      "name": "ADELA",
+      "fields": {
+        "country": {
+          "value": "Slovakia",
+          "source": "https://www.enbschool.org.uk/alumni/adela-jergova-music-artist/"
+        },
+        "country_code": {
+          "value": "SK",
+          "source": "https://www.enbschool.org.uk/alumni/adela-jergova-music-artist/"
+        },
+        "city_region": {
+          "value": "Los Angeles",
+          "source": "https://www.enbschool.org.uk/alumni/adela-jergova-music-artist/"
+        },
+        "genre": {
+          "value": "Pop",
+          "source": "https://www.enbschool.org.uk/alumni/adela-jergova-music-artist/"
+        },
+        "biography": {
+          "value": "ADÉLA is a Slovak singer and songwriter based in Los Angeles. She trained in ballet at English National Ballet School before pursuing music.",
+          "source": "https://www.enbschool.org.uk/alumni/adela-jergova-music-artist/"
+        }
+      }
+    },
+    {
+      "id": 1597,
+      "name": "Jhené Aiko",
+      "fields": {
+        "country": {
+          "value": "United States",
+          "source": "https://www.universalmusic.ca/2026/09/11/jhene-aiko-releases-highly-anticipated-new-album-westside-whimsy/"
+        },
+        "country_code": {
+          "value": "US",
+          "source": "https://www.universalmusic.ca/2026/09/11/jhene-aiko-releases-highly-anticipated-new-album-westside-whimsy/"
+        },
+        "city_region": {
+          "value": "Los Angeles, California",
+          "source": "https://www.universalmusic.ca/2026/09/11/jhene-aiko-releases-highly-anticipated-new-album-westside-whimsy/"
+        },
+        "genre": {
+          "value": "R&B/Soul",
+          "source": "https://www.universalmusic.ca/2026/09/11/jhene-aiko-releases-highly-anticipated-new-album-westside-whimsy/"
+        },
+        "biography": {
+          "value": "Jhené Aiko is an American singer and songwriter from Los Angeles, known for her R&B recordings.",
+          "source": "https://www.universalmusic.ca/2026/09/11/jhene-aiko-releases-highly-anticipated-new-album-westside-whimsy/"
+        }
+      }
+    },
+    {
+      "id": 3292,
+      "name": "Fat Joe",
+      "fields": {
+        "country": {
+          "value": "United States",
+          "source": "https://www.bronxwalkoffame.com/inductees/fat-joe"
+        },
+        "country_code": {
+          "value": "US",
+          "source": "https://www.bronxwalkoffame.com/inductees/fat-joe"
+        },
+        "city_region": {
+          "value": "Bronx, New York",
+          "source": "https://www.bronxwalkoffame.com/inductees/fat-joe"
+        },
+        "genre": {
+          "value": "Hip-hop/Rap",
+          "source": "https://www.bronxwalkoffame.com/inductees/fat-joe"
+        },
+        "biography": {
+          "value": "Fat Joe is an American rapper from the Bronx, New York.",
+          "source": "https://www.bronxwalkoffame.com/inductees/fat-joe"
+        }
+      }
+    },
+    {
+      "id": 334,
+      "name": "Masauti",
+      "fields": {
+        "country": {
+          "value": "Kenya",
+          "source": "https://www.womex.com/virtual/georg_leitner_gmbh/mswazzi_masauti"
+        },
+        "country_code": {
+          "value": "KE",
+          "source": "https://www.womex.com/virtual/georg_leitner_gmbh/mswazzi_masauti"
+        },
+        "city_region": {
+          "value": "Mombasa",
+          "source": "https://www.womex.com/virtual/georg_leitner_gmbh/mswazzi_masauti"
+        },
+        "genre": {
+          "value": "Afropop; R&B",
+          "source": "https://www.womex.com/virtual/georg_leitner_gmbh/mswazzi_masauti"
+        },
+        "biography": {
+          "value": "Masauti is a Kenyan singer and songwriter from Mombasa who records in Swahili.",
+          "source": "https://www.womex.com/virtual/georg_leitner_gmbh/mswazzi_masauti"
+        }
+      }
+    },
+    {
+      "id": 1775,
+      "name": "Mbilia Bel",
+      "fields": {
+        "country": {
+          "value": "Democratic Republic of the Congo",
+          "source": "https://musicinafrica.net/fr/directory/mbilia-bel/"
+        },
+        "country_code": {
+          "value": "CD",
+          "source": "https://musicinafrica.net/fr/directory/mbilia-bel/"
+        },
+        "city_region": {
+          "value": "Kinshasa",
+          "source": "https://musicinafrica.net/fr/directory/mbilia-bel/"
+        },
+        "genre": {
+          "value": "Congolese rumba; Soukous",
+          "source": "https://musicinafrica.net/fr/directory/mbilia-bel/"
+        },
+        "biography": {
+          "value": "Mbilia Bel is a Congolese singer associated with rumba and soukous, known for her work with Tabu Ley Rochereau.",
+          "source": "https://musicinafrica.net/fr/directory/mbilia-bel/"
+        }
+      }
+    },
+    {
+      "id": 3406,
+      "name": "Fari Athman",
+      "fields": {
+        "country": {
+          "value": "Kenya",
+          "source": "https://audiomack.com/fari_athman_music"
+        },
+        "country_code": {
+          "value": "KE",
+          "source": "https://audiomack.com/fari_athman_music"
+        },
+        "city_region": {
+          "value": "Nairobi",
+          "source": "https://audiomack.com/fari_athman_music"
+        },
+        "genre": {
+          "value": "Afro-pop",
+          "source": "https://audiomack.com/fari_athman_music"
+        },
+        "biography": {
+          "value": "Fari Athman is an Afro-pop artist from Nairobi, Kenya.",
+          "source": "https://audiomack.com/fari_athman_music"
+        }
+      }
+    },
+    {
+      "id": 2456,
+      "name": "DJGIDS254",
+      "fields": {
+        "country": {
+          "value": "Kenya",
+          "source": "https://audiomack.com/thevibezmaster"
+        },
+        "country_code": {
+          "value": "KE",
+          "source": "https://audiomack.com/thevibezmaster"
+        },
+        "city_region": {
+          "value": "Kakamega",
+          "source": "https://audiomack.com/thevibezmaster"
+        },
+        "genre": {
+          "value": "Bongo Flava; DJ mixes",
+          "source": "https://audiomack.com/thevibezmaster"
+        },
+        "biography": {
+          "value": "DJGIDS254 is a Kenyan DJ who publishes Bongo Flava mixes under Thevibezmaster.",
+          "source": "https://audiomack.com/thevibezmaster"
+        }
+      }
+    },
+    {
+      "id": 858,
+      "name": "DJ EXRAY",
+      "fields": {
+        "city_region": {
+          "value": "London",
+          "source": "https://audiomack.com/djexray"
+        },
+        "genre": {
+          "value": "Afrosounds; DJ mixes",
+          "source": "https://audiomack.com/djexray"
+        },
+        "biography": {
+          "value": "DJ EXRAY publishes mixes spanning Afrobeats, Bongo, dancehall, hip-hop and R&B.",
+          "source": "https://audiomack.com/djexray"
+        }
+      }
+    },
+    {
+      "id": 3425,
+      "name": "Zzero Sufuri",
+      "fields": {
+        "country": {
+          "value": "Kenya",
+          "source": "https://k24.digital/entertainment/celebrity/kenyan-musician-zzero-sufuri-reveals-story-behind-otero-collaboration/amp"
+        },
+        "country_code": {
+          "value": "KE",
+          "source": "https://k24.digital/entertainment/celebrity/kenyan-musician-zzero-sufuri-reveals-story-behind-otero-collaboration/amp"
+        },
+        "genre": {
+          "value": "Gengetone; Hip-hop",
+          "source": "https://k24.digital/entertainment/celebrity/kenyan-musician-zzero-sufuri-reveals-story-behind-otero-collaboration/amp"
+        },
+        "biography": {
+          "value": "Zzero Sufuri is a Kenyan musician associated with the Gengetone scene.",
+          "source": "https://k24.digital/entertainment/celebrity/kenyan-musician-zzero-sufuri-reveals-story-behind-otero-collaboration/amp"
+        }
+      }
+    },
+    {
+      "id": 166,
+      "name": "Nicki Minaj",
+      "fields": {
+        "city_region": {
+          "value": "Queens, New York",
+          "source": "https://music.apple.com/es/artist/nicki-minaj/278464538?l=en"
+        },
+        "genre": {
+          "value": "Hip-hop/Rap",
+          "source": "https://music.apple.com/es/artist/nicki-minaj/278464538?l=en"
+        },
+        "biography": {
+          "value": "Nicki Minaj is a Trinidad-born rapper raised in Queens, New York, known for Pink Friday.",
+          "source": "https://music.apple.com/es/artist/nicki-minaj/278464538?l=en"
+        }
+      }
+    },
+    {
+      "id": 204,
+      "name": "Rod Wave",
+      "fields": {
+        "city_region": {
+          "value": "St. Petersburg, Florida",
+          "source": "https://music.apple.com/us/album/pray-4-love/1574559019"
+        },
+        "genre": {
+          "value": "Hip-hop/Rap; R&B",
+          "source": "https://music.apple.com/us/album/pray-4-love/1574559019"
+        },
+        "biography": {
+          "value": "Rod Wave is a singer and rapper from St. Petersburg, Florida, whose music draws on soul and hip-hop.",
+          "source": "https://music.apple.com/us/album/pray-4-love/1574559019"
+        }
+      }
+    },
+    {
+      "id": 187,
+      "name": "Octopizzo",
+      "fields": {
+        "city_region": {
+          "value": "Kibera, Nairobi",
+          "source": "https://octopizzo.com/about/"
+        },
+        "genre": {
+          "value": "Hip-hop",
+          "source": "https://octopizzo.com/about/"
+        }
+      }
+    },
+    {
+      "id": 23,
+      "name": "Nyashinski",
+      "fields": {
+        "city_region": {
+          "value": "Nairobi",
+          "source": "https://www.allmusic.com/artist/nyashinski-mn0003967998/biography"
+        },
+        "genre": {
+          "value": "Hip-hop/Rap",
+          "source": "https://www.allmusic.com/artist/nyashinski-mn0003967998/biography"
+        }
+      }
+    },
+    {
+      "id": 331,
+      "name": "Kondela",
+      "fields": {
+        "city_region": {
+          "value": "Shinyanga",
+          "source": "https://open.spotify.com/artist/5QSt7WdkvDgt6YNZbKyWG7"
+        },
+        "genre": {
+          "value": "Bongo Flava; Afrobeat; Compa",
+          "source": "https://open.spotify.com/artist/5QSt7WdkvDgt6YNZbKyWG7"
+        }
+      }
+    },
+    {
+      "id": 478,
+      "name": "Tml Vibez",
+      "fields": {
+        "city_region": {
+          "value": "Lagos",
+          "source": "https://musicinafrica.net/directory/tml-vibez/"
+        },
+        "genre": {
+          "value": "Afrobeats",
+          "source": "https://musicinafrica.net/directory/tml-vibez/"
+        }
+      }
+    },
+    {
+      "id": 495,
+      "name": "VICTOR MUTHENYA",
+      "fields": {
+        "genre": {
+          "value": "Christian & Gospel",
+          "source": "https://memaawards.africa/c/youth-emerging-talent"
+        }
+      }
+    }
+  ],
+  "notes": [
+    {
+      "id": 23254,
+      "title": "Badda Dan",
+      "note": "Release date withheld because sources describe conflicting dates or editions."
+    },
+    {
+      "id": 23452,
+      "title": "Don't Look Down",
+      "note": "Release date withheld because sources describe conflicting dates or editions."
+    },
+    {
+      "id": 23657,
+      "title": "Dopamine (Live) Greasy Tunes Nairobi",
+      "note": "No sufficiently verified catalogue match; unavailable fields left empty."
+    },
+    {
+      "id": 23514,
+      "title": "Huyo Ndo Mimi (feat. Kapitani)",
+      "note": "Release date withheld because sources describe conflicting dates or editions."
+    },
+    {
+      "id": 23611,
+      "title": "Ipepete",
+      "note": "Release date withheld because sources describe conflicting dates or editions."
+    },
+    {
+      "id": 23623,
+      "title": "Melô De Cinderella (Special Version)",
+      "note": "No sufficiently verified catalogue match; unavailable fields left empty."
+    },
+    {
+      "id": 23681,
+      "title": "Nakei Nairobi",
+      "note": "Release date withheld because sources describe conflicting dates or editions."
+    },
+    {
+      "id": 23666,
+      "title": "Otero",
+      "note": "No sufficiently verified catalogue match; unavailable fields left empty."
+    },
+    {
+      "id": 23543,
+      "title": "PRIMA",
+      "note": "Release date withheld because sources describe conflicting dates or editions."
+    },
+    {
+      "id": 23686,
+      "title": "Sharp Boy",
+      "note": "Release date withheld because sources describe conflicting dates or editions."
+    },
+    {
+      "id": 23686,
+      "title": "Sharp Boy",
+      "note": "No sufficiently verified catalogue match; unavailable fields left empty."
+    }
+  ]
+}

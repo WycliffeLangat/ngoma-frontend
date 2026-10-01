@@ -1,0 +1,38 @@
+{
+  "id": 23364,
+  "requested_title": "Malaika",
+  "requested_artist": "Mbosso",
+  "url": "https://music.apple.com/us/album/malaika/6786543887?i=6786543889&uo=4",
+  "resolved_url": "https://music.apple.com/us/album/malaika/6786543887?i=6786543889&uo=4",
+  "page_title": "‎Malaika - Song with Lyrics by Mbosso, Nandy & S2Kizzy - Apple Music",
+  "title": "Malaika - Single",
+  "artists": [
+    "Mbosso",
+    "Nandy",
+    "S2Kizzy"
+  ],
+  "genre": "Afro-Pop · 2026",
+  "track_count": 1,
+  "artwork": {
+    "bgColor": "505050",
+    "hasP3": false,
+    "height": 1400,
+    "textColor1": "f5f5f5",
+    "textColor2": "e8e8e2",
+    "textColor3": "d4d4d4",
+    "textColor4": "cacac5",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/78/3b/97/783b9701-5c66-b50e-9fee-14704b1a149c/823375279129_Cover.jpg/{w}x{h}bb.{f}",
+    "width": 1400
+  },
+  "footer": "August 21, 2026\n1 song, 3 minutes\n℗ 2026 Ziiki Media",
+  "tracks": [
+    {
+      "title": "Malaika",
+      "artist": "Mbosso, Nandy & S2Kizzy",
+      "composer": "Faustina Charles Mfinanga, Salmini Rashidi Kassimu & Mbwana Yusuph Kilungi",
+      "url": "https://music.apple.com/us/album/malaika/6786543887?i=6786543889",
+      "id": "6786543889"
+    }
+  ],
+  "checked_at": "2026-10-01T01:55:11.583Z"
+}

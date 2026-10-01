@@ -1,0 +1,42 @@
+{
+  "id": 17332,
+  "title": "Msumari",
+  "artist": "Diamond Platnumz",
+  "url": "https://itunes.apple.com/search?term=Diamond+Platnumz+Msumari&entity=song&limit=30&country=US",
+  "candidates": [],
+  "results": [
+    {
+      "wrapperType": "track",
+      "kind": "song",
+      "artistId": 1682283750,
+      "collectionId": 1846284383,
+      "trackId": 1846284384,
+      "artistName": "Aloony",
+      "collectionName": "Msumari (feat. Diamond platnumz) - Single",
+      "trackName": "Msumari (feat. Diamond platnumz)",
+      "collectionCensoredName": "Msumari (feat. Diamond platnumz) - Single",
+      "trackCensoredName": "Msumari (feat. Diamond platnumz)",
+      "artistViewUrl": "https://music.apple.com/us/artist/aloony/1682283750?uo=4",
+      "collectionViewUrl": "https://music.apple.com/us/album/msumari-feat-diamond-platnumz/1846284383?i=1846284384&uo=4",
+      "trackViewUrl": "https://music.apple.com/us/album/msumari-feat-diamond-platnumz/1846284383?i=1846284384&uo=4",
+      "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/51/26/aa/5126aa19-ddec-eb27-2a8e-c31707a870f0/mzaf_11747818541395174823.plus.aac.p.m4a",
+      "artworkUrl30": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/73/48/68/734868d8-8983-1aa1-15b2-da0ad49fc44b/artwork.jpg/30x30bb.jpg",
+      "artworkUrl60": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/73/48/68/734868d8-8983-1aa1-15b2-da0ad49fc44b/artwork.jpg/60x60bb.jpg",
+      "artworkUrl100": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/73/48/68/734868d8-8983-1aa1-15b2-da0ad49fc44b/artwork.jpg/100x100bb.jpg",
+      "collectionPrice": 0.99,
+      "trackPrice": 0.99,
+      "releaseDate": "2025-10-11T12:00:00Z",
+      "collectionExplicitness": "notExplicit",
+      "trackExplicitness": "notExplicit",
+      "discCount": 1,
+      "discNumber": 1,
+      "trackCount": 1,
+      "trackNumber": 1,
+      "trackTimeMillis": 224679,
+      "country": "USA",
+      "currency": "USD",
+      "primaryGenreName": "Afro-Beat",
+      "isStreamable": true
+    }
+  ]
+}

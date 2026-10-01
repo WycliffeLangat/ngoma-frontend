@@ -1,0 +1,49 @@
+{
+  "id": 21489,
+  "url": "https://itunes.apple.com/lookup?upc=1200220194728&entity=song&country=US",
+  "resultCount": 2,
+  "results": [
+    {
+      "wrapperType": "collection",
+      "collectionType": "Album",
+      "artistId": 208298824,
+      "collectionId": 6778004934,
+      "amgArtistId": 438763,
+      "artistName": "Fally Ipupa",
+      "collectionName": "XX : Délirium",
+      "collectionCensoredName": "XX : Délirium",
+      "artistViewUrl": "https://music.apple.com/us/artist/fally-ipupa/208298824?uo=4",
+      "collectionViewUrl": "https://music.apple.com/us/album/xx-d%C3%A9lirium/6778004934?uo=4",
+      "artworkUrl60": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/dc/01/0a/dc010ae3-0116-99a0-e6bf-45e36db9988e/1200214313500.jpg/60x60bb.jpg",
+      "artworkUrl100": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/dc/01/0a/dc010ae3-0116-99a0-e6bf-45e36db9988e/1200214313500.jpg/100x100bb.jpg",
+      "collectionExplicitness": "notExplicit",
+      "trackCount": 51,
+      "copyright": "Licence exclusive Warner Music France, Label Elektra France, ℗ 2026 FCA",
+      "country": "USA",
+      "currency": "USD",
+      "releaseDate": "2026-09-18T07:00:00Z",
+      "primaryGenreName": "Worldwide"
+    },
+    {
+      "wrapperType": "collection",
+      "collectionType": "Album",
+      "artistId": 208298824,
+      "collectionId": 6815296817,
+      "amgArtistId": 438763,
+      "artistName": "Fally Ipupa",
+      "collectionName": "XX : Délirium",
+      "collectionCensoredName": "XX : Délirium",
+      "artistViewUrl": "https://music.apple.com/us/artist/fally-ipupa/208298824?uo=4",
+      "collectionViewUrl": "https://music.apple.com/us/album/xx-d%C3%A9lirium/6815296817?uo=4",
+      "artworkUrl60": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/ff/1d/ff/ff1dff8c-435a-5046-c548-727c1704dfad/1200214313500.jpg/60x60bb.jpg",
+      "artworkUrl100": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/ff/1d/ff/ff1dff8c-435a-5046-c548-727c1704dfad/1200214313500.jpg/100x100bb.jpg",
+      "collectionExplicitness": "notExplicit",
+      "trackCount": 53,
+      "copyright": "Licence exclusive Warner Music France, Label Elektra France, ℗ 2026 FCA",
+      "country": "USA",
+      "currency": "USD",
+      "releaseDate": "2026-09-18T07:00:00Z",
+      "primaryGenreName": "Afro-Pop"
+    }
+  ]
+}

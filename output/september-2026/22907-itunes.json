@@ -1,0 +1,42 @@
+{
+  "id": 22907,
+  "title": "Control",
+  "artist": "Kapitani",
+  "url": "https://itunes.apple.com/search?term=Kapitani+Control&entity=song&limit=30&country=US",
+  "candidates": [],
+  "results": [
+    {
+      "wrapperType": "track",
+      "kind": "song",
+      "artistId": 397074203,
+      "collectionId": 557068498,
+      "trackId": 557068533,
+      "artistName": "Yoann Turpin",
+      "collectionName": "Rhythm'n'Bits",
+      "trackName": "Kapital Kontrol",
+      "collectionCensoredName": "Rhythm'n'Bits",
+      "trackCensoredName": "Kapital Kontrol",
+      "artistViewUrl": "https://music.apple.com/us/artist/yoann-turpin/397074203?uo=4",
+      "collectionViewUrl": "https://music.apple.com/us/album/kapital-kontrol/557068498?i=557068533&uo=4",
+      "trackViewUrl": "https://music.apple.com/us/album/kapital-kontrol/557068498?i=557068533&uo=4",
+      "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/7d/8b/a8/7d8ba837-75f9-c4b5-2421-af433596d19e/mzaf_4132849569401209854.plus.aac.p.m4a",
+      "artworkUrl30": "https://is1-ssl.mzstatic.com/image/thumb/Music/v4/78/47/2f/78472fe0-b480-cea1-0ea1-5b21d0c49420/154570.jpg/30x30bb.jpg",
+      "artworkUrl60": "https://is1-ssl.mzstatic.com/image/thumb/Music/v4/78/47/2f/78472fe0-b480-cea1-0ea1-5b21d0c49420/154570.jpg/60x60bb.jpg",
+      "artworkUrl100": "https://is1-ssl.mzstatic.com/image/thumb/Music/v4/78/47/2f/78472fe0-b480-cea1-0ea1-5b21d0c49420/154570.jpg/100x100bb.jpg",
+      "collectionPrice": 9.99,
+      "trackPrice": 0.99,
+      "releaseDate": "2012-08-25T12:00:00Z",
+      "collectionExplicitness": "notExplicit",
+      "trackExplicitness": "notExplicit",
+      "discCount": 1,
+      "discNumber": 1,
+      "trackCount": 19,
+      "trackNumber": 7,
+      "trackTimeMillis": 222694,
+      "country": "USA",
+      "currency": "USD",
+      "primaryGenreName": "Electronic",
+      "isStreamable": true
+    }
+  ]
+}

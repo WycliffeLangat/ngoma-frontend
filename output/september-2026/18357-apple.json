@@ -1,0 +1,106 @@
+{
+  "id": 18357,
+  "requested_title": "Osiepe",
+  "requested_artist": "Prince Indah",
+  "url": "https://music.apple.com/us/album/osiepe/1761143174?i=1761143334&uo=4",
+  "resolved_url": "https://music.apple.com/us/album/osiepe/1761143174?i=1761143334&uo=4",
+  "page_title": "‎Osiepe - Song with Lyrics by Prince Indah - Apple Music",
+  "title": "Puonj Mag Dak (The Album Formula 5)",
+  "artists": [
+    "Prince Indah"
+  ],
+  "genre": "Traditional Pop · 2023",
+  "track_count": 11,
+  "artwork": {
+    "bgColor": "111717",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "d3bb99",
+    "textColor2": "d2b082",
+    "textColor3": "ac9a7f",
+    "textColor4": "ab916c",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/37/45/07/374507db-ebb3-a980-b267-719e24bdeff7/198588874660.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "April 7, 2023\n11 songs, 1 hour 28 minutes\n℗ 2023 EMC",
+  "tracks": [
+    {
+      "title": "Mummy Chulo",
+      "artist": "Prince Indah",
+      "composer": "EVANCE OCHIENG OWINO",
+      "url": "https://music.apple.com/us/album/mummy-chulo/1761143174?i=1761143331",
+      "id": "1761143331"
+    },
+    {
+      "title": "Osiepe",
+      "artist": "Prince Indah",
+      "composer": "EVANCE OCHIENG OWINO",
+      "url": "https://music.apple.com/us/album/osiepe/1761143174?i=1761143334",
+      "id": "1761143334"
+    },
+    {
+      "title": "Kogik Otieno",
+      "artist": "Prince Indah",
+      "composer": "EVANCE OCHIENG OWINO",
+      "url": "https://music.apple.com/us/album/kogik-otieno/1761143174?i=1761143352",
+      "id": "1761143352"
+    },
+    {
+      "title": "Hera Onge Wuon Go",
+      "artist": "Prince Indah",
+      "composer": "EVANCE OCHIENG OWINO",
+      "url": "https://music.apple.com/us/album/hera-onge-wuon-go/1761143174?i=1761143428",
+      "id": "1761143428"
+    },
+    {
+      "title": "Mama Camara",
+      "artist": "Prince Indah",
+      "composer": "EVANCE OCHIENG OWINO",
+      "url": "https://music.apple.com/us/album/mama-camara/1761143174?i=1761143433",
+      "id": "1761143433"
+    },
+    {
+      "title": "Jogi",
+      "artist": "Prince Indah",
+      "composer": "EVANCE OCHIENG OWINO",
+      "url": "https://music.apple.com/us/album/jogi/1761143174?i=1761143439",
+      "id": "1761143439"
+    },
+    {
+      "title": "Mimi Na Wewe",
+      "artist": "Prince Indah",
+      "composer": "EVANCE OCHIENG OWINO",
+      "url": "https://music.apple.com/us/album/mimi-na-wewe/1761143174?i=1761143443",
+      "id": "1761143443"
+    },
+    {
+      "title": "Ogada Memba",
+      "artist": "Prince Indah",
+      "composer": "EVANCE OCHIENG OWINO",
+      "url": "https://music.apple.com/us/album/ogada-memba/1761143174?i=1761143446",
+      "id": "1761143446"
+    },
+    {
+      "title": "Duk Jawiro",
+      "artist": "Prince Indah",
+      "composer": "EVANCE OCHIENG OWINO",
+      "url": "https://music.apple.com/us/album/duk-jawiro/1761143174?i=1761143630",
+      "id": "1761143630"
+    },
+    {
+      "title": "Nyar Msee (feat. Tony Ndiema, Musa Jakadalla, Augusto Papayo & Wuod Fibi)",
+      "artist": "Prince Indah",
+      "composer": "EVANCE OCHIENG OWINO",
+      "url": "https://music.apple.com/us/album/nyar-msee-feat-tony-ndiema-musa-jakadalla-augusto-papayo/1761143174?i=1761143633",
+      "id": "1761143633"
+    },
+    {
+      "title": "Suzzy Suzana",
+      "artist": "Prince Indah",
+      "composer": "EVANCE OCHIENG OWINO",
+      "url": "https://music.apple.com/us/album/suzzy-suzana/1761143174?i=1761143636",
+      "id": "1761143636"
+    }
+  ],
+  "checked_at": "2026-10-01T01:55:26.638Z"
+}

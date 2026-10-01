@@ -1,0 +1,43 @@
+{
+  "id": 23494,
+  "requested_title": "Happy Song",
+  "requested_artist": "Bella Shmurda",
+  "url": "https://music.apple.com/us/album/happy-song-single/6791655174?uo=4",
+  "resolved_url": "https://music.apple.com/us/album/happy-song-single/6791655174?uo=4",
+  "page_title": "‎Happy Song - Single - Album by Bella Shmurda - Apple Music",
+  "title": "Happy Song - Single",
+  "artists": [
+    "Bella Shmurda"
+  ],
+  "genre": "Afrobeats · 2026",
+  "track_count": 2,
+  "artwork": {
+    "bgColor": "ded9c7",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "301f18",
+    "textColor2": "3d2f29",
+    "textColor3": "53443b",
+    "textColor4": "5d5148",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/4b/86/a9/4b86a933-ee2f-dfb9-2e06-872a2ab8072d/0.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "August 14, 2026\n2 songs, 4 minutes\n℗ 2026 Dangbana Republik",
+  "tracks": [
+    {
+      "title": "Happy Song",
+      "artist": "Bella Shmurda",
+      "composer": "Akinbiyi Ahmed Abiola, Shefiu Ahmed & Adegeye Clinton",
+      "url": "https://music.apple.com/us/album/happy-song/6791655174?i=6791655178",
+      "id": "6791655178"
+    },
+    {
+      "title": "Mandalene",
+      "artist": "Bella Shmurda & King Promise",
+      "composer": "Akinbiyi Ahmed Abiola & Gregory Bortey Newman",
+      "url": "https://music.apple.com/us/album/mandalene/6791655174?i=6791655389",
+      "id": "6791655389"
+    }
+  ],
+  "checked_at": "2026-10-01T08:30:32.774Z"
+}

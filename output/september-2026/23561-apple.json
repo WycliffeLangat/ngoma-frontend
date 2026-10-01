@@ -1,0 +1,36 @@
+{
+  "id": 23561,
+  "requested_title": "Sanam",
+  "requested_artist": "Kondela",
+  "url": "https://music.apple.com/us/album/sanam/6797984855?i=6797984856&uo=4",
+  "resolved_url": "https://music.apple.com/us/album/sanam/6797984855?i=6797984856&uo=4",
+  "page_title": "‎Sanam - Song with Lyrics by Kondela - Apple Music",
+  "title": "Sanam - Single",
+  "artists": [
+    "Kondela"
+  ],
+  "genre": "Afro-Pop · 2026",
+  "track_count": 1,
+  "artwork": {
+    "bgColor": "1a1610",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "dbb589",
+    "textColor2": "dcae78",
+    "textColor3": "b49571",
+    "textColor4": "b59063",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/de/7a/f5/de7af519-75bd-777c-3eca-5c58db5b913a/881453515231_cover.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "September 2, 2026\n1 song, 3 minutes\n℗ 2026 Kondela",
+  "tracks": [
+    {
+      "title": "Sanam",
+      "artist": "Kondela",
+      "composer": "Siraju Amani",
+      "url": "https://music.apple.com/us/album/sanam/6797984855?i=6797984856",
+      "id": "6797984856"
+    }
+  ],
+  "checked_at": "2026-10-01T08:24:49.409Z"
+}

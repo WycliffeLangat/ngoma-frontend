@@ -1,0 +1,31 @@
+{
+  "id": 21489,
+  "title": "XX : Délirium",
+  "artist": "Fally Ipupa",
+  "url": "https://itunes.apple.com/search?term=Fally+Ipupa+XX+%3A+D%C3%A9lirium&entity=album&limit=30&country=US",
+  "candidates": [],
+  "results": [
+    {
+      "wrapperType": "collection",
+      "collectionType": "Album",
+      "artistId": 208298824,
+      "collectionId": 321619381,
+      "amgArtistId": 438763,
+      "artistName": "Fally Ipupa",
+      "collectionName": "Arsenal de belles mélodies",
+      "collectionCensoredName": "Arsenal de belles mélodies",
+      "artistViewUrl": "https://music.apple.com/us/artist/fally-ipupa/208298824?uo=4",
+      "collectionViewUrl": "https://music.apple.com/us/album/arsenal-de-belles-m%C3%A9lodies/321619381?uo=4",
+      "artworkUrl60": "https://is1-ssl.mzstatic.com/image/thumb/Music/ce/ed/12/mzi.pebybcoo.jpg/60x60bb.jpg",
+      "artworkUrl100": "https://is1-ssl.mzstatic.com/image/thumb/Music/ce/ed/12/mzi.pebybcoo.jpg/100x100bb.jpg",
+      "collectionPrice": 7.99,
+      "collectionExplicitness": "notExplicit",
+      "trackCount": 16,
+      "copyright": "℗ 2009 Obouo Productions",
+      "country": "USA",
+      "currency": "USD",
+      "releaseDate": "2009-04-08T07:00:00Z",
+      "primaryGenreName": "Afro-Pop"
+    }
+  ]
+}

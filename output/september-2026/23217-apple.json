@@ -1,0 +1,36 @@
+{
+  "id": 23217,
+  "requested_title": "BLOW (feat. Scar Mkadinali)",
+  "requested_artist": "Sparker Domani Mkadinali",
+  "url": "https://music.apple.com/us/album/blow-feat-scar-mkadinali-single/6799950686",
+  "resolved_url": "https://music.apple.com/us/album/blow-feat-scar-mkadinali-single/6799950686",
+  "page_title": "‎BLOW (feat. Scar Mkadinali) - Single - Album by Sparker Domani Mkadinali - Apple Music",
+  "title": "BLOW (feat. Scar Mkadinali) - Single",
+  "artists": [
+    "Sparker Domani Mkadinali"
+  ],
+  "genre": "Hip-Hop/Rap · 2026",
+  "track_count": 1,
+  "artwork": {
+    "bgColor": "000000",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "f1f1f1",
+    "textColor2": "ececec",
+    "textColor3": "c0c0c0",
+    "textColor4": "bdbdbd",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/d5/26/c4/d526c4d4-ebb0-87c8-9e70-bf6820b4237b/artwork.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "August 6, 2026\n1 song, 3 minutes\n℗ 2026 13405878 Records DK",
+  "tracks": [
+    {
+      "title": "BLOW (feat. Scar Mkadinali)",
+      "artist": "Sparker Domani Mkadinali",
+      "composer": "JOHN DAVID MUNGA TANGUT, Churchill Mandela & Teddy omondi obwar",
+      "url": "https://music.apple.com/us/album/blow-feat-scar-mkadinali/6799950686?i=6799950687",
+      "id": "6799950687"
+    }
+  ],
+  "checked_at": "2026-10-01T08:24:45.476Z"
+}

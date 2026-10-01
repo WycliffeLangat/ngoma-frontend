@@ -1,0 +1,127 @@
+{
+  "id": 17503,
+  "requested_title": "Remember",
+  "requested_artist": "Asake",
+  "url": "https://music.apple.com/us/album/remember/1688641478?i=1688642490&uo=4",
+  "resolved_url": "https://music.apple.com/us/album/remember/1688641478?i=1688642490&uo=4",
+  "page_title": "‎Remember - Song with Lyrics by Asake - Apple Music",
+  "title": "Work Of Art",
+  "artists": [
+    "Asake"
+  ],
+  "genre": "African · 2023",
+  "track_count": 14,
+  "artwork": {
+    "bgColor": "d8d7db",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "0a0f12",
+    "textColor2": "0d0e1a",
+    "textColor3": "33373a",
+    "textColor4": "363641",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/cc/23/83/cc2383d9-eecc-f974-5f5b-d445c583acdb/197342233958_cover.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "June 16, 2023\n14 songs, 36 minutes\n℗ 2023 YBNL Nation / EMPIRE",
+  "tracks": [
+    {
+      "title": "Olorun",
+      "artist": "Asake",
+      "composer": "Ololade Ahmed & Ahmed Olalade",
+      "url": "https://music.apple.com/us/album/olorun/1688641478?i=1688641613",
+      "id": "1688641613"
+    },
+    {
+      "title": "Awodi",
+      "artist": "Asake",
+      "composer": "Ololade Ahmed, Ahmed Olalade & Olamide Adedeji",
+      "url": "https://music.apple.com/us/album/awodi/1688641478?i=1688641620",
+      "id": "1688641620"
+    },
+    {
+      "title": "2:30",
+      "artist": "Asake",
+      "composer": "Ololade Ahmed, Ahmed Olalade & Olamide Adedeji",
+      "url": "https://music.apple.com/us/album/2-30/1688641478?i=1688641633",
+      "id": "1688641633"
+    },
+    {
+      "title": "Sunshine",
+      "artist": "Asake",
+      "composer": "Ololade Ahmed, Ahmed Olalade, Paul Tucker & Olamide Adedeji",
+      "url": "https://music.apple.com/us/album/sunshine/1688641478?i=1688641838",
+      "id": "1688641838"
+    },
+    {
+      "title": "Mogbe",
+      "artist": "Asake",
+      "composer": "Ololade Ahmed, Ahmed Olalade & Olamide Adedeji",
+      "url": "https://music.apple.com/us/album/mogbe/1688641478?i=1688641845",
+      "id": "1688641845"
+    },
+    {
+      "title": "Basquiat",
+      "artist": "Asake",
+      "composer": "Ololade Ahmed, Ahmed Olalade & Olamide Adedeji",
+      "url": "https://music.apple.com/us/album/basquiat/1688641478?i=1688641984",
+      "id": "1688641984"
+    },
+    {
+      "title": "Amapiano",
+      "artist": "Asake & Olamide",
+      "composer": "Ololade Ahmed, Ahmed Olalade & Olamide Adedeji",
+      "url": "https://music.apple.com/us/album/amapiano/1688641478?i=1688641993",
+      "id": "1688641993"
+    },
+    {
+      "title": "What's Up My G",
+      "artist": "Asake",
+      "composer": "Ololade Ahmed, Olamide Adedeji & Ahmed Olalade",
+      "url": "https://music.apple.com/us/album/whats-up-my-g/1688641478?i=1688642329",
+      "id": "1688642329"
+    },
+    {
+      "title": "I Believe",
+      "artist": "Asake",
+      "composer": "Ololade Ahmed, Ahmed Olalade & Olamide Adedeji",
+      "url": "https://music.apple.com/us/album/i-believe/1688641478?i=1688642355",
+      "id": "1688642355"
+    },
+    {
+      "title": "Introduction",
+      "artist": "Asake",
+      "composer": "Ololade Ahmed & Ahmed Olalade",
+      "url": "https://music.apple.com/us/album/introduction/1688641478?i=1688642480",
+      "id": "1688642480"
+    },
+    {
+      "title": "Remember",
+      "artist": "Asake",
+      "composer": "Ololade Ahmed, Ahmed Olalade & Olamide Adedeji",
+      "url": "https://music.apple.com/us/album/remember/1688641478?i=1688642490",
+      "id": "1688642490"
+    },
+    {
+      "title": "Lonely At The Top",
+      "artist": "Asake",
+      "composer": "Ololade Ahmed, Ahmed Olalade & Olamide Adedeji",
+      "url": "https://music.apple.com/us/album/lonely-at-the-top/1688641478?i=1688642838",
+      "id": "1688642838"
+    },
+    {
+      "title": "Great Guy",
+      "artist": "Asake",
+      "composer": "Ololade Ahmed & Ahmed Olalade",
+      "url": "https://music.apple.com/us/album/great-guy/1688641478?i=1688642858",
+      "id": "1688642858"
+    },
+    {
+      "title": "Yoga",
+      "artist": "Asake",
+      "composer": "Ololade Ahmed & Ahmed Olalade",
+      "url": "https://music.apple.com/us/album/yoga/1688641478?i=1688642865",
+      "id": "1688642865"
+    }
+  ],
+  "checked_at": "2026-10-01T01:55:22.957Z"
+}

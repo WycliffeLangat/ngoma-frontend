@@ -1,0 +1,36 @@
+{
+  "id": 23476,
+  "requested_title": "Find My Babe",
+  "requested_artist": "Mavo",
+  "url": "https://music.apple.com/us/album/find-my-babe-single/6807817364?uo=4",
+  "resolved_url": "https://music.apple.com/us/album/find-my-babe-single/6807817364?uo=4",
+  "page_title": "‎Find My Babe - Single - Album by Mavo - Apple Music",
+  "title": "Find My Babe - Single",
+  "artists": [
+    "Mavo"
+  ],
+  "genre": "Amapiano · 2026",
+  "track_count": 1,
+  "artwork": {
+    "bgColor": "cbcdcd",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "030705",
+    "textColor2": "171717",
+    "textColor3": "2b2f2d",
+    "textColor4": "3b3b3b",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/dc/87/d7/dc87d72d-9670-8ea8-62de-b9b84ecf5589/885288471526.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "September 4, 2026\n1 song, 5 minutes\n℗ 2026 KILOGBEDE RECORDS LIMITED",
+  "tracks": [
+    {
+      "title": "Find My Babe",
+      "artist": "Mavo",
+      "composer": "OSEREMEN MARVIN",
+      "url": "https://music.apple.com/us/album/find-my-babe/6807817364?i=6807817641",
+      "id": "6807817641"
+    }
+  ],
+  "checked_at": "2026-10-01T08:30:33.582Z"
+}

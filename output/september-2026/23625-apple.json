@@ -1,0 +1,36 @@
+{
+  "id": 23625,
+  "requested_title": "Type Yake",
+  "requested_artist": "Fari Athman",
+  "url": "https://music.apple.com/us/album/type-yake/6800766083?i=6800766085&uo=4",
+  "resolved_url": "https://music.apple.com/us/album/type-yake/6800766083?i=6800766085&uo=4",
+  "page_title": "‎Type Yake - Song with Lyrics by Fari Athman - Apple Music",
+  "title": "Type Yake - Single",
+  "artists": [
+    "Fari Athman"
+  ],
+  "genre": "Afro-Pop · 2026",
+  "track_count": 1,
+  "artwork": {
+    "bgColor": "020e30",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "cfcfe2",
+    "textColor2": "93a6d3",
+    "textColor3": "a6a8be",
+    "textColor4": "7688b3",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/39/20/33/3920335f-d394-10ba-1c6f-6026b425b13d/artwork.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "August 12, 2026\n1 song, 3 minutes\n℗ 2026 10933850 Records DK",
+  "tracks": [
+    {
+      "title": "Type Yake",
+      "artist": "Fari Athman",
+      "composer": "Fari Athman",
+      "url": "https://music.apple.com/us/album/type-yake/6800766083?i=6800766085",
+      "id": "6800766085"
+    }
+  ],
+  "checked_at": "2026-10-01T01:55:18.618Z"
+}

@@ -1,0 +1,36 @@
+{
+  "id": 17997,
+  "requested_title": "HATUA ZANGU",
+  "requested_artist": "VICTOR MUTHENYA",
+  "url": "https://music.apple.com/us/album/hatua-zangu/1842389355?i=1842389356&uo=4",
+  "resolved_url": "https://music.apple.com/us/album/hatua-zangu/1842389355?i=1842389356&uo=4",
+  "page_title": "‎HATUA ZANGU - Song with Lyrics by VICTOR MUTHENYA - Apple Music",
+  "title": "HATUA ZANGU - Single",
+  "artists": [
+    "VICTOR MUTHENYA"
+  ],
+  "genre": "Christian · 2025",
+  "track_count": 1,
+  "artwork": {
+    "bgColor": "eff0f2",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "242d38",
+    "textColor2": "2c2c39",
+    "textColor3": "4c545d",
+    "textColor4": "53535e",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/b2/55/26/b25526ea-0bfc-66d6-d12b-207adf03a355/artwork.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "September 25, 2025\n1 song, 5 minutes\n℗ 2025 Victor Muthenya",
+  "tracks": [
+    {
+      "title": "HATUA ZANGU",
+      "artist": "VICTOR MUTHENYA",
+      "composer": "VICTOR MUTHENYA",
+      "url": "https://music.apple.com/us/album/hatua-zangu/1842389355?i=1842389356",
+      "id": "1842389356"
+    }
+  ],
+  "checked_at": "2026-10-01T01:55:26.712Z"
+}

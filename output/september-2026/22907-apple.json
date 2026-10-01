@@ -1,0 +1,36 @@
+{
+  "id": 22907,
+  "requested_title": "Control",
+  "requested_artist": "Kapitani",
+  "url": "https://music.apple.com/us/album/control-single/1840257777?uo=4",
+  "resolved_url": "https://music.apple.com/us/album/control-single/1840257777?uo=4",
+  "page_title": "‎Control - Single - Album by Kapitani - Apple Music",
+  "title": "Control - Single",
+  "artists": [
+    "Kapitani"
+  ],
+  "genre": "Hip-Hop/Rap · 2025",
+  "track_count": 1,
+  "artwork": {
+    "bgColor": "1a1a16",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "a381fb",
+    "textColor2": "a17ff9",
+    "textColor3": "876ccd",
+    "textColor4": "866bcb",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/9f/18/1a/9f181aef-51fb-64d8-6f1d-fb7bc560f7ee/artwork.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "September 15, 2025\n1 song, 3 minutes\n℗ 2025 10312829 Records DK",
+  "tracks": [
+    {
+      "title": "Control",
+      "artist": "Kapitani",
+      "composer": "Martin Nduati",
+      "url": "https://music.apple.com/us/album/control/1840257777?i=1840258168",
+      "id": "1840258168"
+    }
+  ],
+  "checked_at": "2026-10-01T08:30:32.045Z"
+}

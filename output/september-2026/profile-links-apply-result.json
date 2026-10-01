@@ -1,0 +1,158 @@
+{
+  "changed": [
+    {
+      "type": "artists",
+      "id": 265,
+      "fields": [
+        "apple_music_url"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 583,
+      "fields": [
+        "apple_music_url"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 858,
+      "fields": [
+        "audiomack_url"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 2456,
+      "fields": [
+        "audiomack_url"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 3267,
+      "fields": [
+        "apple_music_url"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 3406,
+      "fields": [
+        "apple_music_url",
+        "audiomack_url"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 283,
+      "fields": [
+        "apple_music_url"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 1597,
+      "fields": [
+        "apple_music_url"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 331,
+      "fields": [
+        "apple_music_url",
+        "spotify_url"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 334,
+      "fields": [
+        "apple_music_url"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 955,
+      "fields": [
+        "apple_music_url"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 1775,
+      "fields": [
+        "apple_music_url"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 3212,
+      "fields": [
+        "apple_music_url"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 3313,
+      "fields": [
+        "apple_music_url"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 187,
+      "fields": [
+        "website_url"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 184,
+      "fields": [
+        "apple_music_url"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 53,
+      "fields": [
+        "apple_music_url"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 204,
+      "fields": [
+        "apple_music_url"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 495,
+      "fields": [
+        "apple_music_url"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 3429,
+      "fields": [
+        "apple_music_url"
+      ]
+    },
+    {
+      "type": "artists",
+      "id": 289,
+      "fields": [
+        "apple_music_url"
+      ]
+    }
+  ],
+  "cascaded": [],
+  "snapshot_updates": 0,
+  "harmonization": {},
+  "verified_fields": 23,
+  "status": "committed"
+}

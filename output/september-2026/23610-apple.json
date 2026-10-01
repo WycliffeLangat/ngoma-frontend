@@ -1,0 +1,36 @@
+{
+  "id": 23610,
+  "requested_title": "What is Money",
+  "requested_artist": "Dickens Derick",
+  "url": "https://music.apple.com/us/album/what-is-money/6806159956?i=6806159958&uo=4",
+  "resolved_url": "https://music.apple.com/us/album/what-is-money/6806159956?i=6806159958&uo=4",
+  "page_title": "‎What is Money - Song with Lyrics by Dickens Derick - Apple Music",
+  "title": "What is Money - Single",
+  "artists": [
+    "Dickens Derick"
+  ],
+  "genre": "Afro-Beat · 2026",
+  "track_count": 1,
+  "artwork": {
+    "bgColor": "ffffff",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "211f1b",
+    "textColor2": "2e1d1a",
+    "textColor3": "4d4c49",
+    "textColor4": "584a48",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/a6/7f/46/a67f46d5-9480-46d7-75ad-178779397367/artwork.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "August 27, 2026\n1 song, 5 minutes\n℗ 2026 Double D Empire",
+  "tracks": [
+    {
+      "title": "What is Money",
+      "artist": "Dickens Derick",
+      "composer": "Dickens Derick Omondi",
+      "url": "https://music.apple.com/us/album/what-is-money/6806159956?i=6806159958",
+      "id": "6806159958"
+    }
+  ],
+  "checked_at": "2026-10-01T01:55:15.597Z"
+}

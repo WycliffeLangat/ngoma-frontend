@@ -1,0 +1,36 @@
+{
+  "id": 23372,
+  "requested_title": "Paulina",
+  "requested_artist": "Abongo Jakabwana",
+  "url": "https://music.apple.com/us/album/paulina/6801111671?i=6801111675&uo=4",
+  "resolved_url": "https://music.apple.com/us/album/paulina/6801111671?i=6801111675&uo=4",
+  "page_title": "‎Paulina - Song with Lyrics by Abongo Jakabwana - Apple Music",
+  "title": "Paulina - Single",
+  "artists": [
+    "Abongo Jakabwana"
+  ],
+  "genre": "Afrikaans · 2026",
+  "track_count": 1,
+  "artwork": {
+    "bgColor": "54241a",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "f5e0b0",
+    "textColor2": "dfa271",
+    "textColor3": "d8c096",
+    "textColor4": "c68c62",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/9e/6c/8b/9e6c8b0c-2324-e001-69aa-0b20e7e273a3/5064022373240_cover.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "August 22, 2026\n1 song, 5 minutes\n℗ 2026 TrackMusic Inc Label",
+  "tracks": [
+    {
+      "title": "Paulina",
+      "artist": "Abongo Jakabwana",
+      "composer": "Abongo Jakabwana",
+      "url": "https://music.apple.com/us/album/paulina/6801111671?i=6801111675",
+      "id": "6801111675"
+    }
+  ],
+  "checked_at": "2026-10-01T01:55:14.831Z"
+}

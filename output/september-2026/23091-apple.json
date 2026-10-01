@@ -1,0 +1,36 @@
+{
+  "id": 23091,
+  "requested_title": "Pink Blush",
+  "requested_artist": "dolly babe",
+  "url": "https://music.apple.com/us/album/pink-blush-single/6813667440?uo=4",
+  "resolved_url": "https://music.apple.com/us/album/pink-blush-single/6813667440?uo=4",
+  "page_title": "‎Pink Blush - Single - Album by Dolly Babe - Apple Music",
+  "title": "Pink Blush - Single",
+  "artists": [
+    "Dolly Babe"
+  ],
+  "genre": "Hip-Hop/Rap · 2026",
+  "track_count": 1,
+  "artwork": {
+    "bgColor": "da5381",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "16040d",
+    "textColor2": "190a11",
+    "textColor3": "3d1424",
+    "textColor4": "401827",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/fc/3b/0e/fc3b0e8a-fdd1-b6cc-0475-d8627dafd0a7/736084033459.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "June 30, 2026\n1 song, 2 minutes\n300 Entertainment LLC and ONErpm, ℗ 2026 Princess Pink LLC, under exclusive license to 300 Entertainment LLC",
+  "tracks": [
+    {
+      "title": "Pink Blush",
+      "artist": "Dolly Babe",
+      "composer": "Daniele Pirisi & Latiffini Brannon",
+      "url": "https://music.apple.com/us/album/pink-blush/6813667440?i=6813667649",
+      "id": "6813667649"
+    }
+  ],
+  "checked_at": "2026-10-01T08:30:32.007Z"
+}

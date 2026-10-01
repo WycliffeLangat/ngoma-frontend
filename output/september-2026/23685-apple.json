@@ -1,0 +1,36 @@
+{
+  "id": 23685,
+  "requested_title": "PERFECT MATCH",
+  "requested_artist": "NOISY NEIGHBOR",
+  "url": "https://music.apple.com/us/album/perfect-match-single/6786103726?uo=4",
+  "resolved_url": "https://music.apple.com/us/album/perfect-match-single/6786103726?uo=4",
+  "page_title": "‎PERFECT MATCH - Single - Album by NOISY NEIGHBOR - Apple Music",
+  "title": "PERFECT MATCH - Single",
+  "artists": [
+    "NOISY NEIGHBOR"
+  ],
+  "genre": "Pop · 2026",
+  "track_count": 1,
+  "artwork": {
+    "bgColor": "24231d",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "f5ae9f",
+    "textColor2": "f7ae88",
+    "textColor3": "cb9285",
+    "textColor4": "cc9272",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/6e/df/1c/6edf1c8f-86ba-6aea-e494-59f2dcac3d16/artwork.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "July 30, 2026\n1 song, 4 minutes\n℗ 2026 NOISY NEIGHBOR RECORDINGS",
+  "tracks": [
+    {
+      "title": "PERFECT MATCH",
+      "artist": "NOISY NEIGHBOR",
+      "composer": "Ferran Orta Ribas",
+      "url": "https://music.apple.com/us/album/perfect-match/6786103726?i=6786103727",
+      "id": "6786103727"
+    }
+  ],
+  "checked_at": "2026-10-01T08:30:31.321Z"
+}

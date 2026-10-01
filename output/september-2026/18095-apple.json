@@ -1,0 +1,52 @@
+{
+  "id": 18095,
+  "requested_title": "MONEY CONSTANT",
+  "requested_artist": "DJ Maphorisa",
+  "url": "https://music.apple.com/us/album/money-constant/1848130578?i=1848130579&uo=4",
+  "resolved_url": "https://music.apple.com/us/album/money-constant/1848130578?i=1848130579&uo=4",
+  "page_title": "‎MONEY CONSTANT - Song with Lyrics by DJ Maphorisa, DJ Tunez, Wizkid & Mavo - Apple Music",
+  "title": "SOUTH GIDI - Single",
+  "artists": [
+    "DJ Tunez",
+    "DJ Maphorisa",
+    "Wizkid"
+  ],
+  "genre": "Amapiano · 2025",
+  "track_count": 3,
+  "artwork": {
+    "bgColor": "150f0d",
+    "hasP3": false,
+    "height": 3840,
+    "textColor1": "ddd3b8",
+    "textColor2": "c9bda9",
+    "textColor3": "b5ac96",
+    "textColor4": "a59a8a",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Video221/v4/d0/4f/4b/d04f4bcc-33a9-3166-58c7-f63488ad3356/Job1decbda6-862a-49e3-a8ae-c26fdda1a09f-210239075-PreviewImage_Preview_Image_Intermediate_nonvideo_sdr_411109426_2446922613-Time1764622416472.png/{w}x{h}bb.{f}",
+    "width": 3840
+  },
+  "footer": "October 24, 2025\n3 songs, 20 minutes\n℗ 2025 South Africa - Sony Music Entertainment Africa (Pty) Ltd, under exclusive licence from New Money Gang Records",
+  "tracks": [
+    {
+      "title": "MONEY CONSTANT",
+      "artist": "DJ Maphorisa, DJ Tunez, Wizkid & Mavo",
+      "composer": "Ayodeji Ibrahim Balogun, Marvin Ukanigbe Oseremen, Mandla Mashakeni & Keamogetswe Mafiwa Shotholo",
+      "url": "https://music.apple.com/us/album/money-constant/1848130578?i=1848130579",
+      "id": "1848130579"
+    },
+    {
+      "title": "ABANGANI (feat. Daliwonga & Madumane)",
+      "artist": "DJ Maphorisa, DJ Tunez & Wizkid",
+      "composer": "Ayodeji Ibrahim Balogun, DaliWonga Matiwane & Themba Sekowe",
+      "url": "https://music.apple.com/us/album/abangani-feat-daliwonga-madumane/1848130578?i=1848130582",
+      "id": "1848130582"
+    },
+    {
+      "title": "FIESTA (feat. Zaba & Zeh McGeba)",
+      "artist": "DJ Maphorisa, DJ Tunez & Wizkid",
+      "composer": "Ayodeji Ibrahim Balogun, Leroto Hlatshwayo & Khethukuthula Mfeka",
+      "url": "https://music.apple.com/us/album/fiesta-feat-zaba-zeh-mcgeba/1848130578?i=1848130585",
+      "id": "1848130585"
+    }
+  ],
+  "checked_at": "2026-10-01T01:55:20.477Z"
+}

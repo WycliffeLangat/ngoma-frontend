@@ -1,0 +1,99 @@
+{
+  "id": 17469,
+  "requested_title": "Okay",
+  "requested_artist": "Adekunle Gold",
+  "url": "https://music.apple.com/us/album/okay/1522261640?i=1522262056&uo=4",
+  "resolved_url": "https://music.apple.com/us/album/okay/1522261640?i=1522262056&uo=4",
+  "page_title": "‎Okay - Song with Lyrics by Adekunle Gold - Apple Music",
+  "title": "Afro Pop, Vol. 1",
+  "artists": [
+    "Adekunle Gold"
+  ],
+  "genre": "Afro-Pop · 2020",
+  "track_count": 10,
+  "artwork": {
+    "bgColor": "fefff1",
+    "hasP3": false,
+    "height": 2000,
+    "textColor1": "120804",
+    "textColor2": "280202",
+    "textColor3": "413a33",
+    "textColor4": "533432",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/03/20/b9/0320b9bd-3bdb-a3d2-eeb2-ec9f1f380240/20UMGIM51122.rgb.jpg/{w}x{h}bb.{f}",
+    "width": 2000
+  },
+  "footer": "August 21, 2020\n10 songs, 29 minutes\nAn EMI release; ℗ 2020 Universal Music Operations Limited",
+  "tracks": [
+    {
+      "title": "AG Baby",
+      "artist": "Adekunle Gold & Nailah Blackman",
+      "composer": "Adekunle Gold, Simisola Ogunleye Simi & TMXO",
+      "url": "https://music.apple.com/us/album/ag-baby/1522261640?i=1522261653",
+      "id": "1522261653"
+    },
+    {
+      "title": "Sabina",
+      "artist": "Adekunle Gold",
+      "composer": "Adekunle Gold & Seyi",
+      "url": "https://music.apple.com/us/album/sabina/1522261640?i=1522262050",
+      "id": "1522262050"
+    },
+    {
+      "title": "Pretty Girl",
+      "artist": "Adekunle Gold & Patoranking",
+      "composer": "Adekunle Gold & Patoranking",
+      "url": "https://music.apple.com/us/album/pretty-girl/1522261640?i=1522262053",
+      "id": "1522262053"
+    },
+    {
+      "title": "Okay",
+      "artist": "Adekunle Gold",
+      "composer": "Adekunle Gold & BlaiseBeatz",
+      "url": "https://music.apple.com/us/album/okay/1522261640?i=1522262056",
+      "id": "1522262056"
+    },
+    {
+      "title": "Here for Ya",
+      "artist": "Adekunle Gold",
+      "composer": "Adekunle Gold & Pheelz",
+      "url": "https://music.apple.com/us/album/here-for-ya/1522261640?i=1522262059",
+      "id": "1522262059"
+    },
+    {
+      "title": "Exclusive",
+      "artist": "Adekunle Gold & Yinka",
+      "composer": "Adekunle Gold, Yinka, Ikenna Edwin Obiora-Madu & Pheelz",
+      "url": "https://music.apple.com/us/album/exclusive/1522261640?i=1522262062",
+      "id": "1522262062"
+    },
+    {
+      "title": "Firewood",
+      "artist": "Adekunle Gold & Tekno",
+      "composer": "Adekunle Gold, Tekno & Sess",
+      "url": "https://music.apple.com/us/album/firewood/1522261640?i=1522262068",
+      "id": "1522262068"
+    },
+    {
+      "title": "Something Different",
+      "artist": "Adekunle Gold",
+      "composer": "Adekunle Gold & Reekado Banks",
+      "url": "https://music.apple.com/us/album/something-different/1522261640?i=1522262069",
+      "id": "1522262069"
+    },
+    {
+      "title": "Water Carry Me",
+      "artist": "Adekunle Gold",
+      "composer": "Adekunle Gold & E. KELLY",
+      "url": "https://music.apple.com/us/album/water-carry-me/1522261640?i=1522262070",
+      "id": "1522262070"
+    },
+    {
+      "title": "My Ex",
+      "artist": "Adekunle Gold",
+      "composer": "Adekunle Gold, Spax & Taiwo Sotonwa",
+      "url": "https://music.apple.com/us/album/my-ex/1522261640?i=1522262072",
+      "id": "1522262072"
+    }
+  ],
+  "checked_at": "2026-10-01T08:24:48.675Z"
+}

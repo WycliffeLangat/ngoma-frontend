@@ -1,0 +1,223 @@
+{
+  "artists": [
+    {
+      "id": 265,
+      "name": "Abongo Jakabwana",
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/artist/abongo-jakabwana/1696066351?uo=4",
+          "source": "https://music.apple.com/us/album/paulina/6801111671?i=6801111675&uo=4"
+        }
+      }
+    },
+    {
+      "id": 583,
+      "name": "Dickens Derick",
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/artist/dickens-derick/1762210803?uo=4",
+          "source": "https://music.apple.com/us/album/what-is-money/6806159956?i=6806159958&uo=4"
+        }
+      }
+    },
+    {
+      "id": 858,
+      "name": "DJ EXRAY",
+      "fields": {
+        "audiomack_url": {
+          "value": "https://audiomack.com/djexray",
+          "source": "https://audiomack.com/djexray"
+        }
+      }
+    },
+    {
+      "id": 2456,
+      "name": "DJGIDS254",
+      "fields": {
+        "audiomack_url": {
+          "value": "https://audiomack.com/thevibezmaster",
+          "source": "https://audiomack.com/thevibezmaster"
+        }
+      }
+    },
+    {
+      "id": 3267,
+      "name": "Energetic newton",
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/artist/energetic-newton/6803690875?uo=4",
+          "source": "https://music.apple.com/us/album/nampea-head-feat-thug-dejan-producer-hybrid/6804350548?i=6804350551&uo=4"
+        }
+      }
+    },
+    {
+      "id": 3406,
+      "name": "Fari Athman",
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/artist/fari-athman/1731928148?uo=4",
+          "source": "https://music.apple.com/us/album/type-yake/6800766083?i=6800766085&uo=4"
+        },
+        "audiomack_url": {
+          "value": "https://audiomack.com/fari_athman_music",
+          "source": "https://audiomack.com/fari_athman_music"
+        }
+      }
+    },
+    {
+      "id": 283,
+      "name": "Gradine Toto",
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/artist/gradine-toto/1867166952?uo=4",
+          "source": "https://music.apple.com/us/album/mayday-rachael/1877081735?i=1877081737&uo=4"
+        }
+      }
+    },
+    {
+      "id": 1597,
+      "name": "Jhené Aiko",
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/artist/jhen%C3%A9-aiko/198431322?uo=4",
+          "source": "https://music.apple.com/us/album/so-good-feat-kendrick-lamar/6810781932?i=6810782057&uo=4"
+        }
+      }
+    },
+    {
+      "id": 331,
+      "name": "Kondela",
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/artist/kondela/1639282206?uo=4",
+          "source": "https://music.apple.com/us/album/sanam/6797984855?i=6797984856&uo=4"
+        },
+        "spotify_url": {
+          "value": "https://open.spotify.com/artist/5QSt7WdkvDgt6YNZbKyWG7",
+          "source": "https://open.spotify.com/artist/5QSt7WdkvDgt6YNZbKyWG7"
+        }
+      }
+    },
+    {
+      "id": 334,
+      "name": "Masauti",
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/artist/masauti/1061983451?uo=4",
+          "source": "https://music.apple.com/us/album/ipepete/1835635589?i=1835635592&uo=4"
+        }
+      }
+    },
+    {
+      "id": 955,
+      "name": "Mavoicetz",
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/artist/mavoicetz/1674334639?uo=4",
+          "source": "https://music.apple.com/us/album/single/6804655006?i=6804655012&uo=4"
+        }
+      }
+    },
+    {
+      "id": 1775,
+      "name": "Mbilia Bel",
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/artist/mbilia-bel/274678991?uo=4",
+          "source": "https://music.apple.com/us/album/nakei-nairobi/1242458906?i=1242459676&uo=4"
+        }
+      }
+    },
+    {
+      "id": 3212,
+      "name": "MICKY BLAISE",
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/artist/micky-blaise/1880685502?uo=4",
+          "source": "https://music.apple.com/us/album/henessy/6797800833?i=6797800837&uo=4"
+        }
+      }
+    },
+    {
+      "id": 3313,
+      "name": "Naishift",
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/artist/naishift/6792319015?uo=4",
+          "source": "https://music.apple.com/us/album/huyo-ndo-mimi-feat-kapitani/6792643364?i=6792643365&uo=4"
+        }
+      }
+    },
+    {
+      "id": 187,
+      "name": "Octopizzo",
+      "fields": {
+        "website_url": {
+          "value": "https://octopizzo.com/",
+          "source": "https://octopizzo.com/"
+        }
+      }
+    },
+    {
+      "id": 184,
+      "name": "PARTYNEXTDOOR",
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/artist/partynextdoor/666648192?uo=4",
+          "source": "https://music.apple.com/us/album/partynextdoor-3-p3-10-year-edition/6803235614?uo=4"
+        }
+      }
+    },
+    {
+      "id": 53,
+      "name": "Rema",
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/artist/rema/1304716885?uo=4",
+          "source": "https://music.apple.com/us/album/oh-no/6805176799?i=6805176803&uo=4"
+        }
+      }
+    },
+    {
+      "id": 204,
+      "name": "Rod Wave",
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/artist/rod-wave/1140623439?uo=4",
+          "source": "https://music.apple.com/us/album/dont-look-down/6807069399?uo=4"
+        }
+      }
+    },
+    {
+      "id": 495,
+      "name": "VICTOR MUTHENYA",
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/artist/victor-muthenya/1723246010?uo=4",
+          "source": "https://music.apple.com/us/album/hatua-zangu/1842389355?i=1842389356&uo=4"
+        }
+      }
+    },
+    {
+      "id": 3429,
+      "name": "Vospa",
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/artist/vospa/6811097635?uo=4",
+          "source": "https://music.apple.com/us/album/sharp-boy/6812406325?i=6812406326&uo=4"
+        }
+      }
+    },
+    {
+      "id": 289,
+      "name": "Ywaya Tajiri",
+      "fields": {
+        "apple_music_url": {
+          "value": "https://music.apple.com/us/artist/ywaya-tajiri/1585541547?uo=4",
+          "source": "https://music.apple.com/us/album/chai-ya-saa-kumi/6796900579?i=6796900642&uo=4"
+        }
+      }
+    }
+  ],
+  "releases": []
+}

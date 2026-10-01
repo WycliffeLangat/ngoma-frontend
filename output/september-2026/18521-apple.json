@@ -1,0 +1,36 @@
+{
+  "id": 18521,
+  "requested_title": "Waache Waoane",
+  "requested_artist": "Chege",
+  "url": "https://music.apple.com/us/album/waache-waoane-feat-diamond/1140829794?i=1140829940&uo=4",
+  "resolved_url": "https://music.apple.com/us/album/waache-waoane-feat-diamond/1140829794?i=1140829940&uo=4",
+  "page_title": "‎Waache Waoane (feat. Diamond) - Song with Lyrics by Chege - Apple Music",
+  "title": "Waache Waoane (feat. Diamond) - Single",
+  "artists": [
+    "Chege"
+  ],
+  "genre": "African · 2016",
+  "track_count": 1,
+  "artwork": {
+    "bgColor": "615c40",
+    "hasP3": false,
+    "height": 1440,
+    "textColor1": "f9f7e2",
+    "textColor2": "edefeb",
+    "textColor3": "dbd8c2",
+    "textColor4": "d1d2c9",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/4b/2e/d0/4b2ed06b-256c-956e-adfa-8b944ab660fc/cover.jpg/{w}x{h}bb.{f}",
+    "width": 1440
+  },
+  "footer": "August 3, 2016\n1 song, 3 minutes\n℗ 2016 Chege",
+  "tracks": [
+    {
+      "title": "Waache Waoane (feat. Diamond)",
+      "artist": "Chege",
+      "composer": "Chege",
+      "url": "https://music.apple.com/us/album/waache-waoane-feat-diamond/1140829794?i=1140829940",
+      "id": "1140829940"
+    }
+  ],
+  "checked_at": "2026-10-01T01:55:21.422Z"
+}

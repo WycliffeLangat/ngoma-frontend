@@ -1,0 +1,36 @@
+{
+  "id": 23100,
+  "requested_title": "Tegemeo Letu",
+  "requested_artist": "KMK MAKUBURI",
+  "url": "https://music.apple.com/us/album/tegemeo-letu/1823648375?i=1823648377&uo=4",
+  "resolved_url": "https://music.apple.com/us/album/tegemeo-letu/1823648375?i=1823648377&uo=4",
+  "page_title": "‎Tegemeo Letu - Song with Lyrics by KMK MAKUBURI - Apple Music",
+  "title": "Tegemeo Letu - Single",
+  "artists": [
+    "KMK MAKUBURI"
+  ],
+  "genre": "Christian · 2025",
+  "track_count": 1,
+  "artwork": {
+    "bgColor": "161616",
+    "hasP3": false,
+    "height": 3000,
+    "textColor1": "d3d4d3",
+    "textColor2": "c2c2c2",
+    "textColor3": "adaead",
+    "textColor4": "a0a0a0",
+    "url": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/fd/c0/ee/fdc0eee2-7c39-d527-447d-5682bc537645/artwork.jpg/{w}x{h}bb.{f}",
+    "width": 3000
+  },
+  "footer": "June 29, 2025\n1 song, 8 minutes\n℗ 2025 KMK DIGITAL",
+  "tracks": [
+    {
+      "title": "Tegemeo Letu",
+      "artist": "KMK MAKUBURI",
+      "composer": "KMKMAKUBURI KMKMAKUBURI KMKMAKUBURI",
+      "url": "https://music.apple.com/us/album/tegemeo-letu/1823648375?i=1823648377",
+      "id": "1823648377"
+    }
+  ],
+  "checked_at": "2026-10-01T01:55:15.019Z"
+}
