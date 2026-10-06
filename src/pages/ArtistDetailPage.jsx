@@ -5,6 +5,7 @@ import { findArtistProfileInPublicData, getArtistImageUrl } from "../utils/artis
 import { enrichBiographyForArtist, fallbackCountryForArtist } from "../utils/artistMetadataFallbacks.js";
 import ShareButton from "../components/ShareButton.jsx";
 import SharePosterCard from "../components/SharePosterCard.jsx";
+import { formatPosterRank } from "../utils/posterData.js";
 import DetailListPoster, { chunkPosterRows, posterFileSlug } from "../components/sharePosters/DetailListPoster.jsx";
 import DetailChartPoster from "../components/sharePosters/DetailChartPoster.jsx";
 import { buildArtistShareUrl } from "../utils/shareLinks.js";
@@ -182,8 +183,8 @@ export default function ArtistDetailPage({ ctx }) {
   };
 
   const artistStats = [
-    { label: "Current Rank", value: formatRank(selA.rank) },
-    { label: "Best Rank", value: formatRank(selA.pk) },
+    { label: "Current Rank", value: formatPosterRank(selA.rank, selA.current_rank, profile.current_rank) },
+    { label: "Peak Rank", value: formatPosterRank(selA.pk, selA.peak_rank, profile.peak_rank) },
     { label: "Total Points", value: totalArtistPoints.toLocaleString() },
     { label: "Entries", value: placementCount },
     { label: "Months Charted", value: chartedMonthCount },

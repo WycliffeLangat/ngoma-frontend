@@ -1,23 +1,17 @@
-import CertificationIcon from "../../components/CertificationIcon.jsx";
-import { CERTIFICATION_BRANDING, certificationLabel } from "../../utils/certificationBranding.js";
+import SharePosterCard from "../../components/SharePosterCard.jsx";
+import { enrichPosterRecord, formatPosterRank } from "../../utils/posterData.js";
+import { fetchAppData } from "../../api/public.js";
+import { resolveMediaUrl } from "../../api/config.js";
 import { useEffect, useRef, useState } from "react";
 import { cmsApi, getResults, qs } from "../api.js";
 import {
-  posterFontSize,
   POSTER_W,
   POSTER_H,
   PREVIEW_W,
   PREVIEW_SCALE,
-  POSTER_FONT_FAMILY,
-  HEADER_ZONE_H,
-  PosterBrandRow,
-  PosterFooter,
-  ArtPlaceholder,
-  readableInk,
   PosterCanvas,
   PosterSettingsPanel,
   defaultPosterSettings,
-  usePosterTheme,
   exportNodeAsPng,
 } from "../utils/exportPoster.jsx";
 
@@ -27,29 +21,26 @@ const TYPES = [
   ["artists", "Artist"],
 ];
 
-const CERT_COLORS = Object.fromEntries(Object.entries(CERTIFICATION_BRANDING).map(([level, meta]) => [level, meta.color]));
-const CERT_ORDER = ["diamond", "platinum", "gold"];
 
 function currentRankFromRow(row = {}) {
   return row.current_rank ?? row.currentRank ?? row.latest_rank ?? row.latestRank ?? row.rank ?? row.r ?? null;
 }
 
-// The releases/artists list endpoints already return peak_rank/total_points/
-// months_on_chart/cover_image etc. directly on each row (same fields the
-// CMS's own resource detail panel reads) — no extra per-record fetch needed.
-function normalizeCandidate(type, row) {
+// Fill omitted search-result stats from published chart history.
+function normalizeCandidate(type, source, payload) {
+  const row = enrichPosterRecord(type, source, payload);
   if (type === "artists") {
     return {
       id: row.id,
       title: row.display_name || row.name || "",
       subtitle: [row.country, row.genre, row.artist_type].filter(Boolean).join(" · "),
-      image: row.image || "",
+      image: resolveMediaUrl(row.image || ""),
       currentRank: currentRankFromRow(row),
       peakRank: row.peak_rank,
-      points: Number(row.total_points) || 0,
-      monthsOnChart: row.months_on_chart ?? 0,
+      points: row.total_points == null ? null : Number(row.total_points),
+      monthsOnChart: row.months_on_chart ?? null,
       secondaryStatLabel: "Releases",
-      secondaryStatValue: row.total_releases ?? 0,
+      secondaryStatValue: row.total_releases ?? "—",
       certifications: [],
       isArtist: true,
     };
@@ -58,11 +49,11 @@ function normalizeCandidate(type, row) {
     id: row.id,
     title: row.title || "",
     subtitle: [row.artist_credit || row.artist_display || "", type === "albums" ? "Album" : "Single", row.release_year, row.genre].filter(Boolean).join(" · "),
-    image: row.cover_image || "",
+    image: resolveMediaUrl(row.cover_image || ""),
     currentRank: currentRankFromRow(row),
     peakRank: row.peak_rank,
-    points: Number(row.total_points) || 0,
-    monthsOnChart: row.months_on_chart ?? 0,
+    points: row.total_points == null ? null : Number(row.total_points),
+    monthsOnChart: row.months_on_chart ?? null,
     secondaryStatLabel: "Entries",
     secondaryStatValue: row.entry_count ?? "—",
     certifications: (row.certifications || []).map((c) => (typeof c === "string" ? c : c.level)),
@@ -70,202 +61,15 @@ function normalizeCandidate(type, row) {
   };
 }
 
-function SpotlightContent({ item, type, theme = "dark" }) {
-  const t = usePosterTheme(theme);
-  const padX = 64;
-
-  if (!item) {
-    return (
-      <div
-        style={{
-          width: POSTER_W,
-          height: POSTER_H,
-          background: t.posterBackground,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: t.emptyColor,
-          fontFamily: POSTER_FONT_FAMILY,
-          fontSize: posterFontSize(22),
-          fontWeight: 700,
-          textAlign: "center",
-          padding: 64,
-        }}
-      >
-        Search and select {type === "artists" ? "an artist" : "a release"} to preview
-      </div>
-    );
-  }
-
-  const topCert = CERT_ORDER.find((level) => item.certifications.includes(level)) || null;
-  const certColor = topCert ? CERT_COLORS[topCert] : "#BF870E";
-  const tileBg = theme === "light" ? "rgba(0,0,0,0.045)" : "rgba(255,255,255,0.055)";
-  const tileBorder = theme === "light" ? "rgba(0,0,0,0.14)" : "rgba(255,255,255,0.16)";
-  const formatRank = (value) => Number.isFinite(Number(value)) && Number(value) > 0 ? `#${Number(value)}` : "—";
-  const statItems = [
-    ["Current Rank", formatRank(item.currentRank)],
-    ["Peak Rank", formatRank(item.peakRank)],
-    ["Total Points", item.points ? item.points.toLocaleString() : "0"],
-    ["Months Charted", item.monthsOnChart],
-    [item.secondaryStatLabel, item.secondaryStatValue],
-  ];
-  const compactStats = statItems.length > 4;
-  const statColumns = Math.min(compactStats ? 3 : statItems.length, 3);
-  const statRows = Math.ceil(statItems.length / statColumns);
-  const statGap = compactStats ? 12 : 14;
-  const statTileMinH = compactStats ? 102 : 132;
-  const statsBottom = compactStats ? 138 : 150;
-  const statsPanelHeight = 30 + (statRows * statTileMinH) + (Math.max(0, statRows - 1) * statGap);
-  const identityBottom = statsBottom + statsPanelHeight + 42;
-  const artSize = compactStats ? 430 : 560;
-
-  return (
-    <div
-      style={{
-        width: POSTER_W,
-        height: POSTER_H,
-        boxSizing: "border-box",
-        background: t.posterBackground,
-        fontFamily: POSTER_FONT_FAMILY,
-        color: t.titleColor,
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      <div style={{ padding: `72px ${padX}px 0`, position: "relative", zIndex: 1 }}>
-        <PosterBrandRow theme={theme} />
-      </div>
-
-      {/* The identity block (art/title/subtitle) is vertically centered in
-          its own zone above the logo-to-stats midsection, independent of
-          the stat tiles pinned near the bottom — so the artwork always
-          sits in the visual middle of the card instead of drifting up
-          against the logo when content is short. */}
-      <div
-        style={{
-          position: "absolute",
-          top: HEADER_ZONE_H,
-          bottom: identityBottom,
-          left: 0,
-          right: 0,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          padding: `0 ${padX}px`,
-          zIndex: 1,
-        }}
-      >
-        <div style={{ position: "relative", flexShrink: 0 }}>
-          {item.image ? (
-            <img
-              src={item.image}
-              alt=""
-              style={{
-                width: artSize,
-                height: artSize,
-                borderRadius: item.isArtist ? artSize / 2 : 26,
-                objectFit: "cover",
-                boxShadow: "0 30px 80px rgba(0,0,0,0.45)",
-              }}
-            />
-          ) : (
-            <div style={{ boxShadow: "0 30px 80px rgba(0,0,0,0.45)", borderRadius: item.isArtist ? artSize / 2 : 26 }}>
-              <ArtPlaceholder
-                width={artSize}
-                height={artSize}
-                radius={item.isArtist ? artSize / 2 : 26}
-                theme={theme}
-                accentColor={certColor}
-                markSize={140}
-              />
-            </div>
-          )}
-          {topCert && (
-            <div
-              style={{
-                position: "absolute",
-                bottom: -16,
-                left: "50%",
-                transform: "translateX(-50%)",
-                padding: "9px 24px",
-                borderRadius: 999,
-                background: certColor,
-                color: readableInk(certColor),
-                fontSize: posterFontSize(20),
-                fontWeight: 900,
-                letterSpacing: "2px",
-                textTransform: "uppercase",
-                boxShadow: `0 10px 30px ${certColor}55`,
-                whiteSpace: "nowrap",
-              }}
-            >
-              <CertificationIcon level={topCert} size={64} /> {certificationLabel(topCert)} Certified
-            </div>
-          )}
-        </div>
-
-        <div
-          style={{
-            marginTop: topCert ? 48 : 32,
-            fontSize: posterFontSize(item.title.length > 22 ? (compactStats ? 40 : 44) : item.title.length > 14 ? (compactStats ? 46 : 52) : (compactStats ? 52 : 60)),
-            fontWeight: 900,
-            lineHeight: 1.12,
-            letterSpacing: "-1px",
-            color: t.titleColor,
-            textAlign: "center",
-            textTransform: "uppercase",
-            maxWidth: 960,
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-          }}
-        >
-          {item.title}
-        </div>
-        {item.subtitle && (
-          <div style={{ marginTop: 14, fontSize: posterFontSize(compactStats ? 26 : 30), fontWeight: 700, color: t.metaColor, textAlign: "center" }}>
-            {item.subtitle}
-          </div>
-        )}
-      </div>
-
-      {/* Stat tiles are anchored a fixed distance above the footer — at
-          least ~2cm (76px) of clear air below them — instead of trailing
-          the identity block, so they read as a distinct "details" strip. */}
-      <div style={{ position: "absolute", bottom: statsBottom, left: 0, right: 0, padding: `0 ${padX}px`, zIndex: 1 }}>
-        <div style={{ borderTop: `2px solid ${t.dividerColor}`, marginBottom: 30 }} />
-        <div style={{ display: "grid", gridTemplateColumns: `repeat(${statColumns}, 1fr)`, gap: statGap }}>
-          {statItems.map(([label, value]) => (
-            <div
-              key={label}
-              style={{
-                minHeight: statTileMinH,
-                background: tileBg,
-                border: `1px solid ${tileBorder}`,
-                borderRadius: 16,
-                padding: compactStats ? "16px 8px" : "24px 8px",
-                textAlign: "center",
-                boxSizing: "border-box",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <div style={{ fontSize: posterFontSize(compactStats ? 34 : 50), fontWeight: 900, color: "#BF870E" }}>{value}</div>
-              <div style={{ fontSize: posterFontSize(compactStats ? 12 : 17), fontWeight: 800, letterSpacing: "0.5px", textTransform: "uppercase", color: t.metaColor, marginTop: 8 }}>
-                {label}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <PosterFooter theme={theme} padX={padX} />
-    </div>
-  );
+function SpotlightContent({ item, theme = "dark" }) {
+  if (!item) return <div style={{ width: POSTER_W, height: POSTER_H, padding: 64 }}>Search and select a record to preview</div>;
+  return <SharePosterCard image={item.image} title={item.title} subtitle={item.subtitle} certifications={item.certifications} theme={theme} stats={[
+    { label: "Current Rank", value: formatPosterRank(item.currentRank) },
+    { label: "Peak Rank", value: formatPosterRank(item.peakRank) },
+    { label: "Total Points", value: item.points?.toLocaleString() ?? "—" },
+    { label: "Months Charted", value: item.monthsOnChart ?? "—" },
+    { label: item.secondaryStatLabel, value: item.secondaryStatValue },
+  ]} />;
 }
 
 export default function SpotlightGeneratorPage() {
@@ -298,8 +102,8 @@ export default function SpotlightGeneratorPage() {
       const params = type === "artists"
         ? { search: trimmed, page_size: 8 }
         : { chart_type: type === "albums" ? "albums" : "singles", search: trimmed, page_size: 8 };
-      cmsApi.get(`${endpoint}${qs(params)}`)
-        .then((data) => { if (active) setResults(getResults(data).map((row) => normalizeCandidate(type, row))); })
+      Promise.all([cmsApi.get(`${endpoint}${qs(params)}`), fetchAppData()])
+        .then(([data, payload]) => { if (active) setResults(getResults(data).map((row) => normalizeCandidate(type, row, payload))); })
         .catch((err) => { if (active) setError(err.message || "Search failed"); })
         .finally(() => { if (active) setSearching(false); });
     }, 280);

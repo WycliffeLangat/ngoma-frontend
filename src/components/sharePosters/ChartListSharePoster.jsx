@@ -116,6 +116,7 @@ function MovementChip({ movement, sameColor, scale }) {
 }
 
 export default function ChartListSharePoster({
+  payload: suppliedPayload,
   chartType = "singles",
   period = "monthly",
   platform = "Combined",
@@ -127,7 +128,8 @@ export default function ChartListSharePoster({
   theme = "dark",
 }) {
   const t = usePosterTheme(theme);
-  const payload = useMemo(() => runtimePublicData(), []);
+  const runtimePayload = useMemo(() => runtimePublicData(), []);
+  const payload = suppliedPayload || runtimePayload;
   const startIndex = Math.max(0, Number(offset) || 0);
   const rowCount = Math.max(1, Number(count) || 10);
 

@@ -1,9 +1,11 @@
+import CertificationIcon from "./CertificationIcon.jsx";
+import { certificationLabel } from "../utils/certificationBranding.js";
 import {
   posterFontSize,
   POSTER_W,
   POSTER_H,
   POSTER_FONT_FAMILY,
-  POSTER_THEMES,
+  usePosterTheme,
   PosterBrandRow,
   PosterFooter,
   ArtPlaceholder,
@@ -13,8 +15,9 @@ import {
 // artist — same visual kit the CMS poster generators use, but with no
 // settings panel: readers only ever get the one finished layout to
 // download and share as-is.
-export default function SharePosterCard({ image, title = "", subtitle = "", stats = [], accentColor = "#BF870E", theme = "dark" }) {
-  const t = POSTER_THEMES[theme] || POSTER_THEMES.dark;
+export default function SharePosterCard({ image, title = "", subtitle = "", stats = [], certifications = [], accentColor = "#BF870E", theme = "dark" }) {
+  const t = usePosterTheme(theme);
+  const topCertification = ["diamond", "platinum", "gold"].find((level) => certifications.includes(level));
   const visibleStats = stats.filter((stat) =>
     stat?.label &&
     stat.value !== null &&
@@ -76,6 +79,7 @@ export default function SharePosterCard({ image, title = "", subtitle = "", stat
             <ArtPlaceholder width={artSize} height={artSize} radius={32} theme={theme} accentColor={accentColor} markSize={148} />
           </div>
         )}
+        {topCertification && <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12, color: t.titleColor, fontSize: posterFontSize(20) }}><CertificationIcon level={topCertification} size={32} />{certificationLabel(topCertification)}</div>}
         <div
           style={{
             marginTop: 44,

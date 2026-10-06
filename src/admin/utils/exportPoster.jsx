@@ -168,7 +168,7 @@ export function formatPosterDownloadDate(date = new Date()) {
 
 export function posterDownloadDateLabel(date = new Date()) {
   const formatted = formatPosterDownloadDate(date);
-  return formatted ? `Downloaded ${formatted}` : "";
+  return formatted;
 }
 
 // Only refreshes spans still showing the auto-computed label — a CMS poster

@@ -5,6 +5,7 @@ import PlatformPerformance from "../components/PlatformPerformance.jsx";
 import ArtistCredit from "../components/ArtistCredit.jsx";
 import ShareButton from "../components/ShareButton.jsx";
 import SharePosterCard from "../components/SharePosterCard.jsx";
+import { formatPosterRank } from "../utils/posterData.js";
 import DetailListPoster, { chunkPosterRows, posterFileSlug } from "../components/sharePosters/DetailListPoster.jsx";
 import DetailChartPoster from "../components/sharePosters/DetailChartPoster.jsx";
 import { buildReleaseShareUrl } from "../utils/shareLinks.js";
@@ -99,8 +100,7 @@ export default function ReleaseDetailPage({ ctx }) {
         const platformNames = new Set(journey.flatMap((item) => item.platforms.map((entry) => entry.platform)));
         const totalPoints = combinedHistory.reduce((sum, item) => sum + Number(item.combined?.pts || 0), 0);
         const peakRank = combinedHistory.reduce((best, item) => Math.min(best, Number(item.combined?.rank || 999)), 999);
-        const latestJourney = journey[journey.length - 1];
-        const currentCombined = latestJourney?.combined ? latestJourney : null;
+        const currentCombined = combinedHistory.at(-1) || null;
         const numberOneMonths = combinedHistory.filter((item) => Number(item.combined.rank) === 1).length;
         const bestCoverage = combinedHistory.reduce((best, item) => Math.max(best, Number(String(item.combined.plat || "0").split("/")[0]) || 0), 0);
         const releaseRankData = combinedHistory.map((item) => ({month:item.month.split(" ")[0].slice(0,3),rank:Number(item.combined.rank),points:Number(item.combined.pts)||0}));
@@ -190,7 +190,7 @@ export default function ReleaseDetailPage({ ctx }) {
         const artistCreditLabels = new Set(["Main artists", "Featuring", "Songwriters", "Producers"]);
 
         const releaseStats = [
-          { label: "Current Rank", value: formatRankValue(currentCombined?.combined?.rank) },
+          { label: "Current Rank", value: formatPosterRank(currentCombined?.combined?.rank, selR.current_rank, selR.rank, selR.r) },
           { label: "Peak Rank", value: peakRank < 999 ? `#${peakRank}` : "—" },
           { label: "Total Points", value: totalPoints.toLocaleString() },
           { label: "Months Charted", value: chartedJourney.length },
@@ -281,6 +281,7 @@ export default function ReleaseDetailPage({ ctx }) {
             fileName: `${releaseBaseFileName}.png`,
             posterContent: (
               <SharePosterCard
+                certifications={selectedCertification?.level ? [selectedCertification.level] : []}
                 image={releaseDetails.cover_image || ""}
                 title={selR.title || ""}
                 subtitle={posterSubtitle}
