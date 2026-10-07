@@ -1713,8 +1713,10 @@ export default function NgomaCharts(){
   const [cmpA2,setCmpA2]=useState("");
   const [cmpS1,setCmpS1]=useState(() => comparisonDefaultKeys("singles", CURRENT_MONTH)[0] || defaultComparisonKey("singles", 0));
   const [cmpS2,setCmpS2]=useState(() => comparisonDefaultKeys("singles", CURRENT_MONTH)[1] || defaultComparisonKey("singles", 1));
-  const [anMonth,setAnMonth]=useState(CURRENT_MONTH);
-  const [artistMonth,setArtistMonth]=useState(CURRENT_MONTH);
+  // All public views share one reporting endpoint, including detail panels.
+  const anMonth = month, setAnMonth = setMonth;
+  const artistMonth = month, setArtistMonth = setMonth;
+  const scopeMonths = MONTHS.slice(0, Math.max(0, monthIndex(month)) + 1);
   const [rankJourneyView,setRankJourneyView]=useState("table");
   const [viewModes,setViewModes]=useState({});
   const [loaded,setLd]=useState(false);
@@ -1916,8 +1918,6 @@ export default function NgomaCharts(){
 
     _syncedRevision = nextRevision;
     setMonth(keepValidMonth);
-    setAnMonth(keepValidMonth);
-    setArtistMonth(keepValidMonth);
     setLiveCerts(mapPublicCertifications(freshData.certifications || []));
     setLiveChartEntries([]);
     setLiveChartMeta(null);
@@ -2450,20 +2450,22 @@ const top = data[0];
     return [...producers.values()];
   },[songSearchIndex,albumSearchIndex]);
   const automaticCerts = useMemo(() => buildAutomaticCertifications({
-    singles: COMBINED_YEAR_END.singles,
-    albums: COMBINED_YEAR_END.albums,
-  }, CERTIFICATION_LEVELS), [dataRevision]);
+    singles: buildYearEndReleaseRows("singles", scopeMonths),
+    albums: buildYearEndReleaseRows("albums", scopeMonths),
+  }, CERTIFICATION_LEVELS), [month, dataRevision]);
   // Certification level and cumulative points follow the published Combined
   // Top 50 history. Live CMS rows supply editorial metadata when available,
   // while automatic rows keep public badges current as soon as points change.
   const normalizedLiveCerts = useMemo(() => {
-    const mergedCerts = mergeCertifications(automaticCerts, liveCerts || [], CERTIFICATION_LEVELS);
+    const mergedCerts = month === CURRENT_MONTH
+      ? mergeCertifications(automaticCerts, liveCerts || [], CERTIFICATION_LEVELS)
+      : automaticCerts;
     return mergedCerts.map((cert) => {
       const meta = certificationMetaForLevel(cert.level);
       if (!meta) return null;
       return { ...cert, ...meta, totalPts: Number(cert.totalPts) || 0 };
     }).filter(Boolean);
-  }, [automaticCerts, liveCerts]);
+  }, [automaticCerts, liveCerts, month]);
 
   // Collapse the raw certification rows down to one per release before any
   // public surface reads them, so search, badges, news, and certification
@@ -2616,10 +2618,10 @@ const top = data[0];
   const selectSearchResult=(item)=>{
     closeSearch();
     if(item._kind==="song"){
-      setPage("charts"); setMonth(item._bestMonth||CURRENT_MONTH);
+      setPage("charts");
       openReleaseDetails(item,"single");
     } else if(item._kind==="album"){
-      setPage("charts"); setMonth(item._bestMonth||CURRENT_MONTH);
+      setPage("charts");
       openReleaseDetails(item,"album");
     } else if(item._kind==="artist"){
       // Try chart-based artist detail; fall back to profile-only panel for non-chart artists
@@ -2637,7 +2639,7 @@ const top = data[0];
       // Open the song's release detail if it's in chart history; otherwise go to certifications page
       const entry=songSearchIndex.find(e=>String(e.title||"").toLowerCase()===String(item.t||"").toLowerCase()&&String(e.artist||"").toLowerCase()===String(item.a||"").toLowerCase())
         ||albumSearchIndex.find(e=>String(e.title||"").toLowerCase()===String(item.t||"").toLowerCase()&&String(e.artist||"").toLowerCase()===String(item.a||"").toLowerCase());
-      if(entry){ setPage("charts"); setMonth(entry._bestMonth||CURRENT_MONTH); openReleaseDetails(entry,entry._type==="album"?"album":"single"); }
+      if(entry){ setPage("charts"); openReleaseDetails(entry,entry._type==="album"?"album":"single"); }
       else { navTo("certifications"); }
     }
   };
@@ -3494,7 +3496,7 @@ const top = data[0];
   // history ("All Time") and a rolling last-12-months window ("Best of
   // Year"), scoped to the selected platform (or Combined).
   const yearEndActive = page === "year-end";
-  const yearEndMonths = yearEndMode === "bestofyear" ? MONTHS.slice(-12) : MONTHS;
+  const yearEndMonths = yearEndMode === "bestofyear" ? scopeMonths.slice(-12) : scopeMonths;
   const yearEndNonKenyaCountrySelected = isNonKenyaCountryScope(selectedCountryScope);
   const yearEndPlatformUnavailableForCountry = yearEndPlat !== "Combined"
     && !isRegionalChartScope(yearEndPlat)
@@ -3513,7 +3515,7 @@ const top = data[0];
     : yearEndDisplayRaw;
   const yearEndPeriodLabel = yearEndMode === "bestofyear"
     ? `${yearEndMonths[0] || CURRENT_MONTH} – ${yearEndMonths[yearEndMonths.length - 1] || CURRENT_MONTH} (last 12 months)`
-    : DATA_PERIOD;
+    : `${scopeMonths[0] || month} – ${month}`;
 
   const tracked=analyticsRowsFor(analyticsActive?anMonth:CURRENT_MONTH).slice(0,5).map(entry=>entry.title);
   const rankJourneyStartIndex=tracked.reduce((earliest,title)=>{
@@ -3558,7 +3560,7 @@ const top = data[0];
   // whichever country is currently selected (empty months fall out naturally
   // when that country has no chart data yet).
   const hofScope = isRegionalChartScope(selectedCountryScope) ? selectedCountryScope : "Combined";
-  const hof=MONTHS.flatMap(m=>{
+  const hof=scopeMonths.flatMap(m=>{
     const s=(hofScope==="Combined"?getCombined("singles",m):getRegionalCombined("singles",hofScope,m))[0];
     const a=(hofScope==="Combined"?getCombined("albums",m):getRegionalCombined("albums",hofScope,m))[0];
     const artist=buildArtistChart(m,hofScope,isArtists ? ct : "artists")[0];
@@ -3571,7 +3573,7 @@ const top = data[0];
 
   const releaseJourney=r=>{
     if(!r)return [];
-    return MONTHS.map(m=>{
+    return scopeMonths.map(m=>{
       const sc=getCombined(releaseCt,m).find(e=>sameRelease(e,r));
       const platforms=(isSingles?S_PLATS:A_PLATS).filter((platform)=>platform!=="Combined");
       const entries=platforms.map(pl=>{const d=getPlatform(releaseCt,pl,m).find(e=>sameRelease(e,r));return d?{platform:PLAT_LABEL[pl]||pl,rank:d.rank,pts:d.pts}:null;}).filter(Boolean);
@@ -3581,7 +3583,7 @@ const top = data[0];
 
   const allArtistNames=[...new Set(artists.map(a=>a.n))].sort();
   const selectedArtistRole = selA?.contributorRole || "artists";
-  const selectedArtistEntries = selA ? MONTHS.flatMap((monthLabel) =>
+  const selectedArtistEntries = selA ? scopeMonths.flatMap((monthLabel) =>
     getArtistSourceCombined(selectedArtistRole, monthLabel)
       .filter((entry) => chartCreditMembers(entry, selectedArtistRole).some((name) => normArtistKey(name) === normArtistKey(selA.n)))
       .map((entry) => ({
@@ -3614,7 +3616,7 @@ const top = data[0];
     map.set(key, current);
     return map;
   }, new Map()).values()].sort((a, b) => b.totalPoints - a.totalPoints || a.peak - b.peak || a.title.localeCompare(b.title)) : [];
-  const selectedArtistRankData = selA ? MONTHS.map((monthLabel) => ({
+  const selectedArtistRankData = selA ? scopeMonths.map((monthLabel) => ({
     month: monthLabel.split(" ")[0].slice(0, 3),
     rank: selA.rh?.[monthLabel] || null,
     points: selectedArtistEntries
@@ -3740,7 +3742,11 @@ const top = data[0];
     releaseLabel,
     releaseLabelLower,
     secLbl,
-    selA,
+    selA: selA ? {
+      ...selA,
+      rank: selA.rh?.[month] || null,
+      pk: scopeMonths.reduce((best, m) => selA.rh?.[m] ? Math.min(best ?? Infinity, selA.rh[m]) : best, null),
+    } : null,
     selR,
     selectedArtistEntries,
     selectedArtistEntryGroups,
@@ -3998,6 +4004,12 @@ const top = data[0];
       {sOpen&&<SearchDialog query={srch} onQuery={setSrch} results={sFlatResults} onClose={closeSearch} onSelect={selectSearchResult} isDark={isDark} renderThumb={(item)=><EntryThumb item={item} name={item.name||item.artist||item.a} size={44} radius={item._kind==="artist"||item._kind==="producer"?"50%":"10px"} accent={GOLD} />} />}
 
       <main style={pageFrame({padding:isMobile?"0 4px":0,overflow:"hidden"})}>
+      {(selA || selR || !["about", "charts", "analytics"].includes(page)) && (
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:"12px",padding:isMobile?"16px 18px":"20px 28px",fontFamily:F,color:themeColors.text}}>
+          <div><strong style={{fontSize:"13px"}}>Month &amp; Year</strong><div style={{fontSize:"12px",color:themeColors.muted,marginTop:"4px"}}>Chart history and totals through {month}</div></div>
+          <MonthScopeSelect wide />
+        </div>
+      )}
       {managedSections.map((section)=><section key={section.id || section.section} style={{margin:isMobile?"14px 18px":"18px 28px",padding:isMobile?"16px":"20px",border:`1px solid ${GOLD}33`,borderRadius:"14px",background:themeColors.elevated}}>
         {section.title&&<h2 style={{margin:"0 0 8px",fontFamily:SF,fontSize:isMobile?"19px":"23px",color:themeColors.text}}>{section.title}</h2>}
         {section.content&&<div style={{fontFamily:F,fontSize:"13px",lineHeight:1.75,color:themeColors.muted,whiteSpace:"pre-wrap"}}>{section.content}</div>}
@@ -4065,7 +4077,7 @@ const top = data[0];
       {page === "analytics" && !selA && !selR && <AnalyticsPage ctx={pageContext} />}
 
       {/* HEAD-TO-HEAD PAGE */}
-      {page === "head-to-head" && !selA && !selR && <HeadToHeadPage ctx={pageContext} />}
+      {page === "head-to-head" && !selA && !selR && <HeadToHeadPage ctx={{...pageContext, MONTHS: scopeMonths}} />}
 
       {/* YEAR-END PAGE */}
       {page === "year-end" && !selA && !selR && <YearEndPage ctx={pageContext} />}

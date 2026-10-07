@@ -39,6 +39,7 @@ export default function ReleaseDetailPage({ ctx }) {
     isDark,
     isMobile,
     isSingles,
+    month,
     openArtistDetails,
     releaseJourney,
     secLbl,
@@ -74,8 +75,8 @@ export default function ReleaseDetailPage({ ctx }) {
   ) : null;
   const statInfo = (label) => {
     const copy = {
-      "Current Rank": "The release's rank in the latest selected Combined chart month where it appears.",
-      "Current Combined Rank": "The release's rank in the latest Combined chart month in its journey.",
+      "Current Rank": "The release's rank in the selected month. A dash means it did not chart that month.",
+      "Current Combined Rank": "The release's Combined rank in the selected month. A dash means it did not chart that month.",
       "Peak Rank": "The release's best Combined chart rank. Lower is better.",
       "Combined Peak Rank": "The release's best rank on the Combined chart. Lower is better.",
       "Total Points": "The sum of public display points this release has earned on the Combined chart across its charted months.",
@@ -100,7 +101,7 @@ export default function ReleaseDetailPage({ ctx }) {
         const platformNames = new Set(journey.flatMap((item) => item.platforms.map((entry) => entry.platform)));
         const totalPoints = combinedHistory.reduce((sum, item) => sum + Number(item.combined?.pts || 0), 0);
         const peakRank = combinedHistory.reduce((best, item) => Math.min(best, Number(item.combined?.rank || 999)), 999);
-        const currentCombined = combinedHistory.at(-1) || null;
+        const currentCombined = combinedHistory.find((item) => item.month === month) || null;
         const numberOneMonths = combinedHistory.filter((item) => Number(item.combined.rank) === 1).length;
         const bestCoverage = combinedHistory.reduce((best, item) => Math.max(best, Number(String(item.combined.plat || "0").split("/")[0]) || 0), 0);
         const releaseRankData = combinedHistory.map((item) => ({month:item.month.split(" ")[0].slice(0,3),rank:Number(item.combined.rank),points:Number(item.combined.pts)||0}));
@@ -190,7 +191,7 @@ export default function ReleaseDetailPage({ ctx }) {
         const artistCreditLabels = new Set(["Main artists", "Featuring", "Songwriters", "Producers"]);
 
         const releaseStats = [
-          { label: "Current Rank", value: formatPosterRank(currentCombined?.combined?.rank, selR.current_rank, selR.rank, selR.r) },
+          { label: "Current Rank", value: formatPosterRank(currentCombined?.combined?.rank) },
           { label: "Peak Rank", value: peakRank < 999 ? `#${peakRank}` : "—" },
           { label: "Total Points", value: totalPoints.toLocaleString() },
           { label: "Months Charted", value: chartedJourney.length },
@@ -321,6 +322,7 @@ export default function ReleaseDetailPage({ ctx }) {
               </div>} />
 
           <div style={{marginTop:"22px"}}>
+            {!chartedJourney.length && <p role="status" style={{fontFamily:F,color:isDark?"#FFFFFF":"#000000"}}>No chart history is available for this release through {month}. Choose a later month to check its subsequent chart appearances.</p>}
             <MobileStatSummary isMobile={isMobile} className="ngoma-detail-stat-grid" style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,minmax(0,1fr))":"repeat(4,minmax(0,1fr))",gap:"10px",marginBottom:"18px"}}>
               {[
                 {label:"Total Points",value:totalPoints.toLocaleString()},

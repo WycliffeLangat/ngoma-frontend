@@ -183,8 +183,8 @@ export default function ArtistDetailPage({ ctx }) {
   };
 
   const artistStats = [
-    { label: "Current Rank", value: formatPosterRank(selA.rank, selA.current_rank, profile.current_rank) },
-    { label: "Peak Rank", value: formatPosterRank(selA.pk, selA.peak_rank, profile.peak_rank) },
+    { label: "Current Rank", value: formatPosterRank(selA.rank) },
+    { label: "Peak Rank", value: formatPosterRank(selA.pk) },
     { label: "Total Points", value: totalArtistPoints.toLocaleString() },
     { label: "Entries", value: placementCount },
     { label: "Months Charted", value: chartedMonthCount },
