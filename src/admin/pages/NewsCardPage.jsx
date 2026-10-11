@@ -1103,7 +1103,16 @@ function NewsPostContent({ design }) {
           <PosterBrandRow theme="light" size={48 * brandScale} fontSize={26 * brandScale} gap={8 * brandScale} color={brandTextColor} />
         </div>
       )}
-      <div style={{ position: "relative", flex: "1 1 auto", minHeight: 340, overflow: "hidden" }}>
+      <div style={{
+        position: "relative",
+        flex: "1 1 auto",
+        minHeight: 340,
+        margin: `${design.showBrand === false ? padX : 0}px ${padX}px 0`,
+        overflow: "hidden",
+        isolation: "isolate",
+        boxSizing: "border-box",
+        borderBottom: `5px solid ${design.accent}`,
+      }}>
       {design.image ? (
         <img
           src={design.image}
@@ -1134,7 +1143,6 @@ function NewsPostContent({ design }) {
           flexShrink: 0,
           padding: `32px ${padX}px 38px`,
           background: "#FFFFFF",
-          borderTop: `5px solid ${design.accent}`,
           maxHeight: 650,
           overflow: "hidden",
           zIndex: 1,
@@ -1203,10 +1211,10 @@ function NewsPostContent({ design }) {
       </div>
 
       {design.showFooter !== false && (
-        <div style={{ position: "relative", height: 74, flexShrink: 0, background: "#FFFFFF" }}>
+        <div style={{ position: "relative", height: 74, margin: `0 ${padX}px 48px`, flexShrink: 0, background: "#FFFFFF" }}>
         <PosterFooter
           theme="light"
-          padX={padX}
+          padX={16}
           primaryColor={footerTextColor}
           showDownloadDate={design.showDownloadDate !== false}
           downloadDateText={design.downloadDateText}
