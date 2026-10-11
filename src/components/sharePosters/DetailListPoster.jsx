@@ -47,7 +47,6 @@ export default function DetailListPoster({
   // to rescue an overflow) instead of forcing a minimum that could push
   // content past the footer on a fuller page.
   const rowH = Math.min(MAX_ROW_H, rowAreaH / n);
-  const stripeColor = theme === "light" ? "rgba(0,0,0,0.028)" : "rgba(255,255,255,0.035)";
 
   return (
     <div
@@ -93,7 +92,7 @@ export default function DetailListPoster({
                   alignItems: "center",
                   gap: 16,
                   padding: `${Math.min(gap, rowH * 0.1)}px 18px`,
-                  background: rowIndex % 2 === 1 ? stripeColor : "transparent",
+                  background: "transparent",
                   borderBottom: rowIndex === rows.length - 1 ? "none" : `1px solid ${t.dividerColor}`,
                 }}
               >

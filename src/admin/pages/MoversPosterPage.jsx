@@ -107,7 +107,7 @@ function PosterContent({ rows, chartType, move, month, theme = "dark" }) {
                 paddingTop: i > 0 ? gap / 2 : 0,
                 paddingLeft: 16,
                 paddingRight: 16,
-                background: i % 2 === 0 ? t.rowBg : "transparent",
+                background: "transparent",
                 borderRadius: 16,
                 paddingBottom: i < rows.length - 1 ? gap / 2 : 0,
                 borderBottom: i === rows.length - 1 ? "none" : `1px solid ${t.dividerColor}`,

@@ -92,8 +92,8 @@ export default function HeadToHeadSharePoster({ profile1, profile2, months = [],
           </div>
 
           <div style={{ position: "absolute", top: 570, left: padX, right: padX, borderRadius: 12, overflow: "hidden", border: `1px solid ${t.dividerColor}`, zIndex: 1 }}>
-            {METRIC_ROWS.map(([label, fmt], i) => (
-              <div key={label} style={{ display: "grid", gridTemplateColumns: "1fr 1.1fr 1fr", background: i % 2 ? t.rowBg : "transparent" }}>
+            {METRIC_ROWS.map(([label, fmt]) => (
+              <div key={label} style={{ display: "grid", gridTemplateColumns: "1fr 1.1fr 1fr", background: "transparent" }}>
                 <div style={{ padding: "14px 16px", textAlign: "center", fontSize: posterFontSize(20), fontWeight: 400, color: GOLD }}>{fmt(profile1)}</div>
                 <div style={{ padding: "14px 16px", textAlign: "center", fontSize: posterFontSize(12), fontWeight: 400, letterSpacing: "0.6px", textTransform: "uppercase", color: t.metaColor, display: "flex", alignItems: "center", justifyContent: "center" }}>{label}</div>
                 <div style={{ padding: "14px 16px", textAlign: "center", fontSize: posterFontSize(20), fontWeight: 400, color: BLUE }}>{fmt(profile2)}</div>

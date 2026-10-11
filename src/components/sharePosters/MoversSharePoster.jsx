@@ -121,7 +121,7 @@ export default function MoversSharePoster({ chartType = "singles", move = "riser
                 paddingTop: rowPadY,
                   paddingLeft: 16,
                   paddingRight: 16,
-                  background: i % 2 === 0 ? t.rowBg : "transparent",
+                  background: "transparent",
                   borderRadius: 16,
                 paddingBottom: rowPadY,
                 borderBottom: i === rows.length - 1 ? "none" : `1px solid ${t.dividerColor}`,
