@@ -69,13 +69,13 @@ const DEFAULT_NEWS_DESIGN = {
   headline: "New chart story headline",
   subheadline: "",
   category: "Chart News",
-  theme: "dark",
+  theme: "light",
   accent: GOLD,
   textPosition: "bottom",
-  textAlign: "left",
+  textAlign: "center",
   overlay: 58,
-  overlayMode: "gradient",
-  imageZoom: 108,
+  overlayMode: "none",
+  imageZoom: 100,
   imageX: 50,
   imageY: 50,
   finish: "clean",
@@ -1070,18 +1070,17 @@ function MediaPlaceholder({ label, theme, accent, blank = false }) {
 
 function NewsPostContent({ design }) {
   const padX = 62;
-  const textColor = designTextColor(design);
-  const metaColor = designSecondaryTextColor(design);
-  const brandTextColor = designBrandTextColor(design);
-  const footerTextColor = designFooterTextColor(design);
-  const textShadow = textShadowStyle(design.theme, design.shadow);
+  const textColor = design.textColor || defaultTextColor("light");
+  const metaColor = design.secondaryTextColor || defaultSecondaryTextColor("light");
+  const brandTextColor = design.brandTextColor || defaultBrandTextColor("light");
+  const footerTextColor = design.footerTextColor || defaultFooterTextColor("light");
   const brandScale = (Number(design.brandScale) || 100) / 100;
   const textMaxWidth = blockWidth(POSTER_W - padX * 2, design.textWidth);
   const showCategory = design.showCategory !== false && design.category;
   const showSubheadline = design.showSubheadline !== false && design.subheadline;
   const mediaFilter = posterMediaFilter(design);
   const finishOverlay = posterFinishOverlayStyle(design, design.theme);
-  const frameOverlay = posterFrameOverlayStyle(design, design.theme);
+  const frameOverlay = posterFrameOverlayStyle(design, "light");
   const newsOverlay = overlayStyle(design.theme, design.overlay, design.textPosition, design.overlayMode);
 
   return (
@@ -1090,13 +1089,21 @@ function NewsPostContent({ design }) {
         width: POSTER_W,
         height: POSTER_H,
         boxSizing: "border-box",
-        background: "transparent",
+        background: "#FFFFFF",
+        display: "flex",
+        flexDirection: "column",
         fontFamily: POSTER_FONT_FAMILY,
         color: textColor,
         position: "relative",
         overflow: "hidden",
       }}
     >
+      {design.showBrand !== false && (
+        <div style={{ flexShrink: 0, padding: `24px ${padX}px`, background: "#FFFFFF" }}>
+          <PosterBrandRow theme="light" size={48 * brandScale} fontSize={26 * brandScale} gap={8 * brandScale} color={brandTextColor} />
+        </div>
+      )}
+      <div style={{ position: "relative", flex: "1 1 auto", minHeight: 340, overflow: "hidden" }}>
       {design.image ? (
         <img
           src={design.image}
@@ -1119,33 +1126,19 @@ function NewsPostContent({ design }) {
 
       {design.image && newsOverlay && <div style={{ position: "absolute", inset: 0, ...newsOverlay }} />}
       {design.image && finishOverlay && <div style={{ position: "absolute", inset: 0, pointerEvents: "none", ...finishOverlay }} />}
-      {design.image && (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            pointerEvents: "none",
-            background: "linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.7) 55%, rgba(0,0,0,0.97) 72%, #000 88%, #000 100%)",
-          }}
-        />
-      )}
-
-      {design.showBrand !== false && (
-        <div style={{ position: "relative", zIndex: 1, padding: `58px ${padX}px 0` }}>
-          <PosterBrandRow theme={design.theme} size={64 * brandScale} fontSize={30 * brandScale} gap={14 * brandScale} color={brandTextColor} />
-        </div>
-      )}
+      </div>
 
       <div
         style={{
-          position: "absolute",
-          left: padX,
-          right: padX,
-          maxHeight: design.textPosition === "center" ? 720 : 820,
+          position: "relative",
+          flexShrink: 0,
+          padding: `32px ${padX}px 38px`,
+          background: "#FFFFFF",
+          borderTop: `5px solid ${design.accent}`,
+          maxHeight: 650,
           overflow: "hidden",
           zIndex: 1,
           textAlign: design.textAlign,
-          ...textBoxPosition(design.textPosition, design.textOffsetY),
         }}
       >
         <div style={{ maxWidth: textMaxWidth, ...alignedBlockStyle(design.textAlign) }}>
@@ -1155,15 +1148,14 @@ function NewsPostContent({ design }) {
                 display: "inline-flex",
                 alignItems: "center",
                 maxWidth: "100%",
-                padding: "8px 18px",
-                borderRadius: 999,
-                background: design.accent,
-                color: readableInk(design.accent),
+                padding: "0 0 8px",
+                borderBottom: `3px solid ${design.accent}`,
+                background: "#FFFFFF",
+                color: textColor,
                 fontSize: scaleValue(22, design.categoryScale),
                 fontWeight: 950,
                 letterSpacing: "1.2px",
                 textTransform: "uppercase",
-                boxShadow: `0 12px 34px ${design.accent}44`,
               }}
             >
               {design.category}
@@ -1173,13 +1165,12 @@ function NewsPostContent({ design }) {
           <div
             style={{
               marginTop: showCategory ? 20 : 0,
-              fontSize: scaleValue(headlineSize(design.headline), design.headlineScale),
+              fontSize: scaleValue(Math.min(82, headlineSize(design.headline)), design.headlineScale),
               fontWeight: 950,
               lineHeight: 1.04,
               letterSpacing: 0,
               textTransform: "none",
               color: textColor,
-              textShadow,
                 overflowWrap: "anywhere",
               display: "-webkit-box",
               WebkitLineClamp: 4,
@@ -1195,10 +1186,9 @@ function NewsPostContent({ design }) {
               style={{
                 marginTop: 18,
                 color: metaColor,
-                fontSize: scaleValue(36, design.subheadlineScale),
+                fontSize: scaleValue(30, design.subheadlineScale),
                 fontWeight: 750,
                 lineHeight: 1.34,
-                textShadow,
                 overflowWrap: "anywhere",
                 display: "-webkit-box",
                 WebkitLineClamp: 3,
@@ -1213,13 +1203,15 @@ function NewsPostContent({ design }) {
       </div>
 
       {design.showFooter !== false && (
+        <div style={{ position: "relative", height: 74, flexShrink: 0, background: "#FFFFFF" }}>
         <PosterFooter
-          theme={design.theme}
+          theme="light"
           padX={padX}
           primaryColor={footerTextColor}
           showDownloadDate={design.showDownloadDate !== false}
           downloadDateText={design.downloadDateText}
         />
+        </div>
       )}
       {frameOverlay && <div style={{ position: "absolute", zIndex: 5, pointerEvents: "none", ...frameOverlay }} />}
     </div>
@@ -1860,8 +1852,6 @@ export default function NewsCardPage() {
                   </ControlField>
                 </div>
 
-                <SegmentedControl label="Theme" value={newsDesign.theme} options={THEME_OPTIONS} onChange={(value) => updateNews({ theme: value })} />
-                <SegmentedControl label="Headline position" value={newsDesign.textPosition} options={TEXT_POSITIONS} onChange={(value) => updateNews({ textPosition: value })} />
                 <SegmentedControl label="Text align" value={newsDesign.textAlign} options={TEXT_ALIGNMENTS} onChange={(value) => updateNews({ textAlign: value })} />
                 <SegmentedControl label="Text case" value={newsDesign.textCase} options={TEXT_CASE_OPTIONS} onChange={(value) => updateNews({ textCase: value })} />
                 <SegmentedControl label="Finish" value={newsDesign.finish} options={POSTER_FINISH_OPTIONS} onChange={(value) => updateNews({ finish: value })} />
@@ -1869,10 +1859,10 @@ export default function NewsCardPage() {
                 <SegmentedControl label="Tone" value={newsDesign.tone} options={POSTER_TONE_OPTIONS} onChange={(value) => updateNews({ tone: value })} />
 
                 <div style={CONTROL_GRID}>
-                  <ColorControl label="Headline color" value={newsDesign.textColor} fallback={defaultTextColor(newsDesign.theme)} onChange={(value) => updateNews({ textColor: value })} />
-                  <ColorControl label="Secondary color" value={newsDesign.secondaryTextColor} fallback={defaultSecondaryTextColor(newsDesign.theme)} onChange={(value) => updateNews({ secondaryTextColor: value })} />
-                  <ColorControl label="Brand color" value={newsDesign.brandTextColor} fallback={defaultBrandTextColor(newsDesign.theme)} onChange={(value) => updateNews({ brandTextColor: value })} />
-                  <ColorControl label="Footer color" value={newsDesign.footerTextColor} fallback={defaultFooterTextColor(newsDesign.theme)} onChange={(value) => updateNews({ footerTextColor: value })} />
+                  <ColorControl label="Headline color" value={newsDesign.textColor} fallback={defaultTextColor("light")} onChange={(value) => updateNews({ textColor: value })} />
+                  <ColorControl label="Secondary color" value={newsDesign.secondaryTextColor} fallback={defaultSecondaryTextColor("light")} onChange={(value) => updateNews({ secondaryTextColor: value })} />
+                  <ColorControl label="Brand color" value={newsDesign.brandTextColor} fallback={defaultBrandTextColor("light")} onChange={(value) => updateNews({ brandTextColor: value })} />
+                  <ColorControl label="Footer color" value={newsDesign.footerTextColor} fallback={defaultFooterTextColor("light")} onChange={(value) => updateNews({ footerTextColor: value })} />
                 </div>
 
                 <div style={CONTROL_GRID}>
@@ -1909,8 +1899,6 @@ export default function NewsCardPage() {
                   <RangeControl label="Category size" min={70} max={140} value={newsDesign.categoryScale} suffix="%" onChange={(value) => updateNews({ categoryScale: value })} />
                   <RangeControl label="Brand size" min={70} max={135} value={newsDesign.brandScale} suffix="%" onChange={(value) => updateNews({ brandScale: value })} />
                   <RangeControl label="Text width" min={45} max={100} value={newsDesign.textWidth} suffix="%" onChange={(value) => updateNews({ textWidth: value })} />
-                  <RangeControl label="Text vertical" min={-220} max={220} value={newsDesign.textOffsetY} suffix="px" onChange={(value) => updateNews({ textOffsetY: value })} />
-                  <RangeControl label="Text shadow" min={0} max={160} value={newsDesign.shadow} suffix="%" onChange={(value) => updateNews({ shadow: value })} />
                   <RangeControl label="Design intensity" min={0} max={100} value={newsDesign.designIntensity} suffix="%" onChange={(value) => updateNews({ designIntensity: value })} />
                 </div>
               </div>
