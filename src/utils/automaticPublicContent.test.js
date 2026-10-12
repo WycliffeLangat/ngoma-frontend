@@ -12,6 +12,19 @@ const levels = [
   { level: "gold", label: "Gold", pts: 200 },
 ];
 
+test("new published points promote awards despite an unchanged CMS certification", () => {
+  const live = [{ id: 7, t: "Growing Hit", a: "Artist A", chart_type: "singles", totalPts: 210 }];
+  const snapshot = (totalPts) => mergeCertifications(buildAutomaticCertifications({
+    singles: [{ t: "Growing Hit", a: "Artist A", totalPts }],
+  }, levels), live, levels);
+
+  assert.equal(snapshot(210)[0].level, "gold");
+  assert.equal(snapshot(410)[0].level, "platinum");
+  assert.equal(snapshot(620)[0].level, "diamond");
+  assert.equal(snapshot(620)[0].totalPts, 620);
+  assert.equal(snapshot(620).length, 1);
+});
+
 test("automatic certifications are built from cumulative points", () => {
   const rows = buildAutomaticCertifications({
     singles: [

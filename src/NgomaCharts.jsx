@@ -1991,7 +1991,6 @@ export default function NgomaCharts(){
         .then(rev => {
           const latest = String(rev?.revision || rev?.stamp || rev || "");
           if (!latest || latest === _syncedRevision) return;
-          _syncedRevision = latest;
           syncLatestPublicData(true);
         })
         .catch(() => {});
@@ -2011,7 +2010,6 @@ export default function NgomaCharts(){
           .then(rev => {
             const latest = String(rev?.revision || rev?.stamp || rev || "");
             if (!latest || latest === _syncedRevision) return;
-            _syncedRevision = latest;
             syncLatestPublicData(true);
           })
           .catch(() => {});
@@ -2051,9 +2049,17 @@ export default function NgomaCharts(){
   }, [syncLatestPublicData]);
 
   useEffect(() => {
+    let cancelled = false;
+    const startingRevision = _syncedRevision;
     fetchCertifications()
-      .then((items) => setLiveCerts(mapPublicCertifications(items)))
-      .catch(() => setLiveCerts(null));
+      .then((items) => {
+        // A newer app-data snapshot must not be overwritten by this startup request.
+        if (!cancelled && _syncedRevision === startingRevision) {
+          setLiveCerts(mapPublicCertifications(items));
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
@@ -2449,23 +2455,22 @@ const top = data[0];
     });
     return [...producers.values()];
   },[songSearchIndex,albumSearchIndex]);
+  // Lifetime awards are independent of the month selected on the charts page.
   const automaticCerts = useMemo(() => buildAutomaticCertifications({
-    singles: buildYearEndReleaseRows("singles", scopeMonths),
-    albums: buildYearEndReleaseRows("albums", scopeMonths),
-  }, CERTIFICATION_LEVELS), [month, dataRevision]);
+    singles: buildYearEndReleaseRows("singles", MONTHS),
+    albums: buildYearEndReleaseRows("albums", MONTHS),
+  }, CERTIFICATION_LEVELS), [dataRevision]);
   // Certification level and cumulative points follow the published Combined
   // Top 50 history. Live CMS rows supply editorial metadata when available,
   // while automatic rows keep public badges current as soon as points change.
   const normalizedLiveCerts = useMemo(() => {
-    const mergedCerts = month === CURRENT_MONTH
-      ? mergeCertifications(automaticCerts, liveCerts || [], CERTIFICATION_LEVELS)
-      : automaticCerts;
+    const mergedCerts = mergeCertifications(automaticCerts, liveCerts || [], CERTIFICATION_LEVELS);
     return mergedCerts.map((cert) => {
       const meta = certificationMetaForLevel(cert.level);
       if (!meta) return null;
       return { ...cert, ...meta, totalPts: Number(cert.totalPts) || 0 };
     }).filter(Boolean);
-  }, [automaticCerts, liveCerts, month]);
+  }, [automaticCerts, liveCerts]);
 
   // Collapse the raw certification rows down to one per release before any
   // public surface reads them, so search, badges, news, and certification
