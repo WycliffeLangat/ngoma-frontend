@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { toPng } from "html-to-image";
 import { resolveMediaUrl } from "../../api/config.js";
 import { cmsApi, getResults, qs } from "../api.js";
 import {
@@ -764,6 +765,79 @@ function drawVideoPostFrame(ctx, video, design) {
   drawPosterFrameCanvas(ctx, design);
 }
 
+function drawNewsPostFrame(ctx, video, design, baseImage, mediaRect) {
+  const sourceW = video.videoWidth || VIDEO_EXPORT_W;
+  const sourceH = video.videoHeight || VIDEO_EXPORT_H;
+  const sourceRatio = sourceW / sourceH;
+  const targetRatio = mediaRect.width / mediaRect.height;
+  let drawW = mediaRect.width;
+  let drawH = mediaRect.height;
+  if (sourceRatio > targetRatio) drawW = mediaRect.height * sourceRatio;
+  else drawH = mediaRect.width / sourceRatio;
+
+  const objectX = mediaRect.x - Math.max(0, drawW - mediaRect.width)
+    * (Number.isFinite(Number(design.imageX)) ? Number(design.imageX) : 50) / 100;
+  const objectY = mediaRect.y - Math.max(0, drawH - mediaRect.height)
+    * (Number.isFinite(Number(design.imageY)) ? Number(design.imageY) : 50) / 100;
+  const zoom = Math.max(100, Number(design.imageZoom) || 100) / 100;
+  const dx = mediaRect.x + (objectX - mediaRect.x) * zoom;
+  const dy = mediaRect.y + (objectY - mediaRect.y) * zoom;
+  drawW *= zoom;
+  drawH *= zoom;
+
+  ctx.clearRect(0, 0, VIDEO_EXPORT_W, VIDEO_EXPORT_H);
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(mediaRect.x, mediaRect.y, mediaRect.width, mediaRect.height);
+  ctx.clip();
+  ctx.filter = posterMediaFilter(design);
+  ctx.drawImage(video, dx, dy, drawW, drawH);
+  ctx.restore();
+  ctx.filter = "none";
+  ctx.drawImage(baseImage, 0, 0, VIDEO_EXPORT_W, VIDEO_EXPORT_H);
+}
+
+function loadImage(source) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.addEventListener("load", () => resolve(image), { once: true });
+    image.addEventListener("error", () => reject(new Error("Could not prepare the news post for video export.")), { once: true });
+    image.src = source;
+  });
+}
+
+async function createNewsPostFrameRenderer(design, posterNode) {
+  const poster = posterNode?.querySelector("[data-news-poster]");
+  const media = poster?.querySelector("[data-news-media]");
+  if (!poster || !media) throw new Error("News post render target missing.");
+  await ensurePosterFontsReady();
+  const pngOptions = {
+    cacheBust: true,
+    width: POSTER_W,
+    height: POSTER_H,
+    pixelRatio: 1,
+    backgroundColor: "transparent",
+  };
+  let baseDataUrl;
+  try {
+    baseDataUrl = await toPng(poster, { ...pngOptions, skipFonts: false });
+  } catch {
+    baseDataUrl = await toPng(poster, { ...pngOptions, skipFonts: true });
+  }
+  const baseImage = await loadImage(baseDataUrl);
+  const posterRect = poster.getBoundingClientRect();
+  const mediaRect = media.getBoundingClientRect();
+  const scaleX = VIDEO_EXPORT_W / posterRect.width;
+  const scaleY = VIDEO_EXPORT_H / posterRect.height;
+  const frameRect = {
+    x: (mediaRect.left - posterRect.left) * scaleX,
+    y: (mediaRect.top - posterRect.top) * scaleY,
+    width: mediaRect.width * scaleX,
+    height: mediaRect.height * scaleY,
+  };
+  return (ctx, video) => drawNewsPostFrame(ctx, video, design, baseImage, frameRect);
+}
+
 function loadExportVideo(source) {
   return new Promise((resolve, reject) => {
     const video = document.createElement("video");
@@ -852,7 +926,7 @@ function waitForVideoSeek(video, targetTime) {
   });
 }
 
-async function exportVideoPostFile(design, filenameBase) {
+async function exportVideoPostFile(design, filenameBase, options = {}) {
   const videoType = preferredVideoMimeType();
   if (!videoType) throw new Error("This browser cannot export video posts.");
 
@@ -868,8 +942,11 @@ async function exportVideoPostFile(design, filenameBase) {
   const video = await loadExportVideo(design.videoUrl);
   const startTime = videoTrimStart(design, video);
   await waitForVideoSeek(video, startTime);
-  drawVideoPostFrame(ctx, video, design);
-  const clipSeconds = videoExportDuration(design, video, startTime);
+  const renderFrame = options.renderFrame || ((frameCtx, frameVideo) => drawVideoPostFrame(frameCtx, frameVideo, design));
+  renderFrame(ctx, video);
+  const clipSeconds = options.fullDuration && Number.isFinite(Number(video.duration))
+    ? Math.max(0.5, Number(video.duration) - startTime)
+    : videoExportDuration(design, video, startTime);
 
   const canvasStream = canvas.captureStream(videoExportFrameRate());
   const audioCapture = await createAudioCapture(video);
@@ -916,7 +993,9 @@ async function exportVideoPostFile(design, filenameBase) {
     };
     const renderFrame = () => {
       try {
-        drawVideoPostFrame(ctx, video, design);
+        options.renderFrame
+          ? options.renderFrame(ctx, video)
+          : drawVideoPostFrame(ctx, video, design);
       } catch {
         fail(new Error("The browser could not render that video. Upload the original video file and try again."));
       }
@@ -1071,7 +1150,7 @@ function MediaPlaceholder({ label, theme, accent, blank = false }) {
   );
 }
 
-function NewsPostContent({ design }) {
+function NewsPostContent({ design, exportMode = false }) {
   const padX = 62;
   const textColor = design.textColor || defaultTextColor("light");
   const metaColor = design.secondaryTextColor || defaultSecondaryTextColor("light");
@@ -1089,10 +1168,10 @@ function NewsPostContent({ design }) {
   return (
     <div
       style={{
+        background: exportMode ? "transparent" : "#FFFFFF",
         width: POSTER_W,
         height: POSTER_H,
         boxSizing: "border-box",
-        background: "#FFFFFF",
         display: "flex",
         flexDirection: "column",
         fontFamily: POSTER_FONT_FAMILY,
@@ -1100,6 +1179,7 @@ function NewsPostContent({ design }) {
         position: "relative",
         overflow: "hidden",
       }}
+      data-news-poster
     >
       {design.showBrand !== false && (
         <div style={{ flexShrink: 0, padding: `24px ${padX}px`, background: "#FFFFFF" }}>
@@ -1115,10 +1195,31 @@ function NewsPostContent({ design }) {
         isolation: "isolate",
         boxSizing: "border-box",
         borderBottom: `5px solid ${design.accent}`,
-      }}>
-      {design.videoUrl && design.videoFrame ? (
+      }}
+      data-news-media
+      >
+      {design.videoUrl && !exportMode ? (
+        <video
+          src={design.videoUrl}
+          poster={design.videoFrame || undefined}
+          controls
+          preload="metadata"
+          playsInline
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            objectPosition: `${design.imageX}% ${design.imageY}%`,
+            transform: mediaTransform(design.imageZoom),
+            transformOrigin: "center",
+            filter: mediaFilter === "none" ? undefined : mediaFilter,
+          }}
+        />
+      ) : design.videoUrl && exportMode ? null : design.image ? (
         <img
-          src={design.videoFrame}
+          src={design.image}
           alt=""
           style={{
             position: "absolute",
@@ -1152,8 +1253,8 @@ function NewsPostContent({ design }) {
         <MediaPlaceholder label="Insert image" theme={design.theme} accent={design.accent} blank />
       )}
 
-      {design.image && newsOverlay && <div style={{ position: "absolute", inset: 0, ...newsOverlay }} />}
-      {design.image && finishOverlay && <div style={{ position: "absolute", inset: 0, pointerEvents: "none", ...finishOverlay }} />}
+      {(design.image || design.videoUrl) && newsOverlay && <div style={{ position: "absolute", inset: 0, pointerEvents: "none", ...newsOverlay }} />}
+      {(design.image || design.videoUrl) && finishOverlay && <div style={{ position: "absolute", inset: 0, pointerEvents: "none", ...finishOverlay }} />}
       </div>
 
       <div
@@ -1716,6 +1817,12 @@ export default function NewsCardPage() {
       if (mode === "video") {
         await exportVideoPostFile(videoDesign, `ngoma-video-post-${fileBase}`);
         clearVideoMedia();
+      } else if (newsDesign.videoUrl) {
+        const renderFrame = await createNewsPostFrameRenderer(newsDesign, posterRef.current);
+        await exportVideoPostFile(newsDesign, `ngoma-news-post-${fileBase}`, {
+          renderFrame,
+          fullDuration: true,
+        });
       } else if (posterRef.current) {
         await exportNodeAsPng(posterRef.current, `ngoma-news-post-${fileBase}.png`, {
           pixelRatio: NEWS_POST_EXPORT_SCALE,
@@ -1739,7 +1846,7 @@ export default function NewsCardPage() {
     ? Math.min(videoDuration, effectiveTrimStart + effectiveExportDuration)
     : effectiveTrimStart + effectiveExportDuration;
   const canDownload = mode === "news"
-    ? Boolean(newsDesign.headline.trim())
+    ? Boolean(newsDesign.headline.trim() && (!newsDesign.videoUrl || videoExportType))
     : Boolean(videoDesign.videoUrl && videoDesign.title.trim() && videoDesign.artist.trim() && videoExportType);
 
   return (
@@ -1860,7 +1967,7 @@ export default function NewsCardPage() {
 
                 {newsDesign.sourceName && (
                   <span className="cms-help" style={{ textTransform: "none", letterSpacing: 0, fontWeight: 650 }}>
-                    Video frame used in news post: {newsDesign.sourceName}
+                    {newsDesign.videoUrl ? "Video used in news post: " : "Image used in news post: "}{newsDesign.sourceName}
                   </span>
                 )}
 
@@ -2155,16 +2262,22 @@ export default function NewsCardPage() {
             disabled={exporting || !canDownload}
           >
             {exporting
-              ? mode === "video" ? "Rendering video..." : "Generating..."
+              ? mode === "video" || (mode === "news" && newsDesign.videoUrl) ? "Rendering video..." : "Generating..."
               : mode === "news"
-                ? "Download news post (PNG)"
+                ? newsDesign.videoUrl
+                  ? `Download news video (${(videoExportType?.[1] || "video").toUpperCase()})`
+                  : "Download news post (PNG)"
                 : `Download video post (${(videoExportType?.[1] || "video").toUpperCase()})`}
           </button>
           <p className="cms-help" style={{ marginTop: 10 }}>
-            {mode === "video" ? superHdHelpText("video") : superHdHelpText("poster", NEWS_POST_EXPORT_SCALE)}
-            {mode === "video" ? " Audio is preserved from the original browser-readable video." : ""}
+            {mode === "video" || (mode === "news" && newsDesign.videoUrl)
+              ? superHdHelpText("video")
+              : superHdHelpText("poster", NEWS_POST_EXPORT_SCALE)}
+            {mode === "video" || (mode === "news" && newsDesign.videoUrl)
+              ? " Audio is preserved from the original browser-readable video."
+              : ""}
           </p>
-          {mode === "video" && !videoExportType && (
+          {(mode === "video" || (mode === "news" && newsDesign.videoUrl)) && !videoExportType && (
             <div className="cms-alert warning">This browser cannot export video posts. Use Chrome or Edge.</div>
           )}
         </div>
@@ -2192,7 +2305,7 @@ export default function NewsCardPage() {
         <div style={{ position: "fixed", top: 0, left: -99999, pointerEvents: "none" }} aria-hidden="true">
           <div ref={posterRef}>
             {mode === "news"
-              ? <NewsPostContent design={newsDesign} />
+              ? <NewsPostContent design={newsDesign} exportMode={Boolean(newsDesign.videoUrl)} />
               : <VideoPostContent design={videoDesign} exportMode />}
           </div>
         </div>
