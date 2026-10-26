@@ -66,6 +66,9 @@ const NEWS_POST_EXPORT_SCALE = 2;
 
 const DEFAULT_NEWS_DESIGN = {
   image: "",
+  videoUrl: "",
+  videoFrame: "",
+  sourceName: "",
   headline: "New chart story headline",
   subheadline: "",
   category: "Chart News",
@@ -1113,7 +1116,23 @@ function NewsPostContent({ design }) {
         boxSizing: "border-box",
         borderBottom: `5px solid ${design.accent}`,
       }}>
-      {design.image ? (
+      {design.videoUrl && design.videoFrame ? (
+        <img
+          src={design.videoFrame}
+          alt=""
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            objectPosition: `${design.imageX}% ${design.imageY}%`,
+            transform: mediaTransform(design.imageZoom),
+            transformOrigin: "center",
+            filter: mediaFilter === "none" ? undefined : mediaFilter,
+          }}
+        />
+      ) : design.image ? (
         <img
           src={design.image}
           alt=""
@@ -1390,6 +1409,7 @@ export default function NewsCardPage() {
   const [newsDesign, setNewsDesign] = useState(() => cloneDesign(DEFAULT_NEWS_DESIGN));
   const [videoDesign, setVideoDesign] = useState(() => cloneDesign(DEFAULT_VIDEO_DESIGN));
   const [videoObjectUrl, setVideoObjectUrl] = useState("");
+  const [newsVideoObjectUrl, setNewsVideoObjectUrl] = useState("");
   const [error, setError] = useState("");
   const [exportError, setExportError] = useState("");
   const [frameError, setFrameError] = useState("");
@@ -1414,6 +1434,10 @@ export default function NewsCardPage() {
   useEffect(() => () => {
     if (videoObjectUrl) URL.revokeObjectURL(videoObjectUrl);
   }, [videoObjectUrl]);
+
+  useEffect(() => () => {
+    if (newsVideoObjectUrl) URL.revokeObjectURL(newsVideoObjectUrl);
+  }, [newsVideoObjectUrl]);
 
   useEffect(() => {
     const trimmed = query.trim();
@@ -1504,8 +1528,12 @@ export default function NewsCardPage() {
   function applyArticle(article) {
     setMode("news");
     setSelectedArticleId(article.id);
+    setNewsVideoObjectUrl("");
     updateNews({
       image: article.image,
+      videoUrl: "",
+      videoFrame: "",
+      sourceName: "",
       headline: article.title || DEFAULT_NEWS_DESIGN.headline,
       subheadline: article.subtitle || article.excerpt || "",
       category: article.category || DEFAULT_NEWS_DESIGN.category,
@@ -1514,11 +1542,32 @@ export default function NewsCardPage() {
 
   async function handleNewsImageFile(file) {
     if (!file) return;
+    if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
+      setError("Choose an image or video file.");
+      return;
+    }
+    if (file.type.startsWith("video/")) {
+      const nextUrl = URL.createObjectURL(file);
+      setNewsVideoObjectUrl(nextUrl);
+      setError("");
+      setSelectedArticleId(null);
+      updateNews({ image: "", videoUrl: nextUrl, videoFrame: "", sourceName: file.name || "Uploaded video" });
+      try {
+        const frame = await extractVideoFrame(nextUrl);
+        setNewsDesign((current) => current.videoUrl === nextUrl
+          ? { ...current, videoFrame: frame }
+          : current);
+      } catch {
+        setError("Couldn't capture a still frame from that video. Try a different video file.");
+      }
+      return;
+    }
     try {
       const nextUrl = await readImageFileAsDataUrl(file);
       setError("");
       setSelectedArticleId(null);
-      updateNews({ image: nextUrl });
+      setNewsVideoObjectUrl("");
+      updateNews({ image: nextUrl, videoUrl: "", videoFrame: "", sourceName: "" });
     } catch (err) {
       setError(err.message || "Could not read that image.");
     }
@@ -1778,13 +1827,13 @@ export default function NewsCardPage() {
 
               <div style={{ borderTop: "1px solid var(--cms-line)", paddingTop: 16, display: "grid", gap: 14 }}>
                 <div style={FIELD_LABEL}>
-                  Image
+                  Image or video
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                     <label className="cms-btn light small" style={{ display: "inline-flex", alignItems: "center", cursor: "pointer" }}>
-                      {newsDesign.image ? "Replace image" : "Insert image"}
+                      {newsDesign.image || newsDesign.videoUrl ? "Replace media" : "Insert image or video"}
                       <input
                         type="file"
-                        accept="image/*"
+                        accept="image/*,video/*"
                         style={{ display: "none" }}
                         onChange={(event) => {
                           const input = event.currentTarget;
@@ -1793,20 +1842,27 @@ export default function NewsCardPage() {
                         }}
                       />
                     </label>
-                    {newsDesign.image && (
+                      {(newsDesign.image || newsDesign.videoUrl) && (
                       <button
                         type="button"
                         className="cms-btn light small"
                         onClick={() => {
                           setSelectedArticleId(null);
-                          updateNews({ image: "" });
+                          setNewsVideoObjectUrl("");
+                          updateNews({ image: "", videoUrl: "", videoFrame: "", sourceName: "" });
                         }}
                       >
-                        Clear
+                        Clear media
                       </button>
                     )}
                   </div>
                 </div>
+
+                {newsDesign.sourceName && (
+                  <span className="cms-help" style={{ textTransform: "none", letterSpacing: 0, fontWeight: 650 }}>
+                    Video frame used in news post: {newsDesign.sourceName}
+                  </span>
+                )}
 
                 <ControlField label="Image URL">
                   <input
@@ -1815,7 +1871,8 @@ export default function NewsCardPage() {
                     value={newsDesign.image.startsWith("blob:") || newsDesign.image.startsWith("data:") ? "" : newsDesign.image}
                     onChange={(event) => {
                       setSelectedArticleId(null);
-                      updateNews({ image: event.target.value });
+                      setNewsVideoObjectUrl("");
+                      updateNews({ image: event.target.value, videoUrl: "", videoFrame: "", sourceName: "" });
                     }}
                     placeholder="https://..."
                   />
