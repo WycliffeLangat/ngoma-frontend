@@ -1705,7 +1705,7 @@ export default function NewsCardPage() {
       {error && <div className="cms-alert error">{error}</div>}
       {exportError && <div className="cms-alert error">{exportError}</div>}
 
-      <div style={{ display: "flex", gap: 28, flexWrap: "wrap", alignItems: "flex-start" }}>
+      <div style={{ display: "flex", gap: 28, flexWrap: "wrap", alignItems: "flex-start", background: "#fff" }}>
         <div className="cms-card" style={{ flex: "1 1 380px", minWidth: 300 }}>
           <div className="cms-card-heading"><h2>Designer</h2></div>
 
@@ -2112,16 +2112,16 @@ export default function NewsCardPage() {
           )}
         </div>
 
-        <div style={{ flex: "0 0 auto" }}>
+        <div style={{ flex: "0 0 auto", background: "#fff", padding: 0, boxShadow: "none" }}>
           <div
             style={{
               width: PREVIEW_W,
               height: PREVIEW_W * (POSTER_H / POSTER_W),
               overflow: "hidden",
-              borderRadius: 18,
-              border: "1px solid var(--cms-line)",
-              boxShadow: "0 20px 50px rgba(20,16,4,.18)",
-              background: mode === "news" ? "transparent" : (POSTER_THEMES[activeTheme]?.pageBg || "#050505"),
+              borderRadius: mode === "news" ? 18 : 0,
+              border: mode === "news" ? "1px solid var(--cms-line)" : "none",
+              boxShadow: "none",
+              background: "#fff",
             }}
           >
             <div style={{ width: POSTER_W, height: POSTER_H, transform: `scale(${PREVIEW_SCALE})`, transformOrigin: "top left" }}>
